@@ -29,7 +29,12 @@ import {
     VariableAnnotationPatch,
 } from "../clientUtils/AdminSessionTypes.js"
 import AntdConfig from "react-awesome-query-builder/lib/config/antd"
-import { BasicConfig, SimpleField } from "react-awesome-query-builder"
+import {
+    BasicConfig,
+    Builder,
+    BuilderProps,
+    SimpleField,
+} from "react-awesome-query-builder"
 import { Utils as QbUtils } from "react-awesome-query-builder"
 // types
 import {
@@ -339,9 +344,12 @@ export function filterTreeToSExpression(
     filterTree: JsonItem
 ): Operation | undefined {
     if (filterTree.type === "group") {
+        // If we have a group then we need to decide
+        // on the operator and build the list of children recursively
         const logicOperator = getLogicOperator(
             filterTree.properties?.conjunction ?? "AND"
         )
+
         let children: Operation[] = []
         if (isArray(filterTree.children1))
             children = excludeUndefined(
@@ -355,68 +363,88 @@ export function filterTreeToSExpression(
             )
         else if (filterTree.children1 !== undefined)
             console.warn("unexpected content of children1")
+
         if (filterTree.children1 === undefined || children.length === 0)
             return undefined
+
         const operation = new BinaryLogicOperation(logicOperator, children)
+
+        // If not is active, wrap the operation in a Negation
         if (filterTree.properties?.not) return new Negation(operation)
         else return operation
     } else if (filterTree.type === "rule") {
-        return match(filterTree.properties.operator)
-            .when(
-                (op) => op && getComparisonOperator(op),
-                (op) => {
-                    const operator = getComparisonOperator(op as string)
+        return (
+            match(filterTree.properties.operator)
+                // If we have a rule, check what operator is used and build the corresponding operation
+                .when(
+                    (op) => op && getComparisonOperator(op),
+                    (op) => {
+                        const operator = getComparisonOperator(op as string)
+                        const field = getFieldSymbol(
+                            filterTree.properties.field!
+                        )
+                        if (
+                            filterTree.properties.value.length === 0 ||
+                            filterTree.properties.value[0] === undefined
+                        )
+                            return undefined
+                        const val = getValueAtom(filterTree.properties.value[0])
+                        return new NumericComparision(operator!, [field, val!])
+                    }
+                )
+                .when(
+                    (op) => op && getEqualityOperator(op),
+                    (op) => {
+                        const operator = getEqualityOperator(op as string)
+                        const field = getFieldSymbol(
+                            filterTree.properties.field!
+                        )
+                        const val = getValueAtom(filterTree.properties.value[0])
+                        if (val === undefined) return undefined
+                        return new EqualityComparision(operator!, [field, val])
+                    }
+                )
+                .when(
+                    (op) => op && op === "like",
+                    () => {
+                        const field = getFieldSymbol(
+                            filterTree.properties.field!
+                        )
+                        if (
+                            filterTree.properties.value.length === 0 ||
+                            filterTree.properties.value[0] === undefined
+                        )
+                            return undefined
+                        const val = new StringAtom(
+                            filterTree.properties.value[0]
+                        )
+                        return new StringContainsOperation(field, val)
+                    }
+                )
+                .when(
+                    (op) => op && getNullCheckOperator(op as string),
+                    (op) => {
+                        const operator = getNullCheckOperator(op as string)!
+                        const field = getFieldSymbol(
+                            filterTree.properties.field!
+                        )
+                        return new NullCheckOperation(operator!, field)
+                    }
+                )
+                .with("is_empty", "is_not_empty", (operator) => {
                     const field = getFieldSymbol(filterTree.properties.field!)
-                    if (
-                        filterTree.properties.value.length === 0 ||
-                        filterTree.properties.value[0] === undefined
-                    )
-                        return undefined
-                    const val = getValueAtom(filterTree.properties.value[0])
-                    return new NumericComparision(operator!, [field, val!])
-                }
-            )
-            .when(
-                (op) => op && getEqualityOperator(op),
-                (op) => {
-                    const operator = getEqualityOperator(op as string)
-                    const field = getFieldSymbol(filterTree.properties.field!)
-                    const val = getValueAtom(filterTree.properties.value[0])
-                    if (val === undefined) return undefined
-                    return new EqualityComparision(operator!, [field, val])
-                }
-            )
-            .when(
-                (op) => op && op === "like",
-                () => {
-                    const field = getFieldSymbol(filterTree.properties.field!)
-                    if (
-                        filterTree.properties.value.length === 0 ||
-                        filterTree.properties.value[0] === undefined
-                    )
-                        return undefined
-                    const val = new StringAtom(filterTree.properties.value[0])
-                    return new StringContainsOperation(field, val)
-                }
-            )
-            .when(
-                (op) => op && getNullCheckOperator(op as string),
-                (op) => {
-                    const operator = getNullCheckOperator(op as string)!
-                    const field = getFieldSymbol(filterTree.properties.field!)
-                    return new NullCheckOperation(operator!, field)
-                }
-            )
-            .with("is_empty", "is_not_empty", (operator) => {
-                const field = getFieldSymbol(filterTree.properties.field!)
-                const op: EqualityOperator = match(operator)
-                    .with("is_empty", () => EqualityOperator.equal)
-                    .with("is_not_empty", () => EqualityOperator.unequal)
-                    .exhaustive()
-                return new EqualityComparision(op, [field, new StringAtom("")])
-            })
+                    const op: EqualityOperator = match(operator)
+                        .with("is_empty", () => EqualityOperator.equal)
+                        .with("is_not_empty", () => EqualityOperator.unequal)
+                        .exhaustive()
+                    return new EqualityComparision(op, [
+                        field,
+                        new StringAtom(""),
+                    ])
+                })
 
-            .otherwise(() => undefined)
+                .otherwise(() => undefined)
+        )
     }
     return undefined
 }
@@ -471,6 +499,15 @@ export function fieldDescriptionToFilterPanelFieldConfig(
     else return undefined
 }
 
+export function renderBuilder(props: BuilderProps) {
+    return (
+        <div className="query-builder-container" style={{ padding: "0" }}>
+            <div className="query-builder qb-lite">
+                <Builder {...props} />
+            </div>
+        </div>
+    )
+}
 export function getFinalConfigLayerForVariable(id: number) {
     return {
         version: 1,

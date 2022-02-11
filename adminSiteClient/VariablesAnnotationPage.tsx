@@ -81,7 +81,6 @@ import {
     columnSets,
     isConfigColumn,
     readOnlyColumnNamesFields,
-    ReadOnlyColumn,
     filterTreeToSExpression,
     FilterPanelState,
     filterPanelInitialConfig,
@@ -89,15 +88,11 @@ import {
     fieldDescriptionToFilterPanelFieldConfig,
     simpleColumnToFilterPanelFieldConfig,
     getFinalConfigLayerForVariable,
+    renderBuilder,
 } from "./VariablesAnnotationTypesAndUtils.js"
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder"
+import { Query, Utils as QbUtils } from "react-awesome-query-builder"
 // types
-import {
-    SimpleField,
-    Config,
-    ImmutableTree,
-    BuilderProps,
-} from "react-awesome-query-builder"
+import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
 
 @observer
 class VariablesAnnotationComponent extends React.Component {
@@ -132,6 +127,7 @@ class VariablesAnnotationComponent extends React.Component {
     // Filter fields and paging offset
     @observable variableNameFilter: string | undefined = undefined
     @observable datasetNameFilter: string = ""
+    @observable namespaceNameFilter: string = ""
     /** This field stores the offset of what is currently displayed on screen */
     @observable currentPagingOffset: number = 0
     /** This field stores the offset that the user requested. E.g. if the user clicks
@@ -150,6 +146,7 @@ class VariablesAnnotationComponent extends React.Component {
         const {
             variableNameFilter,
             datasetNameFilter,
+            namespaceNameFilter,
             desiredPagingOffset,
             sortByAscending,
             sortByColumn,
@@ -166,6 +163,12 @@ class VariablesAnnotationComponent extends React.Component {
                 datasetNameFilter ?? "",
                 new SqlColumnName(
                     WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME
+                )
+            ),
+            searchFieldStringToFilterOperations(
+                namespaceNameFilter ?? "",
+                new SqlColumnName(
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME
                 )
             ),
             filterSExpression,
@@ -905,31 +908,45 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     renderFilterTab(): JSX.Element {
-        const { filterSExpression, FilterPanelConfig, filterState } = this
+        const { FilterPanelConfig, filterState } = this
         return (
             <section>
                 <div className="container">
                     <h3>Variable filters</h3>
                     {this.renderPagination()}
                     <BindString
-                        field="variableNameFilter"
+                        field="namespaceNameFilter"
                         store={this}
-                        label="Variable name"
+                        label="Namespace name"
                     />
                     <BindString
                         field="datasetNameFilter"
                         store={this}
                         label="Dataset name"
                     />
+                    <BindString
+                        field="variableNameFilter"
+                        store={this}
+                        label="Variable name"
+                    />
+                    <label>Query builder</label>
                     {FilterPanelConfig && filterState && (
                         <Query
                             {...FilterPanelConfig}
                             value={filterState.tree}
                             onChange={this.updateFilterState}
-                            renderBuilder={this.renderBuilder}
+                            renderBuilder={renderBuilder}
                         />
                     )}
-                    <div>{filterSExpression?.toSExpr()}</div>
+                    <small className="form-text text-muted">
+                        Note that default values like empty string, "LineChart"
+                        for type or the default checkbox state are never stored.
+                        To find these you have to use the "is null" operator.
+                    </small>
+                    {
+                        // Uncomment below to see the generated S-expression
+                        //<div>{filterSExpression?.toSExpr()}</div>
+                    }
                 </div>
             </section>
         )
@@ -1127,8 +1144,6 @@ class VariablesAnnotationComponent extends React.Component {
                 tree: immutableTree,
                 config: config,
             }
-
-        const jsonTree = QbUtils.getTree(immutableTree)
     }
 
     @computed get filterSExpression(): Operation | undefined {
@@ -1142,20 +1157,11 @@ class VariablesAnnotationComponent extends React.Component {
         return undefined
     }
 
-    renderBuilder = (props: BuilderProps) => (
-        <div className="query-builder-container" style={{ padding: "0" }}>
-            <div className="query-builder qb-lite">
-                <Builder {...props} />
-            </div>
-        </div>
-    )
-
     @computed get filterPanelConfigFields(): [string, SimpleField][] {
         const { columnSelection, fieldDescriptions } = this
-        // The schema of some fields is an anyOf which is used to model fields like maxTime that are usually numeric but can also
-        // have the value "latest". These are then transformed into a type entry that is a string of the involved types (in this case
-        // number and string). For now we just select the first type here but we might have to be more clever in the future and build
-        // a custom field type for such cases that allows both numeric and string equals queries
+        // The editors to use use are decided by two helper functions. For
+        // the more interesting fieldDescription mapping we rely on the
+        // preferred editor that is set in the editorOption field of the fieldDescription
 
         if (fieldDescriptions === undefined) return []
         const fieldDescriptionMap = new Map(
@@ -1187,6 +1193,8 @@ class VariablesAnnotationComponent extends React.Component {
             ...filterPanelInitialConfig,
             fields: fieldsObject,
         }
+        // Hide operators in the UI that we don't have a good equivalent for
+        // in the S-Expressions
         const operatorsToDrop = new Set([
             "not_like",
             "proximity",
