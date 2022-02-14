@@ -10,7 +10,7 @@ import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
-import _, {
+import {
     cloneDeep,
     findLastIndex,
     fromPairs,
@@ -21,7 +21,6 @@ import _, {
     merge,
 } from "lodash"
 
-import jsonpointer from "json8-pointer"
 import { HotColumn, HotTable } from "@handsontable/react"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -37,7 +36,7 @@ import Handsontable from "handsontable"
 import { Bounds } from "../clientUtils/Bounds"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { BindString, SelectField } from "./Forms"
-import { from, Observable } from "rxjs"
+import { from } from "rxjs"
 import {
     catchError,
     debounceTime,
@@ -180,7 +179,7 @@ class VariablesAnnotationComponent extends React.Component {
                     selector: (response) => response.json(),
                 }).pipe(
                     // catch errors and report them the way the admin UI expects it
-                    catchError((err: any, caught: Observable<any>) => {
+                    catchError((err: any /*, caught: Observable<any> */) => {
                         this.context.admin.setErrorMessage({
                             title: `Failed to fetch variable annotations`,
                             content:
@@ -388,7 +387,7 @@ class VariablesAnnotationComponent extends React.Component {
                                 : undefined,
                         ] as const
                 )
-                .filter(([name, val]) => !isNil(val))
+                .filter(([, val]) => !isNil(val))
             const fields = fromPairs(fieldsArray as any)
             return {
                 id: row.id,
@@ -406,14 +405,14 @@ class VariablesAnnotationComponent extends React.Component {
         // We currently map several special types to text when we don't have anything
         // fancy implemented
         return match(desc.editor)
-            .with(EditorOption.checkbox, (_) => "checkbox")
-            .with(EditorOption.dropdown, (_) => "dropdown")
-            .with(EditorOption.numeric, (_) => "numeric")
-            .with(EditorOption.textfield, (_) => "text")
-            .with(EditorOption.textarea, (_) => "text")
-            .with(EditorOption.colorEditor, (_) => "text")
-            .with(EditorOption.mappingEditor, (_) => "text")
-            .with(EditorOption.primitiveListEditor, (_) => "text")
+            .with(EditorOption.checkbox, () => "checkbox")
+            .with(EditorOption.dropdown, () => "dropdown")
+            .with(EditorOption.numeric, () => "numeric")
+            .with(EditorOption.textfield, () => "text")
+            .with(EditorOption.textarea, () => "text")
+            .with(EditorOption.colorEditor, () => "text")
+            .with(EditorOption.mappingEditor, () => "text")
+            .with(EditorOption.primitiveListEditor, () => "text")
             .exhaustive()
     }
     static fieldDescriptionToColumn(desc: FieldDescription): JSX.Element {
@@ -467,7 +466,7 @@ class VariablesAnnotationComponent extends React.Component {
                 } else {
                     const readonlyField =
                         VariablesAnnotationComponent.readOnlyColumnNamesFields.find(
-                            ([_, key]) => key === reorderItem.key
+                            ([, key]) => key === reorderItem.key
                         )
                     if (readonlyField === undefined) {
                         undefinedColumns.push(reorderItem)
@@ -513,7 +512,7 @@ class VariablesAnnotationComponent extends React.Component {
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
                 this.validateCellChanges(changes, source),
-            afterSelectionEnd: (row, column, row2, column2, layer) => {
+            afterSelectionEnd: (row /*, column, row2, column2, layer*/) => {
                 if (row !== this.selectedRow) {
                     this.selectedRow = row
                     this.updatePreviewToRow(row)
@@ -557,9 +556,7 @@ class VariablesAnnotationComponent extends React.Component {
         const { fieldDescriptionsMap } = this
         // The Handsontable.CellChange is an array of 4 elements: [row, column, oldValue, newValue]. Below
         // we have the indices, only a few of them which are used now
-        const rowIndex = 0
         const columnIndex = 1
-        const oldValueIndex = 2
         const newValueIndex = 3
         // Changes due to loading are always ok (return flags all as ok)
         if (source === "loadData" || changes === null) return
@@ -601,17 +598,17 @@ class VariablesAnnotationComponent extends React.Component {
             [FieldType | FieldType[], string],
             boolean
         >([columnDefinition.type, typeof firstNewValue])
-            .with([FieldType.string, "string"], (_) => false)
-            .with([FieldType.number, "string"], (_) =>
+            .with([FieldType.string, "string"], () => false)
+            .with([FieldType.number, "string"], () =>
                 Number.isNaN(Number.parseFloat(firstNewValue))
             )
-            .with([FieldType.integer, "string"], (_) =>
+            .with([FieldType.integer, "string"], () =>
                 Number.isNaN(Number.parseInt(firstNewValue))
             )
-            .with([FieldType.boolean, "boolean"], (_) => false)
-            .with([[__], "string"], (_) => false)
+            .with([FieldType.boolean, "boolean"], () => false)
+            .with([[__], "string"], () => false)
 
-            .otherwise((_) => true)
+            .otherwise(() => true)
         if (invalidTypeAssignment) return false
 
         // TODO: locally apply values here and see if they parse the schema? Might be an easy
@@ -640,7 +637,6 @@ class VariablesAnnotationComponent extends React.Component {
         for (const change of changes) {
             let [rowIndex, column, prevVal, newVal] = change
 
-            const targetPath = jsonpointer.parse(column) as string[]
             const fieldDesc = fieldDescriptionsMap.get(column as string)
             const row = richDataRows[rowIndex]
 
@@ -733,7 +729,7 @@ class VariablesAnnotationComponent extends React.Component {
         // Now check what is selected in currentColumnSet. If we should just show all then create that sequence,
         // otherwise use the list of column ids that we are supposed to show in this order with visible true
         const columnFieldIdsToMakeVisibleAndShowFirst = match(currentColumnSet)
-            .with({ kind: "allColumns" }, (_) =>
+            .with({ kind: "allColumns" }, () =>
                 allReorderItems.map((item) => item.key)
             )
             .with(
@@ -985,7 +981,7 @@ class VariablesAnnotationComponent extends React.Component {
                         onDragEnd={(result) => this.onDragEnd(result)}
                     >
                         <Droppable droppableId="droppable">
-                            {(provided, snapshot) => (
+                            {(provided /*, snapshot */) => (
                                 <div
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
