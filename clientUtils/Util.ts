@@ -1202,3 +1202,14 @@ export const triggerDownloadFromUrl = (filename: string, url: string): void => {
 export const removeAllWhitespace = (text: string): string => {
     return text.replace(/\s+|\n/g, "")
 }
+
+export function moveArrayItemToIndex<Item>(
+    arr: Item[],
+    fromIndex: number,
+    toIndex: number
+): Item[] {
+    const newArray = Array.from(arr)
+    const [removed] = newArray.splice(fromIndex, 1)
+    newArray.splice(toIndex, 0, removed)
+    return newArray
+}
