@@ -10,7 +10,7 @@ import { queryMysql } from "./db.js"
 import { ENTRIES_CATEGORY_ID, getDocumentsInfo } from "./wpdb.js"
 
 import fortune from "fortune" // Works in web browsers, too.
-import MemoryAdapter from "fortune/lib/adapter/adapters/memory"
+import MemoryAdapter from "fortune/lib/adapter/adapters/memory/index.js"
 const {
     errors: { ConflictError },
 } = fortune
