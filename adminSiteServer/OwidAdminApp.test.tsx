@@ -1,4 +1,4 @@
-import { OwidAdminApp } from "./app.js"
+import { OwidAdminApp } from "./OwidAdminApp.js"
 
 jest.setTimeout(10000) // wait for up to 10s for the app server to start
 
