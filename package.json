@@ -4,6 +4,7 @@
     "engines": {
         "node": ">=16.13"
     },
+    "type": "module",
     "scripts": {
         "buildAndDeploySite": "node ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",

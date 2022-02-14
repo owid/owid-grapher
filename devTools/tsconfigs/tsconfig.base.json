@@ -1,7 +1,7 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "es2020",
         "strict": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
