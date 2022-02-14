@@ -4,8 +4,8 @@ import "grapher/core/grapher.scss"
 
 // Enable mobx-formatters
 import * as Mobx from "mobx"
-const mobxFormatters = require("mobx-formatters").default
-mobxFormatters(Mobx)
+import mobxFormatters from "mobx-formatters"
+mobxFormatters.default(Mobx)
 //Mobx.useStrict(true)
 
 import { Grapher } from "../core/Grapher.js"
