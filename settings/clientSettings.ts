@@ -7,12 +7,12 @@ import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
 
 import { dirname } from "path"
-import { fileURLToPath } from "url"
+if (dirname !== undefined) {
+    const __dirname = dirname(new URL("", import.meta.url).pathname)
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
-const baseDir = findBaseDir(__dirname)
-if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
+    const baseDir = findBaseDir(__dirname)
+    if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
+}
 
 import { parseIntOrUndefined } from "../clientUtils/Util.js"
 
