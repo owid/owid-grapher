@@ -1,5 +1,5 @@
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import urljoin from "url-join"
 import { ADMIN_BASE_URL } from "../settings/serverSettings.js"
 import { JsonError } from "../clientUtils/owidTypes.js"

@@ -1,5 +1,5 @@
 import React from "react"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { groupBy, isString, sortBy } from "../clientUtils/Util.js"
 import {
     computed,
@@ -87,7 +87,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         }
     }
 
-    @computed get datasetsByName(): lodash.Dictionary<Dataset> {
+    @computed get datasetsByName(): Record<string, Dataset> {
         return lodash.keyBy(this.datasets, (d) => d.name)
     }
 

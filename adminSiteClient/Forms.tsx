@@ -5,7 +5,7 @@
  */
 
 import React from "react"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { bind } from "decko"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"

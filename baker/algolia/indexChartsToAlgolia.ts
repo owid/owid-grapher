@@ -1,4 +1,4 @@
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 
 import * as db from "../../db/db.js"
 import { getRelatedArticles } from "../../db/wpdb.js"

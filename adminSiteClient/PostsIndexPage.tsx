@@ -2,7 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import fuzzysort from "fuzzysort"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
 import { AdminLayout } from "./AdminLayout.js"

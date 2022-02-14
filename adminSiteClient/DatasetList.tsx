@@ -1,7 +1,7 @@
 import React from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { bind } from "decko"
 
 import { Link } from "./Link.js"

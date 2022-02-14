@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow, Modal, TextField } from "./Forms.js"
@@ -98,7 +98,7 @@ export class TagsIndexPage extends React.Component {
     @observable isAddingTag: boolean = false
     @observable addTagParentId?: number
 
-    @computed get categoriesById(): lodash.Dictionary<TagListItem> {
+    @computed get categoriesById(): Record<string, TagListItem> {
         return lodash.keyBy(this.tags, (t) => t.id)
     }
 

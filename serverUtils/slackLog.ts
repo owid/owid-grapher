@@ -4,7 +4,7 @@ import {
     SLACK_ERRORS_WEBHOOK_URL,
 } from "../settings/serverSettings.js"
 import Slack from "slack-node"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 
 const sendErrorToSlack = async (err: any, slackWebhook: string | undefined) => {
     if (!slackWebhook) return

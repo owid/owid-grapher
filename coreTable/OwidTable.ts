@@ -371,13 +371,12 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 )
             return def
         })
+
+        const rows = Object.values(
+            groupBy(this.sortedByTime.rows, (row) => row[this.entityNameSlug])
+        ) as OwidRow[][]
         const newRows = flatten(
-            Object.values(
-                groupBy(
-                    this.sortedByTime.rows,
-                    (row) => row[this.entityNameSlug]
-                )
-            ).map((rowsForSingleEntity) => {
+            rows.map((rowsForSingleEntity) => {
                 columnSlugs.forEach((valueSlug) => {
                     let comparisonValue: number
                     rowsForSingleEntity = rowsForSingleEntity.map(

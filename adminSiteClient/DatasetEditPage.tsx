@@ -9,7 +9,7 @@ import {
     IReactionDisposer,
     when,
 } from "mobx"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 

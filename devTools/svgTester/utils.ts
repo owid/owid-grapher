@@ -15,7 +15,7 @@ import md5 from "md5"
 import * as util from "util"
 import { GrapherInterface } from "../../grapher/core/GrapherInterface.js"
 import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util.js"
-import _ from "lodash"
+import _ from "lodash-es"
 
 const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"

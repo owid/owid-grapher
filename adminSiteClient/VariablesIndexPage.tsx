@@ -8,7 +8,7 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow } from "./Forms.js"

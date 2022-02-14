@@ -7,7 +7,7 @@ import {
     OneToMany,
     Relation,
 } from "typeorm"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import * as db from "../db.js"
 import { getVariableData } from "./Variable.js"
 import { User } from "./User.js"

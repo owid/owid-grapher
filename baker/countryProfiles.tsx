@@ -2,7 +2,7 @@ import React from "react"
 import * as db from "../db/db.js"
 import { CountriesIndexPage } from "../site/CountriesIndexPage.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import {
     CountryProfileIndicator,
     CountryProfilePage,

@@ -12,7 +12,7 @@ import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import {
     extractFormattingOptions,
     formatCountryProfile,

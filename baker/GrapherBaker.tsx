@@ -14,7 +14,7 @@ import {
 import { getVariableData } from "../db/model/Variable.js"
 import * as fs from "fs-extra"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
 import {
     OPTIMIZE_SVG_EXPORTS,

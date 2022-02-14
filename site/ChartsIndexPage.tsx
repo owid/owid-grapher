@@ -3,7 +3,7 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { TableOfContents } from "./TableOfContents.js"
 import { slugify } from "../clientUtils/Util.js"
 

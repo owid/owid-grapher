@@ -1,63 +1,65 @@
 // We're importing every item on its own to enable webpack tree shaking
-import capitalize from "lodash/capitalize.js"
-import chunk from "lodash/chunk.js"
-import clone from "lodash/clone.js"
-import cloneDeep from "lodash/cloneDeep.js"
-import compact from "lodash/compact.js"
-import countBy from "lodash/countBy.js"
-import debounce from "lodash/debounce.js"
-import difference from "lodash/difference.js"
-import drop from "lodash/drop.js"
-import extend from "lodash/extend.js"
-import findIndex from "lodash/findIndex.js"
-import findLastIndex from "lodash/findLastIndex.js"
-import flatten from "lodash/flatten.js"
-import groupBy from "lodash/groupBy.js"
-import identity from "lodash/identity.js"
-import invert from "lodash/invert.js"
-import isArray from "lodash/isArray.js"
-import isBoolean from "lodash/isBoolean.js"
-import isEmpty from "lodash/isEmpty.js"
-import isEqual from "lodash/isEqual.js"
-import isNumber from "lodash/isNumber.js"
-import isNull from "lodash/isNull.js"
-import isObject from "lodash/isObject.js"
-import isPlainObject from "lodash/isPlainObject.js"
-import isString from "lodash/isString.js"
-import isUndefined from "lodash/isUndefined.js"
-import keyBy from "lodash/keyBy.js"
-import keys from "lodash/keys.js"
-import mapValues from "lodash/mapValues.js"
-import max from "lodash/max.js"
-import maxBy from "lodash/maxBy.js"
-import memoize from "lodash/memoize.js"
-import min from "lodash/min.js"
-import minBy from "lodash/minBy.js"
-import noop from "lodash/noop.js"
-import omit from "lodash/omit.js"
-import once from "lodash/once.js"
-import orderBy from "lodash/orderBy.js"
-import partition from "lodash/partition.js"
-import pick from "lodash/pick.js"
-import range from "lodash/range.js"
-import reverse from "lodash/reverse.js"
-import round from "lodash/round.js"
-import sample from "lodash/sample.js"
-import sampleSize from "lodash/sampleSize.js"
-import sortBy from "lodash/sortBy.js"
-import sortedUniqBy from "lodash/sortedUniqBy.js"
-import startCase from "lodash/startCase.js"
-import sum from "lodash/sum.js"
-import sumBy from "lodash/sumBy.js"
-import takeWhile from "lodash/takeWhile.js"
-import throttle from "lodash/throttle.js"
-import toString from "lodash/toString.js"
-import union from "lodash/union.js"
-import uniq from "lodash/uniq.js"
-import uniqBy from "lodash/uniqBy.js"
-import uniqWith from "lodash/uniqWith.js"
-import upperFirst from "lodash/upperFirst.js"
-import without from "lodash/without.js"
+import {
+    capitalize,
+    chunk,
+    clone,
+    cloneDeep,
+    compact,
+    countBy,
+    debounce,
+    difference,
+    drop,
+    extend,
+    findIndex,
+    findLastIndex,
+    flatten,
+    groupBy,
+    identity,
+    invert,
+    isArray,
+    isBoolean,
+    isEmpty,
+    isEqual,
+    isNumber,
+    isNull,
+    isObject,
+    isPlainObject,
+    isString,
+    isUndefined,
+    keyBy,
+    keys,
+    mapValues,
+    max,
+    maxBy,
+    memoize,
+    min,
+    minBy,
+    noop,
+    omit,
+    once,
+    orderBy,
+    partition,
+    pick,
+    range,
+    reverse,
+    round,
+    sample,
+    sampleSize,
+    sortBy,
+    sortedUniqBy,
+    startCase,
+    sum,
+    sumBy,
+    takeWhile,
+    throttle,
+    toString,
+    union,
+    uniq,
+    uniqBy,
+    uniqWith,
+    upperFirst,
+    without,
+} from "lodash-es"
 export {
     capitalize,
     chunk,

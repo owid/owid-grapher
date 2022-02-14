@@ -2,7 +2,7 @@
 
 import * as path from "path"
 import * as db from "./db.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import {
     DB_NAME,
     DB_USER,

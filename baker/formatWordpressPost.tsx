@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio"
 import urlSlug from "url-slug"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import { HTTPS_ONLY } from "../settings/serverSettings.js"

@@ -7,7 +7,7 @@ import {
     autorun,
     IReactionDisposer,
 } from "mobx"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
