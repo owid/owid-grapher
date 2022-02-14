@@ -5,6 +5,11 @@ import path from "path"
 import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
 
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 const baseDir = findBaseDir(__dirname)
 if (baseDir === undefined) throw new Error("could not locate base package.json")
 

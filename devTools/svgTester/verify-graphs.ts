@@ -6,6 +6,11 @@ import * as fs from "fs-extra"
 
 import workerpool from "workerpool"
 
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         // perpare and check arguments

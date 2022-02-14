@@ -9,6 +9,11 @@ import {
     getPublishedGraphersBySlug,
 } from "../../baker/GrapherImageBaker.js"
 
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 const header = `bakeOrder,timeToBake,slug,chartType,md5`
 const sampleRow = `1,123,world-pop,LineChart,ee5a6312...`
 interface BakedSvgInfo {

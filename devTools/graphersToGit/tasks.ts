@@ -16,6 +16,11 @@ import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 import { ColorScaleConfig } from "../../grapher/color/ColorScaleConfig.js"
 import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
 
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"
 const GRAPHER_TRIMMED_LOCATION = __dirname + "/graphers-trimmed.json"
 const GRAPHER_SELECTIONS_LOCATION = __dirname + "/graphers-selections.txt"

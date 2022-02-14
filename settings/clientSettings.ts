@@ -6,6 +6,11 @@
 import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
 
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 const baseDir = findBaseDir(__dirname)
 if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 

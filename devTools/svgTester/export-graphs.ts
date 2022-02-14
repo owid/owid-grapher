@@ -4,6 +4,11 @@ import parseArgs from "minimist"
 import * as utils from "./utils.js"
 import * as fs from "fs-extra"
 
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 import * as path from "path"
 import workerpool from "workerpool"
 async function main(parsedArgs: parseArgs.ParsedArgs) {

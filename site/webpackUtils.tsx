@@ -3,6 +3,11 @@ import urljoin from "url-join"
 import * as path from "path"
 import { ENV } from "../settings/serverSettings.js"
 
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 const WEBPACK_DEV_URL = process.env.WEBPACK_DEV_URL ?? "http://localhost:8090"
 const WEBPACK_OUTPUT_PATH =
     process.env.WEBPACK_OUTPUT_PATH ?? path.join(__dirname + "/../", "webpack")

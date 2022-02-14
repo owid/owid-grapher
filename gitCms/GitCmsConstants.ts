@@ -1,3 +1,8 @@
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 export const GIT_CMS_DEFAULT_BRANCH = "master"
 export const GIT_CMS_READ_ROUTE = "/git-cms-read"
 export const GIT_CMS_WRITE_ROUTE = "/git-cms-write"

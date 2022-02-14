@@ -8,6 +8,11 @@ import * as nodeFetch from "node-fetch"
 
 jest.setTimeout(10000) // wait for up to 10s for the server to respond
 
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 describe("client/server integration tests", () => {
     const baseDir = __dirname + "/integrationTestTempDirectoryOkToDelete"
 
