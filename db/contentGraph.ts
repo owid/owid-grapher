@@ -9,8 +9,8 @@ import { once, isEmpty } from "../clientUtils/Util.js"
 import { queryMysql } from "./db.js"
 import { ENTRIES_CATEGORY_ID, getDocumentsInfo } from "./wpdb.js"
 
-const fortune = require("fortune") // Works in web browsers, too.
-const MemoryAdapter = require("fortune/lib/adapter/adapters/memory")
+import fortune from "fortune" // Works in web browsers, too.
+import MemoryAdapter from "fortune/lib/adapter/adapters/memory"
 const {
     errors: { ConflictError },
 } = fortune
