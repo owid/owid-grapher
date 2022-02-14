@@ -44,8 +44,8 @@ class VariableSection extends React.Component<{
                 </section>
             )
 
-        const projections = Object.keys(MapProjectionLabels)
-        const labels = Object.values(MapProjectionLabels)
+        // const projections = Object.keys(MapProjectionLabels)
+        // const labels = Object.values(MapProjectionLabels)
 
         return (
             <Section name="Map">
@@ -56,17 +56,18 @@ class VariableSection extends React.Component<{
                             ? parseInt(mapConfig.columnSlug)
                             : undefined
                     }
-                    options={filledDimensions.map((d) => d.variableId)}
-                    optionLabels={filledDimensions.map(
-                        (d) => d.column.displayName
-                    )}
+                    options={filledDimensions.map((d) => ({
+                        value: d.variableId,
+                        label: d.column.displayName,
+                    }))}
                     onValue={this.onVariableId}
                 />
                 <SelectField
                     label="Region"
                     value={mapConfig.projection}
-                    options={projections}
-                    optionLabels={labels}
+                    options={Object.entries(MapProjectionLabels).map(
+                        ([key, val]) => ({ value: key, label: val })
+                    )}
                     onValue={this.onProjection}
                 />
             </Section>

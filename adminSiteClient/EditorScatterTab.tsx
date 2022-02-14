@@ -112,7 +112,9 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                     <SelectField
                         value={grapher.scatterPointLabelStrategy}
                         onValue={this.onChangeScatterPointLabelStrategy}
-                        options={Object.keys(ScatterPointLabelStrategy)}
+                        options={Object.keys(ScatterPointLabelStrategy).map(
+                            (entry) => ({ value: entry })
+                        )}
                     />
                 </Section>
                 <Section name="Filtering">
@@ -130,7 +132,9 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         placeholder="Select an entity to exclude"
                         value={undefined}
                         onValue={(v) => v && this.onExcludeEntity(v)}
-                        options={excludedEntityChoices}
+                        options={excludedEntityChoices.map((entry) => ({
+                            value: entry,
+                        }))}
                     />
                     {this.excludedEntityNames && (
                         <ul className="excludedEntities">

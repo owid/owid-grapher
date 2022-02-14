@@ -205,6 +205,24 @@ body {
     > .editor-view {
         width: 100%;
     }
+
+    .column-list-item {
+        padding: 3px;
+        border: lightgray 1px solid;
+        border-radius: 4px;
+
+        .btn {
+            margin-right: 0.5rem;
+        }
+    }
+
+    .column-list-item + .column-list-item {
+        margin-top: 4px;
+    }
+
+    .column-section {
+        overflow-y: auto;
+    }
 }
 
 .ChartEditorPage {

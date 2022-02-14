@@ -632,9 +632,13 @@ class Importer extends React.Component<ImportPageData> {
                         <NumericSelectField
                             value={existingDataset ? existingDataset.id : -1}
                             onValue={this.onChooseDataset}
-                            options={[-1].concat(datasets.map((d) => d.id))}
-                            optionLabels={["Create new dataset"].concat(
-                                datasets.map((d) => d.name)
+                            options={[
+                                { value: -1, label: "Create new dataset" },
+                            ].concat(
+                                datasets.map((d) => ({
+                                    value: d.id,
+                                    label: d.name,
+                                }))
                             )}
                         />
                         <hr />

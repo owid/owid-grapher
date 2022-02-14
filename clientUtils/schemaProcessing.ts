@@ -37,6 +37,7 @@ export interface FieldDescription {
     default?: string
     editor: EditorOption
     enumOptions?: string[]
+    description: string
 }
 
 function isPlainTypeString(item: string): item is FieldType {
@@ -160,6 +161,7 @@ function extractSchemaRecursive(
                 default: schema.default as string | undefined,
                 editor: EditorOption.mappingEditor,
                 enumOptions: schema.enum as string[] | undefined,
+                description: (schema.description as string | undefined) ?? "",
             })
         } else if (schema.type === "array") {
             // If an array contains only primitive values then we want to
@@ -173,6 +175,8 @@ function extractSchemaRecursive(
                     default: schema.default as string | undefined,
                     editor: EditorOption.primitiveListEditor,
                     enumOptions: schema.enum as string[] | undefined,
+                    description:
+                        (schema.description as string | undefined) ?? "",
                 })
             }
             // If the array contains an object then things are more complicated -
@@ -198,6 +202,7 @@ function extractSchemaRecursive(
                     schema.enum as string[] | undefined
                 ),
                 enumOptions: schema.enum as string[] | undefined,
+                description: (schema.description as string | undefined) ?? "",
             })
         } else if (
             // If we have a oneOf description then we need to
@@ -216,6 +221,7 @@ function extractSchemaRecursive(
                 pointer: pointer,
                 default: schema.default as string | undefined,
                 editor: EditorOption.textfield,
+                description: (schema.description as string | undefined) ?? "",
             })
         } else {
             console.error("Unexpected type/object", [schema, pointer])

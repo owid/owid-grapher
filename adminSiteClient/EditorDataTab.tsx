@@ -120,8 +120,9 @@ class KeysSection extends React.Component<{ grapher: Grapher }> {
                 <SelectField
                     onValue={this.onAddKey}
                     value="Select data"
-                    options={["Select data"].concat(unselectedEntityNames)}
-                    optionLabels={["Select data"].concat(unselectedEntityNames)}
+                    options={["Select data"]
+                        .concat(unselectedEntityNames)
+                        .map((key) => ({ value: key }))}
                 />
                 <EditableList>
                     {selectedEntityNames.map((entityName) => (

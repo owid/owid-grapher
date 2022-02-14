@@ -1,28 +1,30 @@
 import * as React from "react"
+import { VariableAnnotationPatch } from "../clientUtils/AdminSessionTypes"
+import {
+    DragDropContext,
+    Droppable,
+    Draggable,
+    DropResult,
+} from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
-import _, { cloneDeep, fromPairs, isArray, isEqual, isNil, merge } from "lodash"
+import {
+    cloneDeep,
+    findLastIndex,
+    fromPairs,
+    isArray,
+    isEmpty,
+    isEqual,
+    isNil,
+    merge,
+} from "lodash"
 
-import jsonpointer from "json8-pointer"
 import { HotColumn, HotTable } from "@handsontable/react"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { applyPatch } from "../clientUtils/patchHelper"
-import {
-    BinaryLogicOperation,
-    BinaryLogicOperators,
-    BooleanAtom,
-    BooleanOperation,
-    Operation,
-    SqlColumnName,
-    SQL_COLUMN_NAME_DATASET_NAME,
-    SQL_COLUMN_NAME_VARIABLE_NAME,
-    StringAtom,
-    StringContainsOperation,
-    StringOperation,
-} from "../clientUtils/SqlFilterSExpression"
 import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
@@ -31,119 +33,50 @@ import {
 } from "../clientUtils/schemaProcessing"
 
 import Handsontable from "handsontable"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Bounds } from "../clientUtils/Bounds"
-import {
-    VariableAnnotationsResponseRow,
-    VariableAnnotationsResponse,
-    VariableAnnotationPatch,
-} from "../clientUtils/AdminSessionTypes"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
-import { BindString } from "./Forms"
-import { from, Observable, ObservableInput } from "rxjs"
+import { BindString, SelectField } from "./Forms"
+import { from } from "rxjs"
 import {
     catchError,
-    combineAll,
     debounceTime,
     distinctUntilChanged,
     switchMap,
 } from "rxjs/operators"
 import { fromFetch } from "rxjs/fetch"
-import { toStream, fromStream, IStreamListener } from "mobx-utils"
+import { toStream, fromStream } from "mobx-utils"
 import {
     stringifyUnkownError,
-    differenceOfSets,
     excludeUndefined,
+    moveArrayItemToIndex,
 } from "../clientUtils/Util"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
-
-function parseVariableAnnotationsRow(
-    row: VariableAnnotationsResponseRow
-): VariableAnnotationsRow {
-    return row as VariableAnnotationsRow // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
-}
-
-interface VariableAnnotationsRow {
-    id: number
-    name: string
-    grapherConfig: GrapherInterface
-    datasetname: string
-    namespacename: string
-}
-
-interface Action {
-    patches: VariableAnnotationPatch[]
-}
-
-const PAGEING_SIZE: number = 50
-enum Tabs {
-    EditorTab = "EditorTab",
-    FilterTab = "FilterTab",
-}
-
-const ALL_TABS = Object.values(Tabs)
-
-const HIDDEN_COLUMNS = [
-    "/$schema",
-    "/id",
-    "/map/variableId",
-    "/version",
-    "/dimensions/0/variableId",
-    "/dimensions/0/property",
-    "/slug",
-    "/data",
-]
-
-const IMPORTANT_COLUMNS = [
-    "/type",
-    "/hasMapTab",
-    "/title",
-    "/subtitle",
-    "/note",
-    "/dimensions/0/display/unit",
-    "/dimensions/0/display/shortUnit",
-]
-
-/** All the parameters we need for making a fully specified request to the /variable-annotations
-    endpoint. When any of these fields change we need to trigger a new request */
-interface FetchVariablesParameters {
-    pagingOffset: number
-    filterQuery: Operation
-    sortByColumn: string // sort is currently ignored but here for future use
-    sortByAscending: boolean // sort is currently ignored but here for future use
-}
-
-function fetchVariablesParametersToQueryParametersString(
-    params: FetchVariablesParameters
-): string {
-    return queryParamsToStr({
-        filter: params.filterQuery.toSExpr(),
-        offset: params.pagingOffset.toString(),
-    })
-}
-
-/** Turns a search string like "nuclear share" into a BooleanOperation
-    that AND connects a CONTAINS query for every word - i.e. it would result in
-    (AND (CONTAINS target "nuclear") (CONTAINS target "share"))  */
-function searchFieldStringToFilterOperations(
-    searchString: string,
-    target: StringOperation
-): BooleanOperation | undefined {
-    const fragments = searchString
-        .split(" ")
-        .map((item) => item.trim())
-        .filter((item) => item !== "")
-    const wordContainsParts = fragments.map(
-        (fragment) =>
-            new StringContainsOperation(target, new StringAtom(fragment))
-    )
-    if (fragments.length > 0)
-        return new BinaryLogicOperation(
-            BinaryLogicOperators.and,
-            wordContainsParts
-        )
-    else return undefined
-}
+import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
+import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
+import {
+    BinaryLogicOperation,
+    BinaryLogicOperators,
+    BooleanAtom,
+    SqlColumnName,
+    SQL_COLUMN_NAME_DATASET_NAME,
+    SQL_COLUMN_NAME_VARIABLE_NAME,
+} from "../clientUtils/SqlFilterSExpression"
+import {
+    parseVariableAnnotationsRow,
+    VariableAnnotationsRow,
+    ColumnReorderItem,
+    Action,
+    PAGEING_SIZE,
+    Tabs,
+    ALL_TABS,
+    HIDDEN_COLUMNS,
+    ColumnSet,
+    FetchVariablesParameters,
+    fetchVariablesParametersToQueryParametersString,
+    IconToggleComponent,
+    searchFieldStringToFilterOperations,
+    getItemStyle,
+    columnSets,
+} from "./VariablesAnnotationTypesAndUtils"
 
 @observer
 class VariablesAnnotationComponent extends React.Component {
@@ -154,6 +87,10 @@ class VariablesAnnotationComponent extends React.Component {
     numTotalRows: number | undefined = undefined
     selectedRow: number | undefined = undefined
     @observable activeTab = Tabs.FilterTab
+    @observable currentColumnSet: ColumnSet = columnSets[0]
+    @observable columnFilter: string = ""
+
+    @observable.ref columnSelection: ColumnReorderItem[] = []
 
     context!: AdminAppContextType
     /** This array contains a description for every column, information like which field
@@ -242,7 +179,7 @@ class VariablesAnnotationComponent extends React.Component {
                     selector: (response) => response.json(),
                 }).pipe(
                     // catch errors and report them the way the admin UI expects it
-                    catchError((err: any, caught: Observable<any>) => {
+                    catchError((err: any /*, caught: Observable<any> */) => {
                         this.context.admin.setErrorMessage({
                             title: `Failed to fetch variable annotations`,
                             content:
@@ -263,7 +200,6 @@ class VariablesAnnotationComponent extends React.Component {
 
             if (currentData !== undefined) {
                 runInAction(() => {
-                    console.log("Data fetched", currentData)
                     this.resetViewStateAfterFetch()
                     this.currentPagingOffset = this.desiredPagingOffset
                     this.richDataRows = currentData.variables.map(
@@ -303,7 +239,6 @@ class VariablesAnnotationComponent extends React.Component {
 
     @action private updatePreviewToRow(row: number): void {
         const { richDataRows } = this
-        console.log("updating preview to row", row)
         if (richDataRows === undefined) return
 
         // Get the grapherConfig of the currently selected row and then
@@ -452,7 +387,7 @@ class VariablesAnnotationComponent extends React.Component {
                                 : undefined,
                         ] as const
                 )
-                .filter(([name, val]) => !isNil(val))
+                .filter(([, val]) => !isNil(val))
             const fields = fromPairs(fieldsArray as any)
             return {
                 id: row.id,
@@ -470,14 +405,14 @@ class VariablesAnnotationComponent extends React.Component {
         // We currently map several special types to text when we don't have anything
         // fancy implemented
         return match(desc.editor)
-            .with(EditorOption.checkbox, (_) => "checkbox")
-            .with(EditorOption.dropdown, (_) => "dropdown")
-            .with(EditorOption.numeric, (_) => "numeric")
-            .with(EditorOption.textfield, (_) => "text")
-            .with(EditorOption.textarea, (_) => "text")
-            .with(EditorOption.colorEditor, (_) => "text")
-            .with(EditorOption.mappingEditor, (_) => "text")
-            .with(EditorOption.primitiveListEditor, (_) => "text")
+            .with(EditorOption.checkbox, () => "checkbox")
+            .with(EditorOption.dropdown, () => "dropdown")
+            .with(EditorOption.numeric, () => "numeric")
+            .with(EditorOption.textfield, () => "text")
+            .with(EditorOption.textarea, () => "text")
+            .with(EditorOption.colorEditor, () => "text")
+            .with(EditorOption.mappingEditor, () => "text")
+            .with(EditorOption.primitiveListEditor, () => "text")
             .exhaustive()
     }
     static fieldDescriptionToColumn(desc: FieldDescription): JSX.Element {
@@ -505,70 +440,71 @@ class VariablesAnnotationComponent extends React.Component {
         ["Dataset name", "datasetname"],
         ["Namespace", "namespacename"],
     ] as const
-
     @computed get hotColumns(): JSX.Element[] {
-        const { fieldDescriptions } = this
+        const { fieldDescriptions, columnSelection } = this
 
-        if (fieldDescriptions === undefined) return []
+        if (fieldDescriptions === undefined || columnSelection.length === 0)
+            return []
         else {
-            // First the 4 readonly columns
-            const readOnlyColumns: JSX.Element[] =
-                VariablesAnnotationComponent.readOnlyColumnNamesFields.map(
-                    (nameAndField) => (
-                        <HotColumn
-                            key={nameAndField[0]}
-                            settings={{
-                                title: nameAndField[0],
-                                readOnly: true,
-                                data: nameAndField[1],
-                                width: Math.max(
-                                    Bounds.forText(nameAndField[0]).width,
-                                    50
-                                ),
-                            }}
-                        />
-                    )
-                )
-            // then all the others coming from the fieldDescriptions
-            // for these we want to suppress the HIDDEN_COLUMNS and
-            // move the IMPORTANT_COLUMNS to the front
-            const fieldDescsMap = new Map(
-                fieldDescriptions.map((desc) => [desc.pointer, desc])
+            const fieldDescriptionsMap = new Map(
+                fieldDescriptions.map((fieldDesc) => [
+                    fieldDesc.pointer,
+                    fieldDesc,
+                ])
             )
-            const importantDescs = IMPORTANT_COLUMNS.map((pointer) =>
-                fieldDescsMap.get(pointer)
-            )
-            const remainingDescs = [
-                ...differenceOfSets([
-                    new Set(fieldDescsMap.keys()),
-                    new Set(IMPORTANT_COLUMNS),
-                    new Set(HIDDEN_COLUMNS),
-                ]),
-            ].map((pointer) => fieldDescsMap.get(pointer))
-            const fieldDescsFilteredAndPrioritized = [
-                ...importantDescs,
-                ...remainingDescs,
-            ]
-            if (
-                fieldDescsFilteredAndPrioritized.some(
-                    (item) => item === undefined
-                )
-            )
+            const undefinedColumns: ColumnReorderItem[] = []
+            const columns = columnSelection.map((reorderItem) => {
+                if (reorderItem.key.startsWith("/")) {
+                    const fieldDesc = fieldDescriptionsMap.get(reorderItem.key)
+                    if (fieldDesc === undefined) {
+                        undefinedColumns.push(reorderItem)
+                        return undefined
+                    } else
+                        return VariablesAnnotationComponent.fieldDescriptionToColumn(
+                            fieldDesc
+                        )
+                } else {
+                    const readonlyField =
+                        VariablesAnnotationComponent.readOnlyColumnNamesFields.find(
+                            ([, key]) => key === reorderItem.key
+                        )
+                    if (readonlyField === undefined) {
+                        undefinedColumns.push(reorderItem)
+                        return undefined
+                    } else
+                        return (
+                            <HotColumn
+                                key={readonlyField[0]}
+                                settings={{
+                                    title: readonlyField[0],
+                                    readOnly: true,
+                                    data: readonlyField[1],
+                                    width: Math.max(
+                                        Bounds.forText(readonlyField[0]).width,
+                                        50
+                                    ),
+                                }}
+                            />
+                        )
+                }
+            })
+            const definedColumns = excludeUndefined(columns)
+            // If we have columns that we couldn't match, find out which ones they were and console.error them
+            if (!isEmpty(undefinedColumns))
                 console.error(
-                    "Some fields were undefined! Check if all IMPORTANT_COLUMNS actually appear in the schema."
+                    "Some columns could not be found!",
+                    undefinedColumns
                 )
-            const grapherColumns = fieldDescsFilteredAndPrioritized
-                .filter((item) => item !== undefined)
-                .map((item) =>
-                    VariablesAnnotationComponent.fieldDescriptionToColumn(item!)
-                )
-            return [...readOnlyColumns, ...grapherColumns]
+            return definedColumns
         }
     }
 
     @computed
     private get hotSettings() {
-        const { flattenedDataRows } = this
+        const { flattenedDataRows, columnSelection } = this
+        const hiddenColumnIndices = columnSelection.flatMap(
+            (reorderItem, index) => (reorderItem.visible ? [] : [index])
+        )
         if (flattenedDataRows === undefined) return undefined
 
         const hotSettings: Handsontable.GridSettings = {
@@ -576,7 +512,7 @@ class VariablesAnnotationComponent extends React.Component {
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
                 this.validateCellChanges(changes, source),
-            afterSelectionEnd: (row, column, row2, column2, layer) => {
+            afterSelectionEnd: (row /*, column, row2, column2, layer*/) => {
                 if (row !== this.selectedRow) {
                     this.selectedRow = row
                     this.updatePreviewToRow(row)
@@ -588,10 +524,16 @@ class VariablesAnnotationComponent extends React.Component {
             autoColumnSize: false,
             // cells,
             colHeaders: true,
-            comments: true,
+            comments: false,
+            contextMenu: true,
             data: flattenedDataRows as Handsontable.RowObject[],
             height: "100%",
+            hiddenColumns: {
+                columns: hiddenColumnIndices,
+                copyPasteEnabled: false,
+            } as any,
             manualColumnResize: true,
+            manualColumnFreeze: true,
             manualRowMove: false,
             minCols: 1,
             minSpareCols: 0,
@@ -614,9 +556,7 @@ class VariablesAnnotationComponent extends React.Component {
         const { fieldDescriptionsMap } = this
         // The Handsontable.CellChange is an array of 4 elements: [row, column, oldValue, newValue]. Below
         // we have the indices, only a few of them which are used now
-        const rowIndex = 0
         const columnIndex = 1
-        const oldValueIndex = 2
         const newValueIndex = 3
         // Changes due to loading are always ok (return flags all as ok)
         if (source === "loadData" || changes === null) return
@@ -658,17 +598,17 @@ class VariablesAnnotationComponent extends React.Component {
             [FieldType | FieldType[], string],
             boolean
         >([columnDefinition.type, typeof firstNewValue])
-            .with([FieldType.string, "string"], (_) => false)
-            .with([FieldType.number, "string"], (_) =>
+            .with([FieldType.string, "string"], () => false)
+            .with([FieldType.number, "string"], () =>
                 Number.isNaN(Number.parseFloat(firstNewValue))
             )
-            .with([FieldType.integer, "string"], (_) =>
+            .with([FieldType.integer, "string"], () =>
                 Number.isNaN(Number.parseInt(firstNewValue))
             )
-            .with([FieldType.boolean, "boolean"], (_) => false)
-            .with([[__], "string"], (_) => false)
+            .with([FieldType.boolean, "boolean"], () => false)
+            .with([[__], "string"], () => false)
 
-            .otherwise((_) => true)
+            .otherwise(() => true)
         if (invalidTypeAssignment) return false
 
         // TODO: locally apply values here and see if they parse the schema? Might be an easy
@@ -697,7 +637,6 @@ class VariablesAnnotationComponent extends React.Component {
         for (const change of changes) {
             let [rowIndex, column, prevVal, newVal] = change
 
-            const targetPath = jsonpointer.parse(column) as string[]
             const fieldDesc = fieldDescriptionsMap.get(column as string)
             const row = richDataRows[rowIndex]
 
@@ -749,8 +688,75 @@ class VariablesAnnotationComponent extends React.Component {
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
             this.fieldDescriptions = fieldDescriptions
-            console.log("fielddescription set", this.fieldDescriptions)
+
+            this.initializeColumnSelection(
+                fieldDescriptions,
+                this.currentColumnSet
+            )
         })
+    }
+
+    @action
+    initializeColumnSelection(
+        fieldDescriptions: FieldDescription[] | undefined,
+        currentColumnSet: ColumnSet
+    ) {
+        if (fieldDescriptions === undefined) return
+        // Now we need to construct the initial order and visibility state of all ColumnReorderItems
+        // First construct them from the fieldDescriptions (from the schema) and the hardcoded readonly column names
+        const fieldDescReorderItems: ColumnReorderItem[] = fieldDescriptions
+            .filter((fieldDesc) => !HIDDEN_COLUMNS.has(fieldDesc.pointer))
+            .map((item) => ({
+                key: item.pointer,
+                visible: false,
+                description: item.description,
+            }))
+        const readonlyReorderItems: ColumnReorderItem[] =
+            VariablesAnnotationComponent.readOnlyColumnNamesFields.map(
+                ([label, id]) => ({
+                    key: id,
+                    visible: false,
+                    description: label,
+                })
+            )
+        // Construct a few helpers
+        const allReorderItems = readonlyReorderItems.concat(
+            fieldDescReorderItems
+        )
+        const reorderItemsMap = new Map(
+            allReorderItems.map((item) => [item.key, item])
+        )
+        // Now check what is selected in currentColumnSet. If we should just show all then create that sequence,
+        // otherwise use the list of column ids that we are supposed to show in this order with visible true
+        const columnFieldIdsToMakeVisibleAndShowFirst = match(currentColumnSet)
+            .with({ kind: "allColumns" }, () =>
+                allReorderItems.map((item) => item.key)
+            )
+            .with(
+                { kind: "specificColumns" },
+                (specificColumns) => specificColumns.columns
+            )
+            .exhaustive()
+
+        // Now construct the final reorderItems array that is in the right order and has visible set
+        // to true where appropriate
+        const reorderItems = []
+
+        for (const fieldId of columnFieldIdsToMakeVisibleAndShowFirst) {
+            const item = reorderItemsMap.get(fieldId)!
+            item.visible = true
+            reorderItems.push(item)
+        }
+        const itemsAlreadyInserted = new Set(
+            reorderItems.map((item) => item.key)
+        )
+        for (const field of allReorderItems) {
+            if (!itemsAlreadyInserted.has(field.key)) {
+                reorderItems.push(field)
+            }
+        }
+
+        this.columnSelection = reorderItems
     }
 
     render() {
@@ -782,9 +788,14 @@ class VariablesAnnotationComponent extends React.Component {
                             </ul>
                         </div>
                         <div className="sidebar-content">
-                            {activeTab === Tabs.FilterTab
-                                ? this.renderFilterTab()
-                                : null}
+                            {match(activeTab)
+                                .with(Tabs.FilterTab, () =>
+                                    this.renderFilterTab()
+                                )
+                                .with(Tabs.ColumnsTab, () =>
+                                    this.renderColumnsTab()
+                                )
+                                .otherwise(() => null)}
                             {this.renderPreviewArea()}
                         </div>
                     </div>
@@ -816,7 +827,6 @@ class VariablesAnnotationComponent extends React.Component {
             (this.numTotalRows ?? 0) > PAGEING_SIZE &&
             this.desiredPagingOffset + PAGEING_SIZE < (this.numTotalRows ?? 0)
         ) {
-            console.log("increasing desired paging offset")
             this.desiredPagingOffset = this.desiredPagingOffset + PAGEING_SIZE
         }
     }
@@ -879,6 +889,159 @@ class VariablesAnnotationComponent extends React.Component {
                         store={this}
                         label="Dataset name"
                     />
+                </div>
+            </section>
+        )
+    }
+
+    @action
+    onDragEnd(result: DropResult) {
+        if (!result.destination) return
+        const newColumnSelection = moveArrayItemToIndex(
+            this.columnSelection,
+            result.source.index,
+            result.destination.index
+        )
+        this.columnSelection = newColumnSelection
+    }
+
+    @action.bound
+    columnListEyeIconClicked(
+        columnSelection: ColumnReorderItem[],
+        itemKey: string,
+        newState: boolean
+    ) {
+        // Set the state of the targeted item and if it becomes visible and it is after
+        // what was previously the last visible item then move it to after the last currently visible item
+        // so that it is easier to find in the list
+        const itemIndex = columnSelection.findIndex(
+            (item) => item.key === itemKey
+        )
+        if (itemIndex !== -1) {
+            const lastVisibleIndex = findLastIndex(
+                columnSelection,
+                (item) => item.visible
+            )
+
+            let copy = [...columnSelection]
+            copy[itemIndex].visible = newState
+            if (newState && itemIndex > lastVisibleIndex) {
+                const targetIndex = lastVisibleIndex + 1
+                copy = moveArrayItemToIndex(copy, itemIndex, targetIndex)
+            }
+
+            this.columnSelection = copy
+        }
+    }
+
+    @action.bound
+    setCurrentColumnSet(label: string) {
+        this.currentColumnSet =
+            columnSets.find((item) => item.label === label) ?? columnSets[0]
+        this.initializeColumnSelection(
+            this.fieldDescriptions,
+            this.currentColumnSet
+        )
+    }
+
+    @action.bound
+    clearColumnFilter() {
+        this.columnFilter = ""
+    }
+
+    renderColumnsTab(): JSX.Element {
+        const { columnSelection, currentColumnSet, columnFilter } = this
+        const filteredColumnSelection = columnFilter
+            ? columnSelection.filter((column) =>
+                  column.key.toLowerCase().includes(columnFilter.toLowerCase())
+              )
+            : columnSelection
+        return (
+            <section className="column-section">
+                <div className="container">
+                    <h3>Columns</h3>
+                    <SelectField
+                        label="Column set"
+                        value={currentColumnSet.label}
+                        onValue={this.setCurrentColumnSet}
+                        options={columnSets.map((item) => ({
+                            value: item.label,
+                            label: item.label,
+                        }))}
+                    />
+                    <BindString
+                        field="columnFilter"
+                        store={this}
+                        label="Filter columns"
+                        buttonText="Clear"
+                        onButtonClick={this.clearColumnFilter}
+                    />
+
+                    <DragDropContext
+                        onDragEnd={(result) => this.onDragEnd(result)}
+                    >
+                        <Droppable droppableId="droppable">
+                            {(provided /*, snapshot */) => (
+                                <div
+                                    {...provided.droppableProps}
+                                    ref={provided.innerRef}
+                                >
+                                    {filteredColumnSelection.map(
+                                        (item, index) => (
+                                            <Draggable
+                                                key={item.key}
+                                                draggableId={item.key}
+                                                index={index}
+                                            >
+                                                {(provided, snapshot) => (
+                                                    <div
+                                                        ref={provided.innerRef}
+                                                        {...provided.draggableProps}
+                                                        {...provided.dragHandleProps}
+                                                        style={getItemStyle(
+                                                            snapshot.isDragging,
+                                                            provided
+                                                                .draggableProps
+                                                                .style
+                                                        )}
+                                                        className="column-list-item"
+                                                    >
+                                                        <div
+                                                            title={
+                                                                item.description
+                                                            }
+                                                        >
+                                                            <IconToggleComponent
+                                                                isOn={
+                                                                    item.visible
+                                                                }
+                                                                onIcon={faEye}
+                                                                offIcon={
+                                                                    faEyeSlash
+                                                                }
+                                                                onClick={(
+                                                                    newState
+                                                                ) =>
+                                                                    this.columnListEyeIconClicked(
+                                                                        this
+                                                                            .columnSelection,
+                                                                        item.key,
+                                                                        newState
+                                                                    )
+                                                                }
+                                                            />
+                                                            {item.key}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </Draggable>
+                                        )
+                                    )}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
                 </div>
             </section>
         )

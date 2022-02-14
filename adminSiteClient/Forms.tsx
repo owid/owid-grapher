@@ -31,6 +31,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     onValue: (value: string) => void
     onEnter?: () => void
     onEscape?: () => void
+    onButtonClick?: () => void
     placeholder?: string
     title?: string
     disabled?: boolean
@@ -40,6 +41,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     rows?: number
     softCharacterLimit?: number
     errorMessage?: string
+    buttonText?: string
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -79,14 +81,29 @@ export class TextField extends React.Component<TextFieldProps> {
         return (
             <div className="form-group" ref={this.base}>
                 {props.label && <label>{props.label}</label>}
-                <input
-                    className="form-control"
-                    type="text"
-                    value={props.value || ""}
-                    onChange={(e) => this.props.onValue(e.currentTarget.value)}
-                    onKeyDown={this.onKeyDown}
-                    {...passthroughProps}
-                />
+                <div className="input-group">
+                    <input
+                        className="form-control"
+                        type="text"
+                        value={props.value || ""}
+                        onChange={(e) =>
+                            this.props.onValue(e.currentTarget.value)
+                        }
+                        onKeyDown={this.onKeyDown}
+                        {...passthroughProps}
+                    />
+                    {props.buttonText && (
+                        <button
+                            className="btn btn-outline-secondary"
+                            type="button"
+                            onClick={() =>
+                                props.onButtonClick && props.onButtonClick()
+                            }
+                        >
+                            {props.buttonText}
+                        </button>
+                    )}
+                </div>
                 {props.helpText && (
                     <small className="form-text text-muted">
                         {props.helpText}
@@ -213,8 +230,7 @@ interface SelectFieldProps {
     label?: string
     value: string | undefined
     onValue: (value: string) => void
-    options: string[]
-    optionLabels?: string[]
+    options: Option[]
     helpText?: string
     placeholder?: string
 }
@@ -222,14 +238,6 @@ interface SelectFieldProps {
 export class SelectField extends React.Component<SelectFieldProps> {
     render() {
         const { props } = this
-
-        const options = props.options.map((opt, i) => {
-            return {
-                key: opt,
-                value: opt,
-                text: (props.optionLabels && props.optionLabels[i]) || opt,
-            }
-        })
 
         return (
             <div className="form-group">
@@ -247,9 +255,9 @@ export class SelectField extends React.Component<SelectFieldProps> {
                             {props.placeholder}
                         </option>
                     ) : null}
-                    {options.map((opt) => (
+                    {props.options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
-                            {opt.text}
+                            {opt.label || opt.value}
                         </option>
                     ))}
                 </select>
@@ -369,12 +377,16 @@ export class RadioGroup extends React.Component<RadioGroupProps> {
     }
 }
 
+interface NumberOption {
+    value: number
+    label?: string
+}
+
 interface NumericSelectFieldProps {
     label?: string
     value: number | undefined
     onValue: (value: number) => void
-    options: number[]
-    optionLabels?: string[]
+    options: NumberOption[]
     helpText?: string
 }
 
@@ -386,7 +398,10 @@ export class NumericSelectField extends React.Component<NumericSelectFieldProps>
                 this.props.value !== undefined
                     ? this.props.value.toString()
                     : "",
-            options: this.props.options.map((opt) => opt.toString()),
+            options: this.props.options.map((opt) => ({
+                value: opt.value.toString(),
+                label: opt.label?.toString(),
+            })),
             onValue: (value: string | undefined) => {
                 const asNumber = parseFloat(value as string)
                 this.props.onValue(asNumber)
@@ -634,6 +649,8 @@ export class BindString<
     disabled?: boolean
     rows?: number
     errorMessage?: string
+    buttonText?: string
+    onButtonClick?: () => void
 }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = (value || undefined) as any
