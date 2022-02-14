@@ -20,7 +20,7 @@ import {
     GIT_CMS_DELETE_ROUTE,
     GIT_CMS_PULL_ROUTE,
 } from "./GitCmsConstants.js"
-import { sync } from "glob"
+import * as glob from "glob"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import _ from "lodash"
 
@@ -151,7 +151,7 @@ export class GitCmsServer {
     ): Promise<GitCmsGlobResponse> {
         const query = globStr.replace(/[^a-zA-Z\*]/, "")
         const cwd = this.baseDir + folder
-        const results = sync(query, {
+        const results = glob.sync(query, {
             cwd,
         })
 
