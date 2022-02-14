@@ -4,14 +4,7 @@ import {
     GIT_DEFAULT_EMAIL,
 } from "../settings/serverSettings.js"
 import simpleGit, { SimpleGit } from "simple-git"
-import {
-    writeFile,
-    existsSync,
-    readFile,
-    unlink,
-    readFileSync,
-    mkdirSync,
-} from "fs-extra"
+import fs from "fs-extra"
 import {
     WriteRequest,
     ReadRequest,
@@ -77,7 +70,7 @@ export class GitCmsServer {
 
     async createDirAndInitIfNeeded() {
         const { baseDir } = this
-        if (!existsSync(baseDir)) mkdirSync(baseDir)
+        if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir)
         await this.git.init()
 
         return this
@@ -137,9 +130,9 @@ export class GitCmsServer {
             ensureNoParentLinksInFilePath(filepath)
 
             const absolutePath = this.baseDir + filepath
-            const exists = existsSync(absolutePath)
+            const exists = fs.existsSync(absolutePath)
             if (!exists) throw new Error(`File '${filepath}' not found`)
-            const content = await readFile(absolutePath, "utf8")
+            const content = await fs.readFile(absolutePath, "utf8")
             return { success: true, content }
         } catch (error) {
             const err = error as Error
@@ -165,7 +158,7 @@ export class GitCmsServer {
         const files = results.map((filename) => {
             return {
                 filename,
-                content: readFileSync(cwd + "/" + filename, "utf8"),
+                content: fs.readFileSync(cwd + "/" + filename, "utf8"),
             }
         })
 
@@ -182,7 +175,7 @@ export class GitCmsServer {
             ensureNoParentLinksInFilePath(filepath)
 
             const absolutePath = this.baseDir + filepath
-            await unlink(absolutePath)
+            await fs.unlink(absolutePath)
 
             // Do a pull _after_ the file delete. This ensures that, if we intend to delete
             // a file that has been changed on the server, we'll end up with an intentional failure.
@@ -216,7 +209,7 @@ export class GitCmsServer {
             ensureNoParentLinksInFilePath(filename)
 
             const absolutePath = this.baseDir + filename
-            await writeFile(absolutePath, content, "utf8")
+            await fs.writeFile(absolutePath, content, "utf8")
 
             // Do a pull _after_ the write. This ensures that, if we intend to overwrite a file
             // that has been changed on the server, we'll end up with an intentional merge conflict.
@@ -226,7 +219,7 @@ export class GitCmsServer {
 
             const commitMsg = commitMessage
                 ? commitMessage
-                : existsSync(absolutePath)
+                : fs.existsSync(absolutePath)
                 ? `Updating ${filename}`
                 : `Adding ${filename}`
 

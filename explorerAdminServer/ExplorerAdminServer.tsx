@@ -1,4 +1,4 @@
-import { existsSync, readdir, readFile } from "fs-extra"
+import fs from "fs-extra"
 import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
@@ -59,7 +59,7 @@ export class ExplorerAdminServer {
     // todo: make private? once we remove covid legacy stuff?
     async getExplorerFromFile(filename: string) {
         const fullPath = this.absoluteFolderPath + filename
-        const content = await readFile(fullPath, "utf8")
+        const content = await fs.readFile(fullPath, "utf8")
         const commits = await this.simpleGit.log({ file: fullPath, n: 1 })
         return new ExplorerProgram(
             filename.replace(EXPLORER_FILE_SUFFIX, ""),
@@ -78,8 +78,8 @@ export class ExplorerAdminServer {
     }
 
     async getAllExplorers() {
-        if (!existsSync(this.absoluteFolderPath)) return []
-        const files = await readdir(this.absoluteFolderPath)
+        if (!fs.existsSync(this.absoluteFolderPath)) return []
+        const files = await fs.readdir(this.absoluteFolderPath)
         const explorerFiles = files.filter((filename) =>
             filename.endsWith(EXPLORER_FILE_SUFFIX)
         )

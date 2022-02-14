@@ -1,4 +1,4 @@
-import { mkdirp, writeFile } from "fs-extra"
+import fs from "fs-extra"
 import path from "path"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
@@ -59,7 +59,7 @@ export const bakeAllExplorerRedirects = async (
 
 // todo: merge with SiteBaker's?
 const write = async (outPath: string, content: string) => {
-    await mkdirp(path.dirname(outPath))
-    await writeFile(outPath, content)
+    await fs.mkdirp(path.dirname(outPath))
+    await fs.writeFile(outPath, content)
     console.log(outPath)
 }

@@ -37,7 +37,7 @@ import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
 } from "../explorer/ExplorerProgram.js"
-import { existsSync } from "fs-extra"
+import { existsSync } from "fs"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
