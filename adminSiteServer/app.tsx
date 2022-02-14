@@ -1,7 +1,7 @@
 import React from "react"
 import simpleGit from "simple-git"
 import express, { NextFunction } from "express"
-require("express-async-errors") // todo: why the require?
+import "express-async-errors"
 import cookieParser from "cookie-parser"
 import "reflect-metadata"
 import * as http from "http"
@@ -28,7 +28,7 @@ import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 
-const expressErrorSlack = require("express-error-slack") // todo: why the require?
+import expressErrorSlack from "express-error-slack"
 
 interface OwidAdminAppOptions {
     slackErrorsWebHookUrl?: string
