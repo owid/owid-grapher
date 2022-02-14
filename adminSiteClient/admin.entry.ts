@@ -1,4 +1,4 @@
-import "grapher/core/grapher.entry"
+import "grapher/core/grapher.entry.js"
 import "adminSiteClient/admin.scss"
 import "explorerAdminClient/ExplorerCreatePage.scss"
 import "handsontable/dist/handsontable.full.css"

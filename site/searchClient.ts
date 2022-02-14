@@ -1,4 +1,4 @@
-import algoliasearch, { SearchClient } from "algoliasearch/lite"
+import algoliasearch, { SearchClient } from "algoliasearch/lite.js"
 import { countries, Country } from "../clientUtils/countries.js"
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
 
