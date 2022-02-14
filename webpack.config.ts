@@ -1,12 +1,18 @@
 import webpack from "webpack"
-import "webpack-dev-server" // just imported for type magic
+import "webpack-dev-server" // only imported for type magic
 import path from "path"
 
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const { WebpackManifestPlugin } = require("webpack-manifest-plugin")
+import MiniCssExtractPlugin from "mini-css-extract-plugin"
+import { WebpackManifestPlugin } from "webpack-manifest-plugin"
 
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
-const DotenvWebpackPlugin = require("dotenv-webpack")
+import CssMinimizerPlugin from "css-minimizer-webpack-plugin"
+import DotenvWebpackPlugin from "dotenv-webpack"
+
+import { dirname } from "path"
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const config = (env: any, argv: any): webpack.Configuration => {
     const isProduction = argv.mode === "production"
@@ -106,7 +112,7 @@ const config = (env: any, argv: any): webpack.Configuration => {
             new MiniCssExtractPlugin({ filename: "[name].css" }),
 
             // Writes manifest.json which production code reads to know paths to asset files
-            new WebpackManifestPlugin(),
+            new WebpackManifestPlugin({}),
 
             // Provide client-side settings from .env
             new DotenvWebpackPlugin(),

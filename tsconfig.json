@@ -5,7 +5,7 @@
         "composite": false,
         "baseUrl": "./"
     },
-    "files": ["webpack.config.ts"],
+    "files": ["webpack.config.ts", "webpack-plugins.d.ts"],
     "references": [
         { "path": "./clientUtils" },
         { "path": "./gridLang" },
