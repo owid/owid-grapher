@@ -1256,6 +1256,7 @@ class VariablesAnnotationComponent extends React.Component {
             config.types.boolean.widgets.boolean.operators?.filter(
                 (item) => !operatorsToDrop.has(item)
             )
+        config.settings.customFieldSelectProps = { showSearch: true }
         return config
     }
 }
