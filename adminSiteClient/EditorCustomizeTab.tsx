@@ -16,9 +16,9 @@ import {
     RadioGroup,
 } from "./Forms.js"
 import { debounce, isEqual, omit, trimObject } from "../clientUtils/Util.js"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     ColorSchemeDropdown,
     ColorSchemeOption,

@@ -10,8 +10,8 @@ import {
     PreferenceType,
 } from "../../site/CookiePreferencesManager.js"
 import slugify from "slugify"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck.js"
 import { SiteAnalytics } from "../../site/SiteAnalytics.js"
 
 const ANALYTICS_ACTION = "cookie-preferences"

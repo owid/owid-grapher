@@ -3,12 +3,12 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { TimelineComponent } from "../timeline/TimelineComponent.js"
 import { formatValue } from "../../clientUtils/formatValue.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
-import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
-import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload.js"
+import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt.js"
+import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand.js"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt.js"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown.js"
 import {
     FacetAxisDomain,
     FacetStrategy,

@@ -1,5 +1,5 @@
-import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { DataValueProps } from "../clientUtils/owidTypes.js"

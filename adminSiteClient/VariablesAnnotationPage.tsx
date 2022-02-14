@@ -53,8 +53,8 @@ import {
     excludeUndefined,
     moveArrayItemToIndex,
 } from "../clientUtils/Util.js"
-import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
-import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
+import { faEye } from "@fortawesome/free-solid-svg-icons/faEye.js"
+import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,

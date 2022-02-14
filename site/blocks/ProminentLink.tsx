@@ -11,8 +11,8 @@ import {
 import { SelectionArray } from "../../grapher/selection/SelectionArray.js"
 import { Url } from "../../clientUtils/urls/Url.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight.js"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 

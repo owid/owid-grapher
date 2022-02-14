@@ -96,8 +96,8 @@ import {
 import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants.js"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap.js"
 import { ChartManager } from "../chart/ChartManager.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle.js"
 import {
     AbsRelToggleManager,
     FacetStrategyDropdownManager,

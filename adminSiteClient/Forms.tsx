@@ -12,11 +12,11 @@ import { observer } from "mobx-react"
 
 import { pick, capitalize } from "../clientUtils/Util.js"
 import { Colorpicker } from "./Colorpicker.js"
-import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
-import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
-import { faPaintBrush } from "@fortawesome/free-solid-svg-icons/faPaintBrush"
-import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCog } from "@fortawesome/free-solid-svg-icons/faCog.js"
+import { faLink } from "@fortawesome/free-solid-svg-icons/faLink.js"
+import { faPaintBrush } from "@fortawesome/free-solid-svg-icons/faPaintBrush.js"
+import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export class FieldsRow extends React.Component {
     render() {
@@ -915,7 +915,7 @@ import { TagBadge, Tag } from "./TagBadge.js"
 
 import ReactTags from "react-tag-autocomplete"
 import { Tippy } from "../grapher/chart/Tippy.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle.js"
 
 @observer
 class EditTags extends React.Component<{

@@ -16,9 +16,9 @@ import {
     SuggestedChartRevisionListItem,
 } from "./SuggestedChartRevisionList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
-import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown.js"
+import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt.js"
 
 interface Searchable {
     suggestedChartRevision: SuggestedChartRevisionListItem

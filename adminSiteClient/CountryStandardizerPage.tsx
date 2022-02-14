@@ -22,8 +22,8 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { uniq, toString, csvEscape, sortBy } from "../clientUtils/Util.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 class CSV {
     @observable filename?: string

@@ -10,8 +10,8 @@ import Select, {
     Props,
 } from "react-select"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
 import { countries } from "../../../clientUtils/countries.js"
 import {
     throttle,

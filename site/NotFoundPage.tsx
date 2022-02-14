@@ -2,8 +2,8 @@ import * as React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch.js"
 
 export const NotFoundPage = (props: { baseUrl: string }) => {
     return (

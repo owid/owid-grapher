@@ -2,8 +2,8 @@ import * as React from "react"
 import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle.js"
 import { SortOrder, Time } from "../../coreTable/CoreTableConstants.js"
 import {
     EntityName,

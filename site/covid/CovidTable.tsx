@@ -4,8 +4,8 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { scaleLinear } from "d3-scale"
 import { schemeCategory10 } from "d3-scale-chromatic"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown.js"
 import {
     throttle,
     groupBy,

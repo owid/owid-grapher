@@ -2,9 +2,9 @@ import * as React from "react"
 import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import Select from "react-select"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"
 import { ColorScale } from "../grapher/color/ColorScale.js"
 import {
     ColorScaleBin,

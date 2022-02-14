@@ -22,9 +22,9 @@ import {
     getErrorMessageRelatedQuestionUrl,
     Grapher,
 } from "../grapher/core/Grapher.js" // fix.
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"
 import Select from "react-select"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 

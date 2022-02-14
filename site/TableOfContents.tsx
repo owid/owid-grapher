@@ -1,11 +1,11 @@
 import * as React from "react"
 import { useState, useEffect, useRef } from "react"
 import * as ReactDOM from "react-dom"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faBars } from "@fortawesome/free-solid-svg-icons/faBars.js"
 import { useTriggerWhenClickOutside } from "./hooks.js"
 import { wrapInDiv } from "../clientUtils/Util.js"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
 
 const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 

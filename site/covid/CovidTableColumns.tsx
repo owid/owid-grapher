@@ -3,10 +3,10 @@ import { scaleThreshold, scaleLinear, ScaleLinear } from "d3-scale"
 import { interpolateLab } from "d3-interpolate"
 import classnames from "classnames"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
-import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle.js"
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle.js"
+import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle.js"
 
 import { Tippy } from "../../grapher/chart/Tippy.js"
 

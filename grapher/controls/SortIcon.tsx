@@ -1,11 +1,11 @@
 import React from "react"
 import classnames from "classnames"
-import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
-import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
-import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
-import { faSortAmountUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAmountUpAlt"
-import { faSortAmountDown } from "@fortawesome/free-solid-svg-icons/faSortAmountDown"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core/index.js"
+import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt.js"
+import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown.js"
+import { faSortAmountUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAmountUpAlt.js"
+import { faSortAmountDown } from "@fortawesome/free-solid-svg-icons/faSortAmountDown.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SortOrder } from "../../coreTable/CoreTableConstants.js"
 
 export function SortIcon(props: {

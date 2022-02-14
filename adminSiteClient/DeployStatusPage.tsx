@@ -3,8 +3,8 @@ import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
 import { format } from "timeago.js"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle.js"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
