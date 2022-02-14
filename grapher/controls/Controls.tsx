@@ -1,8 +1,8 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { TimelineComponent } from "../timeline/TimelineComponent"
-import { formatValue } from "../../clientUtils/formatValue"
+import { TimelineComponent } from "../timeline/TimelineComponent.js"
+import { formatValue } from "../../clientUtils/formatValue.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -15,12 +15,12 @@ import {
     GrapherTabOption,
     RelatedQuestionsConfig,
     StackMode,
-} from "../core/GrapherConstants"
-import { ShareMenu, ShareMenuManager } from "./ShareMenu"
-import { TimelineController } from "../timeline/TimelineController"
-import { AxisConfig } from "../axis/AxisConfig"
-import { Tippy } from "../chart/Tippy"
-import { Bounds } from "../../clientUtils/Bounds"
+} from "../core/GrapherConstants.js"
+import { ShareMenu, ShareMenuManager } from "./ShareMenu.js"
+import { TimelineController } from "../timeline/TimelineController.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import { Tippy } from "../chart/Tippy.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
 import classnames from "classnames"
 
 export interface NoDataAreaToggleManager {

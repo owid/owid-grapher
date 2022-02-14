@@ -9,16 +9,16 @@ import {
     NumericCellDef,
     CellDef,
     UrlCellDef,
-} from "../gridLang/GridLangConstants"
+} from "../gridLang/GridLangConstants.js"
 import {
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
     StackMode,
-} from "../grapher/core/GrapherConstants"
-import { ColorSchemes } from "../grapher/color/ColorSchemes"
-import { SortBy, SortOrder } from "../clientUtils/owidTypes"
+} from "../grapher/core/GrapherConstants.js"
+import { ColorSchemes } from "../grapher/color/ColorSchemes.js"
+import { SortBy, SortOrder } from "../clientUtils/owidTypes.js"
 
 const toTerminalOptions = (keywords: string[]): CellDef[] => {
     return keywords.map((keyword) => ({

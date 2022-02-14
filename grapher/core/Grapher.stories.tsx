@@ -1,19 +1,19 @@
 import * as React from "react"
-import { Grapher, GrapherProgrammaticInterface } from "./Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "./Grapher.js"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
+} from "../../coreTable/OwidTableSynthesizers.js"
 import {
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
-} from "./GrapherConstants"
-import { BlankOwidTable } from "../../coreTable/OwidTable"
+} from "./GrapherConstants.js"
+import { BlankOwidTable } from "../../coreTable/OwidTable.js"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"
-import { DimensionProperty } from "../../clientUtils/owidTypes"
+import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher.js"
+import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
 export default {
     title: "Grapher",

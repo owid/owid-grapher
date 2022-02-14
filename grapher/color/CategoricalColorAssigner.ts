@@ -1,7 +1,7 @@
-import { Color } from "../../clientUtils/owidTypes"
-import { last } from "../../clientUtils/Util"
-import { ColorScheme } from "./ColorScheme"
-import { getLeastUsedColor } from "./ColorUtils"
+import { Color } from "../../clientUtils/owidTypes.js"
+import { last } from "../../clientUtils/Util.js"
+import { ColorScheme } from "./ColorScheme.js"
+import { getLeastUsedColor } from "./ColorUtils.js"
 
 type CategoryId = string
 export type CategoricalColorMap = Map<CategoryId, Color>

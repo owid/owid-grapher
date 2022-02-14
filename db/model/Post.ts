@@ -1,6 +1,6 @@
-import * as db from "../db"
+import * as db from "../db.js"
 import { Knex } from "knex"
-import { PostRow } from "../../clientUtils/owidTypes"
+import { PostRow } from "../../clientUtils/owidTypes.js"
 
 export namespace Post {
     export const table = "posts"

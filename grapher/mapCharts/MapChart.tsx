@@ -1,12 +1,12 @@
 import * as React from "react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../horizontalColorLegend/HorizontalColorLegends.js"
 import {
     flatten,
     getRelativeMouse,
@@ -17,15 +17,15 @@ import {
     minBy,
     difference,
     exposeInstanceOnWindow,
-} from "../../clientUtils/Util"
-import { isPresent } from "../../clientUtils/isPresent"
-import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
+} from "../../clientUtils/Util.js"
+import { isPresent } from "../../clientUtils/isPresent.js"
+import { MapProjectionName, MapProjectionGeos } from "./MapProjections.js"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
-import { MapTooltip } from "./MapTooltip"
-import { ProjectionChooser } from "./ProjectionChooser"
-import { isOnTheMap } from "./EntitiesOnTheMap"
-import { EntityName } from "../../coreTable/OwidTableConstants"
+import { MapTooltip } from "./MapTooltip.js"
+import { ProjectionChooser } from "./ProjectionChooser.js"
+import { isOnTheMap } from "./EntitiesOnTheMap.js"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import {
     GeoFeature,
     MapBracket,
@@ -34,39 +34,39 @@ import {
     ChoroplethMapProps,
     RenderFeature,
     ChoroplethSeries,
-} from "./MapChartConstants"
-import { MapConfig } from "./MapConfig"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+} from "./MapChartConstants.js"
+import { MapConfig } from "./MapConfig.js"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
     BASE_FONT_SIZE,
     GrapherTabOption,
     SeriesName,
-} from "../core/GrapherConstants"
-import { ChartInterface } from "../chart/ChartInterface"
+} from "../core/GrapherConstants.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     CategoricalBin,
     ColorScaleBin,
     NumericBin,
-} from "../color/ColorScaleBin"
+} from "../color/ColorScaleBin.js"
 import * as topojson from "topojson-client"
-import { MapTopology } from "./MapTopology"
-import { PointVector } from "../../clientUtils/PointVector"
+import { MapTopology } from "./MapTopology.js"
+import { PointVector } from "../../clientUtils/PointVector.js"
 import {
     WorldRegionName,
     WorldRegionToProjection,
-} from "./WorldRegionsToProjection"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { ColorSchemeName } from "../color/ColorConstants"
+} from "./WorldRegionsToProjection.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
 import {
     autoDetectYColumnSlugs,
     makeClipPath,
     makeSelectionArray,
-} from "../chart/ChartUtils"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { SelectionArray } from "../selection/SelectionArray"
-import { Color, HorizontalAlign } from "../../clientUtils/owidTypes"
+} from "../chart/ChartUtils.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { Color, HorizontalAlign } from "../../clientUtils/owidTypes.js"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22

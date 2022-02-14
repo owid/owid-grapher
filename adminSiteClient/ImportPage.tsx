@@ -1,7 +1,7 @@
 // WIP
 
 import * as React from "react"
-import { isEmpty, difference, clone, uniq } from "../clientUtils/Util"
+import { isEmpty, difference, clone, uniq } from "../clientUtils/Util.js"
 import {
     observable,
     computed,
@@ -14,9 +14,9 @@ import { observer } from "mobx-react"
 import { Redirect } from "react-router-dom"
 
 import Papa from "papaparse"
-import { BindString, NumericSelectField, FieldsRow } from "./Forms"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { BindString, NumericSelectField, FieldsRow } from "./Forms.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 

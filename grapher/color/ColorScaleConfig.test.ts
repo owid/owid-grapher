@@ -1,9 +1,9 @@
 #! yarn testJest
 
-import { BinningStrategy } from "./BinningStrategy"
-import { ColorSchemeName } from "./ColorConstants"
-import { NO_DATA_LABEL } from "./ColorScale"
-import { ColorScaleConfig } from "./ColorScaleConfig"
+import { BinningStrategy } from "./BinningStrategy.js"
+import { ColorSchemeName } from "./ColorConstants.js"
+import { NO_DATA_LABEL } from "./ColorScale.js"
+import { ColorScaleConfig } from "./ColorScaleConfig.js"
 
 it("can serialize for saving", () => {
     expect(new ColorScaleConfig().toObject()).toEqual({})

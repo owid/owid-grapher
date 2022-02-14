@@ -1,5 +1,5 @@
 import { observer } from "mobx-react"
-import { ScatterPlotChart } from "./ScatterPlotChart"
+import { ScatterPlotChart } from "./ScatterPlotChart.js"
 
 // todo: readd
 @observer

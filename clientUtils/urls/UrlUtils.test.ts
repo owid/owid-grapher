@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { queryParamsToStr, strToQueryParams } from "./UrlUtils"
+import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
 
 const testCases = [
     {

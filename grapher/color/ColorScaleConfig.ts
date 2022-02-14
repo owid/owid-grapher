@@ -1,16 +1,16 @@
 import { observable } from "mobx"
-import { Color } from "../../coreTable/CoreTableConstants"
-import { ColumnColorScale } from "../../coreTable/CoreColumnDef"
+import { Color } from "../../coreTable/CoreTableConstants.js"
+import { ColumnColorScale } from "../../coreTable/CoreColumnDef.js"
 import {
     deleteRuntimeAndUnchangedProps,
     objectWithPersistablesToObject,
     Persistable,
     updatePersistables,
-} from "../../clientUtils/persistable/Persistable"
-import { extend, isEmpty, trimObject } from "../../clientUtils/Util"
-import { ColorSchemeName } from "./ColorConstants"
-import { BinningStrategy } from "./BinningStrategy"
-import { NO_DATA_LABEL } from "./ColorScale"
+} from "../../clientUtils/persistable/Persistable.js"
+import { extend, isEmpty, trimObject } from "../../clientUtils/Util.js"
+import { ColorSchemeName } from "./ColorConstants.js"
+import { BinningStrategy } from "./BinningStrategy.js"
+import { NO_DATA_LABEL } from "./ColorScale.js"
 
 export class ColorScaleConfigDefaults {
     // Color scheme

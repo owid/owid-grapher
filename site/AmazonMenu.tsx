@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { bind } from "decko"
-import { findDOMParent } from "../clientUtils/Util"
+import { findDOMParent } from "../clientUtils/Util.js"
 
 interface Position {
     x: number

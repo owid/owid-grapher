@@ -1,4 +1,4 @@
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,
@@ -7,16 +7,16 @@ import {
     StringAtom,
     StringContainsOperation,
     StringOperation,
-} from "../clientUtils/SqlFilterSExpression"
+} from "../clientUtils/SqlFilterSExpression.js"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
     VariableAnnotationsResponseRow,
     VariableAnnotationPatch,
-} from "../clientUtils/AdminSessionTypes"
+} from "../clientUtils/AdminSessionTypes.js"
 export function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
 ): VariableAnnotationsRow {

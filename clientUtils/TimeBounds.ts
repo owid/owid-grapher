@@ -3,8 +3,8 @@ import {
     isString,
     diffDateISOStringInDays,
     formatDay,
-} from "./Util"
-import { EPOCH_DATE, Time } from "./owidTypes"
+} from "./Util.js"
+import { EPOCH_DATE, Time } from "./owidTypes.js"
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).

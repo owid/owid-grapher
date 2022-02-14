@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { SelectionArray } from "./SelectionArray"
+import { SelectionArray } from "./SelectionArray.js"
 
 it("can create a selection", () => {
     const selection = new SelectionArray(

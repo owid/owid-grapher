@@ -1,20 +1,20 @@
 import * as stream from "stream"
 import * as path from "path"
-import { getVariableData } from "../../db/model/Variable"
+import { getVariableData } from "../../db/model/Variable.js"
 import {
     initGrapherForSvgExport,
     buildSvgOutFilename,
-} from "../../baker/GrapherImageBaker"
+} from "../../baker/GrapherImageBaker.js"
 import { createGunzip, createGzip } from "zlib"
 import * as fs from "fs-extra"
 import getStream from "get-stream"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
-import { ChartTypeName } from "../../grapher/core/GrapherConstants"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 import md5 from "md5"
 
 import * as util from "util"
-import { GrapherInterface } from "../../grapher/core/GrapherInterface"
-import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util"
+import { GrapherInterface } from "../../grapher/core/GrapherInterface.js"
+import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util.js"
 import _ from "lodash"
 
 const CONFIG_FILENAME: string = "config.json"

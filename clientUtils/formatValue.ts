@@ -1,4 +1,4 @@
-import { d3Format } from "./Util"
+import { d3Format } from "./Util.js"
 
 export interface TickFormattingOptions {
     numDecimalPlaces?: number

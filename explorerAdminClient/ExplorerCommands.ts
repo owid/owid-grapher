@@ -1,6 +1,6 @@
-import { ExplorerGrammar } from "../explorer/ExplorerGrammar"
-import { ExplorerProgram } from "../explorer/ExplorerProgram"
-import { CellPosition } from "../gridLang/GridLangConstants"
+import { ExplorerGrammar } from "../explorer/ExplorerGrammar.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { CellPosition } from "../gridLang/GridLangConstants.js"
 import Handsontable from "handsontable"
 import HotContextMenu from "handsontable/plugins/contextMenu"
 

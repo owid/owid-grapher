@@ -14,32 +14,38 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import { OwidVariableDisplayConfig } from "../clientUtils/OwidVariable"
-import { OwidSource } from "../clientUtils/OwidSource"
+import { OwidVariableDisplayConfig } from "../clientUtils/OwidVariable.js"
+import { OwidSource } from "../clientUtils/OwidSource.js"
 
-import { AdminLayout } from "./AdminLayout"
-import { Link } from "./Link"
-import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from "./Forms"
-import { ChartList, ChartListItem } from "./ChartList"
-import { Grapher } from "../grapher/core/Grapher"
-import { GrapherFigureView } from "../site/GrapherFigureView"
+import { AdminLayout } from "./AdminLayout.js"
+import { Link } from "./Link.js"
+import {
+    BindString,
+    Toggle,
+    BindFloat,
+    FieldsRow,
+    EditableTags,
+} from "./Forms.js"
+import { ChartList, ChartListItem } from "./ChartList.js"
+import { Grapher } from "../grapher/core/Grapher.js"
+import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import {
     EntitySelectionMode,
     ChartTypeName,
     GrapherTabOption,
     WorldEntityName,
-} from "../grapher/core/GrapherConstants"
-import { Tag } from "./TagBadge"
-import { VariableList, VariableListItem } from "./VariableList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+} from "../grapher/core/GrapherConstants.js"
+import { Tag } from "./TagBadge.js"
+import { VariableList, VariableListItem } from "./VariableList.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
-import { EPOCH_DATE } from "../clientUtils/owidTypes"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
+import { EPOCH_DATE } from "../clientUtils/owidTypes.js"
 
 class VariableEditable {
     @observable name: string = ""

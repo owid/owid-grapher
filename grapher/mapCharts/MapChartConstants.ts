@@ -1,13 +1,13 @@
-import { ColorScaleBin } from "../color/ColorScaleBin"
-import { Bounds } from "../../clientUtils/Bounds"
-import { PointVector } from "../../clientUtils/PointVector"
-import { MapProjectionName } from "./MapProjections"
-import { ChartManager } from "../chart/ChartManager"
-import { MapConfig } from "./MapConfig"
-import { Color, Time } from "../../coreTable/CoreTableConstants"
-import { ChartTypeName, SeriesName } from "../core/GrapherConstants"
-import { ChartSeries } from "../chart/ChartInterface"
-import { ColumnSlug } from "../../clientUtils/owidTypes"
+import { ColorScaleBin } from "../color/ColorScaleBin.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { PointVector } from "../../clientUtils/PointVector.js"
+import { MapProjectionName } from "./MapProjections.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { MapConfig } from "./MapConfig.js"
+import { Color, Time } from "../../coreTable/CoreTableConstants.js"
+import { ChartTypeName, SeriesName } from "../core/GrapherConstants.js"
+import { ChartSeries } from "../chart/ChartInterface.js"
+import { ColumnSlug } from "../../clientUtils/owidTypes.js"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin

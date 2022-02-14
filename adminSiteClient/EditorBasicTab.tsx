@@ -8,24 +8,30 @@ import {
     sampleSize,
     sortBy,
     startCase,
-} from "../clientUtils/Util"
+} from "../clientUtils/Util.js"
 import {
     EntitySelectionMode,
     ChartTypeName,
     WorldEntityName,
     StackMode,
-} from "../grapher/core/GrapherConstants"
-import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
-import { ChartEditor } from "./ChartEditor"
-import { VariableSelector } from "./VariableSelector"
-import { DimensionCard } from "./DimensionCard"
-import { DimensionSlot } from "../grapher/chart/DimensionSlot"
+} from "../grapher/core/GrapherConstants.js"
+import {
+    Toggle,
+    SelectField,
+    EditableList,
+    FieldsRow,
+    Section,
+} from "./Forms.js"
+import { ChartEditor } from "./ChartEditor.js"
+import { VariableSelector } from "./VariableSelector.js"
+import { DimensionCard } from "./DimensionCard.js"
+import { DimensionSlot } from "../grapher/chart/DimensionSlot.js"
 import {
     ColumnSlug,
     DimensionProperty,
     OwidVariableId,
-} from "../clientUtils/owidTypes"
-import { ChartDimension } from "../grapher/chart/ChartDimension"
+} from "../clientUtils/owidTypes.js"
+import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 
 @observer
 class DimensionSlotView extends React.Component<{

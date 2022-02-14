@@ -1,9 +1,9 @@
-import { ColumnSlug } from "../../../clientUtils/owidTypes"
-import { CoreColumnDef } from "../../../coreTable/CoreColumnDef"
-import { SortOrder } from "../../../coreTable/CoreTableConstants"
-import { OwidTable } from "../../../coreTable/OwidTable"
-import { GrapherAnalytics } from "../../core/GrapherAnalytics"
-import { SelectionArray } from "../../selection/SelectionArray"
+import { ColumnSlug } from "../../../clientUtils/owidTypes.js"
+import { CoreColumnDef } from "../../../coreTable/CoreColumnDef.js"
+import { SortOrder } from "../../../coreTable/CoreTableConstants.js"
+import { OwidTable } from "../../../coreTable/OwidTable.js"
+import { GrapherAnalytics } from "../../core/GrapherAnalytics.js"
+import { SelectionArray } from "../../selection/SelectionArray.js"
 
 export interface EntityPickerManager {
     entityPickerMetric?: ColumnSlug

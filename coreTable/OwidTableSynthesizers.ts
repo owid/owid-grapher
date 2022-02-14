@@ -2,14 +2,14 @@ import {
     sampleFrom,
     getRandomNumberGenerator,
     range,
-} from "../clientUtils/Util"
-import { countries } from "../clientUtils/countries"
-import { TimeRange } from "./CoreTableConstants"
-import { ColumnTypeNames } from "./CoreColumnDef"
-import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
-import { OwidTable } from "./OwidTable"
-import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
-import { ColumnSlug } from "../clientUtils/owidTypes"
+} from "../clientUtils/Util.js"
+import { countries } from "../clientUtils/countries.js"
+import { TimeRange } from "./CoreTableConstants.js"
+import { ColumnTypeNames } from "./CoreColumnDef.js"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
+import { OwidTable } from "./OwidTable.js"
+import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants.js"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
 
 interface SynthOptions {
     entityCount: number

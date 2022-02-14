@@ -1,19 +1,19 @@
 import * as React from "react"
-import { EntityPicker } from "./EntityPicker"
+import { EntityPicker } from "./EntityPicker.js"
 import { observer } from "mobx-react"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../../coreTable/OwidTableSynthesizers"
-import { SortOrder } from "../../../coreTable/CoreTableConstants"
+} from "../../../coreTable/OwidTableSynthesizers.js"
+import { SortOrder } from "../../../coreTable/CoreTableConstants.js"
 import {
     EntityName,
     OwidTableSlugs,
-} from "../../../coreTable/OwidTableConstants"
-import { EntityPickerManager } from "./EntityPickerConstants"
+} from "../../../coreTable/OwidTableConstants.js"
+import { EntityPickerManager } from "./EntityPickerConstants.js"
 import { computed, observable } from "mobx"
-import { SelectionArray } from "../../selection/SelectionArray"
-import { ColumnSlug } from "../../../clientUtils/owidTypes"
+import { SelectionArray } from "../../selection/SelectionArray.js"
+import { ColumnSlug } from "../../../clientUtils/owidTypes.js"
 
 class PickerHolder extends React.Component {
     render(): JSX.Element {

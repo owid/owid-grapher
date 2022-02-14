@@ -1,5 +1,5 @@
 import React from "react"
-import { DataValueProps } from "../clientUtils/owidTypes"
+import { DataValueProps } from "../clientUtils/owidTypes.js"
 
 export const DATA_VALUE = "DataValue"
 

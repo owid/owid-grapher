@@ -4,20 +4,20 @@ import {
     ProminentLinkStyles,
     PROMINENT_LINK_CLASSNAME,
     WITH_IMAGE,
-} from "../site/blocks/ProminentLink"
+} from "../site/blocks/ProminentLink.js"
 import * as cheerio from "cheerio"
-import { FullPost, WP_PostType } from "../clientUtils/owidTypes"
-import * as wpdb from "../db/wpdb"
+import { FullPost, WP_PostType } from "../clientUtils/owidTypes.js"
+import * as wpdb from "../db/wpdb.js"
 import {
     renderAutomaticProminentLinks,
     renderExplorerPage,
     renderProminentLinks,
-} from "./siteRenderers"
+} from "./siteRenderers.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
-} from "../settings/clientSettings"
-import { ExplorerProgram } from "../explorer/ExplorerProgram"
+} from "../settings/clientSettings.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 
 // There are many possible dimensions to test:
 // - style: default / thin

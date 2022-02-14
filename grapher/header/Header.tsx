@@ -1,11 +1,11 @@
 import * as React from "react"
-import { TextWrap } from "../text/TextWrap"
+import { TextWrap } from "../text/TextWrap.js"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Logo } from "../captionedChart/Logos"
-import { HeaderManager } from "./HeaderManager"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { Logo } from "../captionedChart/Logos.js"
+import { HeaderManager } from "./HeaderManager.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 
 @observer
 export class Header extends React.Component<{

@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { setValueRecursive } from "./patchHelper"
+import { setValueRecursive } from "./patchHelper.js"
 
 interface PatchHelperTestCase {
     pointer: string[]

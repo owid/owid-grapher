@@ -1,19 +1,19 @@
 #! /usr/bin/env jest
 
-import { StackedAreaChart } from "./StackedAreaChart"
+import { StackedAreaChart } from "./StackedAreaChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../chart/ChartManager"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { ChartManager } from "../chart/ChartManager.js"
 import { observable } from "mobx"
-import { AxisConfig } from "../axis/AxisConfig"
-import { SelectionArray } from "../selection/SelectionArray"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
-import { isNumber } from "../../clientUtils/Util"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
+import { isNumber } from "../../clientUtils/Util.js"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({

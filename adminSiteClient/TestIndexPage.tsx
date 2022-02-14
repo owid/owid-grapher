@@ -1,9 +1,9 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 
-import { AdminLayout } from "./AdminLayout"
-import { Link } from "./Link"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout.js"
+import { Link } from "./Link.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 export class TestIndexPage extends React.Component {

@@ -1,20 +1,20 @@
-import { trimObject } from "../clientUtils/Util"
-import { GitCommit, SubNavId } from "../clientUtils/owidTypes"
+import { trimObject } from "../clientUtils/Util.js"
+import { GitCommit, SubNavId } from "../clientUtils/owidTypes.js"
 import {
     DefaultNewExplorerSlug,
     ExplorerChoiceParams,
     EXPLORERS_ROUTE_FOLDER,
-} from "./ExplorerConstants"
+} from "./ExplorerConstants.js"
 import {
     columnDefinitionsFromDelimited,
     CoreTable,
-} from "../coreTable/CoreTable"
+} from "../coreTable/CoreTable.js"
 import {
     CoreMatrix,
     CoreTableInputOption,
     TableSlug,
-} from "../coreTable/CoreTableConstants"
-import { ExplorerGrammar } from "./ExplorerGrammar"
+} from "../coreTable/CoreTableConstants.js"
+import { ExplorerGrammar } from "./ExplorerGrammar.js"
 import {
     CellDef,
     GridBoolean,
@@ -22,17 +22,17 @@ import {
     GRID_NODE_DELIMITER,
     Grammar,
     RootKeywordCellDef,
-} from "../gridLang/GridLangConstants"
-import { OwidTable } from "../coreTable/OwidTable"
-import { GridProgram } from "../gridLang/GridProgram"
-import { SerializedGridProgram } from "../clientUtils/owidTypes"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { GrapherGrammar } from "./GrapherGrammar"
-import { ColumnGrammar } from "./ColumnGrammar"
-import { DecisionMatrix } from "./ExplorerDecisionMatrix"
-import { CoreColumnDef } from "../coreTable/CoreColumnDef"
-import { PromiseCache } from "../clientUtils/PromiseCache"
-import { FacetAxisDomain } from "../grapher/core/GrapherConstants"
+} from "../gridLang/GridLangConstants.js"
+import { OwidTable } from "../coreTable/OwidTable.js"
+import { GridProgram } from "../gridLang/GridProgram.js"
+import { SerializedGridProgram } from "../clientUtils/owidTypes.js"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { GrapherGrammar } from "./GrapherGrammar.js"
+import { ColumnGrammar } from "./ColumnGrammar.js"
+import { DecisionMatrix } from "./ExplorerDecisionMatrix.js"
+import { CoreColumnDef } from "../coreTable/CoreColumnDef.js"
+import { PromiseCache } from "../clientUtils/PromiseCache.js"
+import { FacetAxisDomain } from "../grapher/core/GrapherConstants.js"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 

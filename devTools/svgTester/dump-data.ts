@@ -1,13 +1,13 @@
 #! /usr/bin/env node
 
-import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker"
+import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 
-import { closeTypeOrmAndKnexConnections } from "../../db/db"
+import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
 
 import * as fs from "fs-extra"
 
 import parseArgs from "minimist"
-import * as utils from "./utils"
+import * as utils from "./utils.js"
 import * as path from "path"
 const Pool = require("multiprocessing").Pool
 const pool = new Pool()

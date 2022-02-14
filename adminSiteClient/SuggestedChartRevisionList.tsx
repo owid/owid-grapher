@@ -8,11 +8,11 @@ import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons/faTimesCircle"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
-import { ChartListItem } from "./ChartList"
-import { Link } from "./Link"
-import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { ChartListItem } from "./ChartList.js"
+import { Link } from "./Link.js"
+import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
 
 export interface SuggestedChartRevisionListItem {
     id: number

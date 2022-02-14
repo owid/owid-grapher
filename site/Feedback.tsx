@@ -7,8 +7,8 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
-import { BAKED_BASE_URL } from "../settings/clientSettings"
-import { stringifyUnkownError } from "../clientUtils/Util"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { stringifyUnkownError } from "../clientUtils/Util.js"
 
 const sendFeedback = (feedback: Feedback) =>
     new Promise((resolve, reject) => {

@@ -1,8 +1,8 @@
 import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { VariableCountryPageProps } from "./VariableCountryPageProps"
+import { Head } from "./Head.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { VariableCountryPageProps } from "./VariableCountryPageProps.js"
 
 export const VariableCountryPage = (props: VariableCountryPageProps) => {
     const { variable, country, baseUrl } = props

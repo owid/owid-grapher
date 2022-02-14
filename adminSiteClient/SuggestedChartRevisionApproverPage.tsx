@@ -6,18 +6,18 @@ import { Base64 } from "js-base64"
 import { format } from "timeago.js"
 import Select from "react-select"
 import classNames from "classnames"
-import { Bounds } from "../clientUtils/Bounds"
-import { getStylesForTargetHeight } from "../clientUtils/react-select"
+import { Bounds } from "../clientUtils/Bounds.js"
+import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
 import {
     SortOrder,
     SuggestedChartRevisionStatus,
-} from "../clientUtils/owidTypes"
-import { Grapher } from "../grapher/core/Grapher"
-import { TextAreaField, NumberField, RadioGroup, Toggle } from "./Forms"
-import { PostReference } from "./ChartEditor"
-import { AdminLayout } from "./AdminLayout"
-import { SuggestedChartRevisionStatusIcon } from "./SuggestedChartRevisionList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+} from "../clientUtils/owidTypes.js"
+import { Grapher } from "../grapher/core/Grapher.js"
+import { TextAreaField, NumberField, RadioGroup, Toggle } from "./Forms.js"
+import { PostReference } from "./ChartEditor.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { SuggestedChartRevisionStatusIcon } from "./SuggestedChartRevisionList.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
 import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
@@ -34,8 +34,8 @@ import {
     VisionDeficiencySvgFilters,
     VisionDeficiencyDropdown,
     VisionDeficiencyEntity,
-} from "./VisionDeficiencies"
-import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision"
+} from "./VisionDeficiencies.js"
+import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
 
 @observer
 export class SuggestedChartRevisionApproverPage extends React.Component<{

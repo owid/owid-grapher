@@ -9,7 +9,7 @@ import {
     getPreferenceValue,
     serializeState,
     arePreferencesOutdated,
-} from "./CookiePreferencesManager"
+} from "./CookiePreferencesManager.js"
 
 describe("cookie preferences", () => {
     const preferences = [

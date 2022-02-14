@@ -1,7 +1,7 @@
-import { ColumnSlug } from "../clientUtils/owidTypes"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { CoreTable } from "./CoreTable"
-import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
+import { CoreTable } from "./CoreTable.js"
+import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants.js"
 
 export function timeColumnSlugFromColumnDef(
     def: OwidColumnDef

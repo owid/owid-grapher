@@ -5,10 +5,10 @@ import { format } from "timeago.js"
 import * as lodash from "lodash"
 import { bind } from "decko"
 
-import { Link } from "./Link"
-import { Tag } from "./TagBadge"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { EditableTags } from "./Forms"
+import { Link } from "./Link.js"
+import { Tag } from "./TagBadge.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { EditableTags } from "./Forms.js"
 
 export interface DatasetListItem {
     id: number

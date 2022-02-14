@@ -1,10 +1,10 @@
 // todo: remove
 
-import { Grapher } from "../core/Grapher"
+import { Grapher } from "../core/Grapher.js"
 import { computed } from "mobx"
-import { excludeUndefined, findIndex, sortBy } from "../../clientUtils/Util"
-import { ChartDimension } from "./ChartDimension"
-import { DimensionProperty } from "../../clientUtils/owidTypes"
+import { excludeUndefined, findIndex, sortBy } from "../../clientUtils/Util.js"
+import { ChartDimension } from "./ChartDimension.js"
+import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
 export class DimensionSlot {
     private grapher: Grapher

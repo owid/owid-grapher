@@ -1,4 +1,4 @@
-import { SiteAnalytics } from "./SiteAnalytics"
+import { SiteAnalytics } from "./SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
 

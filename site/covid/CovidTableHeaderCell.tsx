@@ -1,10 +1,10 @@
 import * as React from "react"
 import { bind } from "decko"
 import classnames from "classnames"
-import { SortOrder } from "../../coreTable/CoreTableConstants"
-import { CovidSortKey } from "./CovidTypes"
-import { CovidTableSortIcon } from "./CovidTableSortIcon"
-import { DEFAULT_SORT_ORDER } from "./CovidConstants"
+import { SortOrder } from "../../coreTable/CoreTableConstants.js"
+import { CovidSortKey } from "./CovidTypes.js"
+import { CovidTableSortIcon } from "./CovidTableSortIcon.js"
+import { DEFAULT_SORT_ORDER } from "./CovidConstants.js"
 
 export interface CovidTableHeaderCellProps {
     children: React.ReactNode

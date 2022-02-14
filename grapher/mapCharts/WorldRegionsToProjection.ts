@@ -1,4 +1,4 @@
-import { MapProjectionName } from "./MapProjections"
+import { MapProjectionName } from "./MapProjections.js"
 
 export enum WorldRegionToProjection {
     Abkhazia = MapProjectionName.Asia,

@@ -1,6 +1,6 @@
 import React from "react"
-import { SubNavId } from "../clientUtils/owidTypes"
-import { getSubnavItem, subnavs } from "./SiteSubnavigation"
+import { SubNavId } from "../clientUtils/owidTypes.js"
+import { getSubnavItem, subnavs } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons/faArrowLeft"
 

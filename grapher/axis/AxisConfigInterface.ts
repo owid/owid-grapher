@@ -1,5 +1,5 @@
-import { Position } from "../../clientUtils/owidTypes"
-import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants"
+import { Position } from "../../clientUtils/owidTypes.js"
+import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants.js"
 
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {

@@ -1,33 +1,33 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { fetchText, isMobile } from "../../clientUtils/Util"
-import { isPresent } from "../../clientUtils/isPresent"
-import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
-import { deserializeJSONFromHTML } from "../../clientUtils/serializers"
+import { fetchText, isMobile } from "../../clientUtils/Util.js"
+import { isPresent } from "../../clientUtils/isPresent.js"
+import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants.js"
+import { deserializeJSONFromHTML } from "../../clientUtils/serializers.js"
 import {
     Grapher,
     GrapherProgrammaticInterface,
-} from "../../grapher/core/Grapher"
-import { Explorer, ExplorerProps } from "../../explorer/Explorer"
+} from "../../grapher/core/Grapher.js"
+import { Explorer, ExplorerProps } from "../../explorer/Explorer.js"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
-} from "../../explorer/ExplorerConstants"
+} from "../../explorer/ExplorerConstants.js"
 import {
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
-} from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
-import { getWindowUrl, Url } from "../../clientUtils/urls/Url"
-import { SelectionArray } from "../../grapher/selection/SelectionArray"
+} from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants.js"
+import { getWindowUrl, Url } from "../../clientUtils/urls/Url.js"
+import { SelectionArray } from "../../grapher/selection/SelectionArray.js"
 import {
     getSelectedEntityNamesParam,
     migrateSelectedEntityNamesParam,
-} from "../../grapher/core/EntityUrlBuilder"
-import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector"
+} from "../../grapher/core/EntityUrlBuilder.js"
+import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector.js"
 import { action } from "mobx"
-import { Annotation } from "../../clientUtils/owidTypes"
-import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue"
+import { Annotation } from "../../clientUtils/owidTypes.js"
+import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 
 const figuresFromDOM = (
     container: HTMLElement | Document = document,

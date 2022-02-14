@@ -134,9 +134,9 @@ import {
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
-} from "./owidTypes"
-import { PointVector } from "./PointVector"
-import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
+} from "./owidTypes.js"
+import { PointVector } from "./PointVector.js"
+import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds.js"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>

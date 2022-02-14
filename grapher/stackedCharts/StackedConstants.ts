@@ -1,6 +1,6 @@
-import { OwidVariableRow } from "../../coreTable/OwidTableConstants"
-import { ChartSeries } from "../chart/ChartInterface"
-import { SeriesName } from "../core/GrapherConstants"
+import { OwidVariableRow } from "../../coreTable/OwidTableConstants.js"
+import { ChartSeries } from "../chart/ChartInterface.js"
+import { SeriesName } from "../core/GrapherConstants.js"
 
 export type StackedPointPositionType = string | number
 

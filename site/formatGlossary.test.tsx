@@ -7,8 +7,8 @@ import {
     formatGlossaryTerms,
     FORBIDDEN_TAGS,
     GlossaryLink,
-} from "./formatGlossary"
-import { getMutableGlossary } from "./glossary"
+} from "./formatGlossary.js"
+import { getMutableGlossary } from "./glossary.js"
 
 const population = "population"
 const populations = "populations"

@@ -2,7 +2,7 @@ import {
     ColorSchemeInterface,
     ContinentColors,
     ColorSchemeName,
-} from "./ColorConstants"
+} from "./ColorConstants.js"
 
 export const CustomColorSchemes: ColorSchemeInterface[] = []
 

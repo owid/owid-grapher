@@ -1,10 +1,10 @@
 import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { range } from "../clientUtils/Util"
-import { FullPost } from "../clientUtils/owidTypes"
-import PostCard from "./PostCard/PostCard"
+import { Head } from "./Head.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { range } from "../clientUtils/Util.js"
+import { FullPost } from "../clientUtils/owidTypes.js"
+import PostCard from "./PostCard/PostCard.js"
 
 export const BlogIndexPage = (props: {
     posts: FullPost[]

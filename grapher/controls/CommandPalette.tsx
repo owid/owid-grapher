@@ -1,5 +1,5 @@
-import { BodyDiv } from "../bodyDiv/BodyDiv"
-import { sortBy } from "../../clientUtils/Util"
+import { BodyDiv } from "../bodyDiv/BodyDiv.js"
+import { sortBy } from "../../clientUtils/Util.js"
 import { observer } from "mobx-react"
 import React from "react"
 

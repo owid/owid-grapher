@@ -1,6 +1,6 @@
 import * as React from "react"
-import { MapChart } from "./MapChart"
-import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers"
+import { MapChart } from "./MapChart.js"
+import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"
 
 export default {
     title: "MapChart",

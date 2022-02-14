@@ -1,11 +1,11 @@
-import Summary from "./Summary/Summary"
-import ProminentLink from "./ProminentLink/ProminentLink"
-import AdditionalInformation from "./AdditionalInformation/AdditionalInformation"
-import Help from "./Help/Help"
-import LastUpdated from "./LastUpdated/LastUpdated"
-import Byline from "./Byline/Byline"
-import Grid from "./Grid/Grid"
-import Card from "./Card/Card"
+import Summary from "./Summary/Summary.js"
+import ProminentLink from "./ProminentLink/ProminentLink.js"
+import AdditionalInformation from "./AdditionalInformation/AdditionalInformation.js"
+import Help from "./Help/Help.js"
+import LastUpdated from "./LastUpdated/LastUpdated.js"
+import Byline from "./Byline/Byline.js"
+import Grid from "./Grid/Grid.js"
+import Card from "./Card/Card.js"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
 const { addFilter } = wp.hooks

@@ -1,20 +1,20 @@
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { Color, Time } from "../../coreTable/CoreTableConstants"
-import { DualAxis } from "../axis/Axis"
-import { ChartManager } from "../chart/ChartManager"
-import { NoDataModalManager } from "../noDataModal/NoDataModal"
-import { ColorScale } from "../color/ColorScale"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { Color, Time } from "../../coreTable/CoreTableConstants.js"
+import { DualAxis } from "../axis/Axis.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { NoDataModalManager } from "../noDataModal/NoDataModal.js"
+import { ColorScale } from "../color/ColorScale.js"
 import {
     ScatterPointLabelStrategy,
     EntitySelectionMode,
     SeriesName,
-} from "../core/GrapherConstants"
+} from "../core/GrapherConstants.js"
 
-import { Bounds } from "../../clientUtils/Bounds"
-import { PointVector } from "../../clientUtils/PointVector"
-import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
-import { ChartSeries } from "../chart/ChartInterface"
-import { OwidTable } from "../../coreTable/OwidTable"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { PointVector } from "../../clientUtils/PointVector.js"
+import { EntityId, EntityName } from "../../coreTable/OwidTableConstants.js"
+import { ChartSeries } from "../chart/ChartInterface.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
 
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean

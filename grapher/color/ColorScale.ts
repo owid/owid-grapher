@@ -4,7 +4,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
     ColorScaleConfigInterface,
-} from "./ColorScaleConfig"
+} from "./ColorScaleConfig.js"
 import {
     isEmpty,
     reverse,
@@ -15,15 +15,15 @@ import {
     isString,
     mapValues,
     identity,
-} from "../../clientUtils/Util"
-import { Color, CoreValueType } from "../../coreTable/CoreTableConstants"
-import { ColorSchemes } from "../color/ColorSchemes"
-import { ColorScheme } from "../color/ColorScheme"
-import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
-import { ColorSchemeName } from "./ColorConstants"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { getBinMaximums } from "./BinningStrategies"
-import { BinningStrategy } from "./BinningStrategy"
+} from "../../clientUtils/Util.js"
+import { Color, CoreValueType } from "../../coreTable/CoreTableConstants.js"
+import { ColorSchemes } from "../color/ColorSchemes.js"
+import { ColorScheme } from "../color/ColorScheme.js"
+import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin.js"
+import { ColorSchemeName } from "./ColorConstants.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { getBinMaximums } from "./BinningStrategies.js"
+import { BinningStrategy } from "./BinningStrategy.js"
 
 export const NO_DATA_LABEL = "No data"
 

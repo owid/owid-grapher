@@ -1,17 +1,17 @@
-import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers"
+import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"
 import {
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
     SeriesStrategy,
-} from "../core/GrapherConstants"
-import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+} from "../core/GrapherConstants.js"
+import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import * as React from "react"
 import {
     CaptionedChart,
     CaptionedChartManager,
     StaticCaptionedChart,
-} from "./CaptionedChart"
+} from "./CaptionedChart.js"
 
 export default {
     title: "CaptionedChart",

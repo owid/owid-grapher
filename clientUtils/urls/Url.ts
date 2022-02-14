@@ -1,8 +1,8 @@
 import urlParseLib from "url-parse"
 
-import { excludeUndefined, omitUndefinedValues } from "../Util"
+import { excludeUndefined, omitUndefinedValues } from "../Util.js"
 
-import { QueryParams, queryParamsToStr, strToQueryParams } from "./UrlUtils"
+import { QueryParams, queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
 
 const parseUrl = (url: string) => {
     const parsed = urlParseLib(url, {})

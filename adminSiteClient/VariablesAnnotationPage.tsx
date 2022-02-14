@@ -1,5 +1,5 @@
 import * as React from "react"
-import { VariableAnnotationPatch } from "../clientUtils/AdminSessionTypes"
+import { VariableAnnotationPatch } from "../clientUtils/AdminSessionTypes.js"
 import {
     DragDropContext,
     Droppable,
@@ -22,20 +22,23 @@ import {
 } from "lodash"
 
 import { HotColumn, HotTable } from "@handsontable/react"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { applyPatch } from "../clientUtils/patchHelper"
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { applyPatch } from "../clientUtils/patchHelper.js"
 import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
     FieldType,
     EditorOption,
-} from "../clientUtils/schemaProcessing"
+} from "../clientUtils/schemaProcessing.js"
 
 import Handsontable from "handsontable"
-import { Bounds } from "../clientUtils/Bounds"
-import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
-import { BindString, SelectField } from "./Forms"
+import { Bounds } from "../clientUtils/Bounds.js"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+} from "../grapher/core/Grapher.js"
+import { BindString, SelectField } from "./Forms.js"
 import { from } from "rxjs"
 import {
     catchError,
@@ -49,7 +52,7 @@ import {
     stringifyUnkownError,
     excludeUndefined,
     moveArrayItemToIndex,
-} from "../clientUtils/Util"
+} from "../clientUtils/Util.js"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
 import {
@@ -59,7 +62,7 @@ import {
     SqlColumnName,
     SQL_COLUMN_NAME_DATASET_NAME,
     SQL_COLUMN_NAME_VARIABLE_NAME,
-} from "../clientUtils/SqlFilterSExpression"
+} from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
     VariableAnnotationsRow,
@@ -76,7 +79,7 @@ import {
     searchFieldStringToFilterOperations,
     getItemStyle,
     columnSets,
-} from "./VariablesAnnotationTypesAndUtils"
+} from "./VariablesAnnotationTypesAndUtils.js"
 
 @observer
 class VariablesAnnotationComponent extends React.Component {

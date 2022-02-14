@@ -1,10 +1,10 @@
-import { PointVector } from "../../clientUtils/PointVector"
-import { first, last } from "../../clientUtils/Util"
+import { PointVector } from "../../clientUtils/PointVector.js"
+import { first, last } from "../../clientUtils/Util.js"
 import { observer } from "mobx-react"
 import React from "react"
-import { MultiColorPolyline } from "./MultiColorPolyline"
-import { ScatterRenderSeries } from "./ScatterPlotChartConstants"
-import { Triangle } from "./Triangle"
+import { MultiColorPolyline } from "./MultiColorPolyline.js"
+import { ScatterRenderSeries } from "./ScatterPlotChartConstants.js"
+import { Triangle } from "./Triangle.js"
 
 // When there's only a single point in a series (e.g. single year mode)
 @observer

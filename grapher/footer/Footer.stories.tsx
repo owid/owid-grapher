@@ -1,6 +1,6 @@
 import * as React from "react"
-import { Footer } from "../footer/Footer"
-import { FooterManager } from "./FooterManager"
+import { Footer } from "../footer/Footer.js"
+import { FooterManager } from "./FooterManager.js"
 
 export default {
     title: "Footer",

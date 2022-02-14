@@ -4,10 +4,10 @@ import {
     PrimitiveType,
     Time,
     Year,
-} from "./CoreTableConstants"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { OwidSource } from "../clientUtils/OwidSource"
-import { ColumnSlug } from "../clientUtils/owidTypes"
+} from "./CoreTableConstants.js"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
+import { OwidSource } from "../clientUtils/OwidSource.js"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
 
 export enum OwidTableSlugs {
     entityName = "entityName",

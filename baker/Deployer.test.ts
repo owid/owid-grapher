@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { Deployer } from "./Deployer"
-import { DeployTarget } from "./DeployTarget"
+import { Deployer } from "./Deployer.js"
+import { DeployTarget } from "./DeployTarget.js"
 
 it("can init", () => {
     const deployer = new Deployer({

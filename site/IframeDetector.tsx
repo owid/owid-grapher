@@ -1,4 +1,4 @@
-import { GRAPHER_IS_IN_IFRAME_CLASS } from "../grapher/core/GrapherConstants"
+import { GRAPHER_IS_IN_IFRAME_CLASS } from "../grapher/core/GrapherConstants.js"
 import * as React from "react"
 
 export const IFrameDetector = () => (

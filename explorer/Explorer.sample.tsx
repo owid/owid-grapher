@@ -1,8 +1,8 @@
 import React from "react"
-import { DimensionProperty } from "../clientUtils/owidTypes"
-import { GrapherProgrammaticInterface } from "../grapher/core/Grapher"
-import { GrapherTabOption } from "../grapher/core/GrapherConstants"
-import { Explorer, ExplorerProps } from "./Explorer"
+import { DimensionProperty } from "../clientUtils/owidTypes.js"
+import { GrapherProgrammaticInterface } from "../grapher/core/Grapher.js"
+import { GrapherTabOption } from "../grapher/core/GrapherConstants.js"
+import { Explorer, ExplorerProps } from "./Explorer.js"
 
 const SampleExplorerOfGraphersProgram = `explorerTitle	CO₂ Data Explorer
 isPublished	false

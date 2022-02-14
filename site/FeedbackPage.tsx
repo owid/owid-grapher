@@ -1,8 +1,8 @@
 import React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { FeedbackForm } from "../site/Feedback"
+import { Head } from "./Head.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { FeedbackForm } from "../site/Feedback.js"
 
 export class FeedbackPage extends React.Component<{ baseUrl: string }> {
     render() {

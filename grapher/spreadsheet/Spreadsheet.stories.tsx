@@ -2,19 +2,19 @@ import * as React from "react"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { Spreadsheet } from "./Spreadsheet"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { Spreadsheet } from "./Spreadsheet.js"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "../../clientUtils/Bounds"
-import { ChartTypeName } from "../core/GrapherConstants"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { ChartTypeName } from "../core/GrapherConstants.js"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../chart/ChartTypeMap"
-import { OwidTableSlugs } from "../../coreTable/OwidTableConstants"
-import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"
-import { OwidTable } from "../../coreTable/OwidTable"
+} from "../chart/ChartTypeMap.js"
+import { OwidTableSlugs } from "../../coreTable/OwidTableConstants.js"
+import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
 
 export default {
     title: "Spreadsheet",

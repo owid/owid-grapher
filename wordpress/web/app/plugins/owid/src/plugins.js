@@ -1,6 +1,6 @@
-import KeyPerformanceIndicators from "./KeyPerformanceIndicators/KeyPerformanceIndicators"
-import Glossary from "./Glossary/Glossary"
-import PublicationContext from "./PublicationContext/PublicationContext"
+import KeyPerformanceIndicators from "./KeyPerformanceIndicators/KeyPerformanceIndicators.js"
+import Glossary from "./Glossary/Glossary.js"
+import PublicationContext from "./PublicationContext/PublicationContext.js"
 const { registerPlugin } = wp.plugins
 const { PluginDocumentSettingPanel } = wp.editPost
 const { select } = wp.data

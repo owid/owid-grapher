@@ -1,4 +1,4 @@
-import { omitUndefinedValues } from "../Util"
+import { omitUndefinedValues } from "../Util.js"
 
 export interface QueryParams {
     [key: string]: string | undefined

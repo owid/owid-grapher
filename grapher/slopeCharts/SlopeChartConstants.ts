@@ -1,9 +1,9 @@
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { ChartSeries } from "../chart/ChartInterface"
-import { ChartManager } from "../chart/ChartManager"
-import { ScaleType } from "../core/GrapherConstants"
-import { TextWrap } from "../text/TextWrap"
-import { Bounds } from "../../clientUtils/Bounds"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { ChartSeries } from "../chart/ChartInterface.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { ScaleType } from "../core/GrapherConstants.js"
+import { TextWrap } from "../text/TextWrap.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
 
 export interface SlopeChartValue {
     x: number

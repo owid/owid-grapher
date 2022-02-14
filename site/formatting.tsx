@@ -5,15 +5,15 @@ import {
     FormattedPost,
     TocHeading,
     WP_PostType,
-} from "../clientUtils/owidTypes"
-import { last } from "../clientUtils/Util"
-import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings"
-import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector"
-import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink"
-import { Byline } from "./Byline"
-import { formatGlossaryTerms } from "./formatGlossary"
-import { getMutableGlossary, glossary } from "./glossary"
-import { SectionHeading } from "./SectionHeading"
+} from "../clientUtils/owidTypes.js"
+import { last } from "../clientUtils/Util.js"
+import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings.js"
+import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
+import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
+import { Byline } from "./Byline.js"
+import { formatGlossaryTerms } from "./formatGlossary.js"
+import { getMutableGlossary, glossary } from "./glossary.js"
+import { SectionHeading } from "./SectionHeading.js"
 
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 export const SUMMARY_CLASSNAME = "wp-block-owid-summary"

@@ -1,16 +1,16 @@
 import * as path from "path"
 import * as fs from "fs-extra"
-import { Dataset } from "../db/model/Dataset"
-import { Source } from "../db/model/Source"
-import { GIT_DATASETS_DIR, TMP_DIR } from "../settings/serverSettings"
+import { Dataset } from "../db/model/Dataset.js"
+import { Source } from "../db/model/Source.js"
+import { GIT_DATASETS_DIR, TMP_DIR } from "../settings/serverSettings.js"
 import {
     GIT_DEFAULT_USERNAME,
     GIT_DEFAULT_EMAIL,
-} from "../settings/serverSettings"
-import * as db from "../db/db"
+} from "../settings/serverSettings.js"
+import * as db from "../db/db.js"
 import filenamify from "filenamify"
-import { execFormatted } from "../db/execWrapper"
-import { JsonError } from "../clientUtils/owidTypes"
+import { execFormatted } from "../db/execWrapper.js"
+import { JsonError } from "../clientUtils/owidTypes.js"
 
 const datasetToReadme = async (dataset: Dataset): Promise<string> => {
     const source = await Source.findOne({ datasetId: dataset.id })

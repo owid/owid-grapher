@@ -1,12 +1,12 @@
-import { legacyToCurrentGrapherUrl } from "../../grapher/core/GrapherUrlMigrations"
-import { Url } from "../../clientUtils/urls/Url"
-import { UrlMigration } from "../../clientUtils/urls/UrlMigration"
+import { legacyToCurrentGrapherUrl } from "../../grapher/core/GrapherUrlMigrations.js"
+import { Url } from "../../clientUtils/urls/Url.js"
+import { UrlMigration } from "../../clientUtils/urls/UrlMigration.js"
 import {
     decodeURIComponentOrUndefined,
     getExplorerSlugFromUrl,
     QueryParamTransformMap,
     transformQueryParams,
-} from "./ExplorerUrlMigrationUtils"
+} from "./ExplorerUrlMigrationUtils.js"
 
 const EXPLORER_SLUG = "energy"
 

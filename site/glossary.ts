@@ -1,4 +1,4 @@
-import { memoize } from "../clientUtils/Util"
+import { memoize } from "../clientUtils/Util.js"
 export interface GlossaryItem {
     term: string
     slug: string

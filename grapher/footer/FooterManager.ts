@@ -1,5 +1,5 @@
-import { TooltipProps } from "../tooltip/TooltipProps"
-import { Bounds } from "../../clientUtils/Bounds"
+import { TooltipProps } from "../tooltip/TooltipProps.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
 
 export interface FooterManager {
     fontSize?: number

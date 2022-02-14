@@ -3,8 +3,8 @@ import Select, { GroupBase, components, OptionProps } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
 import { computed, action } from "mobx"
-import { groupBy } from "../clientUtils/Util"
-import { getStylesForTargetHeight } from "../clientUtils/react-select"
+import { groupBy } from "../clientUtils/Util.js"
+import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
 
 // Transformation matrices taken from https://github.com/hail2u/color-blindness-emulation/blob/master/filters.svg?short_path=5708e81
 // "Affected" numbers from https://en.wikipedia.org/wiki/Color_blindness#Epidemiology

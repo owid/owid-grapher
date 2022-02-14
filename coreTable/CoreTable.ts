@@ -11,9 +11,9 @@ import {
     uniqBy,
     intersectionOfSets,
     isNumber,
-} from "../clientUtils/Util"
-import { isPresent } from "../clientUtils/isPresent"
-import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns"
+} from "../clientUtils/Util.js"
+import { isPresent } from "../clientUtils/isPresent.js"
+import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns.js"
 import {
     CoreColumnStore,
     CoreRow,
@@ -28,14 +28,14 @@ import {
     CoreMatrix,
     TableSlug,
     JsTypes,
-} from "./CoreTableConstants"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
+} from "./CoreTableConstants.js"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
 import {
     AlignedTextTableOptions,
     toAlignedTextTable,
     toDelimited,
     toMarkdownTable,
-} from "./CoreTablePrinters"
+} from "./CoreTablePrinters.js"
 import {
     makeAutoTypeFn,
     columnStoreToRows,
@@ -57,15 +57,15 @@ import {
     emptyColumnsInFirstRowInDelimited,
     truncate,
     replaceCells,
-} from "./CoreTableUtils"
+} from "./CoreTableUtils.js"
 import {
     ErrorValueTypes,
     isNotErrorValue,
     DroppedForTesting,
-} from "./ErrorValues"
-import { OwidTableSlugs } from "./OwidTableConstants"
-import { applyTransforms } from "./Transforms"
-import { ColumnSlug } from "../clientUtils/owidTypes"
+} from "./ErrorValues.js"
+import { OwidTableSlugs } from "./OwidTableConstants.js"
+import { applyTransforms } from "./Transforms.js"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
 
 interface AdvancedOptions {
     tableDescription?: string

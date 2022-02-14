@@ -1,10 +1,10 @@
-import { PageOverrides } from "../site/LongFormPage"
-import { BAKED_BASE_URL } from "../settings/serverSettings"
-import { stringifyUnkownError, urlToSlug } from "../clientUtils/Util"
-import { FormattingOptions, FullPost } from "../clientUtils/owidTypes"
-import { getPostBySlug, isPostCitable } from "../db/wpdb"
-import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
+import { PageOverrides } from "../site/LongFormPage.js"
+import { BAKED_BASE_URL } from "../settings/serverSettings.js"
+import { stringifyUnkownError, urlToSlug } from "../clientUtils/Util.js"
+import { FormattingOptions, FullPost } from "../clientUtils/owidTypes.js"
+import { getPostBySlug, isPostCitable } from "../db/wpdb.js"
+import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     let post

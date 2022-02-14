@@ -1,4 +1,4 @@
-import { OwidVariableWithDataAndSource } from "../clientUtils/OwidVariable"
+import { OwidVariableWithDataAndSource } from "../clientUtils/OwidVariable.js"
 
 export interface VariableCountryPageProps {
     country: {

@@ -7,10 +7,10 @@ import {
     OneToMany,
 } from "typeorm"
 import * as lodash from "lodash"
-import * as db from "../db"
-import { getVariableData } from "./Variable"
-import { User } from "./User"
-import { ChartRevision } from "./ChartRevision"
+import * as db from "../db.js"
+import { getVariableData } from "./Variable.js"
+import { User } from "./User.js"
+import { ChartRevision } from "./ChartRevision.js"
 
 // XXX hardcoded filtering to public parent tags
 const PUBLIC_TAG_PARENT_IDS = [

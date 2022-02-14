@@ -1,15 +1,15 @@
 #! /usr/bin/env jest
 
 import React from "react"
-import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher.js"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
+} from "../../coreTable/OwidTableSynthesizers.js"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-import { DimensionProperty } from "../../clientUtils/owidTypes"
+import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 configure({ adapter: new Adapter() })
 
 const TestGrapherConfig = (): GrapherProgrammaticInterface => {

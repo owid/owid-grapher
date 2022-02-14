@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { formatParentTopicsTrails } from "./indexContentGraphToAlgolia"
+import { formatParentTopicsTrails } from "./indexContentGraphToAlgolia.js"
 
 it("formats parent topics trails", () => {
     const parentTopicsTitle = [

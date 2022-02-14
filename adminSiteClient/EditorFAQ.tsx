@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Modal } from "./Forms"
+import { Modal } from "./Forms.js"
 import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
 import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

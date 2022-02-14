@@ -13,15 +13,15 @@ import Papa from "papaparse"
 import unidecode from "unidecode"
 import FuzzySet from "fuzzyset"
 
-import { AdminLayout } from "./AdminLayout"
-import { SelectField, SelectGroupsField, SelectGroup } from "./Forms"
+import { AdminLayout } from "./AdminLayout.js"
+import { SelectField, SelectGroupsField, SelectGroup } from "./Forms.js"
 import {
     CountryNameFormat,
     CountryNameFormatDefs,
     CountryDefByKey,
-} from "../adminSiteClient/CountryNameFormat"
-import { uniq, toString, csvEscape, sortBy } from "../clientUtils/Util"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+} from "../adminSiteClient/CountryNameFormat.js"
+import { uniq, toString, csvEscape, sortBy } from "../clientUtils/Util.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 

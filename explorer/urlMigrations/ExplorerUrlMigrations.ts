@@ -1,12 +1,12 @@
-import { Url } from "../../clientUtils/urls/Url"
+import { Url } from "../../clientUtils/urls/Url.js"
 import {
     performUrlMigrations,
     UrlMigration,
-} from "../../clientUtils/urls/UrlMigration"
-import { legacyCovidMigrationSpec } from "./LegacyCovidUrlMigration"
-import { co2UrlMigration } from "./CO2UrlMigration"
-import { energyUrlMigration } from "./EnergyUrlMigration"
-import { covidUrlMigration } from "./CovidUrlMigration"
+} from "../../clientUtils/urls/UrlMigration.js"
+import { legacyCovidMigrationSpec } from "./LegacyCovidUrlMigration.js"
+import { co2UrlMigration } from "./CO2UrlMigration.js"
+import { energyUrlMigration } from "./EnergyUrlMigration.js"
+import { covidUrlMigration } from "./CovidUrlMigration.js"
 
 export enum ExplorerUrlMigrationId {
     legacyToGridCovidExplorer = "legacyToGridCovidExplorer",

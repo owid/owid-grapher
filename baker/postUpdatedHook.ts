@@ -1,13 +1,13 @@
 // This is used by owid-wordpress
 
 import parseArgs from "minimist"
-import { BAKE_ON_CHANGE } from "../settings/serverSettings"
-import { DeployQueueServer } from "./DeployQueueServer"
-import { exit } from "../db/cleanup"
-import { PostRow } from "../clientUtils/owidTypes"
-import { Post } from "../db/model/Post"
-import * as wpdb from "../db/wpdb"
-import * as db from "../db/db"
+import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
+import { DeployQueueServer } from "./DeployQueueServer.js"
+import { exit } from "../db/cleanup.js"
+import { PostRow } from "../clientUtils/owidTypes.js"
+import { Post } from "../db/model/Post.js"
+import * as wpdb from "../db/wpdb.js"
+import * as db from "../db/db.js"
 const argv = parseArgs(process.argv.slice(2))
 
 const zeroDateString = "0000-00-00 00:00:00"

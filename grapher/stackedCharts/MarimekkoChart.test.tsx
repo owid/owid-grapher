@@ -1,20 +1,20 @@
 #! /usr/bin/env jest
 
-import { Bounds } from "../../clientUtils/Bounds"
-import { SortOrder, SortBy } from "../../clientUtils/owidTypes"
-import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
-import { OwidTable } from "../../coreTable/OwidTable"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { SortOrder, SortBy } from "../../clientUtils/owidTypes.js"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { MarimekkoChart } from "./MarimekkoChart"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { MarimekkoChart } from "./MarimekkoChart.js"
 import {
     MarimekkoChartManager,
     BarShape,
     Item,
     PlacedItem,
-} from "./MarimekkoChartConstants"
+} from "./MarimekkoChartConstants.js"
 
 it("can create a chart", () => {
     const table = SynthesizeGDPTable({

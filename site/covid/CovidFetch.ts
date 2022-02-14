@@ -6,10 +6,10 @@ import {
     retryPromise,
     memoize,
     parseIntOrUndefined,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 
-import { CovidSeries } from "./CovidTypes"
-import { JHU_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"
+import { CovidSeries } from "./CovidTypes.js"
+import { JHU_DATA_URL, TESTS_DATA_URL } from "./CovidConstants.js"
 
 async function _fetchJHUData(): Promise<CovidSeries> {
     const responseText = await retryPromise(() => fetchText(JHU_DATA_URL))

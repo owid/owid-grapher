@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { ColumnTypeNames } from "./CoreColumnDef"
-import { CoreMatrix } from "./CoreTableConstants"
+import { ColumnTypeNames } from "./CoreColumnDef.js"
+import { CoreMatrix } from "./CoreTableConstants.js"
 import {
     emptyColumnsInFirstRowInDelimited,
     getDropIndexes,
@@ -20,8 +20,8 @@ import {
     guessColumnDefFromSlugAndRow,
     standardizeSlugs,
     cartesianProduct,
-} from "./CoreTableUtils"
-import { ErrorValueTypes } from "./ErrorValues"
+} from "./CoreTableUtils.js"
+import { ErrorValueTypes } from "./ErrorValues.js"
 
 describe(interpolateRowValuesWithTolerance, () => {
     it("handles empty array", () => {

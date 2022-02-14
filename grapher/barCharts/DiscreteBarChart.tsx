@@ -8,39 +8,39 @@ import {
     exposeInstanceOnWindow,
     uniq,
     flatten,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import {
     ScaleType,
     BASE_FONT_SIZE,
     SeriesStrategy,
-} from "../core/GrapherConstants"
+} from "../core/GrapherConstants.js"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
-} from "../axis/AxisViews"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
-import { ColorSchemes } from "../color/ColorSchemes"
-import { ChartInterface } from "../chart/ChartInterface"
+} from "../axis/AxisViews.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
+import { ColorSchemes } from "../color/ColorSchemes.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     BACKGROUND_COLOR,
     DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
-} from "./DiscreteBarChartConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
+} from "./DiscreteBarChartConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "../chart/ChartUtils"
-import { HorizontalAxis } from "../axis/Axis"
-import { SelectionArray } from "../selection/SelectionArray"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { ColorScheme } from "../color/ColorScheme"
+} from "../chart/ChartUtils.js"
+import { HorizontalAxis } from "../axis/Axis.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { ColorScheme } from "../color/ColorScheme.js"
 import {
     Time,
     SortOrder,
@@ -48,23 +48,23 @@ import {
     SortConfig,
     Color,
     HorizontalAlign,
-} from "../../clientUtils/owidTypes"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+} from "../../clientUtils/owidTypes.js"
+import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
     ColorScaleConfig,
     ColorScaleConfigInterface,
-} from "../color/ColorScaleConfig"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { darkenColorForLine } from "../color/ColorUtils"
-import { CoreValueType } from "../../coreTable/CoreTableConstants"
-import { isNotErrorValue } from "../../coreTable/ErrorValues"
+} from "../color/ColorScaleConfig.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
+import { darkenColorForLine } from "../color/ColorUtils.js"
+import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
+import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
 import {
     CategoricalBin,
     ColorScaleBin,
     NumericBin,
-} from "../color/ColorScaleBin"
-import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../color/ColorScaleBin.js"
+import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends.js"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5

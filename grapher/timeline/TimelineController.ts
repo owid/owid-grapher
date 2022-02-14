@@ -1,6 +1,6 @@
-import { Time } from "../../coreTable/CoreTableConstants"
-import { TimeBound, TimeBoundValue } from "../../clientUtils/TimeBounds"
-import { findClosestTime, last } from "../../clientUtils/Util"
+import { Time } from "../../coreTable/CoreTableConstants.js"
+import { TimeBound, TimeBoundValue } from "../../clientUtils/TimeBounds.js"
+import { findClosestTime, last } from "../../clientUtils/Util.js"
 
 export interface TimelineManager {
     disablePlay?: boolean

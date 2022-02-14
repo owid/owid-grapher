@@ -1,10 +1,10 @@
 import * as React from "react"
-import { SlopeChart } from "./SlopeChart"
+import { SlopeChart } from "./SlopeChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { BlankOwidTable } from "../../coreTable/OwidTable"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { BlankOwidTable } from "../../coreTable/OwidTable.js"
 
 export default {
     title: "SlopeChart",

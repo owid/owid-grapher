@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { action, computed, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
@@ -9,24 +9,27 @@ import {
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
-} from "../core/GrapherConstants"
+} from "../core/GrapherConstants.js"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../chart/ChartTypeMap"
-import { ChartManager } from "../chart/ChartManager"
-import { ChartInterface } from "../chart/ChartInterface"
-import { getChartPadding, getFontSize } from "./FacetChartUtils"
+} from "../chart/ChartTypeMap.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
+import { getChartPadding, getFontSize } from "./FacetChartUtils.js"
 import {
     FacetSeries,
     FacetChartProps,
     PlacedFacetSeries,
     FacetChartManager,
-} from "./FacetChartConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { SelectionArray } from "../selection/SelectionArray"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
+} from "./FacetChartConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "../chart/ChartUtils.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import {
     excludeUndefined,
     flatten,
@@ -37,8 +40,8 @@ import {
     sortBy,
     uniqWith,
     values,
-} from "../../clientUtils/Util"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface"
+} from "../../clientUtils/Util.js"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import {
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
@@ -46,21 +49,21 @@ import {
     PositionMap,
     HorizontalAlign,
     Color,
-} from "../../clientUtils/owidTypes"
-import { AxisConfig } from "../axis/AxisConfig"
-import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
+} from "../../clientUtils/owidTypes.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegend,
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../horizontalColorLegend/HorizontalColorLegends.js"
 import {
     CategoricalBin,
     ColorScaleBin,
     NumericBin,
-} from "../color/ColorScaleBin"
-import { shortenForTargetWidth } from "../text/TextWrap"
+} from "../color/ColorScaleBin.js"
+import { shortenForTargetWidth } from "../text/TextWrap.js"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 

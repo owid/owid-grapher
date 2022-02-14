@@ -1,4 +1,4 @@
-import { keyBy } from "../clientUtils/Util"
+import { keyBy } from "../clientUtils/Util.js"
 
 // export type CountryNameFormatType = 'NonStandardCountryName' | 'OurWorldInDataName' | 'IsoAlpha2' | 'IsoAlpha3' | 'ImfCode' | 'MarcCode' | 'CowLetter' | 'CowCode' | 'UnctadCode' | 'NCDCode' | 'KansasCode' | 'PennCode' | 'ContinentName' | 'ContinentCode'
 

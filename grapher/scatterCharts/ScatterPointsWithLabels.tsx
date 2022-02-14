@@ -1,9 +1,9 @@
 import { scaleLinear } from "d3-scale"
 import { select } from "d3-selection"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { SortOrder } from "../../coreTable/CoreTableConstants"
-import { Bounds } from "../../clientUtils/Bounds"
-import { PointVector } from "../../clientUtils/PointVector"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { SortOrder } from "../../coreTable/CoreTableConstants.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { PointVector } from "../../clientUtils/PointVector.js"
 import {
     sortNumeric,
     makeSafeForCSS,
@@ -16,12 +16,12 @@ import {
     first,
     isEmpty,
     guid,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { getElementWithHalo } from "./Halos"
-import { MultiColorPolyline } from "./MultiColorPolyline"
+import { getElementWithHalo } from "./Halos.js"
+import { MultiColorPolyline } from "./MultiColorPolyline.js"
 import {
     ScatterPointsWithLabelsProps,
     ScatterRenderSeries,
@@ -29,16 +29,16 @@ import {
     ScatterRenderPoint,
     ScatterLabelFontFamily,
     ScatterSeries,
-} from "./ScatterPlotChartConstants"
-import { ScatterLine, ScatterPoint } from "./ScatterPoints"
+} from "./ScatterPlotChartConstants.js"
+import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
 import {
     makeStartLabel,
     makeMidLabels,
     makeEndLabel,
     labelPriority,
-} from "./ScatterUtils"
-import { Triangle } from "./Triangle"
-import { ColorScale } from "../color/ColorScale"
+} from "./ScatterUtils.js"
+import { Triangle } from "./Triangle.js"
+import { ColorScale } from "../color/ColorScale.js"
 import { ScaleLinear } from "d3-scale"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.

@@ -9,25 +9,28 @@ import {
     sortBy,
     numberMagnitude,
     first,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants.js"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
-} from "../axis/AxisViews"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+} from "../axis/AxisViews.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "../chart/ChartUtils.js"
 import {
     stackSeries,
     withMissingValuesAsZeroes,
-} from "../stackedCharts/StackedUtils"
-import { ChartManager } from "../chart/ChartManager"
+} from "../stackedCharts/StackedUtils.js"
+import { ChartManager } from "../chart/ChartManager.js"
 import {
     Color,
     SortOrder,
@@ -35,23 +38,23 @@ import {
     SortBy,
     SortConfig,
     HorizontalAlign,
-} from "../../clientUtils/owidTypes"
-import { StackedPoint, StackedSeries } from "./StackedConstants"
-import { ColorSchemes } from "../color/ColorSchemes"
-import { EntityName } from "../../coreTable/OwidTableConstants"
+} from "../../clientUtils/owidTypes.js"
+import { StackedPoint, StackedSeries } from "./StackedConstants.js"
+import { ColorSchemes } from "../color/ColorSchemes.js"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { TippyIfInteractive } from "../chart/Tippy"
+} from "../horizontalColorLegend/HorizontalColorLegends.js"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { TippyIfInteractive } from "../chart/Tippy.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { isDarkColor } from "../color/ColorUtils"
-import { HorizontalAxis } from "../axis/Axis"
-import { SelectionArray } from "../selection/SelectionArray"
-import { ColorScheme } from "../color/ColorScheme"
+import { isDarkColor } from "../color/ColorUtils.js"
+import { HorizontalAxis } from "../axis/Axis.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { ColorScheme } from "../color/ColorScheme.js"
 import { NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"

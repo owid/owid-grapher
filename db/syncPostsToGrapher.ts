@@ -1,11 +1,11 @@
 // Comes in handy when the post update hook fails for some reason, and we need
 // to batch update the grapher posts metadata without manually triggering individual WP updates.
 
-import * as wpdb from "./wpdb"
-import * as db from "./db"
-import { Post } from "./model/Post"
-import { keyBy } from "../clientUtils/Util"
-import { PostRow } from "../clientUtils/owidTypes"
+import * as wpdb from "./wpdb.js"
+import * as db from "./db.js"
+import { Post } from "./model/Post.js"
+import { keyBy } from "../clientUtils/Util.js"
+import { PostRow } from "../clientUtils/owidTypes.js"
 
 const zeroDateString = "0000-00-00 00:00:00"
 

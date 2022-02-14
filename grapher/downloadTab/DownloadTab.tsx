@@ -1,18 +1,18 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
+import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
-} from "../../clientUtils/Util"
-import { OwidColumnDef } from "../../coreTable/OwidTableConstants"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
+} from "../../clientUtils/Util.js"
+import { OwidColumnDef } from "../../coreTable/OwidTableConstants.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds

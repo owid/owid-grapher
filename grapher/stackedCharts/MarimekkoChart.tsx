@@ -11,21 +11,24 @@ import {
     sumBy,
     partition,
     first,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import {
     BASE_FONT_SIZE,
     EntitySelectionMode,
     SeriesName,
-} from "../core/GrapherConstants"
-import { DualAxisComponent } from "../axis/AxisViews"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+} from "../core/GrapherConstants.js"
+import { DualAxisComponent } from "../axis/AxisViews.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "../chart/ChartUtils.js"
 
 import {
     HorizontalAlign,
@@ -33,33 +36,33 @@ import {
     SortBy,
     SortConfig,
     SortOrder,
-} from "../../clientUtils/owidTypes"
-import { StackedPoint, StackedSeries } from "./StackedConstants"
-import { ColorSchemes } from "../color/ColorSchemes"
+} from "../../clientUtils/owidTypes.js"
+import { StackedPoint, StackedSeries } from "./StackedConstants.js"
+import { ColorSchemes } from "../color/ColorSchemes.js"
 import {
     EntityName,
     OwidVariableRow,
     OwidTableSlugs,
-} from "../../coreTable/OwidTableConstants"
+} from "../../coreTable/OwidTableConstants.js"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { TippyIfInteractive } from "../chart/Tippy"
+} from "../horizontalColorLegend/HorizontalColorLegends.js"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { TippyIfInteractive } from "../chart/Tippy.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
-} from "../color/ColorScaleConfig"
-import { ColorSchemeName } from "../color/ColorConstants"
+} from "../color/ColorScaleConfig.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
 import { color } from "d3-color"
-import { SelectionArray } from "../selection/SelectionArray"
-import { ColorScheme } from "../color/ColorScheme"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { ColorScheme } from "../color/ColorScheme.js"
 import {
     MarimekkoChartManager,
     EntityColorData,
@@ -75,7 +78,7 @@ import {
     LabelWithPlacement,
     LabelCandidateWithElement,
     MarimekkoBarProps,
-} from "./MarimekkoChartConstants"
+} from "./MarimekkoChartConstants.js"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25

@@ -1,9 +1,9 @@
 import * as React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
-import { ScaleType } from "../core/GrapherConstants"
+import { ScaleType } from "../core/GrapherConstants.js"
 import classNames from "classnames"
-import { next } from "../../clientUtils/Util"
+import { next } from "../../clientUtils/Util.js"
 
 export interface ScaleSelectorManager {
     scaleType?: ScaleType

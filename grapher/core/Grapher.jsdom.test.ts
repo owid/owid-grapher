@@ -1,35 +1,35 @@
 #! /usr/bin/env jest
-import { Grapher } from "../core/Grapher"
+import { Grapher } from "../core/Grapher.js"
 import {
     ChartTypeName,
     EntitySelectionMode,
     GrapherTabOption,
     ScaleType,
-} from "./GrapherConstants"
+} from "./GrapherConstants.js"
 import {
     GrapherInterface,
     GrapherQueryParams,
     LegacyGrapherQueryParams,
-} from "../core/GrapherInterface"
+} from "../core/GrapherInterface.js"
 import {
     TimeBoundValue,
     TimeBound,
     TimeBounds,
-} from "../../clientUtils/TimeBounds"
+} from "../../clientUtils/TimeBounds.js"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { orderBy } from "../../clientUtils/Util"
-import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
-import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
-import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils"
-import { Url } from "../../clientUtils/urls/Url"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { MapConfig } from "../mapCharts/MapConfig"
-import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
-import { SelectionArray } from "../selection/SelectionArray"
-import { DimensionProperty } from "../../clientUtils/owidTypes"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { orderBy } from "../../clientUtils/Util.js"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
+import { setSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
+import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils.js"
+import { Url } from "../../clientUtils/urls/Url.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { MapConfig } from "../mapCharts/MapConfig.js"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
 const TestGrapherConfig = (): {
     table: OwidTable

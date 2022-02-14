@@ -1,12 +1,12 @@
 import * as fs from "fs-extra"
 import * as prompts from "prompts"
 import ProgressBar from "progress"
-import { execWrapper } from "../db/execWrapper"
+import { execWrapper } from "../db/execWrapper.js"
 import { spawn } from "child_process"
 import simpleGit, { SimpleGit } from "simple-git"
 import { WriteStream } from "tty"
-import { ProgressStream } from "./ProgressStream"
-import { DeployTarget, ProdTarget } from "./DeployTarget"
+import { ProgressStream } from "./ProgressStream.js"
+import { DeployTarget, ProdTarget } from "./DeployTarget.js"
 
 const TEMP_DEPLOY_SCRIPT_PREFIX = `tempDeployScript.`
 

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { DownloadTab } from "./DownloadTab"
+import { DownloadTab } from "./DownloadTab.js"
 
 export default {
     title: "DownloadTab",

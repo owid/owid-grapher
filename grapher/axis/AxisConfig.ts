@@ -2,17 +2,17 @@ import {
     BASE_FONT_SIZE,
     FacetAxisDomain,
     ScaleType,
-} from "../core/GrapherConstants"
-import { extend, trimObject } from "../../clientUtils/Util"
+} from "../core/GrapherConstants.js"
+import { extend, trimObject } from "../../clientUtils/Util.js"
 import { observable, computed } from "mobx"
-import { HorizontalAxis, VerticalAxis } from "./Axis"
+import { HorizontalAxis, VerticalAxis } from "./Axis.js"
 import {
     deleteRuntimeAndUnchangedProps,
     Persistable,
-} from "../../clientUtils/persistable/Persistable"
-import { AxisConfigInterface } from "./AxisConfigInterface"
-import { ScaleSelectorManager } from "../controls/ScaleSelector"
-import { Position } from "../../clientUtils/owidTypes"
+} from "../../clientUtils/persistable/Persistable.js"
+import { AxisConfigInterface } from "./AxisConfigInterface.js"
+import { ScaleSelectorManager } from "../controls/ScaleSelector.js"
+import { Position } from "../../clientUtils/owidTypes.js"
 
 export interface FontSizeManager {
     fontSize: number

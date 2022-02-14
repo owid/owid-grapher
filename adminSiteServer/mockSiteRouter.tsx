@@ -16,36 +16,36 @@ import {
     renderCovidPage,
     countryProfileCountryPage,
     renderExplorerPage,
-} from "../baker/siteRenderers"
-import { grapherSlugToHtmlPage } from "../baker/GrapherBaker"
+} from "../baker/siteRenderers.js"
+import { grapherSlugToHtmlPage } from "../baker/GrapherBaker.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     WORDPRESS_DIR,
     BASE_DIR,
     BAKED_SITE_DIR,
-} from "../settings/serverSettings"
+} from "../settings/serverSettings.js"
 
-import * as db from "../db/db"
-import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil"
+import * as db from "../db/db.js"
+import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import {
     countryProfilePage,
     countriesIndexPage,
-} from "../baker/countryProfiles"
-import { makeSitemap } from "../baker/sitemap"
-import { OldChart } from "../db/model/Chart"
-import { countryProfileSpecs } from "../site/countryProfileProjects"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
-import { grapherToSVG } from "../baker/GrapherImageBaker"
-import { getVariableData } from "../db/model/Variable"
-import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage"
-import { bakeEmbedSnippet } from "../site/webpackUtils"
-import { JsonError } from "../clientUtils/owidTypes"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
-import { isWordpressAPIEnabled } from "../db/wpdb"
-import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
-import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects"
-import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
+} from "../baker/countryProfiles.js"
+import { makeSitemap } from "../baker/sitemap.js"
+import { OldChart } from "../db/model/Chart.js"
+import { countryProfileSpecs } from "../site/countryProfileProjects.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { grapherToSVG } from "../baker/GrapherImageBaker.js"
+import { getVariableData } from "../db/model/Variable.js"
+import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
+import { bakeEmbedSnippet } from "../site/webpackUtils.js"
+import { JsonError } from "../clientUtils/owidTypes.js"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
+import { isWordpressAPIEnabled } from "../db/wpdb.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
+import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
+import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 
 require("express-async-errors")
 

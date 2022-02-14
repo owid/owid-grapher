@@ -1,7 +1,7 @@
-import { QueryParams } from "../../clientUtils/urls/UrlUtils"
-import { Url } from "../../clientUtils/urls/Url"
-import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants"
-import { identity, omit } from "../../clientUtils/Util"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
+import { Url } from "../../clientUtils/urls/Url.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants.js"
+import { identity, omit } from "../../clientUtils/Util.js"
 
 export const decodeURIComponentOrUndefined = (value: string | undefined) =>
     value !== undefined

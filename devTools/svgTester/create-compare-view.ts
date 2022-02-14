@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 import parseArgs from "minimist"
-import * as utils from "./utils"
+import * as utils from "./utils.js"
 import * as fs from "fs-extra"
 import * as path from "path"
 

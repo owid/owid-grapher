@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { ExecError, execWrapper } from "./execWrapper"
+import { ExecError, execWrapper } from "./execWrapper.js"
 
 describe("execWrapper()", () => {
     it("should resolve when there is a zero exit code", async () => {

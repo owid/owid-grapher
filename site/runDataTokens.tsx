@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { DataToken_name } from "../site/DataToken"
-import { LastUpdated } from "./covid/LastUpdated"
+import { DataToken_name } from "../site/DataToken.js"
+import { LastUpdated } from "./covid/LastUpdated.js"
 
 interface ComponentDictionary {
     [key: string]: any

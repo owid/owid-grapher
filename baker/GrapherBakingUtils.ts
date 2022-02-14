@@ -5,14 +5,14 @@ import {
     BAKED_BASE_URL,
     OPTIMIZE_SVG_EXPORTS,
     BAKED_SITE_DIR,
-} from "../settings/serverSettings"
+} from "../settings/serverSettings.js"
 
-import * as db from "../db/db"
-import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker"
-import { warn } from "../serverUtils/slackLog"
-import { Chart } from "../db/model/Chart"
+import * as db from "../db/db.js"
+import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
+import { warn } from "../serverUtils/slackLog.js"
+import { Chart } from "../db/model/Chart.js"
 import md5 from "md5"
-import { Url } from "../clientUtils/urls/Url"
+import { Url } from "../clientUtils/urls/Url.js"
 
 interface ChartExportMeta {
     key: string

@@ -4,9 +4,12 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { SortOrder, Time } from "../../coreTable/CoreTableConstants"
-import { EntityName, OwidTableSlugs } from "../../coreTable/OwidTableConstants"
-import { TickFormattingOptions } from "../../clientUtils/formatValue"
+import { SortOrder, Time } from "../../coreTable/CoreTableConstants.js"
+import {
+    EntityName,
+    OwidTableSlugs,
+} from "../../coreTable/OwidTableConstants.js"
+import { TickFormattingOptions } from "../../clientUtils/formatValue.js"
 import {
     capitalize,
     orderBy,
@@ -19,15 +22,15 @@ import {
     countBy,
     union,
     exposeInstanceOnWindow,
-} from "../../clientUtils/Util"
-import { SortIcon } from "../controls/SortIcon"
-import { Tippy } from "../chart/Tippy"
-import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { makeSelectionArray } from "../chart/ChartUtils"
-import { SelectionArray } from "../selection/SelectionArray"
-import { ColumnSlug } from "../../clientUtils/owidTypes"
+} from "../../clientUtils/Util.js"
+import { SortIcon } from "../controls/SortIcon.js"
+import { Tippy } from "../chart/Tippy.js"
+import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { makeSelectionArray } from "../chart/ChartUtils.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { ColumnSlug } from "../../clientUtils/owidTypes.js"
 
 interface DataTableState {
     sort: DataTableSortState

@@ -10,8 +10,8 @@ import { bind } from "decko"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { pick, capitalize } from "../clientUtils/Util"
-import { Colorpicker } from "./Colorpicker"
+import { pick, capitalize } from "../clientUtils/Util.js"
+import { Colorpicker } from "./Colorpicker.js"
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
 import { faPaintBrush } from "@fortawesome/free-solid-svg-icons/faPaintBrush"
@@ -911,10 +911,10 @@ export class Timeago extends React.Component<{ time: Date }> {
     }
 }
 
-import { TagBadge, Tag } from "./TagBadge"
+import { TagBadge, Tag } from "./TagBadge.js"
 
 import ReactTags from "react-tag-autocomplete"
-import { Tippy } from "../grapher/chart/Tippy"
+import { Tippy } from "../grapher/chart/Tippy.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer

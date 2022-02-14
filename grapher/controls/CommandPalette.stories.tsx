@@ -1,5 +1,5 @@
 import * as React from "react"
-import { CommandPalette, Command } from "../controls/CommandPalette"
+import { CommandPalette, Command } from "../controls/CommandPalette.js"
 
 export default {
     title: "CommandPalette",

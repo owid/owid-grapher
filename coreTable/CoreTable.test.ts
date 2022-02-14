@@ -1,9 +1,9 @@
 #! /usr/bin/env jest
 
-import { CoreTable } from "./CoreTable"
-import { TransformType } from "./CoreTableConstants"
-import { ColumnTypeNames } from "./CoreColumnDef"
-import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
+import { CoreTable } from "./CoreTable.js"
+import { TransformType } from "./CoreTableConstants.js"
+import { ColumnTypeNames } from "./CoreColumnDef.js"
+import { ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 
 const sampleCsv = `country,population
 iceland,1

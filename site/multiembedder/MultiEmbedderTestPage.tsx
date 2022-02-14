@@ -1,10 +1,10 @@
-import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "../../explorer/ExplorerConstants"
-import { GLOBAL_ENTITY_SELECTOR_DATA_ATTR } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants"
-import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants"
+import { EXPLORER_EMBEDDED_FIGURE_SELECTOR } from "../../explorer/ExplorerConstants.js"
+import { GLOBAL_ENTITY_SELECTOR_DATA_ATTR } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants.js"
+import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants.js"
 import React from "react"
-import { Head } from "../../site/Head"
-import { SiteFooter } from "../../site/SiteFooter"
-import { SiteHeader } from "../../site/SiteHeader"
+import { Head } from "../../site/Head.js"
+import { SiteFooter } from "../../site/SiteFooter.js"
+import { SiteHeader } from "../../site/SiteHeader.js"
 
 export const MultiEmbedderTestPage = (
     globalEntitySelector = false,

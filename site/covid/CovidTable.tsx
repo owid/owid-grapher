@@ -18,25 +18,29 @@ import {
     extend,
     uniq,
     stringifyUnkownError,
-} from "../../clientUtils/Util"
-import { SortOrder } from "../../coreTable/CoreTableConstants"
-import { DEFAULT_SORT_ORDER } from "./CovidConstants"
+} from "../../clientUtils/Util.js"
+import { SortOrder } from "../../coreTable/CoreTableConstants.js"
+import { DEFAULT_SORT_ORDER } from "./CovidConstants.js"
 import {
     CovidSortKey,
     CovidSeries,
     CovidCountrySeries,
     DateRange,
     CovidCountryDatum,
-} from "./CovidTypes"
-import { getDoublingRange, sortAccessors, inverseSortOrder } from "./CovidUtils"
-import { CovidTableRow } from "./CovidTableRow"
+} from "./CovidTypes.js"
+import {
+    getDoublingRange,
+    sortAccessors,
+    inverseSortOrder,
+} from "./CovidUtils.js"
+import { CovidTableRow } from "./CovidTableRow.js"
 import {
     CovidTableColumnKey,
     CovidTableHeaderSpec,
     columns,
     CovidTableCellSpec,
-} from "./CovidTableColumns"
-import { fetchJHUData } from "./CovidFetch"
+} from "./CovidTableColumns.js"
+import { fetchJHUData } from "./CovidFetch.js"
 
 export class CovidTableState {
     @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases

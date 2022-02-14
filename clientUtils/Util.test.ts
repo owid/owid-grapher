@@ -24,8 +24,8 @@ import {
     numberMagnitude,
     urlToSlug,
     toRectangularMatrix,
-} from "./Util"
-import { SortOrder } from "./owidTypes"
+} from "./Util.js"
+import { SortOrder } from "./owidTypes.js"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {

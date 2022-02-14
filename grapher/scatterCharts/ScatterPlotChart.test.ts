@@ -1,26 +1,26 @@
 #! /usr/bin/env jest
 
-import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
+import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ScatterPlotManager } from "./ScatterPlotChartConstants"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { ScatterPlotManager } from "./ScatterPlotChartConstants.js"
 import {
     EntitySelectionMode,
     ScaleType,
     ScatterPointLabelStrategy,
-} from "../core/GrapherConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { ErrorValueTypes } from "../../coreTable/ErrorValues"
-import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
-import { ContinentColors } from "../color/ColorConstants"
-import { OwidTableSlugs } from "../../coreTable/OwidTableConstants"
-import { Color } from "../../coreTable/CoreTableConstants"
-import { makeOriginalTimeSlugFromColumnSlug } from "../../coreTable/OwidTableUtil"
-import { uniq, uniqBy } from "../../clientUtils/Util"
+} from "../core/GrapherConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
+import { ContinentColors } from "../color/ColorConstants.js"
+import { OwidTableSlugs } from "../../coreTable/OwidTableConstants.js"
+import { Color } from "../../coreTable/CoreTableConstants.js"
+import { makeOriginalTimeSlugFromColumnSlug } from "../../coreTable/OwidTableUtil.js"
+import { uniq, uniqBy } from "../../clientUtils/Util.js"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {

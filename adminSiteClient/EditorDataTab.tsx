@@ -1,8 +1,8 @@
 import * as React from "react"
-import { clone } from "../clientUtils/Util"
+import { clone } from "../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Grapher } from "../grapher/core/Grapher"
+import { Grapher } from "../grapher/core/Grapher.js"
 import {
     EditableList,
     EditableListItem,
@@ -10,13 +10,13 @@ import {
     ColorBox,
     SelectField,
     Section,
-} from "./Forms"
-import { ChartEditor } from "./ChartEditor"
+} from "./Forms.js"
+import { ChartEditor } from "./ChartEditor.js"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { EntityName } from "../coreTable/OwidTableConstants"
-import { EntitySelectionMode } from "../grapher/core/GrapherConstants"
+import { EntityName } from "../coreTable/OwidTableConstants.js"
+import { EntitySelectionMode } from "../grapher/core/GrapherConstants.js"
 
 interface EntityItemProps extends EditableListItemProps {
     grapher: Grapher

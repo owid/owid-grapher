@@ -7,19 +7,19 @@ import {
     sortBy,
     max,
     numberMagnitude,
-} from "../../clientUtils/Util"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { TextWrap } from "../text/TextWrap"
-import { AxisConfig } from "./AxisConfig"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { ValueRange } from "../../coreTable/CoreTableConstants"
+} from "../../clientUtils/Util.js"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { TextWrap } from "../text/TextWrap.js"
+import { AxisConfig } from "./AxisConfig.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { ValueRange } from "../../coreTable/CoreTableConstants.js"
 import {
     HorizontalAlign,
     Position,
     ScaleType,
     VerticalAlign,
-} from "../../clientUtils/owidTypes"
-import { TickFormattingOptions } from "../../clientUtils/formatValue"
+} from "../../clientUtils/owidTypes.js"
+import { TickFormattingOptions } from "../../clientUtils/formatValue.js"
 
 interface Tickmark {
     value: number

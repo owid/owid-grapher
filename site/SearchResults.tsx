@@ -3,16 +3,16 @@ import {
     ChartHit,
     CountryHit,
     ArticleHit,
-} from "./searchClient"
+} from "./searchClient.js"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import React from "react"
-import { EmbedChart } from "./EmbedChart"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
-import { uniq, capitalize } from "../clientUtils/Util"
-import { Country } from "../clientUtils/countries"
-import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder"
-import { Url } from "../clientUtils/urls/Url"
+import { EmbedChart } from "./EmbedChart.js"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { uniq, capitalize } from "../clientUtils/Util.js"
+import { Country } from "../clientUtils/countries.js"
+import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder.js"
+import { Url } from "../clientUtils/urls/Url.js"
 
 class ChartResult extends React.Component<{
     hit: ChartHit

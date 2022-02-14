@@ -8,9 +8,9 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { observer } from "mobx-react"
-import { HeaderSearch } from "./HeaderSearch"
+import { HeaderSearch } from "./HeaderSearch.js"
 import classnames from "classnames"
-import { flatten } from "../clientUtils/Util"
+import { flatten } from "../clientUtils/Util.js"
 import { bind } from "decko"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
@@ -19,14 +19,14 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown"
 import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
-import { AmazonMenu } from "./AmazonMenu"
+import { AmazonMenu } from "./AmazonMenu.js"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
-} from "./NewsletterSubscription"
-import { CategoryWithEntries, EntryMeta } from "../clientUtils/owidTypes"
-import { SiteAnalytics } from "./SiteAnalytics"
-import { ENV } from "../settings/clientSettings"
+} from "./NewsletterSubscription.js"
+import { CategoryWithEntries, EntryMeta } from "../clientUtils/owidTypes.js"
+import { SiteAnalytics } from "./SiteAnalytics.js"
+import { ENV } from "../settings/clientSettings.js"
 
 const analytics = new SiteAnalytics(ENV)
 @observer

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
 import { observable, computed, action } from "mobx"
 import {
     intersection,
@@ -17,59 +17,62 @@ import {
     groupBy,
     sampleFrom,
     intersectionOfSets,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
 import {
     BASE_FONT_SIZE,
     ScaleType,
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     SeriesName,
-} from "../core/GrapherConstants"
-import { Color } from "../../coreTable/CoreTableConstants"
+} from "../core/GrapherConstants.js"
+import { Color } from "../../coreTable/CoreTableConstants.js"
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
-} from "./ConnectedScatterLegend"
+} from "./ConnectedScatterLegend.js"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend"
-import { DualAxisComponent } from "../axis/AxisViews"
-import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { ComparisonLine } from "./ComparisonLine"
+} from "../verticalColorLegend/VerticalColorLegend.js"
+import { DualAxisComponent } from "../axis/AxisViews.js"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
+import { ComparisonLine } from "./ComparisonLine.js"
 
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     ScatterPlotManager,
     ScatterSeries,
     SeriesPoint,
-} from "./ScatterPlotChartConstants"
-import { ScatterTooltip } from "./ScatterTooltip"
-import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
+} from "./ScatterPlotChartConstants.js"
+import { ScatterTooltip } from "./ScatterTooltip.js"
+import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels.js"
 import {
     EntityName,
     OwidRow,
     OwidTableSlugs,
-} from "../../coreTable/OwidTableConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { ColorSchemeName } from "../color/ColorConstants"
+} from "../../coreTable/OwidTableConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "../chart/ChartUtils.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
 import {
     defaultIfErrorValue,
     isNotErrorValue,
-} from "../../coreTable/ErrorValues"
+} from "../../coreTable/ErrorValues.js"
 import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
-} from "../color/ColorScaleConfig"
-import { SelectionArray } from "../selection/SelectionArray"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { ColorScaleBin } from "../color/ColorScaleBin"
+} from "../color/ColorScaleConfig.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { ColorScaleBin } from "../color/ColorScaleBin.js"
 
 @observer
 export class ScatterPlotChart

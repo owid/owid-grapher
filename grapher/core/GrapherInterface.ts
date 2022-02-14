@@ -7,19 +7,19 @@ import {
     EntitySelection,
     ChartTypeName,
     FacetStrategy,
-} from "./GrapherConstants"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface"
-import { TimeBound } from "../../clientUtils/TimeBounds"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
-import { LogoOption } from "../captionedChart/Logos"
-import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
-import { MapConfigInterface } from "../mapCharts/MapConfig"
-import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
-import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { QueryParams } from "../../clientUtils/urls/UrlUtils"
-import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface"
-import { ColumnSlug, SortConfig, TopicId } from "../../clientUtils/owidTypes"
+} from "./GrapherConstants.js"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
+import { TimeBound } from "../../clientUtils/TimeBounds.js"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
+import { LogoOption } from "../captionedChart/Logos.js"
+import { ColorScaleConfigInterface } from "../color/ColorScaleConfig.js"
+import { MapConfigInterface } from "../mapCharts/MapConfig.js"
+import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants.js"
+import { EntityId, EntityName } from "../../coreTable/OwidTableConstants.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
+import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
+import { ColumnSlug, SortConfig, TopicId } from "../../clientUtils/owidTypes.js"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again

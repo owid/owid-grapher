@@ -1,12 +1,12 @@
-import { linkify } from "../../clientUtils/Util"
+import { linkify } from "../../clientUtils/Util.js"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { OwidColumnDef } from "../../coreTable/OwidTableConstants"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { OwidColumnDef } from "../../coreTable/OwidTableConstants.js"
 
 const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 

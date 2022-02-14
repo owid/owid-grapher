@@ -1,10 +1,10 @@
-import { QueryParams } from "../../clientUtils/urls/UrlUtils"
-import { Url } from "../../clientUtils/urls/Url"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
+import { Url } from "../../clientUtils/urls/Url.js"
 import {
     UrlMigration,
     performUrlMigrations,
-} from "../../clientUtils/urls/UrlMigration"
-import { migrateSelectedEntityNamesParam } from "./EntityUrlBuilder"
+} from "../../clientUtils/urls/UrlMigration.js"
+import { migrateSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
 
 export const grapherUrlMigrations: UrlMigration[] = [
     (url): Url => {

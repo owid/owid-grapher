@@ -1,11 +1,11 @@
-import { ChartManager } from "../chart/ChartManager"
+import { ChartManager } from "../chart/ChartManager.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
+} from "../../coreTable/OwidTableSynthesizers.js"
 import * as React from "react"
-import { StackedAreaChart } from "./StackedAreaChart"
+import { StackedAreaChart } from "./StackedAreaChart.js"
 
 export default {
     title: "StackedAreaChart",

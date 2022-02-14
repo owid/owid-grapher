@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { OwidVariableDisplayConfig } from "./OwidVariable"
+import { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 it("can create and save display settings", () => {
     const settings = new OwidVariableDisplayConfig()

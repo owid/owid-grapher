@@ -8,11 +8,11 @@ import {
 } from "typeorm"
 import { Writable } from "stream"
 
-import { User } from "./User"
-import { Source } from "./Source"
-import { Variable } from "./Variable"
-import * as db from "../db"
-import { arrToCsvRow, slugify } from "../../clientUtils/Util"
+import { User } from "./User.js"
+import { Source } from "./Source.js"
+import { Variable } from "./Variable.js"
+import * as db from "../db.js"
+import { arrToCsvRow, slugify } from "../../clientUtils/Util.js"
 import filenamify from "filenamify"
 
 @Entity("datasets")

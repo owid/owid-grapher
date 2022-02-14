@@ -1,7 +1,7 @@
 import * as React from "react"
 
-import { CovidDoublingRange, NounGenerator, CovidDatum } from "./CovidTypes"
-import { formatInt, formatDate } from "./CovidUtils"
+import { CovidDoublingRange, NounGenerator, CovidDatum } from "./CovidTypes.js"
+import { formatInt, formatDate } from "./CovidUtils.js"
 
 export const CovidDoublingTooltip = (props: {
     doublingRange: CovidDoublingRange

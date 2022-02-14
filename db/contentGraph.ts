@@ -4,10 +4,10 @@ import {
     GraphDocumentType,
     GraphType,
     WP_PostType,
-} from "../clientUtils/owidTypes"
-import { once, isEmpty } from "../clientUtils/Util"
-import { queryMysql } from "./db"
-import { ENTRIES_CATEGORY_ID, getDocumentsInfo } from "./wpdb"
+} from "../clientUtils/owidTypes.js"
+import { once, isEmpty } from "../clientUtils/Util.js"
+import { queryMysql } from "./db.js"
+import { ENTRIES_CATEGORY_ID, getDocumentsInfo } from "./wpdb.js"
 
 const fortune = require("fortune") // Works in web browsers, too.
 const MemoryAdapter = require("fortune/lib/adapter/adapters/memory")

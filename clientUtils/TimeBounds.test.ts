@@ -7,7 +7,7 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     getTimeDomainFromQueryString,
-} from "./TimeBounds"
+} from "./TimeBounds.js"
 
 describe(minTimeBoundFromJSONOrNegativeInfinity, () => {
     it("handles unbounded left", () => {

@@ -1,7 +1,7 @@
-import { ColorSchemeName } from "./ColorConstants"
-import { CustomColorSchemes } from "./CustomSchemes"
-import { ColorBrewerSchemes } from "./ColorBrewerSchemes"
-import { ColorScheme } from "./ColorScheme"
+import { ColorSchemeName } from "./ColorConstants.js"
+import { CustomColorSchemes } from "./CustomSchemes.js"
+import { ColorBrewerSchemes } from "./ColorBrewerSchemes.js"
+import { ColorScheme } from "./ColorScheme.js"
 
 const initAllSchemes = (): { [key in ColorSchemeName]: ColorScheme } => {
     const schemes = [...ColorBrewerSchemes, ...CustomColorSchemes]

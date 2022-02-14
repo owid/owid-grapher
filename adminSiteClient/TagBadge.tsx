@@ -2,7 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { Tag } from "react-tag-autocomplete"
 
-import { Link } from "./Link"
+import { Link } from "./Link.js"
 
 export { Tag }
 

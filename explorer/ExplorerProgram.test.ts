@@ -1,14 +1,14 @@
 #! /usr/bin/env jest
 
-import { ExplorerProgram } from "./ExplorerProgram"
+import { ExplorerProgram } from "./ExplorerProgram.js"
 import {
     CommentCellDef,
     FrontierCellClass,
     GridBoolean,
-} from "../gridLang/GridLangConstants"
-import { ExplorerGrammar } from "./ExplorerGrammar"
-import { GrapherGrammar } from "./GrapherGrammar"
-import { DecisionMatrix } from "./ExplorerDecisionMatrix"
+} from "../gridLang/GridLangConstants.js"
+import { ExplorerGrammar } from "./ExplorerGrammar.js"
+import { GrapherGrammar } from "./GrapherGrammar.js"
+import { DecisionMatrix } from "./ExplorerDecisionMatrix.js"
 
 const grapherIdKeyword = GrapherGrammar.grapherId.keyword
 const tableSlugKeyword = GrapherGrammar.tableSlug.keyword

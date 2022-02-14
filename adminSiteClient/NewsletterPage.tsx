@@ -5,12 +5,12 @@ import { format } from "timeago.js"
 import fuzzysort from "fuzzysort"
 import * as lodash from "lodash"
 
-import { AdminLayout } from "./AdminLayout"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
-import { SearchField, FieldsRow } from "./Forms"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { WORDPRESS_URL } from "../settings/clientSettings"
-import { Tag } from "./TagBadge"
+import { AdminLayout } from "./AdminLayout.js"
+import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
+import { SearchField, FieldsRow } from "./Forms.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { WORDPRESS_URL } from "../settings/clientSettings.js"
+import { Tag } from "./TagBadge.js"
 
 interface PostIndexMeta {
     id: number

@@ -10,10 +10,10 @@ import {
 } from "mobx"
 import * as lodash from "lodash"
 
-import { AdminLayout } from "./AdminLayout"
-import { SearchField, FieldsRow } from "./Forms"
-import { VariableList, VariableListItem } from "./VariableList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout.js"
+import { SearchField, FieldsRow } from "./Forms.js"
+import { VariableList, VariableListItem } from "./VariableList.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 export class VariablesIndexPage extends React.Component {

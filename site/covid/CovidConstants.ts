@@ -1,6 +1,6 @@
-import { SortOrder } from "../../coreTable/CoreTableConstants"
-import { NounKey, NounGenerator } from "./CovidTypes"
-import { createNoun } from "./CovidUtils"
+import { SortOrder } from "../../coreTable/CoreTableConstants.js"
+import { NounKey, NounGenerator } from "./CovidTypes.js"
+import { createNoun } from "./CovidUtils.js"
 
 export const JHU_DATA_URL =
     "https://covid.ourworldindata.org/data/jhu/full_data.csv"

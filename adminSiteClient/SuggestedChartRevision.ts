@@ -1,5 +1,5 @@
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
 
 export interface SuggestedChartRevisionSerialized {
     id: number

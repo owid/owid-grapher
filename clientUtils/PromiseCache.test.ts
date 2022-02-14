@@ -1,4 +1,4 @@
-import { PromiseCache } from "./PromiseCache"
+import { PromiseCache } from "./PromiseCache.js"
 
 const wait = (ms: number): Promise<void> =>
     new Promise((resolve) => {

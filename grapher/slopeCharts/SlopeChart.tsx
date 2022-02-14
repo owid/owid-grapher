@@ -13,29 +13,29 @@ import {
     minBy,
     maxBy,
     exposeInstanceOnWindow,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+} from "../verticalColorLegend/VerticalColorLegend.js"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
     BASE_FONT_SIZE,
     ScaleType,
     EntitySelectionMode,
     SeriesName,
-} from "../core/GrapherConstants"
-import { ChartInterface } from "../chart/ChartInterface"
-import { ChartManager } from "../chart/ChartManager"
+} from "../core/GrapherConstants.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
+import { ChartManager } from "../chart/ChartManager.js"
 import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
 import { select } from "d3-selection"
-import { Text } from "../text/Text"
-import { TextWrap } from "../text/TextWrap"
+import { Text } from "../text/Text.js"
+import { TextWrap } from "../text/TextWrap.js"
 import {
     DEFAULT_SLOPE_CHART_COLOR,
     LabelledSlopesProps,
@@ -43,13 +43,16 @@ import {
     SlopeChartSeries,
     SlopeChartValue,
     SlopeProps,
-} from "./SlopeChartConstants"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { Color } from "../../coreTable/CoreTableConstants"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+} from "./SlopeChartConstants.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { Color } from "../../coreTable/CoreTableConstants.js"
+import {
+    autoDetectYColumnSlugs,
+    makeSelectionArray,
+} from "../chart/ChartUtils.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
 
 @observer
 export class SlopeChart

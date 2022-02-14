@@ -1,32 +1,32 @@
 import * as React from "react"
-import { Chart } from "../db/model/Chart"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { GrapherPage } from "../site/GrapherPage"
-import { renderToHtmlPage } from "../baker/siteRenderers"
-import { Post } from "../db/model/Post"
-import { urlToSlug, without } from "../clientUtils/Util"
-import { isPresent } from "../clientUtils/isPresent"
+import { Chart } from "../db/model/Chart.js"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { GrapherPage } from "../site/GrapherPage.js"
+import { renderToHtmlPage } from "../baker/siteRenderers.js"
+import { Post } from "../db/model/Post.js"
+import { urlToSlug, without } from "../clientUtils/Util.js"
+import { isPresent } from "../clientUtils/isPresent.js"
 import {
     getRelatedArticles,
     getRelatedCharts,
     isWordpressAPIEnabled,
     isWordpressDBEnabled,
-} from "../db/wpdb"
-import { getVariableData } from "../db/model/Variable"
+} from "../db/wpdb.js"
+import { getVariableData } from "../db/model/Variable.js"
 import * as fs from "fs-extra"
-import { deserializeJSONFromHTML } from "../clientUtils/serializers"
+import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
 import * as lodash from "lodash"
-import { bakeGraphersToPngs } from "./GrapherImageBaker"
+import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
 import {
     OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../settings/serverSettings"
+} from "../settings/serverSettings.js"
 import ProgressBar from "progress"
-import * as db from "../db/db"
+import * as db from "../db/db.js"
 import * as glob from "glob"
-import { JsonError } from "../clientUtils/owidTypes"
-import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects"
+import { JsonError } from "../clientUtils/owidTypes.js"
+import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")

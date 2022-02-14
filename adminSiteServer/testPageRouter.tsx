@@ -3,25 +3,25 @@
 import { Router } from "express"
 import * as React from "react"
 
-import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil"
-import { OldChart, Chart } from "../db/model/Chart"
-import { Head } from "../site/Head"
-import * as db from "../db/db"
+import { renderToHtmlPage, expectInt } from "../serverUtils/serverUtil.js"
+import { OldChart, Chart } from "../db/model/Chart.js"
+import { Head } from "../site/Head.js"
+import * as db from "../db/db.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     BAKED_BASE_URL,
-} from "../settings/serverSettings"
-import { excludeUndefined, parseIntOrUndefined } from "../clientUtils/Util"
-import { grapherToSVG } from "../baker/GrapherImageBaker"
+} from "../settings/serverSettings.js"
+import { excludeUndefined, parseIntOrUndefined } from "../clientUtils/Util.js"
+import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import {
     ChartTypeName,
     EntitySelectionMode,
     GrapherTabOption,
     StackMode,
-} from "../grapher/core/GrapherConstants"
-import { Url } from "../clientUtils/urls/Url"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
+} from "../grapher/core/GrapherConstants.js"
+import { Url } from "../clientUtils/urls/Url.js"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"

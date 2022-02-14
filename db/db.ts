@@ -7,8 +7,8 @@ import {
     DB_PASS,
     DB_NAME,
     DB_PORT,
-} from "../settings/serverSettings"
-import { registerExitHandler } from "./cleanup"
+} from "../settings/serverSettings.js"
+import { registerExitHandler } from "./cleanup.js"
 let typeormConnection: typeorm.Connection
 
 export const getConnection = async (): Promise<typeorm.Connection> => {

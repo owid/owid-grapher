@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { ChartEditor, Log } from "./ChartEditor"
-import { Section } from "./Forms"
+import { ChartEditor, Log } from "./ChartEditor.js"
+import { Section } from "./Forms.js"
 import { computed, action } from "mobx"
 import { format } from "timeago.js"
 

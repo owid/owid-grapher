@@ -1,30 +1,33 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
-import { ChartTypeName } from "../core/GrapherConstants"
-import { Color } from "../../coreTable/CoreTableConstants"
-import { ColumnTypeNames, CoreColumnDef } from "../../coreTable/CoreColumnDef"
-import { LegacyGrapherInterface } from "../core/GrapherInterface"
+import { ChartTypeName } from "../core/GrapherConstants.js"
+import { Color } from "../../coreTable/CoreTableConstants.js"
+import {
+    ColumnTypeNames,
+    CoreColumnDef,
+} from "../../coreTable/CoreColumnDef.js"
+import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
 import {
     diffDateISOStringInDays,
     isNumber,
     makeAnnotationsSlug,
     trimObject,
     uniqBy,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import {
     OwidVariablesAndEntityKey,
     OwidVariableWithDataAndSource,
     OwidEntityKey,
-} from "../../clientUtils/OwidVariable"
+} from "../../clientUtils/OwidVariable.js"
 import {
     StandardOwidColumnDefs,
     OwidTableSlugs,
     OwidColumnDef,
     EntityId,
-} from "../../coreTable/OwidTableConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes"
-import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface"
+} from "../../coreTable/OwidTableConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes.js"
+import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
 
 export const legacyToOwidTableAndDimensions = (
     json: OwidVariablesAndEntityKey,

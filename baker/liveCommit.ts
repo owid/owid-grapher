@@ -3,8 +3,8 @@ import parseArgs from "minimist"
 import fetch from "node-fetch"
 import opener from "opener"
 import * as timeago from "timeago.js"
-import { execWrapper } from "../db/execWrapper"
-import { DeployTarget, ProdTarget } from "./DeployTarget"
+import { execWrapper } from "../db/execWrapper.js"
+import { DeployTarget, ProdTarget } from "./DeployTarget.js"
 
 /**
  * Retrieves information about the deployed commit on a live or staging server.

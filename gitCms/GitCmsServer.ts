@@ -2,7 +2,7 @@ import { Router, Request, Response, RequestHandler } from "express"
 import {
     GIT_DEFAULT_USERNAME,
     GIT_DEFAULT_EMAIL,
-} from "../settings/serverSettings"
+} from "../settings/serverSettings.js"
 import simpleGit, { SimpleGit } from "simple-git"
 import {
     writeFile,
@@ -26,9 +26,9 @@ import {
     GIT_CMS_WRITE_ROUTE,
     GIT_CMS_DELETE_ROUTE,
     GIT_CMS_PULL_ROUTE,
-} from "./GitCmsConstants"
+} from "./GitCmsConstants.js"
 import { sync } from "glob"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 // todo: cleanup typings
 interface ResponseWithUserInfo extends Response {

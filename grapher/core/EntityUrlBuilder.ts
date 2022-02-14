@@ -1,10 +1,10 @@
-import { EntityName } from "../../coreTable/OwidTableConstants"
-import { Url } from "../../clientUtils/urls/Url"
-import { codeToEntityName, entityNameToCode } from "./EntityCodes"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
+import { Url } from "../../clientUtils/urls/Url.js"
+import { codeToEntityName, entityNameToCode } from "./EntityCodes.js"
 import {
     performUrlMigrations,
     UrlMigration,
-} from "../../clientUtils/urls/UrlMigration"
+} from "../../clientUtils/urls/UrlMigration.js"
 
 /*
  * Migration #1: Switch from + to ~ delimited entities.

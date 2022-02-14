@@ -1,7 +1,7 @@
 import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
+import { Head } from "./Head.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
 import { faRss } from "@fortawesome/free-solid-svg-icons/faRss"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
@@ -13,13 +13,13 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
-} from "../site/NewsletterSubscription"
+} from "../site/NewsletterSubscription.js"
 import {
     CategoryWithEntries,
     EntryNode,
     FullPost,
-} from "../clientUtils/owidTypes"
-import PostCard from "./PostCard/PostCard"
+} from "../clientUtils/owidTypes.js"
+import PostCard from "./PostCard/PostCard.js"
 
 const splitOnLastWord = (str: string) => {
     const endIndex = (str.lastIndexOf(" ") as number) + 1

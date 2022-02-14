@@ -1,10 +1,10 @@
 import { mkdirp, writeFile } from "fs-extra"
 import path from "path"
-import { ExplorerProgram } from "../explorer/ExplorerProgram"
-import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
-import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects"
-import { renderExplorerPage } from "./siteRenderers"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects.js"
+import { renderExplorerPage } from "./siteRenderers.js"
 
 export const bakeAllPublishedExplorers = async (
     outputFolder: string,

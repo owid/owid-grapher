@@ -1,10 +1,10 @@
-import { DualAxis } from "../axis/Axis"
-import { ChartManager } from "../chart/ChartManager"
-import { SeriesName } from "../core/GrapherConstants"
-import { TimeBound } from "../../clientUtils/TimeBounds"
-import { ChartSeries } from "../chart/ChartInterface"
-import { CoreValueType } from "../../coreTable/CoreTableConstants"
-import { Color } from "../../clientUtils/owidTypes"
+import { DualAxis } from "../axis/Axis.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { SeriesName } from "../core/GrapherConstants.js"
+import { TimeBound } from "../../clientUtils/TimeBounds.js"
+import { ChartSeries } from "../chart/ChartInterface.js"
+import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
+import { Color } from "../../clientUtils/owidTypes.js"
 
 export interface LinePoint {
     x: number

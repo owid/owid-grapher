@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { deserializeJSONFromHTML, serializeJSONForHTML } from "./serializers"
+import { deserializeJSONFromHTML, serializeJSONForHTML } from "./serializers.js"
 
 describe("encode and decode json", () => {
     it("should encode and decode an object correctly", async () => {

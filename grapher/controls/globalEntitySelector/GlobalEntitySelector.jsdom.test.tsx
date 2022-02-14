@@ -4,8 +4,8 @@ import * as React from "react"
 
 import { configure, shallow } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-import { GlobalEntitySelector } from "./GlobalEntitySelector"
-import { SelectionArray } from "../../selection/SelectionArray"
+import { GlobalEntitySelector } from "./GlobalEntitySelector.js"
+import { SelectionArray } from "../../selection/SelectionArray.js"
 configure({ adapter: new Adapter() })
 
 describe("when you render a GlobalEntitySelector", () => {

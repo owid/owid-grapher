@@ -1,12 +1,12 @@
-import { Bounds } from "../../clientUtils/Bounds"
-import { PointVector } from "../../clientUtils/PointVector"
-import { last, maxBy } from "../../clientUtils/Util"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { PointVector } from "../../clientUtils/PointVector.js"
+import { last, maxBy } from "../../clientUtils/Util.js"
 import {
     ScatterLabel,
     ScatterRenderPoint,
     ScatterRenderSeries,
     ScatterLabelFontFamily as fontFamily,
-} from "./ScatterPlotChartConstants"
+} from "./ScatterPlotChartConstants.js"
 
 export const labelPriority = (label: ScatterLabel): number => {
     let priority = label.fontSize

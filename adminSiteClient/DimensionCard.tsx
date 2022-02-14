@@ -1,24 +1,24 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartDimension } from "../grapher/chart/ChartDimension"
-import { ChartEditor } from "./ChartEditor"
+import { ChartDimension } from "../grapher/chart/ChartDimension.js"
+import { ChartEditor } from "./ChartEditor.js"
 import {
     Toggle,
     EditableListItem,
     BindAutoString,
     BindAutoFloat,
     ColorBox,
-} from "./Forms"
-import { Link } from "./Link"
+} from "./Forms.js"
+import { Link } from "./Link.js"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
 import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { OwidTable } from "../coreTable/OwidTable"
+import { OwidTable } from "../coreTable/OwidTable.js"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
-import { DimensionProperty } from "../clientUtils/owidTypes"
+import { DimensionProperty } from "../clientUtils/owidTypes.js"
 
 @observer
 export class DimensionCard extends React.Component<{

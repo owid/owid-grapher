@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-import { Deployer } from "./Deployer"
+import { Deployer } from "./Deployer.js"
 import parseArgs from "minimist"
 import os from "os"
 import * as path from "path"

@@ -1,9 +1,9 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartEditor } from "./ChartEditor"
-import { Grapher } from "../grapher/core/Grapher"
-import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine"
+import { ChartEditor } from "./ChartEditor.js"
+import { Grapher } from "../grapher/core/Grapher.js"
+import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine.js"
 import {
     NumberField,
     Toggle,
@@ -14,21 +14,24 @@ import {
     TextField,
     Button,
     RadioGroup,
-} from "./Forms"
-import { debounce, isEqual, omit, trimObject } from "../clientUtils/Util"
+} from "./Forms.js"
+import { debounce, isEqual, omit, trimObject } from "../clientUtils/Util.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
-import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { ColorSchemeName } from "../grapher/color/ColorConstants"
-import { TimeBoundValue } from "../clientUtils/TimeBounds"
+import {
+    ColorSchemeDropdown,
+    ColorSchemeOption,
+} from "./ColorSchemeDropdown.js"
+import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
+import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
+import { TimeBoundValue } from "../clientUtils/TimeBounds.js"
 import {
     FacetAxisDomain,
     FacetStrategy,
-} from "../grapher/core/GrapherConstants"
+} from "../grapher/core/GrapherConstants.js"
 import Select from "react-select"
-import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes"
+import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes.js"
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {

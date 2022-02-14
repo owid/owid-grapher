@@ -4,9 +4,9 @@ import * as lodash from "lodash"
 import { observable, computed, action } from "mobx"
 import urljoin from "url-join"
 
-import { AdminApp } from "./AdminApp"
-import { Json, stringifyUnkownError } from "../clientUtils/Util"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
+import { AdminApp } from "./AdminApp.js"
+import { Json, stringifyUnkownError } from "../clientUtils/Util.js"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 

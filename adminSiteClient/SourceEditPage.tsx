@@ -4,10 +4,10 @@ import { observable, computed, runInAction } from "mobx"
 import { Prompt } from "react-router-dom"
 import { format } from "timeago.js"
 
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { AdminLayout } from "./AdminLayout"
-import { BindString } from "./Forms"
-import { VariableList, VariableListItem } from "./VariableList"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { BindString } from "./Forms.js"
+import { VariableList, VariableListItem } from "./VariableList.js"
 
 interface SourcePageData {
     id: number

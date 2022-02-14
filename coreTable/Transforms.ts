@@ -1,6 +1,6 @@
-import { flatten } from "../clientUtils/Util"
-import { CoreColumnStore, Time, CoreValueType } from "./CoreTableConstants"
-import { CoreColumnDef } from "./CoreColumnDef"
+import { flatten } from "../clientUtils/Util.js"
+import { CoreColumnStore, Time, CoreValueType } from "./CoreTableConstants.js"
+import { CoreColumnDef } from "./CoreColumnDef.js"
 import {
     ErrorValue,
     ErrorValueTypes,
@@ -8,8 +8,8 @@ import {
     MissingValuePlaceholder,
     ValueTooLow,
     DivideByZeroError,
-} from "./ErrorValues"
-import { ColumnSlug } from "../clientUtils/owidTypes"
+} from "./ErrorValues.js"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
 
 // In Grapher we return just the years for which we have values for. This puts MissingValuePlaceholder
 // in the spots where we are missing values (added to make computing rolling windows easier).

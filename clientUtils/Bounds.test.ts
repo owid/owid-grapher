@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { Bounds } from "./Bounds"
-import { Position } from "./owidTypes"
+import { Bounds } from "./Bounds.js"
+import { Position } from "./owidTypes.js"
 
 it("can report the center", () => {
     const bounds = new Bounds(0, 0, 100, 100)

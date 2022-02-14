@@ -9,8 +9,8 @@ import {
     isBoolean,
     isNumber,
     mapValues,
-} from "./Util"
-import { compileGetValueFunction } from "./patchHelper"
+} from "./Util.js"
+import { compileGetValueFunction } from "./patchHelper.js"
 
 export enum EditorOption {
     textfield = "textfield",

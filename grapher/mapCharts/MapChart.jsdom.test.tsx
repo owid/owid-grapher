@@ -3,9 +3,9 @@
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { MapChartManager } from "./MapChartConstants"
-import { MapChart } from "./MapChart"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { MapChartManager } from "./MapChartConstants.js"
+import { MapChart } from "./MapChart.js"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2001],

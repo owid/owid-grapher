@@ -6,11 +6,11 @@
  */
 
 import { observable, computed, runInAction, when } from "mobx"
-import { Grapher } from "../grapher/core/Grapher"
-import { EditorFeatures } from "./EditorFeatures"
-import { Admin } from "./Admin"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
-import { Topic } from "../grapher/core/GrapherConstants"
+import { Grapher } from "../grapher/core/Grapher.js"
+import { EditorFeatures } from "./EditorFeatures.js"
+import { Admin } from "./Admin.js"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { Topic } from "../grapher/core/GrapherConstants.js"
 
 type EditorTab = string
 

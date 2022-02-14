@@ -2,13 +2,13 @@ import { existsSync, readdir, readFile } from "fs-extra"
 import {
     EXPLORER_FILE_SUFFIX,
     ExplorerProgram,
-} from "../explorer/ExplorerProgram"
+} from "../explorer/ExplorerProgram.js"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
     ExplorersRouteResponse,
-} from "../explorer/ExplorerConstants"
+} from "../explorer/ExplorerConstants.js"
 import simpleGit, { SimpleGit } from "simple-git"
-import { GitCommit } from "../clientUtils/owidTypes"
+import { GitCommit } from "../clientUtils/owidTypes.js"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string) {

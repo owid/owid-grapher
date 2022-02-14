@@ -1,11 +1,11 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
-import { BindString, Toggle } from "./Forms"
+import { BindString, Toggle } from "./Forms.js"
 import { Redirect } from "react-router-dom"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { UserIndexMeta } from "./UserMeta"
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { UserIndexMeta } from "./UserMeta.js"
 
 @observer
 export class UserEditPage extends React.Component<{ userId: number }> {

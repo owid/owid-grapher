@@ -1,8 +1,8 @@
-import { imemo, trimMatrix } from "../coreTable/CoreTableUtils"
-import { isPresent } from "../clientUtils/isPresent"
-import { GitCommit, SerializedGridProgram } from "../clientUtils/owidTypes"
+import { imemo, trimMatrix } from "../coreTable/CoreTableUtils.js"
+import { isPresent } from "../clientUtils/isPresent.js"
+import { GitCommit, SerializedGridProgram } from "../clientUtils/owidTypes.js"
 
-import { GridCell } from "./GridCell"
+import { GridCell } from "./GridCell.js"
 import {
     CellDef,
     CellPosition,
@@ -11,7 +11,7 @@ import {
     GRID_NODE_DELIMITER,
     Origin,
     ParsedCell,
-} from "./GridLangConstants"
+} from "./GridLangConstants.js"
 
 /**
  * Block location for the below would be like (numRows = 2)
