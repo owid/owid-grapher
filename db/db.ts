@@ -1,6 +1,6 @@
 import * as mysql from "mysql"
 import * as typeorm from "typeorm"
-import { Knex, knex } from "knex"
+import knex, { Knex } from "knex"
 import {
     DB_HOST,
     DB_USER,
