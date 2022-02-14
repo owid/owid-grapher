@@ -138,7 +138,7 @@
         "glob": "^7.1.4",
         "handsontable": "^11.0.1",
         "html-to-text": "^5.1.1",
-        "js-base64": "^3.4.5",
+        "js-base64": "^3.7.2",
         "js-cookie": "^2.2.1",
         "json8-pointer": "^1.0.6",
         "jsonwebtoken": "^8.5.1",
