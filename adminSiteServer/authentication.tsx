@@ -10,7 +10,7 @@ import {
 } from "../settings/serverSettings.js"
 import { BCryptHasher } from "../db/hashers.js"
 import fetch from "node-fetch"
-import { Secret, verify } from "jsonwebtoken"
+import jwt, { Secret } from "jsonwebtoken"
 import { ADMIN_BASE_URL, ENV } from "../settings/serverSettings.js"
 import { JsonError } from "../clientUtils/owidTypes.js"
 
@@ -62,7 +62,7 @@ export async function authCloudflareSSOMiddleware(
     let payload: any
     const verified = publicCerts.some((certObj: { cert: Secret }) => {
         try {
-            payload = verify(jwt, certObj.cert, {
+            payload = jwt.verify(jwt, certObj.cert, {
                 audience: audTag,
                 algorithms: ["RS256"],
             })
