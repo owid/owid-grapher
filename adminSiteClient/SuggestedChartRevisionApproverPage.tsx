@@ -8,7 +8,10 @@ import Select from "react-select"
 import classNames from "classnames"
 import { Bounds } from "../clientUtils/Bounds"
 import { getStylesForTargetHeight } from "../clientUtils/react-select"
-import { SortOrder } from "../clientUtils/owidTypes"
+import {
+    SortOrder,
+    SuggestedChartRevisionStatus,
+} from "../clientUtils/owidTypes"
 import { Grapher } from "../grapher/core/Grapher"
 import { TextAreaField, NumberField, RadioGroup, Toggle } from "./Forms"
 import { PostReference } from "./ChartEditor"
@@ -32,10 +35,7 @@ import {
     VisionDeficiencyDropdown,
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies"
-import {
-    SuggestedChartRevisionSerialized,
-    SuggestedChartRevisionStatus,
-} from "./SuggestedChartRevision"
+import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision"
 
 @observer
 export class SuggestedChartRevisionApproverPage extends React.Component<{
