@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import * as cheerio from "cheerio"
-import * as ReactDOMServer from "react-dom/server"
+import * as ReactDOMServer from "react-dom/server.js"
 import * as React from "react"
 import {
     formatGlossaryTerms,

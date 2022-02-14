@@ -11,7 +11,7 @@ import { SearchPage } from "../site/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import * as React from "react"
-import * as ReactDOMServer from "react-dom/server"
+import * as ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
 import {
     extractFormattingOptions,
