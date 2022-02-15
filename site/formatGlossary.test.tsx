@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import ReactDOMServer from "react-dom/server.js"
 import React from "react"
 import {

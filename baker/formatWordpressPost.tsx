@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import urlSlug from "url-slug"
 import * as lodash from "lodash-es"
 import React from "react"

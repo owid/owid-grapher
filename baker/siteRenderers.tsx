@@ -23,7 +23,7 @@ import {
     getGrapherExportsByUrl,
     GrapherExports,
 } from "../baker/GrapherBakingUtils.js"
-import * as cheerio from "cheerio"
+import cheerio from "cheerio"
 import { Post } from "../db/model/Post.js"
 import {
     BAKED_BASE_URL,

@@ -1,4 +1,4 @@
-import * as colorbrewer from "colorbrewer"
+import colorbrewer from "colorbrewer"
 import { Color } from "../../coreTable/CoreTableConstants.js"
 import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants.js"
 
