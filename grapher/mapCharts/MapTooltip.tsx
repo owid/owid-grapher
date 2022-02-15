@@ -37,6 +37,7 @@ interface MapTooltipProps {
 
 const SPARKLINE_WIDTH = 140
 const SPARKLINE_HEIGHT = 60
+const SPARKLINE_PADDING = 7
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
@@ -259,7 +260,11 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                             0,
                                             SPARKLINE_WIDTH,
                                             SPARKLINE_HEIGHT
-                                        ).pad({ top: 7, left: 7, right: 7 })}
+                                        ).pad({
+                                            top: SPARKLINE_PADDING,
+                                            left: SPARKLINE_PADDING,
+                                            right: SPARKLINE_PADDING,
+                                        })}
                                     />
                                 </svg>
                             </div>
