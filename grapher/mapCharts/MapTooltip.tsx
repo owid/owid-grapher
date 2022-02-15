@@ -22,7 +22,7 @@ import {
     darkenColorForText,
 } from "../color/ColorUtils.js"
 import { getPreposition } from "../../coreTable/CoreTableUtils.js"
-import { isNumber } from "../../clientUtils/Util.js"
+import { isNumber, NoUndefinedKeys } from "../../clientUtils/Util.js"
 
 interface MapTooltipProps {
     entityName: EntityName
@@ -77,27 +77,35 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get lineColorScale(): ColorScale {
-        const manager = this.props.colorScaleManager
-        return new ColorScale({
-            colorScaleConfig: manager.colorScaleConfig,
-            hasNoDataBin: manager.hasNoDataBin,
-            defaultNoDataColor: manager.defaultNoDataColor,
-            defaultBaseColorScheme: manager.defaultBaseColorScheme,
-            colorScaleColumn: manager.colorScaleColumn,
+        const oldManager = this.props.colorScaleManager
+        // Make sure all ColorScaleManager props are included.
+        // We can't ...rest here because I think mobx computeds aren't
+        // enumerable or something.
+        const newManager: NoUndefinedKeys<ColorScaleManager> = {
+            colorScaleConfig: oldManager.colorScaleConfig,
+            hasNoDataBin: oldManager.hasNoDataBin,
+            defaultNoDataColor: oldManager.defaultNoDataColor,
+            defaultBaseColorScheme: oldManager.defaultBaseColorScheme,
+            colorScaleColumn: oldManager.colorScaleColumn,
             transformColor: darkenColorForLine,
-        })
+        }
+        return new ColorScale(newManager)
     }
 
     @computed private get textColorScale(): ColorScale {
-        const manager = this.props.colorScaleManager
-        return new ColorScale({
-            colorScaleConfig: manager.colorScaleConfig,
-            hasNoDataBin: manager.hasNoDataBin,
-            defaultNoDataColor: manager.defaultNoDataColor,
-            defaultBaseColorScheme: manager.defaultBaseColorScheme,
-            colorScaleColumn: manager.colorScaleColumn,
+        const oldManager = this.props.colorScaleManager
+        // Make sure all ColorScaleManager props are included.
+        // We can't ...rest here because I think mobx computeds aren't
+        // enumerable or something.
+        const newManager: NoUndefinedKeys<ColorScaleManager> = {
+            colorScaleConfig: oldManager.colorScaleConfig,
+            hasNoDataBin: oldManager.hasNoDataBin,
+            defaultNoDataColor: oldManager.defaultNoDataColor,
+            defaultBaseColorScheme: oldManager.defaultBaseColorScheme,
+            colorScaleColumn: oldManager.colorScaleColumn,
             transformColor: darkenColorForText,
-        })
+        }
+        return new ColorScale(newManager)
     }
 
     @computed private get showSparkline(): boolean {

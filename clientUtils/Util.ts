@@ -142,6 +142,33 @@ export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
 }
 
+type OptionalKeysOf<T> = Exclude<
+    {
+        [K in keyof T]: T extends Record<K, T[K]> ? never : K
+    }[keyof T],
+    undefined
+>
+
+type PartialWithoutUndefinedKey<T> = {
+    [K in keyof T]: T[K] | undefined
+}
+
+// This was tricky to construct.
+// It seems like the initial, elegant approach is:
+//
+// export type NoUndefinedKeys<T> = {
+//     [K in keyof T]-?: T extends Record<K, T[K]> ? T[K] : T[K] | undefined
+// }
+//
+// But TypeScript will omit `undefined` from the value type whenever you
+// make the key required with `-?`. So we have this ugly workaround.
+//
+// -@danielgavrilov, 2022-02-15
+export type NoUndefinedKeys<T> = PartialWithoutUndefinedKey<
+    Required<Pick<T, OptionalKeysOf<T>>>
+> &
+    Exclude<T, OptionalKeysOf<T>>
+
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
