@@ -1,5 +1,6 @@
-module.exports = {
+export default {
     testTimeout: 1000,
+    transform: {},
     projects: [
         {
             displayName: { name: "node", color: "magenta" },

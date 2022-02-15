@@ -7,7 +7,7 @@
     "type": "module",
     "scripts": {
         "buildAndDeploySite": "node ./itsJustJavascript/baker/buildAndDeploySite.js",
-        "buildCoverage": "jest --coverage=true --coverageProvider=v8",
+        "buildCoverage": "testJest --coverage=true --coverageProvider=v8",
         "buildLocalBake": "node ./itsJustJavascript/baker/buildLocalBake.js",
         "buildStorybook": "build-storybook -c ./itsJustJavascript/.storybook -o .storybook/build",
         "buildTsc": "tsc -b -verbose",
@@ -36,7 +36,7 @@
         "testLint": "eslint .",
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "testPrettierChanged": "yarn fixPrettierChanged --check",
-        "testJest": "jest"
+        "testJest": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "dependencies": {
         "@bugsnag/core": "^7.16.1",

@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { jest } from "@jest/globals"
 
 import { GitCmsClient } from "./GitCmsClient.js"
 import { GitCmsServer } from "./GitCmsServer.js"
