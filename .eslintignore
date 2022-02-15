@@ -4,6 +4,5 @@ itsJustJavascript/**
 devtools/**
 jest.config.js
 knexfile.ts
-ormconfig.js
 postcss.config.js
 public/detect-country.js

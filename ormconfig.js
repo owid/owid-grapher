@@ -1,12 +1,12 @@
-const {
+import {
     DB_HOST,
     DB_NAME,
     DB_USER,
     DB_PASS,
     DB_PORT,
-} = require("./itsJustJavascript/settings/serverSettings")
+} from "./itsJustJavascript/settings/serverSettings.js"
 
-module.exports = {
+export default {
     type: "mysql",
     host: DB_HOST || "localhost",
     port: DB_PORT || 3306,
