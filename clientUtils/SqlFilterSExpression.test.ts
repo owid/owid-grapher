@@ -17,33 +17,48 @@ import {
     EqualityComparision,
     EqualityOperator,
     StringContainsOperation,
+    variableAnnotationAllowedColumnNamesAndTypes,
+    OperationContext,
 } from "./SqlFilterSExpression"
+const context: OperationContext = {
+    grapherConfigFieldName: "grapherConfig",
+    whitelistedColumnNamesAndTypes:
+        variableAnnotationAllowedColumnNamesAndTypes,
+}
 function checkIsomorphism(operation: Operation): void {
-    return expect(parseToOperation(operation.toSExpr())).toEqual(operation)
+    return expect(parseToOperation(operation.toSExpr(), context)).toEqual(
+        operation
+    )
 }
 
 function checkSql(sExpr: string, expectedSql: string | undefined): void {
-    return expect(parseToOperation(sExpr)?.toSql()).toEqual(expectedSql)
+    return expect(parseToOperation(sExpr, context)?.toSql()).toEqual(
+        expectedSql
+    )
 }
 
 describe("parse simple filters expressions", () => {
     it("should parse atoms correctly", async () => {
-        expect(parseToOperation("")).toEqual(undefined)
-        expect(parseToOperation("()")).toEqual(undefined)
-        expect(parseToOperation("43")).toEqual(new NumberAtom(43))
-        expect(parseToOperation(`"hello"`)).toEqual(new StringAtom("hello"))
+        expect(parseToOperation("", context)).toEqual(undefined)
+        expect(parseToOperation("()", context)).toEqual(undefined)
+        expect(parseToOperation("43", context)).toEqual(new NumberAtom(43))
+        expect(parseToOperation(`"hello"`, context)).toEqual(
+            new StringAtom("hello")
+        )
 
-        expect(parseToOperation("true")).toEqual(new BooleanAtom(true))
-        expect(parseToOperation("false")).toEqual(new BooleanAtom(false))
-        expect(parseToOperation("/jsonPointer/4")).toEqual(
-            new JsonPointerSymbol("/jsonPointer/4")
+        expect(parseToOperation("true", context)).toEqual(new BooleanAtom(true))
+        expect(parseToOperation("false", context)).toEqual(
+            new BooleanAtom(false)
+        )
+        expect(parseToOperation("/jsonPointer/4", context)).toEqual(
+            new JsonPointerSymbol("/jsonPointer/4", context)
         )
     })
     it("should round-trip atoms correctly", async () => {
         checkIsomorphism(new NumberAtom(42))
         checkIsomorphism(new StringAtom("hello"))
         checkIsomorphism(new BooleanAtom(true))
-        checkIsomorphism(new JsonPointerSymbol("/jsonPointer/4"))
+        checkIsomorphism(new JsonPointerSymbol("/jsonPointer/4", context))
     })
     it("should round-trip odd values correctly", async () => {
         checkIsomorphism(new NumberAtom(-42))
@@ -98,7 +113,7 @@ describe("parse simple filters expressions", () => {
     it("should round trip binary logic operations correctly", async () => {
         checkIsomorphism(
             new StringContainsOperation(
-                new JsonPointerSymbol("/map/projection"),
+                new JsonPointerSymbol("/map/projection", context),
                 new StringAtom("Europe")
             )
         )
@@ -153,16 +168,16 @@ describe("transpile to expected SQL", () => {
     })
 
     it("Should error on invalid s-expressions", async () => {
-        expect(() => parseToOperation("(")).toThrow() // unbalanced parens
-        expect(() => parseToOperation(")")).toThrow() // unbalanced parens
-        expect(() => parseToOperation("((( ))")).toThrow() // unbalanced parens
-        expect(() => parseToOperation('((( ")"))')).toThrow() // unbalanced parens
-        expect(() => parseToOperation('(")')).toThrow() // unbalanced double quotes
-        expect(() => parseToOperation("(= 1 2 3)")).toThrow() // binary arity exceeded
-        expect(() => parseToOperation("(1 2)")).toThrow() // non-function in prime position
-        expect(() => parseToOperation("(= 1)")).toThrow() // arity too low
-        expect(() => parseToOperation("(+ 1 2) (+ 1 2)")).toThrow() // multiple top level expressions
-        expect(() => parseToOperation('(+ "hello" "world")')).toThrow() // type mismatch
+        expect(() => parseToOperation("(", context)).toThrow() // unbalanced parens
+        expect(() => parseToOperation(")", context)).toThrow() // unbalanced parens
+        expect(() => parseToOperation("((( ))", context)).toThrow() // unbalanced parens
+        expect(() => parseToOperation('((( ")"))', context)).toThrow() // unbalanced parens
+        expect(() => parseToOperation('(")', context)).toThrow() // unbalanced double quotes
+        expect(() => parseToOperation("(= 1 2 3)", context)).toThrow() // binary arity exceeded
+        expect(() => parseToOperation("(1 2)", context)).toThrow() // non-function in prime position
+        expect(() => parseToOperation("(= 1)", context)).toThrow() // arity too low
+        expect(() => parseToOperation("(+ 1 2) (+ 1 2)", context)).toThrow() // multiple top level expressions
+        expect(() => parseToOperation('(+ "hello" "world")', context)).toThrow() // type mismatch
     })
 
     it("should transpile some more complicated expressions correctly to SQL", async () => {

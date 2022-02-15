@@ -24,8 +24,10 @@ import {
 } from "../grapher/core/GrapherInterface"
 import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes"
 import {
-    VariableAnnotationsResponse,
-    VariableAnnotationPatch,
+    GrapherConfigPatch,
+    BulkGrapherConfigResponse,
+    VariableAnnotationsResponseRow,
+    BulkChartEditResponseRow,
 } from "../clientUtils/AdminSessionTypes"
 import {
     CountryNameFormat,
@@ -56,7 +58,12 @@ import Papa from "papaparse"
 //     SqlColumnName,
 //     StringAtom,
 // } from "../clientUtils/SqlFilterSExpression"
-import { parseToOperation } from "../clientUtils/SqlFilterSExpression"
+import {
+    chartBulkUpdateAllowedColumnNamesAndTypes,
+    OperationContext,
+    parseToOperation,
+    variableAnnotationAllowedColumnNamesAndTypes,
+} from "../clientUtils/SqlFilterSExpression"
 import { parseIntOrUndefined } from "../clientUtils/Util"
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
@@ -1355,11 +1362,103 @@ apiRouter.get("/variables.json", async (req) => {
 })
 
 apiRouter.get(
-    "/variable-annotations",
-    async (req): Promise<VariableAnnotationsResponse> => {
+    "/chart-bulk-update",
+    async (
+        req
+    ): Promise<BulkGrapherConfigResponse<BulkChartEditResponseRow>> => {
+        const context: OperationContext = {
+            grapherConfigFieldName: "config",
+            whitelistedColumnNamesAndTypes:
+                chartBulkUpdateAllowedColumnNamesAndTypes,
+        }
         const filterSExpr =
             req.query.filter !== undefined
-                ? parseToOperation(req.query.filter)
+                ? parseToOperation(req.query.filter, context)
+                : undefined
+
+        const offset = parseIntOrUndefined(req.query.offset) ?? 0
+
+        // Note that our DSL generates sql here that we splice directly into the SQL as text
+        // This is a potential for a SQL injection attack but we control the DSL and are
+        // careful there to only allow carefully guarded vocabularies from being used, not
+        // arbitrary user input
+        const whereClause = filterSExpr?.toSql() ?? "true"
+        const resultsWithStringGrapherConfigs =
+            await db.queryMysql(`SELECT charts.id as id,
+            charts.config as config,
+            charts.createdAt as createdAt,
+            charts.updatedAt as updatedAt,
+            charts.lastEditedAt as lastEditedAt,
+            charts.publishedAt as publishedAt,
+            editedByUser.fullName as lastEditedByUser,
+            publishedByUser.fullName as publishedByUser,
+FROM charts
+LEFT JOIN users lastEditedByUser ON editedByUser.id=charts.lastEditedByUserId
+LEFT JOIN users publishedByUser ON publishedByUser.id=charts.publishedByUserId
+WHERE ${whereClause}
+ORDER BY variables.id DESC
+LIMIT 50
+OFFSET ${offset.toString()}`)
+
+        const results = resultsWithStringGrapherConfigs.map((row: any) => ({
+            ...row,
+            config: lodash.isNil(row.config) ? null : JSON.parse(row.config),
+        }))
+        const resultCount = await db.queryMysql(`SELECT count(*) as count
+FROM charts
+WHERE ${whereClause}`)
+        return { rows: results, numTotalRows: resultCount[0].count }
+    }
+)
+
+apiRouter.patch("/chart-bulk-update", async (req, res) => {
+    const patchesList = req.body as GrapherConfigPatch[]
+    const chartIds = new Set(patchesList.map((patch) => patch.id))
+
+    await db.transaction(async (manager) => {
+        const configsAndIds = await manager.query(
+            `SELECT id, config FROM charts where id IN (?)`,
+            [[...chartIds.values()]]
+        )
+        const configMap = new Map<number, GrapherInterface>(
+            configsAndIds.map((item: any) => [
+                item.id,
+                item.config ? JSON.parse(item.grapherConfig) : {},
+            ])
+        )
+        const oldValuesConfigMap = new Map(configMap)
+        // console.log("ids", configsAndIds.map((item : any) => item.id))
+        for (const patchSet of patchesList) {
+            const config = configMap.get(patchSet.id)
+            configMap.set(patchSet.id, applyPatch(patchSet, config))
+        }
+
+        for (const [id, newConfig] of configMap.entries()) {
+            await saveGrapher(
+                manager,
+                res.locals.user,
+                newConfig,
+                oldValuesConfigMap.get(id)
+            )
+        }
+    })
+
+    return { success: true }
+})
+
+apiRouter.get(
+    "/variable-annotations",
+    async (
+        req
+    ): Promise<BulkGrapherConfigResponse<VariableAnnotationsResponseRow>> => {
+        const context: OperationContext = {
+            grapherConfigFieldName: "grapherConfig",
+            whitelistedColumnNamesAndTypes:
+                variableAnnotationAllowedColumnNamesAndTypes,
+        }
+        const filterSExpr =
+            req.query.filter !== undefined
+                ? parseToOperation(req.query.filter, context)
                 : undefined
 
         const offset = parseIntOrUndefined(req.query.offset) ?? 0
@@ -1372,7 +1471,7 @@ apiRouter.get(
         const resultsWithStringGrapherConfigs =
             await db.queryMysql(`SELECT variables.id as id,
             variables.name as name,
-            variables.grapherConfig as grapherConfig,
+            variables.grapherConfig as config,
             datasets.name as datasetname,
             namespaces.name as namespacename,
             variables.createdAt as createdAt,
@@ -1388,22 +1487,20 @@ OFFSET ${offset.toString()}`)
 
         const results = resultsWithStringGrapherConfigs.map((row: any) => ({
             ...row,
-            grapherConfig: lodash.isNil(row.grapherConfig)
-                ? null
-                : JSON.parse(row.grapherConfig),
+            config: lodash.isNil(row.config) ? null : JSON.parse(row.config),
         }))
         const resultCount = await db.queryMysql(`SELECT count(*) as count
 FROM variables
 LEFT JOIN datasets on variables.datasetId = datasets.id
 LEFT JOIN namespaces on datasets.namespace = namespaces.name
 WHERE ${whereClause}`)
-        return { variables: results, numTotalRows: resultCount[0].count }
+        return { rows: results, numTotalRows: resultCount[0].count }
     }
 )
 
 apiRouter.patch("/variable-annotations", async (req) => {
-    const patchesList = req.body as VariableAnnotationPatch[]
-    const variableIds = new Set(patchesList.map((patch) => patch.variableId))
+    const patchesList = req.body as GrapherConfigPatch[]
+    const variableIds = new Set(patchesList.map((patch) => patch.id))
 
     await db.transaction(async (manager) => {
         const configsAndIds = await manager.query(
@@ -1418,8 +1515,8 @@ apiRouter.patch("/variable-annotations", async (req) => {
         )
         // console.log("ids", configsAndIds.map((item : any) => item.id))
         for (const patchSet of patchesList) {
-            const config = configMap.get(patchSet.variableId)
-            configMap.set(patchSet.variableId, applyPatch(patchSet, config))
+            const config = configMap.get(patchSet.id)
+            configMap.set(patchSet.id, applyPatch(patchSet, config))
         }
 
         for (const [variableId, newConfig] of configMap.entries()) {

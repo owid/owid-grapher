@@ -18,6 +18,9 @@ import {
     NullCheckOperator,
     StringOperation,
     BooleanOperation,
+    variableAnnotationAllowedColumnNamesAndTypes,
+    chartBulkUpdateAllowedColumnNamesAndTypes,
+    OperationContext,
 } from "../clientUtils/SqlFilterSExpression"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
@@ -26,7 +29,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import {
     VariableAnnotationsResponseRow,
-    VariableAnnotationPatch,
+    GrapherConfigPatch,
 } from "../clientUtils/AdminSessionTypes"
 import AntdConfig from "react-awesome-query-builder/lib/config/antd"
 import {
@@ -54,15 +57,30 @@ export function parseVariableAnnotationsRow(
     return row as VariableAnnotationsRow // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
 }
 
-export interface VariableAnnotationsRow {
+export enum GrapherConfigGridEditorSource {
+    SourceVariableAnnotation = "SourceVariableAnnotation",
+    SourceCharts = "SourceCharts",
+}
+
+export interface BulkGrapherConfigRow {
     id: number
+    config: GrapherInterface
+    createdAt: string
+    updatedAt: string
+}
+
+export interface VariableAnnotationsRow extends BulkGrapherConfigRow {
     name: string
-    grapherConfig: GrapherInterface
     datasetname: string
     namespacename: string
     description: string
-    createdAt: string
-    updatedAt: string
+}
+
+export interface BulkChartEditRow extends BulkGrapherConfigRow {
+    lastEditedAt: string
+    publishedAt: string
+    lastEditedByUser: string
+    publishedByUser: string
 }
 
 export interface ColumnReorderItem {
@@ -72,7 +90,7 @@ export interface ColumnReorderItem {
 }
 
 export interface Action {
-    patches: VariableAnnotationPatch[]
+    patches: GrapherConfigPatch[]
 }
 
 export const PAGEING_SIZE: number = 50
@@ -314,11 +332,16 @@ export function getNullCheckOperator(
         .otherwise(() => undefined)
 }
 
-export function getFieldSymbol(fieldName: string): Operation {
-    if (isConfigColumn(fieldName)) return new JsonPointerSymbol(fieldName)
+export function getFieldSymbol(
+    fieldName: string,
+    context: OperationContext
+): Operation {
+    if (isConfigColumn(fieldName))
+        return new JsonPointerSymbol(fieldName, context)
     else
         return new SqlColumnName(
-            readOnlyColumnNamesFields.get(fieldName)!.sExpressionColumnTarget
+            readOnlyColumnNamesFields.get(fieldName)!.sExpressionColumnTarget,
+            context
         )
 }
 
@@ -338,7 +361,8 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
 }
 
 export function filterTreeToSExpression(
-    filterTree: JsonItem
+    filterTree: JsonItem,
+    context: OperationContext
 ): Operation | undefined {
     if (filterTree.type === "group") {
         // If we have a group then we need to decide
@@ -350,13 +374,15 @@ export function filterTreeToSExpression(
         let children: Operation[] = []
         if (isArray(filterTree.children1))
             children = excludeUndefined(
-                filterTree.children1?.map(filterTreeToSExpression)
+                filterTree.children1?.map((child) =>
+                    filterTreeToSExpression(child, context)
+                )
             )
         else if (isPlainObject(filterTree.children1))
             children = excludeUndefined(
                 Object.values(
                     filterTree.children1 as Record<string, JsonItem>
-                ).map(filterTreeToSExpression)
+                ).map((child) => filterTreeToSExpression(child, context))
             )
         else if (filterTree.children1 !== undefined)
             console.warn("unexpected content of children1")
@@ -378,7 +404,8 @@ export function filterTreeToSExpression(
                     (op) => {
                         const operator = getComparisonOperator(op as string)
                         const field = getFieldSymbol(
-                            filterTree.properties.field!
+                            filterTree.properties.field!,
+                            context
                         )
                         if (
                             filterTree.properties.value.length === 0 ||
@@ -394,7 +421,8 @@ export function filterTreeToSExpression(
                     (op) => {
                         const operator = getEqualityOperator(op as string)
                         const field = getFieldSymbol(
-                            filterTree.properties.field!
+                            filterTree.properties.field!,
+                            context
                         )
                         const val = getValueAtom(filterTree.properties.value[0])
                         if (val === undefined) return undefined
@@ -405,7 +433,8 @@ export function filterTreeToSExpression(
                     (op) => op && op === "like",
                     () => {
                         const field = getFieldSymbol(
-                            filterTree.properties.field!
+                            filterTree.properties.field!,
+                            context
                         )
                         if (
                             filterTree.properties.value.length === 0 ||
@@ -423,13 +452,17 @@ export function filterTreeToSExpression(
                     (op) => {
                         const operator = getNullCheckOperator(op as string)!
                         const field = getFieldSymbol(
-                            filterTree.properties.field!
+                            filterTree.properties.field!,
+                            context
                         )
                         return new NullCheckOperation(operator!, field)
                     }
                 )
                 .with("is_empty", "is_not_empty", (operator) => {
-                    const field = getFieldSymbol(filterTree.properties.field!)
+                    const field = getFieldSymbol(
+                        filterTree.properties.field!,
+                        context
+                    )
                     const op: EqualityOperator = match(operator)
                         .with("is_empty", () => EqualityOperator.equal)
                         .with("is_not_empty", () => EqualityOperator.unequal)
@@ -513,4 +546,38 @@ export function getFinalConfigLayerForVariable(id: number) {
             variableId: id,
         },
     }
+}
+
+export interface GrapherConfigGridEditorProps {
+    source: GrapherConfigGridEditorSource
+}
+
+export function getSExpressionContext(
+    source: GrapherConfigGridEditorSource
+): OperationContext {
+    return match(source)
+        .with(GrapherConfigGridEditorSource.SourceVariableAnnotation, () => ({
+            grapherConfigFieldName: "grapherConfig",
+            whitelistedColumnNamesAndTypes:
+                variableAnnotationAllowedColumnNamesAndTypes,
+        }))
+        .with(GrapherConfigGridEditorSource.SourceCharts, () => ({
+            grapherConfigFieldName: "config",
+            whitelistedColumnNamesAndTypes:
+                chartBulkUpdateAllowedColumnNamesAndTypes,
+        }))
+        .exhaustive()
+}
+
+export function getApiEndpoint(source: GrapherConfigGridEditorSource) {
+    return match(source)
+        .with(
+            GrapherConfigGridEditorSource.SourceVariableAnnotation,
+            () => "/api/variable-annotations"
+        )
+        .with(
+            GrapherConfigGridEditorSource.SourceCharts,
+            () => "/api/chart-bulk-update"
+        )
+        .exhaustive()
 }
