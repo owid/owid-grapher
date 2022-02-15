@@ -121,17 +121,17 @@ export class Url {
     }
 
     get isGrapher(): boolean {
-        return !!this.pathname?.startsWith("/grapher")
+        return !!(this.pathname && /^\/grapher\/[\w]+/.test(this.pathname))
     }
 
     get isUpload(): boolean {
-        return !!this.pathname?.startsWith("/uploads")
+        return !!(this.pathname && /^\/uploads\/[\w]+/.test(this.pathname))
     }
 
     // todo(refactor): move outisde of generic Url class
     // see EXPLORERS_ROUTE_FOLDER
     get isExplorer(): boolean {
-        return !!this.pathname?.startsWith("/explorers")
+        return !!(this.pathname && /^\/explorers\/[\w]+/.test(this.pathname))
     }
 
     update(props: UrlProps): Url {
