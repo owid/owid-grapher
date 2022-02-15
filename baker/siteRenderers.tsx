@@ -61,7 +61,7 @@ import {
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
 import { Url } from "../clientUtils/urls/Url"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import {
     ProminentLink,
     ProminentLinkStyles,
@@ -470,7 +470,7 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                           (await getPostBySlug(resolvedUrl.slug)).title)
             } finally {
                 if (!title) {
-                    logErrorAndMaybeSendToSlack(
+                    logContentErrorAndMaybeSendToSlack(
                         new Error(
                             `No fallback title found for prominent link ${resolvedUrlString}. Block removed.`
                         )
@@ -525,7 +525,7 @@ export const renderAutomaticProminentLinks = async (
             if (url.isUpload) return
 
             if (url.isGrapher) {
-                logErrorAndMaybeSendToSlack(
+                logContentErrorAndMaybeSendToSlack(
                     new Error(
                         `Automatic prominent link conversion failed for ${
                             anchor.attribs.href
@@ -544,7 +544,7 @@ export const renderAutomaticProminentLinks = async (
                 // not throwing here as this is not considered a critical error.
                 // Standalone links will just show up as such (and get
                 // netlify-redirected upon click if applicable).
-                logErrorAndMaybeSendToSlack(
+                logContentErrorAndMaybeSendToSlack(
                     new Error(
                         `Automatic prominent link conversion failed: no post found at ${
                             anchor.attribs.href
