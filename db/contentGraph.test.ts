@@ -12,7 +12,7 @@ import {
     fortuneRecordTypes,
     getGrapherSlugs,
 } from "./contentGraph.js"
-const fortune = require("fortune") // Works in web browsers, too.
+import fortune from "fortune" // Works in web browsers, too.
 
 const slugs = [
     "share-of-deaths-by-cause",

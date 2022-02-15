@@ -1,5 +1,5 @@
 import { Deploy, DeployChange, DeployStatus } from "../clientUtils/owidTypes.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import {
     DEPLOY_QUEUE_FILE_PATH,
     DEPLOY_PENDING_FILE_PATH,
