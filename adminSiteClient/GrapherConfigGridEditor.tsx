@@ -1,5 +1,5 @@
 import * as React from "react"
-import { VariableAnnotationPatch } from "../clientUtils/AdminSessionTypes.js"
+import { GrapherConfigPatch } from "../clientUtils/AdminSessionTypes.js"
 import {
     DragDropContext,
     Droppable,
@@ -88,13 +88,17 @@ import {
     simpleColumnToFilterPanelFieldConfig,
     getFinalConfigLayerForVariable,
     renderBuilder,
+    GrapherConfigGridEditorProps,
+    GrapherConfigGridEditorSource,
+    getSExpressionContext,
+    getApiEndpoint,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils } from "react-awesome-query-builder"
 // types
 import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
 
 @observer
-export class GrapherConfigGridEditor extends React.Component {
+export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
     static contextType = AdminAppContext
 
     @observable.ref grapher = new Grapher() // the grapher instance we keep around and update
@@ -137,7 +141,14 @@ export class GrapherConfigGridEditor extends React.Component {
     // Sorting fields - not yet used - TODO: implement sorting
     @observable sortByColumn: string = "id"
     @observable sortByAscending: boolean = false
+    readonly source: GrapherConfigGridEditorSource
     disposers: Disposer[] = []
+
+    constructor(props: GrapherConfigGridEditorProps) {
+        super(props)
+        this.source = props.source
+    }
+
     /** Computed property that combines all relevant filter, paging and offset
         properties into a FetchVariablesParameter object that is used to construct
         the query */
@@ -151,23 +162,27 @@ export class GrapherConfigGridEditor extends React.Component {
             sortByColumn,
             filterSExpression,
         } = this
+        const context = getSExpressionContext(this.source)
         const filterOperations = excludeUndefined([
             searchFieldStringToFilterOperations(
                 variableNameFilter ?? "",
                 new SqlColumnName(
-                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
+                    context
                 )
             ),
             searchFieldStringToFilterOperations(
                 datasetNameFilter ?? "",
                 new SqlColumnName(
-                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
+                    context
                 )
             ),
             searchFieldStringToFilterOperations(
                 namespaceNameFilter ?? "",
                 new SqlColumnName(
-                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
+                    context
                 )
             ),
             filterSExpression,
@@ -232,7 +247,7 @@ export class GrapherConfigGridEditor extends React.Component {
                 runInAction(() => {
                     this.resetViewStateAfterFetch()
                     this.currentPagingOffset = this.desiredPagingOffset
-                    this.richDataRows = currentData.variables.map(
+                    this.richDataRows = currentData.rows.map(
                         parseVariableAnnotationsRow
                     )
                     this.numTotalRows = currentData.numTotalRows
@@ -274,7 +289,7 @@ export class GrapherConfigGridEditor extends React.Component {
         // Get the grapherConfig of the currently selected row and then
         // merge it with the necessary partial information (e.g. variableId field)
         // to get a config that actually works in all cases
-        const config = richDataRows[row].grapherConfig
+        const config = richDataRows[row].config
         const finalConfigLayer = getFinalConfigLayerForVariable(
             richDataRows[row].id
         )
@@ -282,9 +297,9 @@ export class GrapherConfigGridEditor extends React.Component {
         this.loadGrapherJson(mergedConfig)
     }
 
-    async sendPatches(patches: VariableAnnotationPatch[]): Promise<void> {
+    async sendPatches(patches: GrapherConfigPatch[]): Promise<void> {
         await this.context.admin.rawRequest(
-            "/api/variable-annotations",
+            getApiEndpoint(this.source),
             JSON.stringify(patches),
             "PATCH"
         )
@@ -292,9 +307,7 @@ export class GrapherConfigGridEditor extends React.Component {
 
     /** Used to send the inverse of a patch to undo a change that has previously been performed
      */
-    async sendReversedPatches(
-        patches: VariableAnnotationPatch[]
-    ): Promise<void> {
+    async sendReversedPatches(patches: GrapherConfigPatch[]): Promise<void> {
         const reversedPatches = patches.map((patch) => ({
             ...patch,
             newValue: patch.oldValue,
@@ -313,17 +326,15 @@ export class GrapherConfigGridEditor extends React.Component {
         this.undoStack.push(action)
 
         for (const patch of action.patches) {
-            const rowId = richDataRows.findIndex(
-                (row) => row.id === patch.variableId
-            )
+            const rowId = richDataRows.findIndex((row) => row.id === patch.id)
             if (rowId === -1)
                 console.error("Could not find row id in do step!", rowId)
             else {
                 // apply the change to the richDataRows json structure
 
-                richDataRows[rowId].grapherConfig = applyPatch(
+                richDataRows[rowId].config = applyPatch(
                     patch,
-                    richDataRows[rowId].grapherConfig
+                    richDataRows[rowId].config
                 )
             }
         }
@@ -405,13 +416,10 @@ export class GrapherConfigGridEditor extends React.Component {
                     (fieldDesc) =>
                         [
                             fieldDesc.pointer,
-                            row.grapherConfig != undefined
+                            row.config != undefined
                                 ? cloneDeep(
                                       fieldDesc.getter(
-                                          row.grapherConfig as Record<
-                                              string,
-                                              unknown
-                                          >
+                                          row.config as Record<string, unknown>
                                       )
                                   )
                                 : undefined,
@@ -693,8 +701,8 @@ export class GrapherConfigGridEditor extends React.Component {
                 newVal = Number.parseFloat(newVal)
 
             // Now construct the patch and store it
-            const patch: VariableAnnotationPatch = {
-                variableId: row.id,
+            const patch: GrapherConfigPatch = {
+                id: row.id,
                 oldValue: prevVal,
                 newValue: newVal,
                 jsonPointer: column as string,
@@ -1117,7 +1125,7 @@ export class GrapherConfigGridEditor extends React.Component {
     buildDataFetchUrl(fetchParameters: FetchVariablesParameters): string {
         const filter =
             fetchVariablesParametersToQueryParametersString(fetchParameters)
-        const baseUrl = "/admin/api/variable-annotations"
+        const baseUrl = `/admin${getApiEndpoint(this.source)}`
         return baseUrl + filter
     }
 
@@ -1149,7 +1157,10 @@ export class GrapherConfigGridEditor extends React.Component {
         const { filterState } = this
         if (filterState) {
             const tree = QbUtils.getTree(filterState.tree)
-            const sExpression = filterTreeToSExpression(tree)
+            const sExpression = filterTreeToSExpression(
+                tree,
+                getSExpressionContext(this.source)
+            )
 
             return sExpression
         }
