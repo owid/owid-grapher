@@ -200,7 +200,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}
-                style={{ textAlign: "center", padding: "8px" }}
+                style={{ textAlign: "center", padding: "0.3em" }}
                 offsetX={15}
                 offsetY={10}
                 offsetYDirection={"upward"}
@@ -220,7 +220,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     className="map-tooltip"
                     style={{
                         margin: 0,
-                        padding: "0.3em 0.3em",
+                        padding: "0.3em",
                     }}
                 >
                     <div className="map-value-with-sparkline">
@@ -272,7 +272,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                         <p
                             style={{
                                 margin: 0,
-                                padding: "0.3em 0.9em",
+                                padding: "0.3em",
                                 fontSize: "13px",
                                 opacity: 0.6,
                             }}
