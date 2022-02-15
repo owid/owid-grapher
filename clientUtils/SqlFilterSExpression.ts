@@ -21,6 +21,11 @@ const arityToNumberMap = new Map([
     [Arity.nary, undefined],
 ])
 
+export interface OperationContext {
+    readonly grapherConfigFieldName: string
+    readonly whitelistedColumnNamesAndTypes: Map<string, ExpressionType>
+}
+
 export interface Operation {
     toSql(): string
     toSExpr(): string
@@ -122,20 +127,21 @@ export class JsonPointerSymbol implements Operation {
     // want to enable them then make sure that the parsing decisions outside of here
     // all correctly allow this)
     static jsonPointerRegex: RegExp = /^\/[\w\d/\-~_]+$/
-    static columnName: string = "grapherConfig" // TODO: this should come from context
+    columnName: string
     static isValidJsonPointer(str: string): boolean {
         return JsonPointerSymbol.jsonPointerRegex.test(str)
     }
-    constructor(public value: string) {
+    constructor(public value: string, operationContext: OperationContext) {
         if (!JsonPointerSymbol.isValidJsonPointer(value))
             throw Error(`Invalid Json Pointer: ${value} - did not match regex`)
+        this.columnName = operationContext.grapherConfigFieldName
     }
     arity = Arity.nullary
     expressionType = ExpressionType.any
     toSql(): string {
-        return `JSON_EXTRACT(${
-            JsonPointerSymbol.columnName
-        }, "${jsonPointerToJsonPath(this.value.toString())}")`
+        return `JSON_EXTRACT(${this.columnName}, "${jsonPointerToJsonPath(
+            this.value.toString()
+        )}")`
     }
 
     toSExpr(): string {
@@ -151,54 +157,103 @@ export enum WHITELISTED_SQL_COLUMN_NAMES {
     SQL_COLUMN_NAME_VARIABLE_DESCRIPTION = "variables.description",
     SQL_COLUMN_NAME_VARIABLE_CREATED_AT = "variables.createdAt",
     SQL_COLUMN_NAME_VARIABLE_UPDATED_AT = "variables.updatedAt",
+    SQL_COLUMN_NAME_CHART_ID = "charts.id",
+    SQL_COLUMN_NAME_CHART_CREATED_AT = "charts.createdAt",
+    SQL_COLUMN_NAME_CHART_UPDATED_AT = "charts.updatedAt",
+    SQL_COLUMN_NAME_CHART_LAST_EDITED_AT = "charts.lastEditedAt",
+    SQL_COLUMN_NAME_CHART_PUBLISHED_AT = "charts.publishedAt",
+    SQL_COLUMN_NAME_CHART_LAST_EDITED_BY_USER = "editedByUser.fullName",
+    SQL_COLUMN_NAME_CHART_PUBLISHED_BY_USER = "publishedByUser.fullName",
 }
+
+export const variableAnnotationAllowedColumnNamesAndTypes: Map<
+    string,
+    ExpressionType
+> = new Map([
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_ID,
+        ExpressionType.numeric,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
+        ExpressionType.string,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
+        ExpressionType.string,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
+        ExpressionType.string,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
+        ExpressionType.string,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
+        ExpressionType.numeric,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
+        ExpressionType.numeric,
+    ],
+])
+
+export const chartBulkUpdateAllowedColumnNamesAndTypes: Map<
+    string,
+    ExpressionType
+> = new Map([
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_ID,
+        ExpressionType.numeric,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_CREATED_AT,
+        ExpressionType.numeric,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_UPDATED_AT,
+        ExpressionType.numeric,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_AT,
+        ExpressionType.numeric,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_PUBLISHED_AT,
+        ExpressionType.numeric,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_BY_USER,
+        ExpressionType.string,
+    ],
+    [
+        WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_PUBLISHED_BY_USER,
+        ExpressionType.string,
+    ],
+])
+
 export class SqlColumnName implements Operation {
     // NOTE: this is a temporary solution for the beginning of using S Expressions for filtering.
     //       Once we start using this in more places, declaring the whitelist of columns that are
     //       valid to query needs to come from the piece of code that wants to use the expression.
     //       I think we should not start allowing expressions that traverse foreign keys and instead
     //       create views and whitelist column names in those if we need more complex filters
-    static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map([
-        [
-            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_ID,
-            ExpressionType.numeric,
-        ],
-        [
-            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
-            ExpressionType.string,
-        ],
-        [
-            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
-            ExpressionType.string,
-        ],
-        [
-            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
-            ExpressionType.string,
-        ],
-        [
-            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
-            ExpressionType.string,
-        ],
-        [
-            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
-            ExpressionType.numeric,
-        ],
-        [
-            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
-            ExpressionType.numeric,
-        ],
-    ])
-    static isValidSqlColumnName(str: string): boolean {
-        return SqlColumnName.allowedColumnNamesAndTypes.has(str)
+
+    static isValidSqlColumnName(
+        str: string,
+        operationContext: OperationContext
+    ): boolean {
+        return operationContext.whitelistedColumnNamesAndTypes.has(str)
     }
-    constructor(public value: string) {
-        if (!SqlColumnName.isValidSqlColumnName(value))
+    constructor(public value: string, operationContext: OperationContext) {
+        if (!SqlColumnName.isValidSqlColumnName(value, operationContext))
             throw Error(
                 `Invalid column name: ${value} - did not match the set of allowed columns`
             )
-        this.expressionType = SqlColumnName.allowedColumnNamesAndTypes.get(
-            this.value
-        )!
+        this.expressionType =
+            operationContext.whitelistedColumnNamesAndTypes.get(this.value)!
     }
     arity = Arity.nullary
     expressionType: ExpressionType
@@ -399,7 +454,7 @@ export class Negation extends BooleanOperation {
 interface OperationInfo {
     arity: Arity
     operandsType: ExpressionType
-    ctor(args: Operation[]): Operation
+    ctor(args: Operation[], context: OperationContext): Operation
 }
 
 const arithmeticOperatorInfos = allArithmeticOperators.map(
@@ -489,7 +544,8 @@ const operationFactoryMap = new Map<string, OperationInfo>([
 ])
 
 export function parseOperationRecursive(
-    sExpr: SExprAtom | undefined
+    sExpr: SExprAtom | undefined,
+    context: OperationContext
 ): Operation | undefined {
     if (sExpr === undefined) return undefined
     if (isArray(sExpr)) {
@@ -510,7 +566,9 @@ export function parseOperationRecursive(
             // Check if the arity matches the number of arguments
             const expectedArgs = arityToNumberMap.get(op.arity)
             const parsedArgs = without(
-                tail(sExpr).map(parseOperationRecursive),
+                tail(sExpr).map((subexpr) =>
+                    parseOperationRecursive(subexpr, context)
+                ),
                 undefined
             ) as Operation[]
             if (
@@ -535,7 +593,7 @@ export function parseOperationRecursive(
                 )
 
             // All checks passed, construct and return the Operator
-            return op.ctor(parsedArgs)
+            return op.ctor(parsedArgs, context)
         }
     }
     // our s-expression parser library turns quoted strings like "hello" into String instances to
@@ -551,14 +609,15 @@ export function parseOperationRecursive(
         // Handling NaN correctly throught the entire DSL is hard - let's see if we can just drop it
         else if (sExpr === "NaN") return undefined
         else if ((num = Number.parseFloat(sExpr))) return new NumberAtom(num)
-        else if (SqlColumnName.isValidSqlColumnName(sExpr))
-            return new SqlColumnName(sExpr)
-        else return new JsonPointerSymbol(sExpr) // this will throw if the symbol is not a JsonPointer which is the only valid symbol we know of
+        else if (SqlColumnName.isValidSqlColumnName(sExpr, context))
+            return new SqlColumnName(sExpr, context)
+        else return new JsonPointerSymbol(sExpr, context) // this will throw if the symbol is not a JsonPointer which is the only valid symbol we know of
     } else throw Error(`Unexpected type in parseToOperation: ${sExpr}!`)
 }
 
 export function parseToOperation(
-    sexpressionString: string
+    sexpressionString: string,
+    context: OperationContext
 ): Operation | undefined {
     // Use the s-expression library to turn character strings with parens into
     // nested arrays. The parsed datastructure is thus (potentially nested) arrays
@@ -567,6 +626,6 @@ export function parseToOperation(
     // string is used for everything, which means numbers, booleans and symbols.
     //
     const sExpr = parse(sexpressionString) as SExprAtom
-    const result = parseOperationRecursive(sExpr)
+    const result = parseOperationRecursive(sExpr, context)
     return result
 }

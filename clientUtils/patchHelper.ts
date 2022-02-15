@@ -1,5 +1,5 @@
 import jsonpointer from "json8-pointer"
-import { VariableAnnotationPatch } from "./AdminSessionTypes.js"
+import { GrapherConfigPatch } from "./AdminSessionTypes.js"
 import { isArray, isPlainObjectWithGuard } from "./Util.js"
 export function setValueRecursive(
     json: any,
@@ -81,10 +81,7 @@ export function compileGetValueFunction(jsonPointer: string): (x: any) => any {
     return (input): any => jsonpointer.find(input, jsonPointer)
 }
 
-export function applyPatch(
-    patchSet: VariableAnnotationPatch,
-    config: unknown
-): any {
+export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
     const pointer = jsonpointer.parse(patchSet.jsonPointer) as string[]
 
     if (pointer.length == 0) throw Error("Empty JSON path is not supported")
@@ -106,7 +103,7 @@ export function applyPatch(
         !(currentValue === undefined && patchSet.oldValue === null)
     ) {
         console.warn(
-            `When trying to set value for ${patchSet.variableId} at ${patchSet.jsonPointer}, the existing value was ${currentValue} instead of ${patchSet.oldValue}`
+            `When trying to set value for ${patchSet.id} at ${patchSet.jsonPointer}, the existing value was ${currentValue} instead of ${patchSet.oldValue}`
         )
         throw Error("Old value was not as expected")
     }
