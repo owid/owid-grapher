@@ -4,13 +4,13 @@ import React from "react"
 import { CollapsibleList, numItemsVisible } from "./CollapsibleList.js"
 import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput.js"
 
-import { configure, shallow } from "enzyme"
+import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a collapsible list", () => {
     test("something renders", () => {
-        const view = shallow(
+        const view = enzyme.shallow(
             <CollapsibleList>{collapsibleListSampleItems}</CollapsibleList>
         )
         expect(view.find(".list-item")).not.toHaveLength(0)

@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
-import { configure, mount } from "enzyme"
+import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+enzyme.configure({ adapter: new Adapter() })
 
 // This just does a sanity check that all the stories can mount.
 // This file might not be necessary as there may be a way to do something similar with Storybook/Jest.
@@ -17,7 +17,7 @@ const runTests = (storybook: any) => {
         describe(defaults.title, () => {
             const args = {}
             it(`should load ${key}`, () => {
-                expect(mount(storybook[key](args))).toBeTruthy()
+                expect(enzyme.mount(storybook[key](args))).toBeTruthy()
             })
         })
     })

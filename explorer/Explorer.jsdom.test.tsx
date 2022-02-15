@@ -6,15 +6,15 @@ import {
     SampleInlineDataExplorer,
 } from "./Explorer.sample.js"
 
-import { configure, mount } from "enzyme"
+import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
 import { GrapherTabOption } from "../grapher/core/GrapherConstants.js"
 
-configure({ adapter: new Adapter() })
+enzyme.configure({ adapter: new Adapter() })
 
 describe(Explorer, () => {
     const title = "AlphaBeta"
-    const element = mount(SampleExplorerOfGraphers())
+    const element = enzyme.mount(SampleExplorerOfGraphers())
     it("renders", () => {
         expect(element.find(".ExplorerHeaderBox").text()).toContain(
             "CO₂ Data Explorer"
@@ -54,7 +54,7 @@ describe(Explorer, () => {
     })
 
     it("recovers country selection from URL params", () => {
-        const element = mount(
+        const element = enzyme.mount(
             SampleExplorerOfGraphers({ queryStr: "?country=IRL" })
         )
         const explorer = element.instance() as Explorer
@@ -62,7 +62,7 @@ describe(Explorer, () => {
     })
 
     it("serializes all choice params in URL", () => {
-        const element = mount(SampleExplorerOfGraphers())
+        const element = enzyme.mount(SampleExplorerOfGraphers())
         const explorer = element.instance() as Explorer
         expect(explorer.queryParams).toMatchObject({
             Accounting: "Production-based",
@@ -75,7 +75,7 @@ describe(Explorer, () => {
 })
 
 describe("inline data explorer", () => {
-    const element = mount(SampleInlineDataExplorer())
+    const element = enzyme.mount(SampleInlineDataExplorer())
     const explorer = element.instance() as Explorer
 
     it("renders", () => {

@@ -2,15 +2,15 @@
 
 import React from "react"
 
-import { configure, shallow } from "enzyme"
+import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
 import { GlobalEntitySelector } from "./GlobalEntitySelector.js"
 import { SelectionArray } from "../../selection/SelectionArray.js"
-configure({ adapter: new Adapter() })
+enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a GlobalEntitySelector", () => {
     test("something renders", () => {
-        const view = shallow(
+        const view = enzyme.shallow(
             <GlobalEntitySelector selection={new SelectionArray()} />
         )
         expect(view.find(".global-entity-control")).not.toHaveLength(0)

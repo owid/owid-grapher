@@ -7,10 +7,10 @@ import {
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
 
-import { configure, mount } from "enzyme"
+import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
-configure({ adapter: new Adapter() })
+enzyme.configure({ adapter: new Adapter() })
 
 const TestGrapherConfig = (): GrapherProgrammaticInterface => {
     const table = SynthesizeGDPTable({ entityCount: 10 })
@@ -28,7 +28,7 @@ const TestGrapherConfig = (): GrapherProgrammaticInterface => {
 }
 
 test("clicking the sources footer changes tabs", () => {
-    const mountedGrapher = mount(<Grapher {...TestGrapherConfig} />)
+    const mountedGrapher = enzyme.mount(<Grapher {...TestGrapherConfig} />)
     expect(mountedGrapher.find(".sourcesTab")).toHaveLength(0)
     expect(mountedGrapher.find(".SourcesFooterHTML")).toHaveLength(1)
 

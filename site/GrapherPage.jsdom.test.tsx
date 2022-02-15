@@ -12,9 +12,9 @@ import {
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
-import { configure, shallow, ShallowWrapper } from "enzyme"
+import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+enzyme.configure({ adapter: new Adapter() })
 
 const mockGrapher: GrapherInterface = {
     version: 5,
@@ -57,11 +57,11 @@ beforeAll(() => {
 })
 
 describe("when the page is rendered", () => {
-    let view: ShallowWrapper
+    let view: enzyme.ShallowWrapper
 
     beforeAll(
         () =>
-            (view = shallow(
+            (view = enzyme.shallow(
                 <GrapherPage
                     post={post}
                     grapher={grapher}

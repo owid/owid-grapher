@@ -4,9 +4,9 @@ import React from "react"
 import { ExplorerControlType } from "./ExplorerConstants.js"
 import { ExplorerControlPanel } from "./ExplorerControls.js"
 
-import { configure, mount } from "enzyme"
+import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+enzyme.configure({ adapter: new Adapter() })
 
 describe(ExplorerControlPanel, () => {
     const options = [
@@ -22,7 +22,7 @@ describe(ExplorerControlPanel, () => {
         },
     ]
 
-    const element = mount(
+    const element = enzyme.mount(
         <ExplorerControlPanel
             choice={{
                 title: "Some decision",
