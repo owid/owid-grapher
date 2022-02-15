@@ -44,6 +44,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.props.manager.mapColumnSlug
     }
 
+    @computed private get mapAndYColumnAreTheSame(): boolean {
+        const { yColumnSlug, yColumnSlugs, mapColumnSlug } = this.props.manager
+        return yColumnSlugs && mapColumnSlug !== undefined
+            ? yColumnSlugs.includes(mapColumnSlug)
+            : yColumnSlug === mapColumnSlug
+    }
+
     @computed private get entityName(): EntityName {
         return this.props.entityName
     }
@@ -151,9 +158,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 hideAxis: false,
                 hideGridlines: false,
                 compactLabels: true,
-                // Copy min/max from top-level Grapher config
-                min: this.props.manager.yAxisConfig?.min,
-                max: this.props.manager.yAxisConfig?.max,
+                // Copy min/max from top-level Grapher config if Y column == Map column
+                min: this.mapAndYColumnAreTheSame
+                    ? this.props.manager.yAxisConfig?.min
+                    : undefined,
+                max: this.mapAndYColumnAreTheSame
+                    ? this.props.manager.yAxisConfig?.max
+                    : undefined,
                 ticks: [
                     { value: 0, priority: 1 },
                     // Show minimum and maximum
