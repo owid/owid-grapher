@@ -1,18 +1,18 @@
 import * as lodash from "lodash"
 import { Writable } from "stream"
-import * as db from "../db"
+import * as db from "../db.js"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
-} from "../../clientUtils/OwidVariableDisplayConfigInterface"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
-import { arrToCsvRow, omitNullableValues } from "../../clientUtils/Util"
+} from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import { arrToCsvRow, omitNullableValues } from "../../clientUtils/Util.js"
 import {
     DataValueQueryArgs,
     DataValueResult,
     OwidVariableId,
-} from "../../clientUtils/owidTypes"
-import { OwidSource } from "../../clientUtils/OwidSource"
+} from "../../clientUtils/owidTypes.js"
+import { OwidSource } from "../../clientUtils/OwidSource.js"
 
 export namespace Variable {
     export interface Row {

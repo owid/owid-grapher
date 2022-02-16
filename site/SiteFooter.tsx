@@ -1,7 +1,7 @@
-import * as React from "react"
-import { webpackUrl } from "../site/webpackUtils"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import React from "react"
+import { webpackUrl } from "../site/webpackUtils.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean

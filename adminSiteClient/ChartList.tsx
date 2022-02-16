@@ -1,18 +1,18 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { action, runInAction, observable } from "mobx"
 import { format } from "timeago.js"
 import * as lodash from "lodash"
 
-import { Link } from "./Link"
-import { Tag } from "./TagBadge"
+import { Link } from "./Link.js"
+import { Tag } from "./TagBadge.js"
 import { bind } from "decko"
-import { EditableTags } from "./Forms"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
-import { ChartTypeName } from "../grapher/core/GrapherConstants"
-import { startCase } from "../clientUtils/Util"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { EditableTags } from "./Forms.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
+import { startCase } from "../clientUtils/Util.js"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {

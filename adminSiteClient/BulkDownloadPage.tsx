@@ -1,7 +1,7 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 export class BulkDownloadPage extends React.Component {

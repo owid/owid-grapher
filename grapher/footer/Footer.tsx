@@ -1,13 +1,13 @@
-import * as React from "react"
+import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
-import { TextWrap } from "../text/TextWrap"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { getRelativeMouse } from "../../clientUtils/Util"
-import { Tooltip } from "../tooltip/Tooltip"
-import { BASE_FONT_SIZE, GrapherTabOption } from "../core/GrapherConstants"
-import { FooterManager } from "./FooterManager"
+import { TextWrap } from "../text/TextWrap.js"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { getRelativeMouse } from "../../clientUtils/Util.js"
+import { Tooltip } from "../tooltip/Tooltip.js"
+import { BASE_FONT_SIZE, GrapherTabOption } from "../core/GrapherConstants.js"
+import { FooterManager } from "./FooterManager.js"
 
 @observer
 export class Footer extends React.Component<{

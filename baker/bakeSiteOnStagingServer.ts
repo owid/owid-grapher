@@ -1,4 +1,4 @@
 // todo: remove this file
 
-import { bake } from "./DeployUtils"
+import { bake } from "./DeployUtils.js"
 bake()

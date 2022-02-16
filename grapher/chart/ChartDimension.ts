@@ -2,22 +2,22 @@
 // Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
 
 import { observable, computed } from "mobx"
-import { trimObject } from "../../clientUtils/Util"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { OwidVariableDisplayConfig } from "../../clientUtils/OwidVariable"
+import { trimObject } from "../../clientUtils/Util.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { OwidVariableDisplayConfig } from "../../clientUtils/OwidVariable.js"
 import {
     ColumnSlug,
     DimensionProperty,
     OwidVariableId,
-} from "../../clientUtils/owidTypes"
-import { Time } from "../../coreTable/CoreTableConstants"
+} from "../../clientUtils/owidTypes.js"
+import { Time } from "../../coreTable/CoreTableConstants.js"
 import {
     Persistable,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
-} from "../../clientUtils/persistable/Persistable"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface"
+} from "../../clientUtils/persistable/Persistable.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data

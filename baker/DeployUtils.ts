@@ -1,9 +1,9 @@
 import fs from "fs-extra"
-import { SiteBaker } from "../baker/SiteBaker"
-import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
-import { DeployQueueServer } from "./DeployQueueServer"
-import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings"
-import { DeployChange } from "../clientUtils/owidTypes"
+import { SiteBaker } from "../baker/SiteBaker.js"
+import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { DeployQueueServer } from "./DeployQueueServer.js"
+import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
+import { DeployChange } from "../clientUtils/owidTypes.js"
 
 const deployQueueServer = new DeployQueueServer()
 

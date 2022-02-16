@@ -1,4 +1,4 @@
-import { Color, CoreValueType } from "../../coreTable/CoreTableConstants"
+import { Color, CoreValueType } from "../../coreTable/CoreTableConstants.js"
 
 interface BinProps {
     color: Color

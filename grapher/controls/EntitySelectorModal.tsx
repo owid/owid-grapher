@@ -1,11 +1,11 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
-import { uniqBy, isTouchDevice, sortBy } from "../../clientUtils/Util"
-import { FuzzySearch } from "./FuzzySearch"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { SelectionArray } from "../selection/SelectionArray"
+import { uniqBy, isTouchDevice, sortBy } from "../../clientUtils/Util.js"
+import { FuzzySearch } from "./FuzzySearch.js"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
 
 interface SearchableEntity {
     name: string

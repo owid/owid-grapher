@@ -4,11 +4,11 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "./OwidTableSynthesizers"
-import { BlankOwidTable, OwidTable } from "./OwidTable"
-import { ColumnTypeNames } from "./CoreColumnDef"
-import { ErrorValueTypes } from "./ErrorValues"
-import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
+} from "./OwidTableSynthesizers.js"
+import { BlankOwidTable, OwidTable } from "./OwidTable.js"
+import { ColumnTypeNames } from "./CoreColumnDef.js"
+import { ErrorValueTypes } from "./ErrorValues.js"
+import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants.js"
 
 const sampleRows = [
     {

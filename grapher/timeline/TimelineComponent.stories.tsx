@@ -1,8 +1,8 @@
-import * as React from "react"
-import { TimelineComponent } from "./TimelineComponent"
+import React from "react"
+import { TimelineComponent } from "./TimelineComponent.js"
 import { action, computed, observable } from "mobx"
-import { range } from "../../clientUtils/Util"
-import { TimelineController, TimelineManager } from "./TimelineController"
+import { range } from "../../clientUtils/Util.js"
+import { TimelineController, TimelineManager } from "./TimelineController.js"
 
 class TimelineManagerMock implements TimelineManager {
     @observable isPlaying = false

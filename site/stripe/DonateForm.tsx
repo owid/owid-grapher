@@ -1,5 +1,5 @@
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import React from "react"
+import ReactDOM from "react-dom"
 import classnames from "classnames"
 import { observable, action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
@@ -9,10 +9,10 @@ import {
     DONATE_API_URL,
     BAKED_BASE_URL,
     RECAPTCHA_SITE_KEY,
-} from "../../settings/clientSettings"
+} from "../../settings/clientSettings.js"
 
-import stripe from "./stripe"
-import { stringifyUnkownError } from "../../clientUtils/Util"
+import stripe from "./stripe.js"
+import { stringifyUnkownError } from "../../clientUtils/Util.js"
 
 type Interval = "once" | "monthly"
 

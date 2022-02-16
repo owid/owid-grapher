@@ -1,6 +1,6 @@
 import moment from "moment"
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import React from "react"
+import ReactDOM from "react-dom"
 import {
     Action,
     DATE_FORMAT,
@@ -8,11 +8,11 @@ import {
     getTodayDate,
     Preference,
     PreferenceType,
-} from "../../site/CookiePreferencesManager"
+} from "../../site/CookiePreferencesManager.js"
 import slugify from "slugify"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
-import { SiteAnalytics } from "../../site/SiteAnalytics"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck.js"
+import { SiteAnalytics } from "../../site/SiteAnalytics.js"
 
 const ANALYTICS_ACTION = "cookie-preferences"
 const analytics = new SiteAnalytics()

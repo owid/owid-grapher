@@ -4,19 +4,19 @@ import { action, observable, computed, reaction } from "mobx"
 import {
     GrapherInterface,
     GrapherQueryParams,
-} from "../grapher/core/GrapherInterface"
+} from "../grapher/core/GrapherInterface.js"
 import {
     ExplorerControlPanel,
     ExplorerControlBar,
-} from "../explorer/ExplorerControls"
+} from "../explorer/ExplorerControls.js"
 import ReactDOM from "react-dom"
-import { ExplorerProgram } from "../explorer/ExplorerProgram"
-import { ColumnSlug, SerializedGridProgram } from "../clientUtils/owidTypes"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { ColumnSlug, SerializedGridProgram } from "../clientUtils/owidTypes.js"
 import {
     Grapher,
     GrapherManager,
     GrapherProgrammaticInterface,
-} from "../grapher/core/Grapher"
+} from "../grapher/core/Grapher.js"
 import {
     debounce,
     excludeUndefined,
@@ -27,11 +27,11 @@ import {
     omitUndefinedValues,
     throttle,
     uniqBy,
-} from "../clientUtils/Util"
+} from "../clientUtils/Util.js"
 import {
     SlideShowController,
     SlideShowManager,
-} from "../grapher/slideshowController/SlideShowController"
+} from "../grapher/slideshowController/SlideShowController.js"
 import {
     ExplorerChoiceParams,
     ExplorerContainerId,
@@ -40,28 +40,28 @@ import {
     EXPLORERS_ROUTE_FOLDER,
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
-} from "./ExplorerConstants"
-import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants"
-import { SelectionArray } from "../grapher/selection/SelectionArray"
-import { SortOrder, TableSlug } from "../coreTable/CoreTableConstants"
-import { isNotErrorValue } from "../coreTable/ErrorValues"
-import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker"
+} from "./ExplorerConstants.js"
+import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants.js"
+import { SelectionArray } from "../grapher/selection/SelectionArray.js"
+import { SortOrder, TableSlug } from "../coreTable/CoreTableConstants.js"
+import { isNotErrorValue } from "../coreTable/ErrorValues.js"
+import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine.js"
+import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker.js"
 import classNames from "classnames"
-import { ColumnTypeNames, CoreColumnDef } from "../coreTable/CoreColumnDef"
-import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable"
-import { BAKED_BASE_URL } from "../settings/clientSettings"
+import { ColumnTypeNames, CoreColumnDef } from "../coreTable/CoreColumnDef.js"
+import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
-} from "./urlMigrations/ExplorerUrlMigrations"
-import { setWindowUrl, Url } from "../clientUtils/urls/Url"
-import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec"
-import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder"
-import { PromiseCache } from "../clientUtils/PromiseCache"
-import { PromiseSwitcher } from "../clientUtils/PromiseSwitcher"
+} from "./urlMigrations/ExplorerUrlMigrations.js"
+import { setWindowUrl, Url } from "../clientUtils/urls/Url.js"
+import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec.js"
+import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder.js"
+import { PromiseCache } from "../clientUtils/PromiseCache.js"
+import { PromiseSwitcher } from "../clientUtils/PromiseSwitcher.js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import {
     reverse,
     clone,
@@ -8,28 +8,28 @@ import {
     makeSafeForCSS,
     minBy,
     excludeUndefined,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
-import { SeriesName } from "../core/GrapherConstants"
+import { SeriesName } from "../core/GrapherConstants.js"
 import { observer } from "mobx-react"
-import { DualAxisComponent } from "../axis/AxisViews"
-import { DualAxis } from "../axis/Axis"
+import { DualAxisComponent } from "../axis/AxisViews.js"
+import { DualAxis } from "../axis/Axis.js"
 import {
     LineLabelSeries,
     LineLegend,
     LineLegendManager,
-} from "../lineLegend/LineLegend"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Tooltip } from "../tooltip/Tooltip"
+} from "../lineLegend/LineLegend.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { Tooltip } from "../tooltip/Tooltip.js"
 import { rgb } from "d3-color"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
-} from "../stackedCharts/AbstractStackedChart"
-import { StackedSeries } from "./StackedConstants"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
-import { makeClipPath } from "../chart/ChartUtils"
-import { Time } from "../../clientUtils/owidTypes"
+} from "../stackedCharts/AbstractStackedChart.js"
+import { StackedSeries } from "./StackedConstants.js"
+import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils.js"
+import { makeClipPath } from "../chart/ChartUtils.js"
+import { Time } from "../../clientUtils/owidTypes.js"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis

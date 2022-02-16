@@ -1,20 +1,20 @@
 #! /usr/bin/env node
 
 import * as fs from "fs"
-import * as db from "../../db/db"
+import * as db from "../../db/db.js"
 import {
     Grapher,
     GrapherProgrammaticInterface,
-} from "../../grapher/core/Grapher"
-import { mapToObjectLiteral } from "../../clientUtils/Util"
-import { isPresent } from "../../clientUtils/isPresent"
-import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker"
-import { LegacyGrapherInterface } from "../../grapher/core/GrapherInterface"
-import { CoreTable } from "../../coreTable/CoreTable"
+} from "../../grapher/core/Grapher.js"
+import { mapToObjectLiteral } from "../../clientUtils/Util.js"
+import { isPresent } from "../../clientUtils/isPresent.js"
+import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
+import { LegacyGrapherInterface } from "../../grapher/core/GrapherInterface.js"
+import { CoreTable } from "../../coreTable/CoreTable.js"
 import parseArgs from "minimist"
-import { ChartTypeName } from "../../grapher/core/GrapherConstants"
-import { ColorScaleConfig } from "../../grapher/color/ColorScaleConfig"
-import { closeTypeOrmAndKnexConnections } from "../../db/db"
+import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
+import { ColorScaleConfig } from "../../grapher/color/ColorScaleConfig.js"
+import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
 
 const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"
 const GRAPHER_TRIMMED_LOCATION = __dirname + "/graphers-trimmed.json"

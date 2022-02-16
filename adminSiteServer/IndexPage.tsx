@@ -1,6 +1,6 @@
-import * as React from "react"
-import { ENV, GITHUB_USERNAME } from "../settings/serverSettings"
-import { webpackUrl } from "../site/webpackUtils"
+import React from "react"
+import { ENV, GITHUB_USERNAME } from "../settings/serverSettings.js"
+import { webpackUrl } from "../site/webpackUtils.js"
 
 export const IndexPage = (props: {
     username: string

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import {
     observable,
@@ -9,21 +9,21 @@ import {
 } from "mobx"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
-import { AdminLayout } from "./AdminLayout"
-import { Link } from "./Link"
-import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
+import { AdminLayout } from "./AdminLayout.js"
+import { Link } from "./Link.js"
+import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
     OwidVariableDisplayConfig,
-} from "../clientUtils/OwidVariable"
-import { Grapher } from "../grapher/core/Grapher"
-import { GrapherFigureView } from "../site/GrapherFigureView"
-import { ChartList, ChartListItem } from "./ChartList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+} from "../clientUtils/OwidVariable.js"
+import { Grapher } from "../grapher/core/Grapher.js"
+import { GrapherFigureView } from "../site/GrapherFigureView.js"
+import { ChartList, ChartListItem } from "./ChartList.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
-import { GrapherTabOption } from "../grapher/core/GrapherConstants"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { DimensionProperty, EPOCH_DATE } from "../clientUtils/owidTypes"
+import { GrapherTabOption } from "../grapher/core/GrapherConstants.js"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { DimensionProperty, EPOCH_DATE } from "../clientUtils/owidTypes.js"
 
 interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {

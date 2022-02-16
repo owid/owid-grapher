@@ -1,7 +1,7 @@
-import * as React from "react"
-import ReactDOMServer from "react-dom/server"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faLightbulb } from "@fortawesome/free-solid-svg-icons/faLightbulb"
+import React from "react"
+import ReactDOMServer from "react-dom/server.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faLightbulb } from "@fortawesome/free-solid-svg-icons/faLightbulb.js"
 
 const Help = ({
     title,

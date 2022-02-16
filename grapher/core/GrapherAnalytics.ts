@@ -1,4 +1,4 @@
-import { findDOMParent } from "../../clientUtils/Util"
+import { findDOMParent } from "../../clientUtils/Util.js"
 
 const DEBUG = false
 

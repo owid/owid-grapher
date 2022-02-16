@@ -1,10 +1,10 @@
-import { maxBy, dateDiffInDays } from "../../clientUtils/Util"
+import { maxBy, dateDiffInDays } from "../../clientUtils/Util.js"
 import { utcFormat } from "d3-time-format"
-import { SortOrder } from "../../coreTable/CoreTableConstants"
+import { SortOrder } from "../../coreTable/CoreTableConstants.js"
 import {
     TickFormattingOptions,
     formatValue,
-} from "../../clientUtils/formatValue"
+} from "../../clientUtils/formatValue.js"
 import {
     CovidSeries,
     CovidDatum,
@@ -12,7 +12,7 @@ import {
     CovidSortKey,
     CovidCountryDatum,
     CovidSortAccessor,
-} from "./CovidTypes"
+} from "./CovidTypes.js"
 
 export function inverseSortOrder(order: SortOrder): SortOrder {
     return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc

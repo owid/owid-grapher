@@ -1,26 +1,26 @@
-import * as React from "react"
+import React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { Header } from "../header/Header"
-import { Footer } from "../footer/Footer"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { Header } from "../header/Header.js"
+import { Footer } from "../footer/Footer.js"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../chart/ChartTypeMap"
+} from "../chart/ChartTypeMap.js"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
-} from "../core/GrapherConstants"
-import { MapChartManager } from "../mapCharts/MapChartConstants"
-import { ChartManager } from "../chart/ChartManager"
-import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
-import { FacetChart } from "../facetChart/FacetChart"
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList"
+} from "../core/GrapherConstants.js"
+import { MapChartManager } from "../mapCharts/MapChartConstants.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
+import { FacetChart } from "../facetChart/FacetChart.js"
+import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList.js"
 import {
     ZoomToggle,
     AbsRelToggle,
@@ -32,16 +32,16 @@ import {
     FacetStrategyDropdown,
     FacetStrategyDropdownManager,
     NoDataAreaToggle,
-} from "../controls/Controls"
-import { ScaleSelector } from "../controls/ScaleSelector"
-import { AddEntityButton } from "../controls/AddEntityButton"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
-import { FooterManager } from "../footer/FooterManager"
-import { HeaderManager } from "../header/HeaderManager"
-import { exposeInstanceOnWindow } from "../../clientUtils/Util"
-import { SelectionArray } from "../selection/SelectionArray"
-import { EntityName } from "../../coreTable/OwidTableConstants"
-import { AxisConfig } from "../axis/AxisConfig"
+} from "../controls/Controls.js"
+import { ScaleSelector } from "../controls/ScaleSelector.js"
+import { AddEntityButton } from "../controls/AddEntityButton.js"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt.js"
+import { FooterManager } from "../footer/FooterManager.js"
+import { HeaderManager } from "../header/HeaderManager.js"
+import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
 
 export interface CaptionedChartManager
     extends ChartManager,

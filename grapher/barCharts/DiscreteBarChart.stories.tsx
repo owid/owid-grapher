@@ -1,11 +1,11 @@
-import * as React from "react"
-import { DiscreteBarChart } from "./DiscreteBarChart"
+import React from "react"
+import { DiscreteBarChart } from "./DiscreteBarChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { DiscreteBarChartManager } from "./DiscreteBarChartConstants.js"
 
 export default {
     title: "DiscreteBarChart",

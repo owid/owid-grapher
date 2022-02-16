@@ -1,17 +1,17 @@
-import * as React from "react"
+import React from "react"
 import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
 
-import { Link } from "./Link"
-import { EditorFAQ } from "./EditorFAQ"
-import { AdminSidebar } from "./AdminSidebar"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Link } from "./Link.js"
+import { EditorFAQ } from "./EditorFAQ.js"
+import { AdminSidebar } from "./AdminSidebar.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
-} from "../explorer/ExplorerConstants"
+} from "../explorer/ExplorerConstants.js"
 
 @observer
 export class AdminLayout extends React.Component<{

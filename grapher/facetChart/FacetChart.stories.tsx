@@ -1,14 +1,14 @@
-import * as React from "react"
-import { FacetChart } from "./FacetChart"
+import React from "react"
+import { FacetChart } from "./FacetChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { Bounds } from "../../clientUtils/Bounds"
-import { ChartTypeName, FacetStrategy } from "../core/GrapherConstants"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { ChartTypeName, FacetStrategy } from "../core/GrapherConstants.js"
 import { Meta } from "@storybook/react"
-import { ChartManager } from "../chart/ChartManager"
+import { ChartManager } from "../chart/ChartManager.js"
 
 // See https://storybook.js.org/docs/react/essentials/controls for Control Types
 const CSF: Meta = {

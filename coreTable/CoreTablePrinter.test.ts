@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { toAlignedTextTable, toMarkdownTable } from "./CoreTablePrinters"
-import { parseDelimited } from "./CoreTableUtils"
+import { toAlignedTextTable, toMarkdownTable } from "./CoreTablePrinters.js"
+import { parseDelimited } from "./CoreTableUtils.js"
 
 const input = `name,score,color
 bob,12,red

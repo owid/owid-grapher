@@ -1,7 +1,7 @@
-import { DimensionProperty } from "../../clientUtils/owidTypes"
-import { Grapher } from "../core/Grapher"
-import { GrapherTabOption } from "../core/GrapherConstants"
-import { GrapherInterface } from "../core/GrapherInterface"
+import { DimensionProperty } from "../../clientUtils/owidTypes.js"
+import { Grapher } from "../core/Grapher.js"
+import { GrapherTabOption } from "../core/GrapherConstants.js"
+import { GrapherInterface } from "../core/GrapherInterface.js"
 
 export const childMortalityGrapher = (
     props: Partial<GrapherInterface> = {}

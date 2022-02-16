@@ -4,12 +4,12 @@
 // bundled and shipped out to our users.
 
 import dotenv from "dotenv"
-import findBaseDir from "./findBaseDir"
+import findBaseDir from "./findBaseDir.js"
 
 const baseDir = findBaseDir(__dirname)
 if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 
-import { parseIntOrUndefined } from "../clientUtils/Util"
+import { parseIntOrUndefined } from "../clientUtils/Util.js"
 
 export const ENV: "development" | "production" =
     process.env.ENV === "production" ? "production" : "development"

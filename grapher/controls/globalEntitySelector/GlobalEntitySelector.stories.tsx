@@ -1,6 +1,6 @@
-import * as React from "react"
-import { SelectionArray } from "../../selection/SelectionArray"
-import { GlobalEntitySelector } from "./GlobalEntitySelector"
+import React from "react"
+import { SelectionArray } from "../../selection/SelectionArray.js"
+import { GlobalEntitySelector } from "./GlobalEntitySelector.js"
 
 export default {
     title: "GlobalEntitySelector",

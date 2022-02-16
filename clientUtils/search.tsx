@@ -1,4 +1,4 @@
-import { flatten } from "./Util"
+import { flatten } from "./Util.js"
 import chunk from "chunk-text"
 import { fromString } from "html-to-text"
 import { drop, escapeRegExp, sortBy } from "lodash"

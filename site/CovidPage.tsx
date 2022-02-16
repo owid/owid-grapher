@@ -1,7 +1,7 @@
-import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
+import React from "react"
+import { Head } from "./Head.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
 
 // IMPORTANT NOTE:
 // This page is only used in development.

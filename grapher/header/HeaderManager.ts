@@ -1,4 +1,4 @@
-import { Bounds } from "../../clientUtils/Bounds"
+import { Bounds } from "../../clientUtils/Bounds.js"
 
 export interface HeaderManager {
     fontSize?: number

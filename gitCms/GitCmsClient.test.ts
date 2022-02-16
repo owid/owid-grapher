@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { GitCmsClient } from "./GitCmsClient"
+import { GitCmsClient } from "./GitCmsClient.js"
 
 // Just some sanity tests, main tests are in the integration tests file.
 

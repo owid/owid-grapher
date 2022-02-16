@@ -1,6 +1,6 @@
-import * as React from "react"
+import React from "react"
 import classnames from "classnames"
-import { SortOrder } from "../../coreTable/CoreTableConstants"
+import { SortOrder } from "../../coreTable/CoreTableConstants.js"
 
 export interface CovidTableSortIconProps {
     sortOrder: SortOrder

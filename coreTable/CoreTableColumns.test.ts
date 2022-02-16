@@ -1,7 +1,7 @@
-import { ColumnTypeNames } from "./CoreColumnDef"
-import { ColumnTypeMap } from "./CoreTableColumns"
-import { ErrorValueTypes } from "./ErrorValues"
-import { OwidTable } from "./OwidTable"
+import { ColumnTypeNames } from "./CoreColumnDef.js"
+import { ColumnTypeMap } from "./CoreTableColumns.js"
+import { ErrorValueTypes } from "./ErrorValues.js"
+import { OwidTable } from "./OwidTable.js"
 
 describe(ColumnTypeNames.Quarter, () => {
     const col = new ColumnTypeMap.Numeric(new OwidTable(), { slug: "test" })

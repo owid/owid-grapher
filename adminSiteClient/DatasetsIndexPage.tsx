@@ -1,18 +1,18 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import * as lodash from "lodash"
 
-import { AdminLayout } from "./AdminLayout"
-import { SearchField, FieldsRow } from "./Forms"
-import { DatasetList, DatasetListItem } from "./DatasetList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout.js"
+import { SearchField, FieldsRow } from "./Forms.js"
+import { DatasetList, DatasetListItem } from "./DatasetList.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
     SearchWord,
-} from "../clientUtils/search"
+} from "../clientUtils/search.js"
 
 @observer
 export class DatasetsIndexPage extends React.Component {

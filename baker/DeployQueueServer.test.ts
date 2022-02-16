@@ -1,11 +1,11 @@
 #! /usr/bin/env jest
 
 import fs from "fs-extra"
-import { DeployQueueServer } from "./DeployQueueServer"
+import { DeployQueueServer } from "./DeployQueueServer.js"
 import {
     DEPLOY_QUEUE_FILE_PATH,
     DEPLOY_PENDING_FILE_PATH,
-} from "../settings/serverSettings"
+} from "../settings/serverSettings.js"
 
 describe("parseQueueContent", () => {
     const server = new DeployQueueServer()

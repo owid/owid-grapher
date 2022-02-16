@@ -1,15 +1,15 @@
 #! /usr/bin/env jest
 
-import { SortOrder, SortBy } from "../../clientUtils/owidTypes"
-import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
-import { OwidTable } from "../../coreTable/OwidTable"
+import { SortOrder, SortBy } from "../../clientUtils/owidTypes.js"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../chart/ChartManager"
-import { SelectionArray } from "../selection/SelectionArray"
-import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart.js"
 
 it("can create a chart", () => {
     const table = SynthesizeFruitTable({

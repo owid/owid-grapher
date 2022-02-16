@@ -1,19 +1,19 @@
-import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
-import { ChartManager } from "../chart/ChartManager"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
+import { ChartManager } from "../chart/ChartManager.js"
 import {
     BASE_FONT_SIZE,
     SeriesName,
     SeriesStrategy,
-} from "../core/GrapherConstants"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
+} from "../core/GrapherConstants.js"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import {
     exposeInstanceOnWindow,
     flatten,
     guid,
     max,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
@@ -21,21 +21,21 @@ import {
     StackedPoint,
     StackedRawSeries,
     StackedSeries,
-} from "./StackedConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
+} from "./StackedConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "../chart/ChartUtils"
+} from "../chart/ChartUtils.js"
 import { ScaleOrdinal, scaleOrdinal } from "d3-scale"
 import { easeLinear } from "d3-ease"
 import { select } from "d3-selection"
-import { ColorSchemes } from "../color/ColorSchemes"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { SelectionArray } from "../selection/SelectionArray"
-import { CategoricalBin } from "../color/ColorScaleBin"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { ColorSchemes } from "../color/ColorSchemes.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { CategoricalBin } from "../color/ColorScaleBin.js"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends.js"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds

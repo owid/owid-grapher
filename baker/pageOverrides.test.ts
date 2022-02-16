@@ -1,6 +1,6 @@
-import { FullPost, WP_PostType } from "../clientUtils/owidTypes"
-import { extractFormattingOptions } from "./formatting"
-import * as pageOverrides from "./pageOverrides"
+import { FullPost, WP_PostType } from "../clientUtils/owidTypes.js"
+import { extractFormattingOptions } from "./formatting.js"
+import * as pageOverrides from "./pageOverrides.js"
 
 const mockCreatePost = (slug: string): FullPost => {
     return {

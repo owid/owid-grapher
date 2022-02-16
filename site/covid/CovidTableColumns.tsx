@@ -1,31 +1,31 @@
-import * as React from "react"
+import React from "react"
 import { scaleThreshold, scaleLinear, ScaleLinear } from "d3-scale"
 import { interpolateLab } from "d3-interpolate"
 import classnames from "classnames"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
-import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle.js"
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle.js"
+import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle.js"
 
-import { Tippy } from "../../grapher/chart/Tippy"
+import { Tippy } from "../../grapher/chart/Tippy.js"
 
 import {
     CovidTableHeaderCell as HeaderCell,
     CovidTableHeaderCellProps,
-} from "./CovidTableHeaderCell"
+} from "./CovidTableHeaderCell.js"
 import {
     CovidSortKey,
     CovidCountryDatum,
     CovidDatum,
     NounGenerator,
     CovidDoublingRange,
-} from "./CovidTypes"
-import { formatDate, formatInt } from "./CovidUtils"
-import { nouns } from "./CovidConstants"
-import { CovidDoublingTooltip } from "./CovidDoublingTooltip"
-import { SparkBarTimeSeriesValue } from "../../grapher/sparkBars/SparkBarTimeSeriesValue"
-import { SparkBars, SparkBarsProps } from "../../grapher/sparkBars/SparkBars"
+} from "./CovidTypes.js"
+import { formatDate, formatInt } from "./CovidUtils.js"
+import { nouns } from "./CovidConstants.js"
+import { CovidDoublingTooltip } from "./CovidDoublingTooltip.js"
+import { SparkBarTimeSeriesValue } from "../../grapher/sparkBars/SparkBarTimeSeriesValue.js"
+import { SparkBars, SparkBarsProps } from "../../grapher/sparkBars/SparkBars.js"
 
 export enum CovidTableColumnKey {
     location = "location",

@@ -1,25 +1,25 @@
-import * as React from "react"
+import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { isEmpty } from "../clientUtils/Util"
+import { isEmpty } from "../clientUtils/Util.js"
 import {
     MapProjectionLabels,
     MapProjectionName,
-} from "../grapher/mapCharts/MapProjections"
-import { ChartEditor } from "./ChartEditor"
+} from "../grapher/mapCharts/MapProjections.js"
+import { ChartEditor } from "./ChartEditor.js"
 import {
     NumericSelectField,
     NumberField,
     SelectField,
     Toggle,
     Section,
-} from "./Forms"
-import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { OwidVariableId } from "../clientUtils/owidTypes"
-import { MapConfig } from "../grapher/mapCharts/MapConfig"
-import { ChartDimension } from "../grapher/chart/ChartDimension"
-import { ColorScale } from "../grapher/color/ColorScale"
-import { MapChart } from "../grapher/mapCharts/MapChart"
+} from "./Forms.js"
+import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
+import { OwidVariableId } from "../clientUtils/owidTypes.js"
+import { MapConfig } from "../grapher/mapCharts/MapConfig.js"
+import { ChartDimension } from "../grapher/chart/ChartDimension.js"
+import { ColorScale } from "../grapher/color/ColorScale.js"
+import { MapChart } from "../grapher/mapCharts/MapChart.js"
 
 @observer
 class VariableSection extends React.Component<{

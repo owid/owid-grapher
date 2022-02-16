@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { default as OriginalTippy, TippyProps } from "@tippyjs/react"
 
 interface CustomTippyProps extends TippyProps {

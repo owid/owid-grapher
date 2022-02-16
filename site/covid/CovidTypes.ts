@@ -1,4 +1,4 @@
-import { CovidTestsDatum } from "./CovidFetch"
+import { CovidTestsDatum } from "./CovidFetch.js"
 
 export interface CovidDatum {
     date: Date

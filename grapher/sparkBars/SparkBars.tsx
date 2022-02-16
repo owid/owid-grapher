@@ -1,10 +1,10 @@
-import * as React from "react"
+import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
 import { bind } from "decko"
 
-import { max, keyBy } from "../../clientUtils/Util"
+import { max, keyBy } from "../../clientUtils/Util.js"
 import { ScaleLinear } from "d3-scale"
 
 enum BarState {

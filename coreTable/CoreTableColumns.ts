@@ -12,26 +12,29 @@ import {
     dateDiffInDays,
     isNumber,
     omitUndefinedValues,
-} from "../clientUtils/Util"
-import { isPresent } from "../clientUtils/isPresent"
-import { CoreTable } from "./CoreTable"
+} from "../clientUtils/Util.js"
+import { isPresent } from "../clientUtils/isPresent.js"
+import { CoreTable } from "./CoreTable.js"
 import {
     CoreRow,
     Time,
     PrimitiveType,
     JsTypes,
     CoreValueType,
-} from "./CoreTableConstants"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
-import { EntityName, OwidVariableRow } from "./OwidTableConstants" // todo: remove. Should not be on CoreTable
-import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
-import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
-import { imemo } from "./CoreTableUtils"
+} from "./CoreTableConstants.js"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
+import { EntityName, OwidVariableRow } from "./OwidTableConstants.js" // todo: remove. Should not be on CoreTable
+import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
+import { getOriginalTimeColumnSlug } from "./OwidTableUtil.js"
+import { imemo } from "./CoreTableUtils.js"
 import moment from "moment"
-import { OwidSource } from "../clientUtils/OwidSource"
-import { formatValue, TickFormattingOptions } from "../clientUtils/formatValue"
-import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
-import { ColumnSlug } from "../clientUtils/owidTypes"
+import { OwidSource } from "../clientUtils/OwidSource.js"
+import {
+    formatValue,
+    TickFormattingOptions,
+} from "../clientUtils/formatValue.js"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
 
 interface ColumnSummary {
     numErrorValues: number

@@ -1,5 +1,5 @@
-import { Explorer } from "../explorer/Explorer"
-import { SampleExplorerOfGraphers } from "./Explorer.sample"
+import { Explorer } from "../explorer/Explorer.js"
+import { SampleExplorerOfGraphers } from "./Explorer.sample.js"
 
 export default {
     title: "Explorer",

@@ -1,11 +1,11 @@
-import * as React from "react"
+import React from "react"
 import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { scaleLinear } from "d3-scale"
 import { schemeCategory10 } from "d3-scale-chromatic"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown.js"
 import {
     throttle,
     groupBy,
@@ -18,25 +18,29 @@ import {
     extend,
     uniq,
     stringifyUnkownError,
-} from "../../clientUtils/Util"
-import { SortOrder } from "../../coreTable/CoreTableConstants"
-import { DEFAULT_SORT_ORDER } from "./CovidConstants"
+} from "../../clientUtils/Util.js"
+import { SortOrder } from "../../coreTable/CoreTableConstants.js"
+import { DEFAULT_SORT_ORDER } from "./CovidConstants.js"
 import {
     CovidSortKey,
     CovidSeries,
     CovidCountrySeries,
     DateRange,
     CovidCountryDatum,
-} from "./CovidTypes"
-import { getDoublingRange, sortAccessors, inverseSortOrder } from "./CovidUtils"
-import { CovidTableRow } from "./CovidTableRow"
+} from "./CovidTypes.js"
+import {
+    getDoublingRange,
+    sortAccessors,
+    inverseSortOrder,
+} from "./CovidUtils.js"
+import { CovidTableRow } from "./CovidTableRow.js"
 import {
     CovidTableColumnKey,
     CovidTableHeaderSpec,
     columns,
     CovidTableCellSpec,
-} from "./CovidTableColumns"
-import { fetchJHUData } from "./CovidFetch"
+} from "./CovidTableColumns.js"
+import { fetchJHUData } from "./CovidFetch.js"
 
 export class CovidTableState {
     @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases

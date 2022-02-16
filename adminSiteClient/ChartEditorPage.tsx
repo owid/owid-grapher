@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import {
     observable,
@@ -10,10 +10,10 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-import { Bounds } from "../clientUtils/Bounds"
-import { capitalize } from "../clientUtils/Util"
-import { Grapher } from "../grapher/core/Grapher"
-import { Admin } from "./Admin"
+import { Bounds } from "../clientUtils/Bounds.js"
+import { capitalize } from "../clientUtils/Util.js"
+import { Grapher } from "../grapher/core/Grapher.js"
+import { Admin } from "./Admin.js"
 import {
     ChartEditor,
     EditorDatabase,
@@ -21,30 +21,30 @@ import {
     PostReference,
     ChartRedirect,
     ChartEditorManager,
-} from "./ChartEditor"
-import { EditorBasicTab } from "./EditorBasicTab"
-import { EditorDataTab } from "./EditorDataTab"
-import { EditorTextTab } from "./EditorTextTab"
-import { EditorCustomizeTab } from "./EditorCustomizeTab"
-import { EditorScatterTab } from "./EditorScatterTab"
-import { EditorMapTab } from "./EditorMapTab"
-import { EditorHistoryTab } from "./EditorHistoryTab"
-import { EditorReferencesTab } from "./EditorReferencesTab"
-import { SaveButtons } from "./SaveButtons"
-import { LoadingBlocker } from "./Forms"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
-import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
+} from "./ChartEditor.js"
+import { EditorBasicTab } from "./EditorBasicTab.js"
+import { EditorDataTab } from "./EditorDataTab.js"
+import { EditorTextTab } from "./EditorTextTab.js"
+import { EditorCustomizeTab } from "./EditorCustomizeTab.js"
+import { EditorScatterTab } from "./EditorScatterTab.js"
+import { EditorMapTab } from "./EditorMapTab.js"
+import { EditorHistoryTab } from "./EditorHistoryTab.js"
+import { EditorReferencesTab } from "./EditorReferencesTab.js"
+import { SaveButtons } from "./SaveButtons.js"
+import { LoadingBlocker } from "./Forms.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile.js"
+import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop.js"
 import {
     VisionDeficiency,
     VisionDeficiencySvgFilters,
     VisionDeficiencyDropdown,
     VisionDeficiencyEntity,
-} from "./VisionDeficiencies"
-import { EditorMarimekkoTab } from "./EditorMarimekkoTab"
-import { Topic } from "../grapher/core/GrapherConstants"
+} from "./VisionDeficiencies.js"
+import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
+import { Topic } from "../grapher/core/GrapherConstants.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {

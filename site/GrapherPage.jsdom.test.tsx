@@ -1,16 +1,16 @@
 #! /usr/bin/env jest
 
-import * as React from "react"
-import { GrapherPage } from "./GrapherPage"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
+import React from "react"
+import { GrapherPage } from "./GrapherPage.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
 import {
     DimensionProperty,
     PostRow,
     RelatedChart,
-} from "../clientUtils/owidTypes"
-import { ChartListItemVariant } from "./ChartListItemVariant"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
+} from "../clientUtils/owidTypes.js"
+import { ChartListItemVariant } from "./ChartListItemVariant.js"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 import { configure, shallow, ShallowWrapper } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

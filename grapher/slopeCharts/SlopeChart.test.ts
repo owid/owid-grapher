@@ -1,15 +1,15 @@
 #! /usr/bin/env jest
 
-import { SlopeChart } from "./SlopeChart"
+import { SlopeChart } from "./SlopeChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../chart/ChartManager"
-import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants"
-import { OwidTableSlugs } from "../../coreTable/OwidTableConstants"
-import { isNumber } from "../../clientUtils/Util"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants.js"
+import { OwidTableSlugs } from "../../coreTable/OwidTableConstants.js"
+import { isNumber } from "../../clientUtils/Util.js"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 const manager: ChartManager = {

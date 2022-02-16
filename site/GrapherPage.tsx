@@ -1,17 +1,21 @@
-import * as React from "react"
+import React from "react"
 import urljoin from "url-join"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { Head } from "./Head"
-import { PostReference, PostRow, RelatedChart } from "../clientUtils/owidTypes"
-import { ChartListItemVariant } from "./ChartListItemVariant"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
-import { IFrameDetector } from "./IframeDetector"
-import { serializeJSONForHTML } from "../clientUtils/serializers"
-import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants"
-import { uniq } from "../clientUtils/Util"
-import { RelatedArticles } from "./RelatedArticles/RelatedArticles"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { Head } from "./Head.js"
+import {
+    PostReference,
+    PostRow,
+    RelatedChart,
+} from "../clientUtils/owidTypes.js"
+import { ChartListItemVariant } from "./ChartListItemVariant.js"
+import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
+import { IFrameDetector } from "./IframeDetector.js"
+import { serializeJSONForHTML } from "../clientUtils/serializers.js"
+import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants.js"
+import { uniq } from "../clientUtils/Util.js"
+import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface

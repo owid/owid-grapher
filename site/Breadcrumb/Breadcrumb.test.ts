@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { getSubnavItem } from "../SiteSubnavigation"
-import { getBreadcrumbItems, getSubnavParent } from "./Breadcrumb"
+import { getSubnavItem } from "../SiteSubnavigation.js"
+import { getBreadcrumbItems, getSubnavParent } from "./Breadcrumb.js"
 
 const subnavs = {
     coronavirus: [

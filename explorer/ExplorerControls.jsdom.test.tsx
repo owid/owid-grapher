@@ -1,8 +1,8 @@
 #! /usr/bin/env jest
 
 import React from "react"
-import { ExplorerControlType } from "./ExplorerConstants"
-import { ExplorerControlPanel } from "./ExplorerControls"
+import { ExplorerControlType } from "./ExplorerConstants.js"
+import { ExplorerControlPanel } from "./ExplorerControls.js"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

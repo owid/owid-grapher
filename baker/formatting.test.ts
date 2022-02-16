@@ -4,7 +4,7 @@ import {
     extractDataValuesConfiguration,
     parseFormattingOptions,
     parseKeyValueArgs,
-} from "./formatting"
+} from "./formatting.js"
 
 it("parses formatting options", () => {
     const formattingOptions =

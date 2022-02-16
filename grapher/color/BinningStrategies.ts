@@ -7,8 +7,8 @@ import {
     last,
     roundSigFig,
     first,
-} from "../../clientUtils/Util"
-import { BinningStrategy } from "./BinningStrategy"
+} from "../../clientUtils/Util.js"
+import { BinningStrategy } from "./BinningStrategy.js"
 
 /** Human-readable labels for the binning strategies */
 export const binningStrategyLabels: Record<BinningStrategy, string> = {

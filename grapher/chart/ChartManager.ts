@@ -1,21 +1,25 @@
-import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
+import { ColorScaleConfigInterface } from "../color/ColorScaleConfig.js"
 import {
     EntitySelectionMode,
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
-} from "../core/GrapherConstants"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
-import { TooltipProps } from "../tooltip/TooltipProps"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { EntityName } from "../../coreTable/OwidTableConstants"
-import { SelectionArray } from "../selection/SelectionArray"
-import { Annotation, ColumnSlug, SortConfig } from "../../clientUtils/owidTypes"
-import { ColorScaleBin } from "../color/ColorScaleBin"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { TimeBound } from "../../clientUtils/TimeBounds"
+} from "../core/GrapherConstants.js"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
+import { TooltipProps } from "../tooltip/TooltipProps.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import {
+    Annotation,
+    ColumnSlug,
+    SortConfig,
+} from "../../clientUtils/owidTypes.js"
+import { ColorScaleBin } from "../color/ColorScaleBin.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { TimeBound } from "../../clientUtils/TimeBounds.js"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 

@@ -1,6 +1,6 @@
-import { ChartManager } from "../chart/ChartManager"
-import { CoreValueType, Time } from "../../coreTable/CoreTableConstants"
-import { ChartSeries } from "../chart/ChartInterface"
+import { ChartManager } from "../chart/ChartManager.js"
+import { CoreValueType, Time } from "../../coreTable/CoreTableConstants.js"
+import { ChartSeries } from "../chart/ChartInterface.js"
 
 export interface DiscreteBarSeries extends ChartSeries {
     value: number

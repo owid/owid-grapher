@@ -1,16 +1,16 @@
-import * as React from "react"
+import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis.js"
 import classNames from "classnames"
-import { ScaleType } from "../core/GrapherConstants"
+import { ScaleType } from "../core/GrapherConstants.js"
 import {
     HorizontalAlign,
     Position,
     VerticalAlign,
-} from "../../clientUtils/owidTypes"
-import { dyFromAlign, textAnchorFromAlign } from "../../clientUtils/Util"
+} from "../../clientUtils/owidTypes.js"
+import { dyFromAlign, textAnchorFromAlign } from "../../clientUtils/Util.js"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)

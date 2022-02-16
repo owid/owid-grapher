@@ -1,9 +1,9 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { format } from "timeago.js"
 
-import { Link } from "./Link"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { Link } from "./Link.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 export interface VariableListItem {
     id: number

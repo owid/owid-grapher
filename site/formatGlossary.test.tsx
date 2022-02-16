@@ -1,14 +1,14 @@
 #! /usr/bin/env jest
 
 import * as cheerio from "cheerio"
-import * as ReactDOMServer from "react-dom/server"
-import * as React from "react"
+import ReactDOMServer from "react-dom/server.js"
+import React from "react"
 import {
     formatGlossaryTerms,
     FORBIDDEN_TAGS,
     GlossaryLink,
-} from "./formatGlossary"
-import { getMutableGlossary } from "./glossary"
+} from "./formatGlossary.js"
+import { getMutableGlossary } from "./glossary.js"
 
 const population = "population"
 const populations = "populations"

@@ -1,14 +1,14 @@
 import * as cheerio from "cheerio"
 import urlSlug from "url-slug"
 import * as lodash from "lodash"
-import * as React from "react"
-import * as ReactDOMServer from "react-dom/server"
-import { HTTPS_ONLY } from "../settings/serverSettings"
-import { getTables } from "../db/wpdb"
-import Tablepress from "../site/Tablepress"
-import { GrapherExports } from "../baker/GrapherBakingUtils"
+import React from "react"
+import ReactDOMServer from "react-dom/server.js"
+import { HTTPS_ONLY } from "../settings/serverSettings.js"
+import { getTables } from "../db/wpdb.js"
+import Tablepress from "../site/Tablepress.js"
+import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import * as path from "path"
-import { RelatedCharts } from "../site/blocks/RelatedCharts"
+import { RelatedCharts } from "../site/blocks/RelatedCharts.js"
 import {
     DataValueProps,
     FormattedPost,
@@ -16,40 +16,40 @@ import {
     FullPost,
     JsonError,
     TocHeading,
-} from "../clientUtils/owidTypes"
-import { Footnote } from "../site/Footnote"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
-import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink"
-import { countryProfileSpecs } from "../site/countryProfileProjects"
-import { DataToken } from "../site/DataToken"
+} from "../clientUtils/owidTypes.js"
+import { Footnote } from "../site/Footnote.js"
+import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
+import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
+import { countryProfileSpecs } from "../site/countryProfileProjects.js"
+import { DataToken } from "../site/DataToken.js"
 import {
     dataValueRegex,
     DEEP_LINK_CLASS,
     extractDataValuesConfiguration,
     formatDataValue,
     parseKeyValueArgs,
-} from "./formatting"
-import { mathjax } from "mathjax-full/js/mathjax"
-import { TeX } from "mathjax-full/js/input/tex"
-import { SVG } from "mathjax-full/js/output/svg"
-import { liteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor"
-import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html"
-import { AllPackages } from "mathjax-full/js/input/tex/AllPackages"
-import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects"
-import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
+} from "./formatting.js"
+import { mathjax } from "mathjax-full/js/mathjax.js"
+import { TeX } from "mathjax-full/js/input/tex.js"
+import { SVG } from "mathjax-full/js/output/svg.js"
+import { liteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor.js"
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js"
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js"
+import { replaceIframesWithExplorerRedirectsInWordPressPost } from "./replaceExplorerRedirects.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import {
     getDataValue,
     getOwidChartDimensionConfigForVariable,
     getOwidVariableDisplayConfig,
-} from "../db/model/Variable"
-import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
-import { renderAutomaticProminentLinks, renderBlocks } from "./siteRenderers"
+} from "../db/model/Variable.js"
+import { AnnotatingDataValue } from "../site/AnnotatingDataValue.js"
+import { renderAutomaticProminentLinks, renderBlocks } from "./siteRenderers.js"
 import {
     formatUrls,
     getBodyHtml,
     GRAPHER_PREVIEW_CLASS,
     SUMMARY_CLASSNAME,
-} from "../site/formatting"
+} from "../site/formatting.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()

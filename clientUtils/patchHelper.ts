@@ -1,6 +1,6 @@
 import jsonpointer from "json8-pointer"
-import { VariableAnnotationPatch } from "./AdminSessionTypes"
-import { isArray, isPlainObjectWithGuard } from "./Util"
+import { VariableAnnotationPatch } from "./AdminSessionTypes.js"
+import { isArray, isPlainObjectWithGuard } from "./Util.js"
 export function setValueRecursive(
     json: any,
     pointer: string[],

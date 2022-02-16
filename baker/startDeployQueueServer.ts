@@ -1,6 +1,6 @@
 import * as fs from "fs-extra"
-import { DEPLOY_QUEUE_FILE_PATH } from "../settings/serverSettings"
-import { deployIfQueueIsNotEmpty } from "./DeployUtils"
+import { DEPLOY_QUEUE_FILE_PATH } from "../settings/serverSettings.js"
+import { deployIfQueueIsNotEmpty } from "./DeployUtils.js"
 
 function main() {
     if (!fs.existsSync(DEPLOY_QUEUE_FILE_PATH)) {

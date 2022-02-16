@@ -1,10 +1,10 @@
-import * as React from "react"
-import { sum, max } from "../../clientUtils/Util"
+import React from "react"
+import { sum, max } from "../../clientUtils/Util.js"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "../text/TextWrap"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { Color } from "../../coreTable/CoreTableConstants"
+import { TextWrap } from "../text/TextWrap.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { Color } from "../../coreTable/CoreTableConstants.js"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number

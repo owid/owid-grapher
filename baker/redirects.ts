@@ -1,10 +1,10 @@
-import * as db from "../db/db"
-import * as wpdb from "../db/wpdb"
-import { getCountryDetectionRedirects } from "../clientUtils/countries"
-import { memoize } from "../clientUtils/Util"
-import { isCanonicalInternalUrl } from "./formatting"
-import { resolveExplorerRedirect } from "./replaceExplorerRedirects"
-import { Url } from "../clientUtils/urls/Url"
+import * as db from "../db/db.js"
+import * as wpdb from "../db/wpdb.js"
+import { getCountryDetectionRedirects } from "../clientUtils/countries.js"
+import { memoize } from "../clientUtils/Util.js"
+import { isCanonicalInternalUrl } from "./formatting.js"
+import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
+import { Url } from "../clientUtils/urls/Url.js"
 
 export const getRedirects = async () => {
     const redirects = [

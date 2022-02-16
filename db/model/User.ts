@@ -5,10 +5,10 @@ import {
     BaseEntity,
     OneToMany,
 } from "typeorm"
-import { Chart } from "./Chart"
-import { Dataset } from "./Dataset"
-import { ChartRevision } from "./ChartRevision"
-import { BCryptHasher } from "../hashers"
+import { Chart } from "./Chart.js"
+import { Dataset } from "./Dataset.js"
+import { ChartRevision } from "./ChartRevision.js"
+import { BCryptHasher } from "../hashers.js"
 
 @Entity("users")
 export class User extends BaseEntity {

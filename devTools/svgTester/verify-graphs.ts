@@ -1,12 +1,12 @@
 #! /usr/bin/env node
 
 import parseArgs from "minimist"
-import * as utils from "./utils"
+import * as utils from "./utils.js"
 import * as fs from "fs-extra"
 
 import * as path from "path"
 
-import { ChartTypeName } from "../../grapher/core/GrapherConstants"
+import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 const Pool = require("multiprocessing").Pool
 const pool = new Pool()
 

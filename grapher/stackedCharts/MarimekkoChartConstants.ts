@@ -1,12 +1,12 @@
-import { ChartManager } from "../chart/ChartManager"
+import { ChartManager } from "../chart/ChartManager.js"
 
-import { Color, SortConfig, Time } from "../../clientUtils/owidTypes"
-import { EntityId, EntityName } from "../../coreTable/OwidTableConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { StackedPoint } from "./StackedConstants"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
-import { Bounds } from "../../clientUtils/Bounds"
-import { DualAxis } from "../axis/Axis"
+import { Color, SortConfig, Time } from "../../clientUtils/owidTypes.js"
+import { EntityId, EntityName } from "../../coreTable/OwidTableConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { StackedPoint } from "./StackedConstants.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { DualAxis } from "../axis/Axis.js"
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
     excludedEntities?: EntityId[]

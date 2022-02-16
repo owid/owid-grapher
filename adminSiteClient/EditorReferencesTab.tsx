@@ -1,10 +1,10 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
-import { ChartEditor, ChartRedirect } from "./ChartEditor"
+import { ChartEditor, ChartRedirect } from "./ChartEditor.js"
 import { computed, action, observable, runInAction } from "mobx"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { stringifyUnkownError } from "../clientUtils/Util"
+import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { stringifyUnkownError } from "../clientUtils/Util.js"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 

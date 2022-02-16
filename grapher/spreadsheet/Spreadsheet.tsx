@@ -2,10 +2,10 @@ import { observer } from "mobx-react"
 import React from "react"
 import { HotTable } from "@handsontable/react"
 import { action, computed } from "mobx"
-import { exposeInstanceOnWindow } from "../../clientUtils/Util"
+import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
 import Handsontable from "handsontable"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { CoreMatrix } from "../../coreTable/CoreTableConstants"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { CoreMatrix } from "../../coreTable/CoreTableConstants.js"
 import { registerAllModules } from "handsontable/registry"
 
 // Register all Handsontable modules

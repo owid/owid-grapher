@@ -1,8 +1,8 @@
-import * as React from "react"
+import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "../../clientUtils/Bounds"
-import { TooltipProps, TooltipManager } from "./TooltipProps"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { TooltipProps, TooltipManager } from "./TooltipProps.js"
 
 @observer
 export class TooltipView extends React.Component<{

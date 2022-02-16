@@ -1,11 +1,11 @@
-import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { ChartListItemVariant } from "./ChartListItemVariant"
+import React from "react"
+import { Head } from "./Head.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import * as lodash from "lodash"
-import { TableOfContents } from "./TableOfContents"
-import { slugify } from "../clientUtils/Util"
+import { TableOfContents } from "./TableOfContents.js"
+import { slugify } from "../clientUtils/Util.js"
 
 export interface ChartIndexItem {
     id: number

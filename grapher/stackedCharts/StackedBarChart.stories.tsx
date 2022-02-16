@@ -1,10 +1,10 @@
-import * as React from "react"
-import { StackedBarChart } from "./StackedBarChart"
+import React from "react"
+import { StackedBarChart } from "./StackedBarChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
+} from "../../coreTable/OwidTableSynthesizers.js"
 
 export default {
     title: "StackedBarChart",

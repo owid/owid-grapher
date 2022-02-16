@@ -5,8 +5,8 @@ import {
     BaseEntity,
     ManyToOne,
 } from "typeorm"
-import { Chart } from "./Chart"
-import { User } from "./User"
+import { Chart } from "./Chart.js"
+import { User } from "./User.js"
 
 @Entity("chart_revisions")
 export class ChartRevision extends BaseEntity {

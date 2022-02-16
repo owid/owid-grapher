@@ -1,7 +1,10 @@
-import { replaceDef } from "./CoreTableUtils"
-import { OwidTable } from "./OwidTable"
-import { SampleColumnSlugs, SynthesizeGDPTable } from "./OwidTableSynthesizers"
-import { toPercentageColumnDef } from "./OwidTableUtil"
+import { replaceDef } from "./CoreTableUtils.js"
+import { OwidTable } from "./OwidTable.js"
+import {
+    SampleColumnSlugs,
+    SynthesizeGDPTable,
+} from "./OwidTableSynthesizers.js"
+import { toPercentageColumnDef } from "./OwidTableUtil.js"
 
 describe(toPercentageColumnDef, () => {
     it("should format resulting column as percent", () => {

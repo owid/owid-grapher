@@ -1,5 +1,5 @@
-import * as React from "react"
-import { Admin } from "./Admin"
+import React from "react"
+import { Admin } from "./Admin.js"
 
 export interface AdminAppContextType {
     admin: Admin

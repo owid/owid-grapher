@@ -1,9 +1,9 @@
-import * as React from "react"
+import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import Select from "react-select"
-import { MapProjectionName, MapProjectionLabels } from "./MapProjections"
-import { getStylesForTargetHeight } from "../../clientUtils/react-select"
+import { MapProjectionName, MapProjectionLabels } from "./MapProjections.js"
+import { getStylesForTargetHeight } from "../../clientUtils/react-select.js"
 
 interface ProjectionChooserEntry {
     label: string

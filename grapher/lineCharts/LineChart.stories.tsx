@@ -1,15 +1,15 @@
-import * as React from "react"
-import { LineChart } from "../lineCharts/LineChart"
+import React from "react"
+import { LineChart } from "../lineCharts/LineChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ScaleType } from "../core/GrapherConstants"
-import { Bounds } from "../../clientUtils/Bounds"
-import { makeAnnotationsSlug } from "../../clientUtils/Util"
-import { OwidTableSlugs } from "../../coreTable/OwidTableConstants"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { ScaleType } from "../core/GrapherConstants.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { makeAnnotationsSlug } from "../../clientUtils/Util.js"
+import { OwidTableSlugs } from "../../coreTable/OwidTableConstants.js"
 
 export default {
     title: "LineChart",

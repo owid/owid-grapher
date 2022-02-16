@@ -2,41 +2,44 @@ import {
     formatWordpressEditLink,
     LongFormPage,
     PageOverrides,
-} from "../site/LongFormPage"
-import { BlogIndexPage } from "../site/BlogIndexPage"
-import { FrontPage } from "../site/FrontPage"
-import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage"
-import { CovidPage } from "../site/CovidPage"
-import { SearchPage } from "../site/SearchPage"
-import { NotFoundPage } from "../site/NotFoundPage"
-import { DonatePage } from "../site/DonatePage"
-import * as React from "react"
-import * as ReactDOMServer from "react-dom/server"
+} from "../site/LongFormPage.js"
+import { BlogIndexPage } from "../site/BlogIndexPage.js"
+import { FrontPage } from "../site/FrontPage.js"
+import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
+import { CovidPage } from "../site/CovidPage.js"
+import { SearchPage } from "../site/SearchPage.js"
+import { NotFoundPage } from "../site/NotFoundPage.js"
+import { DonatePage } from "../site/DonatePage.js"
+import React from "react"
+import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
 import {
     extractFormattingOptions,
     formatCountryProfile,
     isCanonicalInternalUrl,
     isStandaloneCanonicalInternalLink,
-} from "./formatting"
+} from "./formatting.js"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "../baker/GrapherBakingUtils"
+} from "../baker/GrapherBakingUtils.js"
 import * as cheerio from "cheerio"
-import { Post } from "../db/model/Post"
-import { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } from "../settings/serverSettings"
-import { RECAPTCHA_SITE_KEY } from "../settings/clientSettings"
+import { Post } from "../db/model/Post.js"
+import {
+    BAKED_BASE_URL,
+    BLOG_POSTS_PER_PAGE,
+} from "../settings/serverSettings.js"
+import { RECAPTCHA_SITE_KEY } from "../settings/clientSettings.js"
 import {
     EntriesByYearPage,
     EntriesForYearPage,
-} from "../site/EntriesByYearPage"
-import { VariableCountryPage } from "../site/VariableCountryPage"
-import { FeedbackPage } from "../site/FeedbackPage"
-import { getCountry, Country } from "../clientUtils/countries"
-import { memoize } from "../clientUtils/Util"
-import { CountryProfileSpec } from "../site/countryProfileProjects"
+} from "../site/EntriesByYearPage.js"
+import { VariableCountryPage } from "../site/VariableCountryPage.js"
+import { FeedbackPage } from "../site/FeedbackPage.js"
+import { getCountry, Country } from "../clientUtils/countries.js"
+import { memoize } from "../clientUtils/Util.js"
+import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import {
     FormattedPost,
     FormattingOptions,
@@ -44,8 +47,8 @@ import {
     JsonError,
     PostRow,
     WP_PostType,
-} from "../clientUtils/owidTypes"
-import { formatPost } from "./formatWordpressPost"
+} from "../clientUtils/owidTypes.js"
+import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
     getEntriesByCategory,
@@ -57,29 +60,32 @@ import {
     selectHomepagePosts,
     isPostCitable,
     getBlockContent,
-} from "../db/wpdb"
-import { mysqlFirst, queryMysql, knexTable } from "../db/db"
-import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
-import { Url } from "../clientUtils/urls/Url"
-import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
+} from "../db/wpdb.js"
+import { mysqlFirst, queryMysql, knexTable } from "../db/db.js"
+import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
+import { Url } from "../clientUtils/urls/Url.js"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import {
     ProminentLink,
     ProminentLinkStyles,
-} from "../site/blocks/ProminentLink"
-import { formatUrls } from "../site/formatting"
-import { renderHelp } from "../site/blocks/Help"
-import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation"
+} from "../site/blocks/ProminentLink.js"
+import { formatUrls } from "../site/formatting.js"
+import { renderHelp } from "../site/blocks/Help.js"
+import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
 
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
-import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
-import { ExplorerProgram } from "../explorer/ExplorerProgram"
-import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
-import { ExplorerPage } from "../site/ExplorerPage"
-import { Chart } from "../db/model/Chart"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
-import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants"
-import { resolveInternalRedirect } from "./redirects"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import {
+    Grapher,
+    GrapherProgrammaticInterface,
+} from "../grapher/core/Grapher.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
+import { ExplorerPage } from "../site/ExplorerPage.js"
+import { Chart } from "../db/model/Chart.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
+import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
+import { resolveInternalRedirect } from "./redirects.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 

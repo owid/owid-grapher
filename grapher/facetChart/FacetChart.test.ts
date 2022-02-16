@@ -1,17 +1,17 @@
 #! /usr/bin/env jest
 
-import { FacetChart } from "./FacetChart"
-import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../chart/ChartManager"
+import { FacetChart } from "./FacetChart.js"
+import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"
+import { ChartManager } from "../chart/ChartManager.js"
 import {
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
-} from "../core/GrapherConstants"
-import { uniq } from "../../clientUtils/Util"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
-import { LineChart } from "../lineCharts/LineChart"
+} from "../core/GrapherConstants.js"
+import { uniq } from "../../clientUtils/Util.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
+import { LineChart } from "../lineCharts/LineChart.js"
 
 const allElementsAreEqual = (array: any[]): boolean => {
     return uniq(array).length === 1

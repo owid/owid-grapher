@@ -1,5 +1,5 @@
 import { useEffect, RefObject, useState } from "react"
-import throttle from "lodash/throttle"
+import throttle from "lodash/throttle.js"
 
 export const useTriggerWhenClickOutside = (
     container: RefObject<HTMLElement>,

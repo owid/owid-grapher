@@ -1,14 +1,14 @@
-import * as React from "react"
-import { debounce, excludeUndefined } from "../clientUtils/Util"
+import React from "react"
+import { debounce, excludeUndefined } from "../clientUtils/Util.js"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Grapher } from "../grapher/core/Grapher"
-import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine"
-import { Toggle, NumberField, SelectField, Section } from "./Forms"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { ScatterPointLabelStrategy } from "../grapher/core/GrapherConstants"
-import { EntityName } from "../coreTable/OwidTableConstants"
+import { Grapher } from "../grapher/core/Grapher.js"
+import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine.js"
+import { Toggle, NumberField, SelectField, Section } from "./Forms.js"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { ScatterPointLabelStrategy } from "../grapher/core/GrapherConstants.js"
+import { EntityName } from "../coreTable/OwidTableConstants.js"
 
 @observer
 export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {

@@ -1,6 +1,6 @@
-import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface"
-import { ColumnSlug } from "../clientUtils/owidTypes"
-import { CoreValueType, Color } from "./CoreTableConstants"
+import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
+import { CoreValueType, Color } from "./CoreTableConstants.js"
 
 export enum ColumnTypeNames {
     Numeric = "Numeric",

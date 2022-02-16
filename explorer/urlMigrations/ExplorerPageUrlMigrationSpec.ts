@@ -1,4 +1,4 @@
-import { ExplorerUrlMigrationId } from "./ExplorerUrlMigrations"
+import { ExplorerUrlMigrationId } from "./ExplorerUrlMigrations.js"
 
 /**
  * An object spec that gets encoded into pages that redirect to an explorer.

@@ -1,25 +1,25 @@
-import { WORDPRESS_URL } from "../settings/serverSettings"
-import * as React from "react"
-import { Head } from "./Head"
-import { CitationMeta } from "./CitationMeta"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { addContentFeatures, formatAuthors } from "../site/formatting"
-import { SiteSubnavigation } from "./SiteSubnavigation"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
-import { faSync } from "@fortawesome/free-solid-svg-icons/faSync"
-import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
-import { TableOfContents } from "../site/TableOfContents"
+import { WORDPRESS_URL } from "../settings/serverSettings.js"
+import React from "react"
+import { Head } from "./Head.js"
+import { CitationMeta } from "./CitationMeta.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { addContentFeatures, formatAuthors } from "../site/formatting.js"
+import { SiteSubnavigation } from "./SiteSubnavigation.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faBook } from "@fortawesome/free-solid-svg-icons/faBook.js"
+import { faSync } from "@fortawesome/free-solid-svg-icons/faSync.js"
+import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons.js"
+import { TableOfContents } from "../site/TableOfContents.js"
 import {
     FormattedPost,
     FormattingOptions,
     TocHeading,
-} from "../clientUtils/owidTypes"
-import { Breadcrumb } from "./Breadcrumb/Breadcrumb"
-import { Byline } from "./Byline"
-import { PageInfo } from "./PageInfo"
-import { BackToTopic } from "./BackToTopic"
+} from "../clientUtils/owidTypes.js"
+import { Breadcrumb } from "./Breadcrumb/Breadcrumb.js"
+import { Byline } from "./Byline.js"
+import { PageInfo } from "./PageInfo.js"
+import { BackToTopic } from "./BackToTopic.js"
 
 export interface PageOverrides {
     pageTitle?: string

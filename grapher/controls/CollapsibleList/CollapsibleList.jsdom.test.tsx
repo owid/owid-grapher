@@ -1,8 +1,8 @@
 #! /usr/bin/env jest
 
-import * as React from "react"
-import { CollapsibleList, numItemsVisible } from "./CollapsibleList"
-import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput"
+import React from "react"
+import { CollapsibleList, numItemsVisible } from "./CollapsibleList.js"
+import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput.js"
 
 import { configure, shallow } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

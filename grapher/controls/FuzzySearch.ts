@@ -1,4 +1,4 @@
-import { keyBy } from "../../clientUtils/Util"
+import { keyBy } from "../../clientUtils/Util.js"
 import fuzzysort from "fuzzysort"
 
 export class FuzzySearch<T> {

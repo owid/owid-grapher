@@ -3,7 +3,7 @@ import {
     DimensionProperty,
     OwidVariableId,
     Time,
-} from "./owidTypes"
+} from "./owidTypes.js"
 
 export interface OwidVariableDisplayConfigInterface {
     name?: string

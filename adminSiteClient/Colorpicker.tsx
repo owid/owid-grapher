@@ -1,9 +1,9 @@
-import * as React from "react"
+import React from "react"
 import { action } from "mobx"
 import { SketchPicker } from "react-color"
 
-import { lastOfNonEmptyArray } from "../clientUtils/Util"
-import { ColorSchemes } from "../grapher/color/ColorSchemes"
+import { lastOfNonEmptyArray } from "../clientUtils/Util.js"
+import { ColorSchemes } from "../grapher/color/ColorSchemes.js"
 
 interface ColorpickerProps {
     color?: string

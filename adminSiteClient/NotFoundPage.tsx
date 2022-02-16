@@ -1,6 +1,6 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
-import { AdminLayout } from "./AdminLayout"
+import { AdminLayout } from "./AdminLayout.js"
 
 @observer
 export class NotFoundPage extends React.Component {

@@ -1,10 +1,10 @@
 import * as lodash from "lodash"
 
-import * as db from "../../db/db"
-import { getRelatedArticles } from "../../db/wpdb"
-import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
-import { getAlgoliaClient } from "./configureAlgolia"
-import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects"
+import * as db from "../../db/db.js"
+import { getRelatedArticles } from "../../db/wpdb.js"
+import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
+import { getAlgoliaClient } from "./configureAlgolia.js"
+import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
 
 const getChartsRecords = async () => {
     const allCharts = await db.queryMysql(`

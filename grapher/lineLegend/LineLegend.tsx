@@ -1,5 +1,5 @@
 // This implements the line labels that appear to the right of the lines/polygons in LineCharts/StackedAreas.
-import * as React from "react"
+import React from "react"
 import {
     noop,
     cloneDeep,
@@ -8,16 +8,16 @@ import {
     sortBy,
     sumBy,
     flatten,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "../text/TextWrap"
-import { VerticalAxis } from "../axis/Axis"
-import { Bounds } from "../../clientUtils/Bounds"
-import { EntityName } from "../../coreTable/OwidTableConstants"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { ChartSeries } from "../chart/ChartInterface"
-import { darkenColorForText } from "../color/ColorUtils"
+import { TextWrap } from "../text/TextWrap.js"
+import { VerticalAxis } from "../axis/Axis.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { ChartSeries } from "../chart/ChartInterface.js"
+import { darkenColorForText } from "../color/ColorUtils.js"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2

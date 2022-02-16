@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import {
     sortBy,
     sum,
@@ -13,33 +13,33 @@ import {
     excludeUndefined,
     isNumber,
     sortedUniqBy,
-} from "../../clientUtils/Util"
+} from "../../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { DualAxisComponent } from "../axis/AxisViews"
-import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { PointVector } from "../../clientUtils/PointVector"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { DualAxisComponent } from "../axis/AxisViews.js"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
+import { PointVector } from "../../clientUtils/PointVector.js"
 import {
     LineLegend,
     LineLabelSeries,
     LineLegendManager,
-} from "../lineLegend/LineLegend"
-import { ComparisonLine } from "../scatterCharts/ComparisonLine"
-import { Tooltip } from "../tooltip/Tooltip"
-import { NoDataModal } from "../noDataModal/NoDataModal"
+} from "../lineLegend/LineLegend.js"
+import { ComparisonLine } from "../scatterCharts/ComparisonLine.js"
+import { Tooltip } from "../tooltip/Tooltip.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
 import { extent } from "d3-array"
 import {
     BASE_FONT_SIZE,
     SeriesName,
     ScaleType,
     SeriesStrategy,
-} from "../core/GrapherConstants"
-import { ColorSchemes } from "../color/ColorSchemes"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+} from "../core/GrapherConstants.js"
+import { ColorSchemes } from "../color/ColorSchemes.js"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     LinesProps,
     LineChartSeries,
@@ -47,8 +47,8 @@ import {
     LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
-} from "./LineChartConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
+} from "./LineChartConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
@@ -56,34 +56,34 @@ import {
     getSeriesKey,
     makeClipPath,
     makeSelectionArray,
-} from "../chart/ChartUtils"
-import { ColorScheme } from "../color/ColorScheme"
-import { SelectionArray } from "../selection/SelectionArray"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
+} from "../chart/ChartUtils.js"
+import { ColorScheme } from "../color/ColorScheme.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import {
     CoreValueType,
     PrimitiveType,
-} from "../../coreTable/CoreTableConstants"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+} from "../../coreTable/CoreTableConstants.js"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
     ColorScaleConfig,
     ColorScaleConfigInterface,
-} from "../color/ColorScaleConfig"
-import { isNotErrorValue } from "../../coreTable/ErrorValues"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import { EntityName } from "../../coreTable/OwidTableConstants"
-import { Color, HorizontalAlign } from "../../clientUtils/owidTypes"
+} from "../color/ColorScaleConfig.js"
+import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
+import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline.js"
+import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
+import { Color, HorizontalAlign } from "../../clientUtils/owidTypes.js"
 import {
     darkenColorForHighContrastText,
     darkenColorForLine,
-} from "../color/ColorUtils"
+} from "../color/ColorUtils.js"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends"
+} from "../horizontalColorLegend/HorizontalColorLegends.js"
 
 // background
 const BACKGROUND_COLOR = "#fff"

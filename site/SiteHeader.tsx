@@ -1,9 +1,9 @@
-import * as React from "react"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
-import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
-import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { AlertBanner } from "./AlertBanner"
+import React from "react"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch.js"
+import { faBars } from "@fortawesome/free-solid-svg-icons/faBars.js"
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { AlertBanner } from "./AlertBanner.js"
 
 interface SiteHeaderProps {
     hideAlertBanner?: boolean

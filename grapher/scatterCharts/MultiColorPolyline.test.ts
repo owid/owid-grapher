@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { getSegmentsFromPoints } from "../scatterCharts/MultiColorPolyline"
+import { getSegmentsFromPoints } from "../scatterCharts/MultiColorPolyline.js"
 
 it("splits different-colored segments", () => {
     const points = [

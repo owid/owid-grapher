@@ -1,14 +1,14 @@
 #! yarn testJest
 
-import { Explorer } from "./Explorer"
+import { Explorer } from "./Explorer.js"
 import {
     SampleExplorerOfGraphers,
     SampleInlineDataExplorer,
-} from "./Explorer.sample"
+} from "./Explorer.sample.js"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-import { GrapherTabOption } from "../grapher/core/GrapherConstants"
+import { GrapherTabOption } from "../grapher/core/GrapherConstants.js"
 
 configure({ adapter: new Adapter() })
 

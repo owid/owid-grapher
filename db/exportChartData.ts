@@ -1,6 +1,6 @@
 // Script to export the data_values for all variables attached to charts
 
-import * as db from "./db"
+import * as db from "./db.js"
 import * as lodash from "lodash"
 import parseArgs from "minimist"
 
@@ -10,8 +10,8 @@ import {
     DB_PASS,
     DB_HOST,
     DB_PORT,
-} from "../settings/serverSettings"
-import { execWrapper } from "./execWrapper"
+} from "../settings/serverSettings.js"
+import { execWrapper } from "./execWrapper.js"
 
 const argv = parseArgs(process.argv.slice(2))
 const filePath = argv._[0] || "/tmp/owid_chartdata.sql"

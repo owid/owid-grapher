@@ -3,8 +3,8 @@
 import {
     insertMissingValuePlaceholders,
     computeRollingAverage,
-} from "./Transforms"
-import { ErrorValue, ErrorValueTypes } from "./ErrorValues"
+} from "./Transforms.js"
+import { ErrorValue, ErrorValueTypes } from "./ErrorValues.js"
 
 describe(insertMissingValuePlaceholders, () => {
     const testCases = [

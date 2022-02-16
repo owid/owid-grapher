@@ -3,47 +3,54 @@
 import * as lodash from "lodash"
 import { getConnection } from "typeorm"
 import * as bodyParser from "body-parser"
-import * as db from "../db/db"
-import * as wpdb from "../db/wpdb"
+import * as db from "../db/db.js"
+import * as wpdb from "../db/wpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
     BAKE_ON_CHANGE,
     BAKED_BASE_URL,
     ADMIN_BASE_URL,
-} from "../settings/serverSettings"
-import { expectInt, isValidSlug, absoluteUrl } from "../serverUtils/serverUtil"
-import { sendMail } from "./mail"
-import { OldChart, Chart, getGrapherById } from "../db/model/Chart"
-import { UserInvitation } from "../db/model/UserInvitation"
-import { Request, Response, CurrentUser } from "./authentication"
-import { getVariableData } from "../db/model/Variable"
-import { applyPatch } from "../clientUtils/patchHelper"
+} from "../settings/serverSettings.js"
+import {
+    expectInt,
+    isValidSlug,
+    absoluteUrl,
+} from "../serverUtils/serverUtil.js"
+import { sendMail } from "./mail.js"
+import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
+import { UserInvitation } from "../db/model/UserInvitation.js"
+import { Request, Response, CurrentUser } from "./authentication.js"
+import { getVariableData } from "../db/model/Variable.js"
+import { applyPatch } from "../clientUtils/patchHelper.js"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
-} from "../grapher/core/GrapherInterface"
-import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes"
+} from "../grapher/core/GrapherInterface.js"
+import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
 import {
     VariableAnnotationsResponse,
     VariableAnnotationPatch,
-} from "../clientUtils/AdminSessionTypes"
+} from "../clientUtils/AdminSessionTypes.js"
 import {
     CountryNameFormat,
     CountryDefByKey,
-} from "../adminSiteClient/CountryNameFormat"
-import { Dataset } from "../db/model/Dataset"
-import { User } from "../db/model/User"
-import { syncDatasetToGitRepo, removeDatasetFromGitRepo } from "./gitDataExport"
-import { ChartRevision } from "../db/model/ChartRevision"
-import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision"
-import { Post } from "../db/model/Post"
-import { camelCaseProperties } from "../clientUtils/string"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
-import { denormalizeLatestCountryData } from "../baker/countryProfiles"
-import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor"
-import { DeployQueueServer } from "../baker/DeployQueueServer"
-import { FunctionalRouter } from "./FunctionalRouter"
-import { JsonError, PostRow } from "../clientUtils/owidTypes"
+} from "../adminSiteClient/CountryNameFormat.js"
+import { Dataset } from "../db/model/Dataset.js"
+import { User } from "../db/model/User.js"
+import {
+    syncDatasetToGitRepo,
+    removeDatasetFromGitRepo,
+} from "./gitDataExport.js"
+import { ChartRevision } from "../db/model/ChartRevision.js"
+import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
+import { Post } from "../db/model/Post.js"
+import { camelCaseProperties } from "../clientUtils/string.js"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
+import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor.js"
+import { DeployQueueServer } from "../baker/DeployQueueServer.js"
+import { FunctionalRouter } from "./FunctionalRouter.js"
+import { JsonError, PostRow } from "../clientUtils/owidTypes.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
@@ -55,9 +62,9 @@ import Papa from "papaparse"
 //     parseToOperation,
 //     SqlColumnName,
 //     StringAtom,
-// } from "../clientUtils/SqlFilterSExpression"
-import { parseToOperation } from "../clientUtils/SqlFilterSExpression"
-import { parseIntOrUndefined } from "../clientUtils/Util"
+// } from "../clientUtils/SqlFilterSExpression.js"
+import { parseToOperation } from "../clientUtils/SqlFilterSExpression.js"
+import { parseIntOrUndefined } from "../clientUtils/Util.js"
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 

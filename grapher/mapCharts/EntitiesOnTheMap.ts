@@ -1,5 +1,5 @@
-import { EntityName } from "../../coreTable/OwidTableConstants"
-import { MapTopology } from "./MapTopology"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
+import { MapTopology } from "./MapTopology.js"
 
 let _cache: Set<string>
 export const isOnTheMap = (entityName: EntityName): boolean => {

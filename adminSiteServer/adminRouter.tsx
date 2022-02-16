@@ -3,32 +3,36 @@ import { Request, Response, Router } from "express"
 import * as express from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
-import * as React from "react"
+import React from "react"
 import { getConnection } from "typeorm"
-import { expectInt, tryInt, renderToHtmlPage } from "../serverUtils/serverUtil"
-import { logInWithCredentials, logOut } from "./authentication"
-import { LoginPage } from "./LoginPage"
-import { RegisterPage } from "./RegisterPage"
-import * as db from "../db/db"
-import { Dataset } from "../db/model/Dataset"
-import { User } from "../db/model/User"
-import { UserInvitation } from "../db/model/UserInvitation"
-import { BAKED_BASE_URL, ENV } from "../settings/serverSettings"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
-import { renderExplorerPage, renderPreview } from "../baker/siteRenderers"
-import { JsonError } from "../clientUtils/owidTypes"
-import { GitCmsServer } from "../gitCms/GitCmsServer"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
-import { slugify, stringifyUnkownError } from "../clientUtils/Util"
+import {
+    expectInt,
+    tryInt,
+    renderToHtmlPage,
+} from "../serverUtils/serverUtil.js"
+import { logInWithCredentials, logOut } from "./authentication.js"
+import { LoginPage } from "./LoginPage.js"
+import { RegisterPage } from "./RegisterPage.js"
+import * as db from "../db/db.js"
+import { Dataset } from "../db/model/Dataset.js"
+import { User } from "../db/model/User.js"
+import { UserInvitation } from "../db/model/UserInvitation.js"
+import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { renderExplorerPage, renderPreview } from "../baker/siteRenderers.js"
+import { JsonError } from "../clientUtils/owidTypes.js"
+import { GitCmsServer } from "../gitCms/GitCmsServer.js"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
+import { slugify, stringifyUnkownError } from "../clientUtils/Util.js"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_PREVIEW_ROUTE,
     GetAllExplorersRoute,
-} from "../explorer/ExplorerConstants"
+} from "../explorer/ExplorerConstants.js"
 import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
-} from "../explorer/ExplorerProgram"
+} from "../explorer/ExplorerProgram.js"
 import { existsSync } from "fs-extra"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks

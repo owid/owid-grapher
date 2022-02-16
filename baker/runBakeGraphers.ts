@@ -1,5 +1,5 @@
 #! /usr/bin/env node
-import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
+import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 
 /**
  * This bakes all the Graphers to a folder on your computer, running the same baking code as the SiteBaker.

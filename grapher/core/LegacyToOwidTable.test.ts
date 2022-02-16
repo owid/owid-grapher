@@ -1,17 +1,17 @@
 #! /usr/bin/env jest
 
-import { ChartTypeName } from "../core/GrapherConstants"
-import { LegacyGrapherInterface } from "../core/GrapherInterface"
-import { ColumnTypeMap } from "../../coreTable/CoreTableColumns"
-import { ErrorValueTypes } from "../../coreTable/ErrorValues"
-import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
+import { ChartTypeName } from "../core/GrapherConstants.js"
+import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
+import { ColumnTypeMap } from "../../coreTable/CoreTableColumns.js"
+import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
 import {
     OwidColumnDef,
     OwidTableSlugs,
     StandardOwidColumnDefs,
-} from "../../coreTable/OwidTableConstants"
-import { DimensionProperty } from "../../clientUtils/owidTypes"
+} from "../../coreTable/OwidTableConstants.js"
+import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
 describe(legacyToOwidTableAndDimensions, () => {
     const legacyVariableConfig: OwidVariablesAndEntityKey = {

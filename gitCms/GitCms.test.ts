@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { GitCmsClient } from "./GitCmsClient"
-import { GitCmsServer } from "./GitCmsServer"
+import { GitCmsClient } from "./GitCmsClient.js"
+import { GitCmsServer } from "./GitCmsServer.js"
 import { removeSync } from "fs-extra"
 import express from "express"
 import * as bodyParser from "body-parser"

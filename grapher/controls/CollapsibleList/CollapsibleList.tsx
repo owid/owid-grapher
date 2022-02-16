@@ -1,10 +1,10 @@
 import React, { ReactNode } from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
-import { throttle } from "../../../clientUtils/Util"
-import { Tippy } from "../../chart/Tippy"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
+import { throttle } from "../../../clientUtils/Util.js"
+import { Tippy } from "../../chart/Tippy.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faCog } from "@fortawesome/free-solid-svg-icons/faCog.js"
 
 interface ListChild {
     index: number

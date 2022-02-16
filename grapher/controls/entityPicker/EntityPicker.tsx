@@ -6,10 +6,10 @@ import { bind } from "decko"
 import classnames from "classnames"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import Select from "react-select"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { FuzzySearch } from "../../controls/FuzzySearch"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch.js"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
+import { FuzzySearch } from "../../controls/FuzzySearch.js"
 import {
     partition,
     scrollIntoViewIfNeeded,
@@ -17,25 +17,25 @@ import {
     max,
     isNumber,
     sortByUndefinedLast,
-} from "../../../clientUtils/Util"
-import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
-import { SortIcon } from "../../controls/SortIcon"
-import { SortOrder } from "../../../coreTable/CoreTableConstants"
-import { getStylesForTargetHeight } from "../../../clientUtils/react-select"
+} from "../../../clientUtils/Util.js"
+import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer.js"
+import { SortIcon } from "../../controls/SortIcon.js"
+import { SortOrder } from "../../../coreTable/CoreTableConstants.js"
+import { getStylesForTargetHeight } from "../../../clientUtils/react-select.js"
 import {
     ColumnTypeMap,
     CoreColumn,
     MissingColumn,
-} from "../../../coreTable/CoreTableColumns"
+} from "../../../coreTable/CoreTableColumns.js"
 import {
     EntityName,
     OwidTableSlugs,
-} from "../../../coreTable/OwidTableConstants"
-import { EntityPickerManager } from "./EntityPickerConstants"
-import { CoreColumnDef } from "../../../coreTable/CoreColumnDef"
-import { OwidTable } from "../../../coreTable/OwidTable"
-import { SelectionArray } from "../../selection/SelectionArray"
-import { ColumnSlug } from "../../../clientUtils/owidTypes"
+} from "../../../coreTable/OwidTableConstants.js"
+import { EntityPickerManager } from "./EntityPickerConstants.js"
+import { CoreColumnDef } from "../../../coreTable/CoreColumnDef.js"
+import { OwidTable } from "../../../coreTable/OwidTable.js"
+import { SelectionArray } from "../../selection/SelectionArray.js"
+import { ColumnSlug } from "../../../clientUtils/owidTypes.js"
 
 const toggleSort = (order: SortOrder): SortOrder =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc

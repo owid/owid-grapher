@@ -2,9 +2,9 @@ import {
     EntityCode,
     EntityId,
     EntityName,
-} from "../../coreTable/OwidTableConstants"
-import { difference, mapBy } from "../../clientUtils/Util"
-import { isPresent } from "../../clientUtils/isPresent"
+} from "../../coreTable/OwidTableConstants.js"
+import { difference, mapBy } from "../../clientUtils/Util.js"
+import { isPresent } from "../../clientUtils/isPresent.js"
 import { action, computed, observable } from "mobx"
 
 interface Entity {

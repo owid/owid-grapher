@@ -10,27 +10,27 @@ import {
     slugifySameCase,
     toString,
     values,
-} from "../clientUtils/Util"
+} from "../clientUtils/Util.js"
 import {
     CoreColumnStore,
     CoreRow,
     CoreMatrix,
     Time,
     CoreValueType,
-} from "./CoreTableConstants"
-import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef"
+} from "./CoreTableConstants.js"
+import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
 import {
     ErrorValue,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
-} from "./ErrorValues"
+} from "./ErrorValues.js"
 import {
     OwidEntityCodeColumnDef,
     OwidEntityIdColumnDef,
     OwidEntityNameColumnDef,
     OwidTableSlugs,
-} from "./OwidTableConstants"
-import { ColumnSlug } from "../clientUtils/owidTypes"
+} from "./OwidTableConstants.js"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
 
 export const columnStoreToRows = (
     columnStore: CoreColumnStore

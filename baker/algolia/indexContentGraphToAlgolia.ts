@@ -5,16 +5,16 @@ import {
     GraphDocumentType,
     GraphType,
     TopicId,
-} from "../../clientUtils/owidTypes"
-import { getContentGraph } from "../../db/contentGraph"
-import * as wpdb from "../../db/wpdb"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings"
-import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
-import { formatUrls } from "../../site/formatting"
+} from "../../clientUtils/owidTypes.js"
+import { getContentGraph } from "../../db/contentGraph.js"
+import * as wpdb from "../../db/wpdb.js"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
+import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
+import { formatUrls } from "../../site/formatting.js"
 import {
     CONTENT_GRAPH_ALGOLIA_INDEX,
     getAlgoliaClient,
-} from "./configureAlgolia"
+} from "./configureAlgolia.js"
 interface TopicsTrailsByLevel {
     [facetLevelKey: string]: string[]
 }

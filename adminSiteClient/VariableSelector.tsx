@@ -1,6 +1,6 @@
-import * as React from "react"
+import React from "react"
 import * as lodash from "lodash"
-import { groupBy, isString, sortBy } from "../clientUtils/Util"
+import { groupBy, isString, sortBy } from "../clientUtils/Util.js"
 import {
     computed,
     action,
@@ -14,17 +14,17 @@ import {
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
     SearchWord,
-} from "../clientUtils/search"
+} from "../clientUtils/search.js"
 import { observer } from "mobx-react"
 import Select from "react-select"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive.js"
 
-import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
-import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
-import { OwidVariableId } from "../clientUtils/owidTypes"
-import { DimensionSlot } from "../grapher/chart/DimensionSlot"
+import { ChartEditor, Dataset, Namespace } from "./ChartEditor.js"
+import { TextField, FieldsRow, Toggle, Modal } from "./Forms.js"
+import { OwidVariableId } from "../clientUtils/owidTypes.js"
+import { DimensionSlot } from "../grapher/chart/DimensionSlot.js"
 
 interface VariableSelectorProps {
     editor: ChartEditor

@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import * as React from "react"
-import { RelatedCharts } from "./RelatedCharts"
+import React from "react"
+import { RelatedCharts } from "./RelatedCharts.js"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

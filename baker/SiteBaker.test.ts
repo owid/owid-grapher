@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { SiteBaker } from "./SiteBaker"
+import { SiteBaker } from "./SiteBaker.js"
 
 it("can init", () => {
     const baker = new SiteBaker(

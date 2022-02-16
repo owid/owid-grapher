@@ -1,13 +1,13 @@
-import * as React from "react"
+import React from "react"
 import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Link } from "react-router-dom"
 import Papa from "papaparse"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { TextField } from "./Forms"
-import { capitalize } from "../clientUtils/Util"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { TextField } from "./Forms.js"
+import { capitalize } from "../clientUtils/Util.js"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 interface ResponseMessage {
     type: string

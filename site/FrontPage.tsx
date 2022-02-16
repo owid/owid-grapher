@@ -1,25 +1,25 @@
-import * as React from "react"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { faRss } from "@fortawesome/free-solid-svg-icons/faRss"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown"
-import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
-import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import React from "react"
+import { Head } from "./Head.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { faRss } from "@fortawesome/free-solid-svg-icons/faRss.js"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight.js"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt.js"
+import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown.js"
+import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter.js"
+import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight.js"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
-} from "../site/NewsletterSubscription"
+} from "../site/NewsletterSubscription.js"
 import {
     CategoryWithEntries,
     EntryNode,
     FullPost,
-} from "../clientUtils/owidTypes"
-import PostCard from "./PostCard/PostCard"
+} from "../clientUtils/owidTypes.js"
+import PostCard from "./PostCard/PostCard.js"
 
 const splitOnLastWord = (str: string) => {
     const endIndex = (str.lastIndexOf(" ") as number) + 1

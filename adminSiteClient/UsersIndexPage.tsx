@@ -1,12 +1,12 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction } from "mobx"
 
-import { Modal, Timeago } from "./Forms"
-import { Link } from "./Link"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { UserIndexMeta } from "./UserMeta"
+import { Modal, Timeago } from "./Forms.js"
+import { Link } from "./Link.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { UserIndexMeta } from "./UserMeta.js"
 
 interface UserIndexMetaWithLastSeen extends UserIndexMeta {
     lastSeen: Date

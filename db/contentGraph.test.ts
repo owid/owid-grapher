@@ -5,13 +5,13 @@ import {
     GraphDocumentType,
     GraphType,
     TopicId,
-} from "../clientUtils/owidTypes"
-import { slugify } from "../clientUtils/Util"
+} from "../clientUtils/owidTypes.js"
+import { slugify } from "../clientUtils/Util.js"
 import {
     addDocumentsToGraph,
     fortuneRecordTypes,
     getGrapherSlugs,
-} from "./contentGraph"
+} from "./contentGraph.js"
 const fortune = require("fortune") // Works in web browsers, too.
 
 const slugs = [

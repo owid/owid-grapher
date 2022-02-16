@@ -1,10 +1,10 @@
 #! /usr/bin/env jest
 
-import { AxisConfig } from "./AxisConfig"
-import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews"
+import { AxisConfig } from "./AxisConfig.js"
+import { DualAxisComponent, HorizontalAxisGridLines } from "./AxisViews.js"
 import React from "react"
-import { ScaleType } from "../core/GrapherConstants"
-import { DualAxis } from "./Axis"
+import { ScaleType } from "../core/GrapherConstants.js"
+import { DualAxis } from "./Axis.js"
 
 import { configure, shallow } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

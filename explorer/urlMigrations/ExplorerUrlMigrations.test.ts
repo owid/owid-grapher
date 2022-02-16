@@ -1,11 +1,11 @@
 #! yarn testJest
 
-import { Url } from "../../clientUtils/urls/Url"
+import { Url } from "../../clientUtils/urls/Url.js"
 import {
     explorerUrlMigrationsById,
     ExplorerUrlMigrationId,
     migrateExplorerUrl,
-} from "./ExplorerUrlMigrations"
+} from "./ExplorerUrlMigrations.js"
 
 // ================================================
 // !!! BE CAREFUL WHEN MODIFYING EXISTING TESTS !!!

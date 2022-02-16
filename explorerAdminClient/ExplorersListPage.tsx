@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import {
     observable,
@@ -8,15 +8,15 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
-import { debounce, orderBy } from "../clientUtils/Util"
-import { ExplorerProgram } from "../explorer/ExplorerProgram"
-import { SerializedGridProgram } from "../clientUtils/owidTypes"
-import { GitCmsClient } from "../gitCms/GitCmsClient"
+import { debounce, orderBy } from "../clientUtils/Util.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { SerializedGridProgram } from "../clientUtils/owidTypes.js"
+import { GitCmsClient } from "../gitCms/GitCmsClient.js"
 import {
     GIT_CMS_BASE_ROUTE,
     GIT_CMS_DEFAULT_BRANCH,
     GIT_CMS_REPO_URL,
-} from "../gitCms/GitCmsConstants"
+} from "../gitCms/GitCmsConstants.js"
 import moment from "moment"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
@@ -26,10 +26,10 @@ import {
     EXPLORERS_PREVIEW_ROUTE,
     DefaultNewExplorerSlug,
     UNSAVED_EXPLORER_DRAFT,
-} from "../explorer/ExplorerConstants"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator"
-import { AdminManager } from "./AdminManager"
-import { BAKED_BASE_URL } from "../settings/clientSettings"
+} from "../explorer/ExplorerConstants.js"
+import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
+import { AdminManager } from "./AdminManager.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 @observer
 class ExplorerRow extends React.Component<{

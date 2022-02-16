@@ -1,18 +1,18 @@
 import React from "react"
-import * as db from "../db/db"
-import { CountriesIndexPage } from "../site/CountriesIndexPage"
-import { GrapherInterface } from "../grapher/core/GrapherInterface"
+import * as db from "../db/db.js"
+import { CountriesIndexPage } from "../site/CountriesIndexPage.js"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
     CountryProfilePage,
-} from "../site/CountryProfilePage"
-import { Variable } from "../db/model/Variable"
-import { SiteBaker } from "./SiteBaker"
-import { countries, getCountry } from "../clientUtils/countries"
-import { OwidTable } from "../coreTable/OwidTable"
-import { JsonError } from "../clientUtils/owidTypes"
-import { renderToHtmlPage } from "./siteRenderers"
+} from "../site/CountryProfilePage.js"
+import { Variable } from "../db/model/Variable.js"
+import { SiteBaker } from "./SiteBaker.js"
+import { countries, getCountry } from "../clientUtils/countries.js"
+import { OwidTable } from "../coreTable/OwidTable.js"
+import { JsonError } from "../clientUtils/owidTypes.js"
+import { renderToHtmlPage } from "./siteRenderers.js"
 
 export const countriesIndexPage = (baseUrl: string) =>
     renderToHtmlPage(

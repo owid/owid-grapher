@@ -1,25 +1,25 @@
 #! /usr/bin/env jest
 
-import { LineChart } from "./LineChart"
+import { LineChart } from "./LineChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../chart/ChartManager"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { ChartManager } from "../chart/ChartManager.js"
 import {
     FacetStrategy,
     ScaleType,
     SeriesStrategy,
-} from "../core/GrapherConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { SelectionArray } from "../selection/SelectionArray"
-import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
-import { LineChartManager } from "./LineChartConstants"
-import { ErrorValueTypes } from "../../coreTable/ErrorValues"
-import { BinningStrategy } from "../color/BinningStrategy"
+} from "../core/GrapherConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
+import { LineChartManager } from "./LineChartConstants.js"
+import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
+import { BinningStrategy } from "../color/BinningStrategy.js"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })

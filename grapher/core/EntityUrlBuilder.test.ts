@@ -1,11 +1,11 @@
 #! /usr/bin/env jest
 
-import { Url } from "../../clientUtils/urls/Url"
+import { Url } from "../../clientUtils/urls/Url.js"
 import {
     ENTITY_V2_DELIMITER,
     getSelectedEntityNamesParam,
     setSelectedEntityNamesParam,
-} from "./EntityUrlBuilder"
+} from "./EntityUrlBuilder.js"
 
 const encodeTests = [
     {

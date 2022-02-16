@@ -1,14 +1,14 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt.js"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
 import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
-import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
-import { BAKED_BASE_URL } from "../settings/clientSettings"
-import { stringifyUnkownError } from "../clientUtils/Util"
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { stringifyUnkownError } from "../clientUtils/Util.js"
 
 const sendFeedback = (feedback: Feedback) =>
     new Promise((resolve, reject) => {

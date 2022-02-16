@@ -1,10 +1,10 @@
-import * as React from "react"
+import React from "react"
 import { observable, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import { SearchResults } from "./SearchResults"
-import { SiteSearchResults, siteSearch } from "./searchClient"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
+import { SearchResults } from "./SearchResults.js"
+import { SiteSearchResults, siteSearch } from "./searchClient.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch.js"
 
 class HeaderSearchResults extends React.Component<{
     results: SiteSearchResults

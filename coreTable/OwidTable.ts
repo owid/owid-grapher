@@ -18,8 +18,8 @@ import {
     minBy,
     cagr,
     makeAnnotationsSlug,
-} from "../clientUtils/Util"
-import { isPresent } from "../clientUtils/isPresent"
+} from "../clientUtils/Util.js"
+import { isPresent } from "../clientUtils/isPresent.js"
 import {
     Integer,
     Time,
@@ -27,33 +27,33 @@ import {
     CoreColumnStore,
     Color,
     CoreValueType,
-} from "./CoreTableConstants"
-import { ColumnTypeNames } from "./CoreColumnDef"
-import { CoreTable } from "./CoreTable"
-import { populationMap } from "./PopulationMap"
+} from "./CoreTableConstants.js"
+import { ColumnTypeNames } from "./CoreColumnDef.js"
+import { CoreTable } from "./CoreTable.js"
+import { populationMap } from "./PopulationMap.js"
 import {
     EntityName,
     OwidColumnDef,
     OwidRow,
     OwidTableSlugs,
-} from "./OwidTableConstants"
-import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues"
-import { TimeBound } from "../clientUtils/TimeBounds"
+} from "./OwidTableConstants.js"
+import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
+import { TimeBound } from "../clientUtils/TimeBounds.js"
 import {
     getOriginalTimeColumnSlug,
     makeOriginalTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
     toPercentageColumnDef,
-} from "./OwidTableUtil"
+} from "./OwidTableUtil.js"
 import {
     imemo,
     linearInterpolation,
     toleranceInterpolation,
     replaceDef,
     InterpolationProvider,
-} from "./CoreTableUtils"
-import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
-import { ColumnSlug } from "../clientUtils/owidTypes"
+} from "./CoreTableUtils.js"
+import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns.js"
+import { ColumnSlug } from "../clientUtils/owidTypes.js"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone

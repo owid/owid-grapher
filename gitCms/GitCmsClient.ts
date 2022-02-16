@@ -12,7 +12,7 @@ import {
     GIT_CMS_GLOB_ROUTE,
     GIT_CMS_DELETE_ROUTE,
     GIT_CMS_WRITE_ROUTE,
-} from "./GitCmsConstants"
+} from "./GitCmsConstants.js"
 
 // todo: clarify what is going on here. i already forget.
 const validateFilePath = (path: string) => {

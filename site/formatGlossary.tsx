@@ -1,8 +1,8 @@
-import * as React from "react"
-import * as ReactDOMServer from "react-dom/server"
-import { ExpandableInlineBlock_name } from "./ExpandableInlineBlock"
-import { GlossaryExcerpt_name } from "./GlossaryExcerpt"
-import { GlossaryItem } from "./glossary"
+import React from "react"
+import ReactDOMServer from "react-dom/server.js"
+import { ExpandableInlineBlock_name } from "./ExpandableInlineBlock.js"
+import { GlossaryExcerpt_name } from "./GlossaryExcerpt.js"
+import { GlossaryItem } from "./glossary.js"
 
 // Do not replace glossary terms within these tags
 export const FORBIDDEN_TAGS = ["a", "h2", "h3", "h4", "h5", "h6"]

@@ -3,7 +3,7 @@ import * as path from "path"
 import {
     extractFieldDescriptionsFromSchema,
     FieldDescription,
-} from "../../clientUtils/schemaProcessing"
+} from "../../clientUtils/schemaProcessing.js"
 import parseArgs from "minimist"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {

@@ -1,4 +1,4 @@
-import { ErrorValue } from "./ErrorValues"
+import { ErrorValue } from "./ErrorValues.js"
 
 export type TableSlug = string // a url friendly name for a table
 export type ColumnSlugs = string // slugs cannot have spaces, so this is a space delimited array of ColumnSlugs

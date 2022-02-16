@@ -1,11 +1,11 @@
 import React from "react"
 import moment from "moment"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
-import { TableOfContents } from "../site/TableOfContents"
-import { groupBy } from "../clientUtils/Util"
-import { PostRow } from "../clientUtils/owidTypes"
+import { Head } from "./Head.js"
+import { SiteHeader } from "./SiteHeader.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { TableOfContents } from "../site/TableOfContents.js"
+import { groupBy } from "../clientUtils/Util.js"
+import { PostRow } from "../clientUtils/owidTypes.js"
 
 type Entry = Pick<PostRow, "title" | "slug" | "published_at">
 

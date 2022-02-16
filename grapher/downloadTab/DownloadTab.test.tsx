@@ -1,8 +1,8 @@
 #! /usr/bin/env jest
 
-import { ColumnTypeNames } from "../../coreTable/CoreColumnDef"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { DownloadTab } from "./DownloadTab"
+import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { DownloadTab } from "./DownloadTab.js"
 
 const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
     return new OwidTable(

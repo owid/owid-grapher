@@ -17,7 +17,7 @@ import {
     EqualityComparision,
     EqualityOperator,
     StringContainsOperation,
-} from "./SqlFilterSExpression"
+} from "./SqlFilterSExpression.js"
 function checkIsomorphism(operation: Operation): void {
     return expect(parseToOperation(operation.toSExpr())).toEqual(operation)
 }

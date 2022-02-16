@@ -1,34 +1,34 @@
-import * as React from "react"
+import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { uniq, makeSafeForCSS } from "../../clientUtils/Util"
-import { Bounds } from "../../clientUtils/Bounds"
+import { uniq, makeSafeForCSS } from "../../clientUtils/Util.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
 import {
     VerticalAxisComponent,
     AxisTickMarks,
     VerticalAxisGridLines,
-} from "../axis/AxisViews"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { Text } from "../text/Text"
+} from "../axis/AxisViews.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { Text } from "../text/Text.js"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
     LegendItem,
-} from "../verticalColorLegend/VerticalColorLegend"
-import { Tooltip } from "../tooltip/Tooltip"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { ColorScaleManager } from "../color/ColorScale"
+} from "../verticalColorLegend/VerticalColorLegend.js"
+import { Tooltip } from "../tooltip/Tooltip.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { ColorScaleManager } from "../color/ColorScale.js"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
-} from "./AbstractStackedChart"
-import { StackedPoint, StackedSeries } from "./StackedConstants"
-import { VerticalAxis } from "../axis/Axis"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
-import { makeClipPath } from "../chart/ChartUtils"
-import { Time } from "../../clientUtils/owidTypes"
-import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
+} from "./AbstractStackedChart.js"
+import { StackedPoint, StackedSeries } from "./StackedConstants.js"
+import { VerticalAxis } from "../axis/Axis.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
+import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils.js"
+import { makeClipPath } from "../chart/ChartUtils.js"
+import { Time } from "../../clientUtils/owidTypes.js"
+import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig.js"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint<Time>

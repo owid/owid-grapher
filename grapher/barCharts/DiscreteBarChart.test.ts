@@ -1,22 +1,22 @@
 #! /usr/bin/env jest
 
-import { DiscreteBarChart } from "./DiscreteBarChart"
+import { DiscreteBarChart } from "./DiscreteBarChart.js"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
+} from "../../coreTable/OwidTableSynthesizers.js"
 import {
     DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
-} from "./DiscreteBarChartConstants"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { SeriesStrategy } from "../core/GrapherConstants"
-import { SelectionArray } from "../selection/SelectionArray"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { isNumber, sortBy } from "../../clientUtils/Util"
-import { SortBy, SortOrder } from "../../clientUtils/owidTypes"
+} from "./DiscreteBarChartConstants.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
+import { SeriesStrategy } from "../core/GrapherConstants.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { isNumber, sortBy } from "../../clientUtils/Util.js"
+import { SortBy, SortOrder } from "../../clientUtils/owidTypes.js"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })

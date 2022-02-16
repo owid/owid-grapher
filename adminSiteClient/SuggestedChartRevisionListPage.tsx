@@ -1,24 +1,24 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action } from "mobx"
 import fuzzysort from "fuzzysort"
 import { Link } from "react-router-dom"
 
-import { TextField } from "./Forms"
-import { AdminLayout } from "./AdminLayout"
-import { uniq } from "../clientUtils/Util"
-import { SortOrder } from "../clientUtils/owidTypes"
+import { TextField } from "./Forms.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { uniq } from "../clientUtils/Util.js"
+import { SortOrder } from "../clientUtils/owidTypes.js"
 import Select from "react-select"
-import { getStylesForTargetHeight } from "../clientUtils/react-select"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
+import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
+import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
 import {
     SuggestedChartRevisionList,
     SuggestedChartRevisionListItem,
-} from "./SuggestedChartRevisionList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
-import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
+} from "./SuggestedChartRevisionList.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown.js"
+import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt.js"
 
 interface Searchable {
     suggestedChartRevision: SuggestedChartRevisionListItem

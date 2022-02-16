@@ -2,9 +2,9 @@
 
 // todo: remove this when we remove chartDimension
 
-import { ChartDimension } from "./ChartDimension"
-import { BlankOwidTable } from "../../coreTable/OwidTable"
-import { DimensionProperty } from "../../clientUtils/owidTypes"
+import { ChartDimension } from "./ChartDimension.js"
+import { BlankOwidTable } from "../../coreTable/OwidTable.js"
+import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
 it("can serialize for saving", () => {
     expect(

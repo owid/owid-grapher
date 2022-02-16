@@ -1,6 +1,6 @@
-import * as React from "react"
-import { CollapsibleList, MoreButton } from "./CollapsibleList"
-import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput"
+import React from "react"
+import { CollapsibleList, MoreButton } from "./CollapsibleList.js"
+import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput.js"
 
 export default {
     title: "CollapsibleList",

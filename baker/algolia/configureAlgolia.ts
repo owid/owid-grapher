@@ -1,12 +1,15 @@
 import algoliasearch, { SearchClient } from "algoliasearch"
 import { Synonym, Settings } from "@algolia/client-search"
-import { ALGOLIA_ID, TOPICS_CONTENT_GRAPH } from "../../settings/clientSettings"
+import {
+    ALGOLIA_ID,
+    TOPICS_CONTENT_GRAPH,
+} from "../../settings/clientSettings.js"
 
 import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
-} from "../../settings/serverSettings"
-import { countries } from "../../clientUtils/countries"
+} from "../../settings/serverSettings.js"
+import { countries } from "../../clientUtils/countries.js"
 
 export const CONTENT_GRAPH_ALGOLIA_INDEX = "graph"
 

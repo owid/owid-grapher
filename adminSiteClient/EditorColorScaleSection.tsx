@@ -1,18 +1,18 @@
-import * as React from "react"
+import React from "react"
 import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import Select from "react-select"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { ColorScale } from "../grapher/color/ColorScale"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"
+import { ColorScale } from "../grapher/color/ColorScale.js"
 import {
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
-} from "../grapher/color/ColorScaleBin"
-import { clone, noop, last } from "../clientUtils/Util"
-import { Color } from "../coreTable/CoreTableConstants"
+} from "../grapher/color/ColorScaleBin.js"
+import { clone, noop, last } from "../clientUtils/Util.js"
+import { Color } from "../coreTable/CoreTableConstants.js"
 import {
     Section,
     Toggle,
@@ -24,11 +24,14 @@ import {
     ColorBox,
     BindAutoFloat,
     BindString,
-} from "./Forms"
-import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
-import { binningStrategyLabels } from "../grapher/color/BinningStrategies"
-import { ColorSchemeName } from "../grapher/color/ColorConstants"
-import { BinningStrategy } from "../grapher/color/BinningStrategy"
+} from "./Forms.js"
+import {
+    ColorSchemeOption,
+    ColorSchemeDropdown,
+} from "./ColorSchemeDropdown.js"
+import { binningStrategyLabels } from "../grapher/color/BinningStrategies.js"
+import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
+import { BinningStrategy } from "../grapher/color/BinningStrategy.js"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import simpleGit from "simple-git"
 import express, { NextFunction } from "express"
 require("express-async-errors") // todo: why the require?
@@ -11,19 +11,22 @@ import {
     ADMIN_SERVER_PORT,
     ENV,
     SLACK_ERRORS_WEBHOOK_URL,
-} from "../settings/serverSettings"
-import * as db from "../db/db"
-import * as wpdb from "../db/wpdb"
-import { IndexPage } from "./IndexPage"
-import { authCloudflareSSOMiddleware, authMiddleware } from "./authentication"
-import { apiRouter } from "./apiRouter"
-import { testPageRouter } from "./testPageRouter"
-import { adminRouter } from "./adminRouter"
-import { renderToHtmlPage } from "../serverUtils/serverUtil"
+} from "../settings/serverSettings.js"
+import * as db from "../db/db.js"
+import * as wpdb from "../db/wpdb.js"
+import { IndexPage } from "./IndexPage.js"
+import {
+    authCloudflareSSOMiddleware,
+    authMiddleware,
+} from "./authentication.js"
+import { apiRouter } from "./apiRouter.js"
+import { testPageRouter } from "./testPageRouter.js"
+import { adminRouter } from "./adminRouter.js"
+import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 
-import { publicApiRouter } from "./publicApiRouter"
-import { mockSiteRouter } from "./mockSiteRouter"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+import { publicApiRouter } from "./publicApiRouter.js"
+import { mockSiteRouter } from "./mockSiteRouter.js"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 
 const expressErrorSlack = require("express-error-slack") // todo: why the require?
 

@@ -1,5 +1,5 @@
 import { decodeHTML } from "entities"
-import { DatabaseConnection } from "./DatabaseConnection"
+import { DatabaseConnection } from "./DatabaseConnection.js"
 import {
     WORDPRESS_DB_NAME,
     WORDPRESS_DB_HOST,
@@ -8,17 +8,17 @@ import {
     WORDPRESS_DB_PASS,
     WORDPRESS_API_PASS,
     WORDPRESS_API_USER,
-} from "../settings/serverSettings"
+} from "../settings/serverSettings.js"
 import {
     WORDPRESS_URL,
     BAKED_BASE_URL,
     BLOG_SLUG,
-} from "../settings/serverSettings"
-import * as db from "./db"
+} from "../settings/serverSettings.js"
+import * as db from "./db.js"
 import { Knex, knex } from "knex"
 import fetch from "node-fetch"
 import { Base64 } from "js-base64"
-import { registerExitHandler } from "./cleanup"
+import { registerExitHandler } from "./cleanup.js"
 import {
     RelatedChart,
     CategoryWithEntries,
@@ -34,11 +34,14 @@ import {
     PostRestApi,
     TopicId,
     GraphType,
-} from "../clientUtils/owidTypes"
-import { memoize } from "../clientUtils/Util"
-import { Topic } from "../grapher/core/GrapherConstants"
-import { getContentGraph, WPPostTypeToGraphDocumentType } from "./contentGraph"
-import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings"
+} from "../clientUtils/owidTypes.js"
+import { memoize } from "../clientUtils/Util.js"
+import { Topic } from "../grapher/core/GrapherConstants.js"
+import {
+    getContentGraph,
+    WPPostTypeToGraphDocumentType,
+} from "./contentGraph.js"
+import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 
 let _knexInstance: Knex
 

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import {
     computed,
@@ -7,11 +7,11 @@ import {
     autorun,
     IReactionDisposer,
 } from "mobx"
-import { Grapher } from "../grapher/core/Grapher"
-import { GrapherFigureView } from "./GrapherFigureView"
-import { deserializeJSONFromHTML } from "../clientUtils/serializers"
-import { Url } from "../clientUtils/urls/Url"
-import { excludeUndefined } from "../clientUtils/Util"
+import { Grapher } from "../grapher/core/Grapher.js"
+import { GrapherFigureView } from "./GrapherFigureView.js"
+import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
+import { Url } from "../clientUtils/urls/Url.js"
+import { excludeUndefined } from "../clientUtils/Util.js"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {

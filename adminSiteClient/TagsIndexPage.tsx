@@ -1,12 +1,12 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import * as lodash from "lodash"
 import { Redirect } from "react-router-dom"
-import { AdminLayout } from "./AdminLayout"
-import { FieldsRow, Modal, TextField } from "./Forms"
-import { TagBadge, Tag } from "./TagBadge"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { AdminLayout } from "./AdminLayout.js"
+import { FieldsRow, Modal, TextField } from "./Forms.js"
+import { TagBadge, Tag } from "./TagBadge.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 interface TagListItem {
     id: number

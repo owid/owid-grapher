@@ -1,6 +1,6 @@
 // Script to export everything in the database except sensitive info and data_values (which is big)
 
-import * as db from "./db"
+import * as db from "./db.js"
 import * as fs from "fs-extra"
 import parseArgs from "minimist"
 
@@ -10,8 +10,8 @@ import {
     DB_PASS,
     DB_HOST,
     DB_PORT,
-} from "../settings/serverSettings"
-import { execWrapper } from "./execWrapper"
+} from "../settings/serverSettings.js"
+import { execWrapper } from "./execWrapper.js"
 
 const argv = parseArgs(process.argv.slice(2))
 const withPasswords = argv["with-passwords"]

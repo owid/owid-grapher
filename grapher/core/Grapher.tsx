@@ -1,5 +1,5 @@
-import * as React from "react"
-import * as ReactDOMServer from "react-dom/server"
+import React from "react"
+import ReactDOMServer from "react-dom/server.js"
 import {
     observable,
     computed,
@@ -30,8 +30,8 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
-} from "../../clientUtils/Util"
-import { QueryParams } from "../../clientUtils/urls/UrlUtils"
+} from "../../clientUtils/Util.js"
+import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
 import {
     ChartTypeName,
     GrapherTabOption,
@@ -46,15 +46,15 @@ import {
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
     FacetAxisDomain,
-} from "../core/GrapherConstants"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable"
+} from "../core/GrapherConstants.js"
+import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,
     LegacyDimensionsManager,
-} from "../chart/ChartDimension"
-import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import { TooltipProps, TooltipManager } from "../tooltip/TooltipProps"
+} from "../chart/ChartDimension.js"
+import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { TooltipProps, TooltipManager } from "../tooltip/TooltipProps.js"
 import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
@@ -64,94 +64,94 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     timeBoundToTimeBoundString,
-} from "../../clientUtils/TimeBounds"
+} from "../../clientUtils/TimeBounds.js"
 import {
     strToQueryParams,
     queryParamsToStr,
     setWindowQueryStr,
-} from "../../clientUtils/urls/UrlUtils"
-import { populationMap } from "../../coreTable/PopulationMap"
+} from "../../clientUtils/urls/UrlUtils.js"
+import { populationMap } from "../../coreTable/PopulationMap.js"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
-} from "../core/GrapherInterface"
-import { DimensionSlot } from "../chart/DimensionSlot"
+} from "../core/GrapherInterface.js"
+import { DimensionSlot } from "../chart/DimensionSlot.js"
 import {
     getSelectedEntityNamesParam,
     setSelectedEntityNamesParam,
-} from "./EntityUrlBuilder"
-import { MapProjectionName } from "../mapCharts/MapProjections"
-import { LogoOption } from "../captionedChart/Logos"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
-import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { MapConfig } from "../mapCharts/MapConfig"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
+} from "./EntityUrlBuilder.js"
+import { MapProjectionName } from "../mapCharts/MapProjections.js"
+import { LogoOption } from "../captionedChart/Logos.js"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
+import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
+import { MapConfig } from "../mapCharts/MapConfig.js"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
 import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
-} from "../../clientUtils/persistable/Persistable"
-import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants"
-import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
-import { ChartManager } from "../chart/ChartManager"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+} from "../../clientUtils/persistable/Persistable.js"
+import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants.js"
+import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle.js"
 import {
     AbsRelToggleManager,
     FacetStrategyDropdownManager,
     FooterControls,
     FooterControlsManager,
     SmallCountriesFilterManager,
-} from "../controls/Controls"
-import { TooltipView } from "../tooltip/Tooltip"
-import { EntitySelectorModal } from "../controls/EntitySelectorModal"
-import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
-import * as ReactDOM from "react-dom"
+} from "../controls/Controls.js"
+import { TooltipView } from "../tooltip/Tooltip.js"
+import { EntitySelectorModal } from "../controls/EntitySelectorModal.js"
+import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab.js"
+import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab"
-import { DataTable, DataTableManager } from "../dataTable/DataTable"
-import { MapChartManager } from "../mapCharts/MapChartConstants"
-import { MapChart } from "../mapCharts/MapChart"
-import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
-import { Command, CommandPalette } from "../controls/CommandPalette"
-import { ShareMenuManager } from "../controls/ShareMenu"
+import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab.js"
+import { DataTable, DataTableManager } from "../dataTable/DataTable.js"
+import { MapChartManager } from "../mapCharts/MapChartConstants.js"
+import { MapChart } from "../mapCharts/MapChart.js"
+import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants.js"
+import { Command, CommandPalette } from "../controls/CommandPalette.js"
+import { ShareMenuManager } from "../controls/ShareMenu.js"
 import {
     CaptionedChart,
     CaptionedChartManager,
     StaticCaptionedChart,
-} from "../captionedChart/CaptionedChart"
+} from "../captionedChart/CaptionedChart.js"
 import {
     TimelineController,
     TimelineManager,
-} from "../timeline/TimelineController"
+} from "../timeline/TimelineController.js"
 import {
     EntityId,
     EntityName,
     OwidColumnDef,
-} from "../../coreTable/OwidTableConstants"
-import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable"
+} from "../../coreTable/OwidTableConstants.js"
+import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import * as Mousetrap from "mousetrap"
-import { SlideShowController } from "../slideshowController/SlideShowController"
+import { SlideShowController } from "../slideshowController/SlideShowController.js"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../chart/ChartTypeMap"
-import { ColorSchemeName } from "../color/ColorConstants"
-import { SelectionArray } from "../selection/SelectionArray"
-import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
-import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
-import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
+} from "../chart/ChartTypeMap.js"
+import { ColorSchemeName } from "../color/ColorConstants.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
+import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants.js"
+import { autoDetectYColumnSlugs } from "../chart/ChartUtils.js"
 import classNames from "classnames"
-import { GrapherAnalytics } from "./GrapherAnalytics"
+import { GrapherAnalytics } from "./GrapherAnalytics.js"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../../settings/clientSettings"
-import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
-import { Url } from "../../clientUtils/urls/Url"
+} from "../../settings/clientSettings.js"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
+import { Url } from "../../clientUtils/urls/Url.js"
 import {
     Annotation,
     ColumnSlug,
@@ -160,14 +160,14 @@ import {
     SortConfig,
     SortOrder,
     TopicId,
-} from "../../clientUtils/owidTypes"
-import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns"
-import { ChartInterface } from "../chart/ChartInterface"
-import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface"
-import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface"
+} from "../../clientUtils/owidTypes.js"
+import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { ChartInterface } from "../chart/ChartInterface.js"
+import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
+import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.js"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import Bugsnag from "@bugsnag/js"
-import { FacetChartManager } from "../facetChart/FacetChartConstants"
+import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
 
 declare const window: any
 

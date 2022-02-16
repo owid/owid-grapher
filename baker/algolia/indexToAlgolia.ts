@@ -1,11 +1,11 @@
-import * as db from "../../db/db"
-import * as wpdb from "../../db/wpdb"
-import { ALGOLIA_INDEXING } from "../../settings/serverSettings"
-import { chunkParagraphs, htmlToPlaintext } from "../../clientUtils/search"
-import { countries } from "../../clientUtils/countries"
-import { FormattedPost } from "../../clientUtils/owidTypes"
-import { formatPost } from "../../baker/formatWordpressPost"
-import { getAlgoliaClient } from "./configureAlgolia"
+import * as db from "../../db/db.js"
+import * as wpdb from "../../db/wpdb.js"
+import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
+import { chunkParagraphs, htmlToPlaintext } from "../../clientUtils/search.js"
+import { countries } from "../../clientUtils/countries.js"
+import { FormattedPost } from "../../clientUtils/owidTypes.js"
+import { formatPost } from "../../baker/formatWordpressPost.js"
+import { getAlgoliaClient } from "./configureAlgolia.js"
 
 interface Tag {
     id: number

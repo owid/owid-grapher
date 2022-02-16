@@ -1,5 +1,5 @@
-import { CoreTable } from "../coreTable/CoreTable"
-import { ExplorerUrlMigrationId } from "../explorer/urlMigrations/ExplorerUrlMigrations"
+import { CoreTable } from "../coreTable/CoreTable.js"
+import { ExplorerUrlMigrationId } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 
 const explorerRedirectTableMatrix = [
     ["migrationId", "path", "baseQueryStr"],

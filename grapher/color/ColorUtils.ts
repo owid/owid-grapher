@@ -1,7 +1,7 @@
-import { Color } from "../../coreTable/CoreTableConstants"
+import { Color } from "../../coreTable/CoreTableConstants.js"
 import { rgb, color, RGBColor } from "d3-color"
 import { interpolate } from "d3-interpolate"
-import { difference, groupBy, minBy } from "../../clientUtils/Util"
+import { difference, groupBy, minBy } from "../../clientUtils/Util.js"
 
 export const interpolateArray = (
     scaleArr: string[]

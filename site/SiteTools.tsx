@@ -1,12 +1,12 @@
-import * as React from "react"
-import * as ReactDOM from "react-dom"
-import { FeedbackPrompt } from "./Feedback"
-import { ScrollDirection, useScrollDirection } from "./hooks"
+import React from "react"
+import ReactDOM from "react-dom"
+import { FeedbackPrompt } from "./Feedback.js"
+import { ScrollDirection, useScrollDirection } from "./hooks.js"
 import {
     NewsletterSubscription,
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
-} from "./NewsletterSubscription"
+} from "./NewsletterSubscription.js"
 
 const SITE_TOOLS_CLASS = "site-tools"
 

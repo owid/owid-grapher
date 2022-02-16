@@ -1,14 +1,14 @@
 import { observable, computed, action } from "mobx"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils"
-import { differenceObj, trimObject } from "../clientUtils/Util"
-import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
-import { CoreTable } from "../coreTable/CoreTable"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
+import { differenceObj, trimObject } from "../clientUtils/Util.js"
+import { ColumnTypeNames } from "../coreTable/CoreColumnDef.js"
+import { CoreTable } from "../coreTable/CoreTable.js"
 import {
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
-} from "../coreTable/CoreTableUtils"
-import { GridBoolean } from "../gridLang/GridLangConstants"
+} from "../coreTable/CoreTableUtils.js"
+import { GridBoolean } from "../gridLang/GridLangConstants.js"
 import {
     ChoiceMap,
     ChoiceName,
@@ -18,9 +18,9 @@ import {
     ExplorerChoiceParams,
     ExplorerControlType,
     ExplorerControlTypeRegex,
-} from "./ExplorerConstants"
-import { trimAndParseObject } from "./ExplorerProgram"
-import { GrapherGrammar } from "./GrapherGrammar"
+} from "./ExplorerConstants.js"
+import { trimAndParseObject } from "./ExplorerProgram.js"
+import { GrapherGrammar } from "./GrapherGrammar.js"
 
 // todo: cleanup
 const makeChoicesMap = (delimited: string) => {

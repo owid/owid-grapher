@@ -1,10 +1,10 @@
-import * as React from "react"
+import React from "react"
 import { computed, action } from "mobx"
 import Select from "react-select"
-import { ColorSchemes } from "../grapher/color/ColorSchemes"
+import { ColorSchemes } from "../grapher/color/ColorSchemes.js"
 import { observer } from "mobx-react"
 import { bind } from "decko"
-import { ColorScheme } from "../grapher/color/ColorScheme"
+import { ColorScheme } from "../grapher/color/ColorScheme.js"
 
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme

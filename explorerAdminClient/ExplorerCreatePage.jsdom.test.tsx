@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import React from "react"
-import { ExplorerCreatePage } from "./ExplorerCreatePage"
+import { ExplorerCreatePage } from "./ExplorerCreatePage.js"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

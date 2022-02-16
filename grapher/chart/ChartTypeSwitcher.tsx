@@ -1,5 +1,5 @@
 import React from "react"
-import { ChartTypeName } from "../core/GrapherConstants"
+import { ChartTypeName } from "../core/GrapherConstants.js"
 
 // Just a utility for testing
 export class ChartTypeSwitcher extends React.Component<{

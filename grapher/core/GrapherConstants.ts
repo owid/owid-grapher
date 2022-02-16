@@ -1,5 +1,5 @@
-import { TopicId } from "../../clientUtils/owidTypes"
-import { Color } from "../../coreTable/CoreTableConstants"
+import { TopicId } from "../../clientUtils/owidTypes.js"
+import { Color } from "../../coreTable/CoreTableConstants.js"
 
 export enum ChartTypeName {
     LineChart = "LineChart",

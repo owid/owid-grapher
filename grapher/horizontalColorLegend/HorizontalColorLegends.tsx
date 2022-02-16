@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -11,21 +11,21 @@ import {
     sum,
     dyFromAlign,
     removeAllWhitespace,
-} from "../../clientUtils/Util"
-import { Bounds } from "../../clientUtils/Bounds"
+} from "../../clientUtils/Util.js"
+import { Bounds } from "../../clientUtils/Bounds.js"
 import {
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
-} from "../color/ColorScaleBin"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+} from "../color/ColorScaleBin.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import {
     Color,
     HorizontalAlign,
     VerticalAlign,
-} from "../../clientUtils/owidTypes"
-import { TextWrap } from "../text/TextWrap"
-import { darkenColorForLine } from "../color/ColorUtils"
+} from "../../clientUtils/owidTypes.js"
+import { TextWrap } from "../text/TextWrap.js"
+import { darkenColorForLine } from "../color/ColorUtils.js"
 
 export interface PositionedBin {
     x: number

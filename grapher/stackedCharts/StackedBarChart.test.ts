@@ -4,11 +4,11 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ChartManager } from "../chart/ChartManager"
-import { SelectionArray } from "../selection/SelectionArray"
-import { isNumber } from "../../clientUtils/Util"
-import { StackedBarChart } from "./StackedBarChart"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { ChartManager } from "../chart/ChartManager.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { isNumber } from "../../clientUtils/Util.js"
+import { StackedBarChart } from "./StackedBarChart.js"
 
 it("can create a chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })

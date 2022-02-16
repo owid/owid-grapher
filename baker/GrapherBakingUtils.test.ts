@@ -1,7 +1,7 @@
 import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
-} from "./GrapherBakingUtils"
+} from "./GrapherBakingUtils.js"
 
 describe(grapherUrlToSlugAndQueryStr, () => {
     it("can extract a slug", () => {

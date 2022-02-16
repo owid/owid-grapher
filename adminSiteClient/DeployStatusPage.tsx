@@ -1,14 +1,14 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
 import { format } from "timeago.js"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle.js"
 
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { Deploy, DeployStatus } from "../clientUtils/owidTypes"
+import { AdminLayout } from "./AdminLayout.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { Deploy, DeployStatus } from "../clientUtils/owidTypes.js"
 
 const statusLabel: Record<DeployStatus, string> = {
     [DeployStatus.queued]: "Next up",

@@ -1,19 +1,19 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 
-import { TextField } from "./Forms"
-import { AdminLayout } from "./AdminLayout"
-import { uniq } from "../clientUtils/Util"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch"
-import { ChartList, ChartListItem } from "./ChartList"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { TextField } from "./Forms.js"
+import { AdminLayout } from "./AdminLayout.js"
+import { uniq } from "../clientUtils/Util.js"
+import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
+import { ChartList, ChartListItem } from "./ChartList.js"
+import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
     SearchWord,
-} from "../clientUtils/search"
+} from "../clientUtils/search.js"
 
 @observer
 export class ChartIndexPage extends React.Component {

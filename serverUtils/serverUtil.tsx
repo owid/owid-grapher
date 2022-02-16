@@ -1,8 +1,8 @@
-import * as ReactDOMServer from "react-dom/server"
+import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
 import urljoin from "url-join"
-import { ADMIN_BASE_URL } from "../settings/serverSettings"
-import { JsonError } from "../clientUtils/owidTypes"
+import { ADMIN_BASE_URL } from "../settings/serverSettings.js"
+import { JsonError } from "../clientUtils/owidTypes.js"
 
 // Fail-fast integer conversion, for e.g. ids in url params
 export const expectInt = (value: any): number => {

@@ -6,13 +6,13 @@ import {
     updatePersistables,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
-} from "./persistable/Persistable"
-import { OwidSource } from "./OwidSource"
+} from "./persistable/Persistable.js"
+import { OwidSource } from "./OwidSource.js"
 import {
     OwidVariableDataTableConfigInteface,
     OwidVariableDisplayConfigInterface,
-} from "./OwidVariableDisplayConfigInterface"
-import { PartialBy } from "./Util"
+} from "./OwidVariableDisplayConfigInterface.js"
+import { PartialBy } from "./Util.js"
 
 class OwidVariableDisplayConfigDefaults {
     @observable name?: string = undefined

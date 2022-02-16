@@ -1,20 +1,20 @@
-import * as React from "react"
+import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Tooltip } from "../tooltip/Tooltip"
-import { takeWhile, last, first, isMobile } from "../../clientUtils/Util"
+import { Tooltip } from "../tooltip/Tooltip.js"
+import { takeWhile, last, first, isMobile } from "../../clientUtils/Util.js"
 import {
     SparkBars,
     SparkBarsDatum,
     SparkBarsProps,
-} from "../sparkBars/SparkBars"
-import { SparkBarTimeSeriesValue } from "../sparkBars/SparkBarTimeSeriesValue"
-import { MapChartManager, ChoroplethSeries } from "./MapChartConstants"
-import { ColorScale } from "../color/ColorScale"
-import { Time } from "../../coreTable/CoreTableConstants"
-import { ChartTypeName } from "../core/GrapherConstants"
-import { OwidTable } from "../../coreTable/OwidTable"
-import { CoreColumn } from "../../coreTable/CoreTableColumns"
+} from "../sparkBars/SparkBars.js"
+import { SparkBarTimeSeriesValue } from "../sparkBars/SparkBarTimeSeriesValue.js"
+import { MapChartManager, ChoroplethSeries } from "./MapChartConstants.js"
+import { ColorScale } from "../color/ColorScale.js"
+import { Time } from "../../coreTable/CoreTableConstants.js"
+import { ChartTypeName } from "../core/GrapherConstants.js"
+import { OwidTable } from "../../coreTable/OwidTable.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 
 interface MapTooltipProps {
     tooltipDatum?: ChoroplethSeries

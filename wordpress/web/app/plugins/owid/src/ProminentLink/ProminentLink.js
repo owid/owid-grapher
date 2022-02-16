@@ -6,7 +6,7 @@ import {
 } from "@wordpress/block-editor"
 import { createBlock } from "@wordpress/blocks"
 import { Panel, PanelBody, PanelRow } from "@wordpress/components"
-import MediaContainer from "../MediaContainer/MediaContainer"
+import MediaContainer from "../MediaContainer/MediaContainer.js"
 
 const linkColor = "#2271b1"
 const blockStyle = {

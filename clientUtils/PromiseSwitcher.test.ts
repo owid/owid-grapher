@@ -1,4 +1,4 @@
-import { PromiseSwitcher } from "./PromiseSwitcher"
+import { PromiseSwitcher } from "./PromiseSwitcher.js"
 
 const delayResolve = (result: any, ms: number = 10): Promise<void> =>
     new Promise((resolve) => {

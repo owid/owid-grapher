@@ -1,5 +1,5 @@
-import { invert } from "../../clientUtils/Util"
-import { EntityName } from "../../coreTable/OwidTableConstants"
+import { invert } from "../../clientUtils/Util.js"
+import { EntityName } from "../../coreTable/OwidTableConstants.js"
 
 export const entityCodesToEntityNames: Record<string, string> = {
     ABW: "Aruba",

@@ -1,7 +1,7 @@
-import { ColumnTypeNames } from "../coreTable/CoreColumnDef"
-import { AvailableTransforms } from "../coreTable/Transforms"
-import { BinningStrategy } from "../grapher/color/BinningStrategy"
-import { ColorSchemeName } from "../grapher/color/ColorConstants"
+import { ColumnTypeNames } from "../coreTable/CoreColumnDef.js"
+import { AvailableTransforms } from "../coreTable/Transforms.js"
+import { BinningStrategy } from "../grapher/color/BinningStrategy.js"
+import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
 import {
     Grammar,
     SlugDeclarationCellDef,
@@ -11,7 +11,7 @@ import {
     BooleanCellDef,
     EnumCellDef,
     NumericCellDef,
-} from "../gridLang/GridLangConstants"
+} from "../gridLang/GridLangConstants.js"
 
 export const ColumnGrammar: Grammar = {
     slug: {

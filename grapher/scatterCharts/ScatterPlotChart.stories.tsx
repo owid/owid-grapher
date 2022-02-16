@@ -2,12 +2,12 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
-} from "../../coreTable/OwidTableSynthesizers"
-import { ScaleType } from "../core/GrapherConstants"
-import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds"
-import * as React from "react"
-import { ScatterPlotChart } from "./ScatterPlotChart"
-import { ScatterPlotManager } from "./ScatterPlotChartConstants"
+} from "../../coreTable/OwidTableSynthesizers.js"
+import { ScaleType } from "../core/GrapherConstants.js"
+import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import React from "react"
+import { ScatterPlotChart } from "./ScatterPlotChart.js"
+import { ScatterPlotManager } from "./ScatterPlotChartConstants.js"
 
 export default {
     title: "ScatterPlotChart",

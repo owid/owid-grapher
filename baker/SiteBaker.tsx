@@ -5,13 +5,13 @@ import { without } from "lodash"
 import * as lodash from "lodash"
 import * as cheerio from "cheerio"
 import ProgressBar from "progress"
-import * as wpdb from "../db/wpdb"
-import * as db from "../db/db"
+import * as wpdb from "../db/wpdb.js"
+import * as db from "../db/db.js"
 import {
     BLOG_POSTS_PER_PAGE,
     BASE_DIR,
     WORDPRESS_DIR,
-} from "../settings/serverSettings"
+} from "../settings/serverSettings.js"
 
 import {
     renderFrontPage,
@@ -27,30 +27,30 @@ import {
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
-} from "../baker/siteRenderers"
+} from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
     GrapherExports,
-} from "../baker/GrapherBakingUtils"
-import { makeSitemap } from "../baker/sitemap"
-import { Post } from "../db/model/Post"
-import { bakeCountries } from "../baker/countryProfiles"
-import { countries } from "../clientUtils/countries"
-import { execWrapper } from "../db/execWrapper"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
-import { countryProfileSpecs } from "../site/countryProfileProjects"
-import { getRedirects, flushCache as redirectsFlushCache } from "./redirects"
-import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker"
-import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
-import { bakeEmbedSnippet } from "../site/webpackUtils"
-import { FullPost } from "../clientUtils/owidTypes"
-import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+} from "../baker/GrapherBakingUtils.js"
+import { makeSitemap } from "../baker/sitemap.js"
+import { Post } from "../db/model/Post.js"
+import { bakeCountries } from "../baker/countryProfiles.js"
+import { countries } from "../clientUtils/countries.js"
+import { execWrapper } from "../db/execWrapper.js"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { countryProfileSpecs } from "../site/countryProfileProjects.js"
+import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
+import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
+import { bakeEmbedSnippet } from "../site/webpackUtils.js"
+import { FullPost } from "../clientUtils/owidTypes.js"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     bakeAllExplorerRedirects,
     bakeAllPublishedExplorers,
-} from "./ExplorerBaker"
-import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
+} from "./ExplorerBaker.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports

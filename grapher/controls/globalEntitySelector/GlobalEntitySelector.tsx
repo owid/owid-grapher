@@ -1,5 +1,5 @@
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import React from "react"
+import ReactDOM from "react-dom"
 import { action, observable, IReactionDisposer, reaction, computed } from "mobx"
 import { observer } from "mobx-react"
 import Select, {
@@ -10,22 +10,22 @@ import Select, {
     Props,
 } from "react-select"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { countries } from "../../../clientUtils/countries"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
+import { countries } from "../../../clientUtils/countries.js"
 import {
     throttle,
     noop,
     getCountryCodeFromNetlifyRedirect,
     sortBy,
-} from "../../../clientUtils/Util"
-import { GrapherAnalytics } from "../../core/GrapherAnalytics"
-import { WorldEntityName } from "../../core/GrapherConstants"
-import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants"
-import { SelectionArray } from "../../selection/SelectionArray"
-import { EntityName } from "../../../coreTable/OwidTableConstants"
-import { setSelectedEntityNamesParam } from "../../core/EntityUrlBuilder"
-import { getWindowUrl, setWindowUrl } from "../../../clientUtils/urls/Url"
+} from "../../../clientUtils/Util.js"
+import { GrapherAnalytics } from "../../core/GrapherAnalytics.js"
+import { WorldEntityName } from "../../core/GrapherConstants.js"
+import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants.js"
+import { SelectionArray } from "../../selection/SelectionArray.js"
+import { EntityName } from "../../../coreTable/OwidTableConstants.js"
+import { setSelectedEntityNamesParam } from "../../core/EntityUrlBuilder.js"
+import { getWindowUrl, setWindowUrl } from "../../../clientUtils/urls/Url.js"
 
 enum GlobalEntitySelectionModes {
     none = "none",
