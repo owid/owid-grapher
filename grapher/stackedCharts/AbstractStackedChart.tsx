@@ -131,18 +131,19 @@ export class AbstactStackedChart
 
     base: React.RefObject<SVGGElement> = React.createRef()
     componentDidMount(): void {
-        // Fancy intro animation
-        this.animSelection = select(this.base.current)
-            .selectAll("clipPath > rect")
-            .attr("width", 0)
+        if (!this.manager.disableIntroAnimation) {
+            // Fancy intro animation
+            this.animSelection = select(this.base.current)
+                .selectAll("clipPath > rect")
+                .attr("width", 0)
 
-        this.animSelection
-            .transition()
-            .duration(800)
-            .ease(easeLinear)
-            .attr("width", this.bounds.width)
-            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-
+            this.animSelection
+                .transition()
+                .duration(800)
+                .ease(easeLinear)
+                .attr("width", this.bounds.width)
+                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
+        }
         exposeInstanceOnWindow(this)
     }
 
@@ -177,7 +178,13 @@ export class AbstactStackedChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.xAxisConfig, this)
+        return new AxisConfig(
+            {
+                hideGridlines: true,
+                ...this.manager.xAxisConfig,
+            },
+            this
+        )
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
@@ -187,7 +194,6 @@ export class AbstactStackedChart
         )
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
-        axis.hideGridlines = true
         return axis
     }
 

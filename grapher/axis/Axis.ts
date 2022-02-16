@@ -20,13 +20,7 @@ import {
     VerticalAlign,
 } from "../../clientUtils/owidTypes.js"
 import { TickFormattingOptions } from "../../clientUtils/formatValue.js"
-
-interface Tickmark {
-    value: number
-    priority: number
-    faint?: boolean
-    gridLineOnly?: boolean
-}
+import { Tickmark } from "./AxisConfigInterface.js"
 
 interface TickLabelPlacement {
     value: number
@@ -67,7 +61,6 @@ abstract class AbstractAxis {
     @observable.ref domain: ValueRange
     @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
     @observable hideFractionalTicks = false
-    @observable hideGridlines = false
     @observable.struct range: ValueRange = [0, 0]
     @observable private _scaleType?: ScaleType
     @observable private _label?: string
@@ -90,6 +83,10 @@ abstract class AbstractAxis {
 
     @computed get hideAxis(): boolean {
         return this.config.hideAxis ?? false
+    }
+
+    @computed get hideGridlines(): boolean {
+        return this.config.hideGridlines ?? false
     }
 
     @computed get labelPadding(): number {
@@ -151,7 +148,6 @@ abstract class AbstractAxis {
         this.formatColumn = parentAxis.formatColumn
         this.domain = parentAxis.domain.slice() as ValueRange
         this.hideFractionalTicks = parentAxis.hideFractionalTicks
-        this.hideGridlines = parentAxis.hideGridlines
         this.range = parentAxis.range.slice() as ValueRange
         this._scaleType = parentAxis._scaleType
         this._label = parentAxis._label
@@ -194,7 +190,27 @@ abstract class AbstractAxis {
         const { scaleType, d3_scale } = this
 
         let ticks: Tickmark[]
-        if (scaleType === ScaleType.log) {
+
+        if (this.config.ticks) {
+            // If custom ticks are supplied, use them without any transformations or additions.
+            const [minValue, maxValue] = d3_scale.domain()
+            return (
+                this.config.ticks
+                    // replace ±Infinity with minimum/maximum
+                    .map((tick) => {
+                        if (tick.value === -Infinity)
+                            return { ...tick, value: minValue }
+                        if (tick.value === Infinity)
+                            return { ...tick, value: maxValue }
+                        return tick
+                    })
+                    // filter out custom ticks outside the plottable area
+                    .filter(
+                        (tick) =>
+                            tick.value >= minValue && tick.value <= maxValue
+                    )
+            )
+        } else if (scaleType === ScaleType.log) {
             // Show a bit more ticks for log axes
             const maxLabelledTicks = Math.round(this.totalTicksTarget * 1.25)
             const maxTicks = Math.round(this.totalTicksTarget * 3)

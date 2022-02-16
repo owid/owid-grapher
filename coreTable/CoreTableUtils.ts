@@ -31,6 +31,7 @@ import {
     OwidTableSlugs,
 } from "./OwidTableConstants.js"
 import { ColumnSlug } from "../clientUtils/owidTypes.js"
+import { CoreColumn, TimeColumn } from "./CoreTableColumns.js"
 
 export const columnStoreToRows = (
     columnStore: CoreColumnStore
@@ -520,18 +521,6 @@ export const renameColumnStore = (
     return newStore
 }
 
-export const replaceCells = (
-    columnStore: CoreColumnStore,
-    columnSlugs: ColumnSlug[],
-    replaceFn: (val: CoreValueType) => CoreValueType
-): CoreColumnStore => {
-    const newStore: CoreColumnStore = { ...columnStore }
-    columnSlugs.forEach((slug) => {
-        newStore[slug] = newStore[slug].map(replaceFn)
-    })
-    return newStore
-}
-
 // Returns a Set of random indexes to drop in an array, preserving the order of the array
 export const getDropIndexes = (
     arrayLength: number,
@@ -702,3 +691,6 @@ export const emptyColumnsInFirstRowInDelimited = (str: string): string[] => {
     })
     return emptySlugs
 }
+
+export const getPreposition = (col: TimeColumn | CoreColumn): string =>
+    col instanceof TimeColumn ? col.preposition : "in"

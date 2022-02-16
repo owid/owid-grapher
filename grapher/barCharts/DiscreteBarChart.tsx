@@ -312,8 +312,10 @@ export class DiscreteBarChart
     }
 
     componentDidMount(): void {
-        this.d3Bars().attr("width", 0)
-        this.animateBarWidth()
+        if (!this.manager.disableIntroAnimation) {
+            this.d3Bars().attr("width", 0)
+            this.animateBarWidth()
+        }
         exposeInstanceOnWindow(this)
     }
 
@@ -321,7 +323,7 @@ export class DiscreteBarChart
         // Animating the bar width after a render ensures there's no race condition, where the
         // initial animation (in componentDidMount) did override the now-changed bar width in
         // some cases. Updating the animation with the updated bar widths fixes that.
-        this.animateBarWidth()
+        if (!this.manager.disableIntroAnimation) this.animateBarWidth()
     }
 
     render(): JSX.Element {
@@ -648,7 +650,7 @@ export class DiscreteBarChart
     defaultBaseColorScheme = ColorSchemeName.YlGnBu
     defaultNoDataColor = "#959595"
     transformColor = darkenColorForLine
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     // End of color scale props
 

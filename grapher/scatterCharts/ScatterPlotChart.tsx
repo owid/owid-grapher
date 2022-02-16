@@ -521,6 +521,7 @@ export class ScatterPlotChart
                 sizeDomain={sizeDomain}
                 focusedSeriesNames={focusedEntityNames}
                 hoveredSeriesNames={hoveredSeriesNames}
+                disableIntroAnimation={this.manager.disableIntroAnimation}
                 onMouseOver={this.onScatterMouseOver}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
@@ -628,13 +629,18 @@ export class ScatterPlotChart
         return this.bounds.right - this.sidebarWidth
     }
 
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     @computed get colorScaleColumn(): CoreColumn {
-        // We need to use inputTable in order to get consistent coloring for a variable across
-        // charts, e.g. each continent being assigned to the same color.
-        // inputTable is unfiltered, so it contains every value that exists in the variable.
-        return this.inputTable.get(this.colorColumnSlug)
+        return (
+            // For faceted charts, we have to get the values of inputTable before it's filtered by
+            // the faceting logic.
+            this.manager.colorScaleColumnOverride ??
+            // We need to use inputTable in order to get consistent coloring for a variable across
+            // charts, e.g. each continent being assigned to the same color.
+            // inputTable is unfiltered, so it contains every value that exists in the variable.
+            this.inputTable.get(this.colorColumnSlug)
+        )
     }
 
     @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {

@@ -10,7 +10,7 @@ import {
     deleteRuntimeAndUnchangedProps,
     Persistable,
 } from "../../clientUtils/persistable/Persistable.js"
-import { AxisConfigInterface } from "./AxisConfigInterface.js"
+import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface.js"
 import { ScaleSelectorManager } from "../controls/ScaleSelector.js"
 import { Position } from "../../clientUtils/owidTypes.js"
 
@@ -26,12 +26,14 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref removePointsOutsideDomain?: boolean = undefined
     @observable.ref minSize?: number = undefined
     @observable.ref hideAxis?: boolean = undefined
+    @observable.ref hideGridlines?: boolean = undefined
     @observable.ref labelPadding?: number = undefined
     @observable.ref nice?: boolean = undefined
     @observable.ref maxTicks?: number = undefined
     @observable.ref compactLabels?: boolean = undefined
     @observable.ref scaleType?: ScaleType = ScaleType.linear
     @observable.ref facetDomain?: FacetAxisDomain = undefined
+    @observable.ref ticks?: Tickmark[] = undefined
     @observable.ref label: string = ""
 }
 
@@ -64,6 +66,7 @@ export class AxisConfig
             removePointsOutsideDomain: this.removePointsOutsideDomain,
             minSize: this.minSize,
             hideAxis: this.hideAxis,
+            hideGridlines: this.hideGridlines,
             labelPadding: this.labelPadding,
             nice: this.nice,
             maxTicks: this.maxTicks,
@@ -71,6 +74,7 @@ export class AxisConfig
             scaleType: this.scaleType,
             label: this.label ? this.label : undefined,
             facetDomain: this.facetDomain,
+            ticks: this.ticks,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

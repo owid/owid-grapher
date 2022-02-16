@@ -310,14 +310,18 @@ export class SlopeChart
         return ""
     }
 
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     @computed get colorScaleConfig() {
         return this.manager.colorScale
     }
 
     @computed get colorScaleColumn() {
-        return this.colorColumn
+        return (
+            // For faceted charts, we have to get the values of inputTable before it's filtered by
+            // the faceting logic.
+            this.manager.colorScaleColumnOverride ?? this.colorColumn
+        )
     }
 
     defaultBaseColorScheme = ColorSchemeName.continents
@@ -1014,7 +1018,9 @@ class LabelledSlopes
     }
 
     componentDidMount() {
-        this.playIntroAnimation()
+        if (!this.manager.disableIntroAnimation) {
+            this.playIntroAnimation()
+        }
     }
 
     private playIntroAnimation() {

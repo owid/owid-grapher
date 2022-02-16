@@ -116,3 +116,51 @@ it("a single-value domain plots to lower or upper end of range", () => {
     expect(axis.place(0)).toEqual(0)
     expect(axis.place(1)).toEqual(500)
 })
+
+describe("manual ticks", () => {
+    const defaultConfig: AxisConfigInterface = {
+        ticks: [
+            { value: -1, priority: 1 },
+            { value: -Infinity, priority: 1 },
+            { value: 49.5, priority: 1 },
+            { value: 99, priority: 2 },
+            { value: Infinity, priority: 1 },
+        ],
+    }
+    const defaultAxis = new AxisConfig(defaultConfig, {
+        fontSize: 16,
+    }).toHorizontalAxis()
+    defaultAxis.domain = [0, 100]
+    defaultAxis.range = [0, 300]
+    defaultAxis.hideFractionalTicks = true // should have no effect
+
+    it("hides manual ticks outside the axis domain", () => {
+        expect(
+            defaultAxis.getTickValues().map((tick) => tick.value)
+        ).not.toContain(-1)
+    })
+
+    it("includes manually specified ticks", () => {
+        expect(defaultAxis.getTickValues().map((tick) => tick.value)).toEqual(
+            expect.arrayContaining([49.5, 99])
+        )
+    })
+
+    it("replaces ±infinity with min/max of the data", () => {
+        expect(defaultAxis.getTickValues().map((tick) => tick.value)).toEqual(
+            expect.arrayContaining([0, 100])
+        )
+    })
+
+    it("doesn't generate any automatic ticks", () => {
+        expect(
+            defaultAxis.getTickValues().map((tick) => tick.value)
+        ).toHaveLength(4)
+    })
+
+    it("hides tick labels that overlap", () => {
+        expect(
+            defaultAxis.tickLabels.map((label) => label.value)
+        ).not.toContain(99)
+    })
+})

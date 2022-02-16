@@ -13,7 +13,12 @@ import {
     isNumber,
 } from "../clientUtils/Util.js"
 import { isPresent } from "../clientUtils/isPresent.js"
-import { CoreColumn, ColumnTypeMap, MissingColumn } from "./CoreTableColumns.js"
+import {
+    CoreColumn,
+    ColumnTypeMap,
+    MissingColumn,
+    TimeColumn,
+} from "./CoreTableColumns.js"
 import {
     CoreColumnStore,
     CoreRow,
@@ -56,7 +61,6 @@ import {
     sortColumnStore,
     emptyColumnsInFirstRowInDelimited,
     truncate,
-    replaceCells,
 } from "./CoreTableUtils.js"
 import {
     ErrorValueTypes,
@@ -423,7 +427,7 @@ export class CoreTable<
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
     // But we can have charts with multiple time columns. Ideally each place that needs access to the timeColumn, would get the specific column
     // and not the first time column from the table.
-    @imemo get timeColumn(): CoreColumn {
+    @imemo get timeColumn(): TimeColumn | MissingColumn {
         // "time" is the canonical time column slug.
         // See LegacyToOwidTable where this column is injected for all Graphers.
         const maybeTimeColumn = this.get(OwidTableSlugs.time)
@@ -432,10 +436,9 @@ export class CoreTable<
         // If a valid "time" column doesn't exist, find _some_ time column to use.
         // This is somewhat unreliable and currently only used to infer the time
         // column on explorers.
-        return (
-            this.columnsAsArray.find(
-                (col) => col instanceof ColumnTypeMap.Day
-            ) ??
+        return (this.columnsAsArray.find(
+            (col) => col instanceof ColumnTypeMap.Day
+        ) ??
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Date
             ) ??
@@ -445,8 +448,7 @@ export class CoreTable<
             this.columnsAsArray.find(
                 (col) => col instanceof ColumnTypeMap.Quarter
             ) ??
-            maybeTimeColumn
-        )
+            maybeTimeColumn) as TimeColumn | MissingColumn
     }
 
     // todo: should be on owidtable
@@ -1108,29 +1110,31 @@ export class CoreTable<
         )
     }
 
-    replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []): this {
+    replaceCells(
+        columnSlugs: ColumnSlug[],
+        replaceFn: (val: CoreValueType) => CoreValueType
+    ): this {
+        const newStore: CoreColumnStore = { ...this.columnStore }
+        columnSlugs.forEach((slug) => {
+            newStore[slug] = newStore[slug].map(replaceFn)
+        })
         return this.transform(
-            replaceCells(this.columnStore, columnSlugs, (val) =>
-                val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
-            ),
+            newStore,
             this.defs,
-            `Replaced negative or zero cells across columns ${columnSlugs.join(
-                " and "
-            )}`,
+            `Replaced all cells across columns ${columnSlugs.join(" and ")}`,
             TransformType.UpdateRows
         )
     }
 
+    replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []): this {
+        return this.replaceCells(columnSlugs, (val) =>
+            val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
+        )
+    }
+
     replaceNonNumericCellsWithErrorValues(columnSlugs: ColumnSlug[]): this {
-        return this.transform(
-            replaceCells(this.columnStore, columnSlugs, (val) =>
-                !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
-            ),
-            this.defs,
-            `Replaced non-numeric cells across columns ${columnSlugs.join(
-                ", "
-            )}`,
-            TransformType.UpdateRows
+        return this.replaceCells(columnSlugs, (val) =>
+            !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
         )
     }
 

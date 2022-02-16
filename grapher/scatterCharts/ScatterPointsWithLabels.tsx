@@ -520,7 +520,9 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     }
 
     componentDidMount(): void {
-        this.runAnimation()
+        if (!this.props.disableIntroAnimation) {
+            this.runAnimation()
+        }
     }
 
     componentWillUnmount(): void {

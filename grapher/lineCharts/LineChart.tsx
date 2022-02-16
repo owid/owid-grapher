@@ -392,9 +392,12 @@ export class LineChart
     }
 
     @computed private get lineStrokeWidth(): number {
-        return this.manager.lineStrokeWidth ?? this.hasColorScale
-            ? VARIABLE_COLOR_STROKE_WIDTH
-            : DEFAULT_STROKE_WIDTH
+        return (
+            this.manager.lineStrokeWidth ??
+            (this.hasColorScale
+                ? VARIABLE_COLOR_STROKE_WIDTH
+                : DEFAULT_STROKE_WIDTH)
+        )
     }
 
     @computed private get lineOutlineWidth(): number {
@@ -637,7 +640,9 @@ export class LineChart
         unknown
     >
     componentDidMount(): void {
-        if (!this.manager.isExportingtoSvgOrPng) this.runFancyIntroAnimation()
+        if (!this.manager.disableIntroAnimation) {
+            this.runFancyIntroAnimation()
+        }
         exposeInstanceOnWindow(this)
     }
 
@@ -737,6 +742,13 @@ export class LineChart
                 </g>
                 {hoverX !== undefined && (
                     <g className="hoverIndicator">
+                        <line
+                            x1={horizontalAxis.place(hoverX)}
+                            y1={verticalAxis.range[0]}
+                            x2={horizontalAxis.place(hoverX)}
+                            y2={verticalAxis.range[1]}
+                            stroke="rgba(180,180,180,.4)"
+                        />
                         {this.series.map((series) => {
                             const value = series.points.find(
                                 (point) => point.x === hoverX
@@ -749,7 +761,7 @@ export class LineChart
                                     key={getSeriesKey(series)}
                                     cx={horizontalAxis.place(value.x)}
                                     cy={verticalAxis.place(value.y)}
-                                    r={4}
+                                    r={this.lineStrokeWidth / 2 + 3.5}
                                     fill={
                                         this.hasColorScale
                                             ? this.getColorScaleColor(
@@ -757,16 +769,11 @@ export class LineChart
                                               )
                                             : series.color
                                     }
+                                    stroke="#fff"
+                                    strokeWidth={0.5}
                                 />
                             )
                         })}
-                        <line
-                            x1={horizontalAxis.place(hoverX)}
-                            y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(hoverX)}
-                            y2={verticalAxis.range[1]}
-                            stroke="rgba(180,180,180,.4)"
-                        />
                     </g>
                 )}
 
@@ -837,7 +844,7 @@ export class LineChart
     defaultBaseColorScheme = ColorSchemeName.YlGnBu
     defaultNoDataColor = "#959595"
     transformColor = darkenColorForLine
-    colorScale = new ColorScale(this)
+    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     private getColorScaleColor(value: CoreValueType | undefined): Color {
         return this.colorScale.getColor(value) ?? DEFAULT_LINE_COLOR
@@ -1113,7 +1120,13 @@ export class LineChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.xAxisConfig, this)
+        return new AxisConfig(
+            {
+                hideGridlines: true,
+                ...this.manager.xAxisConfig,
+            },
+            this
+        )
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
@@ -1124,7 +1137,6 @@ export class LineChart
         axis.scaleType = ScaleType.linear
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
-        axis.hideGridlines = true
         return axis
     }
 

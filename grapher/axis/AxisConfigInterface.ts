@@ -1,6 +1,13 @@
 import { Position } from "../../clientUtils/owidTypes.js"
 import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants.js"
 
+export interface Tickmark {
+    value: number
+    priority: number
+    faint?: boolean
+    gridLineOnly?: boolean
+}
+
 // Represents the actual entered configuration state in the editor
 export interface AxisConfigInterface {
     scaleType?: ScaleType
@@ -10,6 +17,9 @@ export interface AxisConfigInterface {
     canChangeScaleType?: boolean
     removePointsOutsideDomain?: boolean
     hideAxis?: boolean
+
+    /** Hide the faint lines that are shown inside the plot (axis ticks may still be visible). */
+    hideGridlines?: boolean
 
     /**
      * The *preferred* orientation of the axis.
@@ -51,4 +61,11 @@ export interface AxisConfigInterface {
      * Whether to use short labels, e.g. "5k" instead of "5,000".
      */
     compactLabels?: boolean
+
+    /**
+     * Custom ticks to use. Any automatic ticks are omitted.
+     * Note that the ticks will be omitted if they are outside the axis domain.
+     * To control the domain, use `min` and `max`.
+     */
+    ticks?: Tickmark[]
 }

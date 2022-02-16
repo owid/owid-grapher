@@ -642,8 +642,10 @@ class EntityCodeColumn extends CategoricalColumn {}
 class EntityNameColumn extends CategoricalColumn {}
 
 // todo: cleanup time columns. current schema is a little incorrect.
-abstract class TimeColumn extends AbstractCoreColumn<number> {
+export abstract class TimeColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
+
+    abstract preposition: string
 
     parse(val: any): number | ErrorValue {
         return parseInt(val)
@@ -651,6 +653,8 @@ abstract class TimeColumn extends AbstractCoreColumn<number> {
 }
 
 class YearColumn extends TimeColumn {
+    preposition = "in"
+
     formatValue(value: number): string {
         // Include BCE
         return formatYear(value)
@@ -658,6 +662,8 @@ class YearColumn extends TimeColumn {
 }
 
 class DayColumn extends TimeColumn {
+    preposition = "on"
+
     formatValue(value: number): string {
         return formatDay(value)
     }
@@ -689,6 +695,8 @@ class DateColumn extends DayColumn {
 }
 
 class QuarterColumn extends TimeColumn {
+    preposition = "in"
+
     private static regEx = /^([+-]?\d+)-Q([1-4])$/
 
     parse(val: any): number | ErrorValue {

@@ -209,15 +209,20 @@ export class MapChart
         return ""
     }
 
-    @computed get mapColumn(): CoreColumn {
-        return this.transformedTable.get(this.mapColumnSlug)
-    }
-
     @computed get mapColumnSlug(): string {
         return (
             this.manager.mapColumnSlug ??
             autoDetectYColumnSlugs(this.manager)[0]!
         )
+    }
+
+    @computed private get mapColumn(): CoreColumn {
+        return this.transformedTable.get(this.mapColumnSlug)
+    }
+
+    // The map column without tolerance and timeline filtering applied
+    @computed private get mapColumnUntransformed(): CoreColumn {
+        return this.dropNonMapEntities(this.inputTable).get(this.mapColumnSlug)
     }
 
     @computed private get targetTime(): number | undefined {
@@ -361,9 +366,9 @@ export class MapChart
     }
 
     @computed get colorScaleColumn(): CoreColumn {
-        // Use the table before transform to build the legend.
-        // Otherwise the legend jumps around as you slide the timeline handle.
-        return this.dropNonMapEntities(this.inputTable).get(this.mapColumnSlug)
+        // Use the table before any transforms to collect all possible values over time.
+        // Otherwise the legend changes as you slide the timeline handle.
+        return this.mapColumnUntransformed
     }
 
     colorScale = new ColorScale(this)
@@ -379,21 +384,23 @@ export class MapChart
     hasNoDataBin = true
 
     componentDidMount(): void {
-        select(this.base.current)
-            .selectAll(`.${CHOROPLETH_MAP_CLASSNAME} path`)
-            .attr("data-fill", function () {
-                return (this as SVGPathElement).getAttribute("fill")
-            })
-            .attr("fill", this.colorScale.noDataColor)
-            .transition()
-            .duration(500)
-            .ease(easeCubic)
-            .attr("fill", function () {
-                return (this as SVGPathElement).getAttribute("data-fill")
-            })
-            .attr("data-fill", function () {
-                return (this as SVGPathElement).getAttribute("fill")
-            })
+        if (!this.manager.disableIntroAnimation) {
+            select(this.base.current)
+                .selectAll(`.${CHOROPLETH_MAP_CLASSNAME} path`)
+                .attr("data-fill", function () {
+                    return (this as SVGPathElement).getAttribute("fill")
+                })
+                .attr("fill", this.colorScale.noDataColor)
+                .transition()
+                .duration(500)
+                .ease(easeCubic)
+                .attr("fill", function () {
+                    return (this as SVGPathElement).getAttribute("data-fill")
+                })
+                .attr("data-fill", function () {
+                    return (this as SVGPathElement).getAttribute("fill")
+                })
+        }
         exposeInstanceOnWindow(this)
     }
 
