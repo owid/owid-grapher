@@ -656,14 +656,20 @@ export function renderBuilder(props: BuilderProps) {
         </div>
     )
 }
-export function getFinalConfigLayerForVariable(id: number) {
-    return {
-        version: 1,
-        dimensions: [{ property: "y", variableId: id }],
-        map: {
-            variableId: id,
-        },
-    }
+export function getFinalConfigLayerForVariable(
+    id: number,
+    source: GrapherConfigGridEditorSource
+) {
+    return match(source)
+        .with(GrapherConfigGridEditorSource.SourceVariableAnnotation, () => ({
+            version: 1,
+            dimensions: [{ property: "y", variableId: id }],
+            map: {
+                variableId: id,
+            },
+        }))
+        .with(GrapherConfigGridEditorSource.SourceCharts, () => ({}))
+        .exhaustive()
 }
 
 export interface GrapherConfigGridEditorProps {

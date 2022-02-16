@@ -296,7 +296,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         // to get a config that actually works in all cases
         const config = richDataRows[row].config
         const finalConfigLayer = getFinalConfigLayerForVariable(
-            richDataRows[row].id
+            richDataRows[row].id,
+            this.source
         )
         const mergedConfig = merge(config, finalConfigLayer)
         this.loadGrapherJson(mergedConfig)
