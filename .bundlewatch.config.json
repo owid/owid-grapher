@@ -2,15 +2,15 @@
     "files": [
         {
             "path": "./itsJustJavascript/webpack/commons.js",
-            "maxSize": "900 KB"
+            "maxSize": "750 KB"
         },
         {
             "path": "./itsJustJavascript/webpack/vendors.js",
-            "maxSize": "900 KB"
+            "maxSize": "750 KB"
         },
         {
             "path": "./itsJustJavascript/webpack/owid.js",
-            "maxSize": "400 KB"
+            "maxSize": "450 KB"
         }
     ],
     "defaultCompression": "none"
