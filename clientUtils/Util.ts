@@ -149,14 +149,29 @@ type OptionalKeysOf<T> = Exclude<
     undefined
 >
 
-type PartialWithoutUndefinedKey<T> = {
+type AllowUndefinedValues<T> = {
     [K in keyof T]: T[K] | undefined
 }
 
+/**
+ * This generic makes every (top-level) optional property in an interface required,
+ * but with `undefined` as an allowed value.
+ *
+ * For example:
+ *     AllKeysRequired<{
+ *         a: number
+ *         b?: number
+ *     }>
+ * becomes:
+ *     {
+ *         a: number
+ *         b: number | undefined
+ *     }
+ */
 // This was tricky to construct.
 // It seems like the initial, elegant approach is:
 //
-// export type NoUndefinedKeys<T> = {
+// export type AllKeysRequired<T> = {
 //     [K in keyof T]-?: T extends Record<K, T[K]> ? T[K] : T[K] | undefined
 // }
 //
@@ -164,7 +179,7 @@ type PartialWithoutUndefinedKey<T> = {
 // make the key required with `-?`. So we have this ugly workaround.
 //
 // -@danielgavrilov, 2022-02-15
-export type NoUndefinedKeys<T> = PartialWithoutUndefinedKey<
+export type AllKeysRequired<T> = AllowUndefinedValues<
     Required<Pick<T, OptionalKeysOf<T>>>
 > &
     Exclude<T, OptionalKeysOf<T>>

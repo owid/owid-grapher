@@ -22,7 +22,7 @@ import {
     darkenColorForText,
 } from "../color/ColorUtils.js"
 import { getPreposition } from "../../coreTable/CoreTableUtils.js"
-import { isNumber, NoUndefinedKeys } from "../../clientUtils/Util.js"
+import { isNumber, AllKeysRequired } from "../../clientUtils/Util.js"
 
 interface MapTooltipProps {
     entityName: EntityName
@@ -89,7 +89,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         // Make sure all ColorScaleManager props are included.
         // We can't ...rest here because I think mobx computeds aren't
         // enumerable or something.
-        const newManager: NoUndefinedKeys<ColorScaleManager> = {
+        const newManager: AllKeysRequired<ColorScaleManager> = {
             colorScaleConfig: oldManager.colorScaleConfig,
             hasNoDataBin: oldManager.hasNoDataBin,
             defaultNoDataColor: oldManager.defaultNoDataColor,
@@ -105,7 +105,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         // Make sure all ColorScaleManager props are included.
         // We can't ...rest here because I think mobx computeds aren't
         // enumerable or something.
-        const newManager: NoUndefinedKeys<ColorScaleManager> = {
+        const newManager: AllKeysRequired<ColorScaleManager> = {
             colorScaleConfig: oldManager.colorScaleConfig,
             hasNoDataBin: oldManager.hasNoDataBin,
             defaultNoDataColor: oldManager.defaultNoDataColor,
