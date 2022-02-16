@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import ReactDOM from "react-dom"
 import { clone } from "../clientUtils/Util.js"
 import { computed, IReactionDisposer, observable } from "mobx"

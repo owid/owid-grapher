@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
 import { observable, computed, action } from "mobx"
 import {

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { webpackUrl } from "../site/webpackUtils.js"
 
 export const Head = (props: {

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { computed, action } from "mobx"
 import Select from "react-select"
 import { ColorSchemes } from "../grapher/color/ColorSchemes.js"

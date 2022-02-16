@@ -10,8 +10,8 @@ import { CovidPage } from "../site/CovidPage.js"
 import { SearchPage } from "../site/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
-import * as React from "react"
-import * as ReactDOMServer from "react-dom/server.js"
+import React from "react"
+import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
 import {
     extractFormattingOptions,

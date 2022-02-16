@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import simpleGit from "simple-git"
 import express, { NextFunction } from "express"
 require("express-async-errors") // todo: why the require?

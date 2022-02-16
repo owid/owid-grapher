@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { clone } from "../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"

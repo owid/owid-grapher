@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { MapTooltip } from "./MapTooltip.js"
 import { Grapher } from "../core/Grapher.js"
 import { legacyMapGrapher } from "./MapChart.sample.js"

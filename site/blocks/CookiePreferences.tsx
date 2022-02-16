@@ -1,6 +1,6 @@
 import moment from "moment"
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import React from "react"
+import ReactDOM from "react-dom"
 import {
     Action,
     DATE_FORMAT,

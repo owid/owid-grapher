@@ -3,7 +3,7 @@ import { Request, Response, Router } from "express"
 import * as express from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
-import * as React from "react"
+import React from "react"
 import { getConnection } from "typeorm"
 import {
     expectInt,

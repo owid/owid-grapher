@@ -1,6 +1,6 @@
 import { line as d3_line, curveLinear } from "d3-shape"
 import { guid } from "../../clientUtils/Util.js"
-import * as React from "react"
+import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis.js"

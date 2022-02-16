@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { DataTable, DataTableManager } from "./DataTable.js"
 import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"
 import {

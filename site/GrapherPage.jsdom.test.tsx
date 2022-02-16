@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import * as React from "react"
+import React from "react"
 import { GrapherPage } from "./GrapherPage.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"

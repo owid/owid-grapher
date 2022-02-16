@@ -1,6 +1,6 @@
-import * as React from "react"
+import React from "react"
 import { useState, useEffect, useRef } from "react"
-import * as ReactDOM from "react-dom"
+import ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars.js"
 import { useTriggerWhenClickOutside } from "./hooks.js"

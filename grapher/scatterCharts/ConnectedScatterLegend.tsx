@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { computed } from "mobx"
 import { Triangle } from "./Triangle.js"
 import { TextWrap } from "../text/TextWrap.js"

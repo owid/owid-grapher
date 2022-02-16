@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { format } from "timeago.js"
 import * as lodash from "lodash"

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { computed } from "mobx"
 import { OWID_LOGO_SVG, CORE_LOGO_SVG, GV_LOGO_SVG } from "./LogosSVG.js"
 

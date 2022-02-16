@@ -1,4 +1,4 @@
-import * as ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
 import urljoin from "url-join"
 import { ADMIN_BASE_URL } from "../settings/serverSettings.js"

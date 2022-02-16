@@ -1,5 +1,5 @@
 import { WORDPRESS_URL } from "../settings/serverSettings.js"
-import * as React from "react"
+import React from "react"
 import { Head } from "./Head.js"
 import { CitationMeta } from "./CitationMeta.js"
 import { SiteHeader } from "./SiteHeader.js"

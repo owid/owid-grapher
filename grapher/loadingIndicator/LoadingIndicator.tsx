@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { Bounds } from "../../clientUtils/Bounds.js"
 
 const DEFAULT_COLOR = "#333"

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { observable, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { SearchResults } from "./SearchResults.js"

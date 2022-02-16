@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { Chart } from "../db/model/Chart.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { GrapherPage } from "../site/GrapherPage.js"

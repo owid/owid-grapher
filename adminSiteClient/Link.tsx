@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { Link as ReactLink } from "react-router-dom"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 

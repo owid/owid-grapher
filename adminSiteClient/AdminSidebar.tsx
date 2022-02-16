@@ -1,5 +1,5 @@
 import { Link } from "./Link.js"
-import * as React from "react"
+import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar.js"
 import { faFile } from "@fortawesome/free-solid-svg-icons/faFile.js"

@@ -1,5 +1,5 @@
 import { linkify } from "../../clientUtils/Util.js"
-import * as React from "react"
+import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"

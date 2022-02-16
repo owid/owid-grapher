@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
 import { action } from "mobx"
 import { observer } from "mobx-react"

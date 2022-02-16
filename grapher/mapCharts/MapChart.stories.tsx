@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { MapChart } from "./MapChart.js"
 import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"
 

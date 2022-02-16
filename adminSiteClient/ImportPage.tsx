@@ -1,6 +1,6 @@
 // WIP
 
-import * as React from "react"
+import React from "react"
 import { isEmpty, difference, clone, uniq } from "../clientUtils/Util.js"
 import {
     observable,

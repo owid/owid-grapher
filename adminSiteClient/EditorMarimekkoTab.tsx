@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { debounce, excludeUndefined } from "../clientUtils/Util.js"
 import { computed, action, IReactionDisposer, reaction, observable } from "mobx"
 import { observer } from "mobx-react"

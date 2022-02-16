@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"

@@ -5,7 +5,7 @@ import {
 } from "../../coreTable/OwidTableSynthesizers.js"
 import { ScaleType } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
-import * as React from "react"
+import React from "react"
 import { ScatterPlotChart } from "./ScatterPlotChart.js"
 import { ScatterPlotManager } from "./ScatterPlotChartConstants.js"
 

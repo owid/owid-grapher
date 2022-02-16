@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { NoDataModal } from "./NoDataModal.js"
 
 export default {

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { scaleThreshold, scaleLinear, ScaleLinear } from "d3-scale"
 import { interpolateLab } from "d3-interpolate"
 import classnames from "classnames"

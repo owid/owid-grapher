@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown.js"
 import { TocHeading } from "../clientUtils/owidTypes.js"

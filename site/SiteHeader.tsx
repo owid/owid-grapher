@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch.js"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars.js"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText.js"

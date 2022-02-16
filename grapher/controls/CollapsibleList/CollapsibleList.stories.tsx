@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { CollapsibleList, MoreButton } from "./CollapsibleList.js"
 import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput.js"
 

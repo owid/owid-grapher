@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { TimelineComponent } from "./TimelineComponent.js"
 import { action, computed, observable } from "mobx"
 import { range } from "../../clientUtils/Util.js"

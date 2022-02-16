@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { omit } from "../../clientUtils/Util.js"
 

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import * as lodash from "lodash"
 import { groupBy, isString, sortBy } from "../clientUtils/Util.js"
 import {

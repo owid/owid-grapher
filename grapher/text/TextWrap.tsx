@@ -1,7 +1,7 @@
 import { isEmpty, max, stripHTML, linkify } from "../../clientUtils/Util.js"
 import { computed } from "mobx"
 import { Bounds } from "../../clientUtils/Bounds.js"
-import * as React from "react"
+import React from "react"
 
 declare type FontSize = number
 

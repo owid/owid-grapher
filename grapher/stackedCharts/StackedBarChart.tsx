@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { uniq, makeSafeForCSS } from "../../clientUtils/Util.js"

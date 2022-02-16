@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import * as React from "react"
+import React from "react"
 
 import { DataTable } from "./DataTable.js"
 import { Grapher } from "../core/Grapher.js"

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { useState } from "react"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"

@@ -1,5 +1,5 @@
-import * as React from "react"
-import * as ReactDOMServer from "react-dom/server.js"
+import React from "react"
+import ReactDOMServer from "react-dom/server.js"
 import {
     observable,
     computed,
@@ -108,7 +108,7 @@ import {
 import { TooltipView } from "../tooltip/Tooltip.js"
 import { EntitySelectorModal } from "../controls/EntitySelectorModal.js"
 import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab.js"
-import * as ReactDOM from "react-dom"
+import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab.js"

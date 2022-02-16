@@ -4,7 +4,7 @@ import {
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
-import * as React from "react"
+import React from "react"
 import { StackedAreaChart } from "./StackedAreaChart.js"
 
 export default {

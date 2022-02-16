@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { Modal } from "./Forms.js"
 import { faLink } from "@fortawesome/free-solid-svg-icons/faLink.js"
 import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink.js"

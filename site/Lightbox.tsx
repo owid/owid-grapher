@@ -1,5 +1,5 @@
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import React from "react"
+import ReactDOM from "react-dom"
 import { useState, useRef, useEffect } from "react"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
 import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus.js"

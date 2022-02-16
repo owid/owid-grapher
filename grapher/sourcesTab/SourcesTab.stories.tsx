@@ -1,5 +1,5 @@
 import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"
-import * as React from "react"
+import React from "react"
 import { SourcesTab } from "./SourcesTab.js"
 
 export default {

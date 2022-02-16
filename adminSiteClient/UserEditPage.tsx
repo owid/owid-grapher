@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
 import { BindString, Toggle } from "./Forms.js"

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { Admin } from "./Admin.js"
 import { ChartEditorPage } from "./ChartEditorPage.js"
 import { action } from "mobx"

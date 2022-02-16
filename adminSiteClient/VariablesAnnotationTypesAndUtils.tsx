@@ -8,7 +8,7 @@ import {
     StringContainsOperation,
     StringOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
-import * as React from "react"
+import React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types/index.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 

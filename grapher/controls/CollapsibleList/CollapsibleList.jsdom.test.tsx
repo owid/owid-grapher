@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import * as React from "react"
+import React from "react"
 import { CollapsibleList, numItemsVisible } from "./CollapsibleList.js"
 import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput.js"
 

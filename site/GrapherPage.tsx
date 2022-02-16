@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import urljoin from "url-join"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { SiteHeader } from "./SiteHeader.js"

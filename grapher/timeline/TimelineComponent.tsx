@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { select } from "d3-selection"
 import { getRelativeMouse, isMobile, debounce } from "../../clientUtils/Util.js"
 import { Bounds } from "../../clientUtils/Bounds.js"

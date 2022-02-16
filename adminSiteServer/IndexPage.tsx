@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { ENV, GITHUB_USERNAME } from "../settings/serverSettings.js"
 import { webpackUrl } from "../site/webpackUtils.js"
 

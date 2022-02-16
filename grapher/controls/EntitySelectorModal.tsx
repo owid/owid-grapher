@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 import { uniqBy, isTouchDevice, sortBy } from "../../clientUtils/Util.js"

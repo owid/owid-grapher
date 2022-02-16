@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import { sum, max } from "../../clientUtils/Util.js"
 import { computed } from "mobx"
 import { observer } from "mobx-react"

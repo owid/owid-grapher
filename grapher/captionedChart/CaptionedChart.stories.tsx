@@ -6,7 +6,7 @@ import {
     SeriesStrategy,
 } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
-import * as React from "react"
+import React from "react"
 import {
     CaptionedChart,
     CaptionedChartManager,
