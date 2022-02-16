@@ -70,16 +70,16 @@ import {
     PAGEING_SIZE,
     Tabs,
     ALL_TABS,
-    HIDDEN_COLUMNS,
+    getHiddenColumns,
     ColumnSet,
     FetchVariablesParameters,
     fetchVariablesParametersToQueryParametersString,
     IconToggleComponent,
     searchFieldStringToFilterOperations,
     getItemStyle,
-    columnSets,
+    getColumnSet,
     isConfigColumn,
-    readOnlyColumnNamesFields,
+    getReadonlyColumns,
     filterTreeToSExpression,
     FilterPanelState,
     filterPanelInitialConfig,
@@ -106,7 +106,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     numTotalRows: number | undefined = undefined
     selectedRow: number | undefined = undefined
     @observable activeTab = Tabs.FilterTab
-    @observable currentColumnSet: ColumnSet = columnSets[0]
+    @observable currentColumnSet: ColumnSet
     @observable columnFilter: string = ""
 
     @observable.ref columnSelection: ColumnReorderItem[] = []
@@ -147,6 +147,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)
         this.source = props.source
+        this.currentColumnSet = getColumnSet(props.source)[0]
     }
 
     /** Computed property that combines all relevant filter, paging and offset
@@ -163,28 +164,35 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             filterSExpression,
         } = this
         const context = getSExpressionContext(this.source)
+        const variableAnnotationsOnlyFilters =
+            this.source ===
+            GrapherConfigGridEditorSource.SourceVariableAnnotation
+                ? [
+                      searchFieldStringToFilterOperations(
+                          variableNameFilter ?? "",
+                          new SqlColumnName(
+                              WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
+                              context
+                          )
+                      ),
+                      searchFieldStringToFilterOperations(
+                          datasetNameFilter ?? "",
+                          new SqlColumnName(
+                              WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
+                              context
+                          )
+                      ),
+                      searchFieldStringToFilterOperations(
+                          namespaceNameFilter ?? "",
+                          new SqlColumnName(
+                              WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
+                              context
+                          )
+                      ),
+                  ]
+                : []
         const filterOperations = excludeUndefined([
-            searchFieldStringToFilterOperations(
-                variableNameFilter ?? "",
-                new SqlColumnName(
-                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
-                    context
-                )
-            ),
-            searchFieldStringToFilterOperations(
-                datasetNameFilter ?? "",
-                new SqlColumnName(
-                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
-                    context
-                )
-            ),
-            searchFieldStringToFilterOperations(
-                namespaceNameFilter ?? "",
-                new SqlColumnName(
-                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
-                    context
-                )
-            ),
+            ...variableAnnotationsOnlyFilters,
             filterSExpression,
         ])
         const filterQuery =
@@ -407,6 +415,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { richDataRows, fieldDescriptions, defaultValues } = this
         if (richDataRows === undefined || fieldDescriptions === undefined)
             return undefined
+        const readOnlyColumns = getReadonlyColumns(this.source)
         return this.richDataRows?.map((row) => {
             // for every field description try to get the value at this fields json pointer location
             // we cloneDeep it so that the value is independent in any case, even array or (in the future) objects
@@ -427,9 +436,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 )
                 .filter(([, val]) => !isNil(val))
             const fields = fromPairs(fieldsArray as any)
-            const readOnlyColumnValues = [
-                ...readOnlyColumnNamesFields.values(),
-            ].map((field) => [field.key, (row as any)[field.key]])
+            const readOnlyColumnValues = [...readOnlyColumns.values()].map(
+                (field) => [field.key, (row as any)[field.key]]
+            )
             const readOnlyValuesObject =
                 Object.fromEntries(readOnlyColumnValues)
             return {
@@ -481,6 +490,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         if (fieldDescriptions === undefined || columnSelection.length === 0)
             return []
         else {
+            const readOnlyColumns = getReadonlyColumns(this.source)
             const fieldDescriptionsMap = new Map(
                 fieldDescriptions.map((fieldDesc) => [
                     fieldDesc.pointer,
@@ -499,9 +509,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             fieldDesc
                         )
                 } else {
-                    const readonlyField = readOnlyColumnNamesFields.get(
-                        reorderItem.key
-                    )
+                    const readonlyField = readOnlyColumns.get(reorderItem.key)
                     if (readonlyField === undefined) {
                         undefinedColumns.push(reorderItem)
                         return undefined
@@ -744,17 +752,19 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         currentColumnSet: ColumnSet
     ) {
         if (fieldDescriptions === undefined) return
+        const readOnlyColumns = getReadonlyColumns(this.source)
+        const hiddenColumns = getHiddenColumns(this.source)
         // Now we need to construct the initial order and visibility state of all ColumnReorderItems
         // First construct them from the fieldDescriptions (from the schema) and the hardcoded readonly column names
         const fieldDescReorderItems: ColumnReorderItem[] = fieldDescriptions
-            .filter((fieldDesc) => !HIDDEN_COLUMNS.has(fieldDesc.pointer))
+            .filter((fieldDesc) => !hiddenColumns.has(fieldDesc.pointer))
             .map((item) => ({
                 key: item.pointer,
                 visible: false,
                 description: item.description,
             }))
         const readonlyReorderItems: ColumnReorderItem[] = [
-            ...readOnlyColumnNamesFields.values(),
+            ...readOnlyColumns.values(),
         ].map(({ label, key }) => ({
             key: key,
             visible: false,
@@ -1001,6 +1011,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @action.bound
     setCurrentColumnSet(label: string) {
+        const columnSets = getColumnSet(this.source)
         this.currentColumnSet =
             columnSets.find((item) => item.label === label) ?? columnSets[0]
         this.initializeColumnSelection(
@@ -1016,6 +1027,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     renderColumnsTab(): JSX.Element {
         const { columnSelection, currentColumnSet, columnFilter } = this
+        const columnSets = getColumnSet(this.source)
         const filteredColumnSelection = columnFilter
             ? columnSelection.filter((column) =>
                   column.key.toLowerCase().includes(columnFilter.toLowerCase())
@@ -1155,11 +1167,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @computed get filterSExpression(): Operation | undefined {
         const { filterState } = this
+        const readOnlyColumns = getReadonlyColumns(this.source)
         if (filterState) {
             const tree = QbUtils.getTree(filterState.tree)
             const sExpression = filterTreeToSExpression(
                 tree,
-                getSExpressionContext(this.source)
+                getSExpressionContext(this.source),
+                readOnlyColumns
             )
 
             return sExpression
@@ -1177,6 +1191,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const fieldDescriptionMap = new Map(
             fieldDescriptions.map((fd) => [fd.pointer, fd])
         )
+        const readOnlyColumns = getReadonlyColumns(this.source)
         const fields = excludeUndefined(
             columnSelection.map((column) => {
                 if (isConfigColumn(column.key)) {
@@ -1185,7 +1200,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     )
                 } else {
                     return simpleColumnToFilterPanelFieldConfig(
-                        readOnlyColumnNamesFields.get(column.key)!
+                        readOnlyColumns.get(column.key)!
                     )
                 }
             })
