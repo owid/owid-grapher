@@ -19,7 +19,6 @@ import { LineChartManager } from "../lineCharts/LineChartConstants.js"
 import {
     darkenColorForHighContrastText,
     darkenColorForLine,
-    darkenColorForText,
 } from "../color/ColorUtils.js"
 import { getPreposition } from "../../coreTable/CoreTableUtils.js"
 import { isNumber, AllKeysRequired } from "../../clientUtils/Util.js"
@@ -100,22 +99,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return new ColorScale(newManager)
     }
 
-    @computed private get textColorScale(): ColorScale {
-        const oldManager = this.props.colorScaleManager
-        // Make sure all ColorScaleManager props are included.
-        // We can't ...rest here because I think mobx computeds aren't
-        // enumerable or something.
-        const newManager: AllKeysRequired<ColorScaleManager> = {
-            colorScaleConfig: oldManager.colorScaleConfig,
-            hasNoDataBin: oldManager.hasNoDataBin,
-            defaultNoDataColor: oldManager.defaultNoDataColor,
-            defaultBaseColorScheme: oldManager.defaultBaseColorScheme,
-            colorScaleColumn: oldManager.colorScaleColumn,
-            transformColor: darkenColorForText,
-        }
-        return new ColorScale(newManager)
-    }
-
     @computed private get showSparkline(): boolean {
         return this.hasTimeSeriesData
     }
@@ -191,7 +174,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     render(): JSX.Element {
-        const { tooltipTarget, mapTable, datum, textColorScale } = this
+        const { tooltipTarget, mapTable, datum, lineColorScale } = this
         const { isEntityClickable, targetTime, manager } = this.props
 
         // Only LineChart and ScatterPlot allow `mapIsClickable`
@@ -211,7 +194,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 ? timeColumn.formatValue(datum?.time)
                 : datum?.time.toString() ?? ""
         const valueColor: string | undefined = darkenColorForHighContrastText(
-            textColorScale?.getColor(datum?.value) ?? "#333"
+            lineColorScale?.getColor(datum?.value) ?? "#333"
         )
 
         return (
