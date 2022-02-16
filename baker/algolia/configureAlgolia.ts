@@ -154,4 +154,4 @@ export const configureAlgolia = async () => {
     }
 }
 
-if (require.main === module) configureAlgolia()
+configureAlgolia()
