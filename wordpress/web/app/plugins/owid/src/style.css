@@ -18,3 +18,9 @@
 .owid-publication-context .components-notice {
     margin: 0 0 1rem;
 }
+
+div[data-type="owid/prominent-link"] p,
+div[data-type="owid/prominent-link"]
+    .block-editor-default-block-appender__content {
+    margin: 0;
+}

@@ -1,6 +1,10 @@
 import * as db from "../db/db"
 import * as wpdb from "../db/wpdb"
 import { getCountryDetectionRedirects } from "../clientUtils/countries"
+import { memoize } from "../clientUtils/Util"
+import { isCanonicalInternalUrl } from "./formatting"
+import { resolveExplorerRedirect } from "./replaceExplorerRedirects"
+import { Url } from "../clientUtils/urls/Url"
 
 export const getRedirects = async () => {
     const redirects = [
@@ -83,4 +87,90 @@ export const getRedirects = async () => {
     }
 
     return redirects
+}
+
+export const getGrapherAndWordpressRedirectsMap = memoize(
+    async (): Promise<Map<string, string>> => {
+        // source: pathnames only (e.g. /transport)
+        // target: pathnames with or without origins (e.g. /transport-new or https://ourworldindata.org/transport-new)
+        const redirects = new Map()
+
+        // todo(refactor): export as function to reuse in getRedirects?
+        const chartRedirectRows = await db.queryMysql(`
+        SELECT chart_slug_redirects.slug, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
+        FROM chart_slug_redirects INNER JOIN charts ON charts.id=chart_id
+    `)
+
+        // todo(refactor) : export as function to reuse in getRedirects?
+        const wordpressRedirectRows = await wpdb.singleton.query(
+            `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
+        )
+
+        // The order the redirects are added to the map is important. Adding the
+        // Wordpress redirects last means that Wordpress redirects can overwrite
+        // grapher redirects.
+        for (const row of chartRedirectRows) {
+            const trueSlug = JSON.parse(row.trueSlug)
+            if (row.slug !== trueSlug) {
+                redirects.set(`/grapher/${row.slug}`, `/grapher/${trueSlug}`)
+            }
+        }
+
+        for (const row of wordpressRedirectRows) {
+            redirects.set(row.url, row.action_data)
+        }
+
+        return redirects
+    }
+)
+
+const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
+    if (!url.pathname || !isCanonicalInternalUrl(url)) return url
+    const redirects = await getGrapherAndWordpressRedirectsMap()
+    const target = redirects.get(url.pathname)
+
+    if (!target) return url
+    const targetUrl = Url.fromURL(target)
+
+    return resolveGrapherAndWordpressRedirect(
+        // Pass query params through only if none present on the target (cf.
+        // netlify behaviour)
+        url.queryStr && !targetUrl.queryStr
+            ? targetUrl.setQueryParams(url.queryParams)
+            : targetUrl
+    )
+}
+
+export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
+    if (!isCanonicalInternalUrl(url)) return url
+
+    // Assumes that redirects in explorer code are final (in line with the
+    // current expectation). This helps keeping complexity at bay, while
+    // avoiding unnecessary processing.
+
+    // In other words, in the following hypothetical redirect chain:
+    // (1) wordpress redirect: /omicron --> /explorers/omicron
+    // (2) wordpress redirect: /explorers/omicron --> /grapher/omicron
+    // (3) grapher admin redirect: /grapher/omicron --> /grapher/omicron-v1
+    // (4) wordpress redirect: /grapher/omicron-v1 --> /grapher/omicron-v2
+    // (5) explorer code redirect: /grapher/omicron-v2 --> /explorers/coronavirus-data-explorer?omicron=true
+    // --- END OF REDIRECTS ---
+    // (6) wordpress redirect: /explorers/coronavirus-data-explorer --> /explorers/covid
+
+    // - The last redirect (6) is not executed because is comes after a redirect
+    //   stored in explorer code.
+    // - If a /grapher/omicron-v2 --> /grapher/omicron-v3 were to be defined in
+    //   wordpress (or grapher admin), it would be resolved before (5), and (5)
+    //   would never execute.
+    // - (2) does not block the redirects chain. Even though an explorer URL is
+    //   redirected, what matters here is where the redirect is stored
+    //   (wordpress), not what is redirected.
+
+    return resolveExplorerRedirect(
+        await resolveGrapherAndWordpressRedirect(url)
+    )
+}
+
+export const flushCache = () => {
+    getGrapherAndWordpressRedirectsMap.cache.clear?.()
 }

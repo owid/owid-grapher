@@ -19,9 +19,10 @@ const ensureStartsWith = (str: string, start: string): string => {
     return `${start}${str}`
 }
 
-const ensureQueryStrFormat = (queryStr: string) =>
+const ensureQueryStrFormat = (queryStr: string): string =>
     ensureStartsWith(queryStr, "?")
-const ensureHashFormat = (queryStr: string) => ensureStartsWith(queryStr, "#")
+const ensureHashFormat = (queryStr: string): string =>
+    ensureStartsWith(queryStr, "#")
 
 interface UrlProps {
     readonly origin?: string // https://ourworldindata.org
@@ -36,7 +37,7 @@ export class Url {
     /**
      * @param url Absolute or relative URL
      */
-    static fromURL(url: string) {
+    static fromURL(url: string): Url {
         const { origin, pathname, query, hash } = parseUrl(url)
         return new Url({
             origin:
@@ -47,13 +48,13 @@ export class Url {
         })
     }
 
-    static fromQueryStr(queryStr: string) {
+    static fromQueryStr(queryStr: string): Url {
         return new Url({
             queryStr: ensureQueryStrFormat(queryStr),
         })
     }
 
-    static fromQueryParams(queryParams: QueryParams) {
+    static fromQueryParams(queryParams: QueryParams): Url {
         return new Url({
             queryStr: queryParamsToStr(queryParams),
         })
@@ -80,7 +81,7 @@ export class Url {
     }
 
     get slug(): string | undefined {
-        return this.props.pathname?.replace(/^\/+/, "")
+        return this.props.pathname?.split("/").pop()
     }
 
     get originAndPath(): string | undefined {
@@ -120,28 +121,34 @@ export class Url {
     }
 
     get isGrapher(): boolean {
-        return this.pathname ? /^\/grapher\//.test(this.pathname) : false
+        return !!(this.pathname && /^\/grapher\/[\w]+/.test(this.pathname))
     }
 
     get isUpload(): boolean {
-        return this.pathname ? /^\/uploads\//.test(this.pathname) : false
+        return !!(this.pathname && /^\/uploads\/[\w]+/.test(this.pathname))
     }
 
-    update(props: UrlProps) {
+    // todo(refactor): move outisde of generic Url class
+    // see EXPLORERS_ROUTE_FOLDER
+    get isExplorer(): boolean {
+        return !!(this.pathname && /^\/explorers\/[\w]+/.test(this.pathname))
+    }
+
+    update(props: UrlProps): Url {
         return new Url({
             ...this.props,
             ...props,
         })
     }
 
-    setQueryParams(queryParams: QueryParams) {
+    setQueryParams(queryParams: QueryParams): Url {
         return new Url({
             ...this.props,
             queryStr: queryParamsToStr(queryParams),
         })
     }
 
-    updateQueryParams(queryParams: QueryParams) {
+    updateQueryParams(queryParams: QueryParams): Url {
         return this.update({
             queryStr: queryParamsToStr(
                 omitUndefinedValues({

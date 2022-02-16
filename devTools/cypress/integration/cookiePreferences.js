@@ -8,16 +8,15 @@ describe("Cookie preferences", function () {
 
     beforeEach(() => {
         cy.visit("/privacy-policy")
-        cy.get("[data-test=cookie-notice]").as(COOKIE_NOTICE.substr(1))
+        cy.get("[data-test=cookie-notice]").as(COOKIE_NOTICE.substring(1))
     })
 
     it("Accepts default cookie preferences from cookie notice bar", function () {
         cy.get(COOKIE_NOTICE)
             .should("be.visible")
             .within(() => {
-                cy.get("[data-test=accept]")
+                cy.get("[data-test=accept]").click()
             })
-            .click()
             .should("not.be.visible")
         cy.getCookie(COOKIE_NAME).should(
             "have.property",

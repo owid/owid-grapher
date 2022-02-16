@@ -18,6 +18,7 @@ import {
 } from "../clientUtils/OwidVariableDisplayConfigInterface"
 import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTable"
 import { getBodyHtml } from "../site/formatting"
+import { Url } from "../clientUtils/urls/Url"
 
 export const DEEP_LINK_CLASS = "deep-link"
 
@@ -158,14 +159,21 @@ export const formatCountryProfile = (
     return { ...post, html: getBodyHtml(cheerioEl) }
 }
 
-// Relies on formatLinks URL standardisation
-export const isStandaloneInternalLink = (
+// Assumes formatLinks URL standardisation
+export const isStandaloneCanonicalInternalLink = (
     el: CheerioElement,
     $: CheerioStatic
 ) => {
     return (
-        el.attribs.href?.startsWith(BAKED_BASE_URL) &&
+        isCanonicalInternalUrl(Url.fromURL(el.attribs.href)) &&
         el.parent.tagName === "p" &&
         $(el.parent).contents().length === 1
     )
+}
+
+// Assumes formatUrls URL standardisation
+export const isCanonicalInternalUrl = (url: Url): boolean => {
+    if (!url.originAndPath) return false
+    // no origin === links without e.g. https://ourworldindata.org
+    return !url.origin || url.origin.startsWith(BAKED_BASE_URL)
 }

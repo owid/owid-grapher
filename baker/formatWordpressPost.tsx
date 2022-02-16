@@ -8,7 +8,6 @@ import { getTables } from "../db/wpdb"
 import Tablepress from "../site/Tablepress"
 import { GrapherExports } from "../baker/GrapherBakingUtils"
 import * as path from "path"
-import { renderBlocks } from "../site/blocks"
 import { RelatedCharts } from "../site/blocks/RelatedCharts"
 import {
     DataValueProps,
@@ -44,7 +43,7 @@ import {
     getOwidVariableDisplayConfig,
 } from "../db/model/Variable"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue"
-import { renderAutomaticProminentLinks } from "./siteRenderers"
+import { renderAutomaticProminentLinks, renderBlocks } from "./siteRenderers"
 import {
     formatUrls,
     getBodyHtml,
@@ -294,7 +293,8 @@ export const formatWordpressPost = async (
     }
 
     // SSR rendering of Gutenberg blocks, before hydration on client
-    renderBlocks(cheerioEl)
+    await renderBlocks(cheerioEl)
+    // DEPRECATED / todo: remove
     await renderAutomaticProminentLinks(cheerioEl, post)
 
     // Extract inline styling

@@ -16,7 +16,8 @@ import * as lodash from "lodash"
 import {
     extractFormattingOptions,
     formatCountryProfile,
-    isStandaloneInternalLink,
+    isCanonicalInternalUrl,
+    isStandaloneCanonicalInternalLink,
 } from "./formatting"
 import {
     bakeGrapherUrls,
@@ -60,17 +61,25 @@ import {
 import { mysqlFirst, queryMysql, knexTable } from "../db/db"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides"
 import { Url } from "../clientUtils/urls/Url"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog"
 import {
     ProminentLink,
     ProminentLinkStyles,
 } from "../site/blocks/ProminentLink"
 import { formatUrls } from "../site/formatting"
+import { renderHelp } from "../site/blocks/Help"
+import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation"
+
 import { GrapherInterface } from "../grapher/core/GrapherInterface"
 import { Grapher, GrapherProgrammaticInterface } from "../grapher/core/Grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec"
 import { ExplorerPage } from "../site/ExplorerPage"
+import { Chart } from "../db/model/Chart"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants"
+import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants"
+import { resolveInternalRedirect } from "./redirects"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -414,6 +423,91 @@ export const countryProfileCountryPage = async (
 
 export const flushCache = () => getCountryProfilePost.cache.clear?.()
 
+const renderPostThumbnailBySlug = async (
+    slug: string | undefined
+): Promise<string | undefined> => {
+    if (!slug) return
+
+    let post
+    try {
+        post = await getPostBySlug(slug)
+    } catch (err) {
+        // if no post is found, then we return early instead of throwing
+    }
+
+    if (!post?.thumbnailUrl) return
+    return ReactDOMServer.renderToStaticMarkup(
+        <img src={formatUrls(post.thumbnailUrl)} />
+    )
+}
+
+export const renderProminentLinks = async ($: CheerioStatic) => {
+    const blocks = $("block[type='prominent-link']").toArray()
+    await Promise.all(
+        blocks.map(async (block) => {
+            const $block = $(block)
+            const formattedUrlString = $block.find("link-url").text() // never empty, see prominent-link.php
+            const formattedUrl = Url.fromURL(formattedUrlString)
+
+            const resolvedUrl = await resolveInternalRedirect(formattedUrl)
+            const resolvedUrlString = resolvedUrl.fullUrl
+
+            const style = $block.attr("style")
+            const content = $block.find("content").html()
+
+            let title
+            try {
+                title =
+                    $block.find("title").text() ||
+                    (!isCanonicalInternalUrl(resolvedUrl)
+                        ? null // attempt fallback for internal urls only
+                        : resolvedUrl.isExplorer
+                        ? await getExplorerTitleByUrl(resolvedUrl)
+                        : resolvedUrl.isGrapher && resolvedUrl.slug
+                        ? (await Chart.getBySlug(resolvedUrl.slug))?.config
+                              ?.title // optim?
+                        : resolvedUrl.slug &&
+                          (await getPostBySlug(resolvedUrl.slug)).title)
+            } finally {
+                if (!title) {
+                    logContentErrorAndMaybeSendToSlack(
+                        new Error(
+                            `No fallback title found for prominent link ${resolvedUrlString}. Block removed.`
+                        )
+                    )
+                    $block.remove()
+                    return
+                }
+            }
+
+            const image =
+                $block.find("figure").html() ||
+                (!isCanonicalInternalUrl(resolvedUrl)
+                    ? null
+                    : resolvedUrl.isExplorer
+                    ? renderExplorerDefaultThumbnail()
+                    : resolvedUrl.isGrapher && resolvedUrl.slug
+                    ? await renderGrapherImageByChartSlug(resolvedUrl.slug)
+                    : await renderPostThumbnailBySlug(resolvedUrl.slug))
+
+            const rendered = ReactDOMServer.renderToStaticMarkup(
+                <div className="block-wrapper">
+                    <ProminentLink
+                        href={resolvedUrlString}
+                        style={style}
+                        title={title}
+                        content={content}
+                        image={image}
+                    />
+                </div>
+            )
+
+            $block.replaceWith(rendered)
+        })
+    )
+}
+
+// DEPRECATED / todo: remove
 export const renderAutomaticProminentLinks = async (
     cheerioEl: CheerioStatic,
     currentPost: FullPost
@@ -421,7 +515,7 @@ export const renderAutomaticProminentLinks = async (
     const anchorElements = cheerioEl("a").toArray()
     await Promise.all(
         anchorElements.map(async (anchor) => {
-            if (!isStandaloneInternalLink(anchor, cheerioEl)) return
+            if (!isStandaloneCanonicalInternalLink(anchor, cheerioEl)) return
             const url = Url.fromURL(anchor.attribs.href)
             if (!url.slug) return
 
@@ -431,7 +525,7 @@ export const renderAutomaticProminentLinks = async (
             if (url.isUpload) return
 
             if (url.isGrapher) {
-                logErrorAndMaybeSendToSlack(
+                logContentErrorAndMaybeSendToSlack(
                     new Error(
                         `Automatic prominent link conversion failed for ${
                             anchor.attribs.href
@@ -450,7 +544,7 @@ export const renderAutomaticProminentLinks = async (
                 // not throwing here as this is not considered a critical error.
                 // Standalone links will just show up as such (and get
                 // netlify-redirected upon click if applicable).
-                logErrorAndMaybeSendToSlack(
+                logContentErrorAndMaybeSendToSlack(
                     new Error(
                         `Automatic prominent link conversion failed: no post found at ${
                             anchor.attribs.href
@@ -492,6 +586,23 @@ export const renderAutomaticProminentLinks = async (
     )
 }
 
+export const renderReusableBlock = async (
+    html?: string
+): Promise<string | undefined> => {
+    if (!html) return
+
+    const cheerioEl = cheerio.load(formatUrls(html))
+    await renderProminentLinks(cheerioEl)
+
+    return cheerioEl("body").html() ?? undefined
+}
+
+export const renderBlocks = async (cheerioEl: CheerioStatic) => {
+    renderAdditionalInformation(cheerioEl)
+    renderHelp(cheerioEl)
+    await renderProminentLinks(cheerioEl)
+}
+
 export const renderExplorerPage = async (
     program: ExplorerProgram,
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
@@ -505,7 +616,7 @@ export const renderExplorerPage = async (
         )
 
     const wpContent = program.wpBlockId
-        ? await getBlockContent(program.wpBlockId)
+        ? await renderReusableBlock(await getBlockContent(program.wpBlockId))
         : undefined
 
     const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {
@@ -526,5 +637,43 @@ export const renderExplorerPage = async (
                 urlMigrationSpec={urlMigrationSpec}
             />
         )
+    )
+}
+
+const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
+    if (!url.isExplorer || !url.slug) return
+    // todo / optim: ok to instanciate multiple simple-git?
+    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    const explorer = await explorerAdminServer.getExplorerFromSlug(url.slug)
+    if (!explorer) return
+
+    if (url.queryStr) {
+        explorer.initDecisionMatrix(url.queryParams as ExplorerFullQueryParams)
+        return (
+            explorer.grapherConfig.title ??
+            (explorer.grapherConfig.grapherId
+                ? (await Chart.getById(explorer.grapherConfig.grapherId))
+                      ?.config?.title
+                : undefined)
+        )
+    }
+    return explorer.explorerTitle
+}
+
+const renderGrapherImageByChartSlug = async (
+    chartSlug: string
+): Promise<string | null> => {
+    const chart = await Chart.getBySlug(chartSlug)
+    if (!chart) return null
+
+    const canonicalSlug = chart?.config?.slug
+    if (!canonicalSlug) return null
+
+    return `<img src="${BAKED_BASE_URL}/grapher/exports/${canonicalSlug}.svg" />`
+}
+
+const renderExplorerDefaultThumbnail = (): string => {
+    return ReactDOMServer.renderToStaticMarkup(
+        <img src={`${BAKED_BASE_URL}/default-thumbnail.jpg`} />
     )
 }

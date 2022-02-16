@@ -11,17 +11,23 @@ export const replaceIframesWithExplorerRedirectsInWordPressPost = (
     cheerio("iframe")
         .toArray()
         .forEach((el) => {
-            let url = Url.fromURL(el.attribs["src"].trim())
-            if (!url.pathname) return
+            const srcUrl = Url.fromURL(el.attribs["src"].trim())
+            const resolvedUrl = resolveExplorerRedirect(srcUrl)
+            if (srcUrl === resolvedUrl) return
 
-            const explorerRedirect = getExplorerRedirectForPath(url.pathname)
-            if (explorerRedirect) {
-                const { migrationId, baseQueryStr } = explorerRedirect
-                const { migrateUrl } = explorerUrlMigrationsById[migrationId]
-                url = migrateUrl(url, baseQueryStr)
-            }
-
-            url = migrateExplorerUrl(url)
-
-            el.attribs["src"] = url.fullUrl
+            el.attribs["src"] = resolvedUrl.fullUrl
         })
+
+export const resolveExplorerRedirect = (url: Url): Url => {
+    if (!url.pathname) return url
+
+    let tmpUrl
+    const explorerRedirect = getExplorerRedirectForPath(url.pathname)
+    if (explorerRedirect) {
+        const { migrationId, baseQueryStr } = explorerRedirect
+        const { migrateUrl } = explorerUrlMigrationsById[migrationId]
+        tmpUrl = migrateUrl(url, baseQueryStr)
+    }
+
+    return migrateExplorerUrl(tmpUrl ?? url)
+}

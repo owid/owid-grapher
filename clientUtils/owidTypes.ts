@@ -259,6 +259,7 @@ export interface FullPost {
     content: string
     excerpt?: string
     imageUrl?: string
+    thumbnailUrl?: string
     imageId?: number
     postId?: number
     relatedCharts?: RelatedChart[]

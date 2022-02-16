@@ -88,9 +88,11 @@ export const EMAIL_USE_TLS: boolean =
 export const WORDPRESS_DIR: string = serverSettings.WORDPRESS_DIR ?? "wordpress"
 export const HTTPS_ONLY: boolean = serverSettings.HTTPS_ONLY !== "false" ?? true
 
-// Node slack webhook to report errors to using express-error-slac
-export const SLACK_ERRORS_WEBHOOK_URL: string =
-    serverSettings.SLACK_ERRORS_WEBHOOK_URL ?? ""
+// Node slack webhook to report errors to using express-error-slack
+export const SLACK_ERRORS_WEBHOOK_URL: string | undefined =
+    serverSettings.SLACK_ERRORS_WEBHOOK_URL || undefined
+export const SLACK_CONTENT_ERRORS_WEBHOOK_URL: string | undefined =
+    serverSettings.SLACK_CONTENT_ERRORS_WEBHOOK_URL || undefined
 export const GIT_DATASETS_DIR: string =
     serverSettings.GIT_DATASETS_DIR ?? `${BASE_DIR}/datasetsExport` //  Where the git exports go
 export const TMP_DIR: string = serverSettings.TMP_DIR ?? "/tmp"

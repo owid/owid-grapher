@@ -77,6 +77,27 @@ describe(Url, () => {
         ).toBe(false)
     })
 
+    it("detects explorer pages restrictively", () => {
+        expect(url.isExplorer).toBe(false)
+        expect(
+            Url.fromURL("https://ourworldindata.org/not/an/explorers/page")
+                .isExplorer
+        ).toBe(false)
+        expect(
+            Url.fromURL("https://ourworldindata.org/explorers").isExplorer
+        ).toBe(false)
+        expect(
+            Url.fromURL("https://ourworldindata.org/explorers/").isExplorer
+        ).toBe(false)
+        expect(
+            Url.fromURL("https://ourworldindata.org/explorers/co2").isExplorer
+        ).toBe(true)
+        expect(
+            Url.fromURL("https://ourworldindata.org/explorers/12-co2")
+                .isExplorer
+        ).toBe(true)
+    })
+
     it("detects uploads restrictively", () => {
         expect(
             Url.fromURL("https://ourworldindata.org/uploads/file.png").isUpload

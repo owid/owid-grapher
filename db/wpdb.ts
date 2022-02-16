@@ -512,6 +512,7 @@ export const getPosts = async (
     return limit ? filteredPosts.slice(0, limit) : filteredPosts
 }
 
+// todo / refactor : narrow down scope to getPostTypeById?
 export const getPostType = async (search: number | string): Promise<string> => {
     const paramName = typeof search === "number" ? "id" : "slug"
     return apiQuery(`${OWID_API_ENDPOINT}/type`, {
@@ -519,28 +520,58 @@ export const getPostType = async (search: number | string): Promise<string> => {
     })
 }
 
+// The API query in getPostType is cleaner but slower, which becomes more of an
+// issue with prominent links requesting posts by slugs (getPostBySlug) to
+// render (of which getPostType is a callee).
+
+// Attention: slugs but also paths are not always unique. Not sure how this
+// makes sense but it is possible to create a page and a post with the same
+// path. Where it makes sense: if a page page had a parent page, then the path
+// becomes /parent/current-page, which avoid conflicts with posts registering
+// paths at the root (e.g /current-page). However pages don't have to have a
+// parent, so they may also register paths at the root level, and conflict with
+// posts (see
+// https://developer.wordpress.org/reference/functions/wp_unique_post_slug/)
+// This is particularly problematic in our setup where hierarchical paths are
+// not supported which means pages and posts are in direct competition for root
+// paths. So authors need to be diligent when creating paths to make sure pages
+// and posts paths don't collide. This is not enforced at the application level.
+export const getPostIdAndTypeBySlug = async (
+    slug: string
+): Promise<{ id: number; type: string } | undefined> => {
+    const rows = await singleton.query(
+        "SELECT ID, post_type FROM wp_posts WHERE `post_name` = ? AND post_type IN ( ? )",
+        [slug, [WP_PostType.Post, WP_PostType.Page]]
+    )
+
+    if (!rows.length) return
+
+    return { id: rows[0].ID, type: rows[0].post_type }
+}
+
+// We might want to cache this as the network of prominent links densifies and
+// multiple requests to the same posts are happening.
 export const getPostBySlug = async (slug: string): Promise<FullPost> => {
     if (!isWordpressAPIEnabled) {
         throw new JsonError(`Need wordpress API to match slug ${slug}`, 404)
     }
 
-    try {
-        const type = await getPostType(slug)
-        const postArr = await apiQuery(
-            `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}`,
-            {
-                searchParams: [["slug", slug]],
-            }
-        )
-        return getFullPost(postArr[0])
-    } catch (err) {
+    const postIdAndType = await getPostIdAndTypeBySlug(slug)
+    if (!postIdAndType)
         throw new JsonError(`No page found by slug ${slug}`, 404)
-    }
+
+    const { id, type } = postIdAndType
+
+    const postArr = await apiQuery(
+        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`
+    )
+
+    return getFullPost(postArr)
 }
 
 // the /revisions endpoint does not send back all the metadata required for
 // the proper rendering of the post (e.g. authors), hence the double request.
-export const getLatestPostRevision = async (id: number): Promise<any> => {
+export const getLatestPostRevision = async (id: number): Promise<FullPost> => {
     const type = await getPostType(id)
     const endpointSlug = getEndpointSlugFromType(type)
 
@@ -640,7 +671,10 @@ export const getFullPost = async (
     content: excludeContent ? "" : postApi.content.rendered,
     excerpt: decodeHTML(postApi.excerpt.rendered),
     imageUrl: `${BAKED_BASE_URL}${
-        postApi.featured_media_path ?? "/default-thumbnail.jpg"
+        postApi.featured_media_paths ?? "/default-thumbnail.jpg"
+    }`,
+    thumbnailUrl: `${BAKED_BASE_URL}${
+        postApi.featured_media_paths?.thumbnail ?? "/default-thumbnail.jpg"
     }`,
     imageId: postApi.featured_media,
     relatedCharts:
@@ -747,7 +781,7 @@ export const getTables = async (): Promise<Map<string, TablepressTable>> => {
     return cachedTables
 }
 
-export const flushCache = () => {
+export const flushCache = (): void => {
     cachedAuthorship = undefined
     cachedEntries = []
     cachedFeaturedImages = undefined

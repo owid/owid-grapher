@@ -26,7 +26,7 @@ interface ChartExportMeta {
 // into its slug (soil-lifespans) and queryStr (?tab=chart)
 export const grapherUrlToSlugAndQueryStr = (grapherUrl: string) => {
     const url = Url.fromURL(grapherUrl)
-    const slug = lodash.last(url.pathname?.split("/")) as string
+    const slug = lodash.last(url.pathname?.split("/")) as string // todo / refactor: use Url.slug
     const queryStr = url.queryStr
     return { slug, queryStr }
 }
