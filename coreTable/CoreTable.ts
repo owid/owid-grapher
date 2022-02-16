@@ -23,7 +23,6 @@ import {
     CoreColumnStore,
     CoreRow,
     CoreTableInputOption,
-    PrimitiveType,
     Time,
     TransformType,
     ValueRange,
@@ -69,7 +68,7 @@ import {
 } from "./ErrorValues.js"
 import { OwidTableSlugs } from "./OwidTableConstants.js"
 import { applyTransforms } from "./Transforms.js"
-import { ColumnSlug } from "../clientUtils/owidTypes.js"
+import { ColumnSlug, PrimitiveType } from "../clientUtils/owidTypes.js"
 
 interface AdvancedOptions {
     tableDescription?: string

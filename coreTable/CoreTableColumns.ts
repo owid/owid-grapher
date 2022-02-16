@@ -15,13 +15,7 @@ import {
 } from "../clientUtils/Util.js"
 import { isPresent } from "../clientUtils/isPresent.js"
 import { CoreTable } from "./CoreTable.js"
-import {
-    CoreRow,
-    Time,
-    PrimitiveType,
-    JsTypes,
-    CoreValueType,
-} from "./CoreTableConstants.js"
+import { Time, JsTypes, CoreValueType } from "./CoreTableConstants.js"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
 import { EntityName, OwidVariableRow } from "./OwidTableConstants.js" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
@@ -34,7 +28,7 @@ import {
     TickFormattingOptions,
 } from "../clientUtils/formatValue.js"
 import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
-import { ColumnSlug } from "../clientUtils/owidTypes.js"
+import { ColumnSlug, PrimitiveType } from "../clientUtils/owidTypes.js"
 
 interface ColumnSummary {
     numErrorValues: number

@@ -60,10 +60,7 @@ import {
 import { ColorScheme } from "../color/ColorScheme.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
-import {
-    CoreValueType,
-    PrimitiveType,
-} from "../../coreTable/CoreTableConstants.js"
+import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
@@ -75,7 +72,11 @@ import { ColorSchemeName } from "../color/ColorConstants.js"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline.js"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
-import { Color, HorizontalAlign } from "../../clientUtils/owidTypes.js"
+import {
+    Color,
+    HorizontalAlign,
+    PrimitiveType,
+} from "../../clientUtils/owidTypes.js"
 import {
     darkenColorForHighContrastText,
     darkenColorForLine,
