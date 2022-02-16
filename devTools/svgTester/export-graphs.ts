@@ -2,9 +2,9 @@
 
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 
-import { dirname } from "path"
+import { dirname, join } from "path"
 import { fileURLToPath } from "url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
