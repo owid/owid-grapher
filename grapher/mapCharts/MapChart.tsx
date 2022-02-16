@@ -322,7 +322,7 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed private get formatTooltipValue(): (d: PrimitiveType) => string {
+    @computed private get formatTooltipValue(): (d: number | string) => string {
         const { mapConfig, mapColumn, colorScale } = this
 
         return (d: PrimitiveType): string => {

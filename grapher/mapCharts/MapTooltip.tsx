@@ -27,7 +27,7 @@ interface MapTooltipProps {
     entityName: EntityName
     manager: MapChartManager
     colorScaleManager: ColorScaleManager
-    formatValue: (d: PrimitiveType) => string
+    formatValue: (d: number | string) => string
     timeSeriesTable: OwidTable
     tooltipTarget: { x: number; y: number; featureId: string }
     targetTime?: Time
@@ -73,7 +73,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             )
     }
 
-    @computed private get datum(): OwidVariableRow<PrimitiveType> | undefined {
+    @computed private get datum():
+        | OwidVariableRow<number | string>
+        | undefined {
         return this.mapTable.get(this.mapColumnSlug).owidRows[0]
     }
 
