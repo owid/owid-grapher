@@ -12,7 +12,7 @@ import {
     isWordpressDBEnabled,
 } from "../db/wpdb.js"
 import { getVariableData } from "../db/model/Variable.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
 import * as lodash from "lodash-es"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"

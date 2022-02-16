@@ -2,7 +2,7 @@
 
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 
 import workerpool from "workerpool"
 

@@ -1,4 +1,4 @@
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import * as path from "path"
 import * as glob from "glob"
 import { without } from "lodash-es"

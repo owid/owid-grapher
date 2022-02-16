@@ -1,4 +1,4 @@
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import { DEPLOY_QUEUE_FILE_PATH } from "../settings/serverSettings.js"
 import { deployIfQueueIsNotEmpty } from "./DeployUtils.js"
 

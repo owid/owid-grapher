@@ -1,7 +1,7 @@
 // Script to export everything in the database except sensitive info and data_values (which is big)
 
 import * as db from "./db.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import parseArgs from "minimist"
 
 import {

@@ -1,4 +1,4 @@
-import * as fs from "fs-extra" // todo: this should not be here.
+import fs from "fs-extra" // todo: this should not be here.
 import urljoin from "url-join"
 import * as path from "path"
 import { ENV } from "../settings/serverSettings.js"

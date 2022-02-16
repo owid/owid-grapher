@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-import * as fs from "fs"
+import fs from "fs"
 import * as db from "../../db/db.js"
 import {
     Grapher,

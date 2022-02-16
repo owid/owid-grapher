@@ -2,7 +2,7 @@
 
 import parseArgs from "minimist"
 import { SiteBaker } from "./SiteBaker.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import { normalize } from "path"
 
 const bakeDomainToFolder = async (

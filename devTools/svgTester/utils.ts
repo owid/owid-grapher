@@ -6,7 +6,7 @@ import {
     buildSvgOutFilename,
 } from "../../baker/GrapherImageBaker.js"
 import { createGunzip, createGzip } from "zlib"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import getStream from "get-stream"
 import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"

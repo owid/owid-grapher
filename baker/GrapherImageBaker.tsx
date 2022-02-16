@@ -1,6 +1,6 @@
 import * as db from "../db/db.js"
 import { getVariableData } from "../db/model/Variable.js"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import svgo from "svgo"
 import sharp from "sharp"
 import * as path from "path"

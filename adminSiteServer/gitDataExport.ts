@@ -1,5 +1,5 @@
 import * as path from "path"
-import * as fs from "fs-extra"
+import fs from "fs-extra"
 import { Dataset } from "../db/model/Dataset.js"
 import { Source } from "../db/model/Source.js"
 import { GIT_DATASETS_DIR, TMP_DIR } from "../settings/serverSettings.js"
