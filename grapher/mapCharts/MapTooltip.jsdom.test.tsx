@@ -25,8 +25,7 @@ test("map tooltip renders iff mouseenter", () => {
     expect(grapherWrapperWithHover.find(".map-tooltip")).toHaveLength(1)
 
     const tooltipWrapper = grapherWrapperWithHover.find(".map-tooltip")
-    expect(tooltipWrapper.find(".bar")).toHaveLength(20)
-    expect(tooltipWrapper.find(".count").text()).toEqual(
-        "4% of children under 5 "
+    expect(tooltipWrapper.find(".value").text()).toEqual(
+        "4% of children under 5"
     )
 })

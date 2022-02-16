@@ -1,13 +1,6 @@
-import {
-    CoreRow,
-    Integer,
-    PrimitiveType,
-    Time,
-    Year,
-} from "./CoreTableConstants.js"
+import { CoreRow, Integer, Time, Year } from "./CoreTableConstants.js"
 import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
-import { OwidSource } from "../clientUtils/OwidSource.js"
-import { ColumnSlug } from "../clientUtils/owidTypes.js"
+import { ColumnSlug, PrimitiveType } from "../clientUtils/owidTypes.js"
 
 export enum OwidTableSlugs {
     entityName = "entityName",

@@ -66,7 +66,11 @@ import { NoDataModal } from "../noDataModal/NoDataModal.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
-import { Color, HorizontalAlign } from "../../clientUtils/owidTypes.js"
+import {
+    Color,
+    HorizontalAlign,
+    PrimitiveType,
+} from "../../clientUtils/owidTypes.js"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -318,10 +322,10 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed get formatTooltipValue(): (d: number | string) => string {
+    @computed private get formatTooltipValue(): (d: number | string) => string {
         const { mapConfig, mapColumn, colorScale } = this
 
-        return (d: number | string): string => {
+        return (d: PrimitiveType): string => {
             if (isString(d)) return d
             else if (mapConfig.tooltipUseCustomLabels) {
                 // Find the bin (and its label) that this value belongs to
@@ -334,8 +338,7 @@ export class MapChart
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const { mapColumn, selectionArray, targetTime, formatTooltipValue } =
-            this
+        const { mapColumn, selectionArray, targetTime } = this
         if (mapColumn.isMissing) return []
         if (targetTime === undefined) return []
 
@@ -346,7 +349,6 @@ export class MapChart
                 if (!color) return undefined
                 return {
                     seriesName: entityName,
-                    displayValue: formatTooltipValue(value),
                     time,
                     value,
                     isSelected: selectionArray.selectedSet.has(entityName),
@@ -590,10 +592,6 @@ export class MapChart
 
         const { projection } = mapConfig
 
-        const tooltipDatum = tooltipTarget
-            ? seriesMap.get(tooltipTarget.featureId)
-            : undefined
-
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
@@ -627,13 +625,15 @@ export class MapChart
                 </foreignObject>
                 {tooltipTarget && (
                     <MapTooltip
-                        tooltipDatum={tooltipDatum}
+                        entityName={tooltipTarget?.featureId}
+                        timeSeriesTable={this.inputTable}
+                        formatValue={this.formatTooltipValue}
                         isEntityClickable={this.isEntityClickable(
                             tooltipTarget?.featureId
                         )}
                         tooltipTarget={tooltipTarget}
                         manager={this.manager}
-                        colorScale={this.colorScale}
+                        colorScaleManager={this}
                         targetTime={this.targetTime}
                     />
                 )}

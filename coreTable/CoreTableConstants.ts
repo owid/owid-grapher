@@ -1,3 +1,4 @@
+import { PrimitiveType } from "../clientUtils/owidTypes.js"
 import { ErrorValue } from "./ErrorValues.js"
 
 export type TableSlug = string // a url friendly name for a table
@@ -19,7 +20,6 @@ export type Color = string
 export type Time = Integer
 export type TimeRange = [Time, Time]
 
-export type PrimitiveType = number | string | boolean
 export type ValueRange = [number, number]
 
 export type TimeTolerance = Integer

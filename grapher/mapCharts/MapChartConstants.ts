@@ -23,7 +23,6 @@ export interface MapEntity {
 
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
-    displayValue: string
     time: number
     isSelected?: boolean
     highlightFillColor: Color
