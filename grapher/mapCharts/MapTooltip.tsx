@@ -216,8 +216,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                         fontSize: "1em",
                     }}
                 >
-                    {tooltipTarget.featureId ||
-                        tooltipTarget.featureId.replace(/_/g, " ")}
+                    {tooltipTarget.featureId}
                 </div>
                 <div
                     className="map-tooltip"
