@@ -20,7 +20,7 @@ import {
     GIT_CMS_DELETE_ROUTE,
     GIT_CMS_PULL_ROUTE,
 } from "./GitCmsConstants.js"
-import * as glob from "glob"
+import glob from "glob"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import _ from "lodash"
 
