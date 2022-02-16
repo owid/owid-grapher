@@ -592,13 +592,13 @@ export function parseOperationRecursive(
         if (sExpr === "") return undefined
         else return new StringAtom(sExpr.valueOf())
     } else if (typeof sExpr === "string") {
-        let num: number
+        const num: number = Number.parseFloat(sExpr)
         if (sExpr === "") return undefined
         else if (sExpr === "true") return new BooleanAtom(true)
         else if (sExpr === "false") return new BooleanAtom(false)
         // Handling NaN correctly throught the entire DSL is hard - let's see if we can just drop it
         else if (sExpr === "NaN") return undefined
-        else if ((num = Number.parseFloat(sExpr))) return new NumberAtom(num)
+        else if (!Number.isNaN(num)) return new NumberAtom(num)
         else if (SqlColumnName.isValidSqlColumnName(sExpr, context))
             return new SqlColumnName(sExpr, context)
         else return new JsonPointerSymbol(sExpr, context) // this will throw if the symbol is not a JsonPointer which is the only valid symbol we know of

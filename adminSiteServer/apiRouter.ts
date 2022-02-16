@@ -1390,13 +1390,13 @@ apiRouter.get(
             charts.updatedAt as updatedAt,
             charts.lastEditedAt as lastEditedAt,
             charts.publishedAt as publishedAt,
-            editedByUser.fullName as lastEditedByUser,
-            publishedByUser.fullName as publishedByUser,
+            lastEditedByUser.fullName as lastEditedByUser,
+            publishedByUser.fullName as publishedByUser
 FROM charts
-LEFT JOIN users lastEditedByUser ON editedByUser.id=charts.lastEditedByUserId
+LEFT JOIN users lastEditedByUser ON lastEditedByUser.id=charts.lastEditedByUserId
 LEFT JOIN users publishedByUser ON publishedByUser.id=charts.publishedByUserId
 WHERE ${whereClause}
-ORDER BY variables.id DESC
+ORDER BY charts.id DESC
 LIMIT 50
 OFFSET ${offset.toString()}`)
 

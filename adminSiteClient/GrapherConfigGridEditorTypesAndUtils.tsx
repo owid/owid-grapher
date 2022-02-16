@@ -21,6 +21,7 @@ import {
     variableAnnotationAllowedColumnNamesAndTypes,
     chartBulkUpdateAllowedColumnNamesAndTypes,
     OperationContext,
+    WHITELISTED_SQL_COLUM_NAMES,
 } from "../clientUtils/SqlFilterSExpression"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
@@ -102,7 +103,7 @@ export enum Tabs {
 
 export const ALL_TABS = Object.values(Tabs)
 
-export const HIDDEN_COLUMNS = new Set([
+const VARIABLE_ANNOTATIONS_HIDDEN_COLUMNS = new Set([
     "/$schema",
     "/id",
     "/map/variableId",
@@ -120,6 +121,13 @@ export const HIDDEN_COLUMNS = new Set([
     "/xAxis/facetDomain",
 ])
 
+const BULK_CHART_EDIT_HIDDEN_COLUMNS = new Set([
+    "/$schema",
+    "/id",
+    "/version",
+    "/data",
+])
+
 export interface FullColumnSet {
     label: "All columns"
     kind: "allColumns"
@@ -133,7 +141,7 @@ export interface SpecificColumnSet {
 
 export type ColumnSet = FullColumnSet | SpecificColumnSet
 
-export const columnSets: ColumnSet[] = [
+const variableAnnotationsColumnSets: ColumnSet[] = [
     {
         label: "Common",
         kind: "specificColumns",
@@ -156,6 +164,36 @@ export const columnSets: ColumnSet[] = [
         columns: [
             "name",
             "datasetname",
+            "/yAxis/removePointsOutsideDomain",
+            "/yAxis/label",
+            "/yAxis/min",
+            "/yAxis/scaleType",
+            "/yAxis/max",
+            "/yAxis/canChangeScaleType",
+            "/yAxis/facetDomain",
+        ],
+    },
+]
+
+const bulkChartEditorColumnSets: ColumnSet[] = [
+    {
+        label: "Common",
+        kind: "specificColumns",
+        columns: [
+            "/type",
+            "/hasMapTab",
+            "/title",
+            "/subtitle",
+            "/note",
+            "/dimensions/0/display/unit",
+            "/dimensions/0/display/shortUnit",
+        ],
+    },
+    { label: "All columns", kind: "allColumns" },
+    {
+        label: "Axis",
+        kind: "specificColumns",
+        columns: [
             "/yAxis/removePointsOutsideDomain",
             "/yAxis/label",
             "/yAxis/min",
@@ -233,7 +271,64 @@ export interface ReadOnlyColumn {
     sExpressionColumnTarget: string
 }
 
-export const readOnlyColumnNamesFields: Map<string, ReadOnlyColumn> = new Map(
+const readOnlyVariableAnnotationColumnNamesFields: Map<string, ReadOnlyColumn> =
+    new Map(
+        [
+            {
+                key: "id",
+                label: "Id",
+                type: "number" as const,
+                sExpressionColumnTarget: "id",
+            },
+            {
+                key: "name",
+                label: "Variable name",
+                type: "string" as const,
+                sExpressionColumnTarget:
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
+            },
+            {
+                key: "datasetname",
+                label: "Dataset name",
+                type: "string" as const,
+                sExpressionColumnTarget:
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
+            },
+            {
+                key: "namespacename",
+                label: "Namespace name",
+                type: "string" as const,
+                sExpressionColumnTarget:
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
+            },
+            {
+                key: "description",
+                label: "Description",
+                type: "string" as const,
+                sExpressionColumnTarget:
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
+            },
+            {
+                key: "createdAt",
+                label: "Created at",
+                type: "datetime" as const,
+                sExpressionColumnTarget:
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
+            },
+            {
+                key: "updatedAt",
+                label: "Updated at",
+                type: "datetime" as const,
+                sExpressionColumnTarget:
+                    WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
+            },
+        ].map((item) => [item.key, item])
+    )
+
+const readOnlyBulkGrapherCondigEditorColumnNamesFields: Map<
+    string,
+    ReadOnlyColumn
+> = new Map(
     [
         {
             key: "id",
@@ -242,40 +337,46 @@ export const readOnlyColumnNamesFields: Map<string, ReadOnlyColumn> = new Map(
             sExpressionColumnTarget: "id",
         },
         {
-            key: "name",
-            label: "Variable name",
-            type: "string" as const,
-            sExpressionColumnTarget: "variables.name",
-        },
-        {
-            key: "datasetname",
-            label: "Dataset name",
-            type: "string" as const,
-            sExpressionColumnTarget: "datasets.name",
-        },
-        {
-            key: "namespacename",
-            label: "Namespace name",
-            type: "string" as const,
-            sExpressionColumnTarget: "namespaces.name",
-        },
-        {
-            key: "description",
-            label: "Description",
-            type: "string" as const,
-            sExpressionColumnTarget: "variables.description",
-        },
-        {
             key: "createdAt",
             label: "Created at",
             type: "datetime" as const,
-            sExpressionColumnTarget: "variables.createdAt",
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_CHART_CREATED_AT,
         },
         {
             key: "updatedAt",
             label: "Updated at",
             type: "datetime" as const,
-            sExpressionColumnTarget: "variables.updatedAt",
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_CHART_UPDATED_AT,
+        },
+        {
+            key: "lastEditedAt",
+            label: "Last edited at",
+            type: "datetime" as const,
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_AT,
+        },
+        {
+            key: "publishedAt",
+            label: "Published at",
+            type: "datetime" as const,
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_CHART_PUBLISHED_AT,
+        },
+        {
+            key: "lastEditedByUser",
+            label: "Last edited by user",
+            type: "string" as const,
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_BY_USER,
+        },
+        {
+            key: "publishedByUser",
+            label: "Published by user",
+            type: "string" as const,
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_CHART_PUBLISHED_BY_USER,
         },
     ].map((item) => [item.key, item])
 )
@@ -334,13 +435,14 @@ export function getNullCheckOperator(
 
 export function getFieldSymbol(
     fieldName: string,
-    context: OperationContext
+    context: OperationContext,
+    readOnlyFieldNamesMap: Map<string, ReadOnlyColumn>
 ): Operation {
     if (isConfigColumn(fieldName))
         return new JsonPointerSymbol(fieldName, context)
     else
         return new SqlColumnName(
-            readOnlyColumnNamesFields.get(fieldName)!.sExpressionColumnTarget,
+            readOnlyFieldNamesMap.get(fieldName)!.sExpressionColumnTarget,
             context
         )
 }
@@ -362,7 +464,8 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
 
 export function filterTreeToSExpression(
     filterTree: JsonItem,
-    context: OperationContext
+    context: OperationContext,
+    readOnlyFieldNamesMap: Map<string, ReadOnlyColumn>
 ): Operation | undefined {
     if (filterTree.type === "group") {
         // If we have a group then we need to decide
@@ -375,14 +478,24 @@ export function filterTreeToSExpression(
         if (isArray(filterTree.children1))
             children = excludeUndefined(
                 filterTree.children1?.map((child) =>
-                    filterTreeToSExpression(child, context)
+                    filterTreeToSExpression(
+                        child,
+                        context,
+                        readOnlyFieldNamesMap
+                    )
                 )
             )
         else if (isPlainObject(filterTree.children1))
             children = excludeUndefined(
                 Object.values(
                     filterTree.children1 as Record<string, JsonItem>
-                ).map((child) => filterTreeToSExpression(child, context))
+                ).map((child) =>
+                    filterTreeToSExpression(
+                        child,
+                        context,
+                        readOnlyFieldNamesMap
+                    )
+                )
             )
         else if (filterTree.children1 !== undefined)
             console.warn("unexpected content of children1")
@@ -405,7 +518,8 @@ export function filterTreeToSExpression(
                         const operator = getComparisonOperator(op as string)
                         const field = getFieldSymbol(
                             filterTree.properties.field!,
-                            context
+                            context,
+                            readOnlyFieldNamesMap
                         )
                         if (
                             filterTree.properties.value.length === 0 ||
@@ -422,7 +536,8 @@ export function filterTreeToSExpression(
                         const operator = getEqualityOperator(op as string)
                         const field = getFieldSymbol(
                             filterTree.properties.field!,
-                            context
+                            context,
+                            readOnlyFieldNamesMap
                         )
                         const val = getValueAtom(filterTree.properties.value[0])
                         if (val === undefined) return undefined
@@ -434,7 +549,8 @@ export function filterTreeToSExpression(
                     () => {
                         const field = getFieldSymbol(
                             filterTree.properties.field!,
-                            context
+                            context,
+                            readOnlyFieldNamesMap
                         )
                         if (
                             filterTree.properties.value.length === 0 ||
@@ -453,7 +569,8 @@ export function filterTreeToSExpression(
                         const operator = getNullCheckOperator(op as string)!
                         const field = getFieldSymbol(
                             filterTree.properties.field!,
-                            context
+                            context,
+                            readOnlyFieldNamesMap
                         )
                         return new NullCheckOperation(operator!, field)
                     }
@@ -461,7 +578,8 @@ export function filterTreeToSExpression(
                 .with("is_empty", "is_not_empty", (operator) => {
                     const field = getFieldSymbol(
                         filterTree.properties.field!,
-                        context
+                        context,
+                        readOnlyFieldNamesMap
                     )
                     const op: EqualityOperator = match(operator)
                         .with("is_empty", () => EqualityOperator.equal)
@@ -578,6 +696,45 @@ export function getApiEndpoint(source: GrapherConfigGridEditorSource) {
         .with(
             GrapherConfigGridEditorSource.SourceCharts,
             () => "/api/chart-bulk-update"
+        )
+        .exhaustive()
+}
+
+export function getReadonlyColumns(source: GrapherConfigGridEditorSource) {
+    return match(source)
+        .with(
+            GrapherConfigGridEditorSource.SourceVariableAnnotation,
+            () => readOnlyVariableAnnotationColumnNamesFields
+        )
+        .with(
+            GrapherConfigGridEditorSource.SourceCharts,
+            () => readOnlyBulkGrapherCondigEditorColumnNamesFields
+        )
+        .exhaustive()
+}
+
+export function getHiddenColumns(source: GrapherConfigGridEditorSource) {
+    return match(source)
+        .with(
+            GrapherConfigGridEditorSource.SourceVariableAnnotation,
+            () => VARIABLE_ANNOTATIONS_HIDDEN_COLUMNS
+        )
+        .with(
+            GrapherConfigGridEditorSource.SourceCharts,
+            () => BULK_CHART_EDIT_HIDDEN_COLUMNS
+        )
+        .exhaustive()
+}
+
+export function getColumnSet(source: GrapherConfigGridEditorSource) {
+    return match(source)
+        .with(
+            GrapherConfigGridEditorSource.SourceVariableAnnotation,
+            () => variableAnnotationsColumnSets
+        )
+        .with(
+            GrapherConfigGridEditorSource.SourceCharts,
+            () => bulkChartEditorColumnSets
         )
         .exhaustive()
 }

@@ -55,6 +55,11 @@ export const AdminSidebar = (): JSX.Element => (
                 </Link>
             </li>
             <li>
+                <Link to="/bulk-grapher-config-editor">
+                    <FontAwesomeIcon icon={faTable} /> Bulk chart editor
+                </Link>
+            </li>
+            <li>
                 <Link to="/variable-annotations">
                     <FontAwesomeIcon icon={faPen} /> Data annotation
                 </Link>

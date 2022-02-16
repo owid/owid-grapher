@@ -40,6 +40,7 @@ import { ExplorerCreatePage } from "../explorerAdminClient/ExplorerCreatePage"
 import { ExplorersIndexPage } from "../explorerAdminClient/ExplorersListPage"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants"
 import { AdminLayout } from "./AdminLayout"
+import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -173,6 +174,13 @@ export class AdminApp extends React.Component<{
                                     <AdminLayout title="Explorers">
                                         <ExplorersIndexPage />
                                     </AdminLayout>
+                                )}
+                            />
+                            <Route
+                                exact
+                                path={`/bulk-grapher-config-editor`}
+                                render={({ match }) => (
+                                    <BulkGrapherConfigEditorPage />
                                 )}
                             />
                             <Route
