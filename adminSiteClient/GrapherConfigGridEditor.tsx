@@ -277,12 +277,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @action.bound private loadGrapherJson(json: any): void {
         const newConfig: GrapherProgrammaticInterface = {
             ...json,
-            bounds: new Bounds(0, 0, 500, 400),
+            isEmbeddedInAnOwidPage: true,
+            bounds: new Bounds(0, 0, 480, 500),
             getGrapherInstance: (grapher: Grapher) => {
                 this.grapher = grapher
             },
         }
         if (this.grapherElement) {
+            console.log("loading grapher json")
             this.grapher.setAuthoredVersion(newConfig)
             this.grapher.reset()
             this.grapher.updateFromObject(newConfig)
@@ -932,21 +934,26 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 <div className="container">
                     <h3>Variable filters</h3>
                     {this.renderPagination()}
-                    <BindString
-                        field="namespaceNameFilter"
-                        store={this}
-                        label="Namespace name"
-                    />
-                    <BindString
-                        field="datasetNameFilter"
-                        store={this}
-                        label="Dataset name"
-                    />
-                    <BindString
-                        field="variableNameFilter"
-                        store={this}
-                        label="Variable name"
-                    />
+                    {this.source ===
+                    GrapherConfigGridEditorSource.SourceVariableAnnotation ? (
+                        <React.Fragment>
+                            <BindString
+                                field="namespaceNameFilter"
+                                store={this}
+                                label="Namespace name"
+                            />
+                            <BindString
+                                field="datasetNameFilter"
+                                store={this}
+                                label="Dataset name"
+                            />
+                            <BindString
+                                field="variableNameFilter"
+                                store={this}
+                                label="Variable name"
+                            />
+                        </React.Fragment>
+                    ) : null}
                     <label>Query builder</label>
                     {FilterPanelConfig && filterState && (
                         <Query
