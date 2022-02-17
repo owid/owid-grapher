@@ -141,13 +141,11 @@ export class TimelineController {
 
     private dragRangeToTime(time: Time): void {
         const { minTime, maxTime } = this
-        const closestTime = findClosestTime(this.timesAsc, time) ?? time
 
-        let startTime = this.dragOffsets[0] + closestTime
-        let endTime = this.dragOffsets[1] + closestTime
+        let startTime = this.getTimeBoundFromDrag(this.dragOffsets[0] + time)
+        let endTime = this.getTimeBoundFromDrag(this.dragOffsets[1] + time)
 
         if (startTime < minTime) {
-            startTime = minTime
             endTime = this.getTimeBoundFromDrag(
                 minTime + (this.dragOffsets[1] - this.dragOffsets[0])
             )
@@ -155,7 +153,6 @@ export class TimelineController {
             startTime = this.getTimeBoundFromDrag(
                 maxTime + (this.dragOffsets[0] - this.dragOffsets[1])
             )
-            endTime = maxTime
         }
 
         this.updateStartTime(startTime)
