@@ -4,6 +4,7 @@ import {
     Column,
     BaseEntity,
     OneToMany,
+    Relation,
 } from "typeorm"
 import { Chart } from "./Chart.js"
 import { Dataset } from "./Dataset.js"
@@ -24,16 +25,16 @@ export class User extends BaseEntity {
     @Column() lastSeen!: Date
 
     @OneToMany(() => Chart, (chart) => chart.lastEditedByUser)
-    lastEditedCharts!: Chart[]
+    lastEditedCharts!: Relation<Chart[]>
 
     @OneToMany(() => Chart, (chart) => chart.publishedByUser)
-    publishedCharts!: Chart[]
+    publishedCharts!: Relation<Chart[]>
 
     @OneToMany(() => ChartRevision, (rev) => rev.user)
-    editedCharts!: ChartRevision[]
+    editedCharts!: Relation<ChartRevision[]>
 
     @OneToMany(() => Dataset, (dataset) => dataset.createdByUser)
-    createdDatasets!: Dataset[]
+    createdDatasets!: Relation<Dataset[]>
 
     async setPassword(password: string): Promise<void> {
         const h = new BCryptHasher()

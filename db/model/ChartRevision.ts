@@ -4,6 +4,7 @@ import {
     Column,
     BaseEntity,
     ManyToOne,
+    Relation,
 } from "typeorm"
 import { Chart } from "./Chart.js"
 import { User } from "./User.js"
@@ -19,8 +20,8 @@ export class ChartRevision extends BaseEntity {
     @Column() updatedAt!: Date
 
     @ManyToOne(() => User, (user) => user.editedCharts)
-    user!: User
+    user!: Relation<User>
 
     @ManyToOne(() => Chart, (chart) => chart.logs)
-    chart!: Chart
+    chart!: Relation<Chart>
 }

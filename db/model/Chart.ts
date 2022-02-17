@@ -5,6 +5,7 @@ import {
     BaseEntity,
     ManyToOne,
     OneToMany,
+    Relation,
 } from "typeorm"
 import * as lodash from "lodash"
 import * as db from "../db.js"
@@ -32,11 +33,11 @@ export class Chart extends BaseEntity {
     @Column() isExplorable!: boolean
 
     @ManyToOne(() => User, (user) => user.lastEditedCharts)
-    lastEditedByUser!: User
+    lastEditedByUser!: Relation<User>
     @ManyToOne(() => User, (user) => user.publishedCharts)
-    publishedByUser!: User
+    publishedByUser!: Relation<User>
     @OneToMany(() => ChartRevision, (rev) => rev.chart)
-    logs!: ChartRevision[]
+    logs!: Relation<ChartRevision[]>
 
     static table: string = "charts"
 

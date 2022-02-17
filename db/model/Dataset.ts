@@ -5,6 +5,7 @@ import {
     BaseEntity,
     ManyToOne,
     Unique,
+    Relation,
 } from "typeorm"
 import { Writable } from "stream"
 
@@ -32,7 +33,7 @@ export class Dataset extends BaseEntity {
     @Column({ default: false }) nonRedistributable!: boolean
 
     @ManyToOne(() => User, (user) => user.createdDatasets)
-    createdByUser!: User
+    createdByUser!: Relation<User>
 
     // Export dataset variables to CSV (not including metadata)
     static async writeCSV(datasetId: number, stream: Writable): Promise<void> {
