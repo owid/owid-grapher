@@ -1,9 +1,10 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ""
-labels: ""
-assignees: ""
+title: ''
+labels: feature, needs triage
+assignees: ''
+
 ---
 
 ## Core problem
