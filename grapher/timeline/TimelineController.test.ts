@@ -92,4 +92,9 @@ it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond e
     expect(controller.getTimeBoundFromDrag(1899.9)).toBe(
         TimeBoundValue.negativeInfinity
     )
+
+    controller.setDragOffsets(2000)
+    controller["dragRangeToTime"](3000)
+    expect(manager.startHandleTimeBound).toEqual(2004)
+    expect(manager.endHandleTimeBound).toEqual(TimeBoundValue.positiveInfinity)
 })
