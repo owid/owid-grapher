@@ -30,11 +30,6 @@ jobs:
                   project_id: 4
                   resource_node_id: ${{ github.event.issue.node_id }}
                   status_value: ${{ env.todo }} # Target status
-            - name: Label issues
-              uses: andymckay/labeler@e6c4322d0397f3240f0e7e30a33b5c5df2d39e90
-              with:
-                  add-labels: "needs triage"
-                  repo-token: ${{ secrets.GITHUB_TOKEN }}
     issue_closed:
         name: issue_closed
         runs-on: ubuntu-latest
