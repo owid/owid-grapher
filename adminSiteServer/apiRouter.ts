@@ -1423,7 +1423,9 @@ apiRouter.patch("/chart-bulk-update", async (req, res) => {
         const configMap = new Map<number, GrapherInterface>(
             configsAndIds.map((item: any) => [
                 item.id,
-                item.config ? JSON.parse(item.grapherConfig) : {},
+                // make sure that the id is set, otherwise the update behaviour is weird
+                // TODO: discuss if this has unintended side effects
+                item.config ? { ...JSON.parse(item.config), id: item.id } : {},
             ])
         )
         const oldValuesConfigMap = new Map(configMap)
