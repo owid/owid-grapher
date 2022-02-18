@@ -133,7 +133,7 @@ import {
     OwidColumnDef,
 } from "../../coreTable/OwidTableConstants.js"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
-import * as Mousetrap from "mousetrap"
+import Mousetrap from "mousetrap"
 import { SlideShowController } from "../slideshowController/SlideShowController.js"
 import {
     ChartComponentClassMap,
