@@ -1,13 +1,13 @@
 #! /usr/bin/env jest
 
-import { getSegmentsFromPoints } from "../scatterCharts/MultiColorPolyline.js"
+import { getLinearlyInterpolatedSegments } from "../scatterCharts/MultiColorPolyline.js"
 
 it("splits different-colored segments", () => {
     const points = [
         { x: 0, y: 0, color: "#000" },
         { x: 1, y: 0, color: "#111" },
     ]
-    const segments = getSegmentsFromPoints(points)
+    const segments = getLinearlyInterpolatedSegments(points)
 
     expect(segments.length).toEqual(2)
 
@@ -25,7 +25,7 @@ it("preserves same-colored segments", () => {
         { x: 0, y: 0, color: "#000" },
         { x: 1, y: 0, color: "#000" },
     ]
-    const segments = getSegmentsFromPoints(points)
+    const segments = getLinearlyInterpolatedSegments(points)
 
     expect(segments.length).toEqual(1)
     expect(segments[0].color).toEqual("#000")
@@ -41,7 +41,7 @@ it("merges segments of same color", () => {
         { x: 5, y: 4, color: "#111" },
         { x: 6, y: 4, color: "#000" },
     ]
-    const segments = getSegmentsFromPoints(points)
+    const segments = getLinearlyInterpolatedSegments(points)
 
     expect(segments.length).toEqual(3)
 

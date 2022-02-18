@@ -212,6 +212,7 @@ class Lines extends React.Component<LinesProps> {
                         )}
                     />
                     <MultiColorPolyline
+                        interpolation={this.props.lineInterpolation}
                         points={series.placedPoints}
                         strokeLinejoin="round"
                         strokeWidth={this.strokeWidth}
@@ -736,6 +737,7 @@ export class LineChart
                         hidePoints={manager.hidePoints}
                         onHover={this.onHover}
                         focusedSeriesNames={this.focusedSeriesNames}
+                        lineInterpolation={this.manager.lineInterpolation}
                         lineStrokeWidth={this.lineStrokeWidth}
                         lineOutlineWidth={this.lineOutlineWidth}
                         markerRadius={this.markerRadius}

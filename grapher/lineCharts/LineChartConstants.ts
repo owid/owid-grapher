@@ -5,6 +5,7 @@ import { TimeBound } from "../../clientUtils/TimeBounds.js"
 import { ChartSeries } from "../chart/ChartInterface.js"
 import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { Color } from "../../clientUtils/owidTypes.js"
+import { MultiColorPolylineInterpolation } from "../scatterCharts/MultiColorPolyline.js"
 
 export interface LinePoint {
     x: number
@@ -33,6 +34,7 @@ export interface LinesProps {
     focusedSeriesNames: SeriesName[]
     onHover: (hoverX: number | undefined) => void
     hidePoints?: boolean
+    lineInterpolation?: MultiColorPolylineInterpolation
     lineStrokeWidth?: number
     lineOutlineWidth?: number
     markerRadius?: number
@@ -40,5 +42,6 @@ export interface LinesProps {
 
 export interface LineChartManager extends ChartManager {
     lineStrokeWidth?: number
+    lineInterpolation?: MultiColorPolylineInterpolation
     canSelectMultipleEntities?: boolean
 }

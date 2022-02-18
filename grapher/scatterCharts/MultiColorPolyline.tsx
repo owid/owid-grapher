@@ -18,6 +18,12 @@ interface Point {
 interface Segment {
     points: Point[]
     color: string
+    y?: number
+}
+
+export enum MultiColorPolylineInterpolation {
+    linear = "linear",
+    levels = "levels",
 }
 
 function getMidpoint(a: Point, b: Point): Point {
@@ -34,7 +40,7 @@ function toPoint(point: MultiColorPolylinePoint): Point {
     }
 }
 
-export function getSegmentsFromPoints(
+export function getLinearlyInterpolatedSegments(
     points: MultiColorPolylinePoint[]
 ): Segment[] {
     const segments: Segment[] = []
@@ -62,6 +68,35 @@ export function getSegmentsFromPoints(
     return segments
 }
 
+export function getLevelledSegments(
+    points: MultiColorPolylinePoint[]
+): Segment[] {
+    const segments: Segment[] = []
+    points.forEach((currentPoint) => {
+        const currentSegment = last(segments)
+        if (currentSegment === undefined) {
+            segments.push({
+                points: [toPoint(currentPoint)],
+                color: currentPoint.color,
+                y: currentPoint.y,
+            })
+        } else if (currentSegment.y === currentPoint.y) {
+            currentSegment.points.push(toPoint(currentPoint))
+        } else {
+            const lastPoint = last(currentSegment.points)!
+            const midPoint = getMidpoint(lastPoint, currentPoint)
+            const leftEndPoint = { ...lastPoint, x: midPoint.x }
+            const rightStartPoint = { ...currentPoint, x: midPoint.x }
+            currentSegment.points.push(leftEndPoint)
+            segments.push({
+                points: [rightStartPoint, toPoint(currentPoint)],
+                color: currentPoint.color,
+            })
+        }
+    })
+    return segments
+}
+
 function toSvgPoints(points: Point[]): string {
     // TODO round to 1 decimal place to decrease SVG size?
     return points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")
@@ -72,6 +107,7 @@ type MultiColorPolylineProps = Omit<
     "fill" | "stroke" | "points" | "strokeLinecap"
 > & {
     points: MultiColorPolylinePoint[]
+    interpolation?: MultiColorPolylineInterpolation
 }
 
 // The current approach constructs multiple polylines and joins them together at midpoints.
@@ -93,8 +129,16 @@ type MultiColorPolylineProps = Omit<
 //
 @observer
 export class MultiColorPolyline extends React.Component<MultiColorPolylineProps> {
+    @computed get interpolation(): MultiColorPolylineInterpolation {
+        return (
+            this.props.interpolation ?? MultiColorPolylineInterpolation.linear
+        )
+    }
+
     @computed get segments(): Segment[] {
-        return getSegmentsFromPoints(this.props.points)
+        return this.interpolation === MultiColorPolylineInterpolation.levels
+            ? getLevelledSegments(this.props.points)
+            : getLinearlyInterpolatedSegments(this.props.points)
     }
 
     render(): JSX.Element {

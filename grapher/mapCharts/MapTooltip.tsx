@@ -22,6 +22,7 @@ import {
 } from "../color/ColorUtils.js"
 import { getPreposition } from "../../coreTable/CoreTableUtils.js"
 import { isNumber, AllKeysRequired } from "../../clientUtils/Util.js"
+import { MultiColorPolylineInterpolation } from "../scatterCharts/MultiColorPolyline.js"
 
 interface MapTooltipProps {
     entityName: EntityName
@@ -105,6 +106,10 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.hasTimeSeriesData
     }
 
+    @computed private get isLevelledSparkline(): boolean {
+        return !!this.props.manager.mapConfig?.tooltipUseCustomLabels
+    }
+
     @computed private get tooltipTarget(): {
         x: number
         y: number
@@ -135,13 +140,16 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             hidePoints: true,
             baseFontSize: 11,
             disableIntroAnimation: true,
+            lineInterpolation: this.isLevelledSparkline
+                ? MultiColorPolylineInterpolation.levels
+                : undefined,
             lineStrokeWidth: 3.5,
             annotation: {
                 entityName: this.entityName,
                 year: this.datum?.time,
             },
             yAxisConfig: {
-                hideAxis: false,
+                hideAxis: this.isLevelledSparkline,
                 hideGridlines: false,
                 compactLabels: true,
                 // Copy min/max from top-level Grapher config if Y column == Map column
