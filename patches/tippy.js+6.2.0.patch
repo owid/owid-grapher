@@ -1,0 +1,17 @@
+index ca7c97e..ed703e0
+--- a/node_modules/tippy.js/package.json
++++ b/node_modules/tippy.js/package.json
+@@ -2,6 +2,13 @@
+   "name": "tippy.js",
+   "version": "6.2.0",
+   "description": "The complete tooltip, popover, dropdown, and menu solution for the web",
++  "type": "module",
++  "exports": {
++      ".": {
++        "require": "./dist/tippy.umd.js",
++        "import": "./dist/tippy.esm.js"
++      }
++  },
+   "main": "dist/tippy.cjs.js",
+   "module": "dist/tippy.esm.js",
+   "unpkg": "dist/tippy-bundle.umd.min.js",

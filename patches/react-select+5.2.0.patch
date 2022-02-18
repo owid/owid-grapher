@@ -1,0 +1,17 @@
+index b7fa88d..feca3b4
+--- a/node_modules/react-select/package.json
++++ b/node_modules/react-select/package.json
+@@ -2,6 +2,13 @@
+   "name": "react-select",
+   "version": "5.2.0",
+   "description": "A Select control built with and for ReactJS",
++  "type": "module",
++  "exports": {
++    ".": {
++        "import": "./dist/react-select.esm.js",
++        "require": "./dist/react-select.cjs.js"
++      }
++  },
+   "main": "dist/react-select.cjs.js",
+   "module": "dist/react-select.esm.js",
+   "types": "dist/react-select.cjs.d.ts",
