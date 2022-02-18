@@ -43,7 +43,7 @@ import {
     getOwidVariableDisplayConfig,
 } from "../db/model/Variable.js"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue.js"
-import { renderAutomaticProminentLinks, renderBlocks } from "./siteRenderers.js"
+import { renderBlocks } from "./siteRenderers.js"
 import {
     formatUrls,
     getBodyHtml,
@@ -294,8 +294,6 @@ export const formatWordpressPost = async (
 
     // SSR rendering of Gutenberg blocks, before hydration on client
     await renderBlocks(cheerioEl)
-    // DEPRECATED / todo: remove
-    await renderAutomaticProminentLinks(cheerioEl, post)
 
     // Extract inline styling
     let style

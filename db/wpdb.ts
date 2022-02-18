@@ -29,7 +29,6 @@ import {
     PostReference,
     JsonError,
     CategoryNode,
-    WP_MediaSizes,
     FilterFnPostRestApi,
     PostRestApi,
     TopicId,
@@ -692,32 +691,6 @@ export const getBlogIndex = memoize(async (): Promise<FullPost[]> => {
     const posts = await getPosts([WP_PostType.Post], selectHomepagePosts)
     return Promise.all(posts.map((post) => getFullPost(post, true)))
 })
-
-export const getMediaThumbnailUrl = async (
-    id: number
-): Promise<string | undefined> => {
-    const query = `
-    query getMediaSizes($id: ID!) {
-        mediaItem(id: $id, idType: DATABASE_ID) {
-          mediaDetails {
-            sizes {
-              name
-              sourceUrl
-            }
-          }
-        }
-      }
-    `
-
-    const mediaSizes = await graphqlQuery(query, { id })
-
-    const thumbnail = mediaSizes?.data?.mediaItem?.mediaDetails?.sizes?.find(
-        (mediaSize: { name: WP_MediaSizes; sourceUrl: string }) =>
-            mediaSize.name === WP_MediaSizes.Thumbnail
-    )
-
-    return thumbnail?.sourceUrl
-}
 
 export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
     if (!isWordpressAPIEnabled) return []

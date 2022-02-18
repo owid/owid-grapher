@@ -1,8 +1,4 @@
-import {
-    formatWordpressEditLink,
-    LongFormPage,
-    PageOverrides,
-} from "../site/LongFormPage.js"
+import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
@@ -17,7 +13,6 @@ import {
     extractFormattingOptions,
     formatCountryProfile,
     isCanonicalInternalUrl,
-    isStandaloneCanonicalInternalLink,
 } from "./formatting.js"
 import {
     bakeGrapherUrls,
@@ -54,7 +49,6 @@ import {
     getEntriesByCategory,
     getFullPost,
     getLatestPostRevision,
-    getMediaThumbnailUrl,
     getPostBySlug,
     getPosts,
     selectHomepagePosts,
@@ -65,10 +59,7 @@ import { mysqlFirst, queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
-import {
-    ProminentLink,
-    ProminentLinkStyles,
-} from "../site/blocks/ProminentLink.js"
+import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
 import { renderHelp } from "../site/blocks/Help.js"
 import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
@@ -509,85 +500,6 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
             )
 
             $block.replaceWith(rendered)
-        })
-    )
-}
-
-// DEPRECATED / todo: remove
-export const renderAutomaticProminentLinks = async (
-    cheerioEl: CheerioStatic,
-    currentPost: FullPost
-) => {
-    const anchorElements = cheerioEl("a").toArray()
-    await Promise.all(
-        anchorElements.map(async (anchor) => {
-            if (!isStandaloneCanonicalInternalLink(anchor, cheerioEl)) return
-            const url = Url.fromURL(anchor.attribs.href)
-            if (!url.slug) return
-
-            // todo: remove early return when "/uploads" standalone links removed from content
-            // conversion failing silently on purpose
-            // see https://www.notion.so/owid/Automatic-prominent-links-1eafcce85953483d912b6e5f20b928ec#55ca3ed4f72e41b8bd477f2eba2455b6
-            if (url.isUpload) return
-
-            if (url.isGrapher) {
-                logContentErrorAndMaybeSendToSlack(
-                    new Error(
-                        `Automatic prominent link conversion failed for ${
-                            anchor.attribs.href
-                        } in ${formatWordpressEditLink(
-                            currentPost.id
-                        )}. Grapher link are not yet supported.`
-                    )
-                )
-                return
-            }
-
-            let targetPost
-            try {
-                targetPost = await getPostBySlug(url.slug)
-            } catch (err) {
-                // not throwing here as this is not considered a critical error.
-                // Standalone links will just show up as such (and get
-                // netlify-redirected upon click if applicable).
-                logContentErrorAndMaybeSendToSlack(
-                    new Error(
-                        `Automatic prominent link conversion failed: no post found at ${
-                            anchor.attribs.href
-                        } in ${formatWordpressEditLink(
-                            currentPost.id
-                        )}. This might be because the URL of the target has been recently changed.`
-                    )
-                )
-            }
-            if (!targetPost) return
-
-            let image
-            if (targetPost.imageId) {
-                const mediaThumbnailUrl = await getMediaThumbnailUrl(
-                    targetPost.imageId
-                )
-                if (mediaThumbnailUrl) {
-                    image = ReactDOMServer.renderToStaticMarkup(
-                        <img src={formatUrls(mediaThumbnailUrl)} />
-                    )
-                }
-            }
-
-            const rendered = ReactDOMServer.renderToStaticMarkup(
-                <div className="block-wrapper">
-                    <ProminentLink
-                        href={anchor.attribs.href}
-                        style={ProminentLinkStyles.thin}
-                        title={targetPost.title}
-                        image={image}
-                    />
-                </div>
-            )
-
-            const $anchorParent = cheerioEl(anchor.parent)
-            $anchorParent.after(rendered)
-            $anchorParent.remove()
         })
     )
 }
