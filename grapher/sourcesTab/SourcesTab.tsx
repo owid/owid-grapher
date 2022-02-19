@@ -2,13 +2,15 @@ import { linkify } from "../../clientUtils/Util.js"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { decodeHTML } from "entities"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { OwidColumnDef } from "../../coreTable/OwidTableConstants.js"
 
-const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
+const formatText = (s: string): string =>
+    linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
 export interface SourcesTabManager {
     adminBaseUrl?: string
@@ -47,7 +49,7 @@ export class SourcesTab extends React.Component<{
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
-                    {column.name}{" "}
+                    {decodeHTML(column.name)}{" "}
                     {editUrl && (
                         <a href={editUrl} target="_blank" rel="noopener">
                             <FontAwesomeIcon icon={faPencilAlt} />
