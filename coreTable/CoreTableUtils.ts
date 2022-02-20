@@ -31,7 +31,6 @@ import {
     OwidTableSlugs,
 } from "./OwidTableConstants.js"
 import { ColumnSlug } from "../clientUtils/owidTypes.js"
-import { CoreColumn, TimeColumn } from "./CoreTableColumns.js"
 
 export const columnStoreToRows = (
     columnStore: CoreColumnStore
@@ -691,6 +690,3 @@ export const emptyColumnsInFirstRowInDelimited = (str: string): string[] => {
     })
     return emptySlugs
 }
-
-export const getPreposition = (col: TimeColumn | CoreColumn): string =>
-    col instanceof TimeColumn ? col.preposition : "in"

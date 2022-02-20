@@ -12,7 +12,6 @@ import {
     OwidVariableRow,
 } from "../../coreTable/OwidTableConstants.js"
 import { LineChart } from "../lineCharts/LineChart.js"
-import { PrimitiveType } from "../../clientUtils/owidTypes.js"
 import classNames from "classnames"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { LineChartManager } from "../lineCharts/LineChartConstants.js"
@@ -20,7 +19,6 @@ import {
     darkenColorForHighContrastText,
     darkenColorForLine,
 } from "../color/ColorUtils.js"
-import { getPreposition } from "../../coreTable/CoreTableUtils.js"
 import { isNumber, AllKeysRequired } from "../../clientUtils/Util.js"
 
 interface MapTooltipProps {
@@ -187,7 +185,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         // TODO simplify?
         const { timeColumn } = mapTable
-        const preposition = getPreposition(timeColumn)
+        const preposition = OwidTable.getPreposition(timeColumn)
         const displayTime = !timeColumn.isMissing
             ? timeColumn.formatValue(targetTime)
             : targetTime

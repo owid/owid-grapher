@@ -1494,6 +1494,10 @@ export class CoreTable<
             TransformType.Reduce
         )
     }
+
+    static getPreposition(col: TimeColumn | CoreColumn): string {
+        return col instanceof TimeColumn ? col.preposition : "in"
+    }
 }
 
 interface ReductionMap {
