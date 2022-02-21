@@ -543,7 +543,7 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get title(): string | undefined {
+    @computed get legendTitle(): string | undefined {
         return this.colorScale.legendDescription
     }
 

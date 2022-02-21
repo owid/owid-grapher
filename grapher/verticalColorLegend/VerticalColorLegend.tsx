@@ -10,7 +10,7 @@ export interface VerticalColorLegendManager {
     maxLegendWidth?: number
     fontSize?: number
     legendItems: LegendItem[]
-    title?: string
+    legendTitle?: string
     onLegendMouseOver?: (color: string) => void
     onLegendClick?: (color: string) => void
     onLegendMouseLeave?: () => void
@@ -57,12 +57,12 @@ export class VerticalColorLegend extends React.Component<{
     private lineHeight = 5
 
     @computed private get title(): TextWrap | undefined {
-        if (!this.manager.title) return undefined
+        if (!this.manager.legendTitle) return undefined
         return new TextWrap({
             maxWidth: this.maxLegendWidth,
             fontSize: this.fontSize,
             fontWeight: 700,
-            text: this.manager.title,
+            text: this.manager.legendTitle,
         })
     }
 
