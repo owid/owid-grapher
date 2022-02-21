@@ -12,7 +12,7 @@ import {
     ToggleControl,
 } from "@wordpress/components"
 import { createBlock } from "@wordpress/blocks"
-import { get, map } from "lodash-es"
+import { get, map } from "lodash"
 
 const blockStyle = {
     border: "1px dashed lightgrey",
