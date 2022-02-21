@@ -39,7 +39,6 @@
         "testJest": "jest"
     },
     "dependencies": {
-        "@ant-design/icons": "^4.7.0",
         "@bugsnag/js": "^7.14.1",
         "@bugsnag/plugin-react": "^7.14.0",
         "@fortawesome/fontawesome-svg-core": "^1.2.30",
