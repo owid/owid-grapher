@@ -4,7 +4,10 @@ import { stringifyUnkownError, urlToSlug } from "../clientUtils/Util.js"
 import { FormattingOptions, FullPost } from "../clientUtils/owidTypes.js"
 import { getPostBySlug, isPostCitable } from "../db/wpdb.js"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
-import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import {
+    logContentErrorAndMaybeSendToSlack,
+    logErrorAndMaybeSendToSlack,
+} from "../serverUtils/slackLog.js"
 
 export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     let post
@@ -39,7 +42,7 @@ export const getLandingOnlyIfParent = async (
         // todo: the concept of "citation overrides" does not belong to that
         // generic function. Logging this message should be the responsibility
         // of the caller function.
-        logErrorAndMaybeSendToSlack(
+        logContentErrorAndMaybeSendToSlack(
             new Error(
                 `Citation overrides not applied for ${post.slug}. Please check the href of the "subnavs[${formattingOptions.subnavId}]" landing page (the first item in the array): it is likely out-of-date and is being redirected.`
             )

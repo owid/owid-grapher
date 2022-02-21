@@ -24,24 +24,6 @@ describe("Kitchen sink", function () {
             cy.contains(testTitle).next().contains("(link removed)")
         }
 
-        // Automatic prominent links
-        testProminentLink({
-            testTitle: "[DEPRECATED] Article link (automatic)",
-            title: "Child Mortality: an everyday tragedy of enormous scale that we can make progress against",
-            src: "http://localhost:3030/uploads/2021/07/Screen-Shot-2021-07-16-at-14.36.49-150x82.png",
-        })
-        testProminentLink({
-            testTitle: "[DEPRECATED] Topic link (automatic)",
-            title: "Child and Infant Mortality",
-            src: "http://localhost:3030/uploads/2019/11/Child-deaths-by-cause-1990-to-2017-IHME-01-150x107.png",
-        })
-        cy.contains("Grapher link (automatic, no support)")
-            .next()
-            .contains("http://localhost:3030/grapher/child-mortality")
-        cy.contains("Explorer link (automatic, no support)")
-            .next()
-            .contains("http://localhost:3030/explorers/co2")
-
         // Standard prominent links
         // With automatic fallback
         testProminentLink({

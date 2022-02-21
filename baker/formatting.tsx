@@ -159,18 +159,6 @@ export const formatCountryProfile = (
     return { ...post, html: getBodyHtml(cheerioEl) }
 }
 
-// Assumes formatLinks URL standardisation
-export const isStandaloneCanonicalInternalLink = (
-    el: CheerioElement,
-    $: CheerioStatic
-) => {
-    return (
-        isCanonicalInternalUrl(Url.fromURL(el.attribs.href)) &&
-        el.parent.tagName === "p" &&
-        $(el.parent).contents().length === 1
-    )
-}
-
 // Assumes formatUrls URL standardisation
 export const isCanonicalInternalUrl = (url: Url): boolean => {
     if (!url.originAndPath) return false
