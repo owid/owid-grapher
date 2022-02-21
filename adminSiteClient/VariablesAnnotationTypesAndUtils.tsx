@@ -33,6 +33,7 @@ import {
     BasicConfig,
     Builder,
     BuilderProps,
+    JsonTree,
     SimpleField,
 } from "react-awesome-query-builder"
 import { Utils as QbUtils } from "react-awesome-query-builder"
@@ -341,7 +342,7 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
 }
 
 export function filterTreeToSExpression(
-    filterTree: JsonItem
+    filterTree: JsonTree | JsonItem
 ): Operation | undefined {
     if (filterTree.type === "group") {
         // If we have a group then we need to decide
