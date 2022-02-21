@@ -18,7 +18,6 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "../coreTable/OwidTable.js"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV.js"
-import { DimensionProperty } from "../clientUtils/owidTypes.js"
 
 @observer
 export class DimensionCard extends React.Component<{
@@ -33,14 +32,6 @@ export class DimensionCard extends React.Component<{
 
     @computed get table(): OwidTable {
         return this.props.editor.grapher.table
-    }
-
-    @computed get hasExpandedOptions(): boolean {
-        return (
-            this.props.dimension.property === DimensionProperty.y ||
-            this.props.dimension.property === DimensionProperty.x ||
-            this.props.dimension.property === DimensionProperty.color
-        )
     }
 
     @action.bound onToggleExpand() {
@@ -113,20 +104,18 @@ export class DimensionCard extends React.Component<{
             >
                 <header>
                     <div>
-                        {this.hasExpandedOptions && (
-                            <span
-                                className="clickable"
-                                onClick={this.onToggleExpand}
-                            >
-                                <FontAwesomeIcon
-                                    icon={
-                                        this.isExpanded
-                                            ? faChevronUp
-                                            : faChevronDown
-                                    }
-                                />
-                            </span>
-                        )}
+                        <span
+                            className="clickable"
+                            onClick={this.onToggleExpand}
+                        >
+                            <FontAwesomeIcon
+                                icon={
+                                    this.isExpanded
+                                        ? faChevronUp
+                                        : faChevronDown
+                                }
+                            />
+                        </span>
                     </div>
                     <div>
                         <FontAwesomeIcon icon={faArrowsAltV} />
