@@ -60,12 +60,12 @@ import {
     BooleanAtom,
     Operation,
     SqlColumnName,
-    WHITELISTED_SQL_COLUM_NAMES,
+    WHITELISTED_SQL_COLUMN_NAMES,
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
     VariableAnnotationsRow,
-    ColumnReorderItem,
+    ColumnInformation,
     Action,
     PAGEING_SIZE,
     Tabs,
@@ -109,7 +109,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable currentColumnSet: ColumnSet
     @observable columnFilter: string = ""
 
-    @observable.ref columnSelection: ColumnReorderItem[] = []
+    @observable.ref columnSelection: ColumnInformation[] = []
     @observable.ref filterState: FilterPanelState | undefined = undefined
 
     context!: AdminAppContextType
@@ -171,21 +171,21 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                       searchFieldStringToFilterOperations(
                           variableNameFilter ?? "",
                           new SqlColumnName(
-                              WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
+                              WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
                               context
                           )
                       ),
                       searchFieldStringToFilterOperations(
                           datasetNameFilter ?? "",
                           new SqlColumnName(
-                              WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
+                              WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
                               context
                           )
                       ),
                       searchFieldStringToFilterOperations(
                           namespaceNameFilter ?? "",
                           new SqlColumnName(
-                              WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
+                              WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
                               context
                           )
                       ),
@@ -500,7 +500,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     fieldDesc,
                 ])
             )
-            const undefinedColumns: ColumnReorderItem[] = []
+            const undefinedColumns: ColumnInformation[] = []
             const columns = columnSelection.map((reorderItem) => {
                 if (isConfigColumn(reorderItem.key)) {
                     const fieldDesc = fieldDescriptionsMap.get(reorderItem.key)
@@ -759,14 +759,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const hiddenColumns = getHiddenColumns(this.source)
         // Now we need to construct the initial order and visibility state of all ColumnReorderItems
         // First construct them from the fieldDescriptions (from the schema) and the hardcoded readonly column names
-        const fieldDescReorderItems: ColumnReorderItem[] = fieldDescriptions
+        const fieldDescReorderItems: ColumnInformation[] = fieldDescriptions
             .filter((fieldDesc) => !hiddenColumns.has(fieldDesc.pointer))
             .map((item) => ({
                 key: item.pointer,
                 visible: false,
                 description: item.description,
             }))
-        const readonlyReorderItems: ColumnReorderItem[] = [
+        const readonlyReorderItems: ColumnInformation[] = [
             ...readOnlyColumns.values(),
         ].map(({ label, key }) => ({
             key: key,
@@ -990,7 +990,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @action.bound
     columnListEyeIconClicked(
-        columnSelection: ColumnReorderItem[],
+        columnSelection: ColumnInformation[],
         itemKey: string,
         newState: boolean
     ) {
