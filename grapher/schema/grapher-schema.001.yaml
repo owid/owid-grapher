@@ -219,10 +219,10 @@ properties:
                 description: Select a specific time to be displayed.
                 default: "latest"
                 oneOf:
+                    - type: number
                     - type: string
                       enum:
                           - latest
-                    - type: number
             variableId:
                 type: integer
                 description: "Variable ID to show. TODO: remove this and use dimensions instead"
@@ -233,11 +233,11 @@ properties:
         description: End point of the initially selected time span.
         default: latest
         oneOf:
+            - type: number
             - type: string
               enum:
                   - latest
                   - earliest
-            - type: number
     subtitle:
         type: string
         description: The longer subtitle text to show beneath the title
@@ -553,12 +553,11 @@ properties:
             - null
     minTime:
         oneOf:
+            - type: number
             - type: string
-
               enum:
                   - latest
                   - earliest
-            - type: number
         description: Start point of the initially selected time span.
     hideTitleAnnotation:
         type: boolean

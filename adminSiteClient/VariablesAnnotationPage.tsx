@@ -19,6 +19,7 @@ import {
     isEqual,
     isNil,
     merge,
+    pick,
 } from "lodash"
 
 import { HotColumn, HotTable } from "@handsontable/react"
@@ -59,14 +60,14 @@ import {
     BinaryLogicOperation,
     BinaryLogicOperators,
     BooleanAtom,
+    Operation,
     SqlColumnName,
-    SQL_COLUMN_NAME_DATASET_NAME,
-    SQL_COLUMN_NAME_VARIABLE_NAME,
+    WHITELISTED_SQL_COLUMN_NAMES,
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
     VariableAnnotationsRow,
-    ColumnReorderItem,
+    ColumnInformation,
     Action,
     PAGEING_SIZE,
     Tabs,
@@ -79,7 +80,20 @@ import {
     searchFieldStringToFilterOperations,
     getItemStyle,
     columnSets,
+    isConfigColumn,
+    readOnlyColumnNamesFields,
+    filterTreeToSExpression,
+    FilterPanelState,
+    filterPanelInitialConfig,
+    initialFilterQueryValue,
+    fieldDescriptionToFilterPanelFieldConfig,
+    simpleColumnToFilterPanelFieldConfig,
+    getFinalConfigLayerForVariable,
+    renderBuilder,
 } from "./VariablesAnnotationTypesAndUtils.js"
+import { Query, Utils as QbUtils } from "react-awesome-query-builder"
+// types
+import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
 
 @observer
 class VariablesAnnotationComponent extends React.Component {
@@ -93,7 +107,8 @@ class VariablesAnnotationComponent extends React.Component {
     @observable currentColumnSet: ColumnSet = columnSets[0]
     @observable columnFilter: string = ""
 
-    @observable.ref columnSelection: ColumnReorderItem[] = []
+    @observable.ref columnSelection: ColumnInformation[] = []
+    @observable.ref filterState: FilterPanelState | undefined = undefined
 
     context!: AdminAppContextType
     /** This array contains a description for every column, information like which field
@@ -113,6 +128,7 @@ class VariablesAnnotationComponent extends React.Component {
     // Filter fields and paging offset
     @observable variableNameFilter: string | undefined = undefined
     @observable datasetNameFilter: string = ""
+    @observable namespaceNameFilter: string = ""
     /** This field stores the offset of what is currently displayed on screen */
     @observable currentPagingOffset: number = 0
     /** This field stores the offset that the user requested. E.g. if the user clicks
@@ -131,19 +147,32 @@ class VariablesAnnotationComponent extends React.Component {
         const {
             variableNameFilter,
             datasetNameFilter,
+            namespaceNameFilter,
             desiredPagingOffset,
             sortByAscending,
             sortByColumn,
+            filterSExpression,
         } = this
         const filterOperations = excludeUndefined([
             searchFieldStringToFilterOperations(
                 variableNameFilter ?? "",
-                new SqlColumnName(SQL_COLUMN_NAME_VARIABLE_NAME)
+                new SqlColumnName(
+                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME
+                )
             ),
             searchFieldStringToFilterOperations(
                 datasetNameFilter ?? "",
-                new SqlColumnName(SQL_COLUMN_NAME_DATASET_NAME)
+                new SqlColumnName(
+                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME
+                )
             ),
+            searchFieldStringToFilterOperations(
+                namespaceNameFilter ?? "",
+                new SqlColumnName(
+                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME
+                )
+            ),
+            filterSExpression,
         ])
         const filterQuery =
             filterOperations.length === 0
@@ -392,11 +421,13 @@ class VariablesAnnotationComponent extends React.Component {
                 )
                 .filter(([, val]) => !isNil(val))
             const fields = fromPairs(fieldsArray as any)
+            const readOnlyColumnValues = [
+                ...readOnlyColumnNamesFields.values(),
+            ].map((field) => [field.key, (row as any)[field.key]])
+            const readOnlyValuesObject =
+                Object.fromEntries(readOnlyColumnValues)
             return {
-                id: row.id,
-                name: row.name,
-                datasetname: row.datasetname,
-                namespacename: row.namespacename,
+                ...readOnlyValuesObject,
                 ...defaultValues,
                 ...fields,
             }
@@ -437,12 +468,7 @@ class VariablesAnnotationComponent extends React.Component {
             />
         )
     }
-    static readOnlyColumnNamesFields = [
-        ["Id", "id"],
-        ["Variable name", "name"],
-        ["Dataset name", "datasetname"],
-        ["Namespace", "namespacename"],
-    ] as const
+
     @computed get hotColumns(): JSX.Element[] {
         const { fieldDescriptions, columnSelection } = this
 
@@ -455,9 +481,9 @@ class VariablesAnnotationComponent extends React.Component {
                     fieldDesc,
                 ])
             )
-            const undefinedColumns: ColumnReorderItem[] = []
+            const undefinedColumns: ColumnInformation[] = []
             const columns = columnSelection.map((reorderItem) => {
-                if (reorderItem.key.startsWith("/")) {
+                if (isConfigColumn(reorderItem.key)) {
                     const fieldDesc = fieldDescriptionsMap.get(reorderItem.key)
                     if (fieldDesc === undefined) {
                         undefinedColumns.push(reorderItem)
@@ -467,23 +493,23 @@ class VariablesAnnotationComponent extends React.Component {
                             fieldDesc
                         )
                 } else {
-                    const readonlyField =
-                        VariablesAnnotationComponent.readOnlyColumnNamesFields.find(
-                            ([, key]) => key === reorderItem.key
-                        )
+                    const readonlyField = readOnlyColumnNamesFields.get(
+                        reorderItem.key
+                    )
                     if (readonlyField === undefined) {
                         undefinedColumns.push(reorderItem)
                         return undefined
                     } else
                         return (
                             <HotColumn
-                                key={readonlyField[0]}
+                                key={readonlyField.label}
                                 settings={{
-                                    title: readonlyField[0],
+                                    title: readonlyField.label,
                                     readOnly: true,
-                                    data: readonlyField[1],
+                                    data: readonlyField.key,
                                     width: Math.max(
-                                        Bounds.forText(readonlyField[0]).width,
+                                        Bounds.forText(readonlyField.label)
+                                            .width,
                                         50
                                     ),
                                 }}
@@ -696,6 +722,13 @@ class VariablesAnnotationComponent extends React.Component {
                 fieldDescriptions,
                 this.currentColumnSet
             )
+            this.filterState = {
+                tree: QbUtils.checkTree(
+                    QbUtils.loadTree(initialFilterQueryValue),
+                    this.FilterPanelConfig ?? filterPanelInitialConfig
+                ),
+                config: this.FilterPanelConfig ?? filterPanelInitialConfig,
+            }
         })
     }
 
@@ -707,21 +740,20 @@ class VariablesAnnotationComponent extends React.Component {
         if (fieldDescriptions === undefined) return
         // Now we need to construct the initial order and visibility state of all ColumnReorderItems
         // First construct them from the fieldDescriptions (from the schema) and the hardcoded readonly column names
-        const fieldDescReorderItems: ColumnReorderItem[] = fieldDescriptions
+        const fieldDescReorderItems: ColumnInformation[] = fieldDescriptions
             .filter((fieldDesc) => !HIDDEN_COLUMNS.has(fieldDesc.pointer))
             .map((item) => ({
                 key: item.pointer,
                 visible: false,
                 description: item.description,
             }))
-        const readonlyReorderItems: ColumnReorderItem[] =
-            VariablesAnnotationComponent.readOnlyColumnNamesFields.map(
-                ([label, id]) => ({
-                    key: id,
-                    visible: false,
-                    description: label,
-                })
-            )
+        const readonlyReorderItems: ColumnInformation[] = [
+            ...readOnlyColumnNamesFields.values(),
+        ].map(({ label, key }) => ({
+            key: key,
+            visible: false,
+            description: label,
+        }))
         // Construct a few helpers
         const allReorderItems = readonlyReorderItems.concat(
             fieldDescReorderItems
@@ -877,21 +909,45 @@ class VariablesAnnotationComponent extends React.Component {
     }
 
     renderFilterTab(): JSX.Element {
+        const { FilterPanelConfig, filterState } = this
         return (
             <section>
                 <div className="container">
                     <h3>Variable filters</h3>
                     {this.renderPagination()}
                     <BindString
-                        field="variableNameFilter"
+                        field="namespaceNameFilter"
                         store={this}
-                        label="Variable name"
+                        label="Namespace name"
                     />
                     <BindString
                         field="datasetNameFilter"
                         store={this}
                         label="Dataset name"
                     />
+                    <BindString
+                        field="variableNameFilter"
+                        store={this}
+                        label="Variable name"
+                    />
+                    <label>Query builder</label>
+                    {FilterPanelConfig && filterState && (
+                        <Query
+                            {...FilterPanelConfig}
+                            value={filterState.tree}
+                            onChange={this.updateFilterState}
+                            renderBuilder={renderBuilder}
+                        />
+                    )}
+                    <small className="form-text text-muted">
+                        Note that default values like empty string, "LineChart"
+                        for type or the default checkbox state are never stored.
+                        To find these you have to use the "is null" operator.
+                    </small>
+                    {
+                        // Uncomment below to see the generated S-expression
+                        //<div>{filterSExpression?.toSExpr()}</div>
+                    }
                 </div>
             </section>
         )
@@ -910,7 +966,7 @@ class VariablesAnnotationComponent extends React.Component {
 
     @action.bound
     columnListEyeIconClicked(
-        columnSelection: ColumnReorderItem[],
+        columnSelection: ColumnInformation[],
         itemKey: string,
         newState: boolean
     ) {
@@ -1073,6 +1129,108 @@ class VariablesAnnotationComponent extends React.Component {
         }
         this.disposers = []
     }
+
+    @action.bound
+    updateFilterState(immutableTree: ImmutableTree, config: Config) {
+        const { filterState } = this
+
+        const updateFilterState = !(
+            isEqual(filterState?.tree, immutableTree) &&
+            isEqual(filterState?.config, config)
+        )
+
+        if (updateFilterState)
+            this.filterState = {
+                ...filterState,
+                tree: immutableTree,
+                config: config,
+            }
+    }
+
+    @computed get filterSExpression(): Operation | undefined {
+        const { filterState } = this
+        if (filterState) {
+            const tree = QbUtils.getTree(filterState.tree)
+            const sExpression = filterTreeToSExpression(tree)
+
+            return sExpression
+        }
+        return undefined
+    }
+
+    @computed get filterPanelConfigFields(): [string, SimpleField][] {
+        const { columnSelection, fieldDescriptions } = this
+        // The editors to use use are decided by two helper functions. For
+        // the more interesting fieldDescription mapping we rely on the
+        // preferred editor that is set in the editorOption field of the fieldDescription
+
+        if (fieldDescriptions === undefined) return []
+        const fieldDescriptionMap = new Map(
+            fieldDescriptions.map((fd) => [fd.pointer, fd])
+        )
+        const fields = excludeUndefined(
+            columnSelection.map((column) => {
+                if (isConfigColumn(column.key)) {
+                    return fieldDescriptionToFilterPanelFieldConfig(
+                        fieldDescriptionMap.get(column.key)!
+                    )
+                } else {
+                    return simpleColumnToFilterPanelFieldConfig(
+                        readOnlyColumnNamesFields.get(column.key)!
+                    )
+                }
+            })
+        )
+        return fields
+    }
+
+    @computed get FilterPanelConfig(): Config | undefined {
+        const { filterPanelConfigFields } = this
+
+        if (isEmpty(filterPanelConfigFields)) return undefined
+
+        const fieldsObject = Object.fromEntries(filterPanelConfigFields)
+        const config = {
+            ...filterPanelInitialConfig,
+            fields: fieldsObject,
+        }
+        // Hide operators in the UI that we don't have a good equivalent for
+        // in the S-Expressions. For easier comprehension the inverse set of operators
+        // as of react-awesome-query-builder V4 is kept below in commented out form
+        const operatorsToKeep = [
+            "equal",
+            "not_equal",
+            "less",
+            "less_or_equal",
+            "greater",
+            "greater_or_equal",
+            "like",
+            "is_empty",
+            "is_not_empty",
+            "is_null",
+            "in_not_null",
+            "select_equals",
+            "select_not_equals",
+            "some",
+            "all",
+            "none",
+        ]
+        // const operatorsToDrop = [
+        //     "not_like",
+        //     "proximity",
+        //     "starts_with",
+        //     "ends_with",
+        //     "between",
+        //     "not_between",
+        //     "select_any_in",
+        //     "select_not_any_in",
+        //     "multiselect_equals",
+        //     "multiselect_not_equals",
+        // ]
+        config.operators = pick(config.operators, operatorsToKeep) as any
+        config.settings.customFieldSelectProps = { showSearch: true }
+        return config
+    }
 }
 
 export class VariablesAnnotationPage extends React.Component {
@@ -1087,13 +1245,4 @@ export class VariablesAnnotationPage extends React.Component {
     }
 
     //dispose!: IReactionDisposer
-}
-function getFinalConfigLayerForVariable(id: number) {
-    return {
-        version: 1,
-        dimensions: [{ property: "y", variableId: id }],
-        map: {
-            variableId: id,
-        },
-    }
 }

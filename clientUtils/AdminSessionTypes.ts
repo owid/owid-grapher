@@ -10,6 +10,9 @@ export interface VariableAnnotationsResponseRow {
     grapherConfig: Record<string, any> // TODO: when we have GrapherInterface or better GrapherConfig as a type available in clientUtils, use it here
     datasetname: string
     namespacename: string
+    description: string
+    createdAt: string
+    updatedAt: string
 }
 
 export interface VariableAnnotationsResponse {

@@ -143,10 +143,15 @@ export class JsonPointerSymbol implements Operation {
     }
 }
 
-export const SQL_COLUMN_NAME_VARIABLE_NAME = "variables.name"
-export const SQL_COLUMN_NAME_DATASET_NAME = "datasets.name"
-export const SQL_COLUMN_NAME_NAMESPACE_NAME = "namespaces.name"
-
+export enum WHITELISTED_SQL_COLUMN_NAMES {
+    SQL_COLUMN_NAME_VARIABLE_ID = "variables.id",
+    SQL_COLUMN_NAME_VARIABLE_NAME = "variables.name",
+    SQL_COLUMN_NAME_DATASET_NAME = "datasets.name",
+    SQL_COLUMN_NAME_NAMESPACE_NAME = "namespaces.name",
+    SQL_COLUMN_NAME_VARIABLE_DESCRIPTION = "variables.description",
+    SQL_COLUMN_NAME_VARIABLE_CREATED_AT = "variables.createdAt",
+    SQL_COLUMN_NAME_VARIABLE_UPDATED_AT = "variables.updatedAt",
+}
 export class SqlColumnName implements Operation {
     // NOTE: this is a temporary solution for the beginning of using S Expressions for filtering.
     //       Once we start using this in more places, declaring the whitelist of columns that are
@@ -154,9 +159,34 @@ export class SqlColumnName implements Operation {
     //       I think we should not start allowing expressions that traverse foreign keys and instead
     //       create views and whitelist column names in those if we need more complex filters
     static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map([
-        [SQL_COLUMN_NAME_VARIABLE_NAME, ExpressionType.string],
-        [SQL_COLUMN_NAME_DATASET_NAME, ExpressionType.string],
-        [SQL_COLUMN_NAME_NAMESPACE_NAME, ExpressionType.string],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_ID,
+            ExpressionType.numeric,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
+            ExpressionType.numeric,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
+            ExpressionType.numeric,
+        ],
     ])
     static isValidSqlColumnName(str: string): boolean {
         return SqlColumnName.allowedColumnNamesAndTypes.has(str)
@@ -212,6 +242,32 @@ export class ArithmeticOperation extends NumericOperation {
     toSExpr(): string {
         const operands = this.operands.map((op) => op.toSExpr()).join(" ")
         return `(${this.operator} ${operands})`
+    }
+}
+
+export enum NullCheckOperator {
+    isNull = "ISNULL",
+    isNotNull = "ISNOTNULL",
+}
+
+export const allNullCheckOperators = [
+    NullCheckOperator.isNull,
+    NullCheckOperator.isNotNull,
+]
+
+export class NullCheckOperation extends BooleanOperation {
+    constructor(public operator: NullCheckOperator, public operand: Operation) {
+        super()
+    }
+
+    toSql(): string {
+        if (this.operator === NullCheckOperator.isNull)
+            return `${this.operand.toSql()} IS NULL`
+        else return `${this.operand.toSql()} IS NOT NULL`
+    }
+
+    toSExpr(): string {
+        return `(${this.operator} ${this.operand.toSExpr()})`
     }
 }
 
@@ -276,10 +332,10 @@ export const allComparisonOperators = [
     ComparisonOperator.greaterOrEqual,
 ]
 
-export class NumericComparision extends BooleanOperation {
+export class NumericComparison extends BooleanOperation {
     constructor(
         public operator: ComparisonOperator,
-        public operands: [NumericOperation, NumericOperation]
+        public operands: [Operation, Operation]
     ) {
         super()
     }
@@ -376,12 +432,9 @@ const comparisionOperatorInfos = allComparisonOperators.map(
             op.toString(),
             {
                 arity: Arity.binary,
-                operandsType: ExpressionType.numeric,
+                operandsType: ExpressionType.any,
                 ctor: (args: Operation[]): Operation =>
-                    new NumericComparision(
-                        op,
-                        args as [NumericOperation, NumericOperation]
-                    ),
+                    new NumericComparison(op, args as [Operation, Operation]),
             },
         ] as const
 )
@@ -397,12 +450,25 @@ const binaryLogicOperatorInfos = allBinaryLogicOperators.map(
             },
         ] as const
 )
+const nullCheckOperatorInfos = allNullCheckOperators.map(
+    (op) =>
+        [
+            op.toString(),
+            {
+                arity: Arity.unary,
+                operandsType: ExpressionType.any,
+                ctor: (args: Operation[]): Operation =>
+                    new NullCheckOperation(op, args[0]),
+            },
+        ] as const
+)
 const operationFactoryMap = new Map<string, OperationInfo>([
     //...(allArithmeticOperators.map(op => [op, {arity: Arity.nary, operandsType: ExpressionType.numeric, ctor: arithMeticCtor}])
     ...arithmeticOperatorInfos,
     ...equalityOperatorInfos,
     ...comparisionOperatorInfos,
     ...binaryLogicOperatorInfos,
+    ...nullCheckOperatorInfos,
     [
         "NOT",
         {
