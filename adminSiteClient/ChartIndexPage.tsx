@@ -43,6 +43,8 @@ export class ChartIndexPage extends React.Component {
                     chart.internalNotes,
                     chart.publishedBy,
                     chart.lastEditedBy,
+                    `${chart.id}`,
+                    chart.slug,
                     ...chart.tags.map((tag) => tag.name),
                 ]
             )
