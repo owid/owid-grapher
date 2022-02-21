@@ -196,7 +196,9 @@ const saveGrapher = async (
     async function isSlugUsedInRedirect() {
         const rows = await transactionContext.query(
             `SELECT * FROM chart_slug_redirects WHERE chart_id != ? AND slug = ?`,
-            [existingConfig ? existingConfig.id : undefined, newConfig.slug]
+            // -1 is a placeholder ID that will never exist; but we cannot use NULL because
+            // in that case we would always get back an empty resultset
+            [existingConfig ? existingConfig.id : -1, newConfig.slug]
         )
         return rows.length > 0
     }
@@ -204,7 +206,9 @@ const saveGrapher = async (
     async function isSlugUsedInOtherGrapher() {
         const rows = await transactionContext.query(
             `SELECT * FROM charts WHERE id != ? AND JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`,
-            [existingConfig ? existingConfig.id : undefined, newConfig.slug]
+            // -1 is a placeholder ID that will never exist; but we cannot use NULL because
+            // in that case we would always get back an empty resultset
+            [existingConfig ? existingConfig.id : -1, newConfig.slug]
         )
         return rows.length > 0
     }
