@@ -293,7 +293,7 @@ export const formatWordpressPost = async (
     }
 
     // SSR rendering of Gutenberg blocks, before hydration on client
-    await renderBlocks(cheerioEl)
+    await renderBlocks(cheerioEl, post.id)
 
     // Extract inline styling
     let style

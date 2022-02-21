@@ -1,4 +1,8 @@
-import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
+import {
+    formatWordpressEditLink,
+    LongFormPage,
+    PageOverrides,
+} from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
@@ -438,7 +442,10 @@ const renderPostThumbnailBySlug = async (
     )
 }
 
-export const renderProminentLinks = async ($: CheerioStatic) => {
+export const renderProminentLinks = async (
+    $: CheerioStatic,
+    containerPostId: number
+) => {
     const blocks = $("block[type='prominent-link']").toArray()
     await Promise.all(
         blocks.map(async (block) => {
@@ -469,7 +476,9 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
                 if (!title) {
                     logContentErrorAndMaybeSendToSlack(
                         new Error(
-                            `No fallback title found for prominent link ${resolvedUrlString}. Block removed.`
+                            `No fallback title found for prominent link ${resolvedUrlString} in ${formatWordpressEditLink(
+                                containerPostId
+                            )}. Block removed.`
                         )
                     )
                     $block.remove()
@@ -505,20 +514,24 @@ export const renderProminentLinks = async ($: CheerioStatic) => {
 }
 
 export const renderReusableBlock = async (
-    html?: string
+    html: string | undefined,
+    containerPostId: number
 ): Promise<string | undefined> => {
     if (!html) return
 
     const cheerioEl = cheerio.load(formatUrls(html))
-    await renderProminentLinks(cheerioEl)
+    await renderProminentLinks(cheerioEl, containerPostId)
 
     return cheerioEl("body").html() ?? undefined
 }
 
-export const renderBlocks = async (cheerioEl: CheerioStatic) => {
+export const renderBlocks = async (
+    cheerioEl: CheerioStatic,
+    containerPostId: number
+) => {
     renderAdditionalInformation(cheerioEl)
     renderHelp(cheerioEl)
-    await renderProminentLinks(cheerioEl)
+    await renderProminentLinks(cheerioEl, containerPostId)
 }
 
 export const renderExplorerPage = async (
@@ -534,7 +547,10 @@ export const renderExplorerPage = async (
         )
 
     const wpContent = program.wpBlockId
-        ? await renderReusableBlock(await getBlockContent(program.wpBlockId))
+        ? await renderReusableBlock(
+              await getBlockContent(program.wpBlockId),
+              program.wpBlockId
+          )
         : undefined
 
     const grapherConfigs: GrapherInterface[] = grapherConfigRows.map((row) => {
