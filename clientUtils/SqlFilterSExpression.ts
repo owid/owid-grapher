@@ -143,7 +143,8 @@ export class JsonPointerSymbol implements Operation {
     }
 }
 
-export enum WHITELISTED_SQL_COLUM_NAMES {
+export enum WHITELISTED_SQL_COLUMN_NAMES {
+    SQL_COLUMN_NAME_VARIABLE_ID = "variables.id",
     SQL_COLUMN_NAME_VARIABLE_NAME = "variables.name",
     SQL_COLUMN_NAME_DATASET_NAME = "datasets.name",
     SQL_COLUMN_NAME_NAMESPACE_NAME = "namespaces.name",
@@ -159,27 +160,31 @@ export class SqlColumnName implements Operation {
     //       create views and whitelist column names in those if we need more complex filters
     static allowedColumnNamesAndTypes: Map<string, ExpressionType> = new Map([
         [
-            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
-            ExpressionType.string,
-        ],
-        [
-            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
-            ExpressionType.string,
-        ],
-        [
-            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
-            ExpressionType.string,
-        ],
-        [
-            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
-            ExpressionType.string,
-        ],
-        [
-            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_ID,
             ExpressionType.numeric,
         ],
         [
-            WHITELISTED_SQL_COLUM_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
+            ExpressionType.string,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
+            ExpressionType.numeric,
+        ],
+        [
+            WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
             ExpressionType.numeric,
         ],
     ])
@@ -327,7 +332,7 @@ export const allComparisonOperators = [
     ComparisonOperator.greaterOrEqual,
 ]
 
-export class NumericComparision extends BooleanOperation {
+export class NumericComparison extends BooleanOperation {
     constructor(
         public operator: ComparisonOperator,
         public operands: [Operation, Operation]
@@ -429,7 +434,7 @@ const comparisionOperatorInfos = allComparisonOperators.map(
                 arity: Arity.binary,
                 operandsType: ExpressionType.any,
                 ctor: (args: Operation[]): Operation =>
-                    new NumericComparision(op, args as [Operation, Operation]),
+                    new NumericComparison(op, args as [Operation, Operation]),
             },
         ] as const
 )

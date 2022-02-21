@@ -9,7 +9,7 @@ import {
     JsonPointerSymbol,
     Negation,
     NumberAtom,
-    NumericComparision,
+    NumericComparison,
     Operation,
     SqlColumnName,
     StringAtom,
@@ -68,7 +68,7 @@ export interface VariableAnnotationsRow {
     updatedAt: string
 }
 
-export interface ColumnReorderItem {
+export interface ColumnInformation {
     key: string
     visible: boolean
     description: string
@@ -351,6 +351,10 @@ export function filterTreeToSExpression(
         )
 
         let children: Operation[] = []
+        // It looks like the children will never be an array
+        // and instead always be an object with UUIDs as keys
+        // but the type definition claims that this can be array
+        // so we handle this as well for now
         if (isArray(filterTree.children1))
             children = excludeUndefined(
                 filterTree.children1?.map(filterTreeToSExpression)
@@ -373,6 +377,7 @@ export function filterTreeToSExpression(
         if (filterTree.properties?.not) return new Negation(operation)
         else return operation
     } else if (filterTree.type === "rule") {
+        const field = getFieldSymbol(filterTree.properties.field!)
         return (
             match(filterTree.properties.operator)
                 // If we have a rule, check what operator is used and build the corresponding operation
@@ -380,25 +385,19 @@ export function filterTreeToSExpression(
                     (op) => op && getComparisonOperator(op),
                     (op) => {
                         const operator = getComparisonOperator(op as string)
-                        const field = getFieldSymbol(
-                            filterTree.properties.field!
-                        )
                         if (
                             filterTree.properties.value.length === 0 ||
                             filterTree.properties.value[0] === undefined
                         )
                             return undefined
                         const val = getValueAtom(filterTree.properties.value[0])
-                        return new NumericComparision(operator!, [field, val!])
+                        return new NumericComparison(operator!, [field, val!])
                     }
                 )
                 .when(
                     (op) => op && getEqualityOperator(op),
                     (op) => {
                         const operator = getEqualityOperator(op as string)
-                        const field = getFieldSymbol(
-                            filterTree.properties.field!
-                        )
                         const val = getValueAtom(filterTree.properties.value[0])
                         if (val === undefined) return undefined
                         return new EqualityComparision(operator!, [field, val])
@@ -407,9 +406,6 @@ export function filterTreeToSExpression(
                 .when(
                     (op) => op && op === "like",
                     () => {
-                        const field = getFieldSymbol(
-                            filterTree.properties.field!
-                        )
                         if (
                             filterTree.properties.value.length === 0 ||
                             filterTree.properties.value[0] === undefined
@@ -425,14 +421,11 @@ export function filterTreeToSExpression(
                     (op) => op && getNullCheckOperator(op as string),
                     (op) => {
                         const operator = getNullCheckOperator(op as string)!
-                        const field = getFieldSymbol(
-                            filterTree.properties.field!
-                        )
+
                         return new NullCheckOperation(operator!, field)
                     }
                 )
                 .with("is_empty", "is_not_empty", (operator) => {
-                    const field = getFieldSymbol(filterTree.properties.field!)
                     const op: EqualityOperator = match(operator)
                         .with("is_empty", () => EqualityOperator.equal)
                         .with("is_not_empty", () => EqualityOperator.unequal)
@@ -461,7 +454,7 @@ export function simpleColumnToFilterPanelFieldConfig(
     return [
         column.key,
         {
-            label: column.key,
+            label: column.label,
             type: fieldType,
             valueSources: ["value"],
             //preferWidgets: widget [widget],
