@@ -419,7 +419,7 @@ export class ScatterPlotChart
         if (this.hoveredSeries) this.onSelectEntity(this.hoveredSeries)
     }
 
-    @computed private get tooltipSeries(): ScatterSeries | undefined {
+    @computed get tooltipSeries(): ScatterSeries | undefined {
         const { hoveredSeries, focusedEntityNames } = this
         if (hoveredSeries !== undefined)
             return this.series.find((g) => g.seriesName === hoveredSeries)

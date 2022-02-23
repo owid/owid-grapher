@@ -6,13 +6,20 @@ import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { first, last } from "../../clientUtils/Util.js"
 import { getElementWithHalo } from "./Halos.js"
-import { SCATTER_POINT_MAX_RADIUS } from "./ScatterPlotChartConstants.js"
+import {
+    ScatterSeries,
+    SCATTER_POINT_MAX_RADIUS,
+    SCATTER_POINT_OPACITY,
+    SCATTER_POINT_STROKE_WIDTH,
+} from "./ScatterPlotChartConstants.js"
+import { darkenColorForText } from "../color/ColorUtils.js"
 
 export interface ScatterSizeLegendManager {
     sidebarWidth: number
     sizeColumn: CoreColumn
     sizeScale: ScaleLinear<number, number>
     fontSize?: number
+    tooltipSeries?: ScatterSeries
 }
 
 const LEGEND_PADDING = 4
@@ -93,45 +100,67 @@ export class ScatterSizeLegend {
         return this.legendSize + LEGEND_PADDING + this.title.height
     }
 
+    @computed private get highlight():
+        | { value: number; color: string }
+        | undefined {
+        const { tooltipSeries } = this.manager
+        if (tooltipSeries?.points.length === 1) {
+            return {
+                value: tooltipSeries.points[0].size,
+                color: tooltipSeries.color,
+            }
+        }
+        return undefined
+    }
+
     private renderLegend(targetX: number, targetY: number): JSX.Element {
         const { sizeScale } = this.manager
-        const x = targetX + (this.maxWidth - this.legendSize) / 2
+        const { highlight } = this
+        const cx = targetX + this.maxWidth / 2
         return (
             <React.Fragment>
                 {this.ticks.map((value) => {
                     const radius = sizeScale(value)
-                    const style: React.CSSProperties = {
-                        fontSize: this.fontSizeScale(radius),
-                        textAnchor: "middle",
-                    }
                     return (
-                        <g key={value}>
-                            <circle
-                                cx={x + this.legendSize / 2}
-                                cy={targetY + this.legendSize - radius}
-                                r={radius}
-                                fill="none"
-                                stroke={LEGEND_CIRCLE_COLOR}
-                                strokeWidth={1.25}
-                            />
-                            {getElementWithHalo(
-                                value,
-                                <text
-                                    x={x + this.legendSize / 2}
-                                    y={targetY + this.legendSize - radius * 2}
-                                    dy=".47em"
-                                    fill={LEGEND_VALUE_COLOR}
-                                    style={style}
-                                >
-                                    {this.manager.sizeColumn.formatValueShortWithAbbreviations(
-                                        value
-                                    )}
-                                </text>,
-                                { ...style, strokeWidth: "3px" }
+                        <LegendItem
+                            key={value}
+                            label={this.manager.sizeColumn.formatValueShortWithAbbreviations(
+                                value
                             )}
-                        </g>
+                            cx={cx}
+                            cy={targetY + this.legendSize - radius}
+                            circleRadius={radius}
+                            circleStroke={
+                                highlight ? "#ddd" : LEGEND_CIRCLE_COLOR
+                            }
+                            labelFontSize={this.fontSizeScale(radius)}
+                            labelFill={highlight ? "#bbb" : LEGEND_VALUE_COLOR}
+                        />
                     )
                 })}
+                {highlight && (
+                    <LegendItem
+                        key={highlight.value}
+                        label={this.manager.sizeColumn.formatValueShortWithAbbreviations(
+                            highlight.value
+                        )}
+                        cx={cx}
+                        cy={
+                            targetY +
+                            this.legendSize -
+                            sizeScale(highlight.value)
+                        }
+                        circleFill={highlight.color}
+                        circleStroke={"#333"}
+                        circleStrokeWidth={SCATTER_POINT_STROKE_WIDTH}
+                        circleRadius={sizeScale(highlight.value)}
+                        circleOpacity={SCATTER_POINT_OPACITY}
+                        labelFontSize={12}
+                        labelFill={darkenColorForText(highlight.color)}
+                        labelFontWeight={700}
+                        outsideLabel={true}
+                    />
+                )}
             </React.Fragment>
         )
     }
@@ -155,4 +184,64 @@ export class ScatterSizeLegend {
             </g>
         )
     }
+}
+
+const LegendItem = ({
+    label,
+    cx,
+    cy,
+    circleRadius,
+    circleFill = "none",
+    circleStroke = LEGEND_CIRCLE_COLOR,
+    circleStrokeWidth = 1.25,
+    circleOpacity = 1,
+    labelFill = LEGEND_VALUE_COLOR,
+    labelFontSize,
+    labelFontWeight = 400,
+    outsideLabel = false,
+}: {
+    label: string
+    cx: number
+    cy: number
+    circleRadius: number
+    circleFill?: string
+    circleStroke?: string
+    circleStrokeWidth?: number
+    circleOpacity?: number
+    labelFill?: string
+    labelFontSize: number
+    labelFontWeight?: number
+    outsideLabel?: boolean
+}): JSX.Element => {
+    const style: React.CSSProperties = {
+        fontSize: labelFontSize,
+        fontWeight: labelFontWeight,
+        textAnchor: "middle",
+    }
+    return (
+        <g>
+            <circle
+                cx={cx}
+                cy={cy}
+                r={circleRadius}
+                fill={circleFill}
+                stroke={circleStroke}
+                strokeWidth={circleStrokeWidth}
+                opacity={circleOpacity}
+            />
+            {getElementWithHalo(
+                label,
+                <text
+                    x={cx}
+                    y={cy - circleRadius}
+                    dy={outsideLabel ? "-.32em" : ".47em"}
+                    fill={labelFill}
+                    style={style}
+                >
+                    {label}
+                </text>,
+                { ...style, strokeWidth: 3 }
+            )}
+        </g>
+    )
 }

@@ -3,7 +3,11 @@ import { first, last } from "../../clientUtils/Util.js"
 import { observer } from "mobx-react"
 import React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline.js"
-import { ScatterRenderSeries } from "./ScatterPlotChartConstants.js"
+import {
+    ScatterRenderSeries,
+    SCATTER_POINT_OPACITY,
+    SCATTER_POINT_STROKE_WIDTH,
+} from "./ScatterPlotChartConstants.js"
 import { Triangle } from "./Triangle.js"
 
 // When there's only a single point in a series (e.g. single year mode)
@@ -43,9 +47,9 @@ export class ScatterPoint extends React.Component<{
                     cy={cy}
                     r={size.toFixed(2)}
                     fill={color}
-                    opacity={0.8}
+                    opacity={SCATTER_POINT_OPACITY}
                     stroke={stroke}
-                    strokeWidth={0.5}
+                    strokeWidth={SCATTER_POINT_STROKE_WIDTH}
                 />
             </g>
         )
