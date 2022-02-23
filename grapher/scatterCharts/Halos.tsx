@@ -9,7 +9,7 @@ const DefaultHaloStyle: React.CSSProperties = {
 }
 
 export const getElementWithHalo = (
-    key: string,
+    key: React.Key,
     element: React.ReactElement,
     styles: React.CSSProperties = {}
 ): JSX.Element => {
