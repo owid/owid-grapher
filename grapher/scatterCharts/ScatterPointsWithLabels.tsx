@@ -27,7 +27,6 @@ import {
     ScatterRenderSeries,
     ScatterLabel,
     ScatterRenderPoint,
-    ScatterLabelFontFamily,
     ScatterSeries,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
@@ -485,7 +484,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                                 2
                             )}
                             fontSize={label.fontSize}
-                            fontFamily={ScatterLabelFontFamily}
                             fontWeight={label.fontWeight}
                             fill={label.color}
                         >
@@ -549,7 +547,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 onMouseMove={this.onMouseMove}
                 onMouseLeave={this.onMouseLeave}
                 onClick={this.onClick}
-                fontFamily={ScatterLabelFontFamily}
             >
                 <rect
                     key="background"

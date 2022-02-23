@@ -5,7 +5,6 @@ import {
     ScatterLabel,
     ScatterRenderPoint,
     ScatterRenderSeries,
-    ScatterLabelFontFamily as fontFamily,
 } from "./ScatterPlotChartConstants.js"
 
 export const labelPriority = (label: ScatterLabel): number => {
@@ -45,7 +44,6 @@ export const makeStartLabel = (
         x: pos.x,
         y: pos.y,
         fontSize: fontSize,
-        fontFamily,
     })
     if (pos.x < firstValue.position.x)
         bounds = new Bounds(
@@ -125,7 +123,6 @@ export const makeMidLabels = (
             y: pos.y,
             fontSize: fontSize,
             fontWeight: fontWeight,
-            fontFamily,
         })
         if (pos.x < v.position.x)
             bounds = new Bounds(
@@ -190,7 +187,6 @@ export const makeEndLabel = (
         x: labelPos.x,
         y: labelPos.y,
         fontSize: fontSize,
-        fontFamily,
     })
 
     if (labelPos.x < lastPos.x)
