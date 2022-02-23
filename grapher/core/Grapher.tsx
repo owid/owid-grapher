@@ -2347,6 +2347,7 @@ export class Grapher
     @computed private get authorsVersion(): Grapher {
         return new Grapher({
             ...this.legacyConfigAsAuthored,
+            getGrapherInstance: undefined,
             manager: undefined,
             manuallyProvideData: true,
             queryStr: "",
