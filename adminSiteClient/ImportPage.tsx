@@ -85,6 +85,9 @@ class EditableDataset {
     }
 }
 
+// https://stackoverflow.com/questions/638565/parsing-scientific-notation-sensibly
+const reValidNumber = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?$/
+
 @observer
 class DataPreview extends React.Component<{ csv: CSV }> {
     @observable rowOffset: number = 0
@@ -347,7 +350,7 @@ class CSV {
             for (let j = 2; j < row.length; j++) {
                 if (
                     row[j] !== "" &&
-                    (isNaN(parseFloat(row[j])) || !row[j].match(/^[0-9.-]+$/))
+                    (isNaN(parseFloat(row[j])) || !row[j].match(reValidNumber))
                 )
                     nonNumeric.push(`${i + 1} '${row[j]}'`)
             }
