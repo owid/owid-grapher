@@ -30,6 +30,8 @@ import {
     ScatterSeries,
     SCATTER_POINT_MIN_RADIUS,
     SCATTER_LINE_MIN_WIDTH,
+    SCATTER_POINT_DEFAULT_RADIUS,
+    SCATTER_LINE_DEFAULT_WIDTH,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
 import {
@@ -113,18 +115,23 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                         colorScale !== undefined
                             ? colorScale.getColor(point.color)
                             : undefined
+                    const size = Math.max(
+                        sizeScale(point.size),
+                        this.props.isConnected
+                            ? SCATTER_LINE_MIN_WIDTH
+                            : SCATTER_POINT_MIN_RADIUS
+                    )
                     return {
                         position: new PointVector(
                             Math.floor(xAxis.place(point.x)),
                             Math.floor(yAxis.place(point.y))
                         ),
                         color: scaleColor ?? series.color,
-                        size: Math.max(
-                            sizeScale(point.size),
-                            this.props.isConnected
-                                ? SCATTER_LINE_MIN_WIDTH
-                                : SCATTER_POINT_MIN_RADIUS
-                        ),
+                        size: !isNaN(size)
+                            ? size
+                            : this.props.isConnected
+                            ? SCATTER_LINE_DEFAULT_WIDTH
+                            : SCATTER_POINT_DEFAULT_RADIUS,
                         fontSize: fontScale(series.size || 1),
                         time: point.time,
                         label: point.label,
