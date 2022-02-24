@@ -91,6 +91,7 @@ import {
 import { Query, Utils as QbUtils } from "react-awesome-query-builder"
 // types
 import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
+import { KeysSection } from "./EditorDataTab.js"
 
 @observer
 export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
@@ -99,7 +100,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable.ref grapher = new Grapher() // the grapher instance we keep around and update
     @observable.ref grapherElement?: JSX.Element // the JSX Element of the preview IF we want to display it currently
     numTotalRows: number | undefined = undefined
-    selectedRow: number | undefined = undefined
+    @observable selectedRow: number | undefined = undefined
+    @observable selectedColumn: number | undefined = undefined
     @observable activeTab = Tabs.FilterTab
     @observable currentColumnSet: ColumnSet
     @observable columnFilter: string = ""
@@ -250,19 +252,53 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @action private updatePreviewToRow(row: number): void {
-        const { richDataRows, config } = this
-        if (richDataRows === undefined) return
+        const { selectedRowContent } = this
+        if (selectedRowContent === undefined) return
 
         // Get the grapherConfig of the currently selected row and then
         // merge it with the necessary partial information (e.g. variableId field)
         // to get a config that actually works in all cases
-        const grapherConfig = richDataRows[row].config
-        const finalConfigLayer = config.finalVariableLayerModificationFn(
-            richDataRows[row].id
+        const grapherConfig = selectedRowContent.config
+        const finalConfigLayer = this.config.finalVariableLayerModificationFn(
+            selectedRowContent.id
         )
 
         const mergedConfig = merge(grapherConfig, finalConfigLayer)
         this.loadGrapherJson(mergedConfig)
+    }
+
+    @computed private get currentColumnEditorOption():
+        | EditorOption
+        | undefined {
+        const { selectedRowContent, columnDataSources, selectedColumn } = this
+        if (selectedRowContent === undefined) return undefined
+        if (
+            selectedColumn === undefined ||
+            selectedColumn >= columnDataSources.length
+        ) {
+            return undefined
+        }
+        const columnDataSource = columnDataSources[selectedColumn]
+        console.log("updated column", {
+            source: columnDataSource.columnInformation.key,
+        })
+
+        return match(columnDataSource)
+            .with(
+                { kind: ColumnDataSourceType.FieldDescription },
+                (source) => source.description.editor
+            )
+            .otherwise(() => undefined)
+    }
+
+    @computed get editControl(): JSX.Element | undefined {
+        const { currentColumnEditorOption, grapher } = this
+        if (currentColumnEditorOption === undefined) return undefined
+        return match(currentColumnEditorOption)
+            .with(EditorOption.primitiveListEditor, () => (
+                <KeysSection grapher={grapher}></KeysSection>
+            ))
+            .otherwise(() => undefined)
     }
 
     async sendPatches(patches: GrapherConfigPatch[]): Promise<void> {
@@ -538,6 +574,17 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return definedColumns
     }
 
+    @action.bound
+    updateSelection(row: number, column: number): void {
+        if (row !== this.selectedRow) {
+            this.selectedRow = row
+            this.updatePreviewToRow(row)
+        }
+        if (column !== this.selectedColumn) {
+            this.selectedColumn = column
+        }
+    }
+
     @computed
     private get hotSettings() {
         const { flattenedDataRows, columnSelection } = this
@@ -551,11 +598,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
                 this.validateCellChanges(changes, source),
-            afterSelectionEnd: (row /*, column, row2, column2, layer*/) => {
-                if (row !== this.selectedRow) {
-                    this.selectedRow = row
-                    this.updatePreviewToRow(row)
-                }
+            afterSelectionEnd: (row, column /* row2, column2, layer*/) => {
+                this.updateSelection(row, column)
             },
             allowInsertColumn: false,
             allowInsertRow: false,
@@ -838,6 +882,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         </div>
                         <div className="sidebar-content">
                             {match(activeTab)
+                                .with(Tabs.EditorTab, () =>
+                                    this.renderEditorTab()
+                                )
                                 .with(Tabs.FilterTab, () =>
                                     this.renderFilterTab()
                                 )
@@ -859,6 +906,15 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     </div>
                 </div>
             )
+    }
+
+    renderEditorTab(): JSX.Element {
+        const { editControl } = this
+        return (
+            <section>
+                <div className="container">{editControl}</div>
+            </section>
+        )
     }
 
     @action.bound
@@ -1008,13 +1064,20 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.columnFilter = ""
     }
 
-    @action.bound
-    onShowOnlyColumnsWithValuesInCurrentRow() {
-        const { columnDataSources, selectedRow, richDataRows } = this
+    @computed
+    get selectedRowContent(): VariableAnnotationsRow | undefined {
+        const { selectedRow, richDataRows } = this
         const row =
             selectedRow !== undefined && richDataRows !== undefined
                 ? richDataRows[selectedRow]
                 : undefined
+        return row
+    }
+
+    @action.bound
+    onShowOnlyColumnsWithValuesInCurrentRow() {
+        const { columnDataSources, selectedRowContent } = this
+        const row = selectedRowContent
         if (row !== undefined) {
             const newSelection: ColumnInformation[] = columnDataSources.map(
                 (item): ColumnInformation =>

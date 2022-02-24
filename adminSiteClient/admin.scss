@@ -298,12 +298,12 @@ body {
     }
 }
 
-.EditorBasicTab {
-    .list-group {
-        margin-top: 0;
-        margin-bottom: 0.5em;
-    }
+.list-group {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
 
+.EditorBasicTab {
     .DimensionCard {
         header {
             display: flex;
@@ -434,7 +434,7 @@ body {
     }
 }
 
-.EditorDataTab .EditableListItem {
+.EditableListItem {
     @extend .draggable;
     display: flex;
     justify-content: space-between;
