@@ -79,6 +79,8 @@ export const SCATTER_POINT_MIN_RADIUS: number = 2
 export const SCATTER_POINT_MAX_RADIUS: number = 18
 export const SCATTER_POINT_OPACITY: number = 0.8
 export const SCATTER_POINT_STROKE_WIDTH: number = 0.5
+export const SCATTER_LINE_MIN_WIDTH: number = 0.5
+export const SCATTER_LINE_MAX_WIDTH: number = 2
 
 export interface ScatterRenderSeries extends ChartSeries {
     displayKey: string
@@ -118,6 +120,7 @@ export interface ScatterPointsWithLabelsProps {
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
     onClick: () => void
+    isConnected: boolean
     hideConnectedScatterLines: boolean
     noDataModalManager: NoDataModalManager
     disableIntroAnimation?: boolean

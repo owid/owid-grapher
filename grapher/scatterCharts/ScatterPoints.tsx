@@ -16,19 +16,16 @@ import { Triangle } from "./Triangle.js"
 export class ScatterPoint extends React.Component<{
     series: ScatterRenderSeries
     isLayerMode?: boolean
-    isConnected?: boolean
 }> {
     render(): JSX.Element | null {
-        const { series, isLayerMode, isConnected } = this.props
+        const { series, isLayerMode } = this.props
         const value = first(series.points)
         if (value === undefined) return null
 
         const color = series.isFocus || !isLayerMode ? value.color : "#e2e2e2"
 
         const isLabelled = series.allLabels.some((label) => !label.isHidden)
-        const size = isConnected
-            ? SCATTER_POINT_MIN_RADIUS + value.size / 16
-            : value.size
+        const size = Math.max(SCATTER_POINT_MIN_RADIUS, value.size)
         const cx = value.position.x.toFixed(2)
         const cy = value.position.y.toFixed(2)
         const stroke = isLayerMode ? "#bbb" : isLabelled ? "#333" : "#666"
@@ -62,19 +59,12 @@ export class ScatterPoint extends React.Component<{
 export class ScatterLine extends React.Component<{
     series: ScatterRenderSeries
     isLayerMode: boolean
-    isConnected: boolean
 }> {
     render(): JSX.Element | null {
-        const { series, isLayerMode, isConnected } = this.props
+        const { series, isLayerMode } = this.props
 
         if (series.points.length === 1)
-            return (
-                <ScatterPoint
-                    series={series}
-                    isLayerMode={isLayerMode}
-                    isConnected={isConnected}
-                />
-            )
+            return <ScatterPoint series={series} isLayerMode={isLayerMode} />
 
         const firstValue = first(series.points)
         const lastValue = last(series.points)
@@ -90,7 +80,7 @@ export class ScatterLine extends React.Component<{
                 <circle
                     cx={firstValue.position.x.toFixed(2)}
                     cy={firstValue.position.y.toFixed(2)}
-                    r={(1 + firstValue.size / 25).toFixed(1)}
+                    r={(1 + firstValue.size / 2).toFixed(1)}
                     fill={isLayerMode ? "#e2e2e2" : firstValue.color}
                     stroke="none"
                     opacity={opacity}
@@ -101,7 +91,7 @@ export class ScatterLine extends React.Component<{
                         y: v.position.y,
                         color: isLayerMode ? "#ccc" : v.color,
                     }))}
-                    strokeWidth={(0.3 + series.size / 16).toFixed(2)}
+                    strokeWidth={series.size.toFixed(2)}
                     opacity={opacity}
                 />
                 <Triangle
@@ -110,7 +100,7 @@ export class ScatterLine extends React.Component<{
                     )}, ${lastValue.position.y.toFixed(2)})`}
                     cx={lastValue.position.x}
                     cy={lastValue.position.y}
-                    r={1.5 + lastValue.size / 16}
+                    r={1.5 + lastValue.size}
                     fill={isLayerMode ? "#e2e2e2" : lastValue.color}
                     opacity={opacity}
                 />

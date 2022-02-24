@@ -29,6 +29,7 @@ import {
     ScatterRenderPoint,
     ScatterSeries,
     SCATTER_POINT_MIN_RADIUS,
+    SCATTER_LINE_MIN_WIDTH,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
 import {
@@ -47,10 +48,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     base: React.RefObject<SVGGElement> = React.createRef()
     @computed private get seriesArray(): ScatterSeries[] {
         return this.props.seriesArray
-    }
-
-    @computed private get isConnected(): boolean {
-        return this.seriesArray.some((g) => g.points.length > 1)
     }
 
     @computed private get focusedSeriesNames(): string[] {
@@ -123,8 +120,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                         ),
                         color: scaleColor ?? series.color,
                         size: Math.max(
-                            SCATTER_POINT_MIN_RADIUS,
-                            sizeScale(point.size)
+                            sizeScale(point.size),
+                            this.props.isConnected
+                                ? SCATTER_LINE_MIN_WIDTH
+                                : SCATTER_POINT_MIN_RADIUS
                         ),
                         fontSize: fontScale(series.size || 1),
                         time: point.time,
@@ -136,7 +135,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                     seriesName: series.seriesName,
                     displayKey: "key-" + makeSafeForCSS(series.seriesName),
                     color: series.color,
-                    size: (last(points) as any).size,
+                    size: last(points)!.size,
                     points,
                     text: series.label,
                     midLabels: [],
@@ -332,12 +331,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     }
 
     private renderBackgroundSeries(): JSX.Element[] {
-        const {
-            backgroundSeries,
-            isLayerMode,
-            isConnected,
-            hideConnectedScatterLines,
-        } = this
+        const { backgroundSeries, isLayerMode, hideConnectedScatterLines } =
+            this
 
         return hideConnectedScatterLines
             ? []
@@ -346,7 +341,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                       key={series.seriesName}
                       series={series}
                       isLayerMode={isLayerMode}
-                      isConnected={isConnected}
                   />
               ))
     }
@@ -389,7 +383,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     private renderForegroundSeries(): JSX.Element[] {
         const { isSubtleForeground, hideConnectedScatterLines } = this
         return this.foregroundSeries.map((series) => {
-            const lastValue = last(series.points) as ScatterRenderPoint
+            const lastPoint = last(series.points)!
             const strokeWidth =
                 (hideConnectedScatterLines
                     ? 3
@@ -398,7 +392,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                     : isSubtleForeground
                     ? 1.5
                     : 2) +
-                lastValue.size * 0.05
+                lastPoint.size / 2
 
             if (series.points.length === 1)
                 return <ScatterPoint key={series.displayKey} series={series} />
@@ -456,13 +450,13 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             ))}
                     {!hideConnectedScatterLines && (
                         <Triangle
-                            transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
+                            transform={`rotate(${rotation}, ${lastPoint.position.x.toFixed(
                                 2
-                            )}, ${lastValue.position.y.toFixed(2)})`}
-                            cx={lastValue.position.x}
-                            cy={lastValue.position.y}
-                            r={strokeWidth * 2}
-                            fill={lastValue.color}
+                            )}, ${lastPoint.position.y.toFixed(2)})`}
+                            cx={lastPoint.position.x}
+                            cy={lastPoint.position.y}
+                            r={1.5 + strokeWidth}
+                            fill={lastPoint.color}
                             opacity={opacity}
                         />
                     )}

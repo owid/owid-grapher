@@ -49,7 +49,10 @@ import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     ScatterPlotManager,
     ScatterSeries,
+    SCATTER_LINE_MAX_WIDTH,
+    SCATTER_LINE_MIN_WIDTH,
     SCATTER_POINT_MAX_RADIUS,
+    SCATTER_POINT_MIN_RADIUS,
     SeriesPoint,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterTooltip } from "./ScatterTooltip.js"
@@ -521,6 +524,7 @@ export class ScatterPlotChart
         return (
             <ScatterPointsWithLabels
                 noDataModalManager={manager}
+                isConnected={this.isConnected}
                 hideConnectedScatterLines={hideConnectedScatterLines}
                 seriesArray={series}
                 dualAxis={dualAxis}
@@ -556,18 +560,21 @@ export class ScatterPlotChart
 
     @computed get sizeScale(): ScaleLinear<number, number> {
         return scaleSqrt()
-            .range([0, SCATTER_POINT_MAX_RADIUS])
             .domain(this.sizeDomain)
+            .range(
+                this.isConnected
+                    ? [0, SCATTER_LINE_MAX_WIDTH]
+                    : [0, SCATTER_POINT_MAX_RADIUS]
+            )
     }
 
-    /** Whether all series are shown as points */
-    @computed private get allSeriesArePoints(): boolean {
-        return this.series.every((s) => s.points.length <= 1)
+    /** Whether series are shown as lines (instead of single points) */
+    @computed private get isConnected(): boolean {
+        return this.series.some((s) => s.points.length > 1)
     }
 
     @computed private get sizeLegend(): ScatterSizeLegend | undefined {
-        if (!this.allSeriesArePoints || this.sizeColumn.isMissing)
-            return undefined
+        if (this.isConnected || this.sizeColumn.isMissing) return undefined
         return new ScatterSizeLegend(this)
     }
 
