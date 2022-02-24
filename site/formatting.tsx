@@ -191,6 +191,23 @@ export const splitContentIntoSectionsAndColumns = (
         }
     }
 
+    class StandaloneChartHandler extends AbstractHandler {
+        handle(el: CheerioElement, context: ColumnsContext) {
+            const $el = cheerioEl(el)
+            if (
+                el.name === "figure" &&
+                $el.hasClass(GRAPHER_PREVIEW_CLASS) &&
+                (!el.nextSibling || isElementFlushingColumns(el.nextSibling)) &&
+                isColumnsEmpty(context.columns)
+            ) {
+                context.columns = getColumns(ColumnStyle.StickyLeft)
+                context.columns.first.append($el)
+                flushAndResetColumns(context) // not strictly necessary since we know the next element flushes but keeps the abstraction clean
+                return null
+            }
+            return super.handle(el, context)
+        }
+    }
 
     class FigureHandler extends AbstractHandler {
         handle(el: CheerioElement, context: ColumnsContext) {
@@ -236,6 +253,7 @@ export const splitContentIntoSectionsAndColumns = (
     fullWidthHandler
         .setNext(new H4Handler())
         .setNext(new SideBySideHandler())
+        .setNext(new StandaloneChartHandler())
         .setNext(new FigureHandler())
         .setNext(new DefaultHandler())
 
