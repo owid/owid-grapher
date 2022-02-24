@@ -86,7 +86,8 @@ function getEditorOptionForType(
         if (type[0] === "number" && type[1] === "string")
             return EditorOption.numeric
         else return EditorOption.textfield
-    } else return EditorOption.textfield
+    } else if (type === "array") return EditorOption.primitiveListEditor
+    else return EditorOption.textfield
 }
 
 /** This function takes a json schema that has been read and converted from json to a

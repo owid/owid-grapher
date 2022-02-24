@@ -79,7 +79,7 @@ class EntityItem extends React.Component<EntityItemProps> {
 }
 
 @observer
-class KeysSection extends React.Component<{ grapher: Grapher }> {
+export class KeysSection extends React.Component<{ grapher: Grapher }> {
     @observable.ref dragKey?: EntityName
 
     @action.bound onAddKey(entityName: EntityName) {
