@@ -74,7 +74,7 @@ it("can report correct progress with Infinity values", () => {
     expect(controller.endTimeProgress).toEqual(1)
 })
 
-it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond end of timeline", () => {
+it("pins time to unboundedLeft or unboundedRight when range is dragged beyond end of timeline", () => {
     const manager: TimelineManager = {
         times: range(1900, 2010),
         startHandleTimeBound: 2000,
@@ -96,5 +96,19 @@ it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond e
     controller.setDragOffsets(2000)
     controller["dragRangeToTime"](3000)
     expect(manager.startHandleTimeBound).toEqual(2004)
+    expect(manager.endHandleTimeBound).toEqual(TimeBoundValue.positiveInfinity)
+})
+
+it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond end of timeline", () => {
+    const manager: TimelineManager = {
+        times: range(1900, 2010),
+        startHandleTimeBound: 2005,
+        endHandleTimeBound: 2005,
+    }
+    const controller = new TimelineController(manager)
+    controller["dragRangeToTime"](3000)
+    expect(manager.startHandleTimeBound).toEqual(
+        TimeBoundValue.positiveInfinity
+    )
     expect(manager.endHandleTimeBound).toEqual(TimeBoundValue.positiveInfinity)
 })

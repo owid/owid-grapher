@@ -122,6 +122,10 @@ export class TimelineController {
 
     private dragOffsets: [number, number] = [0, 0]
 
+    private get isSingleDragMarker(): boolean {
+        return this.dragOffsets[0] === this.dragOffsets[1]
+    }
+
     setDragOffsets(inputTime: number): void {
         const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
@@ -145,14 +149,16 @@ export class TimelineController {
         let startTime = this.getTimeBoundFromDrag(this.dragOffsets[0] + time)
         let endTime = this.getTimeBoundFromDrag(this.dragOffsets[1] + time)
 
-        if (startTime < minTime) {
-            endTime = this.getTimeBoundFromDrag(
-                minTime + (this.dragOffsets[1] - this.dragOffsets[0])
-            )
-        } else if (endTime > maxTime) {
-            startTime = this.getTimeBoundFromDrag(
-                maxTime + (this.dragOffsets[0] - this.dragOffsets[1])
-            )
+        if (!this.isSingleDragMarker) {
+            if (startTime < minTime) {
+                endTime = this.getTimeBoundFromDrag(
+                    minTime + (this.dragOffsets[1] - this.dragOffsets[0])
+                )
+            } else if (endTime > maxTime) {
+                startTime = this.getTimeBoundFromDrag(
+                    maxTime + (this.dragOffsets[0] - this.dragOffsets[1])
+                )
+            }
         }
 
         this.updateStartTime(startTime)
