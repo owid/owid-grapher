@@ -10,6 +10,13 @@ export interface TickFormattingOptions {
     showPlus?: boolean
 }
 
+// Used outside this module to figure out if the unit will be joined with the number.
+export function isVeryShortUnit(unit: string): boolean {
+    return ["%", "$", "£"].some((collapsedUnit) =>
+        unit.startsWith(collapsedUnit)
+    )
+}
+
 // todo: Should this be numberSuffixes instead of Prefixes?
 // todo: we should have unit tests for this one. lot's of great features but hard to see how to use all of them.
 export function formatValue(
