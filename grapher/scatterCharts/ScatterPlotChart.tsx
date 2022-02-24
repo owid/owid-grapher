@@ -566,7 +566,8 @@ export class ScatterPlotChart
     }
 
     @computed private get sizeLegend(): ScatterSizeLegend | undefined {
-        if (!this.allSeriesArePoints) return undefined
+        if (!this.allSeriesArePoints || this.sizeColumn.isMissing)
+            return undefined
         return new ScatterSizeLegend(this)
     }
 
