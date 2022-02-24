@@ -240,7 +240,7 @@ const LegendItem = ({
                 >
                     {label}
                 </text>,
-                { ...style, strokeWidth: 3 }
+                { ...style, strokeWidth: 3.5 }
             )}
         </g>
     )
