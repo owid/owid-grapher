@@ -84,6 +84,14 @@ describe("splits text and chart", () => {
     })
 })
 
+it("places standalone charts in sticky-left columns", () => {
+    const content = h3 + chart + h3
+    const $ = cheerio.load(content)
+
+    splitContentIntoSectionsAndColumns($)
+    testColumnsContent($, chart, "", "sticky-left")
+})
+
 describe("splits consecutive charts in side-by-side columns", () => {
     it("2 charts after content", () => {
         const content = paragraph + chart + chart2
@@ -98,6 +106,6 @@ describe("splits consecutive charts in side-by-side columns", () => {
 
         splitContentIntoSectionsAndColumns($)
         testColumnsContent($, chart, chart2, "side-by-side")
-        testColumnsContent($, "", chart3, "sticky-right")
+        testColumnsContent($, chart3, "", "sticky-left")
     })
 })
