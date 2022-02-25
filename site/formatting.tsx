@@ -4,6 +4,7 @@ import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
     TocHeading,
+    WP_ColumnStyle,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
 import { last } from "../clientUtils/Util.js"
@@ -52,14 +53,8 @@ export const splitContentIntoSectionsAndColumns = (
         last: Cheerio
     }
 
-    enum ColumnStyle {
-        StickyRight = "sticky-right",
-        StickyLeft = "sticky-left",
-        SideBySide = "side-by-side",
-    }
-
     const getColumns = (
-        style: ColumnStyle = ColumnStyle.StickyRight
+        style: WP_ColumnStyle = WP_ColumnStyle.StickyRight
     ): Columns => {
         const emptyColumns = `<div class="wp-block-columns is-style-${style}"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>`
         const cheerioEl = cheerio.load(emptyColumns)
@@ -71,7 +66,10 @@ export const splitContentIntoSectionsAndColumns = (
         }
     }
 
-    const hasColumnsStyle = (columns: Columns, style: ColumnStyle): boolean => {
+    const hasColumnsStyle = (
+        columns: Columns,
+        style: WP_ColumnStyle
+    ): boolean => {
         return columns.wrapper.hasClass(`is-style-${style}`)
     }
 
@@ -169,7 +167,7 @@ export const splitContentIntoSectionsAndColumns = (
             if (
                 el.name === "figure" &&
                 $el.hasClass(GRAPHER_PREVIEW_CLASS) &&
-                hasColumnsStyle(context.columns, ColumnStyle.SideBySide)
+                hasColumnsStyle(context.columns, WP_ColumnStyle.SideBySide)
             ) {
                 context.columns.last.append($el)
                 flushAndResetColumns(context)
@@ -182,7 +180,7 @@ export const splitContentIntoSectionsAndColumns = (
                 el.nextSibling?.attribs?.class === GRAPHER_PREVIEW_CLASS
             ) {
                 flushAndResetColumns(context)
-                context.columns = getColumns(ColumnStyle.SideBySide)
+                context.columns = getColumns(WP_ColumnStyle.SideBySide)
                 context.columns.first.append($el)
                 return null
             }
@@ -200,7 +198,7 @@ export const splitContentIntoSectionsAndColumns = (
                 (!el.nextSibling || isElementFlushingColumns(el.nextSibling)) &&
                 isColumnsEmpty(context.columns)
             ) {
-                context.columns = getColumns(ColumnStyle.StickyLeft)
+                context.columns = getColumns(WP_ColumnStyle.StickyLeft)
                 context.columns.first.append($el)
                 flushAndResetColumns(context) // not strictly necessary since we know the next element flushes but keeps the abstraction clean
                 return null

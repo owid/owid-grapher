@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio"
+import { WP_ColumnStyle } from "../clientUtils/owidTypes.js"
 import {
     GRAPHER_PREVIEW_CLASS,
     splitContentIntoSectionsAndColumns,
@@ -16,7 +17,7 @@ const testColumnsContent = (
     $: CheerioStatic,
     firstColumnHTML: string,
     lastColumnHTML: string,
-    style: string = "sticky-right"
+    style: string = WP_ColumnStyle.StickyRight
 ) => {
     expect($(`.is-style-${style}`).children().first().html()).toEqual(
         firstColumnHTML
@@ -89,7 +90,7 @@ it("places standalone charts in sticky-left columns", () => {
     const $ = cheerio.load(content)
 
     splitContentIntoSectionsAndColumns($)
-    testColumnsContent($, chart, "", "sticky-left")
+    testColumnsContent($, chart, "", WP_ColumnStyle.StickyLeft)
 })
 
 describe("splits consecutive charts in side-by-side columns", () => {
@@ -98,14 +99,14 @@ describe("splits consecutive charts in side-by-side columns", () => {
         const $ = cheerio.load(content)
 
         splitContentIntoSectionsAndColumns($)
-        testColumnsContent($, chart, chart2, "side-by-side")
+        testColumnsContent($, chart, chart2, WP_ColumnStyle.SideBySide)
     })
     it("3 charts", () => {
         const content = chart + chart2 + chart3
         const $ = cheerio.load(content)
 
         splitContentIntoSectionsAndColumns($)
-        testColumnsContent($, chart, chart2, "side-by-side")
-        testColumnsContent($, chart3, "", "sticky-left")
+        testColumnsContent($, chart, chart2, WP_ColumnStyle.SideBySide)
+        testColumnsContent($, chart3, "", WP_ColumnStyle.StickyLeft)
     })
 })
