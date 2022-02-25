@@ -82,7 +82,9 @@ export const splitContentIntoSectionsAndColumns = (
 
     const isElementFlushingColumns = (el: CheerioElement): boolean => {
         return (
-            FullWidthHandler.isElementFullWidth(el) || H4Handler.isElementH4(el)
+            !el ||
+            FullWidthHandler.isElementFullWidth(el) ||
+            H4Handler.isElementH4(el)
         )
     }
 
@@ -195,7 +197,7 @@ export const splitContentIntoSectionsAndColumns = (
             if (
                 el.name === "figure" &&
                 $el.hasClass(GRAPHER_PREVIEW_CLASS) &&
-                (!el.nextSibling || isElementFlushingColumns(el.nextSibling)) &&
+                isElementFlushingColumns(el.nextSibling) &&
                 isColumnsEmpty(context.columns)
             ) {
                 context.columns = getColumns(WP_ColumnStyle.StickyLeft)
