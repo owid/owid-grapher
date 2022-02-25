@@ -191,12 +191,11 @@ export const splitContentIntoSectionsAndColumns = (
         }
     }
 
-    class StandaloneChartHandler extends AbstractHandler {
+    class StandaloneFigureHandler extends AbstractHandler {
         handle(el: CheerioElement, context: ColumnsContext) {
             const $el = cheerioEl(el)
             if (
-                el.name === "figure" &&
-                $el.hasClass(GRAPHER_PREVIEW_CLASS) &&
+                FigureHandler.isFigure(el) &&
                 isElementFlushingColumns(el.nextSibling) &&
                 isColumnsEmpty(context.columns)
             ) {
@@ -210,9 +209,9 @@ export const splitContentIntoSectionsAndColumns = (
     }
 
     class FigureHandler extends AbstractHandler {
-        handle(el: CheerioElement, context: ColumnsContext) {
+        static isFigure(el: CheerioElement) {
             const $el = cheerioEl(el)
-            if (
+            return (
                 el.name === "figure" ||
                 el.name === "iframe" ||
                 // Temporary support for old chart iframes
@@ -229,7 +228,12 @@ export const splitContentIntoSectionsAndColumns = (
                     !$el.find(
                         ".wp-block-owid-additional-information[data-variation='merge-left']"
                     ))
-            ) {
+            )
+        }
+
+        handle(el: CheerioElement, context: ColumnsContext) {
+            const $el = cheerioEl(el)
+            if (FigureHandler.isFigure(el)) {
                 context.columns.last.append($el)
                 return null
             }
@@ -253,7 +257,7 @@ export const splitContentIntoSectionsAndColumns = (
     fullWidthHandler
         .setNext(new H4Handler())
         .setNext(new SideBySideHandler())
-        .setNext(new StandaloneChartHandler())
+        .setNext(new StandaloneFigureHandler())
         .setNext(new FigureHandler())
         .setNext(new DefaultHandler())
 

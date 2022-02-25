@@ -6,9 +6,11 @@ import {
 } from "./formatting.js"
 
 const paragraph = `<p>Some paragraph</p>`
-const chart = `<figure data-grapher-src="http://ourworldindata.org/grapher/pneumococcal-vaccination-averted-deaths" class="${GRAPHER_PREVIEW_CLASS}"></figure>`
+const chart = `<figure data-grapher-src="https://ourworldindata.org/grapher/pneumococcal-vaccination-averted-deaths" class="${GRAPHER_PREVIEW_CLASS}"></figure>`
 const chart2 = `<figure data-grapher-src="https://ourworldindata.org/grapher/pneumonia-and-lower-respiratory-diseases-deaths" class="${GRAPHER_PREVIEW_CLASS}"></figure>`
 const chart3 = `<figure data-grapher-src="https://ourworldindata.org/grapher/pneumonia-mortality-by-age" class="${GRAPHER_PREVIEW_CLASS}"></figure>`
+const figure = `<figure class="wp-block-image size-large"><img src="https://ourworldindata.org/uploads/2022/02/child-mortality-800x245.png" alt="Child mortality" class="wp-image-46764"><figcaption>Child mortality</figcaption></figure>`
+const table = `<div class="tableContainer"><table></table></div>`
 const h2 = `<h2>Some h2 heading</h2>`
 const h3 = `<h3>Some h3 heading</h3>`
 const h4 = `<h4>Some h4 heading</h4>`
@@ -85,12 +87,28 @@ describe("splits text and chart", () => {
     })
 })
 
-it("places standalone charts in sticky-left columns", () => {
-    const content = h3 + chart + h3
-    const $ = cheerio.load(content)
+describe("places standalone visualizations in sticky-left columns", () => {
+    it("chart", () => {
+        const content = h3 + chart + h3
+        const $ = cheerio.load(content)
 
-    splitContentIntoSectionsAndColumns($)
-    testColumnsContent($, chart, "", WP_ColumnStyle.StickyLeft)
+        splitContentIntoSectionsAndColumns($)
+        testColumnsContent($, chart, "", WP_ColumnStyle.StickyLeft)
+    })
+    it("figure", () => {
+        const content = h3 + figure + h3
+        const $ = cheerio.load(content)
+
+        splitContentIntoSectionsAndColumns($)
+        testColumnsContent($, figure, "", WP_ColumnStyle.StickyLeft)
+    })
+    it("table", () => {
+        const content = h3 + table + h3
+        const $ = cheerio.load(content)
+
+        splitContentIntoSectionsAndColumns($)
+        testColumnsContent($, table, "", WP_ColumnStyle.StickyLeft)
+    })
 })
 
 describe("splits consecutive charts in side-by-side columns", () => {
