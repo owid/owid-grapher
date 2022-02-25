@@ -14,6 +14,7 @@ const table = `<div class="tableContainer"><table></table></div>`
 const h2 = `<h2>Some h2 heading</h2>`
 const h3 = `<h3>Some h3 heading</h3>`
 const h4 = `<h4>Some h4 heading</h4>`
+const h6 = `<h6>Some h6 heading</h6>`
 
 const testColumnsContent = (
     $: CheerioStatic,
@@ -109,6 +110,14 @@ describe("places standalone visualizations in sticky-left columns", () => {
         splitContentIntoSectionsAndColumns($)
         testColumnsContent($, table, "", WP_ColumnStyle.StickyLeft)
     })
+})
+
+it("does not move legacy h6 caption + image to the left column", () => {
+    const content = h3 + h6 + figure + h3
+    const $ = cheerio.load(content)
+
+    splitContentIntoSectionsAndColumns($)
+    testColumnsContent($, "", h6 + figure, WP_ColumnStyle.StickyRight)
 })
 
 describe("splits consecutive charts in side-by-side columns", () => {
