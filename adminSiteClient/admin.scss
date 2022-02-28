@@ -9,6 +9,7 @@
 @import "node_modules/antd/dist/antd.css"; // or import "react-awesome-query-builder/css/antd.less";
 @import "node_modules/react-awesome-query-builder/lib/css/styles";
 @import "node_modules/react-awesome-query-builder/lib/css/compact_styles";
+@import "node_modules/codemirror/lib/codemirror.css";
 
 html {
     font-size: 14px;
@@ -234,6 +235,14 @@ body {
         label {
             margin-left: 5px;
             margin-right: 5px;
+        }
+    }
+
+    .rich-editor-confirm-buttons {
+        margin-top: 0.5rem;
+
+        button {
+            margin-right: 0.5rem;
         }
     }
 }

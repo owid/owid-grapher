@@ -24,7 +24,10 @@ import {
 
 import { HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { applyPatch } from "../clientUtils/patchHelper.js"
+import {
+    applyPatch,
+    setValueRecursiveInplace,
+} from "../clientUtils/patchHelper.js"
 import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
@@ -92,6 +95,9 @@ import { Query, Utils as QbUtils } from "react-awesome-query-builder"
 // types
 import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
 import { KeysSection } from "./EditorDataTab.js"
+import codemirror from "codemirror"
+import { UnControlled as CodeMirror } from "react-codemirror2"
+import jsonpointer from "json8-pointer"
 
 @observer
 export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
@@ -105,6 +111,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable activeTab = Tabs.FilterTab
     @observable currentColumnSet: ColumnSet
     @observable columnFilter: string = ""
+    @observable hasUncommitedRichEditorChanges: boolean = false
 
     @observable.ref columnSelection: ColumnInformation[] = []
     @observable.ref filterState: FilterPanelState | undefined = undefined
@@ -267,9 +274,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.loadGrapherJson(mergedConfig)
     }
 
-    @computed private get currentColumnEditorOption():
-        | EditorOption
-        | undefined {
+    @computed private get columnDataSource(): ColumnDataSource | undefined {
         const { selectedRowContent, columnDataSources, selectedColumn } = this
         if (selectedRowContent === undefined) return undefined
         if (
@@ -278,25 +283,110 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         ) {
             return undefined
         }
-        const columnDataSource = columnDataSources[selectedColumn]
-        console.log("updated column", {
-            source: columnDataSource.columnInformation.key,
-        })
+        return columnDataSources[selectedColumn]
+    }
+
+    @computed private get currentColumnFieldDesription():
+        | FieldDescription
+        | undefined {
+        const { columnDataSource } = this
 
         return match(columnDataSource)
             .with(
                 { kind: ColumnDataSourceType.FieldDescription },
-                (source) => source.description.editor
+                (source) => source.description
             )
             .otherwise(() => undefined)
     }
 
+    @action.bound
+    private onRichTextEditorChange(
+        editor: codemirror.Editor,
+        data: codemirror.EditorChange,
+        value: string
+    ) {
+        console.log(
+            "has uncommited changes?",
+            this.hasUncommitedRichEditorChanges
+        )
+        if (data.origin !== undefined) {
+            console.log({ data })
+            // origin seems to be +input when editing and undefined when we change the value programmatically
+            const { currentColumnFieldDesription, grapher } = this
+            if (currentColumnFieldDesription === undefined) return
+            this.hasUncommitedRichEditorChanges = true
+            const pointer = jsonpointer.parse(
+                currentColumnFieldDesription.pointer
+            ) as string[]
+            // Here we are setting the target column field directly at the grapher so the
+            // preview is updated. When the user clicks the save button we'll then check
+            // the value on grapher vs the value on the richDataRow and perform a proper
+            // update using doAction like we do on the grid editor commits.
+            setValueRecursiveInplace(grapher, pointer, value)
+        }
+    }
+
+    @action
+    commitRichEditorChanges(performCommit: boolean) {
+        const { selectedRowContent, currentColumnFieldDesription, grapher } =
+            this
+        if (
+            selectedRowContent === undefined ||
+            currentColumnFieldDesription === undefined
+        )
+            return
+
+        const pointer = jsonpointer.parse(
+            currentColumnFieldDesription.pointer
+        ) as string[]
+
+        const prevVal = currentColumnFieldDesription.getter(
+            selectedRowContent.config as Record<string, unknown>
+        )
+        if (performCommit) {
+            const newVal = currentColumnFieldDesription.getter(
+                grapher as unknown as Record<string, unknown>
+            )
+
+            const patch: GrapherConfigPatch = {
+                id: selectedRowContent.id,
+                oldValue: prevVal,
+                newValue: newVal,
+                jsonPointer: currentColumnFieldDesription.pointer,
+            }
+            this.doAction({ patches: [patch] })
+        } else {
+            setValueRecursiveInplace(grapher, pointer, prevVal)
+        }
+
+        this.hasUncommitedRichEditorChanges = false
+    }
+
     @computed get editControl(): JSX.Element | undefined {
-        const { currentColumnEditorOption, grapher } = this
-        if (currentColumnEditorOption === undefined) return undefined
-        return match(currentColumnEditorOption)
+        const { currentColumnFieldDesription, grapher, selectedRowContent } =
+            this
+        if (
+            currentColumnFieldDesription === undefined ||
+            selectedRowContent === undefined
+        )
+            return undefined
+        return match(currentColumnFieldDesription.editor)
             .with(EditorOption.primitiveListEditor, () => (
                 <KeysSection grapher={grapher}></KeysSection>
+            ))
+            .with(EditorOption.textfield, EditorOption.textarea, () => (
+                <CodeMirror
+                    value={currentColumnFieldDesription.getter(
+                        grapher as any as Record<string, unknown>
+                    )}
+                    options={{
+                        //theme: "material",
+                        lineNumbers: true,
+                        lineWrapping: true,
+                    }}
+                    autoCursor={false}
+                    onChange={this.onRichTextEditorChange}
+                />
             ))
             .otherwise(() => undefined)
     }
@@ -576,11 +666,15 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @action.bound
     updateSelection(row: number, column: number): void {
+        if (this.hasUncommitedRichEditorChanges)
+            this.commitRichEditorChanges(false)
         if (row !== this.selectedRow) {
+            this.hasUncommitedRichEditorChanges = false
             this.selectedRow = row
             this.updatePreviewToRow(row)
         }
         if (column !== this.selectedColumn) {
+            this.hasUncommitedRichEditorChanges = false
             this.selectedColumn = column
         }
     }
@@ -909,10 +1003,27 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     renderEditorTab(): JSX.Element {
-        const { editControl } = this
+        const { editControl, hasUncommitedRichEditorChanges } = this
         return (
             <section>
                 <div className="container">{editControl}</div>
+                {hasUncommitedRichEditorChanges ? (
+                    <div className="container rich-editor-confirm-buttons">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => this.commitRichEditorChanges(true)}
+                        >
+                            Commit
+                        </button>
+
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => this.commitRichEditorChanges(false)}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                ) : null}
             </section>
         )
     }

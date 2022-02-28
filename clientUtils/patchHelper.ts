@@ -2,6 +2,24 @@ import jsonpointer from "json8-pointer"
 import { isNil } from "lodash"
 import { GrapherConfigPatch } from "./AdminSessionTypes.js"
 import { isArray, isPlainObjectWithGuard } from "./Util.js"
+
+export function setValueRecursiveInplace(
+    json: any,
+    pointer: string[],
+    newValue: any
+): any {
+    if (pointer.length === 0) throw new Error("Pointer must not be empty")
+    const key: string = pointer.shift()!
+    if (pointer.length === 0) {
+        json[key] = newValue
+        return json
+    }
+    if (!json[key]) {
+        json[key] = {}
+    }
+    return setValueRecursiveInplace(json[key], pointer, newValue)
+}
+
 export function setValueRecursive(
     json: any,
     pointer: string[],
