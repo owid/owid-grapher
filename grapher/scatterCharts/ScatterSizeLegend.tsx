@@ -141,7 +141,7 @@ export class ScatterSizeLegend {
                 {highlight && (
                     <LegendItem
                         key={highlight.value}
-                        label={this.manager.sizeColumn.formatValueShortWithAbbreviations(
+                        label={this.manager.sizeColumn.formatValueShort(
                             highlight.value
                         )}
                         cx={cx}
