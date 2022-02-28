@@ -211,7 +211,7 @@
         "unidecode": "^0.1.8",
         "url-join": "^4.0.0",
         "url-loader": "^4.1.0",
-        "url-parse": "^1.5.6",
+        "url-parse": "^1.5.8",
         "url-slug": "^3.0.2",
         "webpack": "^4.44.1",
         "webpack-cli": "^3.3.12",
