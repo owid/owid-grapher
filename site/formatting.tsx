@@ -254,6 +254,10 @@ export const splitContentIntoSectionsAndColumns = (
 
     // Set up chain of responsibility pattern. Elements are being passed
     // through the chain until a handler can process them.
+    // - For each element in a section, handlers are executed one by one in order.
+    // - It's the responsibility of the handler to figure out whether to 1) apply some transformation, or 2) do nothing, pass responsibility onto the next handler in the chain.
+    // - A handler should never do both 1) and 2) – both apply a transformation and additionally let other handlers apply transformations.
+    // see https://github.com/owid/owid-grapher/pull/1220#discussion_r816126831
     fullWidthHandler
         .setNext(new H4Handler())
         .setNext(new SideBySideHandler())
