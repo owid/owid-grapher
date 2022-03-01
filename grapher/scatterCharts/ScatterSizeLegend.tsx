@@ -73,11 +73,10 @@ export class ScatterSizeLegend {
 
     // Since it's circular, this is both the width and the height of the legend.
     @computed private get legendSize(): number {
-        const largestTick = first(this.ticks)
-        if (largestTick === undefined) return 0
-        const radius = this.manager.sizeScale(largestTick)
-        // adding some padding to account for label sticking out of the top
-        return 2 * radius + 3
+        if (this.ticks.length === 0) return 0
+        const maxRadius = this.manager.sizeScale.range()[1]
+        // adding some padding to account for label sticking out at the top
+        return 2 * maxRadius + 2
     }
 
     @computed private get title(): TextWrap {
