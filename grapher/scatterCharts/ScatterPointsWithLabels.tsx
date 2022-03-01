@@ -26,7 +26,6 @@ import {
     ScatterPointsWithLabelsProps,
     ScatterRenderSeries,
     ScatterLabel,
-    ScatterRenderPoint,
     ScatterSeries,
     SCATTER_POINT_MIN_RADIUS,
     SCATTER_LINE_MIN_WIDTH,

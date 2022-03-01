@@ -50,9 +50,7 @@ import {
     ScatterPlotManager,
     ScatterSeries,
     SCATTER_LINE_MAX_WIDTH,
-    SCATTER_LINE_MIN_WIDTH,
     SCATTER_POINT_MAX_RADIUS,
-    SCATTER_POINT_MIN_RADIUS,
     SeriesPoint,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterTooltip } from "./ScatterTooltip.js"
@@ -954,7 +952,10 @@ export class ScatterPlotChart
                 return {
                     x: row[this.xColumnSlug],
                     y: row[this.yColumnSlug],
-                    size: defaultIfErrorValue(row[this.sizeColumn.slug], 0),
+                    size: defaultIfErrorValue(
+                        row[this.sizeColumn.slug],
+                        undefined
+                    ),
                     color: defaultIfErrorValue(
                         row[this.colorColumn.slug],
                         undefined

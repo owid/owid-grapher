@@ -11,6 +11,7 @@ import {
     SCATTER_POINT_MAX_RADIUS,
     SCATTER_POINT_OPACITY,
     SCATTER_POINT_STROKE_WIDTH,
+    SCATTER_POINT_DEFAULT_RADIUS,
 } from "./ScatterPlotChartConstants.js"
 import { darkenColorForText } from "../color/ColorUtils.js"
 
@@ -63,6 +64,11 @@ export class ScatterSizeLegend {
         return ticks
     }
 
+    private getPointRadius(value: number | undefined): number {
+        if (value === undefined) return SCATTER_POINT_DEFAULT_RADIUS
+        return this.manager.sizeScale(value)
+    }
+
     // input radius, output font size
     @computed private get fontSizeScale(): ScaleLinear<number, number> {
         return scaleLinear()
@@ -74,7 +80,7 @@ export class ScatterSizeLegend {
     // Since it's circular, this is both the width and the height of the legend.
     @computed private get legendSize(): number {
         if (this.ticks.length === 0) return 0
-        const maxRadius = this.manager.sizeScale.range()[1]
+        const maxRadius = last(this.manager.sizeScale.range()) ?? 0
         // adding some padding to account for label sticking out at the top
         return 2 * maxRadius + 2
     }
@@ -100,12 +106,15 @@ export class ScatterSizeLegend {
     }
 
     @computed private get highlight():
-        | { value: number; color: string }
+        | { value: number | undefined; color: string }
         | undefined {
         const { tooltipSeries } = this.manager
-        if (tooltipSeries?.points.length === 1) {
+        if (
+            tooltipSeries?.points.length === 1 &&
+            first(tooltipSeries.points)?.size !== undefined
+        ) {
             return {
-                value: tooltipSeries.points[0].size,
+                value: first(tooltipSeries.points)!.size,
                 color: tooltipSeries.color,
             }
         }
@@ -113,13 +122,12 @@ export class ScatterSizeLegend {
     }
 
     private renderLegend(targetX: number, targetY: number): JSX.Element {
-        const { sizeScale } = this.manager
         const { highlight } = this
         const cx = targetX + this.maxWidth / 2
         return (
             <React.Fragment>
                 {this.ticks.map((value) => {
-                    const radius = sizeScale(value)
+                    const radius = this.getPointRadius(value)
                     return (
                         <LegendItem
                             key={value}
@@ -147,12 +155,12 @@ export class ScatterSizeLegend {
                         cy={
                             targetY +
                             this.legendSize -
-                            sizeScale(highlight.value)
+                            this.getPointRadius(highlight.value)
                         }
                         circleFill={highlight.color}
                         circleStroke={"#333"}
                         circleStrokeWidth={SCATTER_POINT_STROKE_WIDTH}
-                        circleRadius={sizeScale(highlight.value)}
+                        circleRadius={this.getPointRadius(highlight.value)}
                         circleOpacity={SCATTER_POINT_OPACITY}
                         labelFontSize={12}
                         labelFill={darkenColorForText(highlight.color)}
