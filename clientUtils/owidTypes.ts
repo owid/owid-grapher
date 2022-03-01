@@ -262,6 +262,12 @@ export interface FullPost {
     glossary: boolean
 }
 
+export enum WP_ColumnStyle {
+    StickyRight = "sticky-right",
+    StickyLeft = "sticky-left",
+    SideBySide = "side-by-side",
+}
+
 export enum SuggestedChartRevisionStatus {
     pending = "pending",
     approved = "approved",

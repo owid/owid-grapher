@@ -4,6 +4,7 @@ import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
     TocHeading,
+    WP_ColumnStyle,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
 import { last } from "../clientUtils/Util.js"
@@ -52,7 +53,9 @@ export const splitContentIntoSectionsAndColumns = (
         last: Cheerio
     }
 
-    const getColumns = (style: string = "sticky-right"): Columns => {
+    const getColumns = (
+        style: WP_ColumnStyle = WP_ColumnStyle.StickyRight
+    ): Columns => {
         const emptyColumns = `<div class="wp-block-columns is-style-${style}"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>`
         const cheerioEl = cheerio.load(emptyColumns)
         const $columns = cheerioEl("body").children().first()
@@ -63,6 +66,13 @@ export const splitContentIntoSectionsAndColumns = (
         }
     }
 
+    const hasColumnsStyle = (
+        columns: Columns,
+        style: WP_ColumnStyle
+    ): boolean => {
+        return columns.wrapper.hasClass(`is-style-${style}`)
+    }
+
     const isColumnsEmpty = (columns: Columns) => {
         return columns.first.children().length === 0 &&
             columns.last.children().length === 0
@@ -70,29 +80,49 @@ export const splitContentIntoSectionsAndColumns = (
             : false
     }
 
-    const flushColumns = (columns: Columns, $section: Cheerio): Columns => {
-        $section.append(columns.wrapper)
-        return getColumns()
+    const isElementFlushingColumns = (el: CheerioElement): boolean => {
+        return (
+            !el ||
+            FullWidthHandler.isElementFullWidth(el) ||
+            H4Handler.isElementH4(el)
+        )
     }
 
-    // Wrap content demarcated by headings into section blocks
-    // and automatically divide content into columns
-    const sectionStarts = [cheerioEl("body").children().get(0)].concat(
-        cheerioEl("body > h2").toArray()
-    )
-    for (const start of sectionStarts) {
-        const $start = cheerioEl(start)
-        const $section = cheerioEl("<section>")
-        let columns = getColumns()
-        let sideBySideColumns = getColumns("side-by-side")
-        const $tempWrapper = cheerioEl("<div>")
-        const $contents = $tempWrapper
-            .append($start.clone(), $start.nextUntil(cheerioEl("h2")))
-            .contents()
+    const flushAndResetColumns = (context: ColumnsContext): void => {
+        if (isColumnsEmpty(context.columns)) return
 
-        $contents.each((i, el) => {
+        context.$section.append(context.columns.wrapper)
+        context.columns = getColumns()
+    }
+
+    interface ColumnsContext {
+        columns: Columns
+        $section: Cheerio
+    }
+
+    interface Handler {
+        setNext: (handler: Handler) => Handler
+        handle: (el: CheerioElement, context: ColumnsContext) => Columns | null
+    }
+
+    abstract class AbstractHandler implements Handler {
+        #nextHandler: Handler | null = null
+
+        setNext(handler: Handler) {
+            this.#nextHandler = handler
+            return handler
+        }
+
+        handle(el: CheerioElement, context: ColumnsContext) {
+            if (this.#nextHandler) return this.#nextHandler.handle(el, context)
+            return null
+        }
+    }
+
+    class FullWidthHandler extends AbstractHandler {
+        static isElementFullWidth(el: CheerioElement) {
             const $el = cheerioEl(el)
-            if (
+            return (
                 el.name === "h2" ||
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
@@ -101,70 +131,161 @@ export const splitContentIntoSectionsAndColumns = (
                 $el.find(
                     '.wp-block-owid-additional-information[data-variation="full-width"]'
                 ).length !== 0
-            ) {
-                if (!isColumnsEmpty(columns)) {
-                    columns = flushColumns(columns, $section)
-                }
-                $section.append($el)
-            } else if (el.name === "h4") {
-                if (!isColumnsEmpty(columns)) {
-                    columns = flushColumns(columns, $section)
-                }
-                columns.first.append($el)
-                columns = flushColumns(columns, $section)
-            } else {
-                if (
-                    el.name === "figure" &&
-                    $el.hasClass(GRAPHER_PREVIEW_CLASS)
-                ) {
-                    if (isColumnsEmpty(sideBySideColumns)) {
-                        // Only fill the side by side buffer if there is an upcoming chart for a potential comparison.
-                        // Otherwise let the standard process (sticky right) take over.
-                        if (
-                            $contents[i].nextSibling?.attribs?.class ===
-                            GRAPHER_PREVIEW_CLASS
-                        ) {
-                            columns = flushColumns(columns, $section)
-                            sideBySideColumns.first.append($el)
-                        } else {
-                            columns.last.append($el)
-                        }
-                    } else {
-                        sideBySideColumns.last.append($el)
-                        $section.append(sideBySideColumns.wrapper)
-                        sideBySideColumns = getColumns("side-by-side")
-                    }
-                }
-
-                // Move images to the right column
-                else if (
-                    el.name === "figure" ||
-                    el.name === "iframe" ||
-                    // Temporary support for old chart iframes
-                    el.name === "address" ||
-                    $el.hasClass("wp-block-image") ||
-                    $el.hasClass("tableContainer") ||
-                    // Temporary support for non-Gutenberg iframes wrapped in wpautop's <p>
-                    // Also catches older iframes (e.g. https://ourworldindata.org/food-per-person#world-map-of-minimum-and-average-dietary-energy-requirement-mder-and-ader)
-                    $el.find("iframe").length !== 0 ||
-                    // TODO: remove temporary support for pre-Gutenberg images and associated captions
-                    el.name === "h6" ||
-                    ($el.find("img").length !== 0 &&
-                        !$el.hasClass(PROMINENT_LINK_CLASSNAME) &&
-                        !$el.find(
-                            ".wp-block-owid-additional-information[data-variation='merge-left']"
-                        ))
-                ) {
-                    columns.last.append($el)
-                } else {
-                    // Move non-heading, non-image content to the left column
-                    columns.first.append($el)
-                }
-            }
-        })
-        if (!isColumnsEmpty(columns)) {
-            $section.append(columns.wrapper)
+            )
         }
+
+        handle(el: CheerioElement, context: ColumnsContext) {
+            const $el = cheerioEl(el)
+            if (FullWidthHandler.isElementFullWidth(el)) {
+                flushAndResetColumns(context)
+                context.$section.append($el)
+                return null
+            }
+            return super.handle(el, context)
+        }
+    }
+
+    class H4Handler extends AbstractHandler {
+        static isElementH4 = (el: CheerioElement): boolean => {
+            return el.name === "h4"
+        }
+
+        handle(el: CheerioElement, context: ColumnsContext) {
+            const $el = cheerioEl(el)
+            if (H4Handler.isElementH4(el)) {
+                flushAndResetColumns(context)
+                context.columns.first.append($el)
+                flushAndResetColumns(context)
+                return null
+            }
+            return super.handle(el, context)
+        }
+    }
+
+    class SideBySideHandler extends AbstractHandler {
+        handle(el: CheerioElement, context: ColumnsContext) {
+            const $el = cheerioEl(el)
+
+            if (
+                el.name === "figure" &&
+                $el.hasClass(GRAPHER_PREVIEW_CLASS) &&
+                hasColumnsStyle(context.columns, WP_ColumnStyle.SideBySide)
+            ) {
+                context.columns.last.append($el)
+                flushAndResetColumns(context)
+                return null
+            }
+
+            if (
+                el.name === "figure" &&
+                $el.hasClass(GRAPHER_PREVIEW_CLASS) &&
+                el.nextSibling?.attribs?.class === GRAPHER_PREVIEW_CLASS
+            ) {
+                flushAndResetColumns(context)
+                context.columns = getColumns(WP_ColumnStyle.SideBySide)
+                context.columns.first.append($el)
+                return null
+            }
+
+            return super.handle(el, context)
+        }
+    }
+
+    class StandaloneFigureHandler extends AbstractHandler {
+        handle(el: CheerioElement, context: ColumnsContext) {
+            const $el = cheerioEl(el)
+            if (
+                FigureHandler.isFigure(el) &&
+                isElementFlushingColumns(el.nextSibling) &&
+                isColumnsEmpty(context.columns)
+            ) {
+                context.columns = getColumns(WP_ColumnStyle.StickyLeft)
+                context.columns.first.append($el)
+                flushAndResetColumns(context) // not strictly necessary since we know the next element flushes but keeps the abstraction clean
+                return null
+            }
+            return super.handle(el, context)
+        }
+    }
+
+    class FigureHandler extends AbstractHandler {
+        static isFigure(el: CheerioElement) {
+            const $el = cheerioEl(el)
+            return (
+                el.name === "figure" ||
+                el.name === "iframe" ||
+                // Temporary support for old chart iframes
+                el.name === "address" ||
+                $el.hasClass("wp-block-image") ||
+                $el.hasClass("tableContainer") ||
+                // Temporary support for non-Gutenberg iframes wrapped in wpautop's <p>
+                // Also catches older iframes (e.g. https://ourworldindata.org/food-per-person#world-map-of-minimum-and-average-dietary-energy-requirement-mder-and-ader)
+                $el.find("iframe").length !== 0 ||
+                // TODO: remove temporary support for pre-Gutenberg images and associated captions
+                el.name === "h6" ||
+                ($el.find("img").length !== 0 &&
+                    !$el.hasClass(PROMINENT_LINK_CLASSNAME) &&
+                    !$el.find(
+                        ".wp-block-owid-additional-information[data-variation='merge-left']"
+                    ))
+            )
+        }
+
+        handle(el: CheerioElement, context: ColumnsContext) {
+            const $el = cheerioEl(el)
+            if (FigureHandler.isFigure(el)) {
+                context.columns.last.append($el)
+                return null
+            }
+            return super.handle(el, context)
+        }
+    }
+
+    class DefaultHandler extends AbstractHandler {
+        handle(el: CheerioElement, context: ColumnsContext) {
+            const $el = cheerioEl(el)
+            // Move non-heading, non-image content to the left column
+            context.columns.first.append($el)
+            return null
+        }
+    }
+
+    const fullWidthHandler = new FullWidthHandler()
+
+    // Set up chain of responsibility pattern. Elements are being passed
+    // through the chain until a handler can process them.
+    // - For each element in a section, handlers are executed one by one in order.
+    // - It's the responsibility of the handler to figure out whether to 1) apply some transformation, or 2) do nothing, pass responsibility onto the next handler in the chain.
+    // - A handler should never do both 1) and 2) – both apply a transformation and additionally let other handlers apply transformations.
+    // see https://github.com/owid/owid-grapher/pull/1220#discussion_r816126831
+    fullWidthHandler
+        .setNext(new H4Handler())
+        .setNext(new SideBySideHandler())
+        .setNext(new StandaloneFigureHandler())
+        .setNext(new FigureHandler())
+        .setNext(new DefaultHandler())
+
+    // Wrap content demarcated by headings into section blocks
+    // and automatically divide content into columns
+    const sectionStarts = [cheerioEl("body").children().get(0)].concat(
+        cheerioEl("body > h2").toArray()
+    )
+
+    for (const start of sectionStarts) {
+        const $start = cheerioEl(start)
+        const $section = cheerioEl("<section>")
+        const context = { columns: getColumns(), $section }
+        const $tempWrapper = cheerioEl("<div>")
+        const $contents = $tempWrapper
+            .append($start.clone(), $start.nextUntil(cheerioEl("h2")))
+            .contents()
+
+        $contents.each((i, el) => {
+            fullWidthHandler.handle(el, context)
+        })
+        // Flushes the last set of columns at the end each section (since
+        // columns are only flushed when a flushing element is encountered).
+        flushAndResetColumns(context)
         $start.replaceWith($section)
     }
 }
