@@ -5,13 +5,10 @@ export const AlertBanner = () => {
         <div className="alert-banner">
             <div className="content">
                 <div className="text">
-                    <strong>Updated daily</strong>
+                    <strong>In the news</strong>
                 </div>
-                <a
-                    href="/covid-vaccinations"
-                    data-track-note="covid-banner-click"
-                >
-                    View our work on COVID-19 vaccinations
+                <a href="/ukraine-war" data-track-note="covid-banner-click">
+                    Explore data for context of the war in Ukraine
                 </a>
             </div>
         </div>

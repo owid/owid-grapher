@@ -155,7 +155,7 @@ export const ExplorerGrammar: Grammar = {
     hideAlertBanner: {
         ...BooleanCellDef,
         keyword: "hideAlertBanner",
-        description: "Set to true to hide the Covid alert banner.",
+        description: "Set to true to hide the alert banner.",
     },
     ...GrapherGrammar,
 } as const
