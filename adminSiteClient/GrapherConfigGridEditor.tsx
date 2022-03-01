@@ -41,7 +41,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
 } from "../grapher/core/Grapher.js"
-import { BindString, SelectField } from "./Forms.js"
+import { BindString, SelectField, Toggle } from "./Forms.js"
 import { from } from "rxjs"
 import {
     catchError,
@@ -132,6 +132,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     /** Redo stack - not yet used */
     @observable redoStack: Action[] = []
 
+    @observable keepEntitySelectionOnChartChange: boolean = false
     /** This field stores the offset of what is currently displayed on screen */
     @observable currentPagingOffset: number = 0
     /** This field stores the offset that the user requested. E.g. if the user clicks
@@ -253,6 +254,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         if (this.grapherElement) {
             this.grapher.setAuthoredVersion(newConfig)
             this.grapher.reset()
+            if (!this.keepEntitySelectionOnChartChange)
+                // this resets the entity selection to what the author set in the chart config
+                // This is user controlled because when working with existing charts this is usually desired
+                // but when working on the variable level where this is missing it is often nicer to keep
+                // the same country selection as you zap through the variables
+                this.grapher.clearSelection()
             this.grapher.updateFromObject(newConfig)
             this.grapher.downloadData()
         } else this.grapherElement = <Grapher {...newConfig} />
@@ -353,6 +360,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 oldValue: prevVal,
                 newValue: newVal,
                 jsonPointer: currentColumnFieldDesription.pointer,
+                oldValueIsEquivalentToNullOrUndefined:
+                    currentColumnFieldDesription.default !== undefined &&
+                    currentColumnFieldDesription.default === prevVal,
             }
             this.doAction({ patches: [patch] })
         } else {
@@ -1024,8 +1034,19 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         </button>
                     </div>
                 ) : null}
+                <Toggle
+                    label="Keep entity selection"
+                    title="If set then the country selection will stay the same while switching rows even if the underlying chart has a different selection"
+                    value={this.keepEntitySelectionOnChartChange}
+                    onValue={this.setKeepEntitySelectionOnChartChange}
+                />
             </section>
         )
+    }
+
+    @action.bound
+    setKeepEntitySelectionOnChartChange(value: boolean) {
+        this.keepEntitySelectionOnChartChange = value
     }
 
     @action.bound
