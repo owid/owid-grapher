@@ -1,5 +1,7 @@
 version: "3.7"
 
+# Copy of docker-compose.yml with mysql related images switched to arm64v8 for apple m1 compatibility.
+
 # This docker-compose file creates a full local dev environment for both grapher and wordpress. It is meant for
 # OWID internal developers as the setup of wordpress requires a copy of the wordpress database that is not
 # publicly available.
@@ -28,8 +30,7 @@ services:
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
         # On an M1 mac, switch to the arm64v8 image below:
-        # image: arm64v8/mysql
-        image: mysql:5.7
+        image: arm64v8/mysql
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
@@ -46,6 +47,7 @@ services:
     db-load-data:
         build:
             context: ./devTools/docker/mysql-init-docker
+            dockerfile: m1.Dockerfile
         command: "/app/full-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
