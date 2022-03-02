@@ -15,7 +15,14 @@ version: "3.7"
 # Run `docker-compose up -d` to run all these services in deamon mode. The first time it will take a few minutes
 # to build the containers and initialize and fill the database, afterwards it should be up in seconds.
 # On the host, make sure you have a .env file with the correct settings, then start `yarn startTmuxServer` or similar
-# and navigate to http://localhost:8080 to work with both the grapher admin and wordpress previews
+# and navigate to http://localhost:8080 to work with both the grapher admin and wordpress previews.
+
+# Wordpress development
+# The Wordpress admin is at http://localhost:8080/wp/wp-admin/
+# While working on the editor blocks of the OWID Wordpress plugin, run `yarn startWordpressPlugin`.
+# Alternatively, you can run `yarn buildWordpressPlugin` if you're working in Wordpress but not actively updating the editor.
+# Working on the PHP code doesn't require any further tooling command to run.
+
 services:
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
