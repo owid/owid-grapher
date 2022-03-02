@@ -133,14 +133,30 @@ function extractSchemaRecursive(
             schema.hasOwnProperty("properties") &&
             isPlainObjectWithGuard(schema.properties)
         ) {
-            for (const key of Object.keys(schema.properties)) {
-                const newPath = `${pointer}/${key}`
-                extractSchemaRecursive(
-                    (schema.properties as Record<string, unknown>)[key],
-                    newPath,
-                    items
-                )
-            }
+            // Color scales are complex objects that are treated as opaque objects with a special
+            // rich editor. We identify them by the property they are stored as. If we have a color
+            // scale, push a single FieldDescription for it with the editor set accordingly.
+            // Otherwise we have a normal object and we recurse.
+            if (pointer.endsWith("colorScale")) {
+                items.push({
+                    type: schema.type as FieldType,
+                    getter: compileGetValueFunction(pointer),
+                    pointer: pointer,
+                    default: undefined,
+                    editor: EditorOption.colorEditor,
+                    enumOptions: undefined,
+                    description:
+                        (schema.description as string | undefined) ?? "",
+                })
+            } else
+                for (const key of Object.keys(schema.properties)) {
+                    const newPath = `${pointer}/${key}`
+                    extractSchemaRecursive(
+                        (schema.properties as Record<string, unknown>)[key],
+                        newPath,
+                        items
+                    )
+                }
         } else if (
             // if we have an object that uses patternProperties to
             // describe arbitrary properties then we special case

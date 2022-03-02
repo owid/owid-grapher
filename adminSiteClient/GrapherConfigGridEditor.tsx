@@ -7,7 +7,7 @@ import {
     DropResult,
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
-import { observable, computed, action, runInAction, autorun } from "mobx"
+import { observable, computed, action, runInAction, autorun, toJS } from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
 import {
@@ -22,7 +22,7 @@ import {
     pick,
 } from "lodash"
 
-import { HotColumn, HotTable } from "@handsontable/react"
+import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     applyPatch,
@@ -98,6 +98,52 @@ import { KeysSection } from "./EditorDataTab.js"
 import codemirror from "codemirror"
 import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
+import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
+
+function HotColorScaleRenderer(props: Record<string, unknown>) {
+    return <div>Color scale</div>
+}
+
+class HotColorScaleEditor extends BaseEditorComponent<Record<string, never>> {
+    constructor(props: Record<string, never>) {
+        super(props)
+    }
+
+    setValue(value: any, callback: any) {}
+
+    getValue() {
+        return undefined
+    }
+
+    open() {}
+
+    close() {}
+
+    prepare(
+        row: any,
+        col: any,
+        prop: any,
+        td: any,
+        originalValue: any,
+        cellProperties: any
+    ) {
+        // We'll need to call the `prepare` method from
+        // the `BaseEditorComponent` class, as it provides
+        // the component with the information needed to use the editor
+        // (hotInstance, row, col, prop, TD, originalValue, cellProperties)
+        super.prepare(row, col, prop, td, originalValue, cellProperties)
+
+        // const tdPosition = td.getBoundingClientRect();
+
+        // As the `prepare` method is triggered after selecting
+        // any cell, we're updating the styles for the editor element,
+        // so it shows up in the correct position.
+    }
+
+    render() {
+        return <div id="colorScaleEditorElement"></div>
+    }
+}
 
 @observer
 export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
@@ -380,9 +426,28 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             selectedRowContent === undefined
         )
             return undefined
+        const testVal = currentColumnFieldDesription.getter(
+            grapher as any as Record<string, unknown>
+        )
+        console.log({ testVal: toJS(testVal) })
         return match(currentColumnFieldDesription.editor)
             .with(EditorOption.primitiveListEditor, () => (
                 <KeysSection grapher={grapher}></KeysSection>
+            ))
+            .with(EditorOption.colorEditor, () => (
+                <EditorColorScaleSection
+                    scale={
+                        // HACK: this is just to see if editing the color scale on the grapher can work. It would be better if the editor would work against the config
+                        grapher.chartInstance.colorScale!
+                        //     currentColumnFieldDesription.getter(
+                        //     grapher as any as Record<string, unknown>
+                        // )
+                    }
+                    features={{
+                        visualScaling: true,
+                        legendDescription: false,
+                    }}
+                />
             ))
             .with(EditorOption.textfield, EditorOption.textarea, () => (
                 <CodeMirror
@@ -555,29 +620,44 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .with(EditorOption.numeric, () => "numeric")
             .with(EditorOption.textfield, () => "text")
             .with(EditorOption.textarea, () => "text")
-            .with(EditorOption.colorEditor, () => "text")
+            .with(EditorOption.colorEditor, () => "colorScale")
             .with(EditorOption.mappingEditor, () => "text")
             .with(EditorOption.primitiveListEditor, () => "text")
             .exhaustive()
     }
     static fieldDescriptionToColumn(desc: FieldDescription): JSX.Element {
         const name = desc.pointer //.substring(1)
-        return (
-            <HotColumn
-                key={desc.pointer}
-                settings={{
-                    title: name,
-                    readOnly:
-                        desc.editor === EditorOption.primitiveListEditor ||
-                        desc.editor === EditorOption.mappingEditor ||
-                        desc.editor === EditorOption.colorEditor,
-                    type: GrapherConfigGridEditor.decideHotType(desc),
-                    source: desc.enumOptions,
-                    data: desc.pointer,
-                    width: Math.max(Bounds.forText(name).width, 50),
-                }}
-            />
-        )
+        const type = GrapherConfigGridEditor.decideHotType(desc)
+        if (desc.editor === EditorOption.colorEditor) {
+            return (
+                <HotColumn
+                    key={desc.pointer}
+                    settings={{
+                        title: name,
+                        data: desc.pointer,
+                        width: Math.max(Bounds.forText(name).width, 50),
+                    }}
+                >
+                    <HotColorScaleRenderer hot-renderer />
+                    <HotColorScaleEditor hot-editor />
+                </HotColumn>
+            )
+        } else
+            return (
+                <HotColumn
+                    key={desc.pointer}
+                    settings={{
+                        title: name,
+                        readOnly:
+                            desc.editor === EditorOption.primitiveListEditor ||
+                            desc.editor === EditorOption.mappingEditor,
+                        type: type,
+                        source: desc.enumOptions,
+                        data: desc.pointer,
+                        width: Math.max(Bounds.forText(name).width, 50),
+                    }}
+                />
+            )
     }
 
     @computed get columnDataSources(): ColumnDataSource[] {
