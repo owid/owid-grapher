@@ -12,9 +12,6 @@ jobs:
 
             - uses: ./.github/actions/setup-node-yarn-deps
 
-            - name: Register Problem Matcher
-              run: echo "##[add-matcher].github/problemMatchers/tsc.json"
-
             - name: Run prettier
               run: yarn testPrettierAll
 
