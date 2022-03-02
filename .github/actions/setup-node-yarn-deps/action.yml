@@ -3,17 +3,10 @@ description: Runs all the setup steps required to have the proper Node version a
 runs:
     using: composite
     steps:
-        # Use Node version specified in .nvmrc
-        # https://github.com/actions/setup-node/issues/32#issuecomment-525791142
-        - name: Read .nvmrc
-          id: nvm
-          run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
-          shell: bash
-
         - name: Use Node.js (.nvmrc)
-          uses: actions/setup-node@v2
+          uses: actions/setup-node@v3
           with:
-              node-version: "${{ steps.nvm.outputs.NVMRC }}"
+              node-version-file: ".nvmrc"
               cache: "yarn"
 
         - name: List versions
