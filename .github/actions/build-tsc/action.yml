@@ -3,10 +3,6 @@ description: Compiles our TypeScript code
 runs:
     using: composite
     steps:
-        - name: Register Problem Matcher
-          run: echo "##[add-matcher].github/problemMatchers/tsc.json"
-          shell: bash
-
         - name: Run tsc
           run: yarn buildTsc
           shell: bash
