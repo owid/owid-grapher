@@ -23,9 +23,11 @@ export interface ScatterSizeLegendManager {
     tooltipSeries?: ScatterSeries
 }
 
-const LEGEND_PADDING = 4
+const LEGEND_PADDING = 3
 const LEGEND_CIRCLE_COLOR = "#bbb"
 const LEGEND_VALUE_COLOR = "#444"
+const LABEL_PADDING = 2
+const LABEL_COLOR = "#777"
 const TITLE_COLOR = "#222"
 
 const MIN_FONT_SIZE = 10
@@ -85,6 +87,15 @@ export class ScatterSizeLegend {
         return 2 * maxRadius + 2
     }
 
+    @computed private get label(): TextWrap {
+        const fontSize = Math.max(MIN_FONT_SIZE, 0.625 * this.baseFontSize)
+        return new TextWrap({
+            text: "Points sized by",
+            maxWidth: this.maxWidth + 6,
+            fontSize,
+        })
+    }
+
     @computed private get title(): TextWrap {
         const fontSize = Math.max(MIN_FONT_SIZE, 0.6875 * this.baseFontSize)
         return new TextWrap({
@@ -94,6 +105,7 @@ export class ScatterSizeLegend {
             // actually visibly overflow.
             maxWidth: this.maxWidth + 6,
             fontSize,
+            fontWeight: 700,
         })
     }
 
@@ -102,7 +114,13 @@ export class ScatterSizeLegend {
     }
 
     @computed get height(): number {
-        return this.legendSize + LEGEND_PADDING + this.title.height
+        return (
+            this.legendSize +
+            LEGEND_PADDING +
+            this.label.height +
+            LABEL_PADDING +
+            this.title.height
+        )
     }
 
     @computed private get highlight():
@@ -177,12 +195,25 @@ export class ScatterSizeLegend {
         targetY: number,
         renderOptions: React.SVGAttributes<SVGGElement> = {}
     ): JSX.Element {
+        const centerX = targetX + this.maxWidth / 2
         return (
             <g {...renderOptions}>
                 {this.renderLegend(targetX, targetY)}
+                {this.label.render(
+                    centerX,
+                    targetY + this.legendSize + LEGEND_PADDING,
+                    {
+                        fill: LABEL_COLOR,
+                        textAnchor: "middle",
+                    }
+                )}
                 {this.title.render(
-                    targetX + this.maxWidth / 2,
-                    targetY + this.legendSize + 4,
+                    centerX,
+                    targetY +
+                        this.legendSize +
+                        LEGEND_PADDING +
+                        this.label.height +
+                        LABEL_PADDING,
                     {
                         fill: TITLE_COLOR,
                         textAnchor: "middle",
