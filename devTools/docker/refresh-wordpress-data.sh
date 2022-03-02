@@ -8,9 +8,9 @@ set -o nounset
 : "${DB_HOST:?Need to set DB_HOST non-empty}"
 : "${DB_PASS:?Need to set DB_PASS non-empty}"
 : "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"
+: "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
 
 MYSQL="mysql --default-character-set=utf8mb4"
-DL_FOLDER="."
 
 usage()
 {
@@ -34,13 +34,8 @@ import_db(){
 
 fillWordpressDb() {
     # Wordpress DB
-    if [ "${SKIP_DB_DL:-false}" = false ]; then
-    echo "Downloading Wordress database (live_wordpress)"
-        ssh owid-live "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r /tmp/live_wordpress.sql && sudo gzip -f /tmp/live_wordpress.sql"
-        rsync -hav --progress owid-live:/tmp/live_wordpress.sql.gz $DL_FOLDER
-    fi
     echo "Importing Wordress database (live_wordpress)"
     purge_db $DB_HOST $DB_NAME $DB_USER
-    import_db $DL_FOLDER/live_wordpress.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
+    import_db $DATA_FOLDER/live_wordpress.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
 }
 fillWordpressDb

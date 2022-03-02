@@ -8,9 +8,9 @@ set -o nounset
 : "${DB_HOST:?Need to set DB_HOST non-empty}"
 : "${DB_PASS:?Need to set DB_PASS non-empty}"
 : "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"
+: "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
 
 MYSQL="mysql --default-character-set=utf8mb4"
-DL_FOLDER="."
 
 
 usage()
@@ -38,22 +38,11 @@ import_db(){
 
 fillGrapherDb() {
     # Grapher database (owid_metadata)
-    if [ "${SKIP_DB_DL:-false}" = false ]; then
-    echo "Downloading live Grapher metadata database (owid_metadata)"
-    curl -Lo $DL_FOLDER/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
-    fi
     echo "Importing live Grapher metadata database (owid_metadata)"
     purge_db $DB_HOST $DB_NAME $DB_USER
-    import_db $DL_FOLDER/owid_metadata.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
+    import_db $DATA_FOLDER/owid_metadata.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
 
-    # Grapher database (owid_chartdata)
-    if [ "${WITH_CHARTDATA:-false}" = true ]; then
-    if [ "${SKIP_DB_DL:-false}" = false ]; then
-        echo "Downloading live Grapher chartdata database (owid_chartdata)"
-        curl -Lo $DL_FOLDER/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
-    fi
     echo "Importing live Grapher chartdata database (owid_chartdata)"
-    import_db $DL_FOLDER/owid_chartdata.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
-    fi
+    import_db $DATA_FOLDER/owid_chartdata.sql.gz $DB_HOST $DB_NAME $DB_USER $DB_PASS
 }
 fillGrapherDb

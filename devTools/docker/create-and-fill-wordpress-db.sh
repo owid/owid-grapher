@@ -8,6 +8,7 @@ DB_USER=wordpress
 DB_PASS=wordpress
 : "${DB_HOST:?Need to set DB_HOST non-empty}"
 : "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"
+: "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
 
 createAndFillWordpressDb() {
     echo "Waiting for DB to be online"
@@ -18,6 +19,15 @@ createAndFillWordpressDb() {
         echo "A database with the name '$DB_NAME' already exists. exiting"
         return 0;
     fi
+
+    echo "Checking if data dump has been downloaded"
+    if [ -f "${DATA_FOLDER}/live_wordpress.sql.gz" ]; then
+        echo "found live_wordpress.sql.gz"
+    else
+        echo "could not find live_wordpress.sql.gz - please download it before running this script"
+        return 1;
+    fi
+
 
     source "$( dirname -- "${BASH_SOURCE[0]}" )/create-user.sh"
 

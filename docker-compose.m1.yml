@@ -1,5 +1,7 @@
 version: "3.7"
 
+# Copy of docker-compose.yml with mysql related images switched to arm64v8 for apple m1 compatibility.
+
 # This docker-compose file creates a full local dev environment for both grapher and wordpress. It is meant for
 # OWID internal developers as the setup of wordpress requires a copy of the wordpress database that is not
 # publicly available.
@@ -23,20 +25,12 @@ version: "3.7"
 # Run `docker-compose up -d` to run all these services in deamon mode. The first time it will take a few minutes
 # to build the containers and initialize and fill the database, afterwards it should be up in seconds.
 # On the host, make sure you have a .env file with the correct settings, then start `yarn startTmuxServer` or similar
-# and navigate to http://localhost:8080 to work with both the grapher admin and wordpress previews.
-
-# Wordpress development
-# The Wordpress admin is at http://localhost:8080/wp/wp-admin/
-# While working on the editor blocks of the OWID Wordpress plugin, run `yarn startWordpressPlugin`.
-# Alternatively, you can run `yarn buildWordpressPlugin` if you're working in Wordpress but not actively updating the editor.
-# Working on the PHP code doesn't require any further tooling command to run.
-
+# and navigate to http://localhost:8080 to work with both the grapher admin and wordpress previews
 services:
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
         # On an M1 mac, switch to the arm64v8 image below:
-        # image: arm64v8/mysql
-        image: mysql:5.7
+        image: arm64v8/mysql
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
@@ -53,6 +47,7 @@ services:
     db-load-data:
         build:
             context: ./devTools/docker/mysql-init-docker
+            dockerfile: m1.Dockerfile
         command: "/app/full-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
