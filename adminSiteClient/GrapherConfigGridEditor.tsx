@@ -686,13 +686,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
             const fieldDesc = fieldDescriptionsMap.get(column as string)
             const row = richDataRows[rowIndex]
+            let oldValueIsEquivalentToNullOrUndefined = false
 
             // we normalize the default values to null (we don't want to store them and null leads to removing the key)
             if (
                 fieldDesc?.default !== undefined &&
                 prevVal === fieldDesc?.default
             )
-                prevVal = null
+                oldValueIsEquivalentToNullOrUndefined = true
             if (
                 fieldDesc?.default !== undefined &&
                 newVal === fieldDesc?.default
@@ -717,6 +718,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 id: row.id,
                 oldValue: prevVal,
                 newValue: newVal,
+                oldValueIsEquivalentToNullOrUndefined,
                 jsonPointer: column as string,
             }
             patches.push(patch)
