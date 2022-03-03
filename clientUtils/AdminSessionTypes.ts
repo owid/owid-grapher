@@ -1,6 +1,7 @@
 export interface GrapherConfigPatch {
     id: number // This can be either a variableId or a chartId depending on the context
     oldValue: any
+    oldValueIsEquivalentToNullOrUndefined: boolean
     newValue: any
     jsonPointer: string
 }
