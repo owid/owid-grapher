@@ -33,7 +33,7 @@ import {
 import Select from "react-select"
 import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes.js"
 @observer
-class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
+export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that

@@ -28,6 +28,7 @@ export enum FieldType {
     string = "string",
     boolean = "boolean",
     integer = "integer",
+    complex = "complex",
 }
 
 export interface FieldDescription {
@@ -139,7 +140,7 @@ function extractSchemaRecursive(
             // Otherwise we have a normal object and we recurse.
             if (pointer.endsWith("colorScale")) {
                 items.push({
-                    type: schema.type as FieldType,
+                    type: FieldType.complex,
                     getter: compileGetValueFunction(pointer),
                     pointer: pointer,
                     default: undefined,

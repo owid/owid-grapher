@@ -102,6 +102,19 @@ const bulkChartEditorColumnSets: ColumnSet[] = [
             "/yAxis/facetDomain",
         ],
     },
+    {
+        label: "Color scales",
+        kind: "specificColumns",
+        columns: [
+            "/title",
+            "/baseColorScheme",
+            "/map/colorScale",
+            "/colorScale",
+            "/hasChartTab",
+            "/hasMapTab",
+            "/type",
+        ],
+    },
 ]
 
 const config: GrapherConfigGridEditorConfig = {
