@@ -50,7 +50,7 @@ import {
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
 import { excludeUndefined, isArray } from "../clientUtils/Util.js"
-import { isPlainObject } from "lodash"
+import { isNil, isPlainObject } from "lodash"
 import {
     EditorOption,
     FieldDescription,
@@ -282,7 +282,8 @@ const readOnlyVariableAnnotationColumnNamesFields: Map<string, ReadOnlyColumn> =
                 key: "id",
                 label: "Id",
                 type: "number" as const,
-                sExpressionColumnTarget: "id",
+                sExpressionColumnTarget:
+                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_ID,
             },
             {
                 key: "name",
@@ -338,7 +339,8 @@ const readOnlyBulkGrapherCondigEditorColumnNamesFields: Map<
             key: "id",
             label: "Id",
             type: "number" as const,
-            sExpressionColumnTarget: "id",
+            sExpressionColumnTarget:
+                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_ID,
         },
         {
             key: "createdAt",
@@ -517,8 +519,9 @@ export function filterTreeToSExpression(
         if (filterTree.properties?.not) return new Negation(operation)
         else return operation
     } else if (filterTree.type === "rule") {
+        if (isNil(filterTree.properties.field)) return undefined
         const field = getFieldSymbol(
-            filterTree.properties.field!,
+            filterTree.properties.field,
             context,
             readOnlyFieldNamesMap
         )
