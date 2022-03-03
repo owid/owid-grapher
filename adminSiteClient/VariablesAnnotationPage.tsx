@@ -118,6 +118,19 @@ const variableAnnotationsColumnSets: ColumnSet[] = [
             "/yAxis/facetDomain",
         ],
     },
+    {
+        label: "Color scales",
+        kind: "specificColumns",
+        columns: [
+            "name",
+            "/baseColorScheme",
+            "/map/colorScale",
+            "/colorScale",
+            "/hasChartTab",
+            "/hasMapTab",
+            "/type",
+        ],
+    },
 ]
 const config: GrapherConfigGridEditorConfig = {
     source: GrapherConfigGridEditorSource.SourceVariableAnnotation,

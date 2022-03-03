@@ -42,14 +42,19 @@ interface EditorColorScaleSectionFeatures {
 export class EditorColorScaleSection extends React.Component<{
     scale: ColorScale
     features: EditorColorScaleSectionFeatures
+    onChange?: () => void
 }> {
     render() {
         return (
             <React.Fragment>
-                <ColorsSection scale={this.props.scale} />
+                <ColorsSection
+                    scale={this.props.scale}
+                    onChange={this.props.onChange}
+                />
                 <ColorLegendSection
                     scale={this.props.scale}
                     features={this.props.features}
+                    onChange={this.props.onChange}
                 />
             </React.Fragment>
         )
@@ -60,13 +65,16 @@ export class EditorColorScaleSection extends React.Component<{
 class ColorLegendSection extends React.Component<{
     scale: ColorScale
     features: EditorColorScaleSectionFeatures
+    onChange?: () => void
 }> {
     @action.bound onEqualSizeBins(isEqual: boolean) {
         this.props.scale.config.equalSizeBins = isEqual ? true : undefined
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @action.bound onManualBins() {
         populateManualBinValuesIfAutomatic(this.props.scale)
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     render() {
@@ -118,6 +126,7 @@ class ColorLegendSection extends React.Component<{
 @observer
 class ColorsSection extends React.Component<{
     scale: ColorScale
+    onChange?: () => void
 }> {
     @action.bound onColorScheme(selected: ColorSchemeOption) {
         const { config } = this
@@ -127,10 +136,12 @@ class ColorsSection extends React.Component<{
             config.baseColorScheme = selected.value as ColorSchemeName
             config.customNumericColorsActive = undefined
         }
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @action.bound onInvert(invert: boolean) {
         this.config.colorSchemeInvert = invert || undefined
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @computed get scale() {
@@ -148,6 +159,7 @@ class ColorsSection extends React.Component<{
         } | null
     ) {
         if (binningStrategy) this.config.binningStrategy = binningStrategy.value
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @computed get currentColorScheme() {
@@ -243,7 +255,10 @@ class ColorsSection extends React.Component<{
                         />
                     )}
                 </FieldsRow>
-                <ColorSchemeEditor scale={scale} />
+                <ColorSchemeEditor
+                    scale={scale}
+                    onChange={this.props.onChange}
+                />
             </Section>
         )
     }
@@ -252,6 +267,7 @@ class ColorsSection extends React.Component<{
 @observer
 class ColorSchemeEditor extends React.Component<{
     scale: ColorScale
+    onChange?: () => void
 }> {
     render() {
         const { scale } = this.props
@@ -266,6 +282,7 @@ class ColorSchemeEditor extends React.Component<{
                                     scale={scale}
                                     bin={bin}
                                     index={index}
+                                    onChange={this.props.onChange}
                                 />
                             )
 
@@ -274,6 +291,7 @@ class ColorSchemeEditor extends React.Component<{
                                 key={index}
                                 scale={scale}
                                 bin={bin}
+                                onChange={this.props.onChange}
                             />
                         )
                     })}
@@ -288,6 +306,7 @@ class BinLabelView extends React.Component<{
     scale: ColorScale
     bin: ColorScaleBin
     index: number
+    onChange?: () => void
 }> {
     @action.bound onLabel(value: string) {
         if (this.props.bin instanceof NumericBin) {
@@ -303,6 +322,7 @@ class BinLabelView extends React.Component<{
             customCategoryLabels[bin.value] = value
             scale.config.customCategoryLabels = customCategoryLabels
         }
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     render() {
@@ -352,6 +372,7 @@ class NumericBinView extends React.Component<{
     scale: ColorScale
     bin: NumericBin
     index: number
+    onChange?: () => void
 }> {
     @action.bound onColor(color: Color | undefined) {
         const { scale, index } = this.props
@@ -367,12 +388,14 @@ class NumericBinView extends React.Component<{
             scale.config.customNumericColors.push(undefined)
 
         scale.config.customNumericColors[index] = color
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @action.bound onMaximumValue(value: number | undefined) {
         const { scale, index } = this.props
         populateManualBinValuesIfAutomatic(scale)
         if (value !== undefined) scale.config.customNumericValues[index] = value
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @action.bound onLabel(value: string) {
@@ -380,6 +403,7 @@ class NumericBinView extends React.Component<{
         while (scale.config.customNumericLabels.length < scale.numBins)
             scale.config.customNumericLabels.push(undefined)
         scale.config.customNumericLabels[index] = value
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @action.bound onRemove() {
@@ -387,6 +411,7 @@ class NumericBinView extends React.Component<{
         populateManualBinValuesIfAutomatic(scale)
         scale.config.customNumericValues.splice(index, 1)
         scale.config.customNumericColors.splice(index, 1)
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @action.bound onAddAfter() {
@@ -405,6 +430,7 @@ class NumericBinView extends React.Component<{
             customNumericValues.splice(index + 1, 0, newValue)
             customNumericColors.splice(index + 1, 0, undefined)
         }
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     render() {
@@ -447,6 +473,7 @@ class NumericBinView extends React.Component<{
 class CategoricalBinView extends React.Component<{
     scale: ColorScale
     bin: CategoricalBin
+    onChange?: () => void
 }> {
     @action.bound onColor(color: Color | undefined) {
         const { scale, bin } = this.props
@@ -461,6 +488,7 @@ class CategoricalBinView extends React.Component<{
         if (color === undefined) delete customCategoryColors[bin.value]
         else customCategoryColors[bin.value] = color
         scale.config.customCategoryColors = customCategoryColors
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @action.bound onLabel(value: string) {
@@ -468,6 +496,7 @@ class CategoricalBinView extends React.Component<{
         const customCategoryLabels = clone(scale.config.customCategoryLabels)
         customCategoryLabels[bin.value] = value
         scale.config.customCategoryLabels = customCategoryLabels
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     @action.bound onToggleHidden() {
@@ -479,6 +508,7 @@ class CategoricalBinView extends React.Component<{
         if (bin.isHidden) delete customHiddenCategories[bin.value]
         else customHiddenCategories[bin.value] = true
         scale.config.customHiddenCategories = customHiddenCategories
+        this.props.onChange ? this.props.onChange() : noop()
     }
 
     render() {

@@ -99,6 +99,7 @@ import codemirror from "codemirror"
 import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
+import { MapChart } from "../grapher/mapCharts/MapChart.js"
 
 function HotColorScaleRenderer(props: Record<string, unknown>) {
     return <div>Color scale</div>
@@ -379,7 +380,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         }
     }
 
-    @action
+    @action.bound
     commitRichEditorChanges(performCommit: boolean) {
         const { selectedRowContent, currentColumnFieldDesription, grapher } =
             this
@@ -397,8 +398,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             selectedRowContent.config as Record<string, unknown>
         )
         if (performCommit) {
+            const grapherObject = { ...this.grapher.object }
             const newVal = currentColumnFieldDesription.getter(
-                grapher as unknown as Record<string, unknown>
+                grapherObject as Record<string, unknown>
             )
 
             const patch: GrapherConfigPatch = {
@@ -418,6 +420,11 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.hasUncommitedRichEditorChanges = false
     }
 
+    @action.bound
+    onGenericRichEditorChange() {
+        this.hasUncommitedRichEditorChanges = true
+    }
+
     @computed get editControl(): JSX.Element | undefined {
         const { currentColumnFieldDesription, grapher, selectedRowContent } =
             this
@@ -426,29 +433,44 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             selectedRowContent === undefined
         )
             return undefined
-        const testVal = currentColumnFieldDesription.getter(
-            grapher as any as Record<string, unknown>
-        )
-        console.log({ testVal: toJS(testVal) })
         return match(currentColumnFieldDesription.editor)
-            .with(EditorOption.primitiveListEditor, () => (
-                <KeysSection grapher={grapher}></KeysSection>
-            ))
-            .with(EditorOption.colorEditor, () => (
-                <EditorColorScaleSection
-                    scale={
-                        // HACK: this is just to see if editing the color scale on the grapher can work. It would be better if the editor would work against the config
-                        grapher.chartInstance.colorScale!
-                        //     currentColumnFieldDesription.getter(
-                        //     grapher as any as Record<string, unknown>
-                        // )
-                    }
-                    features={{
-                        visualScaling: true,
-                        legendDescription: false,
-                    }}
-                />
-            ))
+            .with(
+                EditorOption.primitiveListEditor,
+                () =>
+                    // TODO: handle different kinds of arrays here. In effect, the ones to handle are
+                    // includedEntities, excludedEntities (both with a yet to extract control)
+                    // selection. The seleciton should be refactored because ATM it's 3 arrays and it
+                    // is annoying to keep those in sync and target more than one field with a column.
+                    undefined
+            )
+            .with(EditorOption.colorEditor, () => {
+                if (currentColumnFieldDesription?.pointer.startsWith("/map")) {
+                    // TODO: remove this hack once map is more similar to other charts
+                    const mapChart = new MapChart({ manager: this.grapher })
+                    const colorScale = mapChart.colorScale
+                    return colorScale ? (
+                        <EditorColorScaleSection
+                            scale={colorScale}
+                            features={{
+                                visualScaling: true,
+                                legendDescription: false,
+                            }}
+                            onChange={this.onGenericRichEditorChange}
+                        />
+                    ) : undefined
+                } else {
+                    return grapher.chartInstanceExceptMap.colorScale ? (
+                        <EditorColorScaleSection
+                            scale={grapher.chartInstanceExceptMap.colorScale}
+                            features={{
+                                visualScaling: true,
+                                legendDescription: false,
+                            }}
+                            onChange={this.onGenericRichEditorChange}
+                        />
+                    ) : undefined
+                }
+            })
             .with(EditorOption.textfield, EditorOption.textarea, () => (
                 <CodeMirror
                     value={currentColumnFieldDesription.getter(
@@ -873,6 +895,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 Number.isNaN(Number.parseInt(firstNewValue))
             )
             .with([FieldType.boolean, "boolean"], () => false)
+            .with([FieldType.complex, __], () => false) // complex types, e.g. color scales, are handled specially, allow them here
             .with([[__], "string"], () => false)
 
             .otherwise(() => true)
@@ -932,6 +955,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 !Number.isNaN(Number.parseFloat(newVal))
             )
                 newVal = Number.parseFloat(newVal)
+
+            if (fieldDesc && fieldDesc.type === FieldType.complex) {
+                prevVal = fieldDesc.getter(
+                    row.config as Record<string, unknown>
+                )
+                const grapherObject = { ...this.grapher.object }
+                newVal = fieldDesc.getter(
+                    grapherObject as Record<string, unknown>
+                )
+            }
 
             // Now construct the patch and store it
             const patch: GrapherConfigPatch = {
@@ -1114,12 +1147,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         </button>
                     </div>
                 ) : null}
-                <Toggle
-                    label="Keep entity selection"
-                    title="If set then the country selection will stay the same while switching rows even if the underlying chart has a different selection"
-                    value={this.keepEntitySelectionOnChartChange}
-                    onValue={this.setKeepEntitySelectionOnChartChange}
-                />
             </section>
         )
     }
@@ -1437,7 +1464,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { grapherElement } = this
         return (
             <div className="preview">
-                <h3>Interactive grapher preview</h3>
+                <h5>Interactive grapher preview</h5>
+                <Toggle
+                    label="Keep entity selection"
+                    title="If set then the country selection will stay the same while switching rows even if the underlying chart has a different selection"
+                    value={this.keepEntitySelectionOnChartChange}
+                    onValue={this.setKeepEntitySelectionOnChartChange}
+                />
                 {grapherElement ? grapherElement : null}
             </div>
         )
