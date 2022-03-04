@@ -18,10 +18,7 @@ import {
     NullCheckOperator,
     StringOperation,
     BooleanOperation,
-    variableAnnotationAllowedColumnNamesAndTypes,
-    chartBulkUpdateAllowedColumnNamesAndTypes,
     OperationContext,
-    WHITELISTED_SQL_COLUMN_NAMES,
 } from "../clientUtils/SqlFilterSExpression.js"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
@@ -107,31 +104,6 @@ export enum Tabs {
 
 export const ALL_TABS = Object.values(Tabs)
 
-const VARIABLE_ANNOTATIONS_HIDDEN_COLUMNS = new Set([
-    "/$schema",
-    "/id",
-    "/map/variableId",
-    "/version",
-    "/dimensions/0/variableId",
-    "/dimensions/0/property",
-    "/slug",
-    "/data",
-    "/xAxis/removePointsOutsideDomain",
-    "/xAxis/label",
-    "/xAxis/min",
-    "/xAxis/scaleType",
-    "/xAxis/max",
-    "/xAxis/canChangeScaleType",
-    "/xAxis/facetDomain",
-])
-
-const BULK_CHART_EDIT_HIDDEN_COLUMNS = new Set([
-    "/$schema",
-    "/id",
-    "/version",
-    "/data",
-])
-
 export interface FullColumnSet {
     label: "All columns"
     kind: "allColumns"
@@ -144,70 +116,6 @@ export interface SpecificColumnSet {
 }
 
 export type ColumnSet = FullColumnSet | SpecificColumnSet
-
-const variableAnnotationsColumnSets: ColumnSet[] = [
-    {
-        label: "Common",
-        kind: "specificColumns",
-        columns: [
-            "name",
-            "datasetname",
-            "/type",
-            "/hasMapTab",
-            "/title",
-            "/subtitle",
-            "/note",
-            "/dimensions/0/display/unit",
-            "/dimensions/0/display/shortUnit",
-        ],
-    },
-    { label: "All columns", kind: "allColumns" },
-    {
-        label: "Axis",
-        kind: "specificColumns",
-        columns: [
-            "name",
-            "datasetname",
-            "/yAxis/removePointsOutsideDomain",
-            "/yAxis/label",
-            "/yAxis/min",
-            "/yAxis/scaleType",
-            "/yAxis/max",
-            "/yAxis/canChangeScaleType",
-            "/yAxis/facetDomain",
-        ],
-    },
-]
-
-const bulkChartEditorColumnSets: ColumnSet[] = [
-    {
-        label: "Common",
-        kind: "specificColumns",
-        columns: [
-            "/type",
-            "/hasMapTab",
-            "/title",
-            "/subtitle",
-            "/note",
-            "/dimensions/0/display/unit",
-            "/dimensions/0/display/shortUnit",
-        ],
-    },
-    { label: "All columns", kind: "allColumns" },
-    {
-        label: "Axis",
-        kind: "specificColumns",
-        columns: [
-            "/yAxis/removePointsOutsideDomain",
-            "/yAxis/label",
-            "/yAxis/min",
-            "/yAxis/scaleType",
-            "/yAxis/max",
-            "/yAxis/canChangeScaleType",
-            "/yAxis/facetDomain",
-        ],
-    },
-]
 
 /** All the parameters we need for making a fully specified request to the /variable-annotations
     endpoint. When any of these fields change we need to trigger a new request */
@@ -274,118 +182,6 @@ export interface ReadOnlyColumn {
     type: "string" | "datetime" | "number"
     sExpressionColumnTarget: string
 }
-
-const readOnlyVariableAnnotationColumnNamesFields: Map<string, ReadOnlyColumn> =
-    new Map(
-        [
-            {
-                key: "id",
-                label: "Id",
-                type: "number" as const,
-                sExpressionColumnTarget:
-                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_ID,
-            },
-            {
-                key: "name",
-                label: "Variable name",
-                type: "string" as const,
-                sExpressionColumnTarget:
-                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
-            },
-            {
-                key: "datasetname",
-                label: "Dataset name",
-                type: "string" as const,
-                sExpressionColumnTarget:
-                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
-            },
-            {
-                key: "namespacename",
-                label: "Namespace name",
-                type: "string" as const,
-                sExpressionColumnTarget:
-                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
-            },
-            {
-                key: "description",
-                label: "Description",
-                type: "string" as const,
-                sExpressionColumnTarget:
-                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
-            },
-            {
-                key: "createdAt",
-                label: "Created at",
-                type: "datetime" as const,
-                sExpressionColumnTarget:
-                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
-            },
-            {
-                key: "updatedAt",
-                label: "Updated at",
-                type: "datetime" as const,
-                sExpressionColumnTarget:
-                    WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
-            },
-        ].map((item) => [item.key, item])
-    )
-
-const readOnlyBulkGrapherCondigEditorColumnNamesFields: Map<
-    string,
-    ReadOnlyColumn
-> = new Map(
-    [
-        {
-            key: "id",
-            label: "Id",
-            type: "number" as const,
-            sExpressionColumnTarget:
-                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_ID,
-        },
-        {
-            key: "createdAt",
-            label: "Created at",
-            type: "datetime" as const,
-            sExpressionColumnTarget:
-                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_CREATED_AT,
-        },
-        {
-            key: "updatedAt",
-            label: "Updated at",
-            type: "datetime" as const,
-            sExpressionColumnTarget:
-                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_UPDATED_AT,
-        },
-        {
-            key: "lastEditedAt",
-            label: "Last edited at",
-            type: "datetime" as const,
-            sExpressionColumnTarget:
-                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_AT,
-        },
-        {
-            key: "publishedAt",
-            label: "Published at",
-            type: "datetime" as const,
-            sExpressionColumnTarget:
-                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_PUBLISHED_AT,
-        },
-        {
-            key: "lastEditedByUser",
-            label: "Last edited by user",
-            type: "string" as const,
-            sExpressionColumnTarget:
-                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_BY_USER,
-        },
-        {
-            key: "publishedByUser",
-            label: "Published by user",
-            type: "string" as const,
-            sExpressionColumnTarget:
-                WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_PUBLISHED_BY_USER,
-        },
-    ].map((item) => [item.key, item])
-)
 
 export const getItemStyle = (
     isDragging: boolean,
@@ -647,91 +443,16 @@ export function renderBuilder(props: BuilderProps) {
         </div>
     )
 }
-export function getFinalConfigLayerForVariable(
-    id: number,
-    source: GrapherConfigGridEditorSource
-) {
-    return match(source)
-        .with(GrapherConfigGridEditorSource.SourceVariableAnnotation, () => ({
-            version: 1,
-            dimensions: [{ property: "y", variableId: id }],
-            map: {
-                variableId: id,
-            },
-        }))
-        .with(GrapherConfigGridEditorSource.SourceCharts, () => ({}))
-        .exhaustive()
-}
 
+export interface GrapherConfigGridEditorConfig {
+    source: GrapherConfigGridEditorSource
+    sExpressionContext: OperationContext
+    apiEndpoint: string
+    readonlyColumns: Map<string, ReadOnlyColumn>
+    hiddenColumns: Set<string>
+    columnSet: ColumnSet[]
+    finalVariableLayerModificationFn: (id: number) => Partial<GrapherInterface>
+}
 export interface GrapherConfigGridEditorProps {
-    source: GrapherConfigGridEditorSource
-}
-
-export function getSExpressionContext(
-    source: GrapherConfigGridEditorSource
-): OperationContext {
-    return match(source)
-        .with(GrapherConfigGridEditorSource.SourceVariableAnnotation, () => ({
-            grapherConfigFieldName: "grapherConfig",
-            whitelistedColumnNamesAndTypes:
-                variableAnnotationAllowedColumnNamesAndTypes,
-        }))
-        .with(GrapherConfigGridEditorSource.SourceCharts, () => ({
-            grapherConfigFieldName: "config",
-            whitelistedColumnNamesAndTypes:
-                chartBulkUpdateAllowedColumnNamesAndTypes,
-        }))
-        .exhaustive()
-}
-
-export function getApiEndpoint(source: GrapherConfigGridEditorSource) {
-    return match(source)
-        .with(
-            GrapherConfigGridEditorSource.SourceVariableAnnotation,
-            () => "/api/variable-annotations"
-        )
-        .with(
-            GrapherConfigGridEditorSource.SourceCharts,
-            () => "/api/chart-bulk-update"
-        )
-        .exhaustive()
-}
-
-export function getReadonlyColumns(source: GrapherConfigGridEditorSource) {
-    return match(source)
-        .with(
-            GrapherConfigGridEditorSource.SourceVariableAnnotation,
-            () => readOnlyVariableAnnotationColumnNamesFields
-        )
-        .with(
-            GrapherConfigGridEditorSource.SourceCharts,
-            () => readOnlyBulkGrapherCondigEditorColumnNamesFields
-        )
-        .exhaustive()
-}
-
-export function getHiddenColumns(source: GrapherConfigGridEditorSource) {
-    return match(source)
-        .with(
-            GrapherConfigGridEditorSource.SourceVariableAnnotation,
-            () => VARIABLE_ANNOTATIONS_HIDDEN_COLUMNS
-        )
-        .with(
-            GrapherConfigGridEditorSource.SourceCharts,
-            () => BULK_CHART_EDIT_HIDDEN_COLUMNS
-        )
-        .exhaustive()
-}
-
-export function getColumnSet(source: GrapherConfigGridEditorSource) {
-    return match(source)
-        .with(
-            GrapherConfigGridEditorSource.SourceVariableAnnotation,
-            () => variableAnnotationsColumnSets
-        )
-        .with(
-            GrapherConfigGridEditorSource.SourceCharts,
-            () => bulkChartEditorColumnSets
-        )
-        .exhaustive()
+    config: GrapherConfigGridEditorConfig
 }

@@ -60,8 +60,6 @@ import {
     BinaryLogicOperators,
     BooleanAtom,
     Operation,
-    SqlColumnName,
-    WHITELISTED_SQL_COLUMN_NAMES,
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
@@ -71,28 +69,21 @@ import {
     PAGEING_SIZE,
     Tabs,
     ALL_TABS,
-    getHiddenColumns,
     ColumnSet,
     FetchVariablesParameters,
     fetchVariablesParametersToQueryParametersString,
     IconToggleComponent,
-    searchFieldStringToFilterOperations,
     getItemStyle,
-    getColumnSet,
     isConfigColumn,
-    getReadonlyColumns,
     filterTreeToSExpression,
     FilterPanelState,
     filterPanelInitialConfig,
     initialFilterQueryValue,
     fieldDescriptionToFilterPanelFieldConfig,
     simpleColumnToFilterPanelFieldConfig,
-    getFinalConfigLayerForVariable,
     renderBuilder,
     GrapherConfigGridEditorProps,
-    GrapherConfigGridEditorSource,
-    getSExpressionContext,
-    getApiEndpoint,
+    GrapherConfigGridEditorConfig,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils } from "react-awesome-query-builder"
 // types
@@ -128,10 +119,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable undoStack: Action[] = []
     /** Redo stack - not yet used */
     @observable redoStack: Action[] = []
-    // Filter fields and paging offset
-    @observable variableNameFilter: string | undefined = undefined
-    @observable datasetNameFilter: string = ""
-    @observable namespaceNameFilter: string = ""
+
     /** This field stores the offset of what is currently displayed on screen */
     @observable currentPagingOffset: number = 0
     /** This field stores the offset that the user requested. E.g. if the user clicks
@@ -142,13 +130,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     // Sorting fields - not yet used - TODO: implement sorting
     @observable sortByColumn: string = "id"
     @observable sortByAscending: boolean = false
-    readonly source: GrapherConfigGridEditorSource
+    readonly config: GrapherConfigGridEditorConfig
     disposers: Disposer[] = []
 
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)
-        this.source = props.source
-        this.currentColumnSet = getColumnSet(props.source)[0]
+        this.config = props.config
+        this.currentColumnSet = this.config.columnSet[0]
     }
 
     /** Computed property that combines all relevant filter, paging and offset
@@ -156,46 +144,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         the query */
     @computed get dataFetchParameters(): FetchVariablesParameters {
         const {
-            variableNameFilter,
-            datasetNameFilter,
-            namespaceNameFilter,
             desiredPagingOffset,
             sortByAscending,
             sortByColumn,
             filterSExpression,
         } = this
-        const context = getSExpressionContext(this.source)
-        const variableAnnotationsOnlyFilters =
-            this.source ===
-            GrapherConfigGridEditorSource.SourceVariableAnnotation
-                ? [
-                      searchFieldStringToFilterOperations(
-                          variableNameFilter ?? "",
-                          new SqlColumnName(
-                              WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
-                              context
-                          )
-                      ),
-                      searchFieldStringToFilterOperations(
-                          datasetNameFilter ?? "",
-                          new SqlColumnName(
-                              WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
-                              context
-                          )
-                      ),
-                      searchFieldStringToFilterOperations(
-                          namespaceNameFilter ?? "",
-                          new SqlColumnName(
-                              WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
-                              context
-                          )
-                      ),
-                  ]
-                : []
-        const filterOperations = excludeUndefined([
-            ...variableAnnotationsOnlyFilters,
-            filterSExpression,
-        ])
+        const filterOperations = excludeUndefined([filterSExpression])
         const filterQuery =
             filterOperations.length === 0
                 ? new BooleanAtom(true)
@@ -294,24 +248,24 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @action private updatePreviewToRow(row: number): void {
-        const { richDataRows } = this
+        const { richDataRows, config } = this
         if (richDataRows === undefined) return
 
         // Get the grapherConfig of the currently selected row and then
         // merge it with the necessary partial information (e.g. variableId field)
         // to get a config that actually works in all cases
-        const config = richDataRows[row].config
-        const finalConfigLayer = getFinalConfigLayerForVariable(
-            richDataRows[row].id,
-            this.source
+        const grapherConfig = richDataRows[row].config
+        const finalConfigLayer = config.finalVariableLayerModificationFn(
+            richDataRows[row].id
         )
-        const mergedConfig = merge(config, finalConfigLayer)
+
+        const mergedConfig = merge(grapherConfig, finalConfigLayer)
         this.loadGrapherJson(mergedConfig)
     }
 
     async sendPatches(patches: GrapherConfigPatch[]): Promise<void> {
         await this.context.admin.rawRequest(
-            getApiEndpoint(this.source),
+            this.config.apiEndpoint,
             JSON.stringify(patches),
             "PATCH"
         )
@@ -419,7 +373,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { richDataRows, fieldDescriptions, defaultValues } = this
         if (richDataRows === undefined || fieldDescriptions === undefined)
             return undefined
-        const readOnlyColumns = getReadonlyColumns(this.source)
+        const readOnlyColumns = this.config.readonlyColumns
         return this.richDataRows?.map((row) => {
             // for every field description try to get the value at this fields json pointer location
             // we cloneDeep it so that the value is independent in any case, even array or (in the future) objects
@@ -494,7 +448,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         if (fieldDescriptions === undefined || columnSelection.length === 0)
             return []
         else {
-            const readOnlyColumns = getReadonlyColumns(this.source)
+            const readOnlyColumns = this.config.readonlyColumns
             const fieldDescriptionsMap = new Map(
                 fieldDescriptions.map((fieldDesc) => [
                     fieldDesc.pointer,
@@ -758,8 +712,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         currentColumnSet: ColumnSet
     ) {
         if (fieldDescriptions === undefined) return
-        const readOnlyColumns = getReadonlyColumns(this.source)
-        const hiddenColumns = getHiddenColumns(this.source)
+        const readOnlyColumns = this.config.readonlyColumns
+        const hiddenColumns = this.config.hiddenColumns
         // Now we need to construct the initial order and visibility state of all ColumnReorderItems
         // First construct them from the fieldDescriptions (from the schema) and the hardcoded readonly column names
         const fieldDescReorderItems: ColumnInformation[] = fieldDescriptions
@@ -937,26 +891,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 <div className="container">
                     <h3>Variable filters</h3>
                     {this.renderPagination()}
-                    {this.source ===
-                    GrapherConfigGridEditorSource.SourceVariableAnnotation ? (
-                        <React.Fragment>
-                            <BindString
-                                field="namespaceNameFilter"
-                                store={this}
-                                label="Namespace name"
-                            />
-                            <BindString
-                                field="datasetNameFilter"
-                                store={this}
-                                label="Dataset name"
-                            />
-                            <BindString
-                                field="variableNameFilter"
-                                store={this}
-                                label="Variable name"
-                            />
-                        </React.Fragment>
-                    ) : null}
                     <label>Query builder</label>
                     {FilterPanelConfig && filterState && (
                         <Query
@@ -1022,7 +956,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @action.bound
     setCurrentColumnSet(label: string) {
-        const columnSets = getColumnSet(this.source)
+        const columnSets = this.config.columnSet
         this.currentColumnSet =
             columnSets.find((item) => item.label === label) ?? columnSets[0]
         this.initializeColumnSelection(
@@ -1038,7 +972,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     renderColumnsTab(): JSX.Element {
         const { columnSelection, currentColumnSet, columnFilter } = this
-        const columnSets = getColumnSet(this.source)
+        const columnSets = this.config.columnSet
         const filteredColumnSelection = columnFilter
             ? columnSelection.filter((column) =>
                   column.key.toLowerCase().includes(columnFilter.toLowerCase())
@@ -1148,7 +1082,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     buildDataFetchUrl(fetchParameters: FetchVariablesParameters): string {
         const filter =
             fetchVariablesParametersToQueryParametersString(fetchParameters)
-        const baseUrl = `/admin${getApiEndpoint(this.source)}`
+        const baseUrl = `/admin${this.config.apiEndpoint}`
         return baseUrl + filter
     }
 
@@ -1178,12 +1112,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @computed get filterSExpression(): Operation | undefined {
         const { filterState } = this
-        const readOnlyColumns = getReadonlyColumns(this.source)
+        const readOnlyColumns = this.config.readonlyColumns
         if (filterState) {
             const tree = QbUtils.getTree(filterState.tree)
             const sExpression = filterTreeToSExpression(
                 tree,
-                getSExpressionContext(this.source),
+                this.config.sExpressionContext,
                 readOnlyColumns
             )
 
@@ -1202,7 +1136,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const fieldDescriptionMap = new Map(
             fieldDescriptions.map((fd) => [fd.pointer, fd])
         )
-        const readOnlyColumns = getReadonlyColumns(this.source)
+        const readOnlyColumns = this.config.readonlyColumns
         const fields = excludeUndefined(
             columnSelection.map((column) => {
                 if (isConfigColumn(column.key)) {
