@@ -13,7 +13,7 @@ import { TimeBound } from "../../clientUtils/TimeBounds.js"
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
 import { LogoOption } from "../captionedChart/Logos.js"
 import { ColorScaleConfigInterface } from "../color/ColorScaleConfig.js"
-import { MapConfigInterface } from "../mapCharts/MapConfig.js"
+import { MapConfigWithLegacyInterface } from "../mapCharts/MapConfig.js"
 import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants.js"
 import { EntityId, EntityName } from "../../coreTable/OwidTableConstants.js"
 import { ColorSchemeName } from "../color/ColorConstants.js"
@@ -82,7 +82,7 @@ export interface GrapherInterface extends SortConfig {
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
-    map?: Partial<MapConfigInterface>
+    map?: Partial<MapConfigWithLegacyInterface>
 
     // When we move graphers to Git, and remove dimensions, we can clean this up.
     ySlugs?: ColumnSlugs

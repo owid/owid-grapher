@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { variableAnnotationAllowedColumnNamesAndTypes } from "./AdminSessionTypes.js"
 import {
     parseToOperation,
     NumberAtom,
@@ -17,7 +18,6 @@ import {
     EqualityComparision,
     EqualityOperator,
     StringContainsOperation,
-    variableAnnotationAllowedColumnNamesAndTypes,
     OperationContext,
 } from "./SqlFilterSExpression.js"
 const context: OperationContext = {

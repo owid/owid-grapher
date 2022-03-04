@@ -32,6 +32,8 @@ import {
     BulkGrapherConfigResponse,
     VariableAnnotationsResponseRow,
     BulkChartEditResponseRow,
+    chartBulkUpdateAllowedColumnNamesAndTypes,
+    variableAnnotationAllowedColumnNamesAndTypes,
 } from "../clientUtils/AdminSessionTypes.js"
 import {
     CountryNameFormat,
@@ -66,10 +68,8 @@ import Papa from "papaparse"
 //     StringAtom,
 // } from "../clientUtils/SqlFilterSExpression.js"
 import {
-    chartBulkUpdateAllowedColumnNamesAndTypes,
     OperationContext,
     parseToOperation,
-    variableAnnotationAllowedColumnNamesAndTypes,
 } from "../clientUtils/SqlFilterSExpression.js"
 import { parseIntOrUndefined } from "../clientUtils/Util.js"
 //import parse = require("s-expression")

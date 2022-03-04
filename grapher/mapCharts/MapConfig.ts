@@ -31,7 +31,7 @@ class MapConfigDefaults {
 
 export type MapConfigInterface = MapConfigDefaults
 
-interface MapConfigWithLegacyInterface extends MapConfigInterface {
+export interface MapConfigWithLegacyInterface extends MapConfigInterface {
     variableId?: OwidVariableId
     targetYear?: number
 }
