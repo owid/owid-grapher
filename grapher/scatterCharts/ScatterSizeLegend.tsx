@@ -30,7 +30,7 @@ const LABEL_PADDING = 2
 const LABEL_COLOR = "#777"
 const TITLE_COLOR = "#222"
 
-const MIN_FONT_SIZE = 10
+const MIN_FONT_SIZE = 9
 
 export class ScatterSizeLegend {
     manager: ScatterSizeLegendManager
@@ -90,8 +90,11 @@ export class ScatterSizeLegend {
     @computed private get label(): TextWrap {
         const fontSize = Math.max(MIN_FONT_SIZE, 0.625 * this.baseFontSize)
         return new TextWrap({
-            text: "Points sized by",
-            maxWidth: this.maxWidth + 6,
+            text: "Dots sized by",
+            // Allow text to _slightly_ go outside boundaries.
+            // Since we have padding left and right, this doesn't
+            // actually visibly overflow.
+            maxWidth: this.maxWidth + 12,
             fontSize,
         })
     }
@@ -103,7 +106,7 @@ export class ScatterSizeLegend {
             // Allow text to _slightly_ go outside boundaries.
             // Since we have padding left and right, this doesn't
             // actually visibly overflow.
-            maxWidth: this.maxWidth + 6,
+            maxWidth: this.maxWidth + 10,
             fontSize,
             fontWeight: 700,
         })
