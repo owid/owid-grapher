@@ -146,11 +146,11 @@ export class ScatterPlotChart
             table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
 
         if (this.sizeColumnSlug) {
-            // The tolerance on the size column is ignored. If we want to change this in the future
-            // we need to check all charts for regressions.
+            const tolerance =
+                table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
                 this.sizeColumnSlug,
-                Infinity
+                tolerance
             )
         }
 
