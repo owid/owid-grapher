@@ -1222,7 +1222,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return (
             <section>
                 <div className="container">
-                    <h3>Variable filters</h3>
+                    <h3>Row filters</h3>
                     {this.renderPagination()}
                     <label>Query builder</label>
                     {FilterPanelConfig && filterState && (
@@ -1235,8 +1235,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     )}
                     <small className="form-text text-muted">
                         Note that default values like empty string, "LineChart"
-                        for type or the default checkbox state are never stored.
-                        To find these you have to use the "is null" operator.
+                        for type or the default checkbox state are often stored
+                        as null. To find these you have to use the "is null"
+                        operator.
                     </small>
                     {
                         // Uncomment below to see the generated S-expression
