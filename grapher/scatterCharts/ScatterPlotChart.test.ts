@@ -249,7 +249,6 @@ describe("basic scatterplot", () => {
                     },
                 ],
                 seriesName: "UK",
-                size: 100,
             },
             {
                 color: chart.defaultNoDataColor,
@@ -260,7 +259,7 @@ describe("basic scatterplot", () => {
                         color: undefined,
                         entityName: "USA",
                         label: "2000",
-                        size: 0,
+                        size: undefined,
                         time: {
                             x: 2000,
                             y: 2000,
@@ -271,7 +270,6 @@ describe("basic scatterplot", () => {
                     },
                 ],
                 seriesName: "USA",
-                size: 0,
             },
         ])
     })

@@ -43,7 +43,6 @@ export interface ScatterTooltipProps {
 
 export interface ScatterSeries extends ChartSeries {
     label: string
-    size: number
     points: SeriesPoint[]
     isScaleColor?: boolean
 }

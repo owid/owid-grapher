@@ -131,7 +131,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             : this.props.isConnected
                             ? SCATTER_LINE_DEFAULT_WIDTH
                             : SCATTER_POINT_DEFAULT_RADIUS,
-                        fontSize: fontScale(series.size || 1),
+                        fontSize: fontScale(size),
                         time: point.time,
                         label: point.label,
                     }

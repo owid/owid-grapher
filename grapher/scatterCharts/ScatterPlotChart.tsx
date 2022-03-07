@@ -980,7 +980,6 @@ export class ScatterPlotChart
                 seriesName: entityName,
                 label: entityName,
                 color: "#932834", // Default color, used when no color dimension is present
-                size: this.getSizeFromPoints(points),
                 points,
             }
             this.assignColorToSeries(entityName, series)
@@ -1007,10 +1006,5 @@ export class ScatterPlotChart
                 }
             }
         }
-    }
-
-    private getSizeFromPoints(points: SeriesPoint[]): number {
-        const size = last(points.map((v) => v.size).filter(isNumber))
-        return size ?? 0
     }
 }
