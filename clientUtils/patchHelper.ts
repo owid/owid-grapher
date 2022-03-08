@@ -1,5 +1,6 @@
 import jsonpointer from "json8-pointer"
-import { VariableAnnotationPatch } from "./AdminSessionTypes.js"
+import { isNil } from "lodash"
+import { GrapherConfigPatch } from "./AdminSessionTypes.js"
 import { isArray, isPlainObjectWithGuard } from "./Util.js"
 export function setValueRecursive(
     json: any,
@@ -81,10 +82,7 @@ export function compileGetValueFunction(jsonPointer: string): (x: any) => any {
     return (input): any => jsonpointer.find(input, jsonPointer)
 }
 
-export function applyPatch(
-    patchSet: VariableAnnotationPatch,
-    config: unknown
-): any {
+export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
     const pointer = jsonpointer.parse(patchSet.jsonPointer) as string[]
 
     if (pointer.length == 0) throw Error("Empty JSON path is not supported")
@@ -100,13 +98,24 @@ export function applyPatch(
     }
 
     const currentValue = jsonpointer.find(config, patchSet.jsonPointer)
+    const currentIsOld = currentValue === patchSet.oldValue
+    const currentIsOldOrAllowedNull =
+        currentIsOld ||
+        (patchSet.oldValueIsEquivalentToNullOrUndefined && isNil(currentValue))
+    console.log({
+        currentValue,
+        currentIsOld,
+        currentIsOldOrAllowedNull,
+        oldValue: patchSet.oldValue,
+    })
+    // The case below is when we don't want to set a new value and the old json deserialized value is null. In
+    // this case the equality is false but logically we are fine with this of course
+    const currentIsUndefinedOldIsNull =
+        currentValue === undefined && patchSet.oldValue === null
 
-    if (
-        currentValue !== patchSet.oldValue &&
-        !(currentValue === undefined && patchSet.oldValue === null)
-    ) {
+    if (!currentIsOldOrAllowedNull && !currentIsUndefinedOldIsNull) {
         console.warn(
-            `When trying to set value for ${patchSet.variableId} at ${patchSet.jsonPointer}, the existing value was ${currentValue} instead of ${patchSet.oldValue}`
+            `When trying to set value for ${patchSet.id} at ${patchSet.jsonPointer}, the existing value was ${currentValue} instead of ${patchSet.oldValue}`
         )
         throw Error("Old value was not as expected")
     }

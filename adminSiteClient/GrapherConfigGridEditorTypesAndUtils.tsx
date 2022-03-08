@@ -18,6 +18,7 @@ import {
     NullCheckOperator,
     StringOperation,
     BooleanOperation,
+    OperationContext,
 } from "../clientUtils/SqlFilterSExpression.js"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
@@ -26,7 +27,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
     VariableAnnotationsResponseRow,
-    VariableAnnotationPatch,
+    GrapherConfigPatch,
 } from "../clientUtils/AdminSessionTypes.js"
 import AntdConfig from "react-awesome-query-builder/lib/config/antd"
 import {
@@ -46,7 +47,7 @@ import {
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
 import { excludeUndefined, isArray } from "../clientUtils/Util.js"
-import { isPlainObject } from "lodash"
+import { isNil, isPlainObject } from "lodash"
 import {
     EditorOption,
     FieldDescription,
@@ -58,15 +59,30 @@ export function parseVariableAnnotationsRow(
     return row as VariableAnnotationsRow // The type defintiion of VariableAnnotationsResponseRow in clientUtils can't use GrapherInterface so we type cast here for now
 }
 
-export interface VariableAnnotationsRow {
+export enum GrapherConfigGridEditorSource {
+    SourceVariableAnnotation = "SourceVariableAnnotation",
+    SourceCharts = "SourceCharts",
+}
+
+export interface BulkGrapherConfigRow {
     id: number
+    config: GrapherInterface
+    createdAt: string
+    updatedAt: string
+}
+
+export interface VariableAnnotationsRow extends BulkGrapherConfigRow {
     name: string
-    grapherConfig: GrapherInterface
     datasetname: string
     namespacename: string
     description: string
-    createdAt: string
-    updatedAt: string
+}
+
+export interface BulkChartEditRow extends BulkGrapherConfigRow {
+    lastEditedAt: string
+    publishedAt: string
+    lastEditedByUser: string
+    publishedByUser: string
 }
 
 export interface ColumnInformation {
@@ -76,7 +92,7 @@ export interface ColumnInformation {
 }
 
 export interface Action {
-    patches: VariableAnnotationPatch[]
+    patches: GrapherConfigPatch[]
 }
 
 export const PAGEING_SIZE: number = 50
@@ -87,24 +103,6 @@ export enum Tabs {
 }
 
 export const ALL_TABS = Object.values(Tabs)
-
-export const HIDDEN_COLUMNS = new Set([
-    "/$schema",
-    "/id",
-    "/map/variableId",
-    "/version",
-    "/dimensions/0/variableId",
-    "/dimensions/0/property",
-    "/slug",
-    "/data",
-    "/xAxis/removePointsOutsideDomain",
-    "/xAxis/label",
-    "/xAxis/min",
-    "/xAxis/scaleType",
-    "/xAxis/max",
-    "/xAxis/canChangeScaleType",
-    "/xAxis/facetDomain",
-])
 
 export interface FullColumnSet {
     label: "All columns"
@@ -118,40 +116,6 @@ export interface SpecificColumnSet {
 }
 
 export type ColumnSet = FullColumnSet | SpecificColumnSet
-
-export const columnSets: ColumnSet[] = [
-    {
-        label: "Common",
-        kind: "specificColumns",
-        columns: [
-            "name",
-            "datasetname",
-            "/type",
-            "/hasMapTab",
-            "/title",
-            "/subtitle",
-            "/note",
-            "/dimensions/0/display/unit",
-            "/dimensions/0/display/shortUnit",
-        ],
-    },
-    { label: "All columns", kind: "allColumns" },
-    {
-        label: "Axis",
-        kind: "specificColumns",
-        columns: [
-            "name",
-            "datasetname",
-            "/yAxis/removePointsOutsideDomain",
-            "/yAxis/label",
-            "/yAxis/min",
-            "/yAxis/scaleType",
-            "/yAxis/max",
-            "/yAxis/canChangeScaleType",
-            "/yAxis/facetDomain",
-        ],
-    },
-]
 
 /** All the parameters we need for making a fully specified request to the /variable-annotations
     endpoint. When any of these fields change we need to trigger a new request */
@@ -219,53 +183,6 @@ export interface ReadOnlyColumn {
     sExpressionColumnTarget: string
 }
 
-export const readOnlyColumnNamesFields: Map<string, ReadOnlyColumn> = new Map(
-    [
-        {
-            key: "id",
-            label: "Id",
-            type: "number" as const,
-            sExpressionColumnTarget: "id",
-        },
-        {
-            key: "name",
-            label: "Variable name",
-            type: "string" as const,
-            sExpressionColumnTarget: "variables.name",
-        },
-        {
-            key: "datasetname",
-            label: "Dataset name",
-            type: "string" as const,
-            sExpressionColumnTarget: "datasets.name",
-        },
-        {
-            key: "namespacename",
-            label: "Namespace name",
-            type: "string" as const,
-            sExpressionColumnTarget: "namespaces.name",
-        },
-        {
-            key: "description",
-            label: "Description",
-            type: "string" as const,
-            sExpressionColumnTarget: "variables.description",
-        },
-        {
-            key: "createdAt",
-            label: "Created at",
-            type: "datetime" as const,
-            sExpressionColumnTarget: "variables.createdAt",
-        },
-        {
-            key: "updatedAt",
-            label: "Updated at",
-            type: "datetime" as const,
-            sExpressionColumnTarget: "variables.updatedAt",
-        },
-    ].map((item) => [item.key, item])
-)
-
 export const getItemStyle = (
     isDragging: boolean,
     draggableStyle: any
@@ -318,11 +235,17 @@ export function getNullCheckOperator(
         .otherwise(() => undefined)
 }
 
-export function getFieldSymbol(fieldName: string): Operation {
-    if (isConfigColumn(fieldName)) return new JsonPointerSymbol(fieldName)
+export function getFieldSymbol(
+    fieldName: string,
+    context: OperationContext,
+    readOnlyFieldNamesMap: Map<string, ReadOnlyColumn>
+): Operation {
+    if (isConfigColumn(fieldName))
+        return new JsonPointerSymbol(fieldName, context)
     else
         return new SqlColumnName(
-            readOnlyColumnNamesFields.get(fieldName)!.sExpressionColumnTarget
+            readOnlyFieldNamesMap.get(fieldName)!.sExpressionColumnTarget,
+            context
         )
 }
 
@@ -342,7 +265,9 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
 }
 
 export function filterTreeToSExpression(
-    filterTree: JsonTree | JsonItem
+    filterTree: JsonTree | JsonItem,
+    context: OperationContext,
+    readOnlyFieldNamesMap: Map<string, ReadOnlyColumn>
 ): Operation | undefined {
     if (filterTree.type === "group") {
         // If we have a group then we need to decide
@@ -358,13 +283,25 @@ export function filterTreeToSExpression(
         // so we handle this as well for now
         if (isArray(filterTree.children1))
             children = excludeUndefined(
-                filterTree.children1?.map(filterTreeToSExpression)
+                filterTree.children1?.map((child) =>
+                    filterTreeToSExpression(
+                        child,
+                        context,
+                        readOnlyFieldNamesMap
+                    )
+                )
             )
         else if (isPlainObject(filterTree.children1))
             children = excludeUndefined(
                 Object.values(
                     filterTree.children1 as Record<string, JsonItem>
-                ).map(filterTreeToSExpression)
+                ).map((child) =>
+                    filterTreeToSExpression(
+                        child,
+                        context,
+                        readOnlyFieldNamesMap
+                    )
+                )
             )
         else if (filterTree.children1 !== undefined)
             console.warn("unexpected content of children1")
@@ -378,7 +315,12 @@ export function filterTreeToSExpression(
         if (filterTree.properties?.not) return new Negation(operation)
         else return operation
     } else if (filterTree.type === "rule") {
-        const field = getFieldSymbol(filterTree.properties.field!)
+        if (isNil(filterTree.properties.field)) return undefined
+        const field = getFieldSymbol(
+            filterTree.properties.field,
+            context,
+            readOnlyFieldNamesMap
+        )
         return (
             match(filterTree.properties.operator)
                 // If we have a rule, check what operator is used and build the corresponding operation
@@ -422,7 +364,6 @@ export function filterTreeToSExpression(
                     (op) => op && getNullCheckOperator(op as string),
                     (op) => {
                         const operator = getNullCheckOperator(op as string)!
-
                         return new NullCheckOperation(operator!, field)
                     }
                 )
@@ -502,12 +443,16 @@ export function renderBuilder(props: BuilderProps) {
         </div>
     )
 }
-export function getFinalConfigLayerForVariable(id: number) {
-    return {
-        version: 1,
-        dimensions: [{ property: "y", variableId: id }],
-        map: {
-            variableId: id,
-        },
-    }
+
+export interface GrapherConfigGridEditorConfig {
+    source: GrapherConfigGridEditorSource
+    sExpressionContext: OperationContext
+    apiEndpoint: string
+    readonlyColumns: Map<string, ReadOnlyColumn>
+    hiddenColumns: Set<string>
+    columnSet: ColumnSet[]
+    finalVariableLayerModificationFn: (id: number) => Partial<GrapherInterface>
+}
+export interface GrapherConfigGridEditorProps {
+    config: GrapherConfigGridEditorConfig
 }

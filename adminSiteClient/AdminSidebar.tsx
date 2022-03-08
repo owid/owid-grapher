@@ -5,6 +5,7 @@ import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar.js"
 import { faFile } from "@fortawesome/free-solid-svg-icons/faFile.js"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload.js"
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable.js"
+import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCrossbones.js"
 import { faPen } from "@fortawesome/free-solid-svg-icons/faPen.js"
 import { faDatabase } from "@fortawesome/free-solid-svg-icons/faDatabase.js"
 import { faGlobe } from "@fortawesome/free-solid-svg-icons/faGlobe.js"
@@ -52,6 +53,12 @@ export const AdminSidebar = (): JSX.Element => (
             <li>
                 <Link to="/variables">
                     <FontAwesomeIcon icon={faDatabase} /> Variables
+                </Link>
+            </li>
+            <li>
+                <Link to="/bulk-grapher-config-editor">
+                    <FontAwesomeIcon icon={faSkullCrossbones} /> Bulk chart
+                    editor
                 </Link>
             </li>
             <li>
