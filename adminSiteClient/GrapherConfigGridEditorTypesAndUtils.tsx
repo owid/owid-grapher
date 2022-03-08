@@ -142,6 +142,34 @@ export interface IconToggleProps {
     onClick: (newState: boolean) => void
 }
 
+export enum ColumnDataSourceType {
+    FieldDescription = "FieldDescription",
+    ReadOnlyColumn = "ReadOnlyColumn",
+    Unkown = "Unknown",
+}
+
+export interface ColumnDataSourceFieldDescription {
+    kind: ColumnDataSourceType.FieldDescription
+    description: FieldDescription
+    columnInformation: ColumnInformation
+}
+
+export interface ColumnDataSourceReadOnlyColumn {
+    kind: ColumnDataSourceType.ReadOnlyColumn
+    readOnlyColumn: ReadOnlyColumn
+    columnInformation: ColumnInformation
+}
+
+export interface ColumnDataSourceUnknown {
+    kind: ColumnDataSourceType.Unkown
+    fieldKey: string
+    columnInformation: ColumnInformation
+}
+export type ColumnDataSource =
+    | ColumnDataSourceFieldDescription
+    | ColumnDataSourceReadOnlyColumn
+    | ColumnDataSourceUnknown
+
 export const IconToggleComponent = (props: IconToggleProps) => (
     <button
         className="btn btn-light btn-sm"

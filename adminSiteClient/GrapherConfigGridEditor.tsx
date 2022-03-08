@@ -84,6 +84,9 @@ import {
     renderBuilder,
     GrapherConfigGridEditorProps,
     GrapherConfigGridEditorConfig,
+    ColumnDataSource,
+    ColumnDataSourceType,
+    ColumnDataSourceUnknown,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils } from "react-awesome-query-builder"
 // types
@@ -239,7 +242,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             },
         }
         if (this.grapherElement) {
-            console.log("loading grapher json")
             this.grapher.setAuthoredVersion(newConfig)
             this.grapher.reset()
             this.grapher.updateFromObject(newConfig)
@@ -442,62 +444,98 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
     }
 
-    @computed get hotColumns(): JSX.Element[] {
+    @computed get columnDataSources(): ColumnDataSource[] {
         const { fieldDescriptions, columnSelection } = this
 
         if (fieldDescriptions === undefined || columnSelection.length === 0)
             return []
-        else {
-            const readOnlyColumns = this.config.readonlyColumns
-            const fieldDescriptionsMap = new Map(
-                fieldDescriptions.map((fieldDesc) => [
-                    fieldDesc.pointer,
-                    fieldDesc,
-                ])
-            )
-            const undefinedColumns: ColumnInformation[] = []
-            const columns = columnSelection.map((reorderItem) => {
-                if (isConfigColumn(reorderItem.key)) {
-                    const fieldDesc = fieldDescriptionsMap.get(reorderItem.key)
+        const readOnlyColumns = this.config.readonlyColumns
+        const fieldDescriptionsMap = new Map(
+            fieldDescriptions.map((fieldDesc) => [fieldDesc.pointer, fieldDesc])
+        )
+        const columns: ColumnDataSource[] = columnSelection.map(
+            (columnInformation) => {
+                if (isConfigColumn(columnInformation.key)) {
+                    const fieldDesc = fieldDescriptionsMap.get(
+                        columnInformation.key
+                    )
                     if (fieldDesc === undefined) {
-                        undefinedColumns.push(reorderItem)
-                        return undefined
+                        return {
+                            kind: ColumnDataSourceType.Unkown,
+                            fieldKey: columnInformation.key,
+                            columnInformation,
+                        }
                     } else
-                        return GrapherConfigGridEditor.fieldDescriptionToColumn(
-                            fieldDesc
-                        )
+                        return {
+                            kind: ColumnDataSourceType.FieldDescription,
+                            description: fieldDesc,
+                            columnInformation,
+                        }
                 } else {
-                    const readonlyField = readOnlyColumns.get(reorderItem.key)
+                    const readonlyField = readOnlyColumns.get(
+                        columnInformation.key
+                    )
                     if (readonlyField === undefined) {
-                        undefinedColumns.push(reorderItem)
-                        return undefined
+                        return {
+                            kind: ColumnDataSourceType.Unkown,
+                            fieldKey: columnInformation.key,
+                            columnInformation,
+                        }
                     } else
-                        return (
-                            <HotColumn
-                                key={readonlyField.label}
-                                settings={{
-                                    title: readonlyField.label,
-                                    readOnly: true,
-                                    data: readonlyField.key,
-                                    width: Math.max(
-                                        Bounds.forText(readonlyField.label)
-                                            .width,
-                                        50
-                                    ),
-                                }}
-                            />
-                        )
+                        return {
+                            kind: ColumnDataSourceType.ReadOnlyColumn,
+                            readOnlyColumn: readonlyField,
+                            columnInformation,
+                        }
                 }
-            })
-            const definedColumns = excludeUndefined(columns)
-            // If we have columns that we couldn't match, find out which ones they were and console.error them
-            if (!isEmpty(undefinedColumns))
-                console.error(
-                    "Some columns could not be found!",
-                    undefinedColumns
+            }
+        )
+        return columns
+    }
+
+    @computed get hotColumns(): JSX.Element[] {
+        const { columnDataSources } = this
+
+        const columns = columnDataSources.map((columnDataSource) =>
+            match(columnDataSource)
+                .with(
+                    { kind: ColumnDataSourceType.FieldDescription },
+                    (columnDataSource) =>
+                        GrapherConfigGridEditor.fieldDescriptionToColumn(
+                            columnDataSource.description
+                        )
                 )
-            return definedColumns
-        }
+                .with(
+                    { kind: ColumnDataSourceType.ReadOnlyColumn },
+                    (columnDataSource) => (
+                        <HotColumn
+                            key={columnDataSource.readOnlyColumn.key}
+                            settings={{
+                                title: columnDataSource.readOnlyColumn.label,
+                                readOnly: true,
+                                data: columnDataSource.readOnlyColumn.key,
+                                width: Math.max(
+                                    Bounds.forText(
+                                        columnDataSource.readOnlyColumn.label
+                                    ).width,
+                                    50
+                                ),
+                            }}
+                        />
+                    )
+                )
+                .with({ kind: ColumnDataSourceType.Unkown }, () => undefined)
+                .exhaustive()
+        )
+        const definedColumns = excludeUndefined(columns)
+        // If we have columns that we couldn't match, find out which ones they were and console.error them
+        const undefinedColumns = columnDataSources.filter(
+            (item): item is ColumnDataSourceUnknown =>
+                item.kind === ColumnDataSourceType.Unkown
+        )
+        if (!isEmpty(undefinedColumns))
+            console.error("Some columns could not be found!", undefinedColumns)
+        return definedColumns
     }
 
     @computed
@@ -970,6 +1008,49 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.columnFilter = ""
     }
 
+    @action.bound
+    onShowOnlyColumnsWithValuesInCurrentRow() {
+        const { columnDataSources, selectedRow, richDataRows } = this
+        const row =
+            selectedRow !== undefined && richDataRows !== undefined
+                ? richDataRows[selectedRow]
+                : undefined
+        if (row !== undefined) {
+            const newSelection: ColumnInformation[] = columnDataSources.map(
+                (item): ColumnInformation =>
+                    match(item)
+                        .with(
+                            { kind: ColumnDataSourceType.FieldDescription },
+                            (columnDataSource) => ({
+                                ...columnDataSource.columnInformation,
+                                visible:
+                                    columnDataSource.description.getter(
+                                        row.config as Record<string, unknown>
+                                    ) !== undefined,
+                            })
+                        )
+                        .with(
+                            { kind: ColumnDataSourceType.ReadOnlyColumn },
+                            (columnDataSource) => ({
+                                ...columnDataSource.columnInformation,
+                                visible: (row as any)[
+                                    columnDataSource.readOnlyColumn.key
+                                ],
+                            })
+                        )
+                        .with(
+                            { kind: ColumnDataSourceType.Unkown },
+                            (columnDataSource) => ({
+                                ...columnDataSource.columnInformation,
+                                visible: false,
+                            })
+                        )
+                        .exhaustive()
+            )
+            this.columnSelection = newSelection
+        }
+    }
+
     renderColumnsTab(): JSX.Element {
         const { columnSelection, currentColumnSet, columnFilter } = this
         const columnSets = this.config.columnSet
@@ -991,6 +1072,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                             label: item.label,
                         }))}
                     />
+                    <button
+                        className="btn btn-secondary"
+                        onClick={this.onShowOnlyColumnsWithValuesInCurrentRow}
+                        title="Show only columns where the current row has a set value"
+                        disabled={this.selectedRow === undefined}
+                    >
+                        Show only columns with values in current row
+                    </button>
                     <BindString
                         field="columnFilter"
                         store={this}
