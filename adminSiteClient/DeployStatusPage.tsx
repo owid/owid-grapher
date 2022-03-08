@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, runInAction } from "mobx"
+import { action, observable, runInAction } from "mobx"
 import { format } from "timeago.js"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -21,12 +21,27 @@ export class DeployStatusPage extends React.Component {
     context!: AdminAppContextType
 
     @observable deploys: Deploy[] = []
+    @observable canManuallyDeploy = true
 
     render() {
         return (
             <AdminLayout title="Deploys">
                 <main className="DeploysPage">
-                    <h1>Deploy status</h1>
+                    <div className="topbar">
+                        <h2>Deploy status</h2>
+                        <button
+                            className="btn btn-secondary"
+                            type="button"
+                            disabled={!this.canManuallyDeploy}
+                            onClick={async () => {
+                                this.canManuallyDeploy = false
+                                await this.triggerDeploy()
+                                await this.getData()
+                            }}
+                        >
+                            Manually enqueue a deploy
+                        </button>
+                    </div>
                     {this.deploys.length > 0 ? (
                         <table className="DeploysTable">
                             <thead>
@@ -90,6 +105,11 @@ export class DeployStatusPage extends React.Component {
                 </main>
             </AdminLayout>
         )
+    }
+
+    @action.bound async triggerDeploy() {
+        const { admin } = this.context
+        await admin.rawRequest("/api/deploy", undefined, "PUT")
     }
 
     async getData() {
