@@ -28,7 +28,6 @@ export interface ChartListItem {
     hasChartTab: GrapherInterface["hasChartTab"]
     hasMapTab: GrapherInterface["hasMapTab"]
 
-    isStarred: boolean
     lastEditedAt: string
     lastEditedBy: string
     publishedAt: string
@@ -59,7 +58,6 @@ class ChartRow extends React.Component<{
     searchHighlight?: (text: string) => string | JSX.Element
     availableTags: Tag[]
     onDelete: (chart: ChartListItem) => void
-    onStar: (chart: ChartListItem) => void
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
@@ -196,27 +194,6 @@ export class ChartList extends React.Component<{
         }
     }
 
-    @bind async onStar(chart: ChartListItem) {
-        if (chart.isStarred) return
-
-        const json = await this.context.admin.requestJSON(
-            `/api/charts/${chart.id}/star`,
-            {},
-            "POST"
-        )
-        if (json.success) {
-            runInAction(() => {
-                for (const otherChart of this.props.charts) {
-                    if (otherChart === chart) {
-                        otherChart.isStarred = true
-                    } else if (otherChart.isStarred) {
-                        otherChart.isStarred = false
-                    }
-                }
-            })
-        }
-    }
-
     @bind async getTags() {
         const json = await this.context.admin.getJSON("/api/tags.json")
         runInAction(() => (this.availableTags = json.tags))
@@ -252,7 +229,6 @@ export class ChartList extends React.Component<{
                             availableTags={availableTags}
                             searchHighlight={searchHighlight}
                             onDelete={this.onDeleteChart}
-                            onStar={this.onStar}
                         />
                     ))}
                 </tbody>

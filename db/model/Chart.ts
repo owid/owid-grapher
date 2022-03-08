@@ -29,7 +29,6 @@ export class Chart extends BaseEntity {
     @Column({ nullable: true }) publishedByUserId!: number
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
-    @Column() starred!: boolean
     @Column() isExplorable!: boolean
 
     @ManyToOne(() => User, (user) => user.lastEditedCharts)
@@ -149,7 +148,6 @@ export class OldChart {
         charts.config->>"$.tab" AS tab,
         JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
         JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
-        charts.starred AS isStarred,
         charts.lastEditedAt,
         charts.lastEditedByUserId,
         lastEditedByUser.fullName AS lastEditedBy,

@@ -270,8 +270,8 @@ const saveGrapher = async (
         )
     else {
         const result = await transactionContext.execute(
-            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred, isExplorable) VALUES (?)`,
-            [[newJsonConfig, now, now, now, user.id, false, false]]
+            `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, isExplorable) VALUES (?)`,
+            [[newJsonConfig, now, now, now, user.id, false]]
         )
         chartId = result.insertId
     }
@@ -376,7 +376,6 @@ apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
             JSON_EXTRACT(charts.config, "$.hasChartTab") = true AS hasChartTab,
             JSON_EXTRACT(charts.config, "$.hasMapTab") = true AS hasMapTab,
             charts.config->>"$.originUrl" AS originUrl,
-            charts.starred AS isStarred,
             charts.lastEditedAt,
             charts.lastEditedByUserId,
             lastEditedByUser.fullName AS lastEditedBy,
@@ -590,19 +589,6 @@ apiRouter.get(
         return getVariableData(variableIds)
     }
 )
-
-// Mark a chart for display on the front page
-apiRouter.post("/charts/:chartId/star", async (req: Request, res: Response) => {
-    const chart = await expectChartById(req.params.chartId)
-
-    await db.execute(`UPDATE charts SET starred=(charts.id=?)`, [chart.id])
-    await triggerStaticBuild(
-        res.locals.user,
-        `Setting front page chart to ${chart.slug}`
-    )
-
-    return { success: true }
-})
 
 apiRouter.post("/charts", async (req: Request, res: Response) => {
     const chartId = await db.transaction(async (t) => {

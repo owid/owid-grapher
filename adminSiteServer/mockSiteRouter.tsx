@@ -89,15 +89,6 @@ mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) =>
     res.send(bakeEmbedSnippet(BAKED_BASE_URL))
 )
 
-mockSiteRouter.get("/grapher/latest", async (req, res) => {
-    const latestRows = await db.queryMysql(
-        `SELECT config->>"$.slug" AS slug FROM charts where starred=1`
-    )
-    if (latestRows.length)
-        res.redirect(`${BAKED_GRAPHER_URL}/${latestRows[0].slug}`)
-    else throw new JsonError("No latest chart", 404)
-})
-
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
