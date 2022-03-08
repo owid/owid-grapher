@@ -44,6 +44,7 @@ class EntityItem extends React.Component<EntityItemProps> {
             [this.props.entityName]: color,
         }
 
+        grapher.seriesColorMap?.clear()
         grapher.rebuildInputOwidTable()
     }
 
