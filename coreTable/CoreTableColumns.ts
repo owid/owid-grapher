@@ -533,7 +533,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     ): string {
         return super.formatValueShortWithAbbreviations(value, {
             shortNumberPrefixes: true,
-            // do not set a unit
+            // only include a unit if it's very short (e.g. %, $ or £)
             ...omitUndefinedValues({
                 unit:
                     this.shortUnit !== undefined &&
