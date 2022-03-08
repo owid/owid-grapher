@@ -1,0 +1,158 @@
+import React from "react"
+import { computed } from "mobx"
+import { scaleLinear, ScaleLinear } from "d3-scale"
+import { TextWrap } from "../text/TextWrap.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { first, last } from "../../clientUtils/Util.js"
+import { getElementWithHalo } from "./Halos.js"
+import { SCATTER_POINT_MAX_RADIUS } from "./ScatterPlotChartConstants.js"
+
+export interface ScatterSizeLegendManager {
+    sidebarWidth: number
+    sizeColumn: CoreColumn
+    sizeScale: ScaleLinear<number, number>
+    fontSize?: number
+}
+
+const LEGEND_PADDING = 4
+const LEGEND_CIRCLE_COLOR = "#bbb"
+const LEGEND_VALUE_COLOR = "#444"
+const TITLE_COLOR = "#222"
+
+const MIN_FONT_SIZE = 10
+
+export class ScatterSizeLegend {
+    manager: ScatterSizeLegendManager
+    constructor(manager: ScatterSizeLegendManager) {
+        this.manager = manager
+    }
+
+    @computed private get baseFontSize(): number {
+        return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed private get maxWidth(): number {
+        return this.manager.sidebarWidth
+    }
+
+    @computed private get ticks(): number[] {
+        const { sizeScale } = this.manager
+        const [domainStart, domainEnd] = sizeScale.domain()
+        if (domainStart === domainEnd) return [domainStart]
+        const [largestTick, ...restTicks] = sizeScale.ticks(6).reverse()
+        if (largestTick === undefined) return []
+        const ticks = [largestTick]
+        restTicks.forEach((value) => {
+            if (
+                // make sure there is enough distance to prevent overlap with previous tick
+                sizeScale(value) <= sizeScale(last(ticks)!) - 6 &&
+                // don't go below the minimum tick radius
+                sizeScale(value) >= 6
+            ) {
+                ticks.push(value)
+            }
+        })
+        return ticks
+    }
+
+    // input radius, output font size
+    @computed private get fontSizeScale(): ScaleLinear<number, number> {
+        return scaleLinear()
+            .domain([6, SCATTER_POINT_MAX_RADIUS])
+            .range([8, 11])
+            .clamp(true)
+    }
+
+    // Since it's circular, this is both the width and the height of the legend.
+    @computed private get legendSize(): number {
+        const largestTick = first(this.ticks)
+        if (largestTick === undefined) return 0
+        const radius = this.manager.sizeScale(largestTick)
+        // adding some padding to account for label sticking out of the top
+        return 2 * radius + 3
+    }
+
+    @computed private get title(): TextWrap {
+        const fontSize = Math.max(MIN_FONT_SIZE, 0.6875 * this.baseFontSize)
+        return new TextWrap({
+            text: this.manager.sizeColumn.displayName,
+            // Allow text to _slightly_ go outside boundaries.
+            // Since we have padding left and right, this doesn't
+            // actually visibly overflow.
+            maxWidth: this.maxWidth + 6,
+            fontSize,
+        })
+    }
+
+    @computed get width(): number {
+        return this.manager.sidebarWidth
+    }
+
+    @computed get height(): number {
+        return this.legendSize + LEGEND_PADDING + this.title.height
+    }
+
+    private renderLegend(targetX: number, targetY: number): JSX.Element {
+        const { sizeScale } = this.manager
+        const x = targetX + (this.maxWidth - this.legendSize) / 2
+        return (
+            <React.Fragment>
+                {this.ticks.map((value) => {
+                    const radius = sizeScale(value)
+                    const style: React.CSSProperties = {
+                        fontSize: this.fontSizeScale(radius),
+                        textAnchor: "middle",
+                    }
+                    return (
+                        <g key={value}>
+                            <circle
+                                cx={x + this.legendSize / 2}
+                                cy={targetY + this.legendSize - radius}
+                                r={radius}
+                                fill="none"
+                                stroke={LEGEND_CIRCLE_COLOR}
+                                strokeWidth={1.25}
+                            />
+                            {getElementWithHalo(
+                                value,
+                                <text
+                                    x={x + this.legendSize / 2}
+                                    y={targetY + this.legendSize - radius * 2}
+                                    dy=".47em"
+                                    fill={LEGEND_VALUE_COLOR}
+                                    style={style}
+                                >
+                                    {this.manager.sizeColumn.formatValueShortWithAbbreviations(
+                                        value
+                                    )}
+                                </text>,
+                                { ...style, strokeWidth: "3px" }
+                            )}
+                        </g>
+                    )
+                })}
+            </React.Fragment>
+        )
+    }
+
+    render(
+        targetX: number,
+        targetY: number,
+        renderOptions: React.SVGAttributes<SVGGElement> = {}
+    ): JSX.Element {
+        return (
+            <g {...renderOptions}>
+                {this.renderLegend(targetX, targetY)}
+                {this.title.render(
+                    targetX + this.maxWidth / 2,
+                    targetY + this.legendSize + 4,
+                    {
+                        fill: TITLE_COLOR,
+                        textAnchor: "middle",
+                    }
+                )}
+            </g>
+        )
+    }
+}

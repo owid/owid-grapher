@@ -1,3 +1,4 @@
+import { ScaleLinear } from "d3-scale"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { Color, Time } from "../../coreTable/CoreTableConstants.js"
 import { DualAxis } from "../axis/Axis.js"
@@ -74,6 +75,9 @@ export interface ScatterRenderPoint {
     }
 }
 
+export const SCATTER_POINT_MIN_RADIUS: number = 2
+export const SCATTER_POINT_MAX_RADIUS: number = 18
+
 export interface ScatterRenderSeries extends ChartSeries {
     displayKey: string
     size: number
@@ -108,7 +112,7 @@ export interface ScatterPointsWithLabelsProps {
     focusedSeriesNames: SeriesName[]
     dualAxis: DualAxis
     colorScale?: ColorScale
-    sizeDomain: [number, number]
+    sizeScale: ScaleLinear<number, number>
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
     onClick: () => void

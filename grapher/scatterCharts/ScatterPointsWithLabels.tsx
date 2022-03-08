@@ -28,6 +28,7 @@ import {
     ScatterLabel,
     ScatterRenderPoint,
     ScatterSeries,
+    SCATTER_POINT_MIN_RADIUS,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
 import {
@@ -89,10 +90,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     }
 
     @computed private get sizeScale(): ScaleLinear<number, number> {
-        const sizeScale = scaleLinear()
-            .range([10, 1000])
-            .domain(this.props.sizeDomain)
-        return sizeScale
+        return this.props.sizeScale
     }
 
     @computed private get fontScale(): (d: number) => number {
@@ -114,7 +112,6 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return sortNumeric(
             seriesArray.map((series) => {
                 const points = series.points.map((point) => {
-                    const area = sizeScale(point.size || 4)
                     const scaleColor =
                         colorScale !== undefined
                             ? colorScale.getColor(point.color)
@@ -125,7 +122,10 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             Math.floor(yAxis.place(point.y))
                         ),
                         color: scaleColor ?? series.color,
-                        size: Math.sqrt(area / Math.PI),
+                        size: Math.max(
+                            SCATTER_POINT_MIN_RADIUS,
+                            sizeScale(point.size)
+                        ),
                         fontSize: fontScale(series.size || 1),
                         time: point.time,
                         label: point.label,

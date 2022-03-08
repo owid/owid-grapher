@@ -1,6 +1,7 @@
 import React from "react"
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
 import { observable, computed, action } from "mobx"
+import { ScaleLinear, scaleSqrt } from "d3-scale"
 import {
     intersection,
     without,
@@ -17,6 +18,7 @@ import {
     groupBy,
     sampleFrom,
     intersectionOfSets,
+    max,
 } from "../../clientUtils/Util.js"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
@@ -47,6 +49,7 @@ import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     ScatterPlotManager,
     ScatterSeries,
+    SCATTER_POINT_MAX_RADIUS,
     SeriesPoint,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterTooltip } from "./ScatterTooltip.js"
@@ -73,6 +76,10 @@ import {
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { ColorScaleBin } from "../color/ColorScaleBin.js"
+import {
+    ScatterSizeLegend,
+    ScatterSizeLegendManager,
+} from "./ScatterSizeLegend.js"
 
 @observer
 export class ScatterPlotChart
@@ -82,6 +89,7 @@ export class ScatterPlotChart
     }>
     implements
         ConnectedScatterLegendManager,
+        ScatterSizeLegendManager,
         ChartInterface,
         VerticalColorLegendManager,
         ColorScaleManager
@@ -506,7 +514,6 @@ export class ScatterPlotChart
             hideConnectedScatterLines,
             manager,
             series,
-            sizeDomain,
             colorScale,
             colorColumn,
         } = this
@@ -518,7 +525,7 @@ export class ScatterPlotChart
                 seriesArray={series}
                 dualAxis={dualAxis}
                 colorScale={!colorColumn.isMissing ? colorScale : undefined}
-                sizeDomain={sizeDomain}
+                sizeScale={this.sizeScale}
                 focusedSeriesNames={focusedEntityNames}
                 hoveredSeriesNames={hoveredSeriesNames}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
@@ -547,6 +554,22 @@ export class ScatterPlotChart
         return this.colorScale.legendDescription
     }
 
+    @computed get sizeScale(): ScaleLinear<number, number> {
+        return scaleSqrt()
+            .range([0, SCATTER_POINT_MAX_RADIUS])
+            .domain(this.sizeDomain)
+    }
+
+    /** Whether all series are shown as points */
+    @computed private get allSeriesArePoints(): boolean {
+        return this.series.every((s) => s.points.length <= 1)
+    }
+
+    @computed private get sizeLegend(): ScatterSizeLegend | undefined {
+        if (!this.allSeriesArePoints) return undefined
+        return new ScatterSizeLegend(this)
+    }
+
     componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
@@ -565,11 +588,20 @@ export class ScatterPlotChart
             bounds,
             dualAxis,
             arrowLegend,
+            sizeLegend,
             sidebarWidth,
             tooltipSeries,
             comparisonLines,
             legendDimensions,
         } = this
+
+        const sizeLegendY = bounds.top + legendDimensions.height + 8
+        const arrowLegendY = sizeLegend
+            ? sizeLegendY + sizeLegend.height + 15
+            : sizeLegendY
+        const tooltipY = arrowLegend
+            ? arrowLegendY + arrowLegend.height + 10
+            : arrowLegendY
 
         return (
             <g className="ScatterPlot">
@@ -584,12 +616,13 @@ export class ScatterPlotChart
                     ))}
                 {this.points}
                 <VerticalColorLegend manager={this} />
+                {this.sizeLegend?.render(this.legendX, sizeLegendY)}
                 {(arrowLegend || tooltipSeries) && (
                     <line
                         x1={bounds.right - sidebarWidth}
-                        y1={bounds.top + legendDimensions.height + 2}
+                        y1={arrowLegendY - 7}
                         x2={bounds.right - 5}
-                        y2={bounds.top + legendDimensions.height + 2}
+                        y2={arrowLegendY - 7}
                         stroke="#ccc"
                     />
                 )}
@@ -597,7 +630,7 @@ export class ScatterPlotChart
                     <g className="clickable" onClick={this.onToggleEndpoints}>
                         {arrowLegend.render(
                             bounds.right - sidebarWidth,
-                            bounds.top + legendDimensions.height + 11
+                            arrowLegendY
                         )}
                     </g>
                 )}
@@ -609,12 +642,7 @@ export class ScatterPlotChart
                         maxWidth={sidebarWidth}
                         fontSize={this.fontSize}
                         x={bounds.right - sidebarWidth}
-                        y={
-                            bounds.top +
-                            legendDimensions.height +
-                            11 +
-                            (arrowLegend ? arrowLegend.height + 10 : 0)
-                        }
+                        y={tooltipY}
                     />
                 )}
             </g>
@@ -689,7 +717,7 @@ export class ScatterPlotChart
         return this.manager.sizeColumnSlug
     }
 
-    @computed private get sizeColumn(): CoreColumn {
+    @computed get sizeColumn(): CoreColumn {
         return this.transformedTable.get(this.sizeColumnSlug)
     }
 
@@ -806,7 +834,7 @@ export class ScatterPlotChart
         const sizeValues = this.transformedTable
             .get(this.sizeColumn.slug)
             .values.filter(isNumber)
-        return domainExtent(sizeValues, ScaleType.linear)
+        return [0, max(sizeValues) ?? 1]
     }
 
     @computed private get yScaleType(): ScaleType {
