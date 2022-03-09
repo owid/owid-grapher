@@ -7,7 +7,17 @@ import {
     DropResult,
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
-import { observable, computed, action, runInAction, autorun, toJS } from "mobx"
+import {
+    observable,
+    computed,
+    action,
+    runInAction,
+    autorun,
+    toJS,
+    observe,
+    comparer,
+    reaction,
+} from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
 import {
@@ -359,10 +369,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         data: codemirror.EditorChange,
         value: string
     ) {
-        console.log(
-            "has uncommited changes?",
-            this.hasUncommitedRichEditorChanges
-        )
         if (data.origin !== undefined) {
             console.log({ data })
             // origin seems to be +input when editing and undefined when we change the value programmatically
@@ -433,6 +439,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             selectedRowContent === undefined
         )
             return undefined
+
         return match(currentColumnFieldDesription.editor)
             .with(
                 EditorOption.primitiveListEditor,
@@ -448,6 +455,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     // TODO: remove this hack once map is more similar to other charts
                     const mapChart = new MapChart({ manager: this.grapher })
                     const colorScale = mapChart.colorScale
+                    // TODO: instead of using onChange below that has to be maintained when
+                    // the color scale changes I tried to use a reaction here after Daniel G's suggestion
+                    // but I couldn't get this to work. Worth trying again later.
+                    // this.editControlDisposerFn = reaction(
+                    //     () => colorScale,
+                    //     () => this.onGenericRichEditorChange(),
+                    //     { equals: comparer.structural }
+                    // )
                     return colorScale ? (
                         <EditorColorScaleSection
                             scale={colorScale}
@@ -459,16 +474,28 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         />
                     ) : undefined
                 } else {
-                    return grapher.chartInstanceExceptMap.colorScale ? (
-                        <EditorColorScaleSection
-                            scale={grapher.chartInstanceExceptMap.colorScale}
-                            features={{
-                                visualScaling: true,
-                                legendDescription: false,
-                            }}
-                            onChange={this.onGenericRichEditorChange}
-                        />
-                    ) : undefined
+                    if (grapher.chartInstanceExceptMap.colorScale) {
+                        const colorScale =
+                            grapher.chartInstanceExceptMap.colorScale
+                        // TODO: instead of using onChange below that has to be maintained when
+                        // the color scale changes I tried to use a reaction here after Daniel G's suggestion
+                        // but I couldn't get this to work. Worth trying again later.
+                        // this.editControlDisposerFn = reaction(
+                        //     () => colorScale,
+                        //     () => this.onGenericRichEditorChange(),
+                        //     { equals: comparer.structural }
+                        // )
+                        return (
+                            <EditorColorScaleSection
+                                scale={colorScale}
+                                features={{
+                                    visualScaling: true,
+                                    legendDescription: false,
+                                }}
+                                onChange={this.onGenericRichEditorChange}
+                            />
+                        )
+                    } else return undefined
                 }
             })
             .with(EditorOption.textfield, EditorOption.textarea, () => (
