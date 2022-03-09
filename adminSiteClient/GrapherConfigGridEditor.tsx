@@ -114,7 +114,12 @@ import { MapChart } from "../grapher/mapCharts/MapChart.js"
 function HotColorScaleRenderer(props: Record<string, unknown>) {
     return <div>Color scale</div>
 }
-
+/**
+ * This cell editor component explicitly does nothing. It is used for color scale columns
+ * where we don't want to make the cells read only so that copy/paste etc still work but
+ * at the same time we don't want the user to be able to edit the cells directly (instead
+ * they should use the sidebar editor)
+ */
 class HotColorScaleEditor extends BaseEditorComponent<Record<string, never>> {
     constructor(props: Record<string, never>) {
         super(props)
