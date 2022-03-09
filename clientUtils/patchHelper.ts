@@ -32,8 +32,8 @@ export function setValueRecursiveInplace(
 
     if (json[key] === undefined) {
         // because we work in-place, we need to create the missing child element before recursing
-        const nextPartIsNumber = Number.parseInt(pointer[0])
-        if (!isNaN(nextPartIsNumber)) {
+        const nextPartAsNumber = Number.parseInt(pointer[0])
+        if (!isNaN(nextPartAsNumber)) {
             json[key] = []
         } else {
             json[key] = {}

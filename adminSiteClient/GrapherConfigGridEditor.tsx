@@ -101,7 +101,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
 
 function HotColorScaleRenderer(props: Record<string, unknown>) {
-    return <div>Color scale</div>
+    return <div style={{ color: "gray" }}>Color scale</div>
 }
 /**
  * This cell editor component explicitly does nothing. It is used for color scale columns
