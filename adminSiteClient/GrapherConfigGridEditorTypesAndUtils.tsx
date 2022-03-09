@@ -155,11 +155,6 @@ export interface ColumnDataSourceFieldDescription {
     columnInformation: ColumnInformation
 }
 
-export interface ColumnDataSourceMultipleFieldDescriptions {
-    kind: ColumnDataSourceType.MultipleFieldDescriptions
-    descriptions: FieldDescription[]
-    columnInformation: ColumnInformation
-}
 export interface ColumnDataSourceReadOnlyColumn {
     kind: ColumnDataSourceType.ReadOnlyColumn
     readOnlyColumn: ReadOnlyColumn
@@ -173,7 +168,6 @@ export interface ColumnDataSourceUnknown {
 }
 export type ColumnDataSource =
     | ColumnDataSourceFieldDescription
-    // | ColumnDataSourceMultipleFieldDescriptions
     | ColumnDataSourceReadOnlyColumn
     | ColumnDataSourceUnknown
 

@@ -9,14 +9,37 @@ export function setValueRecursiveInplace(
     newValue: any
 ): any {
     if (pointer.length === 0) throw new Error("Pointer must not be empty")
-    const key: string = pointer.shift()!
+
+    const key: string = pointer[0]
+    pointer = pointer.slice(1)
+    const currentPartAsNumber = Number.parseInt(key)
+    if (json === undefined) {
+        if (!isNaN(currentPartAsNumber)) {
+            json = []
+        } else {
+            json = {}
+        }
+    }
     if (pointer.length === 0) {
-        json[key] = newValue
+        if (isArray(json) && !isNaN(currentPartAsNumber)) {
+            if (json.length > currentPartAsNumber)
+                json[currentPartAsNumber] = newValue
+            else json.push(newValue)
+        } else json[key] = newValue
+
         return json
     }
-    if (!json[key]) {
-        json[key] = {}
+
+    if (json[key] === undefined) {
+        // because we work in-place, we need to create the missing child element before recursing
+        const nextPartIsNumber = Number.parseInt(pointer[0])
+        if (!isNaN(nextPartIsNumber)) {
+            json[key] = []
+        } else {
+            json[key] = {}
+        }
     }
+
     return setValueRecursiveInplace(json[key], pointer, newValue)
 }
 

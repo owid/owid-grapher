@@ -7,17 +7,7 @@ import {
     DropResult,
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
-import {
-    observable,
-    computed,
-    action,
-    runInAction,
-    autorun,
-    toJS,
-    observe,
-    comparer,
-    reaction,
-} from "mobx"
+import { observable, computed, action, runInAction, autorun } from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
 import {
@@ -104,7 +94,6 @@ import {
 import { Query, Utils as QbUtils } from "react-awesome-query-builder"
 // types
 import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
-import { KeysSection } from "./EditorDataTab.js"
 import codemirror from "codemirror"
 import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
