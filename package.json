@@ -117,7 +117,7 @@
         "css-loader": "^4.2.2",
         "d3": "^6.1.1",
         "d3-geo-projection": "^3.0.0",
-        "dayjs": "^1.9.6",
+        "dayjs": "^1.10.8",
         "decko": "^1.2.0",
         "dotenv": "^8.2.0",
         "dotenv-webpack": "^6.0.2",
