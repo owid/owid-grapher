@@ -99,7 +99,8 @@ export async function authCloudflareSSOMiddleware(
     let redirectTo = "/admin"
     if (req.query.next) {
         try {
-            redirectTo = new URL(req.query.next, ADMIN_BASE_URL).pathname
+            redirectTo = new URL(req.query.next as string, ADMIN_BASE_URL)
+                .pathname
         } catch (err) {
             console.error(err)
         }

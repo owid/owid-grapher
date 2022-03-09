@@ -23,7 +23,11 @@ import { renderExplorerPage, renderPreview } from "../baker/siteRenderers.js"
 import { JsonError } from "../clientUtils/owidTypes.js"
 import { GitCmsServer } from "../gitCms/GitCmsServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { slugify, stringifyUnkownError } from "../clientUtils/Util.js"
+import {
+    parseIntOrUndefined,
+    slugify,
+    stringifyUnkownError,
+} from "../clientUtils/Util.js"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_PREVIEW_ROUTE,
@@ -84,14 +88,14 @@ adminRouter.get("/", async (req, res) => {
 })
 
 adminRouter.get("/login", async (req, res) => {
-    res.send(renderToHtmlPage(<LoginPage next={req.query.next} />))
+    res.send(renderToHtmlPage(<LoginPage next={req.query.next as string} />))
 })
 adminRouter.post(
     "/login",
     limiterMiddleware((req) => (
         <LoginPage
             errorMessage="Too many attempts, please try again in a minute."
-            next={req.query.next}
+            next={req.query.next as string}
         />
     )),
     async (req, res) => {
@@ -105,12 +109,12 @@ adminRouter.post(
                 sameSite: "lax",
                 secure: ENV === "production",
             })
-            res.redirect(req.query.next || "/admin")
+            res.redirect((req.query.next as string) || "/admin")
         } catch (err) {
             res.status(400).send(
                 renderToHtmlPage(
                     <LoginPage
-                        next={req.query.next}
+                        next={req.query.next as string}
                         errorMessage={stringifyUnkownError(err)}
                     />
                 )
@@ -144,7 +148,9 @@ adminRouter.get(
                 .delete()
                 .execute()
 
-            invite = await UserInvitation.findOne({ code: req.query.code })
+            invite = await UserInvitation.findOne({
+                code: req.query.code as string,
+            })
             if (!invite) throw new JsonError("Invite code invalid or expired")
         } catch (err) {
             errorMessage = stringifyUnkownError(err)
@@ -249,10 +255,7 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
 
 adminRouter.get("/errorTest.csv", async (req, res) => {
     // Add `table /admin/errorTest.csv?code=404` to test fetch download failures
-    const code =
-        req.query.code && !isNaN(parseInt(req.query.code))
-            ? req.query.code
-            : 400
+    const code = parseIntOrUndefined(req.query.code as string) ?? 400
 
     res.status(code)
 

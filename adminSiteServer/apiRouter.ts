@@ -334,8 +334,7 @@ const saveGrapher = async (
 }
 
 apiRouter.get("/charts.json", async (req: Request, res: Response) => {
-    const limit =
-        req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
+    const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
     const charts = await db.queryMysql(
         `
         SELECT ${OldChart.listFields} FROM charts
@@ -352,8 +351,7 @@ apiRouter.get("/charts.json", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/charts.csv", async (req: Request, res: Response) => {
-    const limit =
-        req.query.limit !== undefined ? parseInt(req.query.limit) : 10000
+    const limit = parseIntOrUndefined(req.query.limit as string) ?? 10000
 
     // note: this query is extended from OldChart.listFields.
     const charts = await db.queryMysql(
@@ -438,21 +436,25 @@ apiRouter.get(
 apiRouter.get(
     "/charts/:chartId.logs.json",
     async (req: Request, res: Response) => ({
-        logs: await getLogsByChartId(req.params.chartId),
+        logs: await getLogsByChartId(parseInt(req.params.chartId as string)),
     })
 )
 
 apiRouter.get(
     "/charts/:chartId.references.json",
     async (req: Request, res: Response) => ({
-        references: await getReferencesByChartId(req.params.chartId),
+        references: await getReferencesByChartId(
+            parseInt(req.params.chartId as string)
+        ),
     })
 )
 
 apiRouter.get(
     "/charts/:chartId.redirects.json",
     async (req: Request, res: Response) => ({
-        redirects: await getRedirectsByChartId(req.params.chartId),
+        redirects: await getRedirectsByChartId(
+            parseInt(req.params.chartId as string)
+        ),
     })
 )
 
@@ -463,8 +465,8 @@ apiRouter.get("/topics.json", async (req: Request, res: Response) => ({
 apiRouter.get("/countries.json", async (req: Request, res: Response) => {
     let rows = []
 
-    const input = req.query.input
-    const output = req.query.output
+    const input = req.query.input as string
+    const output = req.query.output as string
 
     if (input === CountryNameFormat.NonStandardCountryName) {
         const outputColumn = CountryDefByKey[output].column_name
@@ -672,13 +674,15 @@ apiRouter.get(
             req.query.limit !== undefined ? expectInt(req.query.limit) : 10000
         const offset =
             req.query.offset !== undefined ? expectInt(req.query.offset) : 0
-        const sortBy = isValidSortBy(req.query.sortBy)
+        const sortBy = isValidSortBy(req.query.sortBy as string)
             ? req.query.sortBy
             : "updatedAt"
-        const sortOrder = isValidSortOrder(req.query.sortOrder)
-            ? req.query.sortOrder.toUpperCase()
+        const sortOrder = isValidSortOrder(req.query.sortOrder as string)
+            ? (req.query.sortOrder as string).toUpperCase()
             : "DESC"
-        const status = SuggestedChartRevision.isValidStatus(req.query.status)
+        const status = SuggestedChartRevision.isValidStatus(
+            req.query.status as SuggestedChartRevisionStatus
+        )
             ? req.query.status
             : null
 
@@ -1325,7 +1329,7 @@ apiRouter.post("/users/invite", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/variables.json", async (req) => {
-    const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 50
+    const limit = parseIntOrUndefined(req.query.limit as string) ?? 50
     const searchStr = req.query.search
 
     const query = `
@@ -1370,10 +1374,10 @@ apiRouter.get(
         }
         const filterSExpr =
             req.query.filter !== undefined
-                ? parseToOperation(req.query.filter, context)
+                ? parseToOperation(req.query.filter as string, context)
                 : undefined
 
-        const offset = parseIntOrUndefined(req.query.offset) ?? 0
+        const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
 
         // Note that our DSL generates sql here that we splice directly into the SQL as text
         // This is a potential for a SQL injection attack but we control the DSL and are
@@ -1457,10 +1461,10 @@ apiRouter.get(
         }
         const filterSExpr =
             req.query.filter !== undefined
-                ? parseToOperation(req.query.filter, context)
+                ? parseToOperation(req.query.filter as string, context)
                 : undefined
 
-        const offset = parseIntOrUndefined(req.query.offset) ?? 0
+        const offset = parseIntOrUndefined(req.query.offset as string) ?? 0
 
         // Note that our DSL generates sql here that we splice directly into the SQL as text
         // This is a potential for a SQL injection attack but we control the DSL and are
