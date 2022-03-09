@@ -66,7 +66,6 @@ export interface ScatterRenderPoint {
     position: PointVector
     color: Color
     size: number
-    fontSize: number
     label: string
     time: {
         x: number
@@ -85,10 +84,12 @@ export const SCATTER_LINE_DEFAULT_WIDTH: number = 1
 export const SCATTER_LABEL_MIN_FONT_SIZE: number = 10
 export const SCATTER_LABEL_MAX_FONT_SIZE: number = 13
 export const SCATTER_LABEL_DEFAULT_FONT_SIZE: number = 10.5
+export const SCATTER_LABEL_FONT_SIZE_WHEN_HIDDEN_LINES: number = 12
 
 export interface ScatterRenderSeries extends ChartSeries {
     displayKey: string
     size: number
+    fontSize: number
     points: ScatterRenderPoint[]
     text: string
     isHover?: boolean

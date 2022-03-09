@@ -28,6 +28,7 @@ import {
     ScatterSeries,
     SCATTER_LINE_MIN_WIDTH,
     SCATTER_POINT_MIN_RADIUS,
+    ScatterRenderPoint,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
 import {
@@ -126,30 +127,32 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         yAxis.range = this.bounds.yRange()
 
         return sortNumeric(
-            seriesArray.map((series) => {
-                const points = series.points.map((point) => {
-                    const scaleColor =
-                        colorScale !== undefined
-                            ? colorScale.getColor(point.color)
-                            : undefined
-                    return {
-                        position: new PointVector(
-                            Math.floor(xAxis.place(point.x)),
-                            Math.floor(yAxis.place(point.y))
-                        ),
-                        color: scaleColor ?? series.color,
-                        size: this.getPointRadius(point.size),
-                        fontSize: this.getLabelFontSize(point.size),
-                        time: point.time,
-                        label: point.label,
+            seriesArray.map((series): ScatterRenderSeries => {
+                const points = series.points.map(
+                    (point): ScatterRenderPoint => {
+                        const scaleColor =
+                            colorScale !== undefined
+                                ? colorScale.getColor(point.color)
+                                : undefined
+                        return {
+                            position: new PointVector(
+                                Math.floor(xAxis.place(point.x)),
+                                Math.floor(yAxis.place(point.y))
+                            ),
+                            color: scaleColor ?? series.color,
+                            size: this.getPointRadius(point.size),
+                            time: point.time,
+                            label: point.label,
+                        }
                     }
-                })
+                )
 
                 return {
                     seriesName: series.seriesName,
                     displayKey: "key-" + makeSafeForCSS(series.seriesName),
                     color: series.color,
                     size: last(points)!.size,
+                    fontSize: this.getLabelFontSize(last(series.points)!.size),
                     points,
                     text: series.label,
                     midLabels: [],
