@@ -156,8 +156,6 @@
         "mobx-formatters": "^1.0.2",
         "mobx-react": "5",
         "mobx-utils": "5",
-        "moment": "^2.29.1",
-        "moment-locales-webpack-plugin": "^1.2.0",
         "mousetrap": "^1.6.5",
         "multiprocessing": "^1.2.0",
         "mysql": "^2.18.1",
