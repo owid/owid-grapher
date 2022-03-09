@@ -29,6 +29,7 @@ import {
     SCATTER_LINE_MIN_WIDTH,
     SCATTER_POINT_MIN_RADIUS,
     ScatterRenderPoint,
+    SCATTER_LABEL_MIN_FONT_SIZE,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
 import {
@@ -109,9 +110,11 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     }
 
     private getLabelFontSize(value: number | undefined): number {
-        return value !== undefined
-            ? this.fontScale(value)
-            : this.fontScale.range()[0]
+        const fontSize =
+            value !== undefined
+                ? this.fontScale(value)
+                : this.fontScale.range()[0]
+        return Math.max(fontSize, SCATTER_LABEL_MIN_FONT_SIZE)
     }
 
     @computed private get hideConnectedScatterLines(): boolean {
