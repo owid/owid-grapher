@@ -49,7 +49,12 @@ import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     ScatterPlotManager,
     ScatterSeries,
+    SCATTER_LABEL_DEFAULT_FONT_SIZE,
+    SCATTER_LABEL_MAX_FONT_SIZE,
+    SCATTER_LABEL_MIN_FONT_SIZE,
+    SCATTER_LINE_DEFAULT_WIDTH,
     SCATTER_LINE_MAX_WIDTH,
+    SCATTER_POINT_DEFAULT_RADIUS,
     SCATTER_POINT_MAX_RADIUS,
     SeriesPoint,
 } from "./ScatterPlotChartConstants.js"
@@ -528,6 +533,7 @@ export class ScatterPlotChart
                 dualAxis={dualAxis}
                 colorScale={!colorColumn.isMissing ? colorScale : undefined}
                 sizeScale={this.sizeScale}
+                fontScale={this.fontScale}
                 focusedSeriesNames={focusedEntityNames}
                 hoveredSeriesNames={hoveredSeriesNames}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
@@ -560,9 +566,37 @@ export class ScatterPlotChart
         return scaleSqrt()
             .domain(this.sizeDomain)
             .range(
-                this.isConnected
-                    ? [0, SCATTER_LINE_MAX_WIDTH]
+                this.sizeColumn.isMissing
+                    ? // if the size column is missing, we want all points/lines to have the same width
+                      this.isConnected
+                        ? [
+                              SCATTER_LINE_DEFAULT_WIDTH,
+                              SCATTER_LINE_DEFAULT_WIDTH,
+                          ]
+                        : [
+                              SCATTER_POINT_DEFAULT_RADIUS,
+                              SCATTER_POINT_DEFAULT_RADIUS,
+                          ]
+                    : this.isConnected
+                    ? // Note that the scale starts at 0.
+                      // When using the scale to plot marks, we need to make sure the minimums
+                      // (e.g. `SCATTER_POINT_MIN_RADIUS`) are respected.
+                      [0, SCATTER_LINE_MAX_WIDTH]
                     : [0, SCATTER_POINT_MAX_RADIUS]
+            )
+    }
+
+    @computed get fontScale(): ScaleLinear<number, number> {
+        return scaleSqrt()
+            .domain(this.sizeDomain)
+            .range(
+                this.sizeColumn.isMissing
+                    ? // if the size column is missing, we want all labels to have the same font size
+                      [
+                          SCATTER_LABEL_DEFAULT_FONT_SIZE,
+                          SCATTER_LABEL_DEFAULT_FONT_SIZE,
+                      ]
+                    : [SCATTER_LABEL_MIN_FONT_SIZE, SCATTER_LABEL_MAX_FONT_SIZE]
             )
     }
 

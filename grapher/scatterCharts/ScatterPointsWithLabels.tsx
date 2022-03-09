@@ -1,4 +1,3 @@
-import { scaleLinear } from "d3-scale"
 import { select } from "d3-selection"
 import { NoDataModal } from "../noDataModal/NoDataModal.js"
 import { SortOrder } from "../../coreTable/CoreTableConstants.js"
@@ -27,10 +26,8 @@ import {
     ScatterRenderSeries,
     ScatterLabel,
     ScatterSeries,
-    SCATTER_POINT_MIN_RADIUS,
     SCATTER_LINE_MIN_WIDTH,
-    SCATTER_POINT_DEFAULT_RADIUS,
-    SCATTER_LINE_DEFAULT_WIDTH,
+    SCATTER_POINT_MIN_RADIUS,
 } from "./ScatterPlotChartConstants.js"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
 import {
@@ -91,8 +88,29 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return this.props.sizeScale
     }
 
-    @computed private get fontScale(): (d: number) => number {
-        return scaleLinear().range([10, 13]).domain(this.sizeScale.domain())
+    @computed private get fontScale(): ScaleLinear<number, number> {
+        return this.props.fontScale
+    }
+
+    private getPointRadius(value: number | undefined): number {
+        const radius =
+            value !== undefined
+                ? this.sizeScale(value)
+                : this.sizeScale.range()[0]
+        // We are enforcing the minimum radius/width just before render,
+        // it should not be enforced earlier than that.
+        return Math.max(
+            radius,
+            this.props.isConnected
+                ? SCATTER_LINE_MIN_WIDTH
+                : SCATTER_POINT_MIN_RADIUS
+        )
+    }
+
+    private getLabelFontSize(value: number | undefined): number {
+        return value !== undefined
+            ? this.fontScale(value)
+            : this.fontScale.range()[0]
     }
 
     @computed private get hideConnectedScatterLines(): boolean {
@@ -101,7 +119,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
 
     // Pre-transform data for rendering
     @computed private get initialRenderSeries(): ScatterRenderSeries[] {
-        const { seriesArray, sizeScale, fontScale, colorScale, bounds } = this
+        const { seriesArray, colorScale, bounds } = this
         const xAxis = this.props.dualAxis.horizontalAxis.clone()
         xAxis.range = bounds.xRange()
         const yAxis = this.props.dualAxis.verticalAxis.clone()
@@ -114,24 +132,14 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                         colorScale !== undefined
                             ? colorScale.getColor(point.color)
                             : undefined
-                    const size = Math.max(
-                        sizeScale(point.size),
-                        this.props.isConnected
-                            ? SCATTER_LINE_MIN_WIDTH
-                            : SCATTER_POINT_MIN_RADIUS
-                    )
                     return {
                         position: new PointVector(
                             Math.floor(xAxis.place(point.x)),
                             Math.floor(yAxis.place(point.y))
                         ),
                         color: scaleColor ?? series.color,
-                        size: !isNaN(size)
-                            ? size
-                            : this.props.isConnected
-                            ? SCATTER_LINE_DEFAULT_WIDTH
-                            : SCATTER_POINT_DEFAULT_RADIUS,
-                        fontSize: fontScale(size),
+                        size: this.getPointRadius(point.size),
+                        fontSize: this.getLabelFontSize(point.size),
                         time: point.time,
                         label: point.label,
                     }

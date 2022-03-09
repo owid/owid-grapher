@@ -50,7 +50,7 @@ export interface ScatterSeries extends ChartSeries {
 export interface SeriesPoint {
     x: number
     y: number
-    size: number
+    size?: number
     entityName?: EntityName
     label: string
     color?: number | Color
@@ -74,14 +74,17 @@ export interface ScatterRenderPoint {
     }
 }
 
-export const SCATTER_POINT_MIN_RADIUS: number = 2
+export const SCATTER_POINT_MIN_RADIUS: number = 2 // only enforced in rendered points, not in scale
 export const SCATTER_POINT_MAX_RADIUS: number = 18
 export const SCATTER_POINT_OPACITY: number = 0.8
 export const SCATTER_POINT_STROKE_WIDTH: number = 0.5
 export const SCATTER_POINT_DEFAULT_RADIUS: number = 3
-export const SCATTER_LINE_MIN_WIDTH: number = 0.5
+export const SCATTER_LINE_MIN_WIDTH: number = 0.5 // only enforced in rendered lines, not in scale
 export const SCATTER_LINE_MAX_WIDTH: number = 2
 export const SCATTER_LINE_DEFAULT_WIDTH: number = 1
+export const SCATTER_LABEL_MIN_FONT_SIZE: number = 10
+export const SCATTER_LABEL_MAX_FONT_SIZE: number = 13
+export const SCATTER_LABEL_DEFAULT_FONT_SIZE: number = 10.5
 
 export interface ScatterRenderSeries extends ChartSeries {
     displayKey: string
@@ -118,6 +121,7 @@ export interface ScatterPointsWithLabelsProps {
     dualAxis: DualAxis
     colorScale?: ColorScale
     sizeScale: ScaleLinear<number, number>
+    fontScale: ScaleLinear<number, number>
     onMouseOver: (series: ScatterSeries) => void
     onMouseLeave: () => void
     onClick: () => void

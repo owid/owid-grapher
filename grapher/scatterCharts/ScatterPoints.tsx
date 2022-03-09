@@ -5,7 +5,6 @@ import React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline.js"
 import {
     ScatterRenderSeries,
-    SCATTER_POINT_MIN_RADIUS,
     SCATTER_POINT_OPACITY,
     SCATTER_POINT_STROKE_WIDTH,
 } from "./ScatterPlotChartConstants.js"
@@ -25,7 +24,7 @@ export class ScatterPoint extends React.Component<{
         const color = series.isFocus || !isLayerMode ? value.color : "#e2e2e2"
 
         const isLabelled = series.allLabels.some((label) => !label.isHidden)
-        const size = Math.max(SCATTER_POINT_MIN_RADIUS, value.size)
+        const size = value.size
         const cx = value.position.x.toFixed(2)
         const cy = value.position.y.toFixed(2)
         const stroke = isLayerMode ? "#bbb" : isLabelled ? "#333" : "#666"
