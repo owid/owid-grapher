@@ -69,12 +69,12 @@ class ColorLegendSection extends React.Component<{
 }> {
     @action.bound onEqualSizeBins(isEqual: boolean) {
         this.props.scale.config.equalSizeBins = isEqual ? true : undefined
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @action.bound onManualBins() {
         populateManualBinValuesIfAutomatic(this.props.scale)
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     render() {
@@ -136,12 +136,12 @@ class ColorsSection extends React.Component<{
             config.baseColorScheme = selected.value as ColorSchemeName
             config.customNumericColorsActive = undefined
         }
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @action.bound onInvert(invert: boolean) {
         this.config.colorSchemeInvert = invert || undefined
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @computed get scale() {
@@ -159,7 +159,7 @@ class ColorsSection extends React.Component<{
         } | null
     ) {
         if (binningStrategy) this.config.binningStrategy = binningStrategy.value
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @computed get currentColorScheme() {
@@ -322,7 +322,7 @@ class BinLabelView extends React.Component<{
             customCategoryLabels[bin.value] = value
             scale.config.customCategoryLabels = customCategoryLabels
         }
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     render() {
@@ -388,14 +388,14 @@ class NumericBinView extends React.Component<{
             scale.config.customNumericColors.push(undefined)
 
         scale.config.customNumericColors[index] = color
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @action.bound onMaximumValue(value: number | undefined) {
         const { scale, index } = this.props
         populateManualBinValuesIfAutomatic(scale)
         if (value !== undefined) scale.config.customNumericValues[index] = value
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @action.bound onLabel(value: string) {
@@ -403,7 +403,7 @@ class NumericBinView extends React.Component<{
         while (scale.config.customNumericLabels.length < scale.numBins)
             scale.config.customNumericLabels.push(undefined)
         scale.config.customNumericLabels[index] = value
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @action.bound onRemove() {
@@ -411,7 +411,7 @@ class NumericBinView extends React.Component<{
         populateManualBinValuesIfAutomatic(scale)
         scale.config.customNumericValues.splice(index, 1)
         scale.config.customNumericColors.splice(index, 1)
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @action.bound onAddAfter() {
@@ -430,7 +430,7 @@ class NumericBinView extends React.Component<{
             customNumericValues.splice(index + 1, 0, newValue)
             customNumericColors.splice(index + 1, 0, undefined)
         }
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     render() {
@@ -488,7 +488,7 @@ class CategoricalBinView extends React.Component<{
         if (color === undefined) delete customCategoryColors[bin.value]
         else customCategoryColors[bin.value] = color
         scale.config.customCategoryColors = customCategoryColors
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @action.bound onLabel(value: string) {
@@ -496,7 +496,7 @@ class CategoricalBinView extends React.Component<{
         const customCategoryLabels = clone(scale.config.customCategoryLabels)
         customCategoryLabels[bin.value] = value
         scale.config.customCategoryLabels = customCategoryLabels
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     @action.bound onToggleHidden() {
@@ -508,7 +508,7 @@ class CategoricalBinView extends React.Component<{
         if (bin.isHidden) delete customHiddenCategories[bin.value]
         else customHiddenCategories[bin.value] = true
         scale.config.customHiddenCategories = customHiddenCategories
-        this.props.onChange ? this.props.onChange() : noop()
+        this.props.onChange?.()
     }
 
     render() {
