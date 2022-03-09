@@ -151,7 +151,9 @@ export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
 
     if (!currentIsOldOrAllowedNull && !currentIsUndefinedOldIsNull) {
         console.warn(
-            `When trying to set value for ${patchSet.id} at ${patchSet.jsonPointer}, the existing value was not as expected (showing current and expected)`,
+            `When trying to set value for %d at %s the existing value was not as expected (showing current and expected)`,
+            patchSet.id,
+            patchSet.jsonPointer,
             currentValue,
             patchSet.oldValue
         )
