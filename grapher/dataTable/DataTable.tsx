@@ -327,7 +327,7 @@ export class DataTable extends React.Component<{
                         actualColumn.table.formatTime(column.targetTime!),
                         actualColumn.table.formatTime(value.time!) // todo: add back format: "MMM D",
                     )}
-                {value.displayValue}
+                <span>{value.displayValue}</span>
             </td>
         )
     }
@@ -716,7 +716,7 @@ function ColumnHeader(props: {
                     deltaColumn: isDeltaColumn(subdimensionType),
                 })}
             >
-                {props.headerText}
+                <span>{props.headerText}</span>
                 {sortable && (
                     <SortIcon
                         type={props.dataType}
