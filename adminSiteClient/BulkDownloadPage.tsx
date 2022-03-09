@@ -39,8 +39,7 @@ export class DownloadChartsSection extends React.Component {
                         Downloads a csv containing all OWID charts. Each row
                         represents a single chart. Each column represents a
                         grapher config field (e.g. title, subtitle, minTime,
-                        ...) or a chart meta field (e.g. isStarred,
-                        lastEditedAt, ...).
+                        ...) or a chart meta field (e.g. lastEditedAt, ...).
                     </p>
                     <p>
                         The csv file does NOT contain all grapher config fields

@@ -65,14 +65,6 @@ export const getRedirects = async () => {
         )
     )
 
-    // Redirect /grapher/latest
-    const latestRows = await db.queryMysql(
-        `SELECT JSON_EXTRACT(config, "$.slug") as slug FROM charts where starred=1`
-    )
-    for (const row of latestRows) {
-        redirects.push(`/grapher/latest /grapher/${JSON.parse(row.slug)} 302`)
-    }
-
     // Redirect old slugs to new slugs
     const chartRedirectRows = await db.queryMysql(`
     SELECT chart_slug_redirects.slug, chart_id, JSON_EXTRACT(charts.config, "$.slug") as trueSlug
