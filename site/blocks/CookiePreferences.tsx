@@ -1,4 +1,4 @@
-import moment from "moment"
+import dayjs from "../../clientUtils/dayjs.js"
 import React from "react"
 import ReactDOM from "react-dom"
 import {
@@ -71,7 +71,7 @@ export const CookiePreferences = ({
     dispatch,
 }: {
     preferences: Preference[]
-    date?: number
+    date?: string
     dispatch: any
 }) => {
     const cookiePreferencesDomSlot = document.querySelector(
@@ -113,7 +113,7 @@ export const CookiePreferences = ({
             {date ? (
                 <div className="last-updated">
                     Preferences last updated:{" "}
-                    {moment(date, DATE_FORMAT).format("LL")}
+                    {dayjs(date, DATE_FORMAT).format("MMMM D, YYYY")}
                 </div>
             ) : (
                 <button

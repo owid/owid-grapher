@@ -21,7 +21,7 @@ import { EntityName, OwidVariableRow } from "./OwidTableConstants.js" // todo: r
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil.js"
 import { imemo } from "./CoreTableUtils.js"
-import moment from "moment"
+import dayjs from "../clientUtils/dayjs.js"
 import { OwidSource } from "../clientUtils/OwidSource.js"
 import {
     formatValue,
@@ -680,8 +680,8 @@ class DateColumn extends DayColumn {
             dateToTimeCache.set(
                 val,
                 dateDiffInDays(
-                    moment.utc(val).toDate(),
-                    moment.utc("2020-01-21").toDate()
+                    dayjs.utc(val).toDate(),
+                    dayjs.utc("2020-01-21").toDate()
                 )
             )
         return dateToTimeCache.get(val)!

@@ -4,7 +4,7 @@ import { useEffect, useReducer } from "react"
 import * as Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"
-import moment from "moment"
+import dayjs from "../clientUtils/dayjs.js"
 
 export enum PreferenceType {
     Analytics = "a",
@@ -76,7 +76,7 @@ export const CookiePreferencesManager = ({
             />
             <CookiePreferences
                 preferences={state.preferences}
-                date={state.date}
+                date={`${state.date}`}
                 dispatch={dispatch}
             />
         </div>
@@ -162,7 +162,7 @@ export const isValidPreference = ({ type, value }: Preference) => {
 export const parseDate = (date?: string): number | undefined => {
     if (!date) return
 
-    return moment(date, DATE_FORMAT, true).isValid()
+    return dayjs(date, DATE_FORMAT, true).isValid()
         ? parseInt(date, 10)
         : undefined
 }
@@ -213,7 +213,7 @@ export const serializeState = (state: State) => {
     return `${serializedPreferences}${DATE_SEPARATOR}${state.date}`
 }
 
-export const getTodayDate = () => moment().format(DATE_FORMAT)
+export const getTodayDate = () => dayjs().format(DATE_FORMAT)
 
 export const runCookiePreferencesManager = () => {
     const div = document.createElement("div")

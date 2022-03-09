@@ -3,7 +3,6 @@ import path from "path"
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const ManifestPlugin = require("webpack-manifest-plugin")
-const MomentLocalesPlugin = require("moment-locales-webpack-plugin")
 
 const TerserJSPlugin = require("terser-webpack-plugin")
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
@@ -108,10 +107,6 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
             new webpack.IgnorePlugin(
                 /settings\/(serverSettings|clientSettingsReader)/
             ),
-
-            // Remove all moment locales except for "en"
-            // This way of doing so is recommended by Moment itself: https://momentjs.com/docs/#/use-it/webpack/
-            new MomentLocalesPlugin(),
         ],
         devServer: {
             host: "localhost",

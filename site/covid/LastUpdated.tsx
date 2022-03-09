@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react"
-import dayjs, { Dayjs } from "dayjs"
-import relativeTime from "dayjs/plugin/relativeTime"
-dayjs.extend(relativeTime)
+import dayjs, { Dayjs } from "../../clientUtils/dayjs.js"
 
 export interface LastUpdatedTokenProps {
     timestampUrl?: string

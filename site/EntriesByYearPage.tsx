@@ -1,5 +1,5 @@
 import React from "react"
-import moment from "moment"
+import dayjs from "../clientUtils/dayjs.js"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
@@ -15,7 +15,7 @@ export const EntriesByYearPage = (props: {
 }) => {
     const { baseUrl } = props
     const entriesByYear = groupBy(props.entries, (entry) =>
-        moment(entry.published_at as Date).year()
+        dayjs(entry.published_at as Date).year()
     )
 
     const years = Object.keys(entriesByYear).sort().reverse()
@@ -105,7 +105,7 @@ export const EntriesForYearPage = (props: {
 }) => {
     const { baseUrl, year } = props
     const entriesByYear = groupBy(props.entries, (entry) =>
-        moment(entry.published_at as Date).year()
+        dayjs(entry.published_at as Date).year()
     )
 
     const years = Object.keys(entriesByYear)
