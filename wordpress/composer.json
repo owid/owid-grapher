@@ -39,10 +39,6 @@
         },
         {
             "type": "vcs",
-            "url": "https://github.com/wp-graphql/wp-graphql"
-        },
-        {
-            "type": "vcs",
             "url": "https://github.com/WP-API/Basic-Auth"
         }
     ],
@@ -57,7 +53,7 @@
         "roots/wp-config": "1.0.0",
         "roots/wp-password-bcrypt": "1.1.0",
         "wp-api/basic-auth": "dev-master",
-        "wp-graphql/wp-graphql": "1.7.1",
+        "wpackagist-plugin/wp-graphql": "1.7.2",
         "wpackagist-plugin/add-category-to-pages": "1.2",
         "wpackagist-plugin/admin-starred-posts": "2.5",
         "wpackagist-plugin/broken-link-checker": "1.11.16",
@@ -71,7 +67,7 @@
         "wpackagist-plugin/tablepress": "1.14",
         "wpackagist-plugin/enable-media-replace": "3.6.3",
         "lcobucci/jwt": "4.1.5",
-        "wpackagist-plugin/meta-box": "5.6.0",
+        "wpackagist-plugin/meta-box": "5.6.1",
         "wpackagist-plugin/mb-relationships": "1.10.11",
         "hsimah-services/wp-graphql-mb-relationships": "^0.4.0"
     },
