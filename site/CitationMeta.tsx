@@ -1,5 +1,5 @@
 import React from "react"
-import moment from "moment"
+import dayjs from "../clientUtils/dayjs.js"
 
 export const CitationMeta = (props: {
     // id: number
@@ -22,10 +22,10 @@ export const CitationMeta = (props: {
             {/* <meta name="citation_volume" content="1"/>
         <meta name="citation_issue" content="1"/>
         <meta name="citation_firstpage" content={`e${id}`}/>
-        <meta name="citation_online_date" content={moment(date).format("YYYY/MM/DD")}/> */}
+        <meta name="citation_online_date" content={dayjs(date).format("YYYY/MM/DD")}/> */}
             <meta
                 name="citation_publication_date"
-                content={moment(date).format("YYYY/MM/DD")}
+                content={dayjs(date).format("YYYY/MM/DD")}
             />
             <meta name="citation_journal_title" content="Our World in Data" />
             <meta name="citation_journal_abbrev" content="Our World in Data" />

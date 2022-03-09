@@ -119,7 +119,7 @@ export {
 }
 import { extent, pairs } from "d3-array"
 export { pairs }
-import moment from "moment"
+import dayjs from "./dayjs.js"
 import { formatLocale } from "d3-format"
 import striptags from "striptags"
 import parseUrl from "url-parse"
@@ -268,10 +268,10 @@ export function formatDay(
     options?: { format?: string }
 ): string {
     const format = options?.format ?? "MMM D, YYYY"
-    // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
-    // This will force moment to format in UTC time instead of local time,
+    // Use dayjs' UTC mode
+    // This will force dayjs to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
-    return moment.utc(EPOCH_DATE).add(dayAsYear, "days").format(format)
+    return dayjs.utc(EPOCH_DATE).add(dayAsYear, "days").format(format)
 }
 
 export const formatYear = (year: number): string => {
@@ -773,7 +773,7 @@ export function dateDiffInDays(a: Date, b: Date): number {
 }
 
 export const diffDateISOStringInDays = (a: string, b: string): number =>
-    moment.utc(a).diff(moment.utc(b), "days")
+    dayjs.utc(a).diff(dayjs.utc(b), "day")
 
 export const addDays = (date: Date, days: number): Date => {
     const newDate = new Date(date.getTime())

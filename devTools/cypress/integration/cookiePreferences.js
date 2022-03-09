@@ -1,10 +1,10 @@
-import moment from "moment"
+import dayjs from "dayjs"
 
 describe("Cookie preferences", function () {
     const DATE_FORMAT = "YYYYMMDD"
     const COOKIE_NAME = "cookie_preferences"
     const COOKIE_NOTICE = "@cookieNotice"
-    const today = moment().format(DATE_FORMAT)
+    const today = dayjs().format(DATE_FORMAT)
 
     beforeEach(() => {
         cy.visit("/privacy-policy")
@@ -73,10 +73,10 @@ describe("Cookie preferences", function () {
     it("Shows / hides the cookie banner in relation to a policy update", () => {
         cy.get("[data-test-policy-date]").then((el) => {
             const policyDate = el.attr("data-test-policy-date")
-            const dayBeforePolicyUpdate = moment(policyDate)
+            const dayBeforePolicyUpdate = dayjs(policyDate)
                 .subtract(1, "days")
                 .format(DATE_FORMAT)
-            const dayAfterPolicyUpdate = moment(policyDate)
+            const dayAfterPolicyUpdate = dayjs(policyDate)
                 .add(1, "days")
                 .format(DATE_FORMAT)
 

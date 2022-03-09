@@ -17,7 +17,7 @@ import {
     GIT_CMS_DEFAULT_BRANCH,
     GIT_CMS_REPO_URL,
 } from "../gitCms/GitCmsConstants.js"
-import moment from "moment"
+import dayjs from "../clientUtils/dayjs.js"
 import {
     EXPLORERS_GIT_CMS_FOLDER,
     GetAllExplorersRoute,
@@ -110,9 +110,7 @@ class ExplorerRow extends React.Component<{
                     <div>{lastCommit?.message}</div>
                     <div style={{ fontSize: "80%", opacity: 0.8 }}>
                         <a href={lastCommitLink}>
-                            {lastCommit
-                                ? moment(lastCommit.date).fromNow()
-                                : ""}
+                            {lastCommit ? dayjs(lastCommit.date).fromNow() : ""}
                         </a>{" "}
                         by {lastCommit?.author_name} | {fileHistoryButton}
                         {googleSheetButton}
@@ -203,7 +201,7 @@ export class ExplorersIndexPage extends React.Component<{
     @computed get explorersToShow(): ExplorerProgram[] {
         return orderBy(
             this.explorers,
-            (program) => moment(program.lastCommit?.date).unix(),
+            (program) => dayjs(program.lastCommit?.date).unix(),
             ["desc"]
         )
     }

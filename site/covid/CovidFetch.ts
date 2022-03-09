@@ -1,5 +1,5 @@
 import { csvParse } from "d3-dsv"
-import moment from "moment"
+import dayjs from "../../clientUtils/dayjs.js"
 
 import {
     fetchText,
@@ -60,7 +60,7 @@ export async function fetchTestsData(): Promise<CovidSeries> {
     const responseText = await retryPromise(() => fetchText(TESTS_DATA_URL))
     const rows: CovidSeries = csvParse(responseText).map((row) => {
         return {
-            date: moment(
+            date: dayjs(
                 row["Date to which estimate refers (dd mmm yyyy)"] as string,
                 "DD MMMM YYYY"
             ).toDate(),
@@ -74,7 +74,7 @@ export async function fetchTestsData(): Promise<CovidSeries> {
                 ),
                 sourceURL: row["Source URL"],
                 sourceLabel: row["Source label"],
-                publicationDate: moment(
+                publicationDate: dayjs(
                     `${row["Date of source publication (dd mmm yyyy)"]} ${row["Time of source publication (hh:mm)"]}`,
                     "DD MMMM YYYY HH:mm"
                 ).toDate(),
