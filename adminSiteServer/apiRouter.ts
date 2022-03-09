@@ -2492,4 +2492,8 @@ apiRouter.get("/deploys.json", async () => ({
     deploys: await new DeployQueueServer().getDeploys(),
 }))
 
+apiRouter.put("/deploy", async (req: Request, res: Response) => {
+    triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+})
+
 export { apiRouter }

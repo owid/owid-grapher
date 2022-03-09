@@ -70,7 +70,7 @@ export class Admin {
     // Make a request with no error or response handling
     async rawRequest(
         path: string,
-        data: string | File,
+        data: string | File | undefined,
         method: HTTPMethod
     ): Promise<Response> {
         const headers: HeadersInit = {}
