@@ -71,7 +71,7 @@ export const CookiePreferences = ({
     dispatch,
 }: {
     preferences: Preference[]
-    date?: number
+    date?: string
     dispatch: any
 }) => {
     const cookiePreferencesDomSlot = document.querySelector(
