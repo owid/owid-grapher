@@ -2244,6 +2244,11 @@ export class Grapher
         )
     }
 
+    @action.bound clearSelection(): void {
+        this.selection.clearSelection()
+        this.applyOriginalSelectionAsAuthored()
+    }
+
     @action.bound clearQueryParams(): void {
         const { authorsVersion } = this
         this.tab = authorsVersion.tab
@@ -2257,8 +2262,7 @@ export class Grapher
         this.maxTime = authorsVersion.maxTime
         this.map.time = authorsVersion.map.time
         this.map.projection = authorsVersion.map.projection
-        this.selection.clearSelection()
-        this.applyOriginalSelectionAsAuthored()
+        this.clearSelection()
     }
 
     // Todo: come up with a more general pattern?

@@ -416,6 +416,7 @@ interface ToggleProps {
     value: boolean
     onValue: (value: boolean) => void
     disabled?: boolean
+    title?: string
 }
 
 export class Toggle extends React.Component<ToggleProps> {
@@ -425,7 +426,7 @@ export class Toggle extends React.Component<ToggleProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ["label", "disabled"])
+        const passthroughProps = pick(props, ["label", "disabled", "title"])
 
         return (
             <div className="form-check">

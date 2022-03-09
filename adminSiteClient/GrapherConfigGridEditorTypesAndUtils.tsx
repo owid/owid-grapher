@@ -144,6 +144,7 @@ export interface IconToggleProps {
 
 export enum ColumnDataSourceType {
     FieldDescription = "FieldDescription",
+    MultipleFieldDescriptions = "MultipleFieldDescriptions",
     ReadOnlyColumn = "ReadOnlyColumn",
     Unkown = "Unknown",
 }

@@ -1,7 +1,48 @@
 import jsonpointer from "json8-pointer"
 import { isNil } from "lodash"
 import { GrapherConfigPatch } from "./AdminSessionTypes.js"
-import { isArray, isPlainObjectWithGuard } from "./Util.js"
+import { isArray, isEqual, isPlainObjectWithGuard } from "./Util.js"
+
+export function setValueRecursiveInplace(
+    json: any,
+    pointer: string[],
+    newValue: any
+): any {
+    if (pointer.length === 0) throw new Error("Pointer must not be empty")
+
+    const key: string = pointer[0]
+    pointer = pointer.slice(1)
+    const currentPartAsNumber = Number.parseInt(key)
+    if (json === undefined) {
+        if (!isNaN(currentPartAsNumber)) {
+            json = []
+        } else {
+            json = {}
+        }
+    }
+    if (pointer.length === 0) {
+        if (isArray(json) && !isNaN(currentPartAsNumber)) {
+            if (json.length > currentPartAsNumber)
+                json[currentPartAsNumber] = newValue
+            else json.push(newValue)
+        } else json[key] = newValue
+
+        return json
+    }
+
+    if (json[key] === undefined) {
+        // because we work in-place, we need to create the missing child element before recursing
+        const nextPartAsNumber = Number.parseInt(pointer[0])
+        if (!isNaN(nextPartAsNumber)) {
+            json[key] = []
+        } else {
+            json[key] = {}
+        }
+    }
+
+    return setValueRecursiveInplace(json[key], pointer, newValue)
+}
+
 export function setValueRecursive(
     json: any,
     pointer: string[],
@@ -98,16 +139,11 @@ export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
     }
 
     const currentValue = jsonpointer.find(config, patchSet.jsonPointer)
-    const currentIsOld = currentValue === patchSet.oldValue
+    const currentIsOld = isEqual(currentValue, patchSet.oldValue)
     const currentIsOldOrAllowedNull =
         currentIsOld ||
         (patchSet.oldValueIsEquivalentToNullOrUndefined && isNil(currentValue))
-    console.log({
-        currentValue,
-        currentIsOld,
-        currentIsOldOrAllowedNull,
-        oldValue: patchSet.oldValue,
-    })
+
     // The case below is when we don't want to set a new value and the old json deserialized value is null. In
     // this case the equality is false but logically we are fine with this of course
     const currentIsUndefinedOldIsNull =
@@ -115,7 +151,11 @@ export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
 
     if (!currentIsOldOrAllowedNull && !currentIsUndefinedOldIsNull) {
         console.warn(
-            `When trying to set value for ${patchSet.id} at ${patchSet.jsonPointer}, the existing value was ${currentValue} instead of ${patchSet.oldValue}`
+            `When trying to set value for %d at %s the existing value was not as expected (showing current and expected)`,
+            patchSet.id,
+            patchSet.jsonPointer,
+            currentValue,
+            patchSet.oldValue
         )
         throw Error("Old value was not as expected")
     }

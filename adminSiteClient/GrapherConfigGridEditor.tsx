@@ -22,9 +22,12 @@ import {
     pick,
 } from "lodash"
 
-import { HotColumn, HotTable } from "@handsontable/react"
+import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { applyPatch } from "../clientUtils/patchHelper.js"
+import {
+    applyPatch,
+    setValueRecursiveInplace,
+} from "../clientUtils/patchHelper.js"
 import {
     FieldDescription,
     extractFieldDescriptionsFromSchema,
@@ -38,7 +41,7 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
 } from "../grapher/core/Grapher.js"
-import { BindString, SelectField } from "./Forms.js"
+import { BindString, SelectField, Toggle } from "./Forms.js"
 import { from } from "rxjs"
 import {
     catchError,
@@ -91,6 +94,61 @@ import {
 import { Query, Utils as QbUtils } from "react-awesome-query-builder"
 // types
 import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
+import codemirror from "codemirror"
+import { UnControlled as CodeMirror } from "react-codemirror2"
+import jsonpointer from "json8-pointer"
+import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
+import { MapChart } from "../grapher/mapCharts/MapChart.js"
+
+function HotColorScaleRenderer(props: Record<string, unknown>) {
+    return <div style={{ color: "gray" }}>Color scale</div>
+}
+/**
+ * This cell editor component explicitly does nothing. It is used for color scale columns
+ * where we don't want to make the cells read only so that copy/paste etc still work but
+ * at the same time we don't want the user to be able to edit the cells directly (instead
+ * they should use the sidebar editor)
+ */
+class HotColorScaleEditor extends BaseEditorComponent<Record<string, never>> {
+    constructor(props: Record<string, never>) {
+        super(props)
+    }
+
+    setValue(value: any, callback: any) {}
+
+    getValue() {
+        return undefined
+    }
+
+    open() {}
+
+    close() {}
+
+    prepare(
+        row: any,
+        col: any,
+        prop: any,
+        td: any,
+        originalValue: any,
+        cellProperties: any
+    ) {
+        // We'll need to call the `prepare` method from
+        // the `BaseEditorComponent` class, as it provides
+        // the component with the information needed to use the editor
+        // (hotInstance, row, col, prop, TD, originalValue, cellProperties)
+        super.prepare(row, col, prop, td, originalValue, cellProperties)
+
+        // const tdPosition = td.getBoundingClientRect();
+
+        // As the `prepare` method is triggered after selecting
+        // any cell, we're updating the styles for the editor element,
+        // so it shows up in the correct position.
+    }
+
+    render() {
+        return <div id="colorScaleEditorElement"></div>
+    }
+}
 
 @observer
 export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
@@ -99,10 +157,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable.ref grapher = new Grapher() // the grapher instance we keep around and update
     @observable.ref grapherElement?: JSX.Element // the JSX Element of the preview IF we want to display it currently
     numTotalRows: number | undefined = undefined
-    selectedRow: number | undefined = undefined
+    @observable selectedRow: number | undefined = undefined
+    @observable selectedColumn: number | undefined = undefined
     @observable activeTab = Tabs.FilterTab
     @observable currentColumnSet: ColumnSet
     @observable columnFilter: string = ""
+    @observable hasUncommitedRichEditorChanges: boolean = false
 
     @observable.ref columnSelection: ColumnInformation[] = []
     @observable.ref filterState: FilterPanelState | undefined = undefined
@@ -123,6 +183,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     /** Redo stack - not yet used */
     @observable redoStack: Action[] = []
 
+    @observable keepEntitySelectionOnChartChange: boolean = false
     /** This field stores the offset of what is currently displayed on screen */
     @observable currentPagingOffset: number = 0
     /** This field stores the offset that the user requested. E.g. if the user clicks
@@ -244,25 +305,216 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         if (this.grapherElement) {
             this.grapher.setAuthoredVersion(newConfig)
             this.grapher.reset()
+            if (!this.keepEntitySelectionOnChartChange)
+                // this resets the entity selection to what the author set in the chart config
+                // This is user controlled because when working with existing charts this is usually desired
+                // but when working on the variable level where this is missing it is often nicer to keep
+                // the same country selection as you zap through the variables
+                this.grapher.clearSelection()
             this.grapher.updateFromObject(newConfig)
             this.grapher.downloadData()
         } else this.grapherElement = <Grapher {...newConfig} />
     }
 
     @action private updatePreviewToRow(row: number): void {
-        const { richDataRows, config } = this
-        if (richDataRows === undefined) return
+        const { selectedRowContent } = this
+        if (selectedRowContent === undefined) return
 
         // Get the grapherConfig of the currently selected row and then
         // merge it with the necessary partial information (e.g. variableId field)
         // to get a config that actually works in all cases
-        const grapherConfig = richDataRows[row].config
-        const finalConfigLayer = config.finalVariableLayerModificationFn(
-            richDataRows[row].id
+        const grapherConfig = selectedRowContent.config
+        const finalConfigLayer = this.config.finalVariableLayerModificationFn(
+            selectedRowContent.id
         )
 
         const mergedConfig = merge(grapherConfig, finalConfigLayer)
         this.loadGrapherJson(mergedConfig)
+    }
+
+    @computed private get columnDataSource(): ColumnDataSource | undefined {
+        const { selectedRowContent, columnDataSources, selectedColumn } = this
+        if (selectedRowContent === undefined) return undefined
+        if (
+            selectedColumn === undefined ||
+            selectedColumn >= columnDataSources.length
+        ) {
+            return undefined
+        }
+        return columnDataSources[selectedColumn]
+    }
+
+    @computed private get currentColumnFieldDescription():
+        | FieldDescription
+        | undefined {
+        const { columnDataSource } = this
+
+        return match(columnDataSource)
+            .with(
+                { kind: ColumnDataSourceType.FieldDescription },
+                (source) => source.description
+            )
+            .otherwise(() => undefined)
+    }
+
+    @action.bound
+    private onRichTextEditorChange(
+        editor: codemirror.Editor,
+        data: codemirror.EditorChange,
+        value: string
+    ) {
+        if (data.origin !== undefined) {
+            console.log({ data })
+            // origin seems to be +input when editing and undefined when we change the value programmatically
+            const { currentColumnFieldDescription, grapher } = this
+            if (currentColumnFieldDescription === undefined) return
+            this.hasUncommitedRichEditorChanges = true
+            const pointer = jsonpointer.parse(
+                currentColumnFieldDescription.pointer
+            ) as string[]
+            // Here we are setting the target column field directly at the grapher so the
+            // preview is updated. When the user clicks the save button we'll then check
+            // the value on grapher vs the value on the richDataRow and perform a proper
+            // update using doAction like we do on the grid editor commits.
+            setValueRecursiveInplace(grapher, pointer, value)
+        }
+    }
+    @action.bound
+    commitRichEditorChanges() {
+        this.commitOrCancelRichEditorChanges(true)
+    }
+    @action.bound
+    cancelRichEditorChanges() {
+        this.commitOrCancelRichEditorChanges(false)
+    }
+
+    @action.bound
+    commitOrCancelRichEditorChanges(performCommit: boolean) {
+        const { selectedRowContent, currentColumnFieldDescription, grapher } =
+            this
+        if (
+            selectedRowContent === undefined ||
+            currentColumnFieldDescription === undefined
+        )
+            return
+
+        const pointer = jsonpointer.parse(
+            currentColumnFieldDescription.pointer
+        ) as string[]
+
+        const prevVal = currentColumnFieldDescription.getter(
+            selectedRowContent.config as Record<string, unknown>
+        )
+        if (performCommit) {
+            const grapherObject = { ...this.grapher.object }
+            const newVal = currentColumnFieldDescription.getter(
+                grapherObject as Record<string, unknown>
+            )
+
+            const patch: GrapherConfigPatch = {
+                id: selectedRowContent.id,
+                oldValue: prevVal,
+                newValue: newVal,
+                jsonPointer: currentColumnFieldDescription.pointer,
+                oldValueIsEquivalentToNullOrUndefined:
+                    currentColumnFieldDescription.default !== undefined &&
+                    currentColumnFieldDescription.default === prevVal,
+            }
+            this.doAction({ patches: [patch] })
+        } else {
+            setValueRecursiveInplace(grapher, pointer, prevVal)
+        }
+
+        this.hasUncommitedRichEditorChanges = false
+    }
+
+    @action.bound
+    onGenericRichEditorChange() {
+        this.hasUncommitedRichEditorChanges = true
+    }
+
+    @computed get editControl(): JSX.Element | undefined {
+        const { currentColumnFieldDescription, grapher, selectedRowContent } =
+            this
+        if (
+            currentColumnFieldDescription === undefined ||
+            selectedRowContent === undefined
+        )
+            return undefined
+
+        return match(currentColumnFieldDescription.editor)
+            .with(
+                EditorOption.primitiveListEditor,
+                () =>
+                    // TODO: handle different kinds of arrays here. In effect, the ones to handle are
+                    // includedEntities, excludedEntities (both with a yet to extract control)
+                    // selection. The seleciton should be refactored because ATM it's 3 arrays and it
+                    // is annoying to keep those in sync and target more than one field with a column.
+                    undefined
+            )
+            .with(EditorOption.colorEditor, () => {
+                if (currentColumnFieldDescription?.pointer.startsWith("/map")) {
+                    // TODO: remove this hack once map is more similar to other charts
+                    const mapChart = new MapChart({ manager: this.grapher })
+                    const colorScale = mapChart.colorScale
+                    // TODO: instead of using onChange below that has to be maintained when
+                    // the color scale changes I tried to use a reaction here after Daniel G's suggestion
+                    // but I couldn't get this to work. Worth trying again later.
+                    // this.editControlDisposerFn = reaction(
+                    //     () => colorScale,
+                    //     () => this.onGenericRichEditorChange(),
+                    //     { equals: comparer.structural }
+                    // )
+                    return colorScale ? (
+                        <EditorColorScaleSection
+                            scale={colorScale}
+                            features={{
+                                visualScaling: true,
+                                legendDescription: false,
+                            }}
+                            onChange={this.onGenericRichEditorChange}
+                        />
+                    ) : undefined
+                } else {
+                    if (grapher.chartInstanceExceptMap.colorScale) {
+                        const colorScale =
+                            grapher.chartInstanceExceptMap.colorScale
+                        // TODO: instead of using onChange below that has to be maintained when
+                        // the color scale changes I tried to use a reaction here after Daniel G's suggestion
+                        // but I couldn't get this to work. Worth trying again later.
+                        // this.editControlDisposerFn = reaction(
+                        //     () => colorScale,
+                        //     () => this.onGenericRichEditorChange(),
+                        //     { equals: comparer.structural }
+                        // )
+                        return (
+                            <EditorColorScaleSection
+                                scale={colorScale}
+                                features={{
+                                    visualScaling: true,
+                                    legendDescription: false,
+                                }}
+                                onChange={this.onGenericRichEditorChange}
+                            />
+                        )
+                    } else return undefined
+                }
+            })
+            .with(EditorOption.textfield, EditorOption.textarea, () => (
+                <CodeMirror
+                    value={currentColumnFieldDescription.getter(
+                        grapher as any as Record<string, unknown>
+                    )}
+                    options={{
+                        //theme: "material",
+                        lineNumbers: true,
+                        lineWrapping: true,
+                    }}
+                    autoCursor={false}
+                    onChange={this.onRichTextEditorChange}
+                />
+            ))
+            .otherwise(() => undefined)
     }
 
     async sendPatches(patches: GrapherConfigPatch[]): Promise<void> {
@@ -419,29 +671,44 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .with(EditorOption.numeric, () => "numeric")
             .with(EditorOption.textfield, () => "text")
             .with(EditorOption.textarea, () => "text")
-            .with(EditorOption.colorEditor, () => "text")
+            .with(EditorOption.colorEditor, () => "colorScale")
             .with(EditorOption.mappingEditor, () => "text")
             .with(EditorOption.primitiveListEditor, () => "text")
             .exhaustive()
     }
     static fieldDescriptionToColumn(desc: FieldDescription): JSX.Element {
         const name = desc.pointer //.substring(1)
-        return (
-            <HotColumn
-                key={desc.pointer}
-                settings={{
-                    title: name,
-                    readOnly:
-                        desc.editor === EditorOption.primitiveListEditor ||
-                        desc.editor === EditorOption.mappingEditor ||
-                        desc.editor === EditorOption.colorEditor,
-                    type: GrapherConfigGridEditor.decideHotType(desc),
-                    source: desc.enumOptions,
-                    data: desc.pointer,
-                    width: Math.max(Bounds.forText(name).width, 50),
-                }}
-            />
-        )
+        const type = GrapherConfigGridEditor.decideHotType(desc)
+        if (desc.editor === EditorOption.colorEditor) {
+            return (
+                <HotColumn
+                    key={desc.pointer}
+                    settings={{
+                        title: name,
+                        data: desc.pointer,
+                        width: Math.max(Bounds.forText(name).width, 50),
+                    }}
+                >
+                    <HotColorScaleRenderer hot-renderer />
+                    <HotColorScaleEditor hot-editor />
+                </HotColumn>
+            )
+        } else
+            return (
+                <HotColumn
+                    key={desc.pointer}
+                    settings={{
+                        title: name,
+                        readOnly:
+                            desc.editor === EditorOption.primitiveListEditor ||
+                            desc.editor === EditorOption.mappingEditor,
+                        type: type,
+                        source: desc.enumOptions,
+                        data: desc.pointer,
+                        width: Math.max(Bounds.forText(name).width, 50),
+                    }}
+                />
+            )
     }
 
     @computed get columnDataSources(): ColumnDataSource[] {
@@ -538,6 +805,20 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return definedColumns
     }
 
+    @action.bound
+    updateSelection(row: number, column: number): void {
+        if (this.hasUncommitedRichEditorChanges) this.cancelRichEditorChanges()
+        if (row !== this.selectedRow) {
+            this.hasUncommitedRichEditorChanges = false
+            this.selectedRow = row
+            this.updatePreviewToRow(row)
+        }
+        if (column !== this.selectedColumn) {
+            this.hasUncommitedRichEditorChanges = false
+            this.selectedColumn = column
+        }
+    }
+
     @computed
     private get hotSettings() {
         const { flattenedDataRows, columnSelection } = this
@@ -551,11 +832,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
                 this.validateCellChanges(changes, source),
-            afterSelectionEnd: (row /*, column, row2, column2, layer*/) => {
-                if (row !== this.selectedRow) {
-                    this.selectedRow = row
-                    this.updatePreviewToRow(row)
-                }
+            afterSelectionEnd: (row, column /* row2, column2, layer*/) => {
+                this.updateSelection(row, column)
             },
             allowInsertColumn: false,
             allowInsertRow: false,
@@ -645,6 +923,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 Number.isNaN(Number.parseInt(firstNewValue))
             )
             .with([FieldType.boolean, "boolean"], () => false)
+            .with([FieldType.complex, __], () => false) // complex types, e.g. color scales, are handled specially, allow them here
             .with([[__], "string"], () => false)
 
             .otherwise(() => true)
@@ -704,6 +983,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 !Number.isNaN(Number.parseFloat(newVal))
             )
                 newVal = Number.parseFloat(newVal)
+
+            if (fieldDesc && fieldDesc.type === FieldType.complex) {
+                prevVal = fieldDesc.getter(
+                    row.config as Record<string, unknown>
+                )
+                const grapherObject = { ...this.grapher.object }
+                newVal = fieldDesc.getter(
+                    grapherObject as Record<string, unknown>
+                )
+            }
 
             // Now construct the patch and store it
             const patch: GrapherConfigPatch = {
@@ -838,6 +1127,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         </div>
                         <div className="sidebar-content">
                             {match(activeTab)
+                                .with(Tabs.EditorTab, () =>
+                                    this.renderEditorTab()
+                                )
                                 .with(Tabs.FilterTab, () =>
                                     this.renderFilterTab()
                                 )
@@ -859,6 +1151,37 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     </div>
                 </div>
             )
+    }
+
+    renderEditorTab(): JSX.Element {
+        const { editControl, hasUncommitedRichEditorChanges } = this
+        return (
+            <section>
+                <div className="container">{editControl}</div>
+                {hasUncommitedRichEditorChanges ? (
+                    <div className="container rich-editor-confirm-buttons">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => this.commitRichEditorChanges()}
+                        >
+                            Commit
+                        </button>
+
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => this.cancelRichEditorChanges()}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                ) : null}
+            </section>
+        )
+    }
+
+    @action.bound
+    setKeepEntitySelectionOnChartChange(value: boolean) {
+        this.keepEntitySelectionOnChartChange = value
     }
 
     @action.bound
@@ -927,7 +1250,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return (
             <section>
                 <div className="container">
-                    <h3>Variable filters</h3>
+                    <h3>Row filters</h3>
                     {this.renderPagination()}
                     <label>Query builder</label>
                     {FilterPanelConfig && filterState && (
@@ -940,8 +1263,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     )}
                     <small className="form-text text-muted">
                         Note that default values like empty string, "LineChart"
-                        for type or the default checkbox state are never stored.
-                        To find these you have to use the "is null" operator.
+                        for type or the default checkbox state are often stored
+                        as null. To find these you have to use the "is null"
+                        operator.
                     </small>
                     {
                         // Uncomment below to see the generated S-expression
@@ -1008,13 +1332,20 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.columnFilter = ""
     }
 
-    @action.bound
-    onShowOnlyColumnsWithValuesInCurrentRow() {
-        const { columnDataSources, selectedRow, richDataRows } = this
+    @computed
+    get selectedRowContent(): VariableAnnotationsRow | undefined {
+        const { selectedRow, richDataRows } = this
         const row =
             selectedRow !== undefined && richDataRows !== undefined
                 ? richDataRows[selectedRow]
                 : undefined
+        return row
+    }
+
+    @action.bound
+    onShowOnlyColumnsWithValuesInCurrentRow() {
+        const { columnDataSources, selectedRowContent } = this
+        const row = selectedRowContent
         if (row !== undefined) {
             const newSelection: ColumnInformation[] = columnDataSources.map(
                 (item): ColumnInformation =>
@@ -1162,7 +1493,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { grapherElement } = this
         return (
             <div className="preview">
-                <h3>Interactive grapher preview</h3>
+                <h5>Interactive grapher preview</h5>
+                <Toggle
+                    label="Keep entity/country selection when switching rows"
+                    title="If set then the country selection will stay the same while switching rows even if the underlying chart has a different selection"
+                    value={this.keepEntitySelectionOnChartChange}
+                    onValue={this.setKeepEntitySelectionOnChartChange}
+                />
                 {grapherElement ? grapherElement : null}
             </div>
         )
