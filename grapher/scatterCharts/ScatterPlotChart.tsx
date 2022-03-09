@@ -513,29 +513,20 @@ export class ScatterPlotChart
     }
 
     @computed private get points(): JSX.Element {
-        const {
-            dualAxis,
-            focusedEntityNames,
-            hoveredSeriesNames,
-            hideConnectedScatterLines,
-            manager,
-            series,
-            colorScale,
-            colorColumn,
-        } = this
-
         return (
             <ScatterPointsWithLabels
-                noDataModalManager={manager}
+                noDataModalManager={this.manager}
                 isConnected={this.isConnected}
-                hideConnectedScatterLines={hideConnectedScatterLines}
-                seriesArray={series}
-                dualAxis={dualAxis}
-                colorScale={!colorColumn.isMissing ? colorScale : undefined}
+                hideConnectedScatterLines={this.hideConnectedScatterLines}
+                seriesArray={this.series}
+                dualAxis={this.dualAxis}
+                colorScale={
+                    !this.colorColumn.isMissing ? this.colorScale : undefined
+                }
                 sizeScale={this.sizeScale}
                 fontScale={this.fontScale}
-                focusedSeriesNames={focusedEntityNames}
-                hoveredSeriesNames={hoveredSeriesNames}
+                focusedSeriesNames={this.focusedEntityNames}
+                hoveredSeriesNames={this.hoveredSeriesNames}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
                 onMouseOver={this.onScatterMouseOver}
                 onMouseLeave={this.onScatterMouseLeave}
