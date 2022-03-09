@@ -2,7 +2,7 @@
 
 import * as lodash from "lodash"
 import { getConnection } from "typeorm"
-import * as bodyParser from "body-parser"
+import express from "express"
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
 import {
@@ -1864,7 +1864,7 @@ apiRouter.post(
 
 apiRouter.router.put(
     "/datasets/:datasetId/uploadZip",
-    bodyParser.raw({ type: "application/zip", limit: "50mb" }),
+    express.raw({ type: "application/zip", limit: "50mb" }),
     async (req: Request, res: Response) => {
         const datasetId = expectInt(req.params.datasetId)
 

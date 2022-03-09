@@ -4,7 +4,6 @@ import { GitCmsClient } from "./GitCmsClient.js"
 import { GitCmsServer } from "./GitCmsServer.js"
 import { removeSync } from "fs-extra"
 import express from "express"
-import * as bodyParser from "body-parser"
 import * as nodeFetch from "node-fetch"
 
 jest.setTimeout(10000) // wait for up to 10s for the server to respond
@@ -15,7 +14,7 @@ describe("client/server integration tests", () => {
     // Arrange
     const testPort = 3456
     const expressApp = express()
-    expressApp.use(bodyParser.json())
+    expressApp.use(express.json())
 
     const server = new GitCmsServer({ baseDir })
     server.verbose = false
