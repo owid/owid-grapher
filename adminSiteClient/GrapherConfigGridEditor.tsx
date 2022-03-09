@@ -389,7 +389,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     commitRichEditorChanges() {
         this.commitOrCancelRichEditorChanges(true)
     }
-     @action.bound
+    @action.bound
     cancelRichEditorChanges() {
         this.commitOrCancelRichEditorChanges(false)
     }
@@ -813,8 +813,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @action.bound
     updateSelection(row: number, column: number): void {
-        if (this.hasUncommitedRichEditorChanges)
-            this.cancelRichEditorChanges()
+        if (this.hasUncommitedRichEditorChanges) this.cancelRichEditorChanges()
         if (row !== this.selectedRow) {
             this.hasUncommitedRichEditorChanges = false
             this.selectedRow = row
