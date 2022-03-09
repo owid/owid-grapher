@@ -157,7 +157,7 @@
         "mousetrap": "^1.6.5",
         "multiprocessing": "^1.2.0",
         "mysql": "^2.18.1",
-        "netlify-cli": "^6.8.5",
+        "netlify-cli": "^9.13.0",
         "node-fetch": "^2.6.7",
         "nodemailer": "^6.6.1",
         "normalize.css": "^8.0.1",
