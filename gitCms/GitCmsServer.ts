@@ -29,10 +29,11 @@ import {
 } from "./GitCmsConstants.js"
 import { sync } from "glob"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import _ from "lodash"
 
 // todo: cleanup typings
 interface ResponseWithUserInfo extends Response {
-    locals: { user: any; session: any }
+    locals: { user: any; session: any } | Record<string, unknown>
 }
 
 interface GitCmsServerOptions {
@@ -240,7 +241,9 @@ export class GitCmsServer {
     }
 
     addToRouter(app: Router) {
-        const routes: { [route: string]: RequestHandler } = {}
+        const routes: {
+            [route: string]: RequestHandler
+        } = {}
 
         routes[GIT_CMS_PULL_ROUTE] = async (
             req: Request,
