@@ -385,9 +385,17 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             setValueRecursiveInplace(grapher, pointer, value)
         }
     }
+    @action.bound
+    commitRichEditorChanges() {
+        this.commitOrCancelRichEditorChanges(true)
+    }
+     @action.bound
+    cancelRichEditorChanges() {
+        this.commitOrCancelRichEditorChanges(false)
+    }
 
     @action.bound
-    commitRichEditorChanges(performCommit: boolean) {
+    commitOrCancelRichEditorChanges(performCommit: boolean) {
         const { selectedRowContent, currentColumnFieldDescription, grapher } =
             this
         if (
@@ -806,7 +814,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @action.bound
     updateSelection(row: number, column: number): void {
         if (this.hasUncommitedRichEditorChanges)
-            this.commitRichEditorChanges(false)
+            this.cancelRichEditorChanges()
         if (row !== this.selectedRow) {
             this.hasUncommitedRichEditorChanges = false
             this.selectedRow = row
@@ -1161,14 +1169,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     <div className="container rich-editor-confirm-buttons">
                         <button
                             className="btn btn-primary"
-                            onClick={() => this.commitRichEditorChanges(true)}
+                            onClick={() => this.commitRichEditorChanges()}
                         >
                             Commit
                         </button>
 
                         <button
                             className="btn btn-secondary"
-                            onClick={() => this.commitRichEditorChanges(false)}
+                            onClick={() => this.cancelRichEditorChanges()}
                         >
                             Cancel
                         </button>
