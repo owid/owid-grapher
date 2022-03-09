@@ -350,7 +350,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return columnDataSources[selectedColumn]
     }
 
-    @computed private get currentColumnFieldDesription():
+    @computed private get currentColumnFieldDescription():
         | FieldDescription
         | undefined {
         const { columnDataSource } = this
@@ -372,11 +372,11 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         if (data.origin !== undefined) {
             console.log({ data })
             // origin seems to be +input when editing and undefined when we change the value programmatically
-            const { currentColumnFieldDesription, grapher } = this
-            if (currentColumnFieldDesription === undefined) return
+            const { currentColumnFieldDescription, grapher } = this
+            if (currentColumnFieldDescription === undefined) return
             this.hasUncommitedRichEditorChanges = true
             const pointer = jsonpointer.parse(
-                currentColumnFieldDesription.pointer
+                currentColumnFieldDescription.pointer
             ) as string[]
             // Here we are setting the target column field directly at the grapher so the
             // preview is updated. When the user clicks the save button we'll then check
@@ -388,24 +388,24 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @action.bound
     commitRichEditorChanges(performCommit: boolean) {
-        const { selectedRowContent, currentColumnFieldDesription, grapher } =
+        const { selectedRowContent, currentColumnFieldDescription, grapher } =
             this
         if (
             selectedRowContent === undefined ||
-            currentColumnFieldDesription === undefined
+            currentColumnFieldDescription === undefined
         )
             return
 
         const pointer = jsonpointer.parse(
-            currentColumnFieldDesription.pointer
+            currentColumnFieldDescription.pointer
         ) as string[]
 
-        const prevVal = currentColumnFieldDesription.getter(
+        const prevVal = currentColumnFieldDescription.getter(
             selectedRowContent.config as Record<string, unknown>
         )
         if (performCommit) {
             const grapherObject = { ...this.grapher.object }
-            const newVal = currentColumnFieldDesription.getter(
+            const newVal = currentColumnFieldDescription.getter(
                 grapherObject as Record<string, unknown>
             )
 
@@ -413,10 +413,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 id: selectedRowContent.id,
                 oldValue: prevVal,
                 newValue: newVal,
-                jsonPointer: currentColumnFieldDesription.pointer,
+                jsonPointer: currentColumnFieldDescription.pointer,
                 oldValueIsEquivalentToNullOrUndefined:
-                    currentColumnFieldDesription.default !== undefined &&
-                    currentColumnFieldDesription.default === prevVal,
+                    currentColumnFieldDescription.default !== undefined &&
+                    currentColumnFieldDescription.default === prevVal,
             }
             this.doAction({ patches: [patch] })
         } else {
@@ -432,15 +432,15 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @computed get editControl(): JSX.Element | undefined {
-        const { currentColumnFieldDesription, grapher, selectedRowContent } =
+        const { currentColumnFieldDescription, grapher, selectedRowContent } =
             this
         if (
-            currentColumnFieldDesription === undefined ||
+            currentColumnFieldDescription === undefined ||
             selectedRowContent === undefined
         )
             return undefined
 
-        return match(currentColumnFieldDesription.editor)
+        return match(currentColumnFieldDescription.editor)
             .with(
                 EditorOption.primitiveListEditor,
                 () =>
@@ -451,7 +451,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     undefined
             )
             .with(EditorOption.colorEditor, () => {
-                if (currentColumnFieldDesription?.pointer.startsWith("/map")) {
+                if (currentColumnFieldDescription?.pointer.startsWith("/map")) {
                     // TODO: remove this hack once map is more similar to other charts
                     const mapChart = new MapChart({ manager: this.grapher })
                     const colorScale = mapChart.colorScale
@@ -500,7 +500,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             })
             .with(EditorOption.textfield, EditorOption.textarea, () => (
                 <CodeMirror
-                    value={currentColumnFieldDesription.getter(
+                    value={currentColumnFieldDescription.getter(
                         grapher as any as Record<string, unknown>
                     )}
                     options={{
