@@ -49,7 +49,7 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
 }
 
 @observer
-class EntitySelectorBase extends React.Component<{
+export class EntitySelectorModal extends React.Component<{
     selectionArray: SelectionArray
     isMulti: boolean
     onDismiss: () => void
@@ -220,23 +220,6 @@ class EntitySelectorBase extends React.Component<{
                     </div>
                 </div>
             </div>
-        )
-    }
-}
-
-@observer
-export class EntitySelectorModal extends React.Component<{
-    selectionArray: SelectionArray
-    canChangeEntity?: boolean
-    isMobile: boolean
-    onDismiss: () => void
-}> {
-    render(): JSX.Element {
-        return (
-            <EntitySelectorBase
-                isMulti={!this.props.canChangeEntity}
-                {...this.props}
-            />
         )
     }
 }

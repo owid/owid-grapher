@@ -2134,10 +2134,8 @@ export class Grapher
                 />
                 {this.isSelectingData && (
                     <EntitySelectorModal
-                        canChangeEntity={this.canChangeEntity}
+                        isMulti={!this.canChangeEntity}
                         selectionArray={this.selection}
-                        key="entitySelector"
-                        isMobile={this.isMobile}
                         onDismiss={action(() => (this.isSelectingData = false))}
                     />
                 )}
