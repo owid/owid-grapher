@@ -85,7 +85,7 @@ services:
         ports:
             - 9000:9000
         volumes:
-            - ./wordpress/.lando/config/php.ini:/usr/local/etc/php/php.ini
+            - ./devTools/docker/php.ini:/usr/local/etc/php/php.ini
             - ./wordpress:/app
         depends_on:
             - db

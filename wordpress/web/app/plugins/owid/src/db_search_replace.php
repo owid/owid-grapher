@@ -1,6 +1,7 @@
 <?php
 // Run this script as a logged-in user otherwise the revisions are created with author "O"
 // If using wp eval-file, pass "--user=[USER_ID]" flag
+// todo: reinstall wp-cli on local? https://github.com/owid/owid-grapher/issues/1249
 // e.g. $ lando wp eval-file --user=35 /path/to/script.php
 //
 // Check out the following commits for examples:

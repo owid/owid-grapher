@@ -24,7 +24,6 @@
 - /*.sql*
 
 # Development
-- /.lando*
 - /.vscode
 - /.git
 - /.gitignore
