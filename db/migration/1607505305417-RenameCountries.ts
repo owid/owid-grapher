@@ -4,6 +4,7 @@ const renameMap = {
     Swaziland: "Eswatini",
     Macedonia: "North Macedonia",
     "Czech Republic": "Czechia",
+    Timor : "East Timor",
 }
 
 export class RenameCountries1607505305417 implements MigrationInterface {

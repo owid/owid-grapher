@@ -1347,9 +1347,10 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         iso3166: "TM",
     },
     {
-        name: "Timor",
+        name: "East Timor",
         code: "TLS",
         slug: "timor",
+        variantNames: ["Timor"],
     },
     {
         name: "Tonga",

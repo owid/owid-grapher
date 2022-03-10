@@ -242,7 +242,7 @@ export enum WorldRegionToProjection {
     Tajikistan = MapProjectionName.Asia,
     Tanzania = MapProjectionName.Africa,
     Thailand = MapProjectionName.Asia,
-    Timor = MapProjectionName.Asia,
+    "East Timor" = MapProjectionName.Asia,
     Togo = MapProjectionName.Africa,
     Tokelau = MapProjectionName.Oceania,
     Tonga = MapProjectionName.Oceania,

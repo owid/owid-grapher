@@ -248,7 +248,7 @@ export const populationMap: { [country: string]: number } = {
     Tajikistan: 9537642,
     Tanzania: 59734213,
     Thailand: 69799978,
-    Timor: 1318442,
+    "East Timor": 1318442,
     Togo: 8278737,
     Tokelau: 1350,
     Tonga: 105697,
