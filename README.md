@@ -41,7 +41,7 @@ To contribute to the Grapher you do not need to set up everything described in t
 
 This section describes the steps necessary to run Grapher Admin locally, which allows you to create, modify and preview (but not publish) interactive charts in your local environment. For this you need a MySQL database and the admin server running.
 
-Members of the Our World In Data team can get the full setup, including Wordpress, by using the [Lando](https://lando.dev/) project setup in the [wordpress folder](wordpress/) which automates much of the setup.
+Members of the Our World In Data team can get the full setup, including Wordpress, by using the [Docker Compose setup](./docker-compose.yml).
 
 ### Instructions for macOS
 
@@ -165,6 +165,32 @@ yarn startTmuxServer
 Then head to `localhost:3030/admin`. If everything is going to plan, you should see a login screen! The default user account is `admin@example.com` with a password of `admin`.
 
 This development server will rebuild the site when changes are made, so you only need to reload the browser when making changes.
+
+### (Internal only) Wordpress development
+
+Set up your Wordpress `.env` file by copying the example (no updates necessary at this point):
+
+    ```sh
+    $ cp wordpress/.env.example wordpress/.env
+    ```
+
+Start serveur (including preview):
+
+    ```sh
+    $ yarn startSiteBack
+    ```
+
+Start front-end development script:
+
+    ```sh
+    $ yarn startSiteFront
+    ```
+
+Start Wordpress plugin development script:
+
+    ```sh
+    $ yarn startWordpressPlugin
+    ````
 
 ## Architecture notes
 
