@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
-import { uniqBy, isTouchDevice, sortBy } from "../../clientUtils/Util.js"
+import { isTouchDevice, sortBy } from "../../clientUtils/Util.js"
 import { FuzzySearch } from "./FuzzySearch.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -9,6 +9,43 @@ import { SelectionArray } from "../selection/SelectionArray.js"
 
 interface SearchableEntity {
     name: string
+}
+
+interface SearchResultProps {
+    result: SearchableEntity
+    isMulti: boolean
+    isChecked: boolean
+    onSelect: (entityName: string) => void
+}
+
+class EntitySearchResult extends React.PureComponent<SearchResultProps> {
+    render(): JSX.Element {
+        const { result, isMulti, isChecked, onSelect } = this.props
+
+        if (isMulti) {
+            return (
+                <li>
+                    <label className="clickable">
+                        <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(): void => onSelect(result.name)}
+                        />{" "}
+                        {result.name}
+                    </label>
+                </li>
+            )
+        } else {
+            return (
+                <li
+                    className="clickable"
+                    onClick={(): void => onSelect(result.name)}
+                >
+                    {result.name}
+                </li>
+            )
+        }
+    }
 }
 
 @observer
@@ -87,52 +124,11 @@ class EntitySelectorBase extends React.Component<{
         this.props.selectionArray.clearSelection()
     }
 
-    renderSearchResults(): JSX.Element {
-        if (this.isMulti) {
-            return (
-                <ul>
-                    {this.searchResults.map((result): JSX.Element => {
-                        return (
-                            <li key={result.name}>
-                                <label className="clickable">
-                                    <input
-                                        type="checkbox"
-                                        checked={this.props.selectionArray.selectedSet.has(
-                                            result.name
-                                        )}
-                                        onChange={(): void =>
-                                            this.onSelect(result.name)
-                                        }
-                                    />{" "}
-                                    {result.name}
-                                </label>
-                            </li>
-                        )
-                    })}
-                </ul>
-            )
-        } else {
-            return (
-                <ul>
-                    {this.searchResults.map((d): JSX.Element => {
-                        return (
-                            <li
-                                key={d.name}
-                                className="clickable"
-                                onClick={(): void => this.onSelect(d.name)}
-                            >
-                                {d.name}
-                            </li>
-                        )
-                    })}
-                </ul>
-            )
-        }
-    }
-
     renderSelectedData() {
         const selectedEntityNames =
             this.props.selectionArray.selectedEntityNames
+
+        // only render something in isMulti mode
         if (this.isMulti) {
             return (
                 <div className="selectedData">
@@ -174,8 +170,6 @@ class EntitySelectorBase extends React.Component<{
         const { selectionArray } = this.props
         const { searchResults, searchInput } = this
 
-        const selectedEntityNames = selectionArray.selectedEntityNames
-
         return (
             <div className="entitySelectorOverlay">
                 <div
@@ -208,7 +202,19 @@ class EntitySelectorBase extends React.Component<{
                                     (this.searchField = e as HTMLInputElement)
                                 }
                             />
-                            {this.renderSearchResults()}
+                            <ul>
+                                {searchResults.map((result) => (
+                                    <EntitySearchResult
+                                        key={result.name}
+                                        result={result}
+                                        isMulti={this.isMulti}
+                                        isChecked={selectionArray.selectedSet.has(
+                                            result.name
+                                        )}
+                                        onSelect={this.onSelect}
+                                    />
+                                ))}
+                            </ul>
                         </div>
                         {this.renderSelectedData()}
                     </div>
