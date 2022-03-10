@@ -58,8 +58,8 @@ export class EntitySelectorModal extends React.Component<{
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get availableEntities(): string[] {
-        return this.props.selectionArray.availableEntityNames
+    @computed get sortedAvailableEntities(): string[] {
+        return sortBy(this.props.selectionArray.availableEntityNames)
     }
 
     @computed get isMulti(): boolean {
@@ -71,7 +71,7 @@ export class EntitySelectorModal extends React.Component<{
     }
 
     @computed private get searchableEntities(): SearchableEntity[] {
-        return this.availableEntities.map((name) => {
+        return this.sortedAvailableEntities.map((name) => {
             return { name } as SearchableEntity
         })
     }
@@ -79,7 +79,7 @@ export class EntitySelectorModal extends React.Component<{
     @computed get searchResults(): SearchableEntity[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : sortBy(this.searchableEntities, (result) => result.name)
+            : this.searchableEntities
     }
 
     @action.bound onSelect(entityName: string): void {
