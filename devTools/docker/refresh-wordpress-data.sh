@@ -29,7 +29,7 @@ purge_db(){
 }
 
 import_db(){
-  pv $1 | gunzip | $MYSQL -h $2 --port 3306 -u$4 -p$5 $3
+  cat $1 | gunzip | $MYSQL -h $2 --port 3306 -u$4 -p$5 $3
 }
 
 fillWordpressDb() {
