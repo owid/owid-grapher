@@ -54,7 +54,7 @@ export class EntitySelectorModal extends React.Component<{
     isMulti: boolean
     onDismiss: () => void
 }> {
-    @observable searchInput?: string
+    @observable searchInput: string = ""
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -96,6 +96,7 @@ export class EntitySelectorModal extends React.Component<{
         if (
             this.base?.current &&
             !this.base.current.contains(e.target as Node) &&
+            // check that the target is still mounted to the document; we also get click events on nodes that have since been removed by React
             document.contains(e.target as Node)
         )
             this.props.onDismiss()
@@ -194,7 +195,7 @@ export class EntitySelectorModal extends React.Component<{
                                 type="search"
                                 placeholder="Search..."
                                 value={searchInput}
-                                onInput={(e): void => {
+                                onChange={(e): void => {
                                     this.searchInput = e.currentTarget.value
                                 }}
                                 onKeyDown={this.onSearchKeyDown}
