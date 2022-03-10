@@ -33,14 +33,6 @@ function setup()
 {
     add_theme_support('post-thumbnails');
     add_theme_support('editor-styles');
-    add_theme_support('disable-custom-colors');
-    add_theme_support('editor-color-palette', [
-        [
-            'name' => 'Bluish grey',
-            'slug' => 'bluish-grey',
-            'color' => '#6e87a2',
-        ],
-    ]);
     add_editor_style('editor-style.css');
 }
 

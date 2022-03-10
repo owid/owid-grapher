@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/theme.json",
+    "version": 2,
+    "settings": {
+        "layout": {
+            "contentSize": "96rem"
+        },
+        "color": {
+            "custom": false,
+            "defaultPalette": false,
+            "palette": [
+                {
+                    "name": "Bluish grey",
+                    "slug": "bluish-grey",
+                    "color": "#6e87a2"
+                }
+            ]
+        },
+        "spacing": {
+            "blockGap": false,
+            "margin": true
+        }
+    },
+    "styles": {
+        "spacing": {
+            "blockGap": "1.5rem",
+            "margin": {
+                "right": "2rem",
+                "left": "2rem"
+            }
+        }
+    }
+}

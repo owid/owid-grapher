@@ -1,10 +1,8 @@
-/* https://developer.wordpress.org/block-editor/developers/themes/theme-support/#changing-the-width-of-the-editor */
-/* Main column width */
-.wp-block {
-    max-width: none;
-}
+/**
+* These styles are shown if the user has toggled on "Use theme styles" in preferences.
+*/
 
-/* Custom color palette */
-.has-bluish-grey-color {
-    color: #6e87a2;
+body {
+    font-family: system-ui;
+    line-height: 1.5;
 }
