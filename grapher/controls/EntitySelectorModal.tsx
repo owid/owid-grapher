@@ -19,7 +19,6 @@ class EntitySelectorMulti extends React.Component<{
     @observable searchInput?: string
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    dismissable: boolean = true
 
     @computed get availableEntities(): string[] {
         return this.props.selectionArray.availableEntityNames
@@ -38,28 +37,36 @@ class EntitySelectorMulti extends React.Component<{
     @computed get searchResults(): SearchableEntity[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : sortBy(this.searchableEntities, (result): any => result.name)
+            : sortBy(this.searchableEntities, (result) => result.name)
     }
 
-    @action.bound onClickOutside(e: MouseEvent): void {
-        if (this.dismissable) this.props.onDismiss()
+    @action.bound onSelect(entityName: string): void {
+        if (this.multi) {
+            this.props.selectionArray.toggleSelection(entityName)
+        } else {
+            this.props.selectionArray.setSelectedEntities([entityName])
+            this.props.onDismiss()
+        }
+    }
+
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        // check if the click was outside of the modal
+        if (
+            this.base?.current &&
+            !this.base.current.contains(e.target as Node) &&
+            document.contains(e.target as Node)
+        )
+            this.props.onDismiss()
     }
 
     componentDidMount(): void {
-        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => {
-            this.dismissable = false
-            setTimeout(() => (this.dismissable = true), 100)
-        })
-        setTimeout(
-            () => document.addEventListener("click", this.onClickOutside),
-            1
-        )
+        document.addEventListener("click", this.onDocumentClick)
+
         if (!isTouchDevice()) this.searchField.focus()
     }
 
     componentWillUnmount(): void {
-        document.removeEventListener("click", this.onClickOutside)
+        document.removeEventListener("click", this.onDocumentClick)
     }
 
     @action.bound onSearchKeyDown(
@@ -178,7 +185,6 @@ class EntitySelectorSingle extends React.Component<{
     @observable searchInput?: string
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    dismissable: boolean = true
 
     @computed private get availableEntities(): { id: string; label: string }[] {
         const availableItems: { id: string; label: string }[] = []
@@ -201,26 +207,20 @@ class EntitySelectorSingle extends React.Component<{
             : sortBy(this.availableEntities, (result): any => result.label)
     }
 
-    @action.bound onClickOutside(e: MouseEvent): void {
-        if (this.base && !this.base.current!.contains(e.target as Node))
+    @action.bound onDocumentClick(e: MouseEvent): void {
+        // check if the click was outside of the modal
+        if (this.base?.current && !this.base.current.contains(e.target as Node))
             this.props.onDismiss()
     }
 
     componentDidMount(): void {
-        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => {
-            this.dismissable = false
-            setTimeout(() => (this.dismissable = true), 100)
-        })
-        setTimeout(
-            () => document.addEventListener("click", this.onClickOutside),
-            1
-        )
+        document.addEventListener("click", this.onDocumentClick)
+
         if (!this.props.isMobile) this.searchField.focus()
     }
 
     componentWillUnmount(): void {
-        document.removeEventListener("click", this.onClickOutside)
+        document.removeEventListener("click", this.onDocumentClick)
     }
 
     @action.bound onSearchKeyDown(
