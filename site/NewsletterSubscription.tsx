@@ -90,7 +90,7 @@ export const NewsletterSubscriptionForm = ({
             name="mc-embedded-subscribe-form"
             target="_blank"
         >
-            <p>Receive our latest publications by email.</p>
+            <p>Receive our latest work by email.</p>
             <fieldset>
                 <div className="owid-checkboxes">
                     <div className="owid-checkbox-block">

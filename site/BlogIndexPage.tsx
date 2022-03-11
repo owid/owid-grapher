@@ -14,7 +14,7 @@ export const BlogIndexPage = (props: {
 }) => {
     const { posts, pageNum, numPages, baseUrl } = props
     const pageNums = range(1, numPages + 1)
-    const pageTitle = "Latest publications"
+    const pageTitle = "Our latest work"
 
     return (
         <html>
