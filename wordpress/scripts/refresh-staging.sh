@@ -20,6 +20,7 @@ GRAPHER_DB_NAME=$GRAPHER_DB_NAME
 STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
 MYSQL="sudo mysql --default-character-set=utf8mb4"
 DL_FOLDER="/tmp"
+HOST=owid@live.owid.io
 
 # Default options
 WITH_UPLOADS=false
@@ -77,8 +78,8 @@ import_db(){
 # Wordpress DB
 if [ "${SKIP_DB_DL}" = false ]; then
   echo "Downloading Wordress database (live_wordpress)"
-  ssh owid-live "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r /tmp/live_wordpress.sql"
-  rsync -hav --progress owid-live:/tmp/live_wordpress.sql $DL_FOLDER
+  ssh ${HOST} "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r /tmp/live_wordpress.sql"
+  rsync -hav --progress ${HOST}:/tmp/live_wordpress.sql $DL_FOLDER
 fi
 echo "Importing Wordress database (live_wordpress)"
 purge_db $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
@@ -87,14 +88,14 @@ import_db $DL_FOLDER/live_wordpress.sql $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
 # Wordpress uploads
 if [ "${WITH_UPLOADS}" = true ]; then
   echo "Downloading Wordress uploads"
-  rsync -hav --delete --progress owid-live:live-data/wordpress/uploads/ ~/$STAGING_SERVER_NAME-data/wordpress/uploads
+  rsync -hav --delete --progress ${HOST}:live-data/wordpress/uploads/ ~/$STAGING_SERVER_NAME-data/wordpress/uploads
 fi
 
 # Grapher database (owid_metadata)
 if [ "${SKIP_DB_DL}" = false ]; then
   echo "Downloading live Grapher metadata database (owid_metadata)"
-  ssh owid-live "cd live/itsJustJavascript && node db/exportMetadata.js --with-passwords /tmp/owid_metadata_with_passwords.sql"
-  rsync -hav --progress owid-live:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
+  ssh ${HOST} "cd live/itsJustJavascript && node db/exportMetadata.js --with-passwords /tmp/owid_metadata_with_passwords.sql"
+  rsync -hav --progress ${HOST}:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
 fi
 echo "Importing live Grapher metadata database (owid_metadata)"
 purge_db $GRAPHER_DB_HOST $GRAPHER_DB_NAME

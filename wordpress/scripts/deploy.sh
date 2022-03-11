@@ -11,9 +11,9 @@ PATH_OWID_PLUGIN="web/app/plugins/owid"
 ROOT="/home/owid"
 
 if [[ "$1" =~ ^(staging|hans|playfair|jefferson|nightingale|explorer|exemplars|tufte|roser|snow|halley|neurath)$ ]]; then
-  HOST="owid-staging"
+  HOST="owid@staging.owid.io"
 elif [ "$1" == "live" ]; then
-  HOST="owid-live"
+  HOST="owid@live.owid.io"
 
   if [ "$BRANCH" != "master" ]; then
     echo "Please run from the master branch."
