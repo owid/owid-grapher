@@ -455,3 +455,29 @@ if (getenv("TOPICS_CONTENT_GRAPH") === "true") {
         ]);
     });
 }
+
+/*
+ * Default post content
+ */
+
+add_filter(
+    'default_content',
+    function ($post_content, $post) {
+        if ($post->post_type !== "post") {
+            return;
+        }
+
+        $default_post_content = <<<EOD
+<!-- wp:html -->
+<div class="blog-info">
+<p>Our World in Data presents the data and research to make progress against the world’s largest problems.<br>This article draws on data and research discussed in our entry on <strong><a href="https://ourworldindata.org/CHANGEME" target="_blank" rel="noopener">CHANGEME</a></strong>.</p>
+<p>CHANGEME - NEW PARAGRAPH</p>
+</div>
+<!-- /wp:html -->
+EOD;
+
+        return $default_post_content;
+    },
+    10,
+    2
+);
