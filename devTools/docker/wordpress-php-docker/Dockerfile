@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
  && docker-php-ext-install mysqli  \
  && rm -rf /var/lib/apt/lists/*
 
+ RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
 RUN curl https://getcomposer.org/download/latest-2.2.x/composer.phar --output /usr/local/bin/composer \
     && chmod +x /usr/local/bin/composer
 WORKDIR /app
