@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3156f265ff3d8038fc263e60d904b3b9",
+    "content-hash": "46027d87db51ba92f9b1b192a302d691",
     "packages": [
         {
             "name": "composer/installers",
@@ -1388,24 +1388,6 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/meta-box/"
-        },
-        {
-            "name": "wpackagist-plugin/my-default-post-content",
-            "version": "0.7.1",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/my-default-post-content/",
-                "reference": "trunk"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/my-default-post-content.zip?timestamp=1643316781"
-            },
-            "require": {
-                "composer/installers": "^1.0 || ^2.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/my-default-post-content/"
         },
         {
             "name": "wpackagist-plugin/redirection",
