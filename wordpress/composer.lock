@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e273ce139a410fb71efc460eba85d105",
+    "content-hash": "58b03b0ff0d9972e0d9c04f82cacc04d",
     "packages": [
         {
             "name": "composer/installers",
@@ -1264,24 +1264,6 @@
             "homepage": "https://wordpress.org/plugins/add-category-to-pages/"
         },
         {
-            "name": "wpackagist-plugin/admin-starred-posts",
-            "version": "2.5.0",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/admin-starred-posts/",
-                "reference": "tags/2.5.0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/admin-starred-posts.2.5.0.zip"
-            },
-            "require": {
-                "composer/installers": "^1.0 || ^2.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/admin-starred-posts/"
-        },
-        {
             "name": "wpackagist-plugin/broken-link-checker",
             "version": "1.11.16",
             "source": {
@@ -1442,24 +1424,6 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/simple-custom-post-order/"
-        },
-        {
-            "name": "wpackagist-plugin/simple-history",
-            "version": "3.2.0",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/simple-history/",
-                "reference": "tags/3.2.0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/simple-history.3.2.0.zip"
-            },
-            "require": {
-                "composer/installers": "^1.0 || ^2.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/simple-history/"
         },
         {
             "name": "wpackagist-plugin/tablepress",
