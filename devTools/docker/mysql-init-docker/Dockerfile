@@ -1,10 +1,9 @@
-FROM mysql:5.7
+FROM mysql/mysql-server:8.0
 
-RUN apt-get update && apt-get install -y \
+RUN microdnf -y update \
+ && microdnf install -y \
+    libpwquality \
     curl \
     rsync \
     unzip \
-    gzip \
-    pv \
-    openssh-client \
- && rm -rf /var/lib/apt/lists/*
+    gzip

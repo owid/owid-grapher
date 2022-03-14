@@ -34,9 +34,7 @@ version: "3.7"
 services:
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
-        # On an M1 mac, switch to the arm64v8 image below:
-        # image: arm64v8/mysql
-        image: mysql:5.7
+        image: mysql/mysql-server:8.0
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
@@ -45,6 +43,7 @@ services:
             - "3306:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
+            MYSQL_ROOT_HOST: "%"
 
     # mysql:5.7 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
     # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
@@ -53,6 +52,7 @@ services:
     db-load-data:
         build:
             context: ./devTools/docker/mysql-init-docker
+        # image: mysql/mysql-server:8.0
         command: "/app/full-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
