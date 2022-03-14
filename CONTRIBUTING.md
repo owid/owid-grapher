@@ -4,19 +4,19 @@ Thanks for your interest in contributing to our work at Our World In Data!
 
 ## What can I contribute?
 
-This repository contains two closely related projects: the grapher visualisation 
+This repository contains two closely related projects: the grapher visualisation
 framework, and the Our World In Data site itself.
 
 ### Contributing to grapher
 
 Contributions to grapher from the general public are most welcome, especially those
-that fix a known issue, make it easier for others to use grapher, or add new 
+that fix a known issue, make it easier for others to use grapher, or add new
 functionality that's broadly useful to many people. If you're unsure if a contribution
-is appropriate, feel free to start a 
+is appropriate, feel free to start a
 [discussion](https://github.com/owid/owid-grapher/discussions).
 
 The easiest way to contribute is to report an issue or suggest a way that things can
-be improved. You can also look at recent open issues to see if any of them are 
+be improved. You can also look at recent open issues to see if any of them are
 suitable candidates to try solving yourself.
 
 See: [open grapher issues](https://github.com/owid/owid-grapher/issues?q=is%3Aopen+is%3Aissue+label%3Aviz+-label%3A%22needs+triage%22+)
