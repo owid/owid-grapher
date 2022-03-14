@@ -72,11 +72,15 @@ export class ScatterSizeLegend {
     }
 
     // input radius, output font size
-    @computed private get fontSizeScale(): ScaleLinear<number, number> {
-        return scaleLinear()
-            .domain([6, SCATTER_POINT_MAX_RADIUS])
-            .range([8, 11])
-            .clamp(true)
+    @computed private get fontSizeFromRadius(): ScaleLinear<number, number> {
+        return (
+            scaleLinear()
+                // choosing the domain & range somewhat arbitrarily here,
+                // by experimenting visually with font sizes
+                .domain([6, SCATTER_POINT_MAX_RADIUS])
+                .range([8, 11])
+                .clamp(true)
+        )
     }
 
     // Since it's circular, this is both the width and the height of the legend.
@@ -161,7 +165,7 @@ export class ScatterSizeLegend {
                             circleStroke={
                                 highlight ? "#ddd" : LEGEND_CIRCLE_COLOR
                             }
-                            labelFontSize={this.fontSizeScale(radius)}
+                            labelFontSize={this.fontSizeFromRadius(radius)}
                             labelFill={highlight ? "#bbb" : LEGEND_VALUE_COLOR}
                         />
                     )
