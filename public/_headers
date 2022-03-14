@@ -13,3 +13,6 @@
 
 /explorers/*
   Access-Control-Allow-Origin: *
+
+/headerMenu.json
+  Access-Control-Allow-Origin: *
