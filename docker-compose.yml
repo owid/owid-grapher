@@ -34,7 +34,7 @@ version: "3.7"
 services:
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
-        image: mysql/mysql-server:8.0
+        image: mysql/mysql-server:latest
         command: --default-authentication-plugin=mysql_native_password
         restart: always
         volumes:
@@ -52,7 +52,7 @@ services:
     db-load-data:
         build:
             context: ./devTools/docker/mysql-init-docker
-        # image: mysql/mysql-server:8.0
+        # image: mysql/mysql-server:latest
         command: "/app/full-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
