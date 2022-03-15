@@ -10,7 +10,7 @@ enzyme.configure({ adapter: new Adapter() })
 
 const grapherWrapper = enzyme.mount(<Grapher {...legacyMapGrapher} />)
 
-test.skip("map tooltip renders iff mouseenter", () => {
+test("map tooltip renders iff mouseenter", () => {
     expect(grapherWrapper.find(".map-tooltip")).toHaveLength(0)
 
     const grapherWrapperWithHover = grapherWrapper
