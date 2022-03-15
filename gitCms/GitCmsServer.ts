@@ -22,7 +22,7 @@ import {
 } from "./GitCmsConstants.js"
 import glob from "glob"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
-import _ from "lodash"
+import _ from "lodash-es"
 
 // todo: cleanup typings
 interface ResponseWithUserInfo extends Response {

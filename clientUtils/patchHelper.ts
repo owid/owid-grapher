@@ -1,5 +1,5 @@
 import jsonpointer from "json8-pointer"
-import { isNil } from "lodash"
+import { isNil } from "lodash-es"
 import { GrapherConfigPatch } from "./AdminSessionTypes.js"
 import { isArray, isEqual, isPlainObjectWithGuard } from "./Util.js"
 

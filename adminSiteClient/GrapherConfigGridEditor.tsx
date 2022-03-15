@@ -20,7 +20,7 @@ import {
     isNil,
     merge,
     pick,
-} from "lodash"
+} from "lodash-es"
 
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -48,16 +48,16 @@ import {
     debounceTime,
     distinctUntilChanged,
     switchMap,
-} from "rxjs/operators"
-import { fromFetch } from "rxjs/fetch"
+} from "rxjs/operators/index.js"
+import { fromFetch } from "rxjs/fetch/index.js"
 import { toStream, fromStream } from "mobx-utils"
 import {
     stringifyUnkownError,
     excludeUndefined,
     moveArrayItemToIndex,
 } from "../clientUtils/Util.js"
-import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
-import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
+import { faEye } from "@fortawesome/free-solid-svg-icons/faEye.js"
+import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,

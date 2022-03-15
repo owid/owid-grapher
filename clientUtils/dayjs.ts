@@ -1,9 +1,9 @@
 // Imports dayjs and loads the plugins we need. Then exports it with the correct types.
 
-import dayjs, { Dayjs } from "dayjs"
-import customParseFormat from "dayjs/plugin/customParseFormat"
-import relativeTime from "dayjs/plugin/relativeTime"
-import utc from "dayjs/plugin/utc"
+import dayjs, { type Dayjs } from "dayjs"
+import customParseFormat from "dayjs/plugin/customParseFormat.js"
+import relativeTime from "dayjs/plugin/relativeTime.js"
+import utc from "dayjs/plugin/utc.js"
 
 dayjs.extend(customParseFormat)
 dayjs.extend(relativeTime)
