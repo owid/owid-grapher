@@ -1,7 +1,7 @@
 import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import Select from "react-select"
+import { ReactSelect as Select } from "../../clientUtils/import-shims.js"
 import { MapProjectionName, MapProjectionLabels } from "./MapProjections.js"
 import { getStylesForTargetHeight } from "../../clientUtils/react-select.js"
 

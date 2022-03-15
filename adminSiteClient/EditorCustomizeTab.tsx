@@ -30,7 +30,7 @@ import {
     FacetAxisDomain,
     FacetStrategy,
 } from "../grapher/core/GrapherConstants.js"
-import Select from "react-select"
+import { ReactSelect as Select } from "../clientUtils/import-shims.js"
 import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes.js"
 @observer
 export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {

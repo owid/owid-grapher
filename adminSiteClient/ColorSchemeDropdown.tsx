@@ -1,6 +1,6 @@
 import React from "react"
 import { computed, action } from "mobx"
-import Select from "react-select"
+import { ReactSelect as Select } from "../clientUtils/import-shims.js"
 import { ColorSchemes } from "../grapher/color/ColorSchemes.js"
 import { observer } from "mobx-react"
 import { bind } from "decko"

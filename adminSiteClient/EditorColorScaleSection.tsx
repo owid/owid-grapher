@@ -1,7 +1,7 @@
 import React from "react"
 import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import Select from "react-select"
+import { ReactSelect as Select } from "../clientUtils/import-shims.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"

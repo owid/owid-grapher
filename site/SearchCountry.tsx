@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import ReactDOM from "react-dom"
-import Select from "react-select"
+import { ReactSelect as Select } from "../clientUtils/import-shims.js"
 import { countries } from "../clientUtils/countries.js"
 import { sortBy } from "../clientUtils/Util.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"

@@ -1,5 +1,6 @@
 import React from "react"
-import Select, { GroupBase, components, OptionProps } from "react-select"
+import { GroupBase, components, OptionProps } from "react-select"
+import { ReactSelect as Select } from "../clientUtils/import-shims.js"
 import classNames from "classnames"
 import { observer } from "mobx-react"
 import { computed, action } from "mobx"

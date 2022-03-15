@@ -25,7 +25,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"
-import Select from "react-select"
+import { ReactSelect as Select } from "../clientUtils/import-shims.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 
 @observer

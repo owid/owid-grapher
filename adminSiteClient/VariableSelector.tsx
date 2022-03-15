@@ -16,7 +16,7 @@ import {
     SearchWord,
 } from "../clientUtils/search.js"
 import { observer } from "mobx-react"
-import Select from "react-select"
+import { ReactSelect as Select } from "../clientUtils/import-shims.js"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive.js"

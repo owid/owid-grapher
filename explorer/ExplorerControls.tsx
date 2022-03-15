@@ -1,7 +1,8 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
-import Select, { components, SingleValueProps } from "react-select"
+import { components, SingleValueProps } from "react-select"
+import { ReactSelect as Select } from "../clientUtils/import-shims.js"
 import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
 import {
     ExplorerControlType,
