@@ -91,7 +91,7 @@ async function propsFromQueryParams(
 
     if (params.type) {
         if (params.type === ChartTypeName.WorldMap) {
-            query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
+            query = query.andWhere(`config->>"$.hasMapTab" = "true"`)
             tab = tab || GrapherTabOption.map
         } else {
             if (params.type === "LineChart") {
@@ -99,11 +99,11 @@ async function propsFromQueryParams(
                     `(
                         config->"$.type" = "LineChart"
                         OR config->"$.type" IS NULL
-                    ) AND COALESCE(config->"$.hasChartTab", TRUE) IS TRUE`
+                    ) AND COALESCE(config->>"$.hasChartTab", "true") = "true"`
                 )
             } else {
                 query = query.andWhere(
-                    `config->"$.type" = :type AND COALESCE(config->"$.hasChartTab", TRUE) IS TRUE`,
+                    `config->"$.type" = :type AND COALESCE(config->>"$.hasChartTab", "true") = "true"`,
                     { type: params.type }
                 )
             }
@@ -113,7 +113,7 @@ async function propsFromQueryParams(
 
     if (params.logLinear) {
         query = query.andWhere(
-            `config->'$.yAxis.canChangeScaleType' IS TRUE OR config->>'$.xAxis.canChangeScaleType' IS TRUE`
+            `config->>'$.yAxis.canChangeScaleType' = "true" OR config->>'$.xAxis.canChangeScaleType'  = "true"`
         )
         tab = GrapherTabOption.chart
     }
@@ -131,7 +131,7 @@ async function propsFromQueryParams(
     }
 
     if (params.relativeToggle) {
-        query = query.andWhere(`config->'$.hideRelativeToggle' IS FALSE`)
+        query = query.andWhere(`config->>'$.hideRelativeToggle' = "false"`)
         tab = GrapherTabOption.chart
     }
 
@@ -183,10 +183,10 @@ async function propsFromQueryParams(
     }
 
     if (tab === GrapherTabOption.map) {
-        query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
+        query = query.andWhere(`config->>"$.hasMapTab" = "true"`)
     } else if (tab === GrapherTabOption.chart) {
         query = query.andWhere(
-            `COALESCE(config->"$.hasChartTab", TRUE) IS TRUE`
+            `COALESCE(config->>"$.hasChartTab", "true") = "true"`
         )
     }
 

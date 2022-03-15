@@ -50,7 +50,7 @@ export class Chart extends BaseEntity {
                 id,
                 JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug
             FROM charts
-            WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE
+            WHERE config->>"$.isPublished" = "true"
         `)
 
         const slugToId: { [slug: string]: number } = {}

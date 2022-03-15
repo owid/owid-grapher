@@ -212,7 +212,7 @@ const saveGrapher = async (
 
     async function isSlugUsedInOtherGrapher() {
         const rows = await transactionContext.query(
-            `SELECT * FROM charts WHERE id != ? AND JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`,
+            `SELECT * FROM charts WHERE id != ? AND config->>"$.isPublished" = "true" AND JSON_EXTRACT(config, "$.slug") = ?`,
             // -1 is a placeholder ID that will never exist; but we cannot use NULL because
             // in that case we would always get back an empty resultset
             [existingConfig ? existingConfig.id : -1, newConfig.slug]
