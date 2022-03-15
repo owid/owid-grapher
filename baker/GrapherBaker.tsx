@@ -23,7 +23,7 @@ import {
 } from "../settings/serverSettings.js"
 import ProgressBar from "progress"
 import * as db from "../db/db.js"
-import * as glob from "glob"
+import glob from "glob"
 import { JsonError } from "../clientUtils/owidTypes.js"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 

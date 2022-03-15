@@ -1,6 +1,6 @@
 import fs from "fs-extra"
-import * as path from "path"
-import * as glob from "glob"
+import path from "path"
+import glob from "glob"
 import { without } from "lodash-es"
 import * as lodash from "lodash-es"
 import cheerio from "cheerio"
