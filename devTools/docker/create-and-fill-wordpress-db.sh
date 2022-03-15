@@ -34,5 +34,8 @@ createAndFillWordpressDb() {
     WITH_UPLOADS=true
 
     source "$( dirname -- "${BASH_SOURCE[0]}" )/refresh-wordpress-data.sh"
+
+    source "$( dirname -- "${BASH_SOURCE[0]}" )/create-wordpress-admin-user.sh"
+
     return 0
 }
