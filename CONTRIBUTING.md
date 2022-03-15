@@ -19,7 +19,7 @@ The easiest way to contribute is to report an issue or suggest a way that things
 be improved. You can also look at recent open issues to see if any of them are
 suitable candidates to try solving yourself.
 
-See: [open grapher issues](https://github.com/owid/owid-grapher/issues?q=is%3Aopen+is%3Aissue+label%3Aviz+-label%3A%22needs+triage%22+)
+See: [open grapher issues](https://github.com/owid/owid-grapher/issues?q=is%3Aopen+is%3Aissue+label%3Aviz+-label%3A%22needs+triage%22+-label%3A%22needs+design%22+-label%3A%22needs+discussion%22)
 
 ### Contributing to the Our World In Data Site
 
