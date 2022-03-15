@@ -1,5 +1,6 @@
 import React from "react"
-import { default as OriginalTippy, TippyProps } from "@tippyjs/react"
+import { TippyProps } from "@tippyjs/react"
+import { TippyReact as OriginalTippy } from "../../clientUtils/import-shims.js"
 
 interface CustomTippyProps extends TippyProps {
     lazy?: boolean
