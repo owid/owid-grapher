@@ -29,7 +29,7 @@ import {
     VariableAnnotationsResponseRow,
     GrapherConfigPatch,
 } from "../clientUtils/AdminSessionTypes.js"
-import AntdConfig from "react-awesome-query-builder/lib/config/antd"
+import AntdConfig from "react-awesome-query-builder/lib/config/antd/index.js"
 import {
     BasicConfig,
     Builder,
