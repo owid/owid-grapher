@@ -20,7 +20,7 @@ import {
     BooleanOperation,
     OperationContext,
 } from "../clientUtils/SqlFilterSExpression.js"
-import * as React from "react"
+import React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
