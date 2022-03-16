@@ -5,6 +5,7 @@ import { memoize } from "../clientUtils/Util.js"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { Url } from "../clientUtils/urls/Url.js"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 export const getRedirects = async () => {
     const redirects = [
@@ -116,21 +117,48 @@ export const getGrapherAndWordpressRedirectsMap = memoize(
     }
 )
 
-const resolveGrapherAndWordpressRedirect = async (url: Url): Promise<Url> => {
-    if (!url.pathname || !isCanonicalInternalUrl(url)) return url
-    const redirects = await getGrapherAndWordpressRedirectsMap()
-    const target = redirects.get(url.pathname)
+export const resolveGrapherAndWordpressRedirect = async (
+    url: Url
+): Promise<Url> => {
+    const MAX_RECURSION_DEPTH = 25
+    let recursionDepth = 0
+    const originalUrl = url
 
-    if (!target) return url
-    const targetUrl = Url.fromURL(target)
+    const _resolveGrapherAndWordpressRedirect = async (
+        url: Url
+    ): Promise<Url> => {
+        ++recursionDepth
+        if (recursionDepth > MAX_RECURSION_DEPTH) {
+            logContentErrorAndMaybeSendToSlack(
+                `A circular redirect (/a -> /b -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
+            )
+            return originalUrl
+        }
 
-    return resolveGrapherAndWordpressRedirect(
-        // Pass query params through only if none present on the target (cf.
-        // netlify behaviour)
-        url.queryStr && !targetUrl.queryStr
-            ? targetUrl.setQueryParams(url.queryParams)
-            : targetUrl
-    )
+        if (!url.pathname || !isCanonicalInternalUrl(url)) return url
+
+        const redirects = await getGrapherAndWordpressRedirectsMap()
+        const target = redirects.get(url.pathname)
+
+        if (!target) return url
+        const targetUrl = Url.fromURL(target)
+
+        if (targetUrl.pathname === url.pathname) {
+            logContentErrorAndMaybeSendToSlack(
+                `A self redirect (/a -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
+            )
+            return originalUrl
+        }
+
+        return _resolveGrapherAndWordpressRedirect(
+            // Pass query params through only if none present on the target (cf.
+            // netlify behaviour)
+            url.queryStr && !targetUrl.queryStr
+                ? targetUrl.setQueryParams(url.queryParams)
+                : targetUrl
+        )
+    }
+    return _resolveGrapherAndWordpressRedirect(url)
 }
 
 export const resolveInternalRedirect = async (url: Url): Promise<Url> => {
