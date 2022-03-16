@@ -40,7 +40,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         }))
 
         const pool = workerpool.pool(__dirname + "/verify-graphs-worker.js", {
-            minWorkers: 3,
+            minWorkers: 2,
         })
 
         // Parallelize the CPU heavy verification using the multiprocessing library. This library stringifies the invocation to other processes
