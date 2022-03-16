@@ -25,6 +25,7 @@ import dayjs from "../clientUtils/dayjs.js"
 import { OwidSource } from "../clientUtils/OwidSource.js"
 import {
     formatValue,
+    isVeryShortUnit,
     TickFormattingOptions,
 } from "../clientUtils/formatValue.js"
 import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
@@ -532,7 +533,14 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     ): string {
         return super.formatValueShortWithAbbreviations(value, {
             shortNumberPrefixes: true,
-            // do not set a unit
+            // only include a unit if it's very short (e.g. %, $ or £)
+            ...omitUndefinedValues({
+                unit:
+                    this.shortUnit !== undefined &&
+                    isVeryShortUnit(this.shortUnit)
+                        ? this.shortUnit
+                        : undefined,
+            }),
             ...options,
         })
     }

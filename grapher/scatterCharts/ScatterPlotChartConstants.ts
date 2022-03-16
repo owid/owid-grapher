@@ -74,8 +74,6 @@ export interface ScatterRenderPoint {
     }
 }
 
-export const ScatterLabelFontFamily = "Arial, sans-serif"
-
 export interface ScatterRenderSeries extends ChartSeries {
     displayKey: string
     size: number

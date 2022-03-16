@@ -131,7 +131,6 @@ describe("interpolation defaults", () => {
             {
                 slug: "size",
                 type: ColumnTypeNames.Numeric,
-                display: { tolerance: 1 },
             },
         ]
     )
@@ -150,7 +149,7 @@ describe("interpolation defaults", () => {
         ).toEqual(["Europe", "Europe", "Europe"])
     })
 
-    it("size defaults to infinity tolerance regardless if one specified", () => {
+    it("size defaults to infinity tolerance if none specified", () => {
         expect(
             chart.transformedTable.get("size").valuesIncludingErrorValues
         ).toEqual([100, 100, 100])

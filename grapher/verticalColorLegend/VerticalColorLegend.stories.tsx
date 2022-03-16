@@ -11,7 +11,7 @@ export default {
 
 const manager: VerticalColorLegendManager = {
     maxLegendWidth: 500,
-    title: "Legend Title",
+    legendTitle: "Legend Title",
     legendItems: [
         {
             label: "Canada",
