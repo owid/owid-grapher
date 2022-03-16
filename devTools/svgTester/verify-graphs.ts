@@ -4,7 +4,7 @@ import parseArgs from "minimist"
 import * as utils from "./utils.js"
 import * as fs from "fs-extra"
 
-import pMap from "p-map"
+import workerpool from "workerpool"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
@@ -39,15 +39,17 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             verbose,
         }))
 
+        const pool = workerpool.pool(__dirname + "/verify-graphs-worker.js", {
+            minWorkers: 3,
+        })
+
         // Parallelize the CPU heavy verification using the multiprocessing library. This library stringifies the invocation to other processes
         // so this call uses the intermediate verify-graphs-runner script. This call will then in parallel take the descriptions of the verifyJobs,
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
         // the reference csv file (from the csvContentMap lookup above). The entire parallel operation returns a promise containing an array
         // of result values.
-        const validationResults: utils.VerifyResult[] = await pMap(
-            verifyJobs,
-            utils.renderAndVerifySvg,
-            { concurrency: 32 }
+        const validationResults: utils.VerifyResult[] = await Promise.all(
+            verifyJobs.map((job) => pool.exec("renderAndVerifySvg", [job]))
         )
 
         if (validationResults.length !== verifyJobs.length)

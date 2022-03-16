@@ -101,6 +101,7 @@
         "@types/url-join": "^4.0.0",
         "@types/url-parse": "^1.4.3",
         "@types/webpack": "^4.41.25",
+        "@types/workerpool": "^6.1.0",
         "algoliasearch": "^4.12.2",
         "antd": "^4.18.6",
         "bcrypt": "^5.0.1",
@@ -215,7 +216,8 @@
         "webpack": "^4.44.1",
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0",
-        "webpack-manifest-plugin": "^2.2.0"
+        "webpack-manifest-plugin": "^2.2.0",
+        "workerpool": "^6.2.0"
     },
     "devDependencies": {
         "@storybook/addon-essentials": "^6.3.8",
