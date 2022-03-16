@@ -43,8 +43,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             minWorkers: 2,
         })
 
-        // Parallelize the CPU heavy verification using the multiprocessing library. This library stringifies the invocation to other processes
-        // so this call uses the intermediate verify-graphs-runner script. This call will then in parallel take the descriptions of the verifyJobs,
+        // Parallelize the CPU heavy verification using the workerpool library
+        // This call will then in parallel take the descriptions of the verifyJobs,
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
         // the reference csv file (from the csvContentMap lookup above). The entire parallel operation returns a promise containing an array
         // of result values.
