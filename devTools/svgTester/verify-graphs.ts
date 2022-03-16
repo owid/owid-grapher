@@ -4,11 +4,7 @@ import parseArgs from "minimist"
 import * as utils from "./utils.js"
 import * as fs from "fs-extra"
 
-import * as path from "path"
-
-import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
-const Pool = require("multiprocessing").Pool
-const pool = new Pool()
+import pMap from "p-map"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
@@ -37,7 +33,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
 
         const verifyJobs = directoriesToProcess.map((dir) => ({
             dir,
-            referenceEntry: csvContentMap.get(dir.chartId),
+            referenceEntry: csvContentMap.get(dir.chartId)!,
             referenceDir,
             outDir,
             verbose,
@@ -48,9 +44,10 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         // load the config and data and intialize a grapher, create the default svg output and check if it's md5 hash is the same as the one in
         // the reference csv file (from the csvContentMap lookup above). The entire parallel operation returns a promise containing an array
         // of result values.
-        const validationResults: utils.VerifyResult[] = await pool.map(
+        const validationResults: utils.VerifyResult[] = await pMap(
             verifyJobs,
-            path.join(__dirname, "verify-graphs-runner")
+            utils.renderAndVerifySvg,
+            { concurrency: 8 }
         )
 
         if (validationResults.length !== verifyJobs.length)
