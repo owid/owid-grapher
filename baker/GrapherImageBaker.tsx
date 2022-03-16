@@ -62,11 +62,11 @@ export async function getPublishedGraphersBySlug(
 
     // Select all graphers that are published and that do not have the tag Private
     const sql = includePrivate
-        ? `SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
+        ? `SELECT * FROM charts WHERE config->>"$.isPublished" = "true"`
         : `SELECT charts.id as id, charts.config as config FROM charts
 LEFT JOIN chart_tags on chart_tags.chartId = charts.id
 LEFT JOIN tags on tags.id = chart_tags.tagid
-WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE
+WHERE config->>"$.isPublished" = "true"
 AND (tags.name IS NULL OR tags.name != 'Private')`
 
     const query = db.queryMysql(sql)

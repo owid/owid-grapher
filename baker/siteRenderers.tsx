@@ -95,7 +95,7 @@ export const renderChartsPage = async () => {
         WHERE
             is_indexable IS TRUE
             AND publishedAt IS NOT NULL
-            AND config->"$.isPublished" IS TRUE
+            AND config->>"$.isPublished" = "true"
     `)) as ChartIndexItem[]
 
     const chartTags = await queryMysql(`
@@ -190,7 +190,7 @@ export const renderFrontPage = async () => {
             WHERE
                 is_indexable IS TRUE
                 AND publishedAt IS NOT NULL
-                AND config -> "$.isPublished" IS TRUE`
+                AND config ->> "$.isPublished" = "true"`
         )
     )[0].count as number
     return renderToHtmlPage(
