@@ -6,7 +6,10 @@ describe("Kitchen sink", function () {
     beforeEach(() => {
         // The content of that page is backed up in kitchenSink.wordpress.html,
         // but isn't read from there. The master copy lives in the wordpress database.
-        cy.visit("/kitchen-sink")
+        cy.visit("http://localhost:8080/admin/posts/preview/48730")
+        cy.get('[type="email"]').type("admin@example.com")
+        cy.get('[type="password"]').type("admin")
+        cy.get('[type="submit"]').click()
     })
 
     it("Tests prominent links", function () {
@@ -29,19 +32,19 @@ describe("Kitchen sink", function () {
         testProminentLink({
             testTitle:
                 "Article link (with fallbacks, with domain, with protocol)",
-            title: "Child Mortality: an everyday tragedy of enormous scale that we can make progress against",
+            title: "Child mortality: an everyday tragedy of enormous scale that we can make progress against",
             src: "http://localhost:3030/uploads/2021/07/Screen-Shot-2021-07-16-at-14.36.49-150x82.png",
         })
         testProminentLink({
             testTitle:
                 "Article link (with fallbacks, with domain, without protocol)",
-            title: "Child Mortality: an everyday tragedy of enormous scale that we can make progress against",
+            title: "Child mortality: an everyday tragedy of enormous scale that we can make progress against",
             src: "http://localhost:3030/uploads/2021/07/Screen-Shot-2021-07-16-at-14.36.49-150x82.png",
         })
         testProminentLink({
             testTitle:
                 "Article link (with fallbacks, without domain, without protocol)",
-            title: "Child Mortality: an everyday tragedy of enormous scale that we can make progress against",
+            title: "Child mortality: an everyday tragedy of enormous scale that we can make progress against",
             src: "http://localhost:3030/uploads/2021/07/Screen-Shot-2021-07-16-at-14.36.49-150x82.png",
         })
         testProminentLink({
@@ -130,7 +133,7 @@ describe("Kitchen sink", function () {
         testProminentLink({
             testTitle: "Grapher link redirected to article (in wordpress)",
             title: "Democracy",
-            src: "http://localhost:3030/uploads/2013/03/Share-in-Democracies-since-1816-150x105.png",
+            src: "http://localhost:3030/uploads/2021/12/democratic-rights-thumbnail-150x59.png",
         })
         testProminentLink({
             testTitle: "Grapher link redirected to grapher (in admin)",
