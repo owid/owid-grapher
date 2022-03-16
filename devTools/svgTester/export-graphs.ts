@@ -3,11 +3,9 @@
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
 import * as fs from "fs-extra"
-const { join } = require("path")
 
 import * as path from "path"
-const Pool = require("multiprocessing").Pool
-const pool = new Pool()
+import pMap from "p-map"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const inDir = parsedArgs["i"] ?? "grapherData"
@@ -26,22 +24,15 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         }
 
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
-            directories.map((dir) => ({ dir: join(inDir, dir), outDir }))
+            directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
 
-        // Parallelize the CPU heavy rendering using the multiprocessing library. This library stringifies the invocation to other processes
-        // so this call uses the intermediate export-graphs-runner script. This call will then in parallel take the descriptions of the RenderSvgAndSaveJobDescription,
-        // and render the svgs in parallel. It will then save the resulting svg and return an SvgRecord which contains the md5 hash of the entire svg.
-        // The entire parallel operation returns a promise containing an array of SvgRecrod result values. This is then written out as a csv file so that the verify
-        // script can read it and quickly check md5 hashes for verification
-        const svgRecords: utils.SvgRecord[] = await pool.map(
+        // Concurrently run the CPU heavy rendering jobs
+        const svgRecords: utils.SvgRecord[] = await pMap(
             jobDescriptions,
-            path.join(__dirname, "export-graphs-runner.js")
+            utils.renderSvgAndSave,
+            { concurrency: 8 }
         )
         await utils.writeResultsCsvFile(outDir, svgRecords)
-
-        // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
-        // was not required before introducing the multiprocessing library.
-        process.exit(0)
     } catch (error) {
         console.error("Encountered an error: ", error)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
