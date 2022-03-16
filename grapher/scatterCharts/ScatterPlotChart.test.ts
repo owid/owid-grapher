@@ -7,7 +7,15 @@ import {
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
-import { ScatterPlotManager } from "./ScatterPlotChartConstants.js"
+import {
+    ScatterPlotManager,
+    SCATTER_LABEL_DEFAULT_FONT_SIZE,
+    SCATTER_LABEL_MAX_FONT_SIZE,
+    SCATTER_LABEL_MIN_FONT_SIZE,
+    SCATTER_POINT_DEFAULT_RADIUS,
+    SCATTER_POINT_MAX_RADIUS,
+    SCATTER_POINT_MIN_RADIUS,
+} from "./ScatterPlotChartConstants.js"
 import {
     EntitySelectionMode,
     ScaleType,
@@ -20,7 +28,8 @@ import { ContinentColors } from "../color/ColorConstants.js"
 import { OwidTableSlugs } from "../../coreTable/OwidTableConstants.js"
 import { Color } from "../../coreTable/CoreTableConstants.js"
 import { makeOriginalTimeSlugFromColumnSlug } from "../../coreTable/OwidTableUtil.js"
-import { uniq, uniqBy } from "../../clientUtils/Util.js"
+import { sortBy, uniq, uniqBy } from "../../clientUtils/Util.js"
+import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels.js"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {
@@ -249,7 +258,6 @@ describe("basic scatterplot", () => {
                     },
                 ],
                 seriesName: "UK",
-                size: 100,
             },
             {
                 color: chart.defaultNoDataColor,
@@ -260,7 +268,7 @@ describe("basic scatterplot", () => {
                         color: undefined,
                         entityName: "USA",
                         label: "2000",
-                        size: 0,
+                        size: undefined,
                         time: {
                             x: 2000,
                             y: 2000,
@@ -271,7 +279,6 @@ describe("basic scatterplot", () => {
                     },
                 ],
                 seriesName: "USA",
-                size: 0,
             },
         ])
     })
@@ -959,5 +966,156 @@ describe("addCountryMode", () => {
             },
         })
         expect(chart.transformedTable.numRows).toEqual(1)
+    })
+})
+
+describe("correct bubble sizes", () => {
+    it("with column", () => {
+        const table = new OwidTable(
+            [
+                [
+                    "entityId",
+                    "entityName",
+                    "entityCode",
+                    "year",
+                    "x",
+                    "y",
+                    "size",
+                ],
+                // sorted alphabetically
+                [1, "SWE", "", 2000, 2, 2, undefined],
+                [2, "UK", "", 2000, 1, 1, 0],
+                [3, "USA", "", 2000, 2, 2, 2],
+                [3, "ZZZ", "", 2000, 2, 2, -20],
+            ],
+            [
+                {
+                    slug: "x",
+                    type: ColumnTypeNames.Numeric,
+                },
+                {
+                    slug: "y",
+                    type: ColumnTypeNames.Numeric,
+                },
+                {
+                    slug: "size",
+                    type: ColumnTypeNames.Numeric,
+                },
+            ]
+        )
+
+        const manager: ScatterPlotManager = {
+            xColumnSlug: "x",
+            yColumnSlug: "y",
+            sizeColumnSlug: "size",
+            table,
+        }
+
+        const chart = new ScatterPlotChart({
+            manager,
+        })
+
+        const scatterPoints = new ScatterPointsWithLabels({
+            noDataModalManager: manager,
+            isConnected: chart["isConnected"],
+            hideConnectedScatterLines: chart["hideConnectedScatterLines"],
+            seriesArray: chart["series"],
+            dualAxis: chart["dualAxis"],
+            sizeScale: chart["sizeScale"],
+            fontScale: chart["fontScale"],
+            focusedSeriesNames: chart["focusedEntityNames"],
+            hoveredSeriesNames: chart["hoveredSeriesNames"],
+            onMouseOver: chart["onScatterMouseOver"],
+            onMouseLeave: chart["onScatterMouseLeave"],
+            onClick: chart["onScatterClick"],
+        })
+
+        const sortedRenderSeries = sortBy(
+            scatterPoints["initialRenderSeries"],
+            (s) => s.seriesName
+        )
+
+        expect(sortedRenderSeries[0].seriesName).toEqual("SWE")
+        expect(sortedRenderSeries[0].size).toEqual(SCATTER_POINT_MIN_RADIUS)
+        expect(sortedRenderSeries[0].fontSize).toEqual(
+            SCATTER_LABEL_MIN_FONT_SIZE
+        )
+        expect(sortedRenderSeries[1].seriesName).toEqual("UK")
+        expect(sortedRenderSeries[1].size).toEqual(SCATTER_POINT_MIN_RADIUS)
+        expect(sortedRenderSeries[1].fontSize).toEqual(
+            SCATTER_LABEL_MIN_FONT_SIZE
+        )
+        expect(sortedRenderSeries[2].seriesName).toEqual("USA")
+        expect(sortedRenderSeries[2].size).toEqual(SCATTER_POINT_MAX_RADIUS)
+        expect(sortedRenderSeries[2].fontSize).toEqual(
+            SCATTER_LABEL_MAX_FONT_SIZE
+        )
+        expect(sortedRenderSeries[3].seriesName).toEqual("ZZZ")
+        expect(sortedRenderSeries[3].size).toEqual(SCATTER_POINT_MIN_RADIUS)
+        expect(sortedRenderSeries[3].fontSize).toEqual(
+            SCATTER_LABEL_MIN_FONT_SIZE
+        )
+    })
+
+    it("without column", () => {
+        const table = new OwidTable(
+            [
+                ["entityId", "entityName", "entityCode", "year", "x", "y"],
+                // sorted alphabetically
+                [1, "SWE", "", 2000, 2, 2],
+                [2, "UK", "", 2000, 1, 1],
+            ],
+            [
+                {
+                    slug: "x",
+                    type: ColumnTypeNames.Numeric,
+                },
+                {
+                    slug: "y",
+                    type: ColumnTypeNames.Numeric,
+                },
+            ]
+        )
+
+        const manager: ScatterPlotManager = {
+            xColumnSlug: "x",
+            yColumnSlug: "y",
+            table,
+        }
+
+        const chart = new ScatterPlotChart({
+            manager,
+        })
+
+        const scatterPoints = new ScatterPointsWithLabels({
+            noDataModalManager: manager,
+            isConnected: chart["isConnected"],
+            hideConnectedScatterLines: chart["hideConnectedScatterLines"],
+            seriesArray: chart["series"],
+            dualAxis: chart["dualAxis"],
+            sizeScale: chart["sizeScale"],
+            fontScale: chart["fontScale"],
+            focusedSeriesNames: chart["focusedEntityNames"],
+            hoveredSeriesNames: chart["hoveredSeriesNames"],
+            onMouseOver: chart["onScatterMouseOver"],
+            onMouseLeave: chart["onScatterMouseLeave"],
+            onClick: chart["onScatterClick"],
+        })
+
+        const sortedRenderSeries = sortBy(
+            scatterPoints["initialRenderSeries"],
+            (s) => s.seriesName
+        )
+
+        expect(sortedRenderSeries[0].seriesName).toEqual("SWE")
+        expect(sortedRenderSeries[0].size).toEqual(SCATTER_POINT_DEFAULT_RADIUS)
+        expect(sortedRenderSeries[0].fontSize).toEqual(
+            SCATTER_LABEL_DEFAULT_FONT_SIZE
+        )
+        expect(sortedRenderSeries[1].seriesName).toEqual("UK")
+        expect(sortedRenderSeries[1].size).toEqual(SCATTER_POINT_DEFAULT_RADIUS)
+        expect(sortedRenderSeries[1].fontSize).toEqual(
+            SCATTER_LABEL_DEFAULT_FONT_SIZE
+        )
     })
 })
