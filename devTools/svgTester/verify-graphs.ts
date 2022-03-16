@@ -47,7 +47,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const validationResults: utils.VerifyResult[] = await pMap(
             verifyJobs,
             utils.renderAndVerifySvg,
-            { concurrency: 8 }
+            { concurrency: 32 }
         )
 
         if (validationResults.length !== verifyJobs.length)

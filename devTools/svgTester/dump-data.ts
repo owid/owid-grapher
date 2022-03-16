@@ -22,7 +22,9 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             (grapher) => ({ config: grapher, outDir })
         )
 
-        await pMap(saveJobs, utils.saveGrapherSchemaAndData, { concurrency: 8 })
+        await pMap(saveJobs, utils.saveGrapherSchemaAndData, {
+            concurrency: 32,
+        })
 
         await closeTypeOrmAndKnexConnections()
     } catch (error) {

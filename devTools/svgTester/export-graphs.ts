@@ -30,7 +30,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const svgRecords: utils.SvgRecord[] = await pMap(
             jobDescriptions,
             utils.renderSvgAndSave,
-            { concurrency: 8 }
+            { concurrency: 32 }
         )
         await utils.writeResultsCsvFile(outDir, svgRecords)
     } catch (error) {
