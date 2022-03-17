@@ -10,16 +10,48 @@ LOGIN_SHELL = $(shell finger $(USER) | grep 'Shell:*' | cut -f3 -d ":")
 help:
 	@echo 'Available commands:'
 	@echo
-	@echo '  make up      start tmux session for grapher via docker-compose'
-	@echo '  make down    stop any services started by docker-compose'
+	@echo '  GRAPHER ONLY'
+	@echo '  make up           start dev environment via docker-compose and tmux'
+	@echo '  make down         stop any services still running'
+	@echo
+	@echo '  GRAPHER + WORDPRESS (staff-only)'
+	@echo '  make up.full      start dev environment via docker-compose and tmux'
+	@echo '  make down.full    stop any services still running'
 	@echo
 
-up: require .env tmp-downloads/owid_chartdata.sql.gz
+up: require tmp-downloads/owid_chartdata.sql.gz
+	@echo '==> Setting up .env if need be'
+	@test -f .env || cp -f .env.example-grapher .env
+	
 	@echo '==> Building grapher'
 	yarn run tsc -b
+	yarn buildWordpressPlugin
+	
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
+			set remain-on-exit on \; \
+		new-window -n admin -e DEBUG='knex:query' \
+			'DB_HOST=127.0.0.1 devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
+			set remain-on-exit on \; \
+		new-window -n webpack 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		bind R respawn-pane -k \; \
+		bind X kill-pane \; \
+		bind Q kill-server
+
+up.full: require tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
+	@echo '==> Setting up .env if need be'
+	@test -f .env || cp -f .env.example-full .env
+	@grep -q WORDPRESS .env || (echo 'ERROR: your .env is missing some wordpress variables'; exit 1)
+	
+	@echo '==> Building grapher'
+	yarn run tsc -b
+	
+	@echo '==> Starting dev environment'
+	tmux new-session -s grapher \
+		-n docker 'docker-compose -f docker-compose.full.yml up' \; \
 			set remain-on-exit on \; \
 		new-window -n admin -e DEBUG='knex:query' \
 			'DB_HOST=127.0.0.1 devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
@@ -35,6 +67,10 @@ down:
 	@echo '==> Stopping services'
 	docker-compose -f docker-compose.grapher.yml down
 
+down.full:
+	@echo '==> Stopping services'
+	docker-compose -f docker-compose.full.yml down
+
 require:
 	@echo '==> Checking your local environment has the necessary commands...'
 	@which docker-compose >/dev/null 2>&1 || (echo "ERROR: docker-compose is required."; exit 1)
@@ -47,6 +83,10 @@ tmp-downloads/owid_chartdata.sql.gz:
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-mysql.sh
 
-.env: .env.example-grapher
-	@echo '==> Setting up default .env file'
-	cp .env.example-grapher .env
+tmp-downloads/live_wordpress.sql.gz:
+	@echo '==> Downloading wordpress data'
+	./devtools/docker/download-wordpress-mysql.sh
+
+wordpress/web/app/uploads/2022:
+	@echo '==> Downloading wordpress uploads'
+	./devtools/docker/download-wordpress-uploads.sh
