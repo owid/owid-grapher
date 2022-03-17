@@ -55,7 +55,7 @@ The currently available ways of using grapher are listed below in increasing ord
 
 Bonus setup alternative:
 
--   **GitPod** - this is a contributed web-based setup that needs no local tools whatsoever, just a [web browser](https://gitpod.io/#https://github.com/owid/owid-grapher). This is an easy way to get started but it is not actively maintained by the OWID team so it might not be working as well as the other options. In theory it supports the Admin UI 🚜.
+-   **GitPod** - this is a contributed web-based setup that needs no local tools whatsoever, just a [web browser pointed at GitPod](https://gitpod.io/#https://github.com/owid/owid-grapher). This is an easy way to get started but it is not actively maintained by the OWID team so it might not be working as well as the other options. It supports the Admin UI 🚜. The first start takes a rather long time to start (~30 minutes).
 
 ## Architecture notes
 

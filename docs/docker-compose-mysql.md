@@ -26,6 +26,14 @@ On Windows we only support development using the Windows Subsystem for Linux. In
 apt install -y build-essential finger tmux
 ```
 
+## Additional optional prequisites
+
+If you want to work with the explorer admin then you need to clone the "owid-content" folder as a **sibling** to the owid-grapher. Note that this is not required just to create or edit single charts which is normally sufficient for development of new features or bug fixes.
+
+    ```bash
+    git clone https://github.com/owid/owid-content
+    ```
+
 # Starting our development environment
 
 All you need to do now is to open a terminal and run
