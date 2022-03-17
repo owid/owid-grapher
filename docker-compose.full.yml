@@ -3,7 +3,6 @@ version: "3.7"
 # This docker-compose file creates a full local dev environment for both grapher and wordpress. It is meant for
 # OWID internal developers as the setup of wordpress requires a copy of the wordpress database that is not
 # publicly available.
-# A similar setup for external contributors is planned.
 
 # This setup assumes that work on the grapher happens outside any docker container - i.e. there is no Node 16
 # container included in this setup. The idea is that grapher development (as well as running webpack and the

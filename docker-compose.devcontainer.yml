@@ -1,35 +1,18 @@
 version: "3.7"
 
-# This docker-compose file creates a full local dev environment for both grapher and wordpress. It is meant for
-# OWID internal developers as the setup of wordpress requires a copy of the wordpress database that is not
-# publicly available.
-# A similar setup for external contributors is planned.
+# This docker-compose file creates a full local dev environment for both grapher and wordpress for use
+# in a Visual Studio Code Remote Container extension workflow. It is targeted at the general public to
+# easly get started.
 
-# This setup assumes that work on the grapher happens outside any docker container - i.e. there is no Node 16
-# container included in this setup. The idea is that grapher development (as well as running webpack and the
-# admin server) happens on the host, and that only the mysql, php and nginx dependencies run as containers.
+# This setup allows for all development to happen inside docker containers, i.e. the host only has to have
+# Docker, VS Code and the VS Code Remote Container extension installed.
 
 # The mysql database server is exposed on the host at the default mysql port of 3306 so you can use DB admin
-# utilities on the host working against localhost:3306
+# utilities on the host working against localhost:3306.
 
-# Before the first run you should download the database dumps. The easiest way to do this is to run the
-# following 4 commands from a bash terminal with the root of the project as the working directory. Note that
-# for the wordpress related downloads you'll need a working ssh setup on your host to connect to owid-live:
-# ./devTools/docker/download-grapher-mysql.sh
-# ./devTools/docker/download-wordpress-mysql.sh
-# and if you want the wordpress file uploads as well then:
-# ./devTools/docker/download-wordpress-uploads.sh
-
-# Run `docker-compose up -d` to run all these services in deamon mode. The first time it will take a few minutes
-# to build the containers and initialize and fill the database, afterwards it should be up in seconds.
-# On the host, make sure you have a .env file with the correct settings, then start `yarn startTmuxServer` or similar
-# and navigate to http://localhost:8080 to work with both the grapher admin and wordpress previews.
-
-# Wordpress development
-# The Wordpress admin is at http://localhost:8080/wp/wp-admin/
-# While working on the editor blocks of the OWID Wordpress plugin, run `yarn startWordpressPlugin`.
-# Alternatively, you can run `yarn buildWordpressPlugin` if you're working in Wordpress but not actively updating the editor.
-# Working on the PHP code doesn't require any further tooling command to run.
+# You should not start this docker-compose file manually. Everything will be managed by the VS Code remote
+# container extension when you open the repo in VS Code (a popup will ask you to open the VS Code window again
+# inside a the devcontainer)
 
 services:
     app:
