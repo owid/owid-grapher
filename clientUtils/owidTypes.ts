@@ -138,7 +138,7 @@ export interface SerializedGridProgram {
 
 export interface TocHeading {
     text: string
-    html?: string
+    html?: string // used by SectionHeading toc. Excluded from LongFormPage toc.
     slug: string
     isSubheading: boolean
 }
