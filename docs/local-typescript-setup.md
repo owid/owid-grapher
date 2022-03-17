@@ -1,6 +1,6 @@
 # Setting up a local typescript environment
 
-This page describes how to set up the typescript and javascript tooling to build the Grapher component from source and test it in your browser on your local machine. If you also want to be able to use the admin UI to graphically configure grapher charts you will need to set up the mysql database, by using our [docker compose mysql setup](docker-compose-mysql.md) or a [manual mysql setup](local-database-setup.md).
+This page describes how to set up the typescript and javascript tooling to build the Grapher component from source and test it in your browser on your local machine. If you also want to be able to use the admin UI to graphically configure grapher charts you will need to set up the mysql database, by using our [docker compose mysql setup](docker-compose-mysql.md).
 
 This local environment requires some manual setup. For a faster way to get started have a look at the [VS Code devcontainer setup](devcontainer-setup.md).
 
@@ -13,7 +13,7 @@ All further dependencies will be automatically installed by the yarn package man
 
 We recommend using the [nvm Node Version manager](https://github.com/nvm-sh/nvm) and [Visual Studio Code](https://code.visualstudio.com/) as the editor.
 
-Below are steps to set up these nvm and yarn. Further down are the steps to run the tests and use the storybook for development.
+Below are steps to set up nvm and yarn. Further down are the steps to run the tests and use the storybook for development.
 
 ## Setting up Node and Yarn
 
