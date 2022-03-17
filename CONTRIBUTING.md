@@ -34,7 +34,7 @@ We look at these issues weekly and aim to solve them when we can.
 
 Code contributions use [github flow](https://docs.github.com/en/get-started/quickstart/github-flow).
 You should clone the repository, get it working locally on your machine, and then attempt to make
-your change. When you are done, submit it as a pull-request.
+your change. When you are done, submit it as a pull-request. The [Readme](README.md#initial-development-setup) gives an overview of the different ways to get a working development environment.
 
 Pull-requests are expected to pass continuous integration checks. Your pull-request will then be
 reviewed by a staff member at Our World In Data, who may ask you to make some changes before they

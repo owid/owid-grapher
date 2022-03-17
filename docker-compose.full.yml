@@ -3,7 +3,6 @@ version: "3.7"
 # This docker-compose file creates a full local dev environment for both grapher and wordpress. It is meant for
 # OWID internal developers as the setup of wordpress requires a copy of the wordpress database that is not
 # publicly available.
-# A similar setup for external contributors is planned.
 
 # This setup assumes that work on the grapher happens outside any docker container - i.e. there is no Node 16
 # container included in this setup. The idea is that grapher development (as well as running webpack and the
@@ -13,8 +12,8 @@ version: "3.7"
 # utilities on the host working against localhost:3306
 
 # Before the first run you should download the database dumps. The easiest way to do this is to run the
-# following 4 commands from a bash terminal with the root of the project as the working directory. Note that
-# for the wordpress related downloads you'll need a working ssh setup on your host to connect to owid-live:
+# following 3 commands from a bash terminal with the root of the project as the working directory. Note that
+# for the wordpress related downloads you'll need a working ssh setup on your host to connect to live-db.owid.io:
 # ./devTools/docker/download-grapher-mysql.sh
 # ./devTools/docker/download-wordpress-mysql.sh
 # and if you want the wordpress file uploads as well then:
@@ -45,7 +44,7 @@ services:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
-    # mysql:5.7 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
+    # mysql 8 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
     # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
     # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
     # mounts the SSH agent and ~/.ssh directory into the container
@@ -99,6 +98,15 @@ services:
         build:
             context: ./devTools/docker/wordpress-php-docker
         command: "composer install --no-interaction"
+        volumes:
+            - ./wordpress:/app
+
+    # Init container for the owid wordpress plugin. The Javascript part of this plugin need to
+    # be built in a node container once with the ./wordpress directory mounted into the container.
+    wordpress-owid-plugin-build:
+        image: node:16
+        command: "yarn && yarn build"
+        working_dir: /app/web/app/plugins/owid
         volumes:
             - ./wordpress:/app
 
