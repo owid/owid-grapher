@@ -2,7 +2,10 @@ import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
-import { DataValueProps } from "../clientUtils/owidTypes.js"
+import {
+    BLOCK_WRAPPER_DATATYPE,
+    DataValueProps,
+} from "../clientUtils/owidTypes.js"
 import { Grapher } from "../grapher/core/Grapher.js"
 import { ENV } from "../settings/clientSettings.js"
 import { DataValue, processTemplate } from "./DataValue.js"
@@ -68,12 +71,17 @@ export function hydrateAnnotatingDataValue(
         )
     annotatingDataValueConfigInPreviousColumn?.forEach((config) => {
         const dataValueProps = JSON.parse(config.innerHTML)
+        const blockWrapper = config.closest(
+            `[data-type=${BLOCK_WRAPPER_DATATYPE}]`
+        )
+
+        if (!blockWrapper) return
         ReactDOM.hydrate(
             <AnnotatingDataValue
                 dataValueProps={dataValueProps}
                 grapherInstance={grapherInstance}
             />,
-            config.parentElement
+            blockWrapper
         )
     })
 }
