@@ -14,7 +14,7 @@ help:
 	@echo '  make down    stop any services started by docker-compose'
 	@echo
 
-up: .env tmp-downloads/owid_chartdata.sql.gz
+up: require .env tmp-downloads/owid_chartdata.sql.gz
 	@echo '==> Building grapher'
 	yarn run tsc -b
 	@echo '==> Starting dev environment'
@@ -34,6 +34,14 @@ up: .env tmp-downloads/owid_chartdata.sql.gz
 down:
 	@echo '==> Stopping services'
 	docker-compose -f docker-compose.grapher.yml down
+
+require:
+	@echo '==> Checking your local environment has the necessary commands...'
+	@which docker-compose >/dev/null 2>&1 || (echo "ERROR: docker-compose is required."; exit 1)
+	@which yarn >/dev/null 2>&1 || (echo "ERROR: yarn is required."; exit 1)
+	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
+	@which finger >/dev/null 2>&1 || (echo "ERROR: finger is required."; exit 1)
+
 
 tmp-downloads/owid_chartdata.sql.gz:
 	@echo '==> Downloading chart data'
