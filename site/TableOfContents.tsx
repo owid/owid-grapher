@@ -6,11 +6,12 @@ import { faBars } from "@fortawesome/free-solid-svg-icons/faBars.js"
 import { useTriggerWhenClickOutside } from "./hooks.js"
 import { wrapInDiv } from "../clientUtils/Util.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
+import { TocHeading } from "../clientUtils/owidTypes.js"
 
 const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
 interface TableOfContentsData {
-    headings: { isSubheading: boolean; slug: string; text: string }[]
+    headings: TocHeading[]
     pageTitle: string
     hideSubheadings?: boolean
 }
