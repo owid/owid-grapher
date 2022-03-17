@@ -8,6 +8,7 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown.js"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter.js"
 import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare.js"
+import { faInstagramSquare } from "@fortawesome/free-brands-svg-icons/faInstagramSquare.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight.js"
 import {
@@ -267,6 +268,23 @@ export const FrontPage = (props: {
                                                 </div>
                                                 <div className="label">
                                                     Facebook
+                                                </div>
+                                            </a>
+                                            <a
+                                                href="https://instagram.com/ourworldindata_official"
+                                                className="list-item"
+                                                title="Instagram"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                data-track-note="homepage-follow-us"
+                                            >
+                                                <div className="icon">
+                                                    <FontAwesomeIcon
+                                                        icon={faInstagramSquare}
+                                                    />
+                                                </div>
+                                                <div className="label">
+                                                    Instagram
                                                 </div>
                                             </a>
                                             <a

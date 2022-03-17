@@ -146,6 +146,14 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </li>
                             <li>
                                 <a
+                                    href="https://instagram.com/ourworldindata_official"
+                                    data-track-note="footer-navigation"
+                                >
+                                    Instagram
+                                </a>
+                            </li>
+                            <li>
+                                <a
                                     href="https://github.com/owid"
                                     data-track-note="footer-navigation"
                                 >
