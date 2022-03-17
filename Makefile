@@ -22,7 +22,7 @@ up: .env tmp-downloads/owid_chartdata.sql.gz
 		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		new-window -n admin -e DEBUG='knex:query' \
-			'yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
+			'DB_HOST=127.0.0.1 devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
