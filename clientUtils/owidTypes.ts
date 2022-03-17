@@ -56,6 +56,8 @@ export interface RelatedChart {
 
 export type OwidVariableId = Integer // remove.
 
+export const BLOCK_WRAPPER_DATATYPE = "block-wrapper"
+
 export interface FormattedPost extends FullPost {
     supertitle?: string
     lastUpdated?: string

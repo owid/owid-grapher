@@ -10,6 +10,7 @@ import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import * as path from "path"
 import { RelatedCharts } from "../site/blocks/RelatedCharts.js"
 import {
+    BLOCK_WRAPPER_DATATYPE,
     DataValueProps,
     FormattedPost,
     FormattingOptions,
@@ -217,7 +218,9 @@ export const formatWordpressPost = async (
                 `Missing data value for query ${dataValueConfigurationString}`
             )
         return ReactDOMServer.renderToString(
-            <AnnotatingDataValue dataValueProps={dataValueProps} />
+            <span data-type={BLOCK_WRAPPER_DATATYPE}>
+                <AnnotatingDataValue dataValueProps={dataValueProps} />
+            </span>
         )
     })
 
