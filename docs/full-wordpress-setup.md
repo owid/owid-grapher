@@ -2,21 +2,14 @@
 
 This page describes how to get the full setup of our site running locally including wordpress (and thus also allowing running the baking etc). Note that this setup requires pullung a database dump from our live server which only OWID staff can do. This setup thus only works for OWID staff.
 
-This setup is very similar to the [Local setup with mysql and grapher admin](docker-compose-mysql.md). Go to that document and make sure that the prerequisites are met. Then there are two additional setup steps before you can run `make up-full` to get a setup running with wordpress included.
+This setup is very similar to the [Local setup with mysql and grapher admin](docker-compose-mysql.md). Go to that document and make sure that the prerequisites are met. Then there are two additional setup steps before you can run `make up.full` to get a setup running with wordpress included.
 
-## Additional prequisites
+## Additional optional prequisites
 
 1. Clone the "owid-content" folder as a **sibling** to the owid-grapher. This is required so that you can use the explorer admin features (i.e. most operations also work if this step is skipped)
 
     ```bash
     git clone https://github.com/owid/owid-content
-    ```
-
-2. Download the wordpress database dump and (optionally) pull the wordpress file uploads by running the two scripts below from a terminal at the root of this repository.
-
-    ```bash
-    ./devTools/docker/download-wordpress-mysql.sh
-    ./devTools/docker/download-wordpress-uploads.sh
     ```
 
 ## Running the full setup
