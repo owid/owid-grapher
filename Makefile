@@ -24,6 +24,9 @@ up: .env tmp-downloads/owid_chartdata.sql.gz
 		new-window -n webpack 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		bind R respawn-pane -k \; \
+		bind X kill-pane \; \
+		bind Q kill-server
 
 down:
 	@echo '==> Stopping services'

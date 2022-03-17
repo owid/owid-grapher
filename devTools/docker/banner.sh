@@ -8,25 +8,24 @@ cat << EOF
    /|            /|
    \|            \|
 
-You are now running the grapher dev environment!
+You are now running the grapher dev environment using tmux!
 
-The dev environment uses tmux, and runs services in multiple panes.
-For example, switch to pane 0 by typing <C-b> then "0".
+A quick tmux cheatsheet:
+    <C-b>, 0       move to pane numbered 0
+    <C-b>, n       make a new terminal pane
+    <C-b>, R       restart a crashed pane
+    <C-b>, X       kill and close a pane
+    <C-b>, Q       close all panes and exit tmux
 
-If this is your first time starting the environment, it may take
-take 5-15 minutes to load example data and charts into the dev db.
+The first time you run this, it can take 5-15 mins to create the db. You
+can watch its progress by switching to pane 0 (docker).
 
-If it is working, you can try:
+Try these URLs to see if your environment is working:
 
-    http://localhost:8080/  <-- an admin interface for grapher
-
-You can log into the admin interface with credentials:
-
-    admin@example.com / admin
-
-The test page compares charts using local code to those on the live site:
-
-    http://localhost:8080/admin/test
+    http://localhost:8080/  <-- an admin interface for grapher,
+                                login with "admin@example.com" / "admin"
+    http://localhost:8080/admin/test  <-- a list of all charts in the db
+    http://localhost:3030/grapher/life-expectancy  <-- an example chart
 
 Happy hacking!
 EOF
