@@ -293,6 +293,9 @@ export const formatWordpressPost = async (
     }
 
     // SSR rendering of Gutenberg blocks, before hydration on client
+    // - Note: any post-processing on these blocks (e.g. adding an "id"
+    //   attribute on <h3> within "additional information" blocks for the ToC) runs the risk
+    //   of hydration discrepancies.
     await renderBlocks(cheerioEl, post.id)
 
     // Extract inline styling
@@ -525,32 +528,29 @@ export const formatWordpressPost = async (
                     slug: "footnotes",
                     isSubheading: false,
                 })
-            } else if (!$heading.is("h1") && !$heading.is("h4")) {
-                if ($heading.is("h2")) {
-                    const tocHeading = {
-                        text: headingText,
-                        slug: slug,
-                        isSubheading: false,
-                    }
-                    tocHeadings.push(tocHeading)
-                    parentHeading = tocHeading
-                } else if (
-                    $heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length ===
-                        0 &&
-                    $heading.closest(".wp-block-owid-additional-information")
-                        .length === 0
-                ) {
-                    tocHeadings.push({
-                        text: headingText,
-                        html: $heading.html() || undefined,
-                        slug: slug,
-                        isSubheading: true,
-                    })
+            } else if ($heading.is("h2")) {
+                const tocHeading = {
+                    text: headingText,
+                    slug: slug,
+                    isSubheading: false,
                 }
+                tocHeadings.push(tocHeading)
+                parentHeading = tocHeading
+            } else if (
+                $heading.is("h3") &&
+                $heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length === 0 &&
+                $heading.closest(".wp-block-owid-additional-information")
+                    .length === 0
+            ) {
+                tocHeadings.push({
+                    text: headingText,
+                    html: $heading.html() || undefined,
+                    slug: slug,
+                    isSubheading: true,
+                })
             }
         }
 
-        $heading.attr("id", slug)
         // Add deep link for headings not contained in <a> tags already
         // (e.g. within a prominent link block)
         if (
@@ -558,6 +558,7 @@ export const formatWordpressPost = async (
             !$heading.closest(".wp-block-owid-additional-information").length && // prioritize clean SSR of AdditionalInformation
             !$heading.closest(".wp-block-help").length
         ) {
+            $heading.attr("id", slug)
             $heading.prepend(
                 `<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`
             )
