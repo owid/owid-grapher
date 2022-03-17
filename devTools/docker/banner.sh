@@ -22,10 +22,11 @@ can watch its progress by switching to pane 0 (docker).
 
 Try these URLs to see if your environment is working:
 
-    http://localhost:8080/  <-- an admin interface for grapher,
-                                login with "admin@example.com" / "admin"
-    http://localhost:8080/admin/test  <-- a list of all charts in the db
+    http://localhost:3030/  <-- a basic version of Our World in Data
     http://localhost:3030/grapher/life-expectancy  <-- an example chart
+    http://localhost:3030/admin/  <-- an admin interface, login with
+                                      "admin@example.com" / "admin"
+    http://localhost:3030/admin/test  <-- a list of all charts in the db
 
 Happy hacking!
 EOF
