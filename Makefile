@@ -2,6 +2,9 @@
 #  Makefile
 #
 
+# this is horrible magic, we use it to open a nice welcome message for
+# the user in tmux in the shell that they normally use (e.g. bash, zsh)
+# https://unix.stackexchange.com/questions/352316/finding-out-the-default-shell-of-a-user-within-a-shell-script
 LOGIN_SHELL = $(shell finger $(USER) | grep 'Shell:*' | cut -f3 -d ":")
 
 help:
