@@ -1,0 +1,66 @@
+#
+#  docker-compose.grapher.yml
+#
+#
+# This docker-compose file creates a local dev environment for working with grapher. It is meant for
+# the general public.
+#
+# In this setup, you run the node server and webpack locally on your machine, and only MySQL is spun up
+# and initialized as a dependency.
+#
+# The mysql database server is exposed on the host at the default mysql port of 3306 so you can use DB admin
+# utilities on the host working against localhost:3306. If you are already running MySQL, you will need to
+# disable it to use this script to avoid a port conflict.
+#
+# Before the first run you should download the database dumps. The easiest way to do this is to run the
+# following command from a bash terminal with the root of the project as the working directory.
+#
+#     ./devTools/docker/download-grapher-mysql.sh
+#
+# Run `docker-compose up -d` to run all these services in deamon mode. The first time it will take a few minutes
+# to build the containers and initialize and fill the database, afterwards it should be up in seconds.
+#
+# On your local machine, you should copy .env.example to .env, then start `yarn startTmuxServer` or similar
+# and navigate to http://localhost:8080 to work with the grapher admin.
+#
+
+version: "3.7"
+
+services:
+    # Stock mysql database. Root password is hardcoded for now
+    db:
+        image: mysql/mysql-server:latest
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        volumes:
+            - mysql_data_public:/var/lib/mysql
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
+            MYSQL_ROOT_HOST: "%"
+
+    # mysql:5.7 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
+    # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
+    # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
+    # mounts the SSH agent and ~/.ssh directory into the container
+    db-load-data:
+        build:
+            context: ./devTools/docker/mysql-init-docker
+        # image: mysql/mysql-server:latest
+        command: "/app/grapher-mysql-init.sh"
+        volumes:
+            - ./devTools/docker:/app
+            - ./tmp-downloads:/tmp-downloads
+            # - ~/.ssh:/user/.ssh # map the .ssh directory into the container so it knows about the owid-live ssh configuration
+            # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
+        environment:
+            DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
+            DB_HOST: db
+            DATA_FOLDER: "/tmp-downloads"
+            # SSH_AUTH_SOCK: "/ssh-agent"
+        depends_on:
+            - db
+
+volumes:
+    mysql_data_public:
