@@ -71,7 +71,7 @@ services:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
-    # mysql:5.7 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
+    # mysql 8 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
     # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
     # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
     # mounts the SSH agent and ~/.ssh directory into the container
@@ -79,7 +79,7 @@ services:
         build:
             context: ./devTools/docker/mysql-init-docker
         # image: mysql/mysql-server:latest
-        command: "/app/full-mysql-init.sh"
+        command: "/app/grapher-only-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
             - ./tmp-downloads:/tmp-downloads
