@@ -24,8 +24,8 @@ up: require tmp-downloads/owid_chartdata.sql.gz
 	@test -f .env || cp -f .env.example-grapher .env
 	
 	@echo '==> Building grapher'
+	yarn install
 	yarn run tsc -b
-	yarn buildWordpressPlugin
 	
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
@@ -48,7 +48,9 @@ up.full: require tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpres
 	@grep -q WORDPRESS .env || (echo 'ERROR: your .env is missing some wordpress variables'; exit 1)
 	
 	@echo '==> Building grapher'
+	yarn install
 	yarn run tsc -b
+	yarn buildWordpressPlugin
 	
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
