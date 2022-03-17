@@ -39,7 +39,8 @@ up: require tmp-downloads/owid_chartdata.sql.gz
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
-		bind Q kill-server
+		bind Q kill-server \
+		|| make down
 
 up.full: require tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@echo '==> Setting up .env if need be'
@@ -61,7 +62,8 @@ up.full: require tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpres
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
-		bind Q kill-server
+		bind Q kill-server \
+		|| make down.full
 
 down:
 	@echo '==> Stopping services'
