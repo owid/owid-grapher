@@ -6,6 +6,7 @@
     },
     "references": [
         { "path": "../clientUtils" },
+        { "path": "../glossary" },
         { "path": "../grapher" },
         { "path": "../settings" },
         { "path": "../explorer" }

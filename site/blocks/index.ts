@@ -1,6 +1,6 @@
 import { hydrate as hydrateAdditionalInformation } from "./AdditionalInformation.js"
 import { runSearchCountry } from "../../site/SearchCountry.js"
-import { runExpandableInlineBlock } from "../../site/ExpandableInlineBlock.js"
+import { runExpandableInlineBlock } from "../../glossary/ExpandableInlineBlock.js"
 import { runDataTokens } from "../../site/runDataTokens.js"
 import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder.js"
 
