@@ -8,7 +8,7 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown.js"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter.js"
 import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookSquare.js"
-import { faInstagramSquare } from "@fortawesome/free-brands-svg-icons/faInstagramSquare.js"
+import { faInstagram } from "@fortawesome/free-brands-svg-icons/faInstagram.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight.js"
 import {
@@ -280,7 +280,7 @@ export const FrontPage = (props: {
                                             >
                                                 <div className="icon">
                                                     <FontAwesomeIcon
-                                                        icon={faInstagramSquare}
+                                                        icon={faInstagram}
                                                     />
                                                 </div>
                                                 <div className="label">
