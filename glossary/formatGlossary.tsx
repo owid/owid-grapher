@@ -1,11 +1,9 @@
 import React, { ReactElement } from "react"
 import ReactDOMServer from "react-dom/server.js"
-import {
-    ExpandableInlineBlock,
-    ExpandableInlineBlock_name,
-} from "./ExpandableInlineBlock.js"
+import { ExpandableInlineBlock_name } from "./ExpandableInlineBlock.js"
 import { GlossaryExcerpt, GlossaryExcerpt_name } from "./GlossaryExcerpt.js"
 import { GlossaryItem } from "./glossary.js"
+import Tippy from "@tippyjs/react"
 
 // Do not replace glossary terms within these tags
 export const FORBIDDEN_TAGS = ["a", "h2", "h3", "h4", "h5", "h6"]
@@ -129,9 +127,24 @@ export const hydrateGlossaryTermsInText = (
         glossary.splice(idx, 1)
 
         return (
-            <ExpandableInlineBlock label={match} type={GlossaryExcerpt_name}>
-                <GlossaryExcerpt slug={slug} excerpt={excerpt} label={match} />
-            </ExpandableInlineBlock>
+            <Tippy
+                content={
+                    <GlossaryExcerpt
+                        slug={slug}
+                        excerpt={excerpt}
+                        label={match}
+                    />
+                }
+                interactive={true}
+                appendTo={() => document.body}
+            >
+                <a
+                    className="expandable-block-button"
+                    href={`/glossary#${slug}`}
+                >
+                    {match}
+                </a>
+            </Tippy>
         )
     }
 
