@@ -115,12 +115,10 @@ class SuggestedChartRevisionRow extends React.Component<{
                         ).toUpperCase()
                     )}
                     {suggestedChartRevision.updatedByFullName && (
-                        <>
-                            <Timeago
-                                time={suggestedChartRevision.updatedAt}
-                                by={suggestedChartRevision.updatedByFullName}
-                            />
-                        </>
+                        <Timeago
+                            time={suggestedChartRevision.updatedAt}
+                            by={suggestedChartRevision.updatedByFullName}
+                        />
                     )}
                 </td>
                 <td>
