@@ -903,12 +903,20 @@ export class LoadingBlocker extends React.Component {
     }
 }
 
-import { format } from "timeago.js"
+import dayjs from "../clientUtils/dayjs.js"
 
 @observer
-export class Timeago extends React.Component<{ time: Date }> {
+export class Timeago extends React.Component<{
+    time: dayjs.ConfigType
+    by?: string | JSX.Element
+}> {
     render() {
-        return this.props.time ? format(this.props.time) : ""
+        return (
+            <>
+                {this.props.time && dayjs(this.props.time).fromNow()}
+                {this.props.by !== undefined && <> by {this.props.by}</>}
+            </>
+        )
     }
 }
 
