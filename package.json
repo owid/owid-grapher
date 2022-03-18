@@ -48,7 +48,7 @@
         "@fortawesome/react-fontawesome": "^0.1.11",
         "@handsontable/react": "^11.0.1",
         "@prettier/plugin-php": "^0.14.3",
-        "@tippyjs/react": "^4.0.2",
+        "@tippyjs/react": "^4.2.6",
         "@types/amplitude-js": "^5.8.0",
         "@types/bcrypt": "^5.0.0",
         "@types/cheerio": "^0.22.11",
