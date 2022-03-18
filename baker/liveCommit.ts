@@ -2,9 +2,9 @@ import { keyBy, mapValues, sortBy, memoize } from "lodash"
 import parseArgs from "minimist"
 import fetch from "node-fetch"
 import opener from "opener"
-import * as timeago from "timeago.js"
 import { execWrapper } from "../db/execWrapper.js"
 import { DeployTarget, ProdTarget } from "./DeployTarget.js"
+import dayjs from "../clientUtils/dayjs.js"
 
 /**
  * Retrieves information about the deployed commit on a live or staging server.
@@ -143,7 +143,7 @@ if (args._[0]) {
 
                 return {
                     commitSha,
-                    commitDate: commitDate && timeago.format(commitDate),
+                    commitDate: commitDate && dayjs(commitDate).fromNow(),
                     commitAuthor,
                     commitMessage:
                         // truncate to 50 characters

@@ -1,6 +1,5 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { format } from "timeago.js"
 import * as lodash from "lodash"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons/faQuestionCircle.js"
@@ -13,6 +12,7 @@ import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { ChartListItem } from "./ChartList.js"
 import { Link } from "./Link.js"
 import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
+import { Timeago } from "./Forms.js"
 
 export interface SuggestedChartRevisionListItem {
     id: number
@@ -100,8 +100,10 @@ class SuggestedChartRevisionRow extends React.Component<{
                         : ""}
                 </td>
                 <td>
-                    {format(suggestedChartRevision.createdAt)} by{" "}
-                    {suggestedChartRevision.createdByFullName}
+                    <Timeago
+                        time={suggestedChartRevision.createdAt}
+                        by={suggestedChartRevision.createdByFullName}
+                    />
                 </td>
                 <td style={{ minWidth: "120px" }}>
                     <SuggestedChartRevisionStatusIcon
@@ -112,10 +114,14 @@ class SuggestedChartRevisionRow extends React.Component<{
                             suggestedChartRevision.status as unknown as string
                         ).toUpperCase()
                     )}
-                    {suggestedChartRevision.updatedByFullName &&
-                        ` ${format(suggestedChartRevision.updatedAt)} by ${
-                            suggestedChartRevision.updatedByFullName
-                        }`}
+                    {suggestedChartRevision.updatedByFullName && (
+                        <>
+                            <Timeago
+                                time={suggestedChartRevision.updatedAt}
+                                by={suggestedChartRevision.updatedByFullName}
+                            />
+                        </>
+                    )}
                 </td>
                 <td>
                     {suggestedChartRevision.decisionReason

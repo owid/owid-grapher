@@ -1,7 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, runInAction } from "mobx"
-import { format } from "timeago.js"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle.js"
@@ -9,6 +8,7 @@ import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle.j
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Deploy, DeployStatus } from "../clientUtils/owidTypes.js"
+import { Timeago } from "./Forms.js"
 
 const statusLabel: Record<DeployStatus, string> = {
     [DeployStatus.queued]: "Next up",
@@ -68,13 +68,9 @@ export class DeployStatusPage extends React.Component {
                                                 {change.authorName}
                                             </td>
                                             <td className="cell-time">
-                                                {change.timeISOString
-                                                    ? format(
-                                                          Date.parse(
-                                                              change.timeISOString
-                                                          )
-                                                      )
-                                                    : ""}
+                                                <Timeago
+                                                    time={change.timeISOString}
+                                                />
                                             </td>
                                         </tr>
                                     ))

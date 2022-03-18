@@ -1,14 +1,13 @@
 import React from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
-import { format } from "timeago.js"
 import * as lodash from "lodash"
 import { bind } from "decko"
 
 import { Link } from "./Link.js"
 import { Tag } from "./TagBadge.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { EditableTags } from "./Forms.js"
+import { EditableTags, Timeago } from "./Forms.js"
 
 export interface DatasetListItem {
     id: number
@@ -81,8 +80,10 @@ class DatasetRow extends React.Component<{
                     />
                 </td>
                 <td>
-                    {format(dataset.dataEditedAt)} by{" "}
-                    {highlight(dataset.dataEditedByUserName)}
+                    <Timeago
+                        time={dataset.dataEditedAt}
+                        by={highlight(dataset.dataEditedByUserName)}
+                    />
                 </td>
             </tr>
         )

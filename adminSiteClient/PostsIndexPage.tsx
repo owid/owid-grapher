@@ -1,13 +1,12 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-import { format } from "timeago.js"
 import fuzzysort from "fuzzysort"
 import * as lodash from "lodash"
 
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { SearchField, FieldsRow, EditableTags } from "./Forms.js"
+import { SearchField, FieldsRow, EditableTags, Timeago } from "./Forms.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { WORDPRESS_URL } from "../settings/clientSettings.js"
 import { Tag } from "./TagBadge.js"
@@ -68,7 +67,9 @@ class PostRow extends React.Component<{
                         onSave={this.onSaveTags}
                     />
                 </td>
-                <td>{format(post.updatedAt)}</td>
+                <td>
+                    <Timeago time={post.updatedAt} />
+                </td>
                 <td>
                     <a
                         href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.id}&action=edit`}

@@ -1,9 +1,9 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { format } from "timeago.js"
 
 import { Link } from "./Link.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
+import { Timeago } from "./Forms.js"
 
 export interface VariableListItem {
     id: number
@@ -45,10 +45,10 @@ class VariableRow extends React.Component<{
                 </td>
                 {variable.uploadedAt && (
                     <td>
-                        {format(variable.uploadedAt)} by{" "}
-                        {variable.uploadedBy
-                            ? variable.uploadedBy
-                            : "Bulk import"}
+                        <Timeago
+                            time={variable.uploadedAt}
+                            by={variable.uploadedBy ?? "Bulk import"}
+                        />
                     </td>
                 )}
             </tr>

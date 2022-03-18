@@ -1,13 +1,12 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, runInAction, observable } from "mobx"
-import { format } from "timeago.js"
 import * as lodash from "lodash"
 
 import { Link } from "./Link.js"
 import { Tag } from "./TagBadge.js"
 import { bind } from "decko"
-import { EditableTags } from "./Forms.js"
+import { EditableTags, Timeago } from "./Forms.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
@@ -127,14 +126,16 @@ class ChartRow extends React.Component<{
                     />
                 </td>
                 <td>
-                    {chart.publishedAt && format(chart.publishedAt)}
-                    {chart.publishedBy && (
-                        <span> by {highlight(chart.publishedBy)}</span>
-                    )}
+                    <Timeago
+                        time={chart.publishedAt}
+                        by={highlight(chart.publishedBy)}
+                    />
                 </td>
                 <td>
-                    {format(chart.lastEditedAt)} by{" "}
-                    {highlight(chart.lastEditedBy)}
+                    <Timeago
+                        time={chart.lastEditedAt}
+                        by={highlight(chart.lastEditedBy)}
+                    />
                 </td>
                 <td>
                     <Link

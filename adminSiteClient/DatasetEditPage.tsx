@@ -12,7 +12,6 @@ import {
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
-import { format } from "timeago.js"
 
 import { OwidVariableDisplayConfig } from "../clientUtils/OwidVariable.js"
 import { OwidSource } from "../clientUtils/OwidSource.js"
@@ -25,6 +24,7 @@ import {
     BindFloat,
     FieldsRow,
     EditableTags,
+    Timeago,
 } from "./Forms.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { Grapher } from "../grapher/core/Grapher.js"
@@ -527,8 +527,11 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <section>
                     <h1>{dataset.name}</h1>
                     <p>
-                        Uploaded {format(dataset.dataEditedAt)} by{" "}
-                        {dataset.dataEditedByUserName}
+                        Uploaded{" "}
+                        <Timeago
+                            time={dataset.dataEditedAt}
+                            by={dataset.dataEditedByUserName}
+                        />
                     </p>
                     <Link
                         native

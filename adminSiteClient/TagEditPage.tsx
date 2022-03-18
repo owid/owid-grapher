@@ -2,10 +2,9 @@ import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-import { format } from "timeago.js"
 
 import { AdminLayout } from "./AdminLayout.js"
-import { BindString, NumericSelectField, FieldsRow } from "./Forms.js"
+import { BindString, NumericSelectField, FieldsRow, Timeago } from "./Forms.js"
 import { DatasetList, DatasetListItem } from "./DatasetList.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { TagBadge, Tag } from "./TagBadge.js"
@@ -123,7 +122,9 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 />
                 <section>
                     <h1>Tag: {tag.name}</h1>
-                    <p>Last updated {format(tag.updatedAt)}</p>
+                    <p>
+                        Last updated <Timeago time={tag.updatedAt} />
+                    </p>
                 </section>
                 <section>
                     <form

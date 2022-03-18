@@ -2,11 +2,10 @@ import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction } from "mobx"
 import { Prompt } from "react-router-dom"
-import { format } from "timeago.js"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { BindString } from "./Forms.js"
+import { BindString, Timeago } from "./Forms.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 
 interface SourcePageData {
@@ -91,7 +90,9 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
                 />
                 <section>
                     <h1>Source: {source.name}</h1>
-                    <p>Last updated {format(source.updatedAt)}</p>
+                    <p>
+                        Last updated <Timeago time={source.updatedAt} />
+                    </p>
                 </section>
                 <section>
                     <form

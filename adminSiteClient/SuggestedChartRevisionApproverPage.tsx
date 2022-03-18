@@ -3,7 +3,6 @@ import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import { Link } from "react-router-dom"
 import { Base64 } from "js-base64"
-import { format } from "timeago.js"
 import Select from "react-select"
 import classNames from "classnames"
 import { Bounds } from "../clientUtils/Bounds.js"
@@ -13,7 +12,13 @@ import {
     SuggestedChartRevisionStatus,
 } from "../clientUtils/owidTypes.js"
 import { Grapher } from "../grapher/core/Grapher.js"
-import { TextAreaField, NumberField, RadioGroup, Toggle } from "./Forms.js"
+import {
+    TextAreaField,
+    NumberField,
+    RadioGroup,
+    Toggle,
+    Timeago,
+} from "./Forms.js"
 import { PostReference } from "./ChartEditor.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { SuggestedChartRevisionStatusIcon } from "./SuggestedChartRevisionList.js"
@@ -1162,31 +1167,30 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         </li>
                         <li>
                             <b>Suggested revision created:</b>{" "}
-                            {this.suggestedChartRevision
-                                ? `${format(
-                                      this.suggestedChartRevision.createdAt
-                                  )} by ${
-                                      this.suggestedChartRevision
-                                          .createdByFullName
-                                  } `
-                                : ""}
+                            {this.suggestedChartRevision && (
+                                <Timeago
+                                    time={this.suggestedChartRevision.createdAt}
+                                    by={
+                                        this.suggestedChartRevision
+                                            .createdByFullName
+                                    }
+                                />
+                            )}
                         </li>
 
                         <li>
                             <b>Suggested revision last updated:</b>{" "}
-                            {this.suggestedChartRevision &&
-                            this.suggestedChartRevision.updatedAt
-                                ? `${format(
-                                      this.suggestedChartRevision.updatedAt
-                                  )} by ${
-                                      this.suggestedChartRevision
-                                          .updatedByFullName
-                                          ? this.suggestedChartRevision
-                                                .updatedByFullName
-                                          : this.suggestedChartRevision
-                                                .createdByFullName
-                                  } `
-                                : ""}
+                            {this.suggestedChartRevision?.updatedAt && (
+                                <Timeago
+                                    time={this.suggestedChartRevision.updatedAt}
+                                    by={
+                                        this.suggestedChartRevision
+                                            .updatedByFullName ??
+                                        this.suggestedChartRevision
+                                            .createdByFullName
+                                    }
+                                />
+                            )}
                         </li>
                         <li>
                             <b>Reason for suggested revision:</b>{" "}
