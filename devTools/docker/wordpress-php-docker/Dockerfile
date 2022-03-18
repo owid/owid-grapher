@@ -5,10 +5,10 @@ RUN apt-get update && apt-get install -y \
     unzip \
     mariadb-client \
     libmariadb-dev \
- && docker-php-ext-install mysqli  \
+ && docker-php-ext-install mysqli opcache \
  && rm -rf /var/lib/apt/lists/*
 
- RUN pecl install xdebug \
+RUN pecl install xdebug \
     && docker-php-ext-enable xdebug
 
 RUN curl https://getcomposer.org/download/latest-2.2.x/composer.phar --output /usr/local/bin/composer \
