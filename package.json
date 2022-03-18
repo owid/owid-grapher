@@ -202,7 +202,6 @@
         "striptags": "^3.1.1",
         "svgo": "^2.8.0",
         "terser-webpack-plugin": "^4.2.3",
-        "timeago.js": "^4.0.2",
         "timezone-mock": "^1.0.18",
         "topojson-client": "^3.1.0",
         "ts-pattern": "^3.3.3",
