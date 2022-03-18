@@ -79,8 +79,9 @@ export function filterFunctionForSearchWords<TargetObject>(
 
 export function highlightFunctionForSearchWords(
     searchWords: SearchWord[]
-): (text: string) => JSX.Element | string {
-    return (text: string): JSX.Element | string => {
+): (text: string | null | undefined) => JSX.Element | string {
+    return (text: string | null | undefined): JSX.Element | string => {
+        if (text === undefined || text === null) return ""
         if (searchWords.length > 0) {
             const firstMatches = searchWords
                 .map((regex) => ({
