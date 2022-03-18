@@ -7,6 +7,7 @@
     "references": [
         { "path": "../coreTable" },
         { "path": "../clientUtils" },
+        { "path": "../glossary" },
         { "path": "../settings" }
     ]
 }

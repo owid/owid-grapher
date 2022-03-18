@@ -6,6 +6,11 @@ import { Logo } from "../captionedChart/Logos.js"
 import { HeaderManager } from "./HeaderManager.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import {
+    hydrateGlossaryTermsInText,
+    _linkGlossaryTermsInText,
+} from "../../glossary/formatGlossary.js"
+import { getMutableGlossary, glossary } from "../../glossary/glossary.js"
 
 @observer
 export class Header extends React.Component<{
@@ -149,10 +154,15 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a href={manager.canonicalUrl} target="_blank">
+                <a href={manager.canonicalUrl} target="_blank" rel="noopener">
                     <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
                 </a>
-                <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
+                <p style={subtitleStyle}>
+                    {hydrateGlossaryTermsInText(
+                        this.subtitleText,
+                        getMutableGlossary(glossary)
+                    )}
+                </p>
             </div>
         )
     }
