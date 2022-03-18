@@ -235,8 +235,7 @@
         "source-map-support": "^0.5.12",
         "storybook": "^6.3.8",
         "tmex": "^1.0.8",
-        "tsc-watch": "^4.2.9",
-        "xhr-mock": "^2.5.1"
+        "tsc-watch": "^4.2.9"
     },
     "prettier": {
         "semi": false
