@@ -2,7 +2,8 @@ import { findDOMParent } from "../../clientUtils/Util.js"
 
 const DEBUG = false
 
-declare let window: any
+// TypeScript implicitly imports @types/amplitude-js and @types/google.analytics
+// so we have proper types for window.amplitude and window.ga
 
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
 interface GAEvent {
