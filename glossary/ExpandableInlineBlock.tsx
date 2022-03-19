@@ -1,3 +1,4 @@
+import Tippy from "@tippyjs/react"
 import React, { ReactElement, useState } from "react"
 import ReactDOM from "react-dom"
 import { GlossaryExcerpt } from "./GlossaryExcerpt.js"
@@ -47,9 +48,13 @@ export const runExpandableInlineBlock = () => {
         const Component = availableComponents[subComponent]
 
         ReactDOM.render(
-            <ExpandableInlineBlock label={label} type={subComponent}>
-                <Component {...props} label={label} />
-            </ExpandableInlineBlock>,
+            <Tippy
+                content={<Component {...props} label={label} />}
+                interactive={true}
+                appendTo={() => document.body}
+            >
+                <span className="expandable-block-button">{label}</span>
+            </Tippy>,
             expandableInlineBlock.parentElement
         )
     })

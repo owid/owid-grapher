@@ -14,13 +14,13 @@ export const GlossaryExcerpt = ({
     label: string
 }) => {
     return (
-        <span className="glossary-excerpt">
-            <span className="title">Definition</span>
+        <div className="glossary-excerpt">
+            <div className="title">Definition</div>
             {excerpt}
             <a target="_blank" rel="noopener" href={`/glossary#${slug}`}>
                 Read more about {label.toLowerCase()}
                 <FontAwesomeIcon icon={faExternalLinkAlt} />
             </a>
-        </span>
+        </div>
     )
 }

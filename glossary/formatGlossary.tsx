@@ -138,12 +138,7 @@ export const hydrateGlossaryTermsInText = (
                 interactive={true}
                 appendTo={() => document.body}
             >
-                <a
-                    className="expandable-block-button"
-                    href={`/glossary#${slug}`}
-                >
-                    {match}
-                </a>
+                <span className="expandable-block-button">{match}</span>
             </Tippy>
         )
     }
