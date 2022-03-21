@@ -67,7 +67,7 @@ export interface FormattedPost extends FullPost {
     style?: string
     references: Record<string, unknown>[]
     footnotes: string[]
-    tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
+    tocHeadings: TocHeading[]
     pageDesc: string
 }
 
