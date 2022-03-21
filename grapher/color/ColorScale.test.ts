@@ -33,6 +33,7 @@ describe(ColorScale, () => {
             customCategoryColors: {},
             customCategoryLabels: {},
             customHiddenCategories: {},
+            equalSizeBins: true,
         }
         it("returns correct color", () => {
             const colorValuePairs = [
@@ -138,6 +139,7 @@ describe(ColorScale, () => {
             customCategoryColors: { test: "#eee" },
             customCategoryLabels: {},
             customHiddenCategories: {},
+            equalSizeBins: true,
         }
         const table = new CoreTable(
             {

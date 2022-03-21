@@ -354,6 +354,7 @@ describe("color scale", () => {
                 customNumericColorsActive: true,
                 customNumericLabels: [],
                 customNumericValues: [1.5, 2.5],
+                equalSizeBins: true,
             },
         }
         const chart = new LineChart({ manager })

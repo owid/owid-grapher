@@ -105,7 +105,7 @@ $defs:
                     - default
             equalSizeBins:
                 type: boolean
-                default: false
+                default: true
                 description: Whether the visual scaling for the color legend is disabled.
             customHiddenCategories:
                 type: object

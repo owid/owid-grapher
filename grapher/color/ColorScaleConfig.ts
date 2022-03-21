@@ -53,7 +53,7 @@ export class ColorScaleConfigDefaults {
     @observable customNumericColors: (Color | undefined | null)[] = []
 
     /** Whether the visual scaling for the color legend is disabled. */
-    @observable equalSizeBins?: boolean = undefined
+    @observable equalSizeBins?: boolean = true
 
     // Categorical bins
     // ================

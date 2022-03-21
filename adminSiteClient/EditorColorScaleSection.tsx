@@ -68,7 +68,7 @@ class ColorLegendSection extends React.Component<{
     onChange?: () => void
 }> {
     @action.bound onEqualSizeBins(isEqual: boolean) {
-        this.props.scale.config.equalSizeBins = isEqual ? true : undefined
+        this.props.scale.config.equalSizeBins = isEqual
         this.props.onChange?.()
     }
 
