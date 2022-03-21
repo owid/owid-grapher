@@ -8,7 +8,7 @@ on:
             - unlabeled
 
 env:
-    label_format: "priority: {0}"
+    label_prefix: "priority: "
     prio1: "1 - essential"
     prio2: "2 - important"
     prio3: "3 - nice to have"
@@ -16,9 +16,9 @@ env:
 
 jobs:
     prio1:
-        name: issue_opened_or_reopened
+        name: Prio 1
         runs-on: ubuntu-latest
-        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, format(env.label_format, env.prio1))
+        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, '${{ env.label_prefix }}${{ env.prio1 }}'))
         steps:
             - name: Assign priority 1
               uses: leonsteinhaeuser/project-beta-automations@v1.2.1
@@ -30,9 +30,9 @@ jobs:
                   operation_mode: custom_field
                   custom_field_values: ${{ format(env.custom_field_value, env.prio1) }}
     prio2:
-        name: issue_opened_or_reopened
+        name: Prio 2
         runs-on: ubuntu-latest
-        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, format(env.label_format, env.prio2))
+        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, '${{ env.label_prefix }}${{ env.prio2 }}'))
         steps:
             - name: Assign priority 2
               uses: leonsteinhaeuser/project-beta-automations@v1.2.1
@@ -44,9 +44,9 @@ jobs:
                   operation_mode: custom_field
                   custom_field_values: ${{ format(env.custom_field_value, env.prio2) }}
     prio3:
-        name: issue_opened_or_reopened
+        name: Prio 3
         runs-on: ubuntu-latest
-        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, format(env.label_format, env.prio3))
+        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, '${{ env.label_prefix }}${{ env.prio3 }}'))
         steps:
             - name: Assign priority 3
               uses: leonsteinhaeuser/project-beta-automations@v1.2.1
@@ -58,9 +58,9 @@ jobs:
                   operation_mode: custom_field
                   custom_field_values: ${{ format(env.custom_field_value, env.prio3) }}
     no-prio:
-        name: issue_opened_or_reopened
+        name: Prio none
         runs-on: ubuntu-latest
-        if: github.event_name == 'issues' && !contains(github.event.issue.labels.*.name, format(env.label_format, env.prio1)) && !contains(github.event.issue.labels.*.name, format(env.label_format, env.prio2)) && !contains(github.event.issue.labels.*.name, format(env.label_format, env.prio3))
+        if: github.event_name == 'issues' && !contains(github.event.issue.labels.*.name, '${{ env.label_prefix }}${{ env.prio1 }}')) && !contains(github.event.issue.labels.*.name, '${{ env.label_prefix }}${{ env.prio2 }}')) && !contains(github.event.issue.labels.*.name, '${{ env.label_prefix }}${{ env.prio3 }}'))
         steps:
             - name: Assign priority none
               uses: leonsteinhaeuser/project-beta-automations@v1.2.1
