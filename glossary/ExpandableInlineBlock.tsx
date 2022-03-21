@@ -53,7 +53,7 @@ export const runExpandableInlineBlock = () => {
                 interactive={true}
                 appendTo={() => document.body}
             >
-                <span className="expandable-block-button">{label}</span>
+                <span className="glossary-term">{label}</span>
             </Tippy>,
             expandableInlineBlock.parentElement
         )

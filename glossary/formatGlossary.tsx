@@ -27,7 +27,7 @@ export const GlossaryLink = ({
                 __html: JSON.stringify({ slug, excerpt }),
             }}
         ></script>
-        <a className="expandable-block-button" href={`/glossary#${slug}`}>
+        <a className="glossary-term" href={`/glossary#${slug}`}>
             {match}
         </a>
     </span>
@@ -138,7 +138,7 @@ export const hydrateGlossaryTermsInText = (
                 interactive={true}
                 appendTo={() => document.body}
             >
-                <span className="expandable-block-button">{match}</span>
+                <span className="glossary-term">{match}</span>
             </Tippy>
         )
     }
