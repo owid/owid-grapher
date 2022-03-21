@@ -6,6 +6,8 @@ This setup is very similar to the [Local setup with mysql and grapher admin](doc
 
 ## Running the full setup
 
+One quick thing to check is if you are already running MySQL on your computer at port 3306 and if so to stop this service while running the docker setup. Our docker based setup tries to expose the MySQL docker container at port 3306 of your computer for easy interaction with other tools (e.g. a SQL editor). If this port is already taken then starting this container will fail.
+
 All you need to do now is to open a terminal and run
 
 ```bash
