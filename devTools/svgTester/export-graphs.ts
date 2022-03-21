@@ -5,7 +5,7 @@ import * as utils from "./utils.js"
 import * as fs from "fs-extra"
 
 import * as path from "path"
-import pMap from "p-map"
+import workerpool from "workerpool"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const inDir = parsedArgs["i"] ?? "grapherData"
@@ -26,13 +26,19 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
 
-        // Concurrently run the CPU heavy rendering jobs
-        const svgRecords: utils.SvgRecord[] = await pMap(
-            jobDescriptions,
-            utils.renderSvgAndSave,
-            { concurrency: 32 }
+        const pool = workerpool.pool(__dirname + "/worker.js", {
+            minWorkers: 2,
+        })
+
+        // Parallelize the CPU heavy rendering jobs
+        const svgRecords: utils.SvgRecord[] = await Promise.all(
+            jobDescriptions.map((job) => pool.exec("renderSvgAndSave", [job]))
         )
+
         await utils.writeResultsCsvFile(outDir, svgRecords)
+        // This call to exit is necessary for some unknown reason to make sure that the process terminates. It
+        // was not required before introducing the multiprocessing library.
+        process.exit(0)
     } catch (error) {
         console.error("Encountered an error: ", error)
         // This call to exit is necessary for some unknown reason to make sure that the process terminates. It

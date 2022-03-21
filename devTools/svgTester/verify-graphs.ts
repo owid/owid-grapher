@@ -39,7 +39,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             verbose,
         }))
 
-        const pool = workerpool.pool(__dirname + "/verify-graphs-worker.js", {
+        const pool = workerpool.pool(__dirname + "/worker.js", {
             minWorkers: 2,
         })
 
