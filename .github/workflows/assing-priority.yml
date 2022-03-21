@@ -1,0 +1,73 @@
+name: Assign priority based on label
+on:
+    issues:
+        types:
+            - opened
+            - reopened
+            - labeled
+            - unlabeled
+
+env:
+    label_format: "priority: {0}"
+    prio1: "1 - essential"
+    prio2: "2 - important"
+    prio3: "3 - nice to have"
+    custom_field_value: '[{\"name\": \"Priority\",\"type\": \"single_select\",\"value\": \"{0}\"}]'
+
+jobs:
+    prio1:
+        name: issue_opened_or_reopened
+        runs-on: ubuntu-latest
+        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, format(env.label_format, env.prio1))
+        steps:
+            - name: Assign priority
+              uses: leonsteinhaeuser/project-beta-automations@v1.2.1
+              with:
+                  gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
+                  organization: owid
+                  project_id: 4
+                  resource_node_id: ${{ github.event.issue.node_id }}
+                  operation_mode: custom_field
+                  custom_field_values: ${{ format(env.custom_field_value, prio1) }}
+    prio2:
+        name: issue_opened_or_reopened
+        runs-on: ubuntu-latest
+        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, format(env.label_format, env.prio2))
+        steps:
+            - name: Assign priority
+              uses: leonsteinhaeuser/project-beta-automations@v1.2.1
+              with:
+                  gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
+                  organization: owid
+                  project_id: 4
+                  resource_node_id: ${{ github.event.issue.node_id }}
+                  operation_mode: custom_field
+                  custom_field_values: ${{ format(env.custom_field_value, prio2) }}
+    prio3:
+        name: issue_opened_or_reopened
+        runs-on: ubuntu-latest
+        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, format(env.label_format, env.prio3))
+        steps:
+            - name: Assign priority
+              uses: leonsteinhaeuser/project-beta-automations@v1.2.1
+              with:
+                  gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
+                  organization: owid
+                  project_id: 4
+                  resource_node_id: ${{ github.event.issue.node_id }}
+                  operation_mode: custom_field
+                  custom_field_values: ${{ format(env.custom_field_value, prio3) }}
+    no-prio:
+        name: issue_opened_or_reopened
+        runs-on: ubuntu-latest
+        if: github.event_name == 'issues' && !contains(github.event.issue.labels.*.name, format(env.label_format, env.prio1)) && !contains(github.event.issue.labels.*.name, format(env.label_format, env.prio2)) && !contains(github.event.issue.labels.*.name, format(env.label_format, env.prio3))
+        steps:
+            - name: Assign priority
+              uses: leonsteinhaeuser/project-beta-automations@v1.2.1
+              with:
+                  gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
+                  organization: owid
+                  project_id: 4
+                  resource_node_id: ${{ github.event.issue.node_id }}
+                  operation_mode: custom_field
+                  custom_field_values: ${{ format(env.custom_field_value, '') }}
