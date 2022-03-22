@@ -1,0 +1,15 @@
+name: Assign priority based on label
+on:
+    issues:
+        types:
+            - opened
+            - reopened
+            - labeled
+            - unlabeled
+
+jobs:
+    prio:
+        name: Sync issue priority to project board
+        runs-on: ubuntu-latest
+        steps:
+            - uses: owid/actions/assign-priority@master
