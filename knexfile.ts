@@ -16,6 +16,7 @@ const dbConfig = {
         password: DB_PASS,
         host: DB_HOST,
         port: DB_PORT,
+        charset: "utf8mb4",
     },
     pool: {
         min: 2,
