@@ -711,6 +711,7 @@ export class ScatterPlotChart
 
     defaultBaseColorScheme = ColorSchemeName.continents
     defaultNoDataColor = "#959595"
+    defaultNoDataLabel = "Other"
 
     @computed get hasNoDataBin(): boolean {
         if (this.colorColumn.isMissing) return false
