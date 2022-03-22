@@ -14,13 +14,13 @@ env:
     custom_field_value: '[{{\"name\": \"Priority\",\"type\": \"single_select\",\"value\": \"{0}\"}}]'
 
 jobs:
-    prio1:
-        name: Prio 1
+    prio:
+        name: Sync issue priority to project board
         runs-on: ubuntu-latest
-        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'priority 1 - essential')
         steps:
             - name: Assign priority 1
               uses: leonsteinhaeuser/project-beta-automations@v1.2.1
+              if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'priority 1 - essential')
               with:
                   gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
                   organization: owid
@@ -28,13 +28,9 @@ jobs:
                   resource_node_id: ${{ github.event.issue.node_id }}
                   operation_mode: custom_field
                   custom_field_values: ${{ format(env.custom_field_value, env.prio1) }}
-    prio2:
-        name: Prio 2
-        runs-on: ubuntu-latest
-        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'priority 2 - important')
-        steps:
             - name: Assign priority 2
               uses: leonsteinhaeuser/project-beta-automations@v1.2.1
+              if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'priority 2 - important')
               with:
                   gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
                   organization: owid
@@ -42,13 +38,9 @@ jobs:
                   resource_node_id: ${{ github.event.issue.node_id }}
                   operation_mode: custom_field
                   custom_field_values: ${{ format(env.custom_field_value, env.prio2) }}
-    prio3:
-        name: Prio 3
-        runs-on: ubuntu-latest
-        if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'priority 3 - nice to have')
-        steps:
             - name: Assign priority 3
               uses: leonsteinhaeuser/project-beta-automations@v1.2.1
+              if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'priority 3 - nice to have')
               with:
                   gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
                   organization: owid
@@ -56,13 +48,9 @@ jobs:
                   resource_node_id: ${{ github.event.issue.node_id }}
                   operation_mode: custom_field
                   custom_field_values: ${{ format(env.custom_field_value, env.prio3) }}
-    no-prio:
-        name: Prio none
-        runs-on: ubuntu-latest
-        if: github.event_name == 'issues' && !contains(github.event.issue.labels.*.name, 'priority 1 - essential') && !contains(github.event.issue.labels.*.name, 'priority 2 - important') && !contains(github.event.issue.labels.*.name, 'priority 3 - nice to have')
-        steps:
             - name: Assign priority none
               uses: leonsteinhaeuser/project-beta-automations@v1.2.1
+              if: github.event_name == 'issues' && !contains(github.event.issue.labels.*.name, 'priority 1 - essential') && !contains(github.event.issue.labels.*.name, 'priority 2 - important') && !contains(github.event.issue.labels.*.name, 'priority 3 - nice to have')
               with:
                   gh_token: ${{ secrets.PROJECT_ISSUES_TOKEN }}
                   organization: owid
