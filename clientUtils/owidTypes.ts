@@ -56,6 +56,8 @@ export interface RelatedChart {
 
 export type OwidVariableId = Integer // remove.
 
+export const BLOCK_WRAPPER_DATATYPE = "block-wrapper"
+
 export interface FormattedPost extends FullPost {
     supertitle?: string
     lastUpdated?: string
@@ -65,7 +67,7 @@ export interface FormattedPost extends FullPost {
     style?: string
     references: Record<string, unknown>[]
     footnotes: string[]
-    tocHeadings: { text: string; slug: string; isSubheading: boolean }[]
+    tocHeadings: TocHeading[]
     pageDesc: string
 }
 
@@ -136,7 +138,7 @@ export interface SerializedGridProgram {
 
 export interface TocHeading {
     text: string
-    html?: string
+    html?: string // used by SectionHeading toc. Excluded from LongFormPage toc.
     slug: string
     isSubheading: boolean
 }

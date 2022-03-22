@@ -20,6 +20,7 @@ import { Breadcrumb } from "./Breadcrumb/Breadcrumb.js"
 import { Byline } from "./Byline.js"
 import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
+import { omit } from "../clientUtils/Util.js"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -88,6 +89,10 @@ export const LongFormPage = (props: {
             )
         }
     }
+
+    const tocHeadingsNoHtml: Array<Omit<TocHeading, "html">> = tocHeadings.map(
+        (tocHeading) => omit(tocHeading, "html")
+    )
 
     const bodyClasses = []
     if (formattingOptions.bodyClassName) {
@@ -218,7 +223,7 @@ export const LongFormPage = (props: {
                         <div className="content-wrapper">
                             {hasSidebar && (
                                 <TableOfContents
-                                    headings={tocHeadings}
+                                    headings={tocHeadingsNoHtml}
                                     pageTitle={pageTitle}
                                     // hideSubheadings={true}
                                 />
@@ -423,7 +428,12 @@ export const LongFormPage = (props: {
                     dangerouslySetInnerHTML={{
                         __html: `
                         runTableOfContents(${JSON.stringify({
-                            headings: tocHeadings,
+                            // headings might contain </script> tags in their
+                            // html property (which break the page JS, see
+                            // #1256). This comes from {{DataValue}}
+                            // (transformed into AnnotatingDataValue) tags used
+                            // within <h3>s.
+                            headings: tocHeadingsNoHtml,
                             pageTitle,
                             // hideSubheadings: true
                         })})
