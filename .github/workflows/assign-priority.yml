@@ -12,4 +12,4 @@ jobs:
         name: Sync issue priority to project board
         runs-on: ubuntu-latest
         steps:
-            - uses: owid/actions/assign-priority@master
+            - uses: owid/actions/assign-priority@main
