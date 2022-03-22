@@ -92,6 +92,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             colorScaleConfig: oldManager.colorScaleConfig,
             hasNoDataBin: oldManager.hasNoDataBin,
             defaultNoDataColor: oldManager.defaultNoDataColor,
+            defaultNoDataLabel: oldManager.defaultNoDataLabel,
             defaultBaseColorScheme: oldManager.defaultBaseColorScheme,
             colorScaleColumn: oldManager.colorScaleColumn,
             transformColor: darkenColorForLine,

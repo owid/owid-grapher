@@ -10,7 +10,7 @@ import {
 import { extend, isEmpty, trimObject } from "../../clientUtils/Util.js"
 import { ColorSchemeName } from "./ColorConstants.js"
 import { BinningStrategy } from "./BinningStrategy.js"
-import { NO_DATA_LABEL } from "./ColorScale.js"
+import { DEFAULT_NO_DATA_LABEL } from "./ColorScale.js"
 
 export class ColorScaleConfigDefaults {
     // Color scheme
@@ -148,7 +148,8 @@ export class ColorScaleConfig
                     label.join(INTRA_BIN_DELIMITER).trim() || undefined
             })
         if (scale.colorScaleNoDataLabel) {
-            customCategoryLabels[NO_DATA_LABEL] = scale.colorScaleNoDataLabel
+            customCategoryLabels[DEFAULT_NO_DATA_LABEL] =
+                scale.colorScaleNoDataLabel
         }
 
         // Use user-defined binning strategy, otherwise set to manual if user has
@@ -212,7 +213,7 @@ export class ColorScaleConfig
                     ].join(INTRA_BIN_DELIMITER)
                 )
                 .join(INTER_BIN_DELIMITER),
-            colorScaleNoDataLabel: customCategoryLabels[NO_DATA_LABEL],
+            colorScaleNoDataLabel: customCategoryLabels[DEFAULT_NO_DATA_LABEL],
             colorScaleCategoricalBins: Object.keys(customCategoryColors ?? {})
                 .map((value) =>
                     [

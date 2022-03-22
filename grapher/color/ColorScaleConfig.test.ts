@@ -2,7 +2,7 @@
 
 import { BinningStrategy } from "./BinningStrategy.js"
 import { ColorSchemeName } from "./ColorConstants.js"
-import { NO_DATA_LABEL } from "./ColorScale.js"
+import { DEFAULT_NO_DATA_LABEL } from "./ColorScale.js"
 import { ColorScaleConfig } from "./ColorScaleConfig.js"
 
 it("can serialize for saving", () => {
@@ -30,7 +30,7 @@ describe("fromDSL", () => {
         expect(colorScale.customCategoryLabels).toEqual({
             one: "uno",
             two: "dos",
-            [NO_DATA_LABEL]: "Datas missing",
+            [DEFAULT_NO_DATA_LABEL]: "Datas missing",
         })
         expect(colorScale.customCategoryColors).toEqual({
             one: "#ddd",

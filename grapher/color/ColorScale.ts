@@ -15,6 +15,7 @@ import {
     isString,
     mapValues,
     identity,
+    omitUndefinedValues,
 } from "../../clientUtils/Util.js"
 import { Color, CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { ColorSchemes } from "../color/ColorSchemes.js"
@@ -25,12 +26,13 @@ import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { getBinMaximums } from "./BinningStrategies.js"
 import { BinningStrategy } from "./BinningStrategy.js"
 
-export const NO_DATA_LABEL = "No data"
+export const DEFAULT_NO_DATA_LABEL = "No data"
 
 export interface ColorScaleManager {
     colorScaleConfig?: ColorScaleConfigInterface
     hasNoDataBin?: boolean
     defaultNoDataColor?: string
+    defaultNoDataLabel?: string
     defaultBaseColorScheme?: ColorSchemeName
     colorScaleColumn?: CoreColumn
     transformColor?: (color: Color) => Color
@@ -102,6 +104,10 @@ export class ColorScale {
 
     @computed private get defaultNoDataColor(): Color {
         return this.transformColor(this.manager.defaultNoDataColor ?? "#eee")
+    }
+
+    @computed private get defaultNoDataLabel(): string {
+        return this.manager.defaultNoDataLabel ?? DEFAULT_NO_DATA_LABEL
     }
 
     @computed get colorScaleColumn(): CoreColumn | undefined {
@@ -203,15 +209,17 @@ export class ColorScale {
     @computed private get customCategoryColors(): { [key: string]: Color } {
         return mapValues(
             {
-                [NO_DATA_LABEL]: this.defaultNoDataColor, // default 'no data' color
-                ...this.config.customCategoryColors,
+                [this.defaultNoDataLabel]: this.defaultNoDataColor, // default 'no data' color
+                ...omitUndefinedValues(this.config.customCategoryColors),
             },
             this.transformColor
         )
     }
 
     @computed get noDataColor(): Color {
-        return this.transformColor(this.customCategoryColors[NO_DATA_LABEL])
+        return this.transformColor(
+            this.customCategoryColors[this.defaultNoDataLabel]
+        )
     }
 
     @computed get baseColors(): Color[] {
@@ -341,12 +349,18 @@ export class ColorScale {
         let allCategoricalValues = categoricalValues
 
         // Inject "No data" bin
-        if (hasNoDataBin && !allCategoricalValues.includes(NO_DATA_LABEL)) {
+        if (
+            hasNoDataBin &&
+            !allCategoricalValues.includes(this.defaultNoDataLabel)
+        ) {
             // The color scheme colors get applied in order, starting from first, and we only use
             // as many colors as there are categorical values (excluding "No data").
             // So in order to leave it colorless, we want to append the "No data" label last.
             // -@danielgavrilov, 2020-06-02
-            allCategoricalValues = [...allCategoricalValues, NO_DATA_LABEL]
+            allCategoricalValues = [
+                ...allCategoricalValues,
+                this.defaultNoDataLabel,
+            ]
         }
 
         return allCategoricalValues.map((value, index) => {
