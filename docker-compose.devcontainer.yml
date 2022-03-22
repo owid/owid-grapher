@@ -26,8 +26,8 @@ services:
                 #USER_UID: 1000
                 #USER_GID: 1000
         volumes:
-            - ..:/workspace:cached
-            - try-node-node_modules:/workspace/node_modules
+            - .:/workspace:cached
+            # - :/workspace/node_modules
 
         # Overrides default command so things don't shut down after the process ends.
         command: sleep infinity
