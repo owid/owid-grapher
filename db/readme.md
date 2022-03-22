@@ -33,7 +33,7 @@ Run:
 yarn typeorm migration:create -n MigrationName
 ```
 
-And then populate the file with the SQL statements to alter the tables, using [past migration files](./migration) for reference if needed. Then run migrations with `yarn runDbMigrations`.
+And then populate the file with the SQL statements to alter the tables, using [past migration files](./migration) for reference if needed. Don't forget to rebuild the javascript artifacts now from typescript view `yarn buildTsc`, then run migrations with `yarn runDbMigrations`.
 
 Make sure you write a **down** migration in case there is any chance things can go wrong we'd need to revert it.
 
