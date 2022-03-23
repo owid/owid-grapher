@@ -7,7 +7,7 @@
 # https://unix.stackexchange.com/questions/352316/finding-out-the-default-shell-of-a-user-within-a-shell-script
 LOGIN_SHELL = $(shell finger $(USER) | grep 'Shell:*' | cut -f3 -d ":")
 
-# importing .env variables for validate.env targets
+# setting .env variables as Make variables for validate.env targets
 # https://lithic.tech/blog/2020-05/makefile-dot-env/
 ifneq (,$(wildcard ./.env))
     include .env
