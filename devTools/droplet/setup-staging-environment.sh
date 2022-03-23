@@ -47,7 +47,8 @@ sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=NEW_PW/g' ~/NEW_NAME-data/wordpress/.env
 
 ## Setup DB
 # Setup databases & users
-sudo mysql -Bse \
+# Staging password is available from OWID staff
+mysql -u root -p -Bse \
 "CREATE DATABASE NEW_NAME_grapher;\
 CREATE USER 'NEW_NAME_grapher'@'localhost' IDENTIFIED BY 'NEW_PW';\
 GRANT ALL PRIVILEGES ON NEW_NAME_grapher.* TO 'NEW_NAME_grapher'@'localhost';\
@@ -71,6 +72,7 @@ sudo systemctl reload nginx
 # Note: when I resized and restarted the machine apache2 bound to 80 and so had to stop that.
 
 ## Certbot
+# Make sure you've added your CNAME record to Cloudflare
 sudo certbot --nginx -d NEW_NAME.owid.cloud
 
 ## Netlify
@@ -78,9 +80,11 @@ rm -rf ~/NEW_NAME-data/bakedSite/.netlify
 # Create new Netlify site
 cd ~/NEW_NAME-data/bakedSite/
 netlify deploy --dir=.
-# Use NEW_NAME-owid as site name
+# What would you like to do?: Create + configure a new site
+# Team: owid
+# Site name: NEW_NAME-owid
 # Leave publish to .
-# Time: >10min?
+# As of March 2022, this took over 20 minutes which caused the client to time out - though it appears to have still worked.
 # netlify deploy --prodIfUnlocked
 
 ## PM2
