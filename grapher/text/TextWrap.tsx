@@ -75,11 +75,24 @@ export class TextWrap {
     @computed get lines(): WrapLine[] {
         const { text, maxWidth, fontSize, fontWeight } = this
 
+        const escapeSymbolMap = {
+            "<": "&lt;",
+            ">": "&gt;",
+            "\n": " \n",
+        }
+
         const words = isEmpty(text)
             ? []
-            : // We prepend spaces to newlines in order to be able to do a "starts with"
+            : // We escape html tag and other symbols.
+              // We also prepend spaces to newlines in order to be able to do a "starts with"
               // check to trigger a new line.
-              text.replace(/\n/g, " \n").split(" ")
+              text
+                  .replace(/[<>\n]/g, (char) => {
+                      return escapeSymbolMap[
+                          char as keyof typeof escapeSymbolMap
+                      ]
+                  })
+                  .split(" ")
 
         const lines: WrapLine[] = []
 
