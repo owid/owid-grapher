@@ -233,6 +233,22 @@ describe("sorting", () => {
         ])
     })
 
+    it("can use custom sort order", () => {
+        const selection = ["France", "Spain", "Germany"]
+        const chart = new StackedDiscreteBarChart({
+            manager: {
+                ...baseManager,
+                sortConfig: {
+                    sortBy: SortBy.custom,
+                    sortOrder: SortOrder.asc,
+                },
+                selection,
+            },
+        })
+
+        expect(chart.sortedItems.map((item) => item.label)).toEqual(selection)
+    })
+
     it("can sort by single dimension", () => {
         const chart = new StackedDiscreteBarChart({
             manager: {

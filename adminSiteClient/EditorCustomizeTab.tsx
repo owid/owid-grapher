@@ -128,6 +128,10 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
         return [
             { label: "Entity name", value: { sortBy: SortBy.entityName } },
             { label: "Total value", value: { sortBy: SortBy.total } },
+            {
+                label: "Custom order (use specified entity order)",
+                value: { sortBy: SortBy.custom },
+            },
             ...dimensionSortOptions,
         ]
     }
