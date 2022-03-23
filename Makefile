@@ -7,6 +7,13 @@
 # https://unix.stackexchange.com/questions/352316/finding-out-the-default-shell-of-a-user-within-a-shell-script
 LOGIN_SHELL = $(shell finger $(USER) | grep 'Shell:*' | cut -f3 -d ":")
 
+# importing .env variables for validate.env targets
+# https://lithic.tech/blog/2020-05/makefile-dot-env/
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 help:
 	@echo 'Available commands:'
 	@echo
@@ -19,7 +26,7 @@ help:
 	@echo '  make down.full    stop any services still running'
 	@echo
 
-up: require tmp-downloads/owid_chartdata.sql.gz
+up: require validate.env tmp-downloads/owid_chartdata.sql.gz
 	@echo '==> Setting up .env if need be'
 	@test -f .env || cp -f .env.example-grapher .env
 	
@@ -42,7 +49,7 @@ up: require tmp-downloads/owid_chartdata.sql.gz
 		bind Q kill-server \
 		|| make down
 
-up.full: require tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
+up.full: require validate.env.full tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@echo '==> Setting up .env if need be'
 	@test -f .env || cp -f .env.example-full .env
 	@grep -q WORDPRESS .env || (echo 'ERROR: your .env is missing some wordpress variables'; exit 1)
@@ -82,6 +89,23 @@ require:
 	@which tmux >/dev/null 2>&1 || (echo "ERROR: tmux is required."; exit 1)
 	@which finger >/dev/null 2>&1 || (echo "ERROR: finger is required."; exit 1)
 
+guard-%:
+	@if [ -z '${${*}}' ]; then echo 'ERROR: .env variable $* not set' && exit 1; fi
+
+validate.env:
+	@echo '==> Validating your .env file for make up'
+	@grep '=' .env.example-grapher | sed 's/=.*//' | while read variable; \
+		do make guard-$$variable; \
+	done
+	@echo '.env valid for make up'
+
+validate.env.full: validate.env
+	@echo '==> Validating your .env file for make up.full'
+	@grep '=' .env.example-full | sed 's/=.*//' | while read variable; \
+		do make guard-$$variable; \
+	done
+	@echo '.env valid for make up.full'
+	
 
 tmp-downloads/owid_chartdata.sql.gz:
 	@echo '==> Downloading chart data'
