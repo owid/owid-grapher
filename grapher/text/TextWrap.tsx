@@ -26,6 +26,19 @@ function startsWithNewline(text: string): boolean {
     return /^\n/.test(text)
 }
 
+function escapeSymbolHtml(text: string): string {
+    if (isEmpty(text)) return text
+
+    const escapeSymbolMap = {
+        "<": "&lt;",
+        ">": "&gt;",
+    }
+
+    return text.replace(/[<>]/g, (char) => {
+        return escapeSymbolMap[char as keyof typeof escapeSymbolMap]
+    })
+}
+
 export const shortenForTargetWidth = (
     text: string,
     targetWidth: number,
@@ -75,24 +88,11 @@ export class TextWrap {
     @computed get lines(): WrapLine[] {
         const { text, maxWidth, fontSize, fontWeight } = this
 
-        const escapeSymbolMap = {
-            "<": "&lt;",
-            ">": "&gt;",
-            "\n": " \n",
-        }
-
         const words = isEmpty(text)
             ? []
-            : // We escape html tag and other symbols.
-              // We also prepend spaces to newlines in order to be able to do a "starts with"
+            : // We prepend spaces to newlines in order to be able to do a "starts with"
               // check to trigger a new line.
-              text
-                  .replace(/[<>\n]/g, (char) => {
-                      return escapeSymbolMap[
-                          char as keyof typeof escapeSymbolMap
-                      ]
-                  })
-                  .split(" ")
+              text.replace(/\n/g, " \n").split(" ")
 
         const lines: WrapLine[] = []
 
@@ -183,7 +183,7 @@ export class TextWrap {
                     ) : props.linkifyText ? (
                         <span
                             dangerouslySetInnerHTML={{
-                                __html: linkify(line.text),
+                                __html: linkify(escapeSymbolHtml(line.text)),
                             }}
                         />
                     ) : (
