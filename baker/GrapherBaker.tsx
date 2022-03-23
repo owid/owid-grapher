@@ -4,8 +4,7 @@ import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import { Post } from "../db/model/Post.js"
-import { urlToSlug, without } from "../clientUtils/Util.js"
-import { isPresent } from "../clientUtils/isPresent.js"
+import { excludeUndefined, urlToSlug, without } from "../clientUtils/Util.js"
 import {
     getRelatedArticles,
     getRelatedCharts,
@@ -134,6 +133,8 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
             slug.replace(`${bakedSiteDir}/grapher/`, "").replace(".html", "")
         )
     const toRemove = without(oldSlugs, ...newSlugs)
+        // do not delete grapher slugs redirected to explorers
+        .filter((slug) => !isPathRedirectedToExplorer(`/grapher/${slug}`))
     for (const slug of toRemove) {
         console.log(`DELETING ${slug}`)
         try {
@@ -172,7 +173,9 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             // Avoid baking paths that have an Explorer redirect.
             // Redirects take precedence.
             if (isPathRedirectedToExplorer(`/grapher/${grapher.slug}`)) {
-                progressBar.tick({ name: `✅ ${grapher.slug}` })
+                progressBar.tick({
+                    name: `⏩ ${grapher.slug} redirects to explorer`,
+                })
                 continue
             }
 
@@ -182,7 +185,6 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             )
             progressBar.tick({ name: `✅ ${grapher.slug}` })
         }
-
-        await deleteOldGraphers(bakedSiteDir, newSlugs.filter(isPresent))
+        await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
         progressBar.tick({ name: `✅ Deleted old graphers` })
     }
