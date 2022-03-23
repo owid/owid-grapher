@@ -90,7 +90,7 @@ require:
 	@which finger >/dev/null 2>&1 || (echo "ERROR: finger is required."; exit 1)
 
 guard-%:
-	@if [ -z '${${*}}' ]; then echo 'ERROR: .env variable $* not set' && exit 1; fi
+	@if [ -z "${${*}}" ]; then echo 'ERROR: .env variable $* not set' && exit 1; fi
 
 validate.env:
 	@echo '==> Validating your .env file for make up'
