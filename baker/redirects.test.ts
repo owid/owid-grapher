@@ -9,14 +9,7 @@ jest.mock("../settings/clientSettings.js", () => ({
     BAKED_BASE_URL: "http://localhost:3030",
 }))
 
-const mockRedirectMap = (redirectsArr: Array<Array<string>>) => {
-    const redirectsMap: Map<string, string> = new Map()
-
-    redirectsArr.forEach((redirect) => {
-        redirectsMap.set(redirect[0], redirect[1])
-    })
-    return redirectsMap
-}
+type ArrayForMap = [string, string][]
 
 const getGrapherAndWordpressRedirectsMap = jest.spyOn(
     redirects,
@@ -30,13 +23,13 @@ const getFormattedUrl = (url: string): Url => {
 it("resolves pathnames", async () => {
     const src = "/hello"
     const target = "/world"
-    const redirectsArr = [[src, target]]
+    const redirectsArr: ArrayForMap = [[src, target]]
 
     const urlToResolve = getFormattedUrl(src)
     const resolvedUrl = getFormattedUrl(target)
 
     getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
-        Promise.resolve(mockRedirectMap(redirectsArr))
+        Promise.resolve(new Map(redirectsArr))
     )
 
     expect(await resolveInternalRedirect(urlToResolve)).toEqual(resolvedUrl)
@@ -45,12 +38,12 @@ it("resolves pathnames", async () => {
 it("does not support query string in redirects map", async () => {
     const src = "/hello?q=1"
     const target = "/world"
-    const redirectsArr = [[src, target]]
+    const redirectsArr: ArrayForMap = [[src, target]]
 
     const urlToResolve = getFormattedUrl(src)
 
     getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
-        Promise.resolve(mockRedirectMap(redirectsArr))
+        Promise.resolve(new Map(redirectsArr))
     )
 
     expect(await resolveInternalRedirect(urlToResolve)).toEqual(urlToResolve)
@@ -59,7 +52,7 @@ it("does not support query string in redirects map", async () => {
 it("passes query string params when resolving", async () => {
     const src = "/hello"
     const target = "/world"
-    const redirectsArr = [[src, target]]
+    const redirectsArr: ArrayForMap = [[src, target]]
     const queryString = "?q=1"
 
     const urlToResolve = getFormattedUrl(src).setQueryParams(
@@ -70,7 +63,7 @@ it("passes query string params when resolving", async () => {
     )
 
     getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
-        Promise.resolve(mockRedirectMap(redirectsArr))
+        Promise.resolve(new Map(redirectsArr))
     )
 
     expect(await resolveInternalRedirect(urlToResolve)).toEqual(resolvedUrl)
@@ -79,7 +72,7 @@ it("passes query string params when resolving", async () => {
 it("does not pass query string params when some present on the target", async () => {
     const src = "/hello"
     const target = "/world?q=1"
-    const redirectsArr = [[src, target]]
+    const redirectsArr: ArrayForMap = [[src, target]]
 
     const urlToResolve = getFormattedUrl(src).setQueryParams(
         strToQueryParams("?z=2")
@@ -87,7 +80,7 @@ it("does not pass query string params when some present on the target", async ()
     const resolvedUrl = getFormattedUrl(target)
 
     getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
-        Promise.resolve(mockRedirectMap(redirectsArr))
+        Promise.resolve(new Map(redirectsArr))
     )
 
     expect(await resolveInternalRedirect(urlToResolve)).toEqual(resolvedUrl)
@@ -96,12 +89,12 @@ it("does not pass query string params when some present on the target", async ()
 it("resolves self-redirects", async () => {
     const src = "/hello"
     const target = "/hello"
-    const redirectsArr = [[src, target]]
+    const redirectsArr: ArrayForMap = [[src, target]]
 
     const urlToResolve = getFormattedUrl(src)
 
     getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
-        Promise.resolve(mockRedirectMap(redirectsArr))
+        Promise.resolve(new Map(redirectsArr))
     )
 
     expect(await resolveInternalRedirect(urlToResolve)).toEqual(urlToResolve)
@@ -110,7 +103,7 @@ it("resolves self-redirects", async () => {
 it("does not support query params in self-redirects", async () => {
     const src = "/hello"
     const target = "/hello?q=1"
-    const redirectsArr = [[src, target]]
+    const redirectsArr: ArrayForMap = [[src, target]]
 
     const urlToResolve = getFormattedUrl(src)
     const urlToResolveWithQueryParam = getFormattedUrl(src).setQueryParams(
@@ -118,7 +111,7 @@ it("does not support query params in self-redirects", async () => {
     )
 
     getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
-        Promise.resolve(mockRedirectMap(redirectsArr))
+        Promise.resolve(new Map(redirectsArr))
     )
 
     expect(await resolveInternalRedirect(urlToResolve)).toEqual(urlToResolve)
@@ -131,7 +124,7 @@ it("resolves circular redirects", async () => {
     const theKing = "/the-king"
     const isDead = "/is-dead"
     const longLive = "/long-live"
-    const redirectsArr = [
+    const redirectsArr: ArrayForMap = [
         [theKing, isDead],
         [isDead, longLive],
         [longLive, theKing],
@@ -140,7 +133,7 @@ it("resolves circular redirects", async () => {
     const urlToResolve = getFormattedUrl(theKing)
 
     getGrapherAndWordpressRedirectsMap.mockImplementation(() =>
-        Promise.resolve(mockRedirectMap(redirectsArr))
+        Promise.resolve(new Map(redirectsArr))
     )
 
     expect(await resolveInternalRedirect(urlToResolve)).toEqual(urlToResolve)
