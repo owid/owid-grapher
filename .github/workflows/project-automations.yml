@@ -1,0 +1,28 @@
+name: Project automations
+on:
+    issues:
+        types:
+            - opened
+            - reopened
+    pull_request:
+        types:
+            - opened
+            - reopened
+            - review_requested
+            - closed
+
+jobs:
+    prio:
+        name: Sync issue priority to project board
+        runs-on: ubuntu-latest
+        steps:
+            - uses: owid/actions/assign-priority@main
+              with:
+                  PROJECT_ISSUES_TOKEN: ${{ secrets.PROJECT_ISSUES_TOKEN }}
+    status:
+        name: Set status based on event
+        runs-on: ubuntu-latest
+        steps:
+            - uses: owid/actions/set-project-status@main
+              with:
+                  PROJECT_ISSUES_TOKEN: ${{ secrets.PROJECT_ISSUES_TOKEN }}
