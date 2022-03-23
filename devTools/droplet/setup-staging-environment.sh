@@ -5,7 +5,7 @@
 #  NEW_PW somePassword
 #  NEW_NODE_PORT 4444
 
-## Add proxied CNAME DNS record to Cloudflare.
+## Add proxied CNAME DNS record to Cloudflare for the owid.cloud site.
 # Proxying ("orange cloud") turns on Cloudflare Access for NEW_NAME.owid.cloud.
 # NEW_NAME.owid.cloud.	1	IN	CNAME	staging.owid.cloud.
 
@@ -77,7 +77,7 @@ sudo certbot --nginx -d NEW_NAME.owid.cloud
 rm -rf ~/NEW_NAME-data/bakedSite/.netlify
 # Create new Netlify site
 cd ~/NEW_NAME-data/bakedSite/
-netlify deploy --dir=.
+netlify deploy --dir=. --prodIfUnlocked --timeout 6000
 # Use NEW_NAME-owid as site name
 # Leave publish to .
 # Time: >10min?
@@ -85,9 +85,9 @@ netlify deploy --dir=.
 
 ## PM2
 cd ~/NEW_NAME
-pm2 start --name NEW_NAME "yarn startAdminServer"
+pm2 start --time --name NEW_NAME "yarn startAdminServer"
 pm2 save
-pm2 start --name NEW_NAME-deploy-queue "yarn startDeployQueueServer"
+pm2 start --time --name NEW_NAME-deploy-queue "yarn startDeployQueueServer"
 pm2 save
 
 ## Make deployable.
@@ -97,7 +97,7 @@ pm2 save
 #   https://github.com/owid/owid-grapher/blob/6a6767db680aec820082bc11db4acf6917ccc4af/wordpress/scripts/deploy.sh#L13
 #
 # - Grapher deploy:
-#   https://github.com/owid/owid-grapher/blob/17197489c87ce527a967eb45d899324e193ad124/baker/deploy.sh#L11
+#   https://github.com/owid/owid-grapher/blob/b80892ea5c447d9ed45846ca6270761939f96772/baker/DeployTarget.ts
 
 
 ## Update mysql DB:
