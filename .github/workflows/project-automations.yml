@@ -4,6 +4,8 @@ on:
         types:
             - opened
             - reopened
+            - labeled
+            - unlabeled
     pull_request:
         types:
             - opened
