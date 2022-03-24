@@ -26,10 +26,7 @@ help:
 	@echo '  make down.full    stop any services still running'
 	@echo
 
-up: require validate.env tmp-downloads/owid_chartdata.sql.gz
-	@echo '==> Setting up .env if need be'
-	@test -f .env || cp -f .env.example-grapher .env
-	
+up: require validate.env tmp-downloads/owid_chartdata.sql.gz	
 	@echo '==> Building grapher'
 	yarn install
 	yarn run tsc -b
@@ -50,8 +47,6 @@ up: require validate.env tmp-downloads/owid_chartdata.sql.gz
 		|| make down
 
 up.full: require validate.env.full tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
-	@echo '==> Setting up .env if need be'
-	@test -f .env || cp -f .env.example-full .env
 	@grep -q WORDPRESS .env || (echo 'ERROR: your .env is missing some wordpress variables'; exit 1)
 	
 	@echo '==> Building grapher'
@@ -94,17 +89,19 @@ guard-%:
 
 validate.env:
 	@echo '==> Validating your .env file for make up'
+	@test -f .env || (cp -f .env.example-grapher .env; echo "You didn't have an .env file. Copying .env.example-grapher. Please set its values and run this command again."; exit 1)
 	@grep '=' .env.example-grapher | sed 's/=.*//' | while read variable; \
 		do make guard-$$variable; \
-	done
-	@echo '.env valid for make up'
+	done;
+	@echo '.env file valid for make up'
 
-validate.env.full: validate.env
+validate.env.full:
 	@echo '==> Validating your .env file for make up.full'
+	@test -f .env || (cp -f .env.example-full .env; echo "You didn't have an .env file. Copying .env.example-full. Please set its values and run this command again."; exit 1)
 	@grep '=' .env.example-full | sed 's/=.*//' | while read variable; \
 		do make guard-$$variable; \
-	done
-	@echo '.env valid for make up.full'
+	done;
+	@echo '.env file valid for make up.full'
 	
 
 tmp-downloads/owid_chartdata.sql.gz:
