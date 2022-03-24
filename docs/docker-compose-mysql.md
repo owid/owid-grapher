@@ -36,6 +36,8 @@ If you want to work with the explorer admin then you need to clone the "owid-con
 
 # Starting our development environment
 
+One quick thing to check is if you are already running MySQL on your computer at port 3306 and if so to stop this service while running the docker setup. Our docker based setup tries to expose the MySQL docker container at port 3306 of your computer for easy interaction with other tools (e.g. a SQL editor). If this port is already taken then starting this container will fail.
+
 All you need to do now is to open a terminal and run
 
 ```bash
@@ -49,7 +51,7 @@ This should fire up a tmux console with 4 tabs:
 3. A tab that shows the result of the typescript watch compiler process
 4. A tab that shows the output of the webpack and admin server watch processes
 
-The first time you run this it will take a while to download and set up the database. Switch to the database tab and wait until you see this message:
+The first time you run this it will take a while to download and set up the database (5-15 minutes is expected). Switch to the database tab and wait until you see this message:
 
 ```
 ✅ All done, grapher DB is loaded ✅
