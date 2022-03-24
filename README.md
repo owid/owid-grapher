@@ -37,7 +37,7 @@ The [**baker**](baker/) is used to build the full static [Our World in Data](htt
 
 ## Initial development setup
 
-There are [various options](docs/setup-options-overview.md) for how to compile and run our code (ranging from a web based setup without installing anything to a full local editing setup with our internal admin tool and wordpress). If you want to get started quickly with the most common develoment setup then we recommend you follow the steps outlined in the [Local setup with mysql and grapher admin](docs/docker-compose-mysql.md) document.
+If you want to get started quickly with the most common develoment setup then we recommend you follow the steps outlined in the [Local setup with mysql and grapher admin](docs/docker-compose-mysql.md) document. There are [various additional options](docs/setup-options-overview.md) for how to compile and run our code (ranging from a web based setup without installing anything to a full local editing setup with our internal admin tool and wordpress).
 
 ## Architecture notes
 
