@@ -10,7 +10,7 @@ WORDPRESS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 PATH_OWID_PLUGIN="web/app/plugins/owid"
 ROOT="/home/owid"
 
-if [[ "$1" =~ ^(staging|hans|playfair|jefferson|nightingale|explorer|exemplars|tufte|roser|snow|halley|neurath)$ ]]; then
+if [[ "$1" =~ ^(staging|hans|playfair|jefferson|nightingale|explorer|exemplars|tufte|roser|snow|halley|neurath|ptolemy)$ ]]; then
   HOST="owid@staging.owid.io"
 elif [ "$1" == "live" ]; then
   HOST="owid@live.owid.io"

@@ -12,6 +12,7 @@ export enum DeployTarget {
     snow = "snow",
     halley = "halley",
     neurath = "neurath",
+    ptolemy = "ptolemy",
 }
 
 export const ProdTarget = "live"
