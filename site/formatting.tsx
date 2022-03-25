@@ -4,6 +4,7 @@ import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
     TocHeading,
+    WP_BlockType,
     WP_ColumnStyle,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
@@ -127,7 +128,7 @@ export const splitContentIntoSectionsAndColumns = (
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
                 $el.hasClass("wp-block-owid-grid") ||
-                $el.hasClass("wp-block-full-content-width") ||
+                $el.hasClass(WP_BlockType.FullContentWidth) ||
                 $el.find(
                     '.wp-block-owid-additional-information[data-variation="full-width"]'
                 ).length !== 0
