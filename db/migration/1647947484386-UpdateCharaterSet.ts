@@ -6,6 +6,7 @@ export class UpdateCharaterSet1647947484386 implements MigrationInterface {
         // once we use the potentially 4 byte UTF8mb4 encoding the unique index will still stay below the 3072 byte limit
         const queries = `SET FOREIGN_KEY_CHECKS = 0;
 ALTER TABLE \`grapher\`.\`variables\` modify column name VARCHAR(750);
+ALTER DATABASE grapher CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_as_cs;
 ALTER TABLE \`grapher\`.\`chart_dimensions\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;
 ALTER TABLE \`grapher\`.\`chart_slug_redirects\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;
 ALTER TABLE \`grapher\`.\`country_latest_data\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;
