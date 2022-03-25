@@ -1,0 +1,31 @@
+.quick-insights {
+    @include block-shadow;
+
+    .thumbs {
+        background-color: $primary-color-30;
+        border-bottom: 1px solid #efefef;
+    }
+    .thumb {
+        @include block-shadow;
+
+        width: 16rem;
+        min-height: 5rem;
+        margin: $vertical-spacing 0.5rem;
+        background-color: $white;
+        border: none;
+        border-radius: 2px;
+        font-weight: 700;
+        transition: background-color 0.2s;
+
+        &:hover {
+            cursor: pointer;
+            background-color: $primary-color-30;
+            border: 1px solid $primary-color;
+        }
+
+        &.selected {
+            background-color: $primary-color-100;
+            border: 1px solid $primary-color;
+        }
+    }
+}
