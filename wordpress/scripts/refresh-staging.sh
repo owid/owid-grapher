@@ -6,21 +6,32 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 
+bail() {
+    echo "ERROR: $1" 1>&2
+    exit 1
+}
+
+if [ ! -f $DIR/.env ]; then
+  bail "You must configure a .env file for your staging setup"
+fi
+
 set -a && source $DIR/.env && set +a
 
 if [ "${WP_ENV}" != "staging" ]; then
-  echo "Please only run on staging."
-  exit 1
+  bail "Please only run on staging."
 fi
 
-WORDPRESS_DB_HOST=$DB_HOST
-WORDPRESS_DB_NAME=$DB_NAME
-GRAPHER_DB_HOST=$GRAPHER_DB_HOST
-GRAPHER_DB_NAME=$GRAPHER_DB_NAME
 STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
-MYSQL="sudo mysql --default-character-set=utf8mb4"
+
+wp_mysql() {
+  mysql -u${DB_USER} -p"${DB_PASSWORD}" -h $DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+}
+
+gr_mysql() {
+  mysql -u${GRAPHER_DB_USER} -p"${GRAPHER_DB_PASSWORD}" -h $GRAPHER_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+}
+
 DL_FOLDER="/tmp"
-HOST=owid@live.owid.io
 
 # Default options
 WITH_UPLOADS=false
@@ -67,39 +78,47 @@ while [ "$1" != "" ]; do
     shift
 done
 
-purge_db(){
-  $MYSQL -h $1 -e "DROP DATABASE $2;CREATE DATABASE $2"
+purge_wordpress_db(){
+  wp_mysql -e "DROP DATABASE $DB_NAME;CREATE DATABASE $DB_NAME"
 }
 
-import_db(){
-  pv $1 | $MYSQL -h $2 $3
+purge_grapher_db(){
+  gr_mysql -e "DROP DATABASE $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME"
+}
+
+import_wordpress_db(){
+  pv $1 | wp_mysql $DB_NAME
+}
+
+import_grapher_db(){
+  pv $1 | gr_mysql $GRAPHER_DB_NAME
 }
 
 # Wordpress DB
 if [ "${SKIP_DB_DL}" = false ]; then
-  echo "Downloading Wordress database (live_wordpress)"
-  ssh ${HOST} "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r /tmp/live_wordpress.sql"
-  rsync -hav --progress ${HOST}:/tmp/live_wordpress.sql $DL_FOLDER
+  echo "Downloading Wordpress database (live_wordpress)"
+  ssh owid@live-db.owid.io "sudo mysqldump --default-character-set=utf8mb4 live_wordpress -r /tmp/live_wordpress.sql"
+  rsync -hav --progress owid@live-db.owid.io:/tmp/live_wordpress.sql $DL_FOLDER
 fi
-echo "Importing Wordress database (live_wordpress)"
-purge_db $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
-import_db $DL_FOLDER/live_wordpress.sql $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
+echo "Importing Wordpress database (live_wordpress)"
+purge_wordpress_db
+import_wordpress_db $DL_FOLDER/live_wordpress.sql 
 
 # Wordpress uploads
 if [ "${WITH_UPLOADS}" = true ]; then
-  echo "Downloading Wordress uploads"
-  rsync -hav --delete --progress ${HOST}:live-data/wordpress/uploads/ ~/$STAGING_SERVER_NAME-data/wordpress/uploads
+  echo "Downloading Wordpress uploads"
+  rsync -hav --delete --progress owid@live-db.owid.io:live-data/wordpress/uploads/ ~/$STAGING_SERVER_NAME-data/wordpress/uploads
 fi
 
 # Grapher database (owid_metadata)
 if [ "${SKIP_DB_DL}" = false ]; then
   echo "Downloading live Grapher metadata database (owid_metadata)"
-  ssh ${HOST} "cd live/itsJustJavascript && node db/exportMetadata.js --with-passwords /tmp/owid_metadata_with_passwords.sql"
-  rsync -hav --progress ${HOST}:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
+  ssh owid@live.owid.io "cd live/itsJustJavascript && node db/exportMetadata.js --with-passwords /tmp/owid_metadata_with_passwords.sql"
+  rsync -hav --progress owid@live.owid.io:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
 fi
 echo "Importing live Grapher metadata database (owid_metadata)"
-purge_db $GRAPHER_DB_HOST $GRAPHER_DB_NAME
-import_db $DL_FOLDER/owid_metadata_with_passwords.sql $GRAPHER_DB_HOST $GRAPHER_DB_NAME
+purge_grapher_db 
+import_grapher_db $DL_FOLDER/owid_metadata_with_passwords.sql
 
 # Grapher database (owid_chartdata)
 if [ "${WITH_CHARTDATA}" = true ]; then
@@ -109,5 +128,5 @@ if [ "${WITH_CHARTDATA}" = true ]; then
     gunzip -f $DL_FOLDER/owid_chartdata.sql.gz
   fi
   echo "Importing live Grapher chartdata database (owid_chartdata)"
-  import_db $DL_FOLDER/owid_chartdata.sql $GRAPHER_DB_HOST $GRAPHER_DB_NAME
+  import_grapher_db $DL_FOLDER/owid_chartdata.sql
 fi
