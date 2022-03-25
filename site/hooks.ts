@@ -1,5 +1,7 @@
 import { useEffect, RefObject, useState } from "react"
 import throttle from "lodash/throttle.js"
+import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
+import { RelatedChart } from "../clientUtils/owidTypes.js"
 
 export const useTriggerWhenClickOutside = (
     container: RefObject<HTMLElement>,
@@ -53,4 +55,16 @@ export const useScrollDirection = () => {
     })
 
     return direction
+}
+
+export const useEmbedChart = (
+    currentChart: RelatedChart | string,
+    refChartContainer: React.RefObject<HTMLDivElement>
+) => {
+    useEffect(() => {
+        if (refChartContainer.current) {
+            // Track newly injected <figure> elements in embedder
+            MultiEmbedderSingleton.observeFigures(refChartContainer.current)
+        }
+    }, [currentChart])
 }
