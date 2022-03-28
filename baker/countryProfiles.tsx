@@ -143,8 +143,6 @@ export const countryProfilePage = async (
     if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
 
     const graphers = await countryIndicatorGraphers()
-    const variables = await countryIndicatorVariables()
-    const variablesById = lodash.keyBy(variables, (v) => v.id)
     const dataValues = await countryIndicatorLatestData(country.code)
 
     const valuesByVariableId = lodash.groupBy(dataValues, (v) => v.variableId)
@@ -157,26 +155,6 @@ export const countryProfilePage = async (
 
         if (values && values.length) {
             const latestValue = values[0]
-            const variable = variablesById[vid]
-
-            // todo: this is a lot of setup to get formatValueShort. Maybe cleanup?
-            const table = new OwidTable(
-                [],
-                [
-                    {
-                        slug: vid.toString(),
-                        unit: variable.unit,
-                        display: variable.display,
-                    },
-                ]
-            )
-            const column = table.get(vid.toString())
-
-            let value: string | number
-            value = parseFloat(latestValue.value)
-            if (isNaN(value)) value = latestValue.value
-            else if (variable.display.conversionFactor)
-                value *= variable.display.conversionFactor
 
             indicators.push({
                 year: latestValue.year,
