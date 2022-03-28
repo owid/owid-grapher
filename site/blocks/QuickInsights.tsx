@@ -52,7 +52,7 @@ const QuickInsights = () => {
                     })}
                 </ScrollMenu>
             </div>
-            <div ref={refChartContainer}>
+            <div className="content" ref={refChartContainer}>
                 {insights[Number(selectedId)].slide}
             </div>
         </div>
