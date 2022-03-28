@@ -107,7 +107,7 @@ import_wordpress_db $DL_FOLDER/live_wordpress.sql
 # Wordpress uploads
 if [ "${WITH_UPLOADS}" = true ]; then
   echo "Downloading Wordpress uploads"
-  rsync -hav --delete --progress owid@live-db.owid.io:live-data/wordpress/uploads/ ~/$STAGING_SERVER_NAME-data/wordpress/uploads
+  rsync -hav --delete --progress owid@live.owid.io:live-data/wordpress/uploads/ ~/$STAGING_SERVER_NAME-data/wordpress/uploads
 fi
 
 # Grapher database (owid_metadata)
