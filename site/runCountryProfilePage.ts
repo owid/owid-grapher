@@ -54,10 +54,10 @@ class ChartFilter {
             document.querySelectorAll(".CountryProfilePage main li")
         ) as HTMLLIElement[]
         this.chartItems = lis.map((li) => ({
-            title: ((li.firstChild as any).textContent as string).replace(
-                /₂/g,
-                "2"
-            ),
+            title:
+                li
+                    .querySelector(".indicatorName > a")
+                    ?.textContent?.replace(/₂/g, "2") ?? "",
             li: li,
             ul: li.closest("ul") as HTMLUListElement,
         }))
