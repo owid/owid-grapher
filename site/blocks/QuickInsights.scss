@@ -1,5 +1,6 @@
 .quick-insights {
     @include block-shadow;
+    background-color: $white;
 
     .thumbs {
         background-color: $primary-color-30;
@@ -26,6 +27,15 @@
         &.selected {
             background-color: $primary-color-100;
             border: 1px solid $primary-color;
+        }
+    }
+    .content {
+        padding: 1rem;
+
+        .wp-block-columns.is-style-sticky-right .wp-block-column:first-child {
+            > *:first-child {
+                margin-top: 0;
+            }
         }
     }
 }
