@@ -72,13 +72,15 @@ export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
     if (!variableIds)
         variableIds = (await countryIndicatorVariables()).map((v) => v.id)
 
+    const currentYear = new Date().getUTCFullYear()
+
     const dataValuesQuery = db
         .knexTable("data_values")
         .select("variableId", "entityId", "value", "year")
         .whereIn("variableId", variableIds)
         .whereRaw(`entityId in (?)`, [entityIds])
-        .andWhere("year", ">", 2010)
-        .andWhere("year", "<", 2020)
+        .andWhere("year", ">", currentYear - 10) // latest data point should be at most 10 years old
+        .andWhere("year", "<=", currentYear)
         .orderBy("year", "DESC")
 
     let dataValues = (await dataValuesQuery) as {
