@@ -25,7 +25,7 @@ STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
 
 check_env() {
   eval value='$'$1
-  if [[ ! $value ]]; then echo '$'$1 is unset; exit 1; else echo '$'$1 is set to $value; fi
+  if [[ ! $value ]]; then bail "\$$1 is unset"; fi
 }
 
 wp_mysql() {
