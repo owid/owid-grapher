@@ -10,9 +10,10 @@ import {
 import { Variable } from "../db/model/Variable.js"
 import { SiteBaker } from "./SiteBaker.js"
 import { countries, getCountry } from "../clientUtils/countries.js"
-import { OwidTable } from "../coreTable/OwidTable.js"
 import { JsonError } from "../clientUtils/owidTypes.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
+import { getRelatedArticles } from "../db/wpdb.js"
+import { excludeUndefined } from "../clientUtils/Util.js"
 
 export const countriesIndexPage = (baseUrl: string) =>
     renderToHtmlPage(
@@ -38,12 +39,33 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
                 .knexTable("charts")
                 .whereRaw("publishedAt is not null and is_indexable is true")
         ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
-        return graphers.filter(
-            (grapher) =>
-                (grapher.hasChartTab ?? true) &&
-                (grapher.type ?? "LineChart") === "LineChart" &&
-                grapher.dimensions?.length === 1
+
+        const eligibleGraphers = await Promise.all(
+            graphers
+                .filter(
+                    (grapher) =>
+                        (grapher.hasChartTab ?? true) &&
+                        (grapher.type ?? "LineChart") === "LineChart" &&
+                        grapher.dimensions?.length === 1
+                )
+
+                // Exclude graphers which are not embedded in any of our posts
+                .map(async (grapher) => {
+                    // getRelatedArticles uses a cached content graph, so it's not a huge overhead to
+                    // query it for thousands of charts
+                    const relatedArticles = await getRelatedArticles(
+                        grapher.id!
+                    )
+                    if (
+                        relatedArticles === undefined ||
+                        relatedArticles.length == 0
+                    )
+                        return undefined
+                    else return grapher
+                })
         )
+
+        return excludeUndefined(eligibleGraphers)
     })
 
 const countryIndicatorVariables = async (): Promise<Variable.Row[]> =>
