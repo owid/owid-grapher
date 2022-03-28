@@ -4,39 +4,32 @@
 # Refresh staging targets from live content (run from staging) #
 ################################################################
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
-
 bail() {
     echo "ERROR: $1" 1>&2
     exit 1
 }
 
+# get the wordpress folder
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
+
+# Use variables from .env
 if [ ! -f $DIR/.env ]; then
   bail "You must configure a .env file for your staging setup"
 fi
-
 set -a && source $DIR/.env && set +a
 
+# The .env must say that we're in staging
 if [ "${WP_ENV}" != "staging" ]; then
   bail "Please only run on staging."
 fi
 
-STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
-
-wp_mysql() {
-  mysql -u${DB_USER} -p"${DB_PASSWORD}" -h $DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
-}
-
-gr_mysql() {
-  mysql -u${GRAPHER_DB_USER} -p"${GRAPHER_DB_PASSWORD}" -h $GRAPHER_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
-}
-
-DL_FOLDER="/tmp"
-
-# Default options
+# Default options, override via command-line flags
 WITH_UPLOADS=false
 WITH_CHARTDATA=false
 SKIP_DB_DL=false
+
+DL_FOLDER="/tmp"
 
 usage()
 {
@@ -77,6 +70,14 @@ while [ "$1" != "" ]; do
     esac
     shift
 done
+
+wp_mysql() {
+  mysql -u${DB_USER} -p"${DB_PASSWORD}" -h $DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+}
+
+gr_mysql() {
+  mysql -u${GRAPHER_DB_USER} -p"${GRAPHER_DB_PASSWORD}" -h $GRAPHER_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+}
 
 purge_wordpress_db(){
   wp_mysql -e "DROP DATABASE $DB_NAME;CREATE DATABASE $DB_NAME"
