@@ -40,8 +40,8 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
         ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
         return graphers.filter(
             (grapher) =>
-                grapher.hasChartTab &&
-                grapher.type === "LineChart" &&
+                (grapher.hasChartTab ?? true) &&
+                (grapher.type ?? "LineChart") === "LineChart" &&
                 grapher.dimensions?.length === 1
         )
     })
