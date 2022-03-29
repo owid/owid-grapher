@@ -25,10 +25,18 @@
         }
     }
 
+    .react-horizontal-scrolling-menu--scroll-container {
+        &::-webkit-scrollbar {
+            display: none;
+        }
+        scrollbar-width: none;
+    }
+
     .thumbs {
         background-color: $primary-color-30;
         border-bottom: 1px solid #efefef;
     }
+
     .thumb {
         @include block-shadow;
 
