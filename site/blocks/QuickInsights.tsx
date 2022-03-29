@@ -4,6 +4,8 @@ import ReactDOM from "react-dom"
 import { useEmbedChart } from "../hooks.js"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { WP_BlockType } from "../../clientUtils/owidTypes.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
 export const CLASS_NAME = "quick-insights"
 
@@ -17,11 +19,10 @@ const Thumb = ({
     onClick: () => void
     selected: boolean
 }) => {
-    const classes = ["thumb"]
     return (
         <button
             onClick={onClick}
-            className={[...classes, selected ? "selected" : ""].join(" ")}
+            className={selected ? "thumb selected" : "thumb"}
         >
             {title}
         </button>
@@ -63,27 +64,24 @@ const Arrow = ({
     children,
     disabled,
     onClick,
+    className,
 }: {
     children: React.ReactNode
     disabled: boolean
     onClick: VoidFunction
-}) => (
-    <button
-        disabled={disabled}
-        onClick={onClick}
-        style={{
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            right: "1%",
-            opacity: disabled ? "0" : "1",
-            userSelect: "none",
-        }}
-    >
-        {children}
-    </button>
-)
+    className?: string
+}) => {
+    const classes = ["arrow", className]
+    return (
+        <button
+            disabled={disabled}
+            onClick={onClick}
+            className={classes.join(" ")}
+        >
+            {children}
+        </button>
+    )
+}
 
 const LeftArrow = () => {
     const {
@@ -104,8 +102,12 @@ const LeftArrow = () => {
     }, [isFirstItemVisible, visibleItemsWithoutSeparators])
 
     return (
-        <Arrow disabled={disabled} onClick={() => scrollPrev()}>
-            Left
+        <Arrow
+            disabled={disabled}
+            onClick={() => scrollPrev()}
+            className="left"
+        >
+            <FontAwesomeIcon icon={faAngleRight} flip="horizontal" />
         </Arrow>
     )
 }
@@ -124,8 +126,12 @@ const RightArrow = () => {
     }, [isLastItemVisible, visibleItemsWithoutSeparators])
 
     return (
-        <Arrow disabled={disabled} onClick={() => scrollNext()}>
-            Right
+        <Arrow
+            disabled={disabled}
+            onClick={() => scrollNext()}
+            className="right"
+        >
+            <FontAwesomeIcon icon={faAngleRight} />
         </Arrow>
     )
 }

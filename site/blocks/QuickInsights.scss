@@ -1,6 +1,29 @@
 .quick-insights {
     @include block-shadow;
     background-color: $white;
+    position: relative;
+
+    .arrow {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        width: 3rem;
+        transition: all 0.2s;
+        &:enabled {
+            &.left {
+                z-index: $zindex-input;
+                box-shadow: 0.75rem 0 1rem $primary-color-30;
+                clip-path: inset(0 -2.5rem 0 0);
+            }
+            &.right {
+                box-shadow: -0.75rem 0 1rem $primary-color-30;
+                clip-path: inset(0 0 0 -2.5rem);
+            }
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
 
     .thumbs {
         background-color: $primary-color-30;
