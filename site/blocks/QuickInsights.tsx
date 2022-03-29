@@ -1,4 +1,4 @@
-import React, { ReactElement, useRef, useState } from "react"
+import React, { ReactElement, useContext, useRef, useState } from "react"
 import ReactDOMServer from "react-dom/server"
 import ReactDOM from "react-dom"
 import { useEmbedChart } from "../hooks.js"
@@ -9,6 +9,8 @@ import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
 export const CLASS_NAME = "quick-insights"
 
+type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
+
 const Thumb = ({
     title,
     onClick,
@@ -16,12 +18,14 @@ const Thumb = ({
 }: {
     title: string
     itemId: string
-    onClick: () => void
+    onClick: (visibility: scrollVisibilityApiType) => void
     selected: boolean
 }) => {
+    const visibility = useContext(VisibilityContext)
+
     return (
         <button
-            onClick={onClick}
+            onClick={() => onClick(visibility)}
             className={selected ? "thumb selected" : "thumb"}
         >
             {title}
@@ -33,6 +37,13 @@ const QuickInsights = () => {
     const [selectedId, setSelectedId] = useState<string>("0")
     const refChartContainer = useRef<HTMLDivElement>(null)
 
+    const handleThumbClickFactory = (itemId: string) => {
+        return ({ scrollToItem, getItemById }: scrollVisibilityApiType) => {
+            setSelectedId(itemId)
+            scrollToItem(getItemById(itemId), "smooth", "center", "nearest")
+        }
+    }
+
     useEmbedChart(selectedId, refChartContainer)
 
     return (
@@ -40,14 +51,14 @@ const QuickInsights = () => {
             <div className="thumbs">
                 <ScrollMenu LeftArrow={LeftArrow} RightArrow={RightArrow}>
                     {insights.map(({ title }, i) => {
-                        const id = `${i}`
+                        const itemId = `${i}`
                         return (
                             <Thumb
                                 title={title}
-                                key={id}
-                                itemId={id}
-                                onClick={() => setSelectedId(id)}
-                                selected={id === selectedId}
+                                key={itemId}
+                                itemId={itemId}
+                                onClick={handleThumbClickFactory(itemId)}
+                                selected={itemId === selectedId}
                             />
                         )
                     })}
