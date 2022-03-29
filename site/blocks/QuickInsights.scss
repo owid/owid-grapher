@@ -44,7 +44,7 @@
         min-height: 5rem;
         margin: $vertical-spacing 0.5rem;
         background-color: $white;
-        border: none;
+        border: 1px solid $white;
         border-radius: 2px;
         font-weight: 700;
         transition: background-color 0.2s;
@@ -57,7 +57,7 @@
 
         &.selected {
             background-color: $primary-color-100;
-            border: 1px solid $primary-color;
+            border-color: $primary-color;
         }
     }
 
