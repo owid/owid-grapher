@@ -33,7 +33,7 @@ purge_db(){
 }
 
 import_db(){
-  cat $1 | gunzip | $MYSQL -h $2 --port 3306 -u$4 -p$5 $3
+  cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | $MYSQL -h $2 --port 3306 -u$4 -p$5 $3
 }
 
 fillGrapherDb() {
