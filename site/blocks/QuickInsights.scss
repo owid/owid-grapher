@@ -8,15 +8,17 @@
         border: none;
         font-size: 1.5rem;
         width: 3rem;
+        padding: 0;
         transition: all 0.2s;
+
         &:enabled {
             &.left {
                 z-index: $zindex-input;
-                box-shadow: 0.75rem 0 1rem $primary-color-30;
+                box-shadow: 0.5rem 0 0.5rem $primary-color-30;
                 clip-path: inset(0 -2.5rem 0 0);
             }
             &.right {
-                box-shadow: -0.75rem 0 1rem $primary-color-30;
+                box-shadow: -0.5rem 0 0.5rem $primary-color-30;
                 clip-path: inset(0 0 0 -2.5rem);
             }
             &:hover {
@@ -43,6 +45,7 @@
         width: 16rem;
         min-height: 5rem;
         margin: $vertical-spacing 0.5rem;
+        padding: 0.5rem;
         background-color: $white;
         border: 1px solid $white;
         border-radius: 2px;
@@ -61,11 +64,6 @@
         }
     }
 
-    .react-horizontal-scrolling-menu--item {
-        &:first-child .thumb {
-            margin-left: 1px; // fix box-shadow on left side hidden when scrolling back and forth
-        }
-    }
     .content {
         padding: 1rem;
 
