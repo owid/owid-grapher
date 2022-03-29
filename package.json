@@ -21,7 +21,6 @@
         "runDbMigrations": "yarn typeorm migration:run",
         "runPostUpdateHook": "node ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node ./itsJustJavascript/adminSiteServer/app.js",
-        "startSiteBack": "docker compose up -d && tsc-watch -b --onSuccess \"yarn startAdminServer\"",
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
         "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
