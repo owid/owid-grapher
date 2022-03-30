@@ -7,7 +7,7 @@ import { WP_BlockType } from "../../clientUtils/owidTypes.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
-export const CLASS_NAME = "quick-insights"
+export const CLASS_NAME = "key-insights"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
@@ -33,7 +33,7 @@ const Thumb = ({
     )
 }
 
-const QuickInsights = () => {
+const KeyInsights = () => {
     const [selectedId, setSelectedId] = useState<string>("0")
     const refChartContainer = useRef<HTMLDivElement>(null)
 
@@ -143,13 +143,13 @@ const RightArrow = () => {
     ) : null
 }
 
-export const renderQuickInsights = ($: CheerioStatic) => {
-    $("block[type='quick-insights']").each(function (this: CheerioElement) {
+export const renderKeyInsights = ($: CheerioStatic) => {
+    $("block[type='key-insights']").each(function (this: CheerioElement) {
         const $block = $(this)
 
         const rendered = ReactDOMServer.renderToString(
             <div className={`block-wrapper ${WP_BlockType.FullContentWidth}`}>
-                <QuickInsights />
+                <KeyInsights />
             </div>
         )
         $block.after(rendered)
@@ -157,12 +157,12 @@ export const renderQuickInsights = ($: CheerioStatic) => {
     })
 }
 
-export const hydrateQuickInsights = () => {
+export const hydrateKeyInsights = () => {
     document
         .querySelectorAll<HTMLElement>(`.${CLASS_NAME}`)
         .forEach((block) => {
             const blockWrapper = block.parentElement
-            ReactDOM.hydrate(<QuickInsights />, blockWrapper)
+            ReactDOM.hydrate(<KeyInsights />, blockWrapper)
         })
 }
 

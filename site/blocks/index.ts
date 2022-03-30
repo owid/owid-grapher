@@ -3,7 +3,7 @@ import { runSearchCountry } from "../../site/SearchCountry.js"
 import { runExpandableInlineBlock } from "../../site/ExpandableInlineBlock.js"
 import { runDataTokens } from "../../site/runDataTokens.js"
 import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder.js"
-import { hydrateQuickInsights } from "./QuickInsights.js"
+import { hydrateKeyInsights } from "./KeyInsights.js"
 
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {
@@ -17,5 +17,5 @@ export const runBlocks = () => {
     runExpandableInlineBlock()
     runSearchCountry()
     hydrateAdditionalInformation()
-    hydrateQuickInsights()
+    hydrateKeyInsights()
 }
