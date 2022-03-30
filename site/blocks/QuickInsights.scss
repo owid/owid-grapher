@@ -1,29 +1,35 @@
 .quick-insights {
     @include block-shadow;
     background-color: $white;
-    position: relative;
+
+    .react-horizontal-scrolling-menu--wrapper {
+        position: relative;
+    }
 
     .arrow {
-        background: none;
+        position: absolute;
+        z-index: $zindex-input;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background: $primary-color-30;
         border: none;
         font-size: 1.5rem;
         width: 3rem;
         padding: 0;
         transition: all 0.2s;
+        cursor: pointer;
 
-        &:enabled {
-            &.left {
-                z-index: $zindex-input;
-                box-shadow: 0.5rem 0 0.5rem $primary-color-30;
-                clip-path: inset(0 -2.5rem 0 0);
-            }
-            &.right {
-                box-shadow: -0.5rem 0 0.5rem $primary-color-30;
-                clip-path: inset(0 0 0 -2.5rem);
-            }
-            &:hover {
-                cursor: pointer;
-            }
+        &.left {
+            left: 0;
+            box-shadow: 0.5rem 0 0.5rem $primary-color-30;
+            clip-path: inset(0 -2.5rem 0 0);
+        }
+        &.right {
+            right: 0;
+            box-shadow: -0.5rem 0 0.5rem $primary-color-30;
+            clip-path: inset(0 0 0 -2.5rem);
         }
     }
 
@@ -37,6 +43,7 @@
     .thumbs {
         background-color: $primary-color-30;
         border-bottom: 1px solid #efefef;
+        padding: 0 0.5rem;
     }
 
     .thumb {

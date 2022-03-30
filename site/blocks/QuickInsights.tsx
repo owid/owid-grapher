@@ -49,7 +49,11 @@ const QuickInsights = () => {
     return (
         <div className={CLASS_NAME}>
             <div className="thumbs">
-                <ScrollMenu LeftArrow={LeftArrow} RightArrow={RightArrow}>
+                <ScrollMenu
+                    LeftArrow={LeftArrow}
+                    RightArrow={RightArrow}
+                    transitionDuration={200}
+                >
                     {insights.map(({ title }, i) => {
                         const itemId = `${i}`
                         return (
@@ -112,15 +116,11 @@ const LeftArrow = () => {
         }
     }, [isFirstItemVisible, visibleItemsWithoutSeparators])
 
-    return (
-        <Arrow
-            disabled={disabled}
-            onClick={() => scrollPrev()}
-            className="left"
-        >
+    return !disabled ? (
+        <Arrow disabled={false} onClick={() => scrollPrev()} className="left">
             <FontAwesomeIcon icon={faAngleRight} flip="horizontal" />
         </Arrow>
-    )
+    ) : null
 }
 
 const RightArrow = () => {
@@ -136,15 +136,11 @@ const RightArrow = () => {
         }
     }, [isLastItemVisible, visibleItemsWithoutSeparators])
 
-    return (
-        <Arrow
-            disabled={disabled}
-            onClick={() => scrollNext()}
-            className="right"
-        >
+    return !disabled ? (
+        <Arrow disabled={false} onClick={() => scrollNext()} className="right">
             <FontAwesomeIcon icon={faAngleRight} />
         </Arrow>
-    )
+    ) : null
 }
 
 export const renderQuickInsights = ($: CheerioStatic) => {
