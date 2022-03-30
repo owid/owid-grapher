@@ -2,8 +2,26 @@
     @include block-shadow;
     background-color: $white;
 
+    // Some of these styles are injected in the page through
+    // react-horizontal-scrolling-menu's style-loader
+    // (https://webpack.js.org/loaders/style-loader/). They are repeated here to
+    // prevent a FOUC.
     .react-horizontal-scrolling-menu--wrapper {
+        display: flex;
         position: relative;
+    }
+
+    .react-horizontal-scrolling-menu--scroll-container {
+        display: flex;
+        height: max-content;
+        overflow-y: hidden;
+        position: relative;
+        width: 100%;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+        scrollbar-width: none;
     }
 
     .arrow {
@@ -31,13 +49,6 @@
             box-shadow: -0.5rem 0 0.5rem $primary-color-30;
             clip-path: inset(0 0 0 -2.5rem);
         }
-    }
-
-    .react-horizontal-scrolling-menu--scroll-container {
-        &::-webkit-scrollbar {
-            display: none;
-        }
-        scrollbar-width: none;
     }
 
     .thumbs {
