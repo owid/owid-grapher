@@ -1603,7 +1603,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             "is_empty",
             "is_not_empty",
             "is_null",
-            "in_not_null",
+            "is_not_null",
             "select_equals",
             "select_not_equals",
             "some",
