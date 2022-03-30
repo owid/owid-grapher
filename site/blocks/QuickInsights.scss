@@ -88,10 +88,14 @@
         .wp-block-columns.is-style-sticky-right .wp-block-column:first-child {
             height: $grapher-height;
             overflow-y: auto;
-            -webkit-mask-image: linear-gradient(180deg, #000 95%, transparent);
+            -webkit-mask-image: linear-gradient(180deg, #000 90%, transparent);
 
             > *:first-child {
                 margin-top: 0;
+            }
+
+            > *:last-child {
+                margin-bottom: 3rem;
             }
         }
     }
