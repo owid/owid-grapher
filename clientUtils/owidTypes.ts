@@ -19,6 +19,7 @@ export enum SortOrder {
 }
 
 export enum SortBy {
+    custom = "custom",
     entityName = "entityName",
     column = "column",
     total = "total",

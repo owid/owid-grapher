@@ -295,8 +295,11 @@ export class StackedDiscreteBarChart
     }
 
     @computed get sortedItems(): readonly Item[] {
-        let sortByFunc: (item: Item) => number | string
+        let sortByFunc: (item: Item) => number | string | undefined
         switch (this.sortConfig.sortBy) {
+            case SortBy.custom:
+                sortByFunc = (): undefined => undefined
+                break
             case SortBy.entityName:
                 sortByFunc = (item: Item): string => item.label
                 break

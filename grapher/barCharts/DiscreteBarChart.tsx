@@ -559,8 +559,11 @@ export class DiscreteBarChart
                 ? this.entitiesAsSeries
                 : this.columnsAsSeries
 
-        let sortByFunc: (item: DiscreteBarItem) => number | string
+        let sortByFunc: (item: DiscreteBarItem) => number | string | undefined
         switch (this.sortConfig.sortBy) {
+            case SortBy.custom:
+                sortByFunc = () => undefined
+                break
             case SortBy.entityName:
                 sortByFunc = (item: DiscreteBarItem) => item.seriesName
                 break

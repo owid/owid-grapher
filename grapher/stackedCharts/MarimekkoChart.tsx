@@ -769,8 +769,11 @@ export class MarimekkoChart
     @computed private get sortedItems(): Item[] {
         const { items, sortConfig } = this
 
-        let sortByFunc: (item: Item) => number | string
+        let sortByFunc: (item: Item) => number | string | undefined
         switch (sortConfig.sortBy) {
+            case SortBy.custom:
+                sortByFunc = () => undefined
+                break
             case SortBy.entityName:
                 sortByFunc = (item: Item): string => item.entityName
                 break
