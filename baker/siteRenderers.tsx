@@ -70,7 +70,7 @@ import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import { formatUrls } from "../site/formatting.js"
 import { renderHelp } from "../site/blocks/Help.js"
 import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
-import { renderQuickInsights } from "../site/blocks/QuickInsights.js"
+import { renderKeyInsights } from "../site/blocks/KeyInsights.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
@@ -546,7 +546,7 @@ export const renderBlocks = async (
     renderAdditionalInformation(cheerioEl)
     renderHelp(cheerioEl)
     await renderProminentLinks(cheerioEl, containerPostId)
-    renderQuickInsights(cheerioEl)
+    renderKeyInsights(cheerioEl)
 }
 
 export const renderExplorerPage = async (
