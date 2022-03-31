@@ -96,16 +96,10 @@ create-if-missing.env:
 
 validate.env:
 	@echo '==> Validating your .env file for make up'
-	@if test ! -f .env; then \
-		echo 'Copying .env.example-grapher --> .env'; \
-		cp .env.example-grapher .env; \
-		make $(MAKECMDGOALS); \
-	else \
-		grep '=' .env.example-grapher | sed 's/=.*//' | while read variable; \
-			do make guard-$$variable; \
-		done; \
-		echo '.env file valid for make up'; \
-	fi
+	@grep '=' .env.example-grapher | sed 's/=.*//' | while read variable; \
+		do make guard-$$variable; \
+	done
+	@echo '.env file valid for make up'
 
 create-if-missing.env.full:
 	@if test ! -f .env; then \
@@ -117,7 +111,7 @@ validate.env.full:
 	@echo '==> Validating your .env file for make up.full'
 	@grep '=' .env.example-full | sed 's/=.*//' | while read variable; \
 		do make guard-$$variable; \
-	done;
+	done
 	@echo '.env file valid for make up.full'
 	
 
