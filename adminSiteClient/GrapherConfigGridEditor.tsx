@@ -1563,13 +1563,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return (
             <div className="preview">
                 <h5>Interactive grapher preview</h5>
-                <Toggle
-                    label="Keep entity/country selection when switching rows"
-                    title="If set then the country selection will stay the same while switching rows even if the underlying chart has a different selection"
-                    value={this.keepEntitySelectionOnChartChange}
-                    onValue={this.setKeepEntitySelectionOnChartChange}
-                />
-                {grapherElement ? grapherElement : null}
+                <details open>
+                    <summary>Hide/Show the preview</summary>
+                    <Toggle
+                        label="Keep entity/country selection when switching rows"
+                        title="If set then the country selection will stay the same while switching rows even if the underlying chart has a different selection"
+                        value={this.keepEntitySelectionOnChartChange}
+                        onValue={this.setKeepEntitySelectionOnChartChange}
+                    />
+                    {grapherElement ? grapherElement : null}
+                </details>
             </div>
         )
     }
