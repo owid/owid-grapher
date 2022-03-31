@@ -26,7 +26,8 @@ help:
 	@echo '  make down.full    stop any services still running'
 	@echo
 
-up: require validate.env tmp-downloads/owid_chartdata.sql.gz	
+up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
+	@make validate.env
 	@echo '==> Building grapher'
 	yarn install
 	yarn run tsc -b
@@ -46,8 +47,8 @@ up: require validate.env tmp-downloads/owid_chartdata.sql.gz
 		bind Q kill-server \
 		|| make down
 
-up.full: require validate.env.full tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
-	@grep -q WORDPRESS .env || (echo 'ERROR: your .env is missing some wordpress variables'; exit 1)
+up.full: require create-if-missing.env.fulltmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
+	@make validate.env.full
 	
 	@echo '==> Building grapher'
 	yarn install
@@ -87,17 +88,33 @@ require:
 guard-%:
 	@if [ -z "${${*}}" ]; then echo 'ERROR: .env variable $* not set' && exit 1; fi
 
+create-if-missing.env:
+	@if test ! -f .env; then \
+		echo 'Copying .env.example-grapher --> .env'; \
+		cp .env.example-grapher .env; \
+	fi
+
 validate.env:
 	@echo '==> Validating your .env file for make up'
-	@test -f .env || (cp -f .env.example-grapher .env; echo "You didn't have an .env file. Copying .env.example-grapher. Please set its values and run this command again."; exit 1)
-	@grep '=' .env.example-grapher | sed 's/=.*//' | while read variable; \
-		do make guard-$$variable; \
-	done;
-	@echo '.env file valid for make up'
+	@if test ! -f .env; then \
+		echo 'Copying .env.example-grapher --> .env'; \
+		cp .env.example-grapher .env; \
+		make $(MAKECMDGOALS); \
+	else \
+		grep '=' .env.example-grapher | sed 's/=.*//' | while read variable; \
+			do make guard-$$variable; \
+		done; \
+		echo '.env file valid for make up'; \
+	fi
+
+create-if-missing.env.full:
+	@if test ! -f .env; then \
+		echo 'Copying .env.example-full --> .env'; \
+		cp .env.example-full .env; \
+	fi
 
 validate.env.full:
 	@echo '==> Validating your .env file for make up.full'
-	@test -f .env || (cp -f .env.example-full .env; echo "You didn't have an .env file. Copying .env.example-full. Please set its values and run this command again."; exit 1)
 	@grep '=' .env.example-full | sed 's/=.*//' | while read variable; \
 		do make guard-$$variable; \
 	done;
