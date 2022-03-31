@@ -20,6 +20,7 @@ import {
     isNil,
     merge,
     pick,
+    range,
 } from "lodash"
 
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
@@ -687,7 +688,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     settings={{
                         title: name,
                         data: desc.pointer,
-                        width: Math.max(Bounds.forText(name).width, 50),
+                        //width: Math.max(Bounds.forText(name).width, 50),
                     }}
                 >
                     <HotColorScaleRenderer hot-renderer />
@@ -706,7 +707,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         type: type,
                         source: desc.enumOptions,
                         data: desc.pointer,
-                        width: Math.max(Bounds.forText(name).width, 50),
+                        //width: Math.max(Bounds.forText(name).width, 50),
                     }}
                 />
             )
@@ -782,12 +783,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                 title: columnDataSource.readOnlyColumn.label,
                                 readOnly: true,
                                 data: columnDataSource.readOnlyColumn.key,
-                                width: Math.max(
-                                    Bounds.forText(
-                                        columnDataSource.readOnlyColumn.label
-                                    ).width,
-                                    50
-                                ),
+                                // width: Math.max(
+                                //     Bounds.forText(
+                                //         columnDataSource.readOnlyColumn.label
+                                //     ).width,
+                                //     50
+                                // ),
                             }}
                         />
                     )
@@ -846,11 +847,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             beforeKeyDown: (
                 event // TODO: check if this works ok with normal editing delete key use
             ) => (event.key === "Delete" ? this.clearCellContent() : undefined),
+            modifyColWidth: (width, col) => {
+                if (width > 350) {
+                    return 300
+                }
+                return undefined
             },
             allowInsertColumn: false,
             allowInsertRow: false,
             autoRowSize: false,
-            autoColumnSize: false,
+            autoColumnSize: true,
             // cells,
             colHeaders: true,
             comments: false,
