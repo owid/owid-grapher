@@ -201,6 +201,8 @@ body {
             > .preview {
                 flex: 0 0 auto;
                 // min-height: 500px;
+                border-top: 1px solid lightgray;
+                padding-top: 5px;
             }
             > section {
                 flex: 1 0 200px;
