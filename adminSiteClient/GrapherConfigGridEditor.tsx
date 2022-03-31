@@ -158,7 +158,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable.ref grapherElement?: JSX.Element // the JSX Element of the preview IF we want to display it currently
     numTotalRows: number | undefined = undefined
     @observable selectedRow: number | undefined = undefined
+    @observable selectionEndRow: number | undefined = undefined
     @observable selectedColumn: number | undefined = undefined
+    @observable selectionEndColumn: number | undefined = undefined
     @observable activeTab = Tabs.FilterTab
     @observable currentColumnSet: ColumnSet
     @observable columnFilter: string = ""
@@ -175,8 +177,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     /** Rows of the query result to the /variable-annotations endpoint that include a parsed
         grapher object for the grapherConfig field */
-    @observable.ref richDataRows: VariableAnnotationsRow[] | undefined =
-        undefined
+    @observable richDataRows: VariableAnnotationsRow[] | undefined = undefined
 
     /** Undo stack - not yet used - TODO: implement Undo/redo */
     @observable undoStack: Action[] = []
@@ -806,17 +807,24 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @action.bound
-    updateSelection(row: number, column: number): void {
+    updateSelection(
+        row1: number,
+        column1: number,
+        row2: number,
+        column2: number
+    ): void {
         if (this.hasUncommitedRichEditorChanges) this.cancelRichEditorChanges()
-        if (row !== this.selectedRow) {
+        if (row1 !== this.selectedRow) {
             this.hasUncommitedRichEditorChanges = false
-            this.selectedRow = row
-            this.updatePreviewToRow(row)
+            this.selectedRow = row1
+            this.updatePreviewToRow(row1)
         }
-        if (column !== this.selectedColumn) {
+        this.selectionEndRow = row2
+        if (column1 !== this.selectedColumn) {
             this.hasUncommitedRichEditorChanges = false
-            this.selectedColumn = column
+            this.selectedColumn = column1
         }
+        this.selectionEndColumn = column2
     }
 
     @computed
@@ -832,8 +840,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 this.processChangedCells(changes, source),
             beforeChange: (changes, source) =>
                 this.validateCellChanges(changes, source),
-            afterSelectionEnd: (row, column /* row2, column2, layer*/) => {
-                this.updateSelection(row, column)
+            afterSelectionEnd: (row, column, row2, column2 /*, layer*/) => {
+                this.updateSelection(row, column, row2, column2)
+            },
+            beforeKeyDown: (
+                event // TODO: check if this works ok with normal editing delete key use
+            ) => (event.key === "Delete" ? this.clearCellContent() : undefined),
             },
             allowInsertColumn: false,
             allowInsertRow: false,
@@ -865,7 +877,58 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
         return hotSettings
     }
+    @action.bound
+    clearCellContent() {
+        console.log("Clearing cell content")
+        const {
+            selectedRow,
+            selectedColumn,
+            selectionEndColumn,
+            selectionEndRow,
+            columnDataSources,
+            richDataRows,
+        } = this
+        if (
+            selectedRow === undefined ||
+            selectedColumn === undefined ||
+            selectionEndRow === undefined ||
+            selectionEndColumn === undefined ||
+            richDataRows === undefined
+        )
+            return
 
+        const selectedRows = range(selectedRow, selectionEndRow + 1)
+        const selectedColumns = range(selectedColumn, selectionEndColumn + 1)
+        const patches: GrapherConfigPatch[] = []
+
+        for (const column of selectedColumns) {
+            const columnDataSource = columnDataSources[column]
+            if (
+                columnDataSource.kind === ColumnDataSourceType.FieldDescription
+            ) {
+                const pointer = columnDataSource.description.pointer
+                for (const row of selectedRows) {
+                    const rowData = richDataRows[row]
+                    const prevVal = columnDataSource.description.getter(
+                        rowData.config as Record<string, unknown>
+                    )
+                    const patch: GrapherConfigPatch = {
+                        id: rowData.id,
+                        oldValue: prevVal,
+                        newValue: null,
+                        jsonPointer: pointer,
+                        oldValueIsEquivalentToNullOrUndefined:
+                            columnDataSource.description.default !==
+                                undefined &&
+                            columnDataSource.description.default === prevVal,
+                    }
+                    patches.push(patch)
+                }
+            }
+        }
+
+        this.doAction({ patches })
+    }
     validateCellChanges(
         changes: Handsontable.CellChange[] | null,
         source: Handsontable.ChangeSource
