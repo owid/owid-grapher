@@ -133,12 +133,6 @@ export const formatWordpressPost = async (
     let latexBlocks
     ;[html, latexBlocks] = extractLatex(html)
 
-    const references: any[] = []
-    html = html.replace(/\[cite\]([\s\S]*?)\[\/cite\]/gm, () => {
-        references.push({}) // Todo
-        return ``
-    })
-
     html = await formatLatex(html, latexBlocks)
 
     // Footnotes
@@ -533,7 +527,6 @@ export const formatWordpressPost = async (
         info,
         style,
         footnotes: footnotes,
-        references: references,
         tocHeadings: tocHeadings,
         pageDesc: post.excerpt || cheerioEl("p").first().text(),
         html: getBodyHtml(cheerioEl),
@@ -551,7 +544,6 @@ export const formatPost = async (
             ...post,
             html: formatUrls(post.content),
             footnotes: [],
-            references: [],
             tocHeadings: [],
             pageDesc: post.excerpt || "",
         }
