@@ -156,8 +156,6 @@ export const renderPost = async (
     baseUrl: string = BAKED_BASE_URL,
     grapherExports?: GrapherExports
 ) => {
-    let exportsByUrl = grapherExports
-
     if (!grapherExports) {
         const $ = cheerio.load(post.content)
 
@@ -169,13 +167,13 @@ export const renderPost = async (
         // This can be slow if uncached!
         await bakeGrapherUrls(grapherUrls)
 
-        exportsByUrl = await getGrapherExportsByUrl()
+        grapherExports = await getGrapherExportsByUrl()
     }
 
     // Extract formatting options from post HTML comment (if any)
     const formattingOptions = extractFormattingOptions(post.content)
 
-    const formatted = await formatPost(post, formattingOptions, exportsByUrl)
+    const formatted = await formatPost(post, formattingOptions, grapherExports)
 
     const pageOverrides = await getPageOverrides(post, formattingOptions)
     const citationStatus =
