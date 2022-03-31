@@ -3,9 +3,6 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-DB_NAME=grapher
-DB_USER=grapher
-DB_PASS=grapher
 
 : "${DB_HOST:?Need to set DB_HOST non-empty}"
 : "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"

@@ -35,7 +35,7 @@ services:
         volumes:
             - mysql_data_public:/var/lib/mysql
         ports:
-            - "3306:3306"
+            - "3307:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
@@ -56,9 +56,10 @@ services:
             # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
-            DB_HOST: db
             DATA_FOLDER: "/tmp-downloads"
             # SSH_AUTH_SOCK: "/ssh-agent"
+        env_file:
+            - .env
         depends_on:
             - db
 

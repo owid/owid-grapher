@@ -47,7 +47,7 @@ export const DB_USER: string = serverSettings.DB_USER ?? "root"
 export const DB_PASS: string = serverSettings.DB_PASS ?? ""
 export const DB_HOST: string = serverSettings.DB_HOST ?? "localhost"
 export const DB_PORT: number =
-    parseIntOrUndefined(serverSettings.DB_PORT) ?? 3306
+    parseIntOrUndefined(serverSettings.DB_PORT) ?? 3307
 
 export const BAKED_SITE_DIR: string =
     serverSettings.BAKED_SITE_DIR ?? path.resolve(BASE_DIR, "bakedSite") // Where the static build output goes
