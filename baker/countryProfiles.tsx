@@ -37,17 +37,24 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
         const graphers = (
             await db
                 .knexTable("charts")
+                .join(
+                    "chart_dimensions",
+                    "charts.id",
+                    "chart_dimensions.chartId"
+                )
+                .join(
+                    "variables",
+                    "chart_dimensions.variableId",
+                    "variables.id"
+                )
                 .whereRaw("publishedAt is not null and is_indexable is true")
+                .where("variables.datasetId", "=", 5357) // 5357 is the World Development Indicators dataset
+                .where("chart_dimensions.order", "=", 0)
         ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
 
         const eligibleGraphers = await Promise.all(
             graphers
-                .filter(
-                    (grapher) =>
-                        (grapher.hasChartTab ?? true) &&
-                        (grapher.type ?? "LineChart") === "LineChart" &&
-                        grapher.dimensions?.length === 1
-                )
+                .filter((grapher) => grapher.dimensions?.length === 1)
 
                 // Exclude graphers which are not embedded in any of our posts
                 .map(async (grapher) => {

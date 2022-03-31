@@ -61,8 +61,13 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                     </li>
                 </ul> */}
                     <p>
-                        Below are all indicators in our database for which this
-                        country has a value.
+                        Below are all charts in our database for which we source
+                        data from the{" "}
+                        <a href="https://datatopics.worldbank.org/world-development-indicators/">
+                            World Development Indicators
+                        </a>{" "}
+                        and where a recent data value for this country is
+                        available.
                     </p>
                     <div>
                         <input
