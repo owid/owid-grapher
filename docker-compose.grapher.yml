@@ -56,6 +56,7 @@ services:
             # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
+            DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
             # SSH_AUTH_SOCK: "/ssh-agent"
         env_file:

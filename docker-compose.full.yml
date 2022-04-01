@@ -39,7 +39,7 @@ services:
         volumes:
             - mysql_data:/var/lib/mysql
         ports:
-            - "3306:3306"
+            - "3307:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
@@ -60,9 +60,11 @@ services:
             # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
-            DB_HOST: db
+            DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
             # SSH_AUTH_SOCK: "/ssh-agent"
+        env_file:
+            - .env
         depends_on:
             - db
 
@@ -89,26 +91,26 @@ services:
         depends_on:
             - db
 
+volumes:
+    mysql_data:
+
     # Init container for the PHP codebase. This mounts the ./wordpress directory that is also
     # used by the nginx and php container and executes the PHP package manager composer to
     # make sure that all dependencies and plugins are installed that are not part of our source
     # (i.e. ./wordpress/web/app/plugins/owid is already there because it is part of this git repo
     # but all the other plugins will only be downloaded by running composer)
-    wordpress-install:
-        build:
-            context: ./devTools/docker/wordpress-php-docker
-        command: "composer install --no-interaction"
-        volumes:
-            - ./wordpress:/app
+    # wordpress-install:
+    #     build:
+    #         context: ./devTools/docker/wordpress-php-docker
+    #     command: "composer install --no-interaction"
+    #     volumes:
+    #         - ./wordpress:/app
 
     # Init container for the owid wordpress plugin. The Javascript part of this plugin need to
     # be built in a node container once with the ./wordpress directory mounted into the container.
-    wordpress-owid-plugin-build:
-        image: node:16
-        command: "yarn && yarn build"
-        working_dir: /app/web/app/plugins/owid
-        volumes:
-            - ./wordpress:/app
-
-volumes:
-    mysql_data:
+    # wordpress-owid-plugin-build:
+    #     image: node:16
+    #     command: "yarn && yarn build"
+    #     working_dir: /app/web/app/plugins/owid
+    #     volumes:
+    #         - ./wordpress:/app

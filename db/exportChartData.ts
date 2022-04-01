@@ -5,11 +5,11 @@ import * as lodash from "lodash"
 import parseArgs from "minimist"
 
 import {
-    DB_NAME,
-    DB_USER,
-    DB_PASS,
-    DB_HOST,
-    DB_PORT,
+    GRAPHER_DB_NAME,
+    GRAPHER_DB_USER,
+    GRAPHER_DB_PASS,
+    GRAPHER_DB_HOST,
+    GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { execWrapper } from "./execWrapper.js"
 
@@ -36,12 +36,12 @@ const dataExport = async (): Promise<void> => {
 
     // Expose password to mysqldump
     // Safer than passing as an argument because it's not shown in 'ps aux'
-    process.env.MYSQL_PWD = DB_PASS
+    process.env.MYSQL_PWD = GRAPHER_DB_PASS
 
     let count = 0
     for (const chunk of lodash.chunk(variableIds, 100)) {
         await execWrapper(
-            `mysqldump --default-character-set=utf8mb4 --no-tablespaces --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(
+            `mysqldump --default-character-set=utf8mb4 --no-tablespaces --no-create-info -u '${GRAPHER_DB_USER}' -h '${GRAPHER_DB_HOST}' -P ${GRAPHER_DB_PORT} ${GRAPHER_DB_NAME} data_values --where="variableId IN (${chunk.join(
                 ","
             )})" >> ${filePath}`
         )

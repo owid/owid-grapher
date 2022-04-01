@@ -3,13 +3,13 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-: "${DB_NAME:?Need to set DB_NAME non-empty}"
-: "${DB_USER:?Need to set DB_USER non-empty}"
-: "${DB_HOST:?Need to set DB_HOST non-empty}"
-: "${DB_PASS:?Need to set DB_PASS non-empty}"
+: "${WORDPRESS_DB_NAME:?Need to set WORDPRESS_DB_NAME non-empty}"
+: "${WORDPRESS_DB_USER:?Need to set WORDPRESS_DB_USER non-empty}"
+: "${WORDPRESS_DB_PASS:?Need to set WORDPRESS_DB_PASS non-empty}"
+: "${DB_ROOT_HOST:?Need to set DB_HDB_ROOT_HOSTOST non-empty}"
 
 _mysql() {
-    mysql --default-character-set=utf8mb4 -u$DB_USER -p$DB_PASS -h $DB_HOST -e "$1" $DB_NAME
+    mysql --default-character-set=utf8mb4 -u$WORDPRESS_DB_USER -p$WORDPRESS_DB_PASS -h $DB_ROOT_HOST -e "$1" $WORDPRESS_DB_NAME
 }
 
 createWordpressAdminUser() {

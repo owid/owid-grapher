@@ -279,11 +279,11 @@ function build_static($post_ID, $post_after, $post_before)
         $current_user = wp_get_current_user();
         putenv('PATH=' . getenv('PATH') . ':/bin:/usr/local/bin:/usr/bin');
         // Unsets colliding .env variables between PHP and node apps
-        // The DB password does not collide and hence is not listed here (DB_PASS (node) vs DB_PASSWORD (php))
-        putenv('DB_HOST');
-        putenv('DB_USER');
-        putenv('DB_NAME');
-        putenv('DB_PORT');
+        // The DB password does not collide and hence is not listed here (GRAPHER_DB_PASS (node) vs GRAPHER_DB_PASSWORD (php))
+        putenv('GRAPHER_DB_HOST');
+        putenv('GRAPHER_DB_USER');
+        putenv('GRAPHER_DB_NAME');
+        putenv('GRAPHER_DB_PORT');
         $cmd =
             "cd " .
             ABSPATH .

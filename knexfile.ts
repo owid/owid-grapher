@@ -1,21 +1,21 @@
 // Update with your config settings.
 
 import {
-    DB_NAME,
-    DB_USER,
-    DB_PASS,
-    DB_HOST,
-    DB_PORT,
+    GRAPHER_DB_NAME,
+    GRAPHER_DB_USER,
+    GRAPHER_DB_PASS,
+    GRAPHER_DB_HOST,
+    GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 
 const dbConfig = {
     client: "mysql",
     connection: {
-        database: DB_NAME,
-        user: DB_USER,
-        password: DB_PASS,
-        host: DB_HOST,
-        port: DB_PORT,
+        database: GRAPHER_DB_NAME,
+        user: GRAPHER_DB_USER,
+        password: GRAPHER_DB_PASS,
+        host: GRAPHER_DB_HOST,
+        port: GRAPHER_DB_PORT,
         charset: "utf8mb4",
     },
     pool: {
