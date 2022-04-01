@@ -4,6 +4,9 @@ set -o pipefail
 set -o nounset
 
 
+: "${GRAPHER_DB_USER:?Need to set GRAPHER_DB_USER non-empty}"
+: "${GRAPHER_DB_PASS:?Need to set GRAPHER_DB_PASS non-empty}"
+: "${GRAPHER_DB_NAME:?Need to set GRAPHER_DB_NAME non-empty}"
 : "${DB_ROOT_HOST:?Need to set DB_ROOT_HOST non-empty}"
 : "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"
 : "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
@@ -12,9 +15,10 @@ createAndFillGrapherDb() {
     echo "Waiting for DB to be online"
     mysqladmin ping -h$DB_ROOT_HOST -uroot --password=$DB_ROOT_PASS --wait=30
 
-    DB_EXISTS=$(mysql -uroot -p$DB_ROOT_PASS -h$DB_ROOT_HOST --batch --skip-column-names -e "SHOW DATABASES LIKE '"${DB_NAME}"';" | grep "${DB_NAME}" > /dev/null; echo "$?")
+    DB_EXISTS=$(mysql -uroot -p$DB_ROOT_PASS -h$DB_ROOT_HOST --batch --skip-column-names -e "SHOW DATABASES LIKE '"${GRAPHER_DB_NAME}"';" | grep "${GRAPHER_DB_NAME}" > /dev/null; echo "$?")
+
     if [ $DB_EXISTS -eq 0 ];then
-        echo "A database with the name '$DB_NAME' already exists. exiting"
+        echo "A database with the name '$GRAPHER_DB_NAME' already exists. exiting"
         return 0;
     fi
 
@@ -32,8 +36,8 @@ createAndFillGrapherDb() {
         return 2;
     fi
 
-
-    source "$( dirname -- "${BASH_SOURCE[0]}" )/create-user.sh"
+    echo "Creating user '$GRAPHER_DB_USER'"
+    mysql -uroot -p"${DB_ROOT_PASS}" -h"${DB_ROOT_HOST}" --batch -e "CREATE USER IF NOT EXISTS '$GRAPHER_DB_USER' IDENTIFIED BY '$GRAPHER_DB_PASS'; GRANT SELECT ON * . * TO '$GRAPHER_DB_USER'; FLUSH PRIVILEGES;"
 
     source "$( dirname -- "${BASH_SOURCE[0]}" )/refresh-grapher-data.sh"
     return 0
