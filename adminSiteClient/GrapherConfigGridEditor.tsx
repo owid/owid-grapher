@@ -64,6 +64,7 @@ import {
     BinaryLogicOperators,
     BooleanAtom,
     Operation,
+    parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
@@ -91,8 +92,9 @@ import {
     ColumnDataSource,
     ColumnDataSourceType,
     ColumnDataSourceUnknown,
+    SExpressionToJsonLogic,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
-import { Query, Utils as QbUtils } from "react-awesome-query-builder"
+import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
 import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
 import codemirror from "codemirror"
@@ -100,7 +102,8 @@ import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
-import { Url } from "../clientUtils/urls/Url.js"
+import { getWindowUrl, setWindowUrl, Url } from "../clientUtils/urls/Url.js"
+import { QueryParams } from "../clientUtils/urls/UrlUtils.js"
 
 function HotColorScaleRenderer(props: Record<string, unknown>) {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -235,13 +238,17 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         setup that puts in place the fetch logic to retrieve variable annotations
         whenever any of the dataFetchParameters change */
     async componentDidMount() {
-        //Url
+        const url = getWindowUrl()
+        const setFetchParamsFromUrl = !isEmpty(url.queryParams)
         // Here we chain together a mobx property (dataFetchParameters) to
         // an rxJS observable pipeline to debounce the signal and then
         // use switchMap to create new fetch requests and cancel outstanding ones
         // to finally turn this into a local mobx value again that we subscribe to
         // with an autorun to finally update the dependent properties on this class.
-        const varStream = toStream(() => this.dataFetchParameters, false)
+        const varStream = toStream(
+            () => this.dataFetchParameters,
+            !setFetchParamsFromUrl
+        )
 
         const observable = from(varStream).pipe(
             debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
@@ -287,6 +294,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         })
         // Add the disposer to the list of things we need to clean up on unmount
         this.disposers.push(disposer)
+
+        // if (setFetchParamsFromUrl) {
+        // const initAction = action((queryParams: QueryParams) => {
+
+        //         )
+        //     })
+
+        // }
 
         this.getFieldDefinitions()
     }
@@ -1086,13 +1101,57 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 fieldDescriptions,
                 this.currentColumnSet
             )
-            this.filterState = {
-                tree: QbUtils.checkTree(
-                    QbUtils.loadTree(initialFilterQueryValue),
+            const url = getWindowUrl()
+            const queryParams = url.queryParams
+            if (queryParams.hasOwnProperty("filter")) {
+                const sExpression = parseToOperation(
+                    queryParams.filter!,
+                    this.config.sExpressionContext
+                )
+                const jsonLogic = sExpression
+                    ? SExpressionToJsonLogic(sExpression)
+                    : undefined
+                const tree = Utils.loadFromJsonLogic(
+                    jsonLogic as any,
                     this.FilterPanelConfig ?? filterPanelInitialConfig
-                ),
-                config: this.FilterPanelConfig ?? filterPanelInitialConfig,
+                )
+                if (tree)
+                    this.filterState = {
+                        tree: QbUtils.checkTree(
+                            tree,
+                            this.FilterPanelConfig ?? filterPanelInitialConfig
+                        ),
+                        config:
+                            this.FilterPanelConfig ?? filterPanelInitialConfig,
+                    }
+                else console.error("Could not parse tree")
             }
+            if (!this.filterState) {
+                this.filterState = {
+                    tree: QbUtils.checkTree(
+                        QbUtils.loadTree(initialFilterQueryValue),
+                        this.FilterPanelConfig ?? filterPanelInitialConfig
+                    ),
+                    config: this.FilterPanelConfig ?? filterPanelInitialConfig,
+                }
+            }
+            this.sortByColumn = queryParams.sortByColumn ?? "id"
+            this.sortByAscending =
+                queryParams.sortByAscending === "true" ?? false
+            this.desiredPagingOffset = Number.parseInt(
+                queryParams.pagingOffset ?? "0"
+            )
+            autorun(() => {
+                const url = getWindowUrl()
+                console.log("updating url")
+                const newUrl = url.setQueryParams({
+                    filter: this.filterSExpression?.toSExpr(),
+                    sortByColumn: this.sortByColumn,
+                    sortByAscending: this.sortByAscending ? "true" : "false",
+                    pagingOffset: this.desiredPagingOffset.toString(),
+                })
+                setWindowUrl(newUrl)
+            })
         })
     }
 

@@ -19,6 +19,7 @@ import {
     StringOperation,
     BooleanOperation,
     OperationContext,
+    ArithmeticOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
@@ -291,6 +292,77 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
     else if (str === "not_equal" || str === "select_not_equals")
         return EqualityOperator.unequal
     else return undefined
+}
+
+export function SExpressionToJsonLogic(
+    sExpression: Operation
+): Record<string, unknown> | number | string | boolean | null {
+    if (sExpression instanceof Negation) {
+        return {
+            "!": SExpressionToJsonLogic(sExpression.operand),
+        }
+    } else if (sExpression instanceof BinaryLogicOperation) {
+        const operands = sExpression.operands.map(SExpressionToJsonLogic)
+        return {
+            [sExpression.operator.toString()]: operands,
+        }
+    } else if (sExpression instanceof NumericComparison) {
+        const operands = sExpression.operands.map(SExpressionToJsonLogic)
+        return {
+            [sExpression.operator.toString()]: operands,
+        }
+    } else if (sExpression instanceof StringContainsOperation) {
+        const container = SExpressionToJsonLogic(sExpression.container)
+        const searchString = SExpressionToJsonLogic(sExpression.searchString)
+
+        return {
+            in: [searchString, container],
+        }
+    } else if (sExpression instanceof EqualityComparision) {
+        const operands = sExpression.operands.map(SExpressionToJsonLogic)
+        const op = match(sExpression.operator)
+            .with(EqualityOperator.equal, () => "==")
+            .with(EqualityOperator.unequal, () => "!=")
+            .exhaustive()
+        return {
+            [op]: operands,
+        }
+    } else if (sExpression instanceof NullCheckOperation) {
+        const operand = SExpressionToJsonLogic(sExpression.operand)
+        const op = match(sExpression.operator)
+            .with(NullCheckOperator.isNull, () => "==")
+            .with(NullCheckOperator.isNotNull, () => "!=")
+            .exhaustive()
+        return {
+            [op]: [operand, "null"],
+        }
+    } else if (sExpression instanceof ArithmeticOperation) {
+        const operands = sExpression.operands.map(SExpressionToJsonLogic)
+        return {
+            [sExpression.operator.toString()]: operands,
+        }
+    } else if (sExpression instanceof SqlColumnName) {
+        const operand = sExpression.value
+        return {
+            var: operand,
+        }
+    } else if (sExpression instanceof JsonPointerSymbol) {
+        const operand = sExpression.columnName
+        return {
+            var: operand,
+        }
+    } else if (sExpression instanceof StringAtom) {
+        const operand = sExpression.value
+        return operand
+    } else if (sExpression instanceof NumberAtom) {
+        const operand = sExpression.value
+        return operand
+    } else if (sExpression instanceof BooleanAtom) {
+        const operand = sExpression.value
+        return operand
+    } else {
+        throw Error(`unsupported sExpression: ${sExpression}`)
+    }
 }
 
 export function filterTreeToSExpression(
