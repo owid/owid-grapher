@@ -23,6 +23,11 @@ fi
 
 STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
 
+check_env() {
+  eval value='$'$1
+  if [[ ! $value ]]; then bail "\$$1 is unset"; fi
+}
+
 wp_mysql() {
   mysql -u${DB_USER} -p"${DB_PASSWORD}" -h $DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
 }
@@ -101,6 +106,10 @@ if [ "${SKIP_DB_DL}" = false ]; then
   rsync -hav --progress owid@live-db.owid.io:/tmp/live_wordpress.sql $DL_FOLDER
 fi
 echo "Importing Wordpress database (live_wordpress)"
+check_env DB_NAME
+check_env DB_HOST
+check_env DB_USER
+check_env DB_PASSWORD
 purge_wordpress_db
 import_wordpress_db $DL_FOLDER/live_wordpress.sql 
 
@@ -117,7 +126,11 @@ if [ "${SKIP_DB_DL}" = false ]; then
   rsync -hav --progress owid@live.owid.io:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
 fi
 echo "Importing live Grapher metadata database (owid_metadata)"
-purge_grapher_db 
+check_env GRAPHER_DB_NAME
+check_env GRAPHER_DB_HOST
+check_env GRAPHER_DB_USER
+check_env GRAPHER_DB_PASSWORD
+purge_grapher_db
 import_grapher_db $DL_FOLDER/owid_metadata_with_passwords.sql
 
 # Grapher database (owid_chartdata)

@@ -133,8 +133,15 @@ class DimensionSlotView extends React.Component<{
     @observable private dimensionsOrderedAsDisplayed: ChartDimension[] = []
 
     @action.bound private updateLegacySelectionAndRebuildTable() {
+        const { grapher } = this.props.editor
+
+        grapher.setDimensionsForProperty(
+            this.props.slot.property,
+            this.dimensionsInSelectionOrder
+        )
         this.grapher.updateAuthoredVersion({
             selectedData: this.legacySelectionOrderedAsDisplayed,
+            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
         this.grapher.rebuildInputOwidTable()
     }
