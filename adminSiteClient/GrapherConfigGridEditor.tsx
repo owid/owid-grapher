@@ -100,6 +100,7 @@ import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
+import { Url } from "../clientUtils/urls/Url.js"
 
 function HotColorScaleRenderer(props: Record<string, unknown>) {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -234,12 +235,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         setup that puts in place the fetch logic to retrieve variable annotations
         whenever any of the dataFetchParameters change */
     async componentDidMount() {
+        //Url
         // Here we chain together a mobx property (dataFetchParameters) to
         // an rxJS observable pipeline to debounce the signal and then
         // use switchMap to create new fetch requests and cancel outstanding ones
         // to finally turn this into a local mobx value again that we subscribe to
         // with an autorun to finally update the dependent properties on this class.
-        const varStream = toStream(() => this.dataFetchParameters, true)
+        const varStream = toStream(() => this.dataFetchParameters, false)
 
         const observable = from(varStream).pipe(
             debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
