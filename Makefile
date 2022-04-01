@@ -47,7 +47,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 		bind Q kill-server \
 		|| make down
 
-up.full: require create-if-missing.env.fulltmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
+up.full: require create-if-missing.env.full tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@make validate.env.full
 	
 	@echo '==> Building grapher'
