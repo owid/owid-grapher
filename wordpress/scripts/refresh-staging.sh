@@ -92,11 +92,11 @@ purge_grapher_db(){
 }
 
 import_wordpress_db(){
-  pv $1 | wp_mysql $DB_NAME
+  pv $1 | sed s/.\*DEFINER\=\`.\*// | wp_mysql $DB_NAME
 }
 
 import_grapher_db(){
-  pv $1 | gr_mysql $GRAPHER_DB_NAME
+  pv $1 | sed s/.\*DEFINER\=\`.\*// | gr_mysql $GRAPHER_DB_NAME
 }
 
 # Wordpress DB
