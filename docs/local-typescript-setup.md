@@ -88,7 +88,7 @@ Storybook allows you to interact with our Grapher and Explorer components visual
     yarn buildTsc
     ```
 
-2. Run jest
+2. Run Storybook Server
 
     ```sh
     yarn startStorybookServer
