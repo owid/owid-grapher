@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useRef, useState } from "react"
 import ReactDOM from "react-dom"
-import { useEmbedChart } from "../hooks.js"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
-export const CLASS_NAME = "key-insights"
+export const KEY_INSIGHTS_CLASS_NAME = "key-insights"
+export const THUMBS_CLASS_NAME = "thumbs"
 const THUMB_CLASS_NAME = "thumb"
+const SLIDES_CLASS_NAME = "slides"
 const SLIDE_CLASS_NAME = "slide"
-const SLIDES_ID = "key-insights-slides"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
@@ -36,9 +36,9 @@ const Thumb = ({
     )
 }
 
-export const KeyInsights = ({ titles }: { titles: string[] }) => {
+export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     const [selectedId, setSelectedId] = useState<string>("0")
-    const refChartContainer = useRef<HTMLDivElement>(null)
+    const thumbsRef = useRef<HTMLDivElement>(null)
 
     const handleThumbClickFactory = (itemId: string) => {
         return ({ scrollToItem, getItemById }: scrollVisibilityApiType) => {
@@ -47,22 +47,22 @@ export const KeyInsights = ({ titles }: { titles: string[] }) => {
         }
     }
 
-    useEmbedChart(selectedId, refChartContainer)
-
     useEffect(() => {
-        // Only handle one KeyInsight block per page
-        const slides = document.getElementById(SLIDES_ID)
+        const slides =
+            thumbsRef.current?.parentElement?.parentElement?.querySelector(
+                `.${SLIDES_CLASS_NAME}`
+            )
         if (!slides) return
 
         // A less imperative, more React way to do this would be preferred. To
         // switch between slides, I aimed to keep their content untouched
         // (including event listeners hydrated by other components), while only
         // updating their wrappers. Managing the switching logic through React
-        // would have required hydrating Slides as well as all possible content
-        // components within them - even though they would have been already
-        // hydrated at the page level. From that perspective, the gain is not
-        // clear, and the approach not necessarily cleaner, so I stuck with the
-        // imperative approach.
+        // would have required hydrating KeyInsightsSlides as well as all
+        // possible content components within them - even though they would have
+        // been already hydrated at the page level. From that perspective, the
+        // gain is not clear, and the approach not necessarily cleaner, so I
+        // stuck with the imperative approach.
 
         slides
             .querySelectorAll(`.${SLIDE_CLASS_NAME}`)
@@ -76,33 +76,31 @@ export const KeyInsights = ({ titles }: { titles: string[] }) => {
     }, [selectedId])
 
     return (
-        <div className={CLASS_NAME}>
-            <div className="thumbs">
-                <ScrollMenu
-                    LeftArrow={LeftArrow}
-                    RightArrow={RightArrow}
-                    transitionDuration={200}
-                >
-                    {titles.map((title, i) => {
-                        const itemId = `${i}`
-                        return (
-                            <Thumb
-                                title={title}
-                                key={itemId}
-                                itemId={itemId}
-                                onClick={handleThumbClickFactory(itemId)}
-                                selected={itemId === selectedId}
-                            />
-                        )
-                    })}
-                </ScrollMenu>
-            </div>
+        <div className={THUMBS_CLASS_NAME} ref={thumbsRef}>
+            <ScrollMenu
+                LeftArrow={LeftArrow}
+                RightArrow={RightArrow}
+                transitionDuration={200}
+            >
+                {titles.map((title, i) => {
+                    const itemId = `${i}`
+                    return (
+                        <Thumb
+                            title={title}
+                            key={itemId}
+                            itemId={itemId}
+                            onClick={handleThumbClickFactory(itemId)}
+                            selected={itemId === selectedId}
+                        />
+                    )
+                })}
+            </ScrollMenu>
         </div>
     )
 }
 
-export const Slides = ({ slides }: { slides: string[] }) => (
-    <div id={SLIDES_ID}>
+export const KeyInsightsSlides = ({ slides }: { slides: string[] }) => (
+    <div className={SLIDES_CLASS_NAME}>
         {slides.map((slide, idx) => (
             <div
                 key={idx}
@@ -182,13 +180,19 @@ const RightArrow = () => {
 }
 
 export const hydrateKeyInsights = () => {
-    // Only handle one KeyInsight block per page
-    const block = document.querySelector<HTMLElement>(`.${CLASS_NAME}`)
-    if (!block) return
-    const titles = Array.from(
-        block.querySelectorAll(`.${THUMB_CLASS_NAME}`)
-    ).map((thumb) => thumb.innerHTML)
+    document
+        .querySelectorAll<HTMLElement>(`.${THUMBS_CLASS_NAME}`)
+        .forEach((block) => {
+            const titles = Array.from(
+                block.querySelectorAll(`.${THUMB_CLASS_NAME}`)
+            ).map((thumb) => thumb.innerHTML)
 
-    const blockWrapper = block.parentElement
-    ReactDOM.hydrate(<KeyInsights titles={titles} />, blockWrapper)
+            if (!titles.length) return
+
+            const blockWrapper = block.parentElement
+            ReactDOM.hydrate(
+                <KeyInsightsThumbs titles={titles} />,
+                blockWrapper
+            )
+        })
 }

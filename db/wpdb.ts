@@ -572,9 +572,9 @@ export const getPostBySlug = async (slug: string): Promise<FullPost> => {
 }
 
 // Attention: this query is only matching IDs of posts (as opposed to pages).
-// Given that this function is only currently used for KeyInsights, that
-// limitation is not only ok but also desired (pages / topics are not supposed to be
-// mentioned as key insights)
+// Given that this function is only currently used for rendering key insights,
+// that limitation is not only ok but also desired (pages / topics are not
+// supposed to be mentioned as key insights)
 export const getPostById = async (id: number): Promise<FullPost> => {
     const postApi = await apiQuery(`${WP_API_ENDPOINT}/posts/${id}`)
 
