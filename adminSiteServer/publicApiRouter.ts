@@ -26,7 +26,7 @@ publicApiRouter.router.get(
 publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
     const sqlPromise = db.mysqlFirst(`SELECT id FROM charts LIMIT 1`)
     const timeoutPromise = rejectAfterDelay(1500) // Wait 1.5 seconds at most
-try {
+    try {
         await Promise.race([sqlPromise, timeoutPromise])
         res.status(200).end("OK")
     } catch (e) {
