@@ -42,13 +42,15 @@ import {
     getOwidVariableDisplayConfig,
 } from "../db/model/Variable.js"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue.js"
-import { renderBlocks } from "./siteRenderers.js"
+import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
+import { renderHelp } from "../site/blocks/Help.js"
 import {
     formatUrls,
     getBodyHtml,
     GRAPHER_PREVIEW_CLASS,
     SUMMARY_CLASSNAME,
 } from "../site/formatting.js"
+import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 const initMathJax = () => {
@@ -295,7 +297,10 @@ export const formatWordpressPost = async (
     //   added by the external ToC post-processing code). So from React's
     //   perspective, the server rendered version is different from the client
     //   one, hence the discrepancy.
-    await renderBlocks(cheerioEl, post.id)
+    renderAdditionalInformation(cheerioEl)
+    renderHelp(cheerioEl)
+    await renderProminentLinks(cheerioEl, post.id)
+    await renderKeyInsights(cheerioEl, grapherExports)
 
     // Extract inline styling
     let style
