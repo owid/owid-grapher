@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import * as lodash from "lodash-es"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons/faQuestionCircle.js"
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle.js"
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons/faTimesCircle.js"
