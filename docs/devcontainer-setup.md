@@ -6,10 +6,10 @@ Once you have the tools mentioned above installed, just open this repository in 
 
 Once the database has been loaded run the following steps:
 
-1. Run `yarn` in the terminal in VS code to install all javascript dependencies including typescript and webpack
+1. Run `yarn` in the terminal in VS code to install all JavaScript dependencies including TypeScript and webpack
 2. Run `yarn buildTsc` to build the first version of our JS artifacts
 3. run `yarn startTmuxServer`. This should split the terminal in 3 panes using tmux and run 3 components, one in each pane:
-    1. The `typescript --watch` command that recompiles typescript whenever you make a change to a _.ts or _.tsx file
+    1. The `typescript --watch` command that recompiles TypeScript whenever you make a change to a _.ts or _.tsx file
     2. The admin server so you can create charts in a web browser
     3. The webpack server to build all the CSS files
 
@@ -19,7 +19,7 @@ Press `Ctrl/Cmd B + &` to kill the window and end all 3 processes when you are d
 
 ## Running tests
 
-To run our test suite you first need to build the typescript files into javascript and then run jest:
+To run our test suite you first need to build the TypeScript files into JavaScript and then run jest:
 
 1. Run buildTsc
 

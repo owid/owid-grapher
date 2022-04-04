@@ -1,6 +1,6 @@
 ## Development server
 
-To run the local development server you need to have a [working local typescript environment](local-typescript-setup.md) and a [mysql grapher database](docker-compose-mysql.md) with the our world in data content loaded.
+To run the local development server you need to have a [working local TypeScript environment](local-typescript-setup.md) and a [mysql grapher database](docker-compose-mysql.md) with the our world in data content loaded.
 
 Set up your `.env` file by copying the example:
 
