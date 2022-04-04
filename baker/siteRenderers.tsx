@@ -75,9 +75,6 @@ import {
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
 import { formatUrls } from "../site/formatting.js"
-import { renderHelp } from "../site/blocks/Help.js"
-import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
-import { renderKeyInsights } from "../site/blocks/KeyInsights.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
@@ -542,16 +539,6 @@ export const renderReusableBlock = async (
     await renderProminentLinks(cheerioEl, containerPostId)
 
     return cheerioEl("body").html() ?? undefined
-}
-
-export const renderBlocks = async (
-    cheerioEl: CheerioStatic,
-    containerPostId: number
-) => {
-    renderAdditionalInformation(cheerioEl)
-    renderHelp(cheerioEl)
-    await renderProminentLinks(cheerioEl, containerPostId)
-    renderKeyInsights(cheerioEl)
 }
 
 export const renderExplorerPage = async (
