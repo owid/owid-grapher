@@ -571,6 +571,16 @@ export const getPostBySlug = async (slug: string): Promise<FullPost> => {
     return getFullPost(postArr)
 }
 
+// Attention: this query is only matching IDs of posts (as opposed to pages).
+// Given that this function is only currently used for KeyInsights, that
+// limitation is not only ok but also desired (pages / topics are not supposed to be
+// mentioned as key insights)
+export const getPostById = async (id: number): Promise<FullPost> => {
+    const postApi = await apiQuery(`${WP_API_ENDPOINT}/posts/${id}`)
+
+    return getFullPost(postApi)
+}
+
 // the /revisions endpoint does not send back all the metadata required for
 // the proper rendering of the post (e.g. authors), hence the double request.
 export const getLatestPostRevision = async (id: number): Promise<FullPost> => {

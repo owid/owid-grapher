@@ -1,13 +1,14 @@
-import React, { ReactElement, useContext, useRef, useState } from "react"
-import ReactDOMServer from "react-dom/server"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 import { useEmbedChart } from "../hooks.js"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
-import { WP_BlockType } from "../../clientUtils/owidTypes.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
 export const CLASS_NAME = "key-insights"
+const THUMB_CLASS_NAME = "thumb"
+const SLIDE_CLASS_NAME = "slide"
+const SLIDES_ID = "key-insights-slides"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
@@ -26,14 +27,16 @@ const Thumb = ({
     return (
         <button
             onClick={() => onClick(visibility)}
-            className={selected ? "thumb selected" : "thumb"}
+            className={
+                selected ? `${THUMB_CLASS_NAME} selected` : THUMB_CLASS_NAME
+            }
         >
             {title}
         </button>
     )
 }
 
-const KeyInsights = () => {
+export const KeyInsights = ({ titles }: { titles: string[] }) => {
     const [selectedId, setSelectedId] = useState<string>("0")
     const refChartContainer = useRef<HTMLDivElement>(null)
 
@@ -46,6 +49,32 @@ const KeyInsights = () => {
 
     useEmbedChart(selectedId, refChartContainer)
 
+    useEffect(() => {
+        // Only handle one KeyInsight block per page
+        const slides = document.getElementById(SLIDES_ID)
+        if (!slides) return
+
+        // A less imperative, more React way to do this would be preferred. To
+        // switch between slides, I aimed to keep their content untouched
+        // (including event listeners hydrated by other components), while only
+        // updating their wrappers. Managing the switching logic through React
+        // would have required hydrating Slides as well as all possible content
+        // components within them - even though they would have been already
+        // hydrated at the page level. From that perspective, the gain is not
+        // clear, and the approach not necessarily cleaner, so I stuck with the
+        // imperative approach.
+
+        slides
+            .querySelectorAll(`.${SLIDE_CLASS_NAME}`)
+            .forEach((slide, idx) => {
+                if (idx === Number(selectedId)) {
+                    slide.setAttribute("data-active", "true")
+                } else {
+                    slide.removeAttribute("data-active")
+                }
+            })
+    }, [selectedId])
+
     return (
         <div className={CLASS_NAME}>
             <div className="thumbs">
@@ -54,7 +83,7 @@ const KeyInsights = () => {
                     RightArrow={RightArrow}
                     transitionDuration={200}
                 >
-                    {insights.map(({ title }, i) => {
+                    {titles.map((title, i) => {
                         const itemId = `${i}`
                         return (
                             <Thumb
@@ -68,12 +97,21 @@ const KeyInsights = () => {
                     })}
                 </ScrollMenu>
             </div>
-            <div className="content" ref={refChartContainer}>
-                {insights[Number(selectedId)].slide}
-            </div>
         </div>
     )
 }
+
+export const Slides = ({ slides }: { slides: string[] }) => (
+    <div id={SLIDES_ID}>
+        {slides.map((slide, idx) => (
+            <div
+                key={idx}
+                className={SLIDE_CLASS_NAME}
+                dangerouslySetInnerHTML={{ __html: slide }}
+            ></div>
+        ))}
+    </div>
+)
 
 const Arrow = ({
     children,
@@ -143,140 +181,14 @@ const RightArrow = () => {
     ) : null
 }
 
-export const renderKeyInsights = ($: CheerioStatic) => {
-    $("block[type='key-insights']").each(function (this: CheerioElement) {
-        const $block = $(this)
-
-        const rendered = ReactDOMServer.renderToString(
-            <div className={`block-wrapper ${WP_BlockType.FullContentWidth}`}>
-                <KeyInsights />
-            </div>
-        )
-        $block.after(rendered)
-        $block.remove()
-    })
-}
-
 export const hydrateKeyInsights = () => {
-    document
-        .querySelectorAll<HTMLElement>(`.${CLASS_NAME}`)
-        .forEach((block) => {
-            const blockWrapper = block.parentElement
-            ReactDOM.hydrate(<KeyInsights />, blockWrapper)
-        })
-}
+    // Only handle one KeyInsight block per page
+    const block = document.querySelector<HTMLElement>(`.${CLASS_NAME}`)
+    if (!block) return
+    const titles = Array.from(
+        block.querySelectorAll(`.${THUMB_CLASS_NAME}`)
+    ).map((thumb) => thumb.innerHTML)
 
-const insights: { title: string; slide: ReactElement }[] = [
-    {
-        title: "The extent of poverty today",
-        slide: (
-            <div className="wp-block-columns is-style-sticky-right">
-                <div className="wp-block-column">
-                    <h4>The extent of poverty today</h4>
-                    <p>
-                        The chart here shows the share of the world population
-                        with an income falling below three different poverty
-                        lines. The highest poverty line shown is $30 a day. This
-                        is roughly equivalent to the poverty lines adopted
-                        nationally in high-income countries.1 We see that,
-                        measured against definitions of poverty typical in
-                        high-income countries, the vast majority of the world’s
-                        population – 85% – are poor.
-                    </p>
-                    <p>
-                        But many in the world are far, far poorer than this
-                        threshold. The UN has adopted a poverty line of $1.90 a
-                        day as its definition of extreme poverty. We see that
-                        roughly every tenth person in the world lives in such
-                        extreme poverty today.
-                    </p>
-                    <h5>Methods & data quality </h5>
-                    <p>
-                        Extreme poverty here is defined according to the UN’s
-                        definition of living on less than $1.90 a day – an
-                        extremely low threshold needed to monitor and draw
-                        attention to the living conditions of the poorest around
-                        the world. [Read more] The data is available only up to
-                        2019 (or 2017 for global estimates), and hence does not
-                        allow us to see the impact of the COVID-19 pandemic and
-                        global recession. [Read more] Global data relies on a
-                        mix of income and expenditure household surveys.
-                    </p>
-                    <p>
-                        [Read more] Surveys are not conducted every year in most
-                        countries, and coverage is generally lower for poorer
-                        countries and for earlier decades. Estimates for
-                        non-survey years are made by projecting the survey-year
-                        data forward or backwards using national accounts data.
-                        [Read more] Data is measured in 2011 international-$,
-                        which means that inflation and differences in purchasing
-                        power across countries are taken into account. [Read
-                        more] Non-market sources of income, including food grown
-                        by subsistence farmers for their own consumption, are
-                        taken into account.
-                    </p>
-                </div>
-                <div className="wp-block-column">
-                    <figure
-                        key="number-of-deaths-by-risk-factor"
-                        data-grapher-src="/grapher/number-of-deaths-by-risk-factor"
-                    />
-                </div>
-            </div>
-        ),
-    },
-    {
-        title: "Global extreme poverty fell rapidly over the last generation",
-        slide: (
-            <figure
-                key="number-of-deaths-by-risk-factor"
-                data-grapher-src="/grapher/number-of-deaths-by-risk-factor"
-            />
-        ),
-    },
-    {
-        title: "The extent of poverty today",
-        slide: (
-            <figure
-                key="number-of-deaths-by-risk-factor"
-                data-grapher-src="/grapher/number-of-deaths-by-risk-factor"
-            />
-        ),
-    },
-    {
-        title: "The extent of poverty today",
-        slide: (
-            <figure
-                key="number-of-deaths-by-risk-factor"
-                data-grapher-src="/grapher/number-of-deaths-by-risk-factor"
-            />
-        ),
-    },
-    {
-        title: "The extent of poverty today",
-        slide: (
-            <figure
-                key="number-of-deaths-by-risk-factor"
-                data-grapher-src="/grapher/number-of-deaths-by-risk-factor"
-            />
-        ),
-    },
-    {
-        title: "The extent of poverty today",
-        slide: (
-            <figure
-                key="number-of-deaths-by-risk-factor"
-                data-grapher-src="/grapher/number-of-deaths-by-risk-factor"
-            />
-        ),
-    },
-    {
-        title: "The extent of poverty today",
-        slide: (
-            <figure
-                key="number-of-deaths-by-risk-factor"
-                data-grapher-src="/grapher/number-of-deaths-by-risk-factor"
-            />
-        ),
-    },
-]
+    const blockWrapper = block.parentElement
+    ReactDOM.hydrate(<KeyInsights titles={titles} />, blockWrapper)
+}
