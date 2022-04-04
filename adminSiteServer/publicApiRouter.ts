@@ -26,8 +26,11 @@ publicApiRouter.router.get(
 publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
     const sqlPromise = db.mysqlFirst(`SELECT id FROM charts LIMIT 1`)
     const timeoutPromise = rejectAfterDelay(1500) // Wait 1.5 seconds at most
-    const result = await Promise.race([sqlPromise, timeoutPromise])
-    if (result instanceof Error)
+try {
+        await Promise.race([sqlPromise, timeoutPromise])
+        res.status(200).end("OK")
+    } catch (e) {
         res.status(500).end("Error querying the database")
-    res.status(200).end("OK")
+        // maybe add a console.log with the error here??
+    }
 })
