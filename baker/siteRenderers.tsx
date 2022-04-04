@@ -48,6 +48,7 @@ import {
     FullPost,
     JsonError,
     PostRow,
+    WP_BlockType,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -61,12 +62,14 @@ import {
     selectHomepagePosts,
     isPostCitable,
     getBlockContent,
+    getPostById,
 } from "../db/wpdb.js"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
+import { KeyInsights, Slides } from "../site/blocks/KeyInsights.js"
 import { formatUrls } from "../site/formatting.js"
 import { renderHelp } from "../site/blocks/Help.js"
 import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
@@ -622,4 +625,42 @@ const renderExplorerDefaultThumbnail = (): string => {
     return ReactDOMServer.renderToStaticMarkup(
         <img src={`${BAKED_BASE_URL}/default-thumbnail.jpg`} />
     )
+}
+
+export const renderKeyInsights = async (
+    $: CheerioStatic,
+    grapherExports?: GrapherExports
+) => {
+    const titles: string[] = []
+    const $block = $("block[type='key-insights']")
+    const keyInsightsIds = $block.data("ids")
+    if (!keyInsightsIds) return
+
+    const slides = []
+    for (const id of keyInsightsIds) {
+        const post = await getPostById(id)
+        titles.push(post.title)
+        const formattingOptions = extractFormattingOptions(post.content)
+        // infinte recursion not handled: two posts referencing each other
+        // as key insights will trigger infinite calls to formatPost(). In
+        // practice, key insights are not supposed to embed key insights
+        // themselves, since they are already the smallest piece of
+        // information available.
+        const formattedContent = (
+            await formatPost(post, formattingOptions, grapherExports)
+        ).html
+
+        slides.push(formattedContent)
+    }
+
+    const rendered = ReactDOMServer.renderToString(
+        <div className={`${WP_BlockType.FullContentWidth}`}>
+            <div className={`block-wrapper`}>
+                <KeyInsights titles={titles} />
+            </div>
+            <Slides slides={slides} />
+        </div>
+    )
+
+    $block.replaceWith(rendered)
 }
