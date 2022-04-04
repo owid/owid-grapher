@@ -3,6 +3,7 @@ import { strToQueryParams } from "../clientUtils/urls/UrlUtils.js"
 import { formatUrls } from "../site/formatting.js"
 import * as redirects from "./redirects.js"
 import { resolveInternalRedirect } from "./redirects.js"
+import { jest } from "@jest/globals"
 
 jest.mock("../settings/clientSettings.js", () => ({
     WORDPRESS_URL: "http://localhost:8080",
