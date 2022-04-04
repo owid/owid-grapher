@@ -69,7 +69,11 @@ import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
-import { KeyInsights, Slides } from "../site/blocks/KeyInsights.js"
+import {
+    KeyInsightsThumbs,
+    KeyInsightsSlides,
+    KEY_INSIGHTS_CLASS_NAME,
+} from "../site/blocks/KeyInsights.js"
 import { formatUrls } from "../site/formatting.js"
 import { renderHelp } from "../site/blocks/Help.js"
 import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
@@ -631,36 +635,39 @@ export const renderKeyInsights = async (
     $: CheerioStatic,
     grapherExports?: GrapherExports
 ) => {
-    const titles: string[] = []
-    const $block = $("block[type='key-insights']")
-    const keyInsightsIds = $block.data("ids")
-    if (!keyInsightsIds) return
+    for (const block of Array.from($("block[type='key-insights']"))) {
+        const $block = $(block)
 
-    const slides = []
-    for (const id of keyInsightsIds) {
-        const post = await getPostById(id)
-        titles.push(post.title)
-        const formattingOptions = extractFormattingOptions(post.content)
-        // infinte recursion not handled: two posts referencing each other
-        // as key insights will trigger infinite calls to formatPost(). In
-        // practice, key insights are not supposed to embed key insights
-        // themselves, since they are already the smallest piece of
-        // information available.
-        const formattedContent = (
-            await formatPost(post, formattingOptions, grapherExports)
-        ).html
+        const keyInsightsIds = $block.data("ids")
+        if (!keyInsightsIds) return
 
-        slides.push(formattedContent)
-    }
+        const titles: string[] = []
+        const slides = []
+        for (const id of keyInsightsIds) {
+            const post = await getPostById(id)
+            titles.push(post.title)
+            const formattingOptions = extractFormattingOptions(post.content)
+            // infinte recursion not handled: two posts referencing each other
+            // as key insights will trigger infinite calls to formatPost(). In
+            // practice, key insights are not supposed to embed key insights
+            // themselves, since they are already the smallest piece of
+            // information available.
+            const formattedContent = (
+                await formatPost(post, formattingOptions, grapherExports)
+            ).html
 
-    const rendered = ReactDOMServer.renderToString(
-        <div className={`${WP_BlockType.FullContentWidth}`}>
-            <div className={`block-wrapper`}>
-                <KeyInsights titles={titles} />
+            slides.push(formattedContent)
+        }
+
+        const rendered = ReactDOMServer.renderToString(
+            <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
+                <div className={`block-wrapper`}>
+                    <KeyInsightsThumbs titles={titles} />
+                </div>
+                <KeyInsightsSlides slides={slides} />
             </div>
-            <Slides slides={slides} />
-        </div>
-    )
+        )
 
-    $block.replaceWith(rendered)
+        $block.replaceWith(rendered)
+    }
 }

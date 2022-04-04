@@ -11,6 +11,7 @@ import {
 import { last } from "../clientUtils/Util.js"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings.js"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
+import { KEY_INSIGHTS_CLASS_NAME } from "./blocks/KeyInsights.js"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
 import { formatGlossaryTerms } from "./formatGlossary.js"
@@ -129,6 +130,7 @@ export const splitContentIntoSectionsAndColumns = (
                 $el.hasClass("wp-block-columns") ||
                 $el.hasClass("wp-block-owid-grid") ||
                 $el.hasClass(WP_BlockType.FullContentWidth) ||
+                $el.hasClass(`${KEY_INSIGHTS_CLASS_NAME}`) ||
                 $el.find(
                     '.wp-block-owid-additional-information[data-variation="full-width"]'
                 ).length !== 0
