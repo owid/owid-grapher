@@ -31,6 +31,6 @@ publicApiRouter.router.get("/health", async (req: Request, res: Response) => {
         res.status(200).end("OK")
     } catch (e) {
         res.status(500).end("Error querying the database")
-        // maybe add a console.log with the error here??
+        console.error("Error at health endpoint", e)
     }
 })
