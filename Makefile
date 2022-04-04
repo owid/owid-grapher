@@ -31,7 +31,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 	@echo '==> Building grapher'
 	yarn install
 	yarn run tsc -b
-	
+
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
@@ -49,18 +49,18 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 
 up.full: require create-if-missing.env.full tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@make validate.env.full
-	
+
 	@echo '==> Building grapher'
 	yarn install
 	yarn run tsc -b
 	yarn buildWordpressPlugin
-	
+
 	@echo '==> Starting dev environment'
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.full.yml up' \; \
 			set remain-on-exit on \; \
 		new-window -n admin -e DEBUG='knex:query' \
-			'DB_HOST=127.0.0.1 devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
+			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
@@ -113,7 +113,7 @@ validate.env.full:
 		do make guard-$$variable; \
 	done
 	@echo '.env file valid for make up.full'
-	
+
 
 tmp-downloads/owid_chartdata.sql.gz:
 	@echo '==> Downloading chart data'
