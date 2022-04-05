@@ -118,7 +118,7 @@ validate.env.full:
 
 check-port-3306:
 	@echo "==> Checking port"
-	@if [ "${GRAPHER_DB_PORT}" == "3306" ]; then \
+	@if [ "${GRAPHER_DB_PORT}" = "3306" ]; then \
 		echo "Your database port is set to 3306.\
 		\nThis will likely conflict with any pre-existing MySQL instances you have running.\
 		\nWe recommend using a different port (like 3307)";\
