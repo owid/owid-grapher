@@ -5,11 +5,11 @@ import * as fs from "fs-extra"
 import parseArgs from "minimist"
 
 import {
-    DB_NAME,
-    DB_USER,
-    DB_PASS,
-    DB_HOST,
-    DB_PORT,
+    GRAPHER_DB_NAME,
+    GRAPHER_DB_USER,
+    GRAPHER_DB_PASS,
+    GRAPHER_DB_HOST,
+    GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { execWrapper } from "./execWrapper.js"
 
@@ -36,16 +36,18 @@ async function dataExport(): Promise<void> {
 
     // Expose password to mysqldump
     // Safer than passing as an argument because it's not shown in 'ps aux'
-    process.env.MYSQL_PWD = DB_PASS
+    process.env.MYSQL_PWD = GRAPHER_DB_PASS
 
     // Dump all tables including schema but exclude the rows of data_values
     await execWrapper(
-        `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} ${excludeTables
-            .map((tableName) => `--ignore-table=${DB_NAME}.${tableName}`)
+        `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${GRAPHER_DB_USER}' -h '${GRAPHER_DB_HOST}' -P ${GRAPHER_DB_PORT} ${GRAPHER_DB_NAME} ${excludeTables
+            .map(
+                (tableName) => `--ignore-table=${GRAPHER_DB_NAME}.${tableName}`
+            )
             .join(" ")} -r ${filePath}`
     )
     await execWrapper(
-        `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} ${excludeTables.join(
+        `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${GRAPHER_DB_USER}' -h '${GRAPHER_DB_HOST}' -P ${GRAPHER_DB_PORT} --no-data ${GRAPHER_DB_NAME} ${excludeTables.join(
             " "
         )} >> ${filePath}`
     )

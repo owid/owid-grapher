@@ -17,7 +17,7 @@
 #
 #     ./devTools/docker/download-grapher-mysql.sh
 #
-# Run `docker-compose up -d` to run all these services in deamon mode. The first time it will take a few minutes
+# Run `docker-compose up -d` to run all these services in daemon mode. The first time it will take a few minutes
 # to build the containers and initialize and fill the database, afterwards it should be up in seconds.
 #
 # On your local machine, you should copy .env.example to .env, then start `yarn startTmuxServer` or similar
@@ -35,12 +35,14 @@ services:
         volumes:
             - mysql_data_public:/var/lib/mysql
         ports:
-            - "3306:3306"
+            # Exposing via the port specified for Grapher
+            # Should always be the same as the WordPress port, because we store both DBs on the same server
+            - "${GRAPHER_DB_PORT}:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
-    # mysql:5.7 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
+    # mysql:8.0 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
     # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
     # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
     # mounts the SSH agent and ~/.ssh directory into the container
@@ -56,9 +58,11 @@ services:
             # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
-            DB_HOST: db
+            DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
             # SSH_AUTH_SOCK: "/ssh-agent"
+        env_file:
+            - .env
         depends_on:
             - db
 

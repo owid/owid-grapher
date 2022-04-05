@@ -29,7 +29,7 @@ check_env() {
 }
 
 wp_mysql() {
-  mysql -u${DB_USER} -p"${DB_PASSWORD}" -h $DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+  mysql -u${WORDPRESS_DB_USER} -p"${WORDPRESS_DB_PASSWORD}" -h $WORDPRESS_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
 }
 
 gr_mysql() {
@@ -84,7 +84,7 @@ while [ "$1" != "" ]; do
 done
 
 purge_wordpress_db(){
-  wp_mysql -e "DROP DATABASE $DB_NAME;CREATE DATABASE $DB_NAME"
+  wp_mysql -e "DROP DATABASE $WORDPRESS_DB_NAME;CREATE DATABASE $WORDPRESS_DB_NAME"
 }
 
 purge_grapher_db(){
@@ -92,7 +92,7 @@ purge_grapher_db(){
 }
 
 import_wordpress_db(){
-  pv $1 | sed s/.\*DEFINER\=\`.\*// | wp_mysql $DB_NAME
+  pv $1 | sed s/.\*DEFINER\=\`.\*// | wp_mysql $WORDPRESS_DB_NAME
 }
 
 import_grapher_db(){
