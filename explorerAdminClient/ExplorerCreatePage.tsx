@@ -47,6 +47,8 @@ export class ExplorerCreatePage extends React.Component<{
     manager?: AdminManager
     doNotFetch?: boolean // for testing
 }> {
+    disposers: Array<() => void> = []
+
     @computed private get manager() {
         return this.props.manager ?? {}
     }
@@ -74,7 +76,7 @@ export class ExplorerCreatePage extends React.Component<{
     }
 
     @action.bound private startPollingLocalStorageForPreviewChanges() {
-        setInterval(() => {
+        const intervalId = setInterval(() => {
             const savedQueryParamsJSON = localStorage.getItem(
                 `${UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS}${this.program.slug}`
             )
@@ -83,12 +85,14 @@ export class ExplorerCreatePage extends React.Component<{
                     JSON.parse(savedQueryParamsJSON) as ExplorerChoiceParams
                 )
         }, 1000)
+        this.disposers.push(() => clearInterval(intervalId))
     }
 
     @observable isReady = false
 
     @action componentWillUnmount() {
         this.resetLoadingModal()
+        this.disposers.forEach((disposer) => disposer())
     }
 
     private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
