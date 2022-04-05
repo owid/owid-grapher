@@ -28,6 +28,7 @@ help:
 
 up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 	@make validate.env
+	@make check-port-3306
 	@echo '==> Building grapher'
 	yarn install
 	yarn run tsc -b
@@ -49,6 +50,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 
 up.full: require create-if-missing.env.full tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@make validate.env.full
+	@make check-port-3306
 
 	@echo '==> Building grapher'
 	yarn install
@@ -114,6 +116,13 @@ validate.env.full:
 	done
 	@echo '.env file valid for make up.full'
 
+check-port-3306:
+	@echo "==> Checking port"
+	@if [ "${GRAPHER_DB_PORT}" == "3306" ]; then \
+		echo "Your database port is set to 3306.\
+		\nThis will likely conflict with any pre-existing MySQL instances you have running.\
+		\nWe recommend using a different port (like 3307)";\
+	fi
 
 tmp-downloads/owid_chartdata.sql.gz:
 	@echo '==> Downloading chart data'

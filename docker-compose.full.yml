@@ -39,12 +39,14 @@ services:
         volumes:
             - mysql_data:/var/lib/mysql
         ports:
-            - "3307:3306"
+            # Exposing via the port specified for Grapher
+            # Should always be the same as the WordPress port, because we store both DBs on the same server
+            - "${GRAPHER_DB_PORT}:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
-    # mysql 8 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
+    # mysql 8.0 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
     # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
     # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
     # mounts the SSH agent and ~/.ssh directory into the container

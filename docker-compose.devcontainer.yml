@@ -49,7 +49,9 @@ services:
         volumes:
             - mysql_data:/var/lib/mysql
         ports:
-            - "3306:3306"
+            # Exposing via the port specified for Grapher
+            # Should always be the same as the WordPress port, because we store both DBs on the same server
+            - "${GRAPHER_DB_PORT}:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
@@ -70,9 +72,11 @@ services:
             # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
-            DB_HOST: db
+            DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
             # SSH_AUTH_SOCK: "/ssh-agent"
+        env_file:
+            - .env
         depends_on:
             - db
 
