@@ -47,8 +47,9 @@ export const GRAPHER_DB_USER: string = serverSettings.GRAPHER_DB_USER ?? "root"
 export const GRAPHER_DB_PASS: string = serverSettings.GRAPHER_DB_PASS ?? ""
 export const GRAPHER_DB_HOST: string =
     serverSettings.GRAPHER_DB_HOST ?? "localhost"
+// The OWID stack uses 3307, but incase it's unset, assume user is running a local setup
 export const GRAPHER_DB_PORT: number =
-    parseIntOrUndefined(serverSettings.DB_PORT) ?? 3307
+    parseIntOrUndefined(serverSettings.DB_PORT) ?? 3306
 
 export const BAKED_SITE_DIR: string =
     serverSettings.BAKED_SITE_DIR ?? path.resolve(BASE_DIR, "bakedSite") // Where the static build output goes
