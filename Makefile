@@ -97,7 +97,7 @@ create-if-missing.env:
 validate.env:
 	@echo '==> Validating your .env file for make up'
 	@grep '=' .env.example-grapher | sed 's/=.*//' | while read variable; \
-		do make guard-$$variable; \
+		do make guard-$$variable 2>/dev/null || exit 1; \
 	done
 	@echo '.env file valid for make up'
 
@@ -110,7 +110,7 @@ create-if-missing.env.full:
 validate.env.full:
 	@echo '==> Validating your .env file for make up.full'
 	@grep '=' .env.example-full | sed 's/=.*//' | while read variable; \
-		do make guard-$$variable; \
+		do make guard-$$variable 2>/dev/null || exit 1; \
 	done
 	@echo '.env file valid for make up.full'
 
