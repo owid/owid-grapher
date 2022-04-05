@@ -119,6 +119,9 @@ export const configureAlgolia = async () => {
         ],
         ["incidence", "daily new confirmed cases"],
         ["homosexual", "gay", "lesbian"],
+        ["clean water", "safe water", "drinking water"],
+        ["water demand", "water withdrawal"],
+        ["vaccine hesitancy", "vaccine attitude", "vaccine willingness"],
     ]
 
     // Send all our country variant names to algolia as synonyms
