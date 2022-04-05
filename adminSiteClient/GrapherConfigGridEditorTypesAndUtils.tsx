@@ -323,31 +323,34 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
 
 export function SExpressionToJsonLogic(
     sExpression: Operation,
-    context: OperationContext
+    readOnlyEntries: Map<string, ReadOnlyColumn>
 ): Record<string, unknown> | number | string | boolean | null {
     if (sExpression instanceof Negation) {
         return {
-            "!": SExpressionToJsonLogic(sExpression.operand, context),
+            "!": SExpressionToJsonLogic(sExpression.operand, readOnlyEntries),
         }
     } else if (sExpression instanceof BinaryLogicOperation) {
         const operands = sExpression.operands.map((op) =>
-            SExpressionToJsonLogic(op, context)
+            SExpressionToJsonLogic(op, readOnlyEntries)
         )
         return {
             [sExpression.operator.toString().toLowerCase()]: operands,
         }
     } else if (sExpression instanceof NumericComparison) {
         const operands = sExpression.operands.map((op) =>
-            SExpressionToJsonLogic(op, context)
+            SExpressionToJsonLogic(op, readOnlyEntries)
         )
         return {
             [sExpression.operator.toString()]: operands,
         }
     } else if (sExpression instanceof StringContainsOperation) {
-        const container = SExpressionToJsonLogic(sExpression.container, context)
+        const container = SExpressionToJsonLogic(
+            sExpression.container,
+            readOnlyEntries
+        )
         const searchString = SExpressionToJsonLogic(
             sExpression.searchString,
-            context
+            readOnlyEntries
         )
 
         return {
@@ -355,7 +358,7 @@ export function SExpressionToJsonLogic(
         }
     } else if (sExpression instanceof EqualityComparision) {
         const operands = sExpression.operands.map((op) =>
-            SExpressionToJsonLogic(op, context)
+            SExpressionToJsonLogic(op, readOnlyEntries)
         )
         const op = match(sExpression.operator)
             .with(EqualityOperator.equal, () => "==")
@@ -365,7 +368,10 @@ export function SExpressionToJsonLogic(
             [op]: operands,
         }
     } else if (sExpression instanceof NullCheckOperation) {
-        const operand = SExpressionToJsonLogic(sExpression.operand, context)
+        const operand = SExpressionToJsonLogic(
+            sExpression.operand,
+            readOnlyEntries
+        )
         const op = match(sExpression.operator)
             .with(NullCheckOperator.isNull, () => "==")
             .with(NullCheckOperator.isNotNull, () => "!=")
@@ -375,13 +381,16 @@ export function SExpressionToJsonLogic(
         }
     } else if (sExpression instanceof ArithmeticOperation) {
         const operands = sExpression.operands.map((op) =>
-            SExpressionToJsonLogic(op, context)
+            SExpressionToJsonLogic(op, readOnlyEntries)
         )
         return {
             [sExpression.operator.toString()]: operands,
         }
     } else if (sExpression instanceof SqlColumnName) {
-        const operand = sExpression.value
+        const item = [...readOnlyEntries.entries()].find(
+            (item) => item[1].sExpressionColumnTarget === sExpression.value
+        )
+        const operand = item![0]
 
         return {
             var: operand,

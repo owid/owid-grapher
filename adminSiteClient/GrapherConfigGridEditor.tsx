@@ -1133,7 +1133,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             console.log("filter query", fetchParamsFromQueryParams.filterQuery)
             let jsonLogic = SExpressionToJsonLogic(
                 fetchParamsFromQueryParams.filterQuery,
-                this.config.sExpressionContext
+                this.config.readonlyColumns
             )
             if (jsonLogic === true) jsonLogic = null
             console.log("json logic", jsonLogic)
