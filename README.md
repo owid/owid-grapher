@@ -4,15 +4,13 @@
 [![Test coverage](https://owid.github.io/badges/coverage.svg)](https://owid.github.io/coverage/)
 [![Storybook](https://raw.githubusercontent.com/storybookjs/brand/master/badge/badge-storybook.svg)](https://owid.github.io/stories/)
 
-This is the project we use at [Our World in Data](https://ourworldindata.org) to create embeddable visualizations like this one (click for interactive):
+> The monorepo we use at [Our World in Data](https://ourworldindata.org) to create and publish embeddable, interactive visualizations like this one:
 
-[![Life expectancy at birth](https://ourworldindata.org/grapher/exports/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
+[![A Grapher chart showing world-wide life expectancy at birth. Click for interactive.](https://ourworldindata.org/grapher/exports/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
 
 ---
 
-### ⚠️ **This project is currently not well designed for immediate reuse as a visualization library, or for reproducing the full production environment we have at Our World in Data.**
-
-The Grapher relies heavily on the current database structure, and there are some hard-to-reproduce dependencies in order to create a full production environment that supports publishing embeddable charts.
+**This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure.**
 
 We're gradually making steps towards making our work more reusable, however we still prioritize [needs specific to our project](#why-did-we-start-this-project) that can be at odds with making our tools reusable.
 
@@ -20,28 +18,51 @@ You are still very welcome to reuse and adapt any of our code for your own purpo
 
 ---
 
-### Overview of this repository
+## Overview
 
-The [**Grapher**](grapher/) is the **client-side visualization library** that displays data interactively (almost every interactive chart on [Our World in Data](https://ourworldindata.org) uses this). It consumes a JSON file to configure it, and an additional JSON file that encodes the data. ⚠️ The Grapher is currently not well designed for immediate reuse as a standalone visualization library, it relies heavily on our database structure.
+Multiple projects are maintained in this repo:
 
-The **Grapher Admin** is both a [server-side](adminSiteServer/) and [client-side](adminSiteClient/) TypeScript project that:
+### [Grapher](grapher/)
 
--   provides a user interface for configuring interactive charts ("graphers"), managing and uploading data
--   manages the MySQL database that stores the data for all grapher instances.
+A client-side interactive data visualization library used by almost every chart on Our World in Data.
 
-[**Wordpress**](wordpress/) is used by authors to write the content published on [Our World in Data](https://ourworldindata.org). It is a relatively stock setup including a custom plugin to provide additional blocks for the Gutenberg editor. The Wordpress content and configuration is stored in a MySQL database, which currently isn't shared publicly.
+All grapher data is stored in a MySQL database that contains both JSON configuration objects for individual charts as well as the data values that they ingest.
 
-The [**baker**](baker/) is used to build the full static [Our World in Data](https://ourworldindata.org) website by merging the content authored in Wordpress with the graphers created in Grapher Admin.
+### [Explorer](explorer/)
 
-[**Explorers**](explorer/) are a relatively new addition. For readers, they provide a user interface around graphers. Under the hood, they use the Grapher as a visualization library. There is an [admin](explorerAdminServer/) to configure explorers. The config files end up in [a git repo](https://github.com/owid/owid-content/tree/master/explorers) (not MySQL as most of the other content).
+A Grapher-based tool that creates more complex [data visualization user interfaces](https://ourworldindata.org/explorers/migration).
 
-## Initial development setup
+Each explorer can be configured via a [panel](explorerAdminServer/) in the admin client. Their config files are stored in [a separate repository](https://github.com/owid/owid-content/tree/master/explorers).
 
-If you want to get started quickly with the most common develoment setup then we recommend you follow the steps outlined in the [Local setup with mysql and grapher admin](docs/docker-compose-mysql.md) document. There are [various additional options](docs/setup-options-overview.md) for how to compile and run our code (ranging from a web based setup without installing anything to a full local editing setup with our internal admin tool and wordpress).
+### Grapher Admin
 
-## Architecture notes
+-   A [client-side](adminSiteClient/) project that provides a user interface for configuring graphers, explorers, and managing and uploading data.
 
-Our implementation is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx), allowing it to do client-side data processing efficiently. New code should be written in [TypeScript](https://www.typescriptlang.org/). [Visual Studio Code](https://code.visualstudio.com/) is recommended for the autocompletion and other awesome editor analysis features enabled by static typing.
+-   A [server-side](adminSiteServer/) project that manages the MySQL database used by graphers.
+
+### [WordPress](wordpress/)
+
+The CMS we use to manage articles published on Our World in Data. It's a relatively stock setup, with a custom plugin to provide additional blocks for the Gutenberg editor.
+
+Our Wordpress content and configuration is stored in a MySQL database, which currently isn't shared publicly.
+
+### [Baker](baker/)
+
+A [PM2](https://github.com/Unitech/pm2) project that builds a static copy of the Our World in Data website by merging the content authored in Wordpress with the grapher charts created in Grapher Admin.
+
+## Usage
+
+To quickly get a version of the site running for developing Grapher features, we recommend following the [local development setup](docs/docker-compose-mysql.md) guide.
+
+[Additional setup options](docs/setup-options-overview.md) are also available for other use cases.
+
+## Tooling
+
+Much of our code is based around [reactive programming](https://en.wikipedia.org/wiki/Reactive_programming) using [React](https://reactjs.org/) and [Mobx](http://github.com/mobxjs/mobx).
+
+All non-WordPress code is written in [TypeScript](https://www.typescriptlang.org/).
+
+[Visual Studio Code](https://code.visualstudio.com/) is recommended for autocompletion and other awesome editor analysis features enabled by static typing.
 
 ## Why did we start this project?
 

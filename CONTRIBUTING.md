@@ -13,7 +13,9 @@ Contributions to grapher from the general public are most welcome, especially th
 that fix a known issue, make it easier for others to use grapher, or add new
 functionality that's broadly useful to many people. If you're unsure if a contribution
 is appropriate, feel free to start a
-[discussion](https://github.com/owid/owid-grapher/discussions).
+[discussion](https://github.com/owid/owid-grapher/discussions). Please check with us
+if you're unsure! We don't want anyone to work on a contribution that we'll be unable to
+use.
 
 The easiest way to contribute is to report an issue or suggest a way that things can
 be improved. You can also look at recent open issues to see if any of them are

@@ -1,6 +1,6 @@
-# Setting up a local typescript environment
+# Setting up a local TypeScript environment
 
-This page describes how to set up the typescript and javascript tooling to build the Grapher component from source and test it in your browser on your local machine. If you also want to be able to use the admin UI to graphically configure grapher charts you will need to set up the mysql database, by using our [docker compose mysql setup](docker-compose-mysql.md).
+This page describes how to set up the TypeScript and JavaScript tooling to build the Grapher component from source and test it in your browser on your local machine. If you also want to be able to use the admin UI to graphically configure grapher charts you will need to set up the MySQL database, by using our [docker compose MySQL setup](docker-compose-mysql.md).
 
 This local environment requires some manual setup. For a faster way to get started have a look at the [VS Code devcontainer setup](devcontainer-setup.md).
 
@@ -64,7 +64,7 @@ Note: on Windows we strongly recommend using the [Windows Subsystem for Linux](h
 
 ## Running tests
 
-To run our test suite you first need to build the typescript files into javascript and then run jest:
+To run our test suite you first need to build the TypeScript files into JavaScript and then run jest:
 
 1. Run buildTsc
 
