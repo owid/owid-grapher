@@ -300,7 +300,6 @@ export const formatWordpressPost = async (
     renderAdditionalInformation(cheerioEl)
     renderHelp(cheerioEl)
     await renderProminentLinks(cheerioEl, post.id)
-    await renderKeyInsights(cheerioEl, grapherExports)
 
     // Extract inline styling
     let style
@@ -523,6 +522,11 @@ export const formatWordpressPost = async (
             )
         }
     })
+
+    // This runs formatPost() on the key insight slides content. By running it
+    // last, we prevent double-pass formatting of non-idempotent functions (e.g.
+    // table processing).
+    await renderKeyInsights(cheerioEl, grapherExports)
 
     return {
         ...post,

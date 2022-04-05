@@ -48,7 +48,6 @@ import {
     FullPost,
     JsonError,
     PostRow,
-    WP_BlockType,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -74,7 +73,11 @@ import {
     KeyInsightsSlides,
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
-import { formatUrls } from "../site/formatting.js"
+import {
+    formatUrls,
+    getBodyHtml,
+    splitContentIntoSectionsAndColumns,
+} from "../site/formatting.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
@@ -639,11 +642,16 @@ export const renderKeyInsights = async (
             // practice, key insights are not supposed to embed key insights
             // themselves, since they are already the smallest piece of
             // information available.
-            const formattedContent = (
-                await formatPost(post, formattingOptions, grapherExports)
-            ).html
+            const formattedPost = await formatPost(
+                post,
+                formattingOptions,
+                grapherExports
+            )
+            const cheerioEl = cheerio.load(formattedPost.html)
 
-            slides.push(formattedContent)
+            splitContentIntoSectionsAndColumns(cheerioEl)
+
+            slides.push(getBodyHtml(cheerioEl))
         }
 
         const rendered = ReactDOMServer.renderToString(
