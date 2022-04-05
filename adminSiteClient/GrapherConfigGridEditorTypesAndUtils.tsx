@@ -1,4 +1,4 @@
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
+import { QueryParams, queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,
@@ -20,6 +20,7 @@ import {
     BooleanOperation,
     OperationContext,
     ArithmeticOperation,
+    parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
@@ -48,7 +49,7 @@ import {
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
 import { excludeUndefined, isArray } from "../clientUtils/Util.js"
-import { isNil, isPlainObject } from "lodash"
+import { isEqual, isNil, isPlainObject } from "lodash"
 import {
     EditorOption,
     FieldDescription,
@@ -121,19 +122,45 @@ export type ColumnSet = FullColumnSet | SpecificColumnSet
 /** All the parameters we need for making a fully specified request to the /variable-annotations
     endpoint. When any of these fields change we need to trigger a new request */
 export interface FetchVariablesParameters {
-    pagingOffset: number
+    offset: number
     filterQuery: Operation
     sortByColumn: string // sort is currently ignored but here for future use
     sortByAscending: boolean // sort is currently ignored but here for future use
 }
 
+export const filterExpressionNoFilter = new BooleanAtom(true)
+
+export function fetchVariablesParamtersFromQueryString(
+    params: QueryParams,
+    sExpressionContext: OperationContext
+): FetchVariablesParameters {
+    let filterQuery: Operation | undefined = undefined
+    if (params.hasOwnProperty("filter")) {
+        filterQuery = parseToOperation(params.filter!, sExpressionContext)
+    }
+    return {
+        offset: Number.parseInt(params.offset ?? "0"),
+        filterQuery: filterQuery ?? filterExpressionNoFilter,
+        sortByColumn: params.sortByColumn ?? "id",
+        sortByAscending: params.sortByAscending === "true" ?? false,
+    }
+}
+
+export function fetchVariablesParametersToQueryParameters(
+    params: FetchVariablesParameters
+) {
+    return {
+        filter: params.filterQuery.toSExpr(),
+        offset: params.offset.toString(),
+        sortByColumn: params.sortByColumn,
+        sortByAscending: params.sortByAscending.toString(),
+    }
+}
+
 export function fetchVariablesParametersToQueryParametersString(
     params: FetchVariablesParameters
 ): string {
-    return queryParamsToStr({
-        filter: params.filterQuery.toSExpr(),
-        offset: params.pagingOffset.toString(),
-    })
+    return queryParamsToStr(fetchVariablesParametersToQueryParameters(params))
 }
 
 export interface IconToggleProps {
@@ -295,31 +322,41 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
 }
 
 export function SExpressionToJsonLogic(
-    sExpression: Operation
+    sExpression: Operation,
+    context: OperationContext
 ): Record<string, unknown> | number | string | boolean | null {
     if (sExpression instanceof Negation) {
         return {
-            "!": SExpressionToJsonLogic(sExpression.operand),
+            "!": SExpressionToJsonLogic(sExpression.operand, context),
         }
     } else if (sExpression instanceof BinaryLogicOperation) {
-        const operands = sExpression.operands.map(SExpressionToJsonLogic)
+        const operands = sExpression.operands.map((op) =>
+            SExpressionToJsonLogic(op, context)
+        )
         return {
-            [sExpression.operator.toString()]: operands,
+            [sExpression.operator.toString().toLowerCase()]: operands,
         }
     } else if (sExpression instanceof NumericComparison) {
-        const operands = sExpression.operands.map(SExpressionToJsonLogic)
+        const operands = sExpression.operands.map((op) =>
+            SExpressionToJsonLogic(op, context)
+        )
         return {
             [sExpression.operator.toString()]: operands,
         }
     } else if (sExpression instanceof StringContainsOperation) {
-        const container = SExpressionToJsonLogic(sExpression.container)
-        const searchString = SExpressionToJsonLogic(sExpression.searchString)
+        const container = SExpressionToJsonLogic(sExpression.container, context)
+        const searchString = SExpressionToJsonLogic(
+            sExpression.searchString,
+            context
+        )
 
         return {
             in: [searchString, container],
         }
     } else if (sExpression instanceof EqualityComparision) {
-        const operands = sExpression.operands.map(SExpressionToJsonLogic)
+        const operands = sExpression.operands.map((op) =>
+            SExpressionToJsonLogic(op, context)
+        )
         const op = match(sExpression.operator)
             .with(EqualityOperator.equal, () => "==")
             .with(EqualityOperator.unequal, () => "!=")
@@ -328,7 +365,7 @@ export function SExpressionToJsonLogic(
             [op]: operands,
         }
     } else if (sExpression instanceof NullCheckOperation) {
-        const operand = SExpressionToJsonLogic(sExpression.operand)
+        const operand = SExpressionToJsonLogic(sExpression.operand, context)
         const op = match(sExpression.operator)
             .with(NullCheckOperator.isNull, () => "==")
             .with(NullCheckOperator.isNotNull, () => "!=")
@@ -337,17 +374,20 @@ export function SExpressionToJsonLogic(
             [op]: [operand, "null"],
         }
     } else if (sExpression instanceof ArithmeticOperation) {
-        const operands = sExpression.operands.map(SExpressionToJsonLogic)
+        const operands = sExpression.operands.map((op) =>
+            SExpressionToJsonLogic(op, context)
+        )
         return {
             [sExpression.operator.toString()]: operands,
         }
     } else if (sExpression instanceof SqlColumnName) {
         const operand = sExpression.value
+
         return {
             var: operand,
         }
     } else if (sExpression instanceof JsonPointerSymbol) {
-        const operand = sExpression.columnName
+        const operand = sExpression.value
         return {
             var: operand,
         }

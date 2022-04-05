@@ -19,6 +19,7 @@ import {
     isEqual,
     isNil,
     merge,
+    omitBy,
     pick,
     range,
 } from "lodash"
@@ -93,6 +94,9 @@ import {
     ColumnDataSourceType,
     ColumnDataSourceUnknown,
     SExpressionToJsonLogic,
+    fetchVariablesParamtersFromQueryString,
+    filterExpressionNoFilter,
+    fetchVariablesParametersToQueryParameters,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
@@ -218,17 +222,19 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             sortByAscending,
             sortByColumn,
             filterSExpression,
+            numTotalRows,
         } = this
-        const filterOperations = excludeUndefined([filterSExpression])
-        const filterQuery =
-            filterOperations.length === 0
-                ? new BooleanAtom(true)
-                : new BinaryLogicOperation(
-                      BinaryLogicOperators.and,
-                      filterOperations
-                  )
+        console.log("triggered datafetchparam reeval")
+        const filterQuery = filterSExpression ?? filterExpressionNoFilter
+        const offsetToUse = numTotalRows
+            ? Math.max(
+                  0,
+                  Math.min(desiredPagingOffset / 50, numTotalRows / 50 - 1)
+              ) * 50
+            : desiredPagingOffset
+        console.log("paging offset", offsetToUse)
         return {
-            pagingOffset: desiredPagingOffset,
+            offset: offsetToUse,
             filterQuery,
             sortByColumn,
             sortByAscending,
@@ -239,7 +245,21 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         whenever any of the dataFetchParameters change */
     async componentDidMount() {
         const url = getWindowUrl()
-        const setFetchParamsFromUrl = !isEmpty(url.queryParams)
+        const queryParamsAsDataFetchParams =
+            fetchVariablesParamtersFromQueryString(
+                url.queryParams,
+                this.config.sExpressionContext
+            )
+        console.log({
+            queryParamsAsDataFetchParams,
+            dataFetchParams: this.dataFetchParameters,
+        })
+        const nonDefaultDataFetchQueryParams = !isEqual(
+            this.dataFetchParameters,
+            queryParamsAsDataFetchParams
+        )
+
+        console.log("setFetchParams is", nonDefaultDataFetchQueryParams)
         // Here we chain together a mobx property (dataFetchParameters) to
         // an rxJS observable pipeline to debounce the signal and then
         // use switchMap to create new fetch requests and cancel outstanding ones
@@ -247,13 +267,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         // with an autorun to finally update the dependent properties on this class.
         const varStream = toStream(
             () => this.dataFetchParameters,
-            !setFetchParamsFromUrl
+            !nonDefaultDataFetchQueryParams
         )
 
         const observable = from(varStream).pipe(
             debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
             distinctUntilChanged(isEqual), // don't emit new values if the value hasn't changed
             switchMap((params) => {
+                console.log("performing fetch with new params")
                 // use switchmap to create a new fetch (as an observable) and
                 // automatically cancel stale fetch requests
                 return fromFetch(this.buildDataFetchUrl(params), {
@@ -1103,55 +1124,56 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             )
             const url = getWindowUrl()
             const queryParams = url.queryParams
-            if (queryParams.hasOwnProperty("filter")) {
-                const sExpression = parseToOperation(
-                    queryParams.filter!,
+            const fetchParamsFromQueryParams =
+                fetchVariablesParamtersFromQueryString(
+                    queryParams,
                     this.config.sExpressionContext
                 )
-                const jsonLogic = sExpression
-                    ? SExpressionToJsonLogic(sExpression)
-                    : undefined
-                const tree = Utils.loadFromJsonLogic(
+
+            console.log("filter query", fetchParamsFromQueryParams.filterQuery)
+            let jsonLogic = SExpressionToJsonLogic(
+                fetchParamsFromQueryParams.filterQuery,
+                this.config.sExpressionContext
+            )
+            if (jsonLogic === true) jsonLogic = null
+            console.log("json logic", jsonLogic)
+            const tree =
+                Utils.loadFromJsonLogic(
                     jsonLogic as any,
                     this.FilterPanelConfig ?? filterPanelInitialConfig
+                ) ?? QbUtils.loadTree(initialFilterQueryValue)
+            console.log("tree", tree)
+            this.filterState = {
+                tree: QbUtils.checkTree(
+                    tree,
+                    this.FilterPanelConfig ?? filterPanelInitialConfig
+                ),
+                config: this.FilterPanelConfig ?? filterPanelInitialConfig,
+            }
+
+            this.sortByColumn = fetchParamsFromQueryParams.sortByColumn
+            this.sortByAscending = fetchParamsFromQueryParams.sortByAscending
+            this.desiredPagingOffset = fetchParamsFromQueryParams.offset
+        })
+        autorun(() => {
+            const fetchParamsFromQueryParamsAsStrings =
+                fetchVariablesParametersToQueryParameters(
+                    this.dataFetchParameters
                 )
-                if (tree)
-                    this.filterState = {
-                        tree: QbUtils.checkTree(
-                            tree,
-                            this.FilterPanelConfig ?? filterPanelInitialConfig
-                        ),
-                        config:
-                            this.FilterPanelConfig ?? filterPanelInitialConfig,
-                    }
-                else console.error("Could not parse tree")
-            }
-            if (!this.filterState) {
-                this.filterState = {
-                    tree: QbUtils.checkTree(
-                        QbUtils.loadTree(initialFilterQueryValue),
-                        this.FilterPanelConfig ?? filterPanelInitialConfig
-                    ),
-                    config: this.FilterPanelConfig ?? filterPanelInitialConfig,
-                }
-            }
-            this.sortByColumn = queryParams.sortByColumn ?? "id"
-            this.sortByAscending =
-                queryParams.sortByAscending === "true" ?? false
-            this.desiredPagingOffset = Number.parseInt(
-                queryParams.pagingOffset ?? "0"
+            const defaultValues = fetchVariablesParamtersFromQueryString(
+                {},
+                this.config.sExpressionContext
             )
-            autorun(() => {
-                const url = getWindowUrl()
-                console.log("updating url")
-                const newUrl = url.setQueryParams({
-                    filter: this.filterSExpression?.toSExpr(),
-                    sortByColumn: this.sortByColumn,
-                    sortByAscending: this.sortByAscending ? "true" : "false",
-                    pagingOffset: this.desiredPagingOffset.toString(),
-                })
-                setWindowUrl(newUrl)
-            })
+            const defaultValuesAsStrings =
+                fetchVariablesParametersToQueryParameters(defaultValues)
+            const nonDefaultValues = omitBy(
+                fetchParamsFromQueryParamsAsStrings,
+                (value, key) => (defaultValuesAsStrings as any)[key] === value
+            )
+            const url = getWindowUrl()
+            console.log("updating url")
+            const newUrl = url.setQueryParams(nonDefaultValues)
+            if (!isEqual(url, newUrl)) setWindowUrl(newUrl)
         })
     }
 
@@ -1653,12 +1675,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             isEqual(filterState?.config, config)
         )
 
-        if (updateFilterState)
+        if (updateFilterState) {
             this.filterState = {
                 ...filterState,
                 tree: immutableTree,
                 config: config,
             }
+        }
     }
 
     @computed get filterSExpression(): Operation | undefined {
