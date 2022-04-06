@@ -908,13 +908,13 @@ import dayjs from "../clientUtils/dayjs.js"
 @observer
 export class Timeago extends React.Component<{
     time: dayjs.ConfigType
-    by?: string | JSX.Element
+    by: string | JSX.Element | null | undefined
 }> {
     render() {
         return (
             <>
                 {this.props.time && dayjs(this.props.time).fromNow()}
-                {this.props.by !== undefined && <> by {this.props.by}</>}
+                {this.props.by != null && <> by {this.props.by}</>}
             </>
         )
     }
