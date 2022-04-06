@@ -908,7 +908,7 @@ import dayjs from "../clientUtils/dayjs.js"
 @observer
 export class Timeago extends React.Component<{
     time: dayjs.ConfigType
-    by: string | JSX.Element | null | undefined
+    by?: string | JSX.Element | null | undefined
 }> {
     render() {
         return (
