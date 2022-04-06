@@ -49,7 +49,7 @@ import {
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
 import { excludeUndefined, isArray } from "../clientUtils/Util.js"
-import _, { isEqual, isNil, isPlainObject, values } from "lodash"
+import { isNil, isPlainObject, values } from "lodash"
 import {
     EditorOption,
     FieldDescription,

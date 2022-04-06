@@ -60,13 +60,7 @@ import {
 } from "../clientUtils/Util.js"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
-import {
-    BinaryLogicOperation,
-    BinaryLogicOperators,
-    BooleanAtom,
-    Operation,
-    parseToOperation,
-} from "../clientUtils/SqlFilterSExpression.js"
+import { Operation } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
     VariableAnnotationsRow,
@@ -107,8 +101,7 @@ import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
-import { getWindowUrl, setWindowUrl, Url } from "../clientUtils/urls/Url.js"
-import { QueryParams } from "../clientUtils/urls/UrlUtils.js"
+import { getWindowUrl, setWindowUrl } from "../clientUtils/urls/Url.js"
 
 function HotColorScaleRenderer(props: Record<string, unknown>) {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -308,14 +301,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         })
         // Add the disposer to the list of things we need to clean up on unmount
         this.disposers.push(disposer)
-
-        // if (setFetchParamsFromUrl) {
-        // const initAction = action((queryParams: QueryParams) => {
-
-        //         )
-        //     })
-
-        // }
 
         this.getFieldDefinitions()
     }
@@ -1165,7 +1150,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
         // This autorun updates the query params in the URL (without creating history steps)
         // to always reflect the current data query state (i.e. filtering and paging)
-        autorun(() => {
+        const disposer = autorun(() => {
             const fetchParamsFromQueryParamsAsStrings =
                 fetchVariablesParametersToQueryParameters(
                     this.dataFetchParameters
@@ -1185,6 +1170,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             const newUrl = url.setQueryParams(nonDefaultValues)
             if (!isEqual(url, newUrl)) setWindowUrl(newUrl)
         })
+        this.disposers.push(disposer)
     }
 
     @action
