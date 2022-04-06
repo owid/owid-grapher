@@ -105,7 +105,7 @@ it("creates compact labels", () => {
     ).toBeTruthy()
 })
 
-it("a single-value domain plots to lower or upper end of range", () => {
+it("a single-value vertical domain plots to lower or upper end of range", () => {
     const config: AxisConfigInterface = {
         min: 0,
         max: 0,
@@ -115,6 +115,18 @@ it("a single-value domain plots to lower or upper end of range", () => {
     expect(axis.place(-1)).toEqual(0)
     expect(axis.place(0)).toEqual(0)
     expect(axis.place(1)).toEqual(500)
+})
+
+it("a single-value horizontal domain plots to middle of range", () => {
+    const config: AxisConfigInterface = {
+        min: 0,
+        max: 0,
+    }
+    const axis = new AxisConfig(config).toHorizontalAxis()
+    axis.range = [0, 500]
+    expect(axis.place(-1)).toEqual(250)
+    expect(axis.place(0)).toEqual(250)
+    expect(axis.place(1)).toEqual(250)
 })
 
 describe("manual ticks", () => {

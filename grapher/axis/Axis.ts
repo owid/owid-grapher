@@ -342,15 +342,6 @@ abstract class AbstractAxis {
         } else if (this.scaleType === ScaleType.log && value <= 0) {
             console.error(`Can't have ${value} which is <= 0 on a log scale`)
             return value
-        } else if (this.domain[0] === this.domain[1]) {
-            // When the domain is a single value, the D3 scale will by default place
-            // the value at the middle of the range.
-            // We instead want to place it at the end, in order to avoid an axis
-            // domain line being plotted in the middle of a chart (most of the time
-            // this occurs, the domain is [0, 0]).
-            //
-            // -@danielgavrilov, 2021-08-02
-            return value > this.domain[0] ? this.range[1] : this.range[0]
         }
         return parseFloat(this.d3_scale(value).toFixed(1))
     }
@@ -552,6 +543,21 @@ export class VerticalAxis extends AbstractAxis {
 
     @computed get size(): number {
         return this.width
+    }
+
+    place(value: number): number {
+        if (this.domain[0] === this.domain[1]) {
+            // When the domain is a single value, the D3 scale will by default place
+            // the value at the middle of the range.
+            // We instead want to place it at the end, in order to avoid an axis
+            // domain line being plotted in the middle of a chart (most of the time
+            // this occurs, the domain is [0, 0]).
+            // see https://github.com/owid/owid-grapher/pull/975#issuecomment-890798547.
+            //
+            // -@danielgavrilov, 2021-08-02
+            return value > this.domain[0] ? this.range[1] : this.range[0]
+        }
+        return super.place(value)
     }
 
     placeTickLabel(value: number): TickLabelPlacement {
