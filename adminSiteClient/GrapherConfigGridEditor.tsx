@@ -97,6 +97,7 @@ import {
     fetchVariablesParamtersFromQueryString,
     filterExpressionNoFilter,
     fetchVariablesParametersToQueryParameters,
+    postProcessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
@@ -1116,12 +1117,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         ).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
+            // Now that we have the field Definitions we can initialize everything, including
+            // the filter fields from the query string
             this.fieldDescriptions = fieldDescriptions
 
             this.initializeColumnSelection(
                 fieldDescriptions,
                 this.currentColumnSet
             )
+
+            // Get query params and convert them into a fetchVariables data structure
             const url = getWindowUrl()
             const queryParams = url.queryParams
             const fetchParamsFromQueryParams =
@@ -1130,19 +1135,30 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     this.config.sExpressionContext
                 )
 
-            console.log("filter query", fetchParamsFromQueryParams.filterQuery)
+            // We serialize our own SExpression into the query string. We now
+            // need to get this in a form that the React Awesome Query Builder can process.
+            // The easiest of the formats that library can load is JsonLogic, so we convert
+            // to JsonLogic and postprocess to fix some issues
             let jsonLogic = SExpressionToJsonLogic(
                 fetchParamsFromQueryParams.filterQuery,
                 this.config.readonlyColumns
             )
-            if (jsonLogic === true) jsonLogic = null
-            console.log("json logic", jsonLogic)
+            if (jsonLogic === true) jsonLogic = null // If we have the default query then don't bother any further
+
+            let jsonLogicTree = Utils.loadFromJsonLogic(
+                jsonLogic as any,
+                this.FilterPanelConfig ?? filterPanelInitialConfig
+            )
+
+            if (jsonLogicTree !== undefined) {
+                const mutableTree = Utils.getTree(jsonLogicTree)
+                postProcessJsonLogicTree(mutableTree)
+                jsonLogicTree = QbUtils.loadTree(mutableTree)
+            }
+
+            // If we didn't get a working tree then use our default one instead
             const tree =
-                Utils.loadFromJsonLogic(
-                    jsonLogic as any,
-                    this.FilterPanelConfig ?? filterPanelInitialConfig
-                ) ?? QbUtils.loadTree(initialFilterQueryValue)
-            console.log("tree", tree)
+                jsonLogicTree ?? QbUtils.loadTree(initialFilterQueryValue)
             this.filterState = {
                 tree: QbUtils.checkTree(
                     tree,
@@ -1151,10 +1167,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 config: this.FilterPanelConfig ?? filterPanelInitialConfig,
             }
 
+            // Now set the remaining filter fields from the parsed query string
             this.sortByColumn = fetchParamsFromQueryParams.sortByColumn
             this.sortByAscending = fetchParamsFromQueryParams.sortByAscending
             this.desiredPagingOffset = fetchParamsFromQueryParams.offset
         })
+
+        // This autorun updates the query params in the URL (without creating history steps)
+        // to always reflect the current data query state (i.e. filtering and paging)
         autorun(() => {
             const fetchParamsFromQueryParamsAsStrings =
                 fetchVariablesParametersToQueryParameters(
@@ -1166,6 +1186,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             )
             const defaultValuesAsStrings =
                 fetchVariablesParametersToQueryParameters(defaultValues)
+            // Only store non-default values in the query params
             const nonDefaultValues = omitBy(
                 fetchParamsFromQueryParamsAsStrings,
                 (value, key) => (defaultValuesAsStrings as any)[key] === value

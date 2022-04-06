@@ -49,7 +49,7 @@ import {
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
 import { excludeUndefined, isArray } from "../clientUtils/Util.js"
-import { isEqual, isNil, isPlainObject } from "lodash"
+import _, { isEqual, isNil, isPlainObject, values } from "lodash"
 import {
     EditorOption,
     FieldDescription,
@@ -321,6 +321,9 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
     else return undefined
 }
 
+/** JsonLogic is the easiest format that the React Awesome Query Builder can round
+    trip (i.e. deserialize from). Building the internal structure of the query library
+    would be tedious so we convert our SExpressions to JsonLogic. */
 export function SExpressionToJsonLogic(
     sExpression: Operation,
     readOnlyEntries: Map<string, ReadOnlyColumn>
@@ -411,6 +414,40 @@ export function SExpressionToJsonLogic(
         return operand
     } else {
         throw Error(`unsupported sExpression: ${sExpression}`)
+    }
+}
+
+/** JsonLogic is the easiest format that the React Awesome Query Library can round
+    trip (i.e. deserialize from). Building the internal structure of the query library
+    would be tedious so we convert our SExpressions to JsonLogic. When React Awesome
+    Query Library parses this, it does a couple of undesirable things like convert
+    IsNull queries to == "null". This postprocessing function tries to rectify such
+    issues.
+ */
+export function postProcessJsonLogicTree(filterTree: JsonTree | JsonItem) {
+    console.log("entering post processing", filterTree)
+    if (filterTree.type === "group" && filterTree.children1) {
+        if (isArray(filterTree.children1))
+            for (const child of filterTree.children1)
+                postProcessJsonLogicTree(child)
+        else if (isPlainObject(filterTree.children1))
+            for (const child of values(filterTree.children1))
+                postProcessJsonLogicTree(child)
+    } else if (filterTree.type === "rule") {
+        const isNull =
+            filterTree.properties.value.length === 1 &&
+            (filterTree.properties.value[0] === "null" ||
+                filterTree.properties.value[0] === null)
+        const isEqual =
+            filterTree.properties.operator === "equal" ||
+            filterTree.properties.operator === "select_equals"
+        const isUnequal =
+            filterTree.properties.operator === "not_equal" ||
+            filterTree.properties.operator === "select_not_equals"
+        if (isNull && (isEqual || isUnequal)) {
+            console.log("Changing operator")
+            filterTree.properties.operator = isEqual ? "is_null" : "is_not_null"
+        }
     }
 }
 
