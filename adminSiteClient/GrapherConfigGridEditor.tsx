@@ -688,7 +688,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     settings={{
                         title: name,
                         data: desc.pointer,
-                        //width: Math.max(Bounds.forText(name).width, 50),
                     }}
                 >
                     <HotColorScaleRenderer hot-renderer />
@@ -707,7 +706,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         type: type,
                         source: desc.enumOptions,
                         data: desc.pointer,
-                        //width: Math.max(Bounds.forText(name).width, 50),
                     }}
                 />
             )
@@ -783,12 +781,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                 title: columnDataSource.readOnlyColumn.label,
                                 readOnly: true,
                                 data: columnDataSource.readOnlyColumn.key,
-                                // width: Math.max(
-                                //     Bounds.forText(
-                                //         columnDataSource.readOnlyColumn.label
-                                //     ).width,
-                                //     50
-                                // ),
                             }}
                         />
                     )
