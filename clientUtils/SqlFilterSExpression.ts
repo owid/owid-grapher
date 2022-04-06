@@ -280,7 +280,8 @@ export class StringContainsOperation extends BooleanOperation {
     }
 
     toSql(): string {
-        return `(${this.container.toSql()} LIKE '%${this.searchString.escapedValue()}%')`
+        // The COLLATE here makes sure that we do a case insensitive comparision which for filter is usually what we want
+        return `(${this.container.toSql()} COLLATE utf8mb4_0900_ai_ci LIKE '%${this.searchString.escapedValue()}%')`
     }
 
     toSExpr(): string {

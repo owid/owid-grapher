@@ -199,11 +199,13 @@ body {
             overflow-y: auto;
             height: 100%;
             > .preview {
-                flex: 0 0 500px;
-                min-height: 500px;
+                flex: 0 0 auto;
+                // min-height: 500px;
+                border-top: 1px solid lightgray;
+                padding-top: 5px;
             }
             > section {
-                flex: 1 1 auto;
+                flex: 1 0 200px;
             }
         }
     }
