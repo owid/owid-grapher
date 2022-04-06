@@ -197,7 +197,7 @@ export class DiscreteBarChart
 
         const positiveLabels = this.series
             .filter((d) => d.value >= 0)
-            .map((d) => this.formatValue(d))
+            .map((d) => this.formatValue(d)[0] + this.formatValue(d)[1])
         const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
         return Bounds.forText(longestPositiveLabel, this.valueLabelStyle).width
     }
@@ -210,7 +210,7 @@ export class DiscreteBarChart
 
         const negativeLabels = this.series
             .filter((d) => d.value < 0)
-            .map((d) => this.formatValue(d))
+            .map((d) => this.formatValue(d)[0] + this.formatValue(d)[1])
         const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
         return (
             Bounds.forText(longestNegativeLabel, this.valueLabelStyle).width +
@@ -379,7 +379,8 @@ export class DiscreteBarChart
                         ? yAxis.place(this.x0) - barX
                         : yAxis.place(series.value) - barX
                     const barColor = series.color
-                    const valueLabel = this.formatValue(series)
+                    const valueLabel = this.formatValue(series)[0]
+                    const yearLabel = this.formatValue(series)[1]
                     const labelX = isNegative
                         ? barX -
                           Bounds.forText(valueLabel, this.valueLabelStyle)
@@ -434,6 +435,7 @@ export class DiscreteBarChart
                                 {...this.valueLabelStyle}
                             >
                                 {valueLabel}
+                                <tspan fill="#999">{yearLabel}</tspan>
                             </text>
                         </g>
                     )
@@ -459,19 +461,21 @@ export class DiscreteBarChart
             : ""
     }
 
-    formatValue(series: DiscreteBarSeries): string {
+    formatValue(series: DiscreteBarSeries): [string, string] {
         const column = this.yColumns[0] // todo: do we need to use the right column here?
         const { transformedTable } = this
 
         const showYearLabels =
             this.manager.showYearLabels || series.time !== this.targetTime
         const displayValue = column.formatValueShort(series.value)
-        return (
-            displayValue +
-            (showYearLabels
-                ? ` (${transformedTable.timeColumnFormatFunction(series.time)})`
-                : "")
-        )
+        return [
+            displayValue,
+            showYearLabels
+                ? ` in ${transformedTable.timeColumnFormatFunction(
+                      series.time
+                  )}`
+                : "",
+        ]
     }
 
     @computed private get yColumnSlugs(): string[] {
