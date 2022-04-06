@@ -106,10 +106,10 @@ if [ "${SKIP_DB_DL}" = false ]; then
   rsync -hav --progress owid@live-db.owid.io:/tmp/live_wordpress.sql $DL_FOLDER
 fi
 echo "Importing Wordpress database (live_wordpress)"
-check_env DB_NAME
-check_env DB_HOST
-check_env DB_USER
-check_env DB_PASSWORD
+check_env WORDPRESS_DB_NAME
+check_env WORDPRESS_DB_HOST
+check_env WORDPRESS_DB_USER
+check_env WORDPRESS_DB_PASSWORD
 purge_wordpress_db
 import_wordpress_db $DL_FOLDER/live_wordpress.sql 
 
