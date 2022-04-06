@@ -425,7 +425,6 @@ export function SExpressionToJsonLogic(
     issues.
  */
 export function postProcessJsonLogicTree(filterTree: JsonTree | JsonItem) {
-    console.log("entering post processing", filterTree)
     if (filterTree.type === "group" && filterTree.children1) {
         if (isArray(filterTree.children1))
             for (const child of filterTree.children1)
@@ -445,7 +444,6 @@ export function postProcessJsonLogicTree(filterTree: JsonTree | JsonItem) {
             filterTree.properties.operator === "not_equal" ||
             filterTree.properties.operator === "select_not_equals"
         if (isNull && (isEqual || isUnequal)) {
-            console.log("Changing operator")
             filterTree.properties.operator = isEqual ? "is_null" : "is_not_null"
         }
     }

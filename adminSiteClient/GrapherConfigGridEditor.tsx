@@ -225,7 +225,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             filterSExpression,
             numTotalRows,
         } = this
-        console.log("triggered datafetchparam reeval")
         const filterQuery = filterSExpression ?? filterExpressionNoFilter
         const offsetToUse = numTotalRows
             ? Math.max(
@@ -233,7 +232,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                   Math.min(desiredPagingOffset / 50, numTotalRows / 50 - 1)
               ) * 50
             : desiredPagingOffset
-        console.log("paging offset", offsetToUse)
         return {
             offset: offsetToUse,
             filterQuery,
@@ -251,16 +249,11 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 url.queryParams,
                 this.config.sExpressionContext
             )
-        console.log({
-            queryParamsAsDataFetchParams,
-            dataFetchParams: this.dataFetchParameters,
-        })
         const nonDefaultDataFetchQueryParams = !isEqual(
             this.dataFetchParameters,
             queryParamsAsDataFetchParams
         )
 
-        console.log("setFetchParams is", nonDefaultDataFetchQueryParams)
         // Here we chain together a mobx property (dataFetchParameters) to
         // an rxJS observable pipeline to debounce the signal and then
         // use switchMap to create new fetch requests and cancel outstanding ones
@@ -275,7 +268,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
             distinctUntilChanged(isEqual), // don't emit new values if the value hasn't changed
             switchMap((params) => {
-                console.log("performing fetch with new params")
                 // use switchmap to create a new fetch (as an observable) and
                 // automatically cancel stale fetch requests
                 return fromFetch(this.buildDataFetchUrl(params), {
@@ -405,7 +397,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         value: string
     ) {
         if (data.origin !== undefined) {
-            console.log({ data })
             // origin seems to be +input when editing and undefined when we change the value programmatically
             const { currentColumnFieldDescription, grapher } = this
             if (currentColumnFieldDescription === undefined) return
@@ -916,7 +907,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
     @action.bound
     clearCellContent() {
-        console.log("Clearing cell content")
         const {
             selectedRow,
             selectedColumn,
@@ -1192,7 +1182,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 (value, key) => (defaultValuesAsStrings as any)[key] === value
             )
             const url = getWindowUrl()
-            console.log("updating url")
             const newUrl = url.setQueryParams(nonDefaultValues)
             if (!isEqual(url, newUrl)) setWindowUrl(newUrl)
         })
