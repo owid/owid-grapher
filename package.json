@@ -36,7 +36,7 @@
         "testLint": "eslint .",
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "testPrettierChanged": "yarn fixPrettierChanged --check",
-        "testJest": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+        "testJest": "node --experimental-vm-modules testRunner.js"
     },
     "dependencies": {
         "@bugsnag/core": "^7.16.1",
