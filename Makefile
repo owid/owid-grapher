@@ -48,7 +48,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 		bind Q kill-server \
 		|| make down
 
-up.full: require create-if-missing.env.full tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
+up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@make validate.env.full
 	@make check-port-3306
 
@@ -131,6 +131,10 @@ tmp-downloads/owid_chartdata.sql.gz:
 tmp-downloads/live_wordpress.sql.gz:
 	@echo '==> Downloading wordpress data'
 	./devtools/docker/download-wordpress-mysql.sh
+
+wordpress/.env:
+	@echo 'Copying wordpress/.env.example --> wordpress/.env'
+	@cp -f wordpress/.env.example wordpress/.env
 
 wordpress/web/app/uploads/2022:
 	@echo '==> Downloading wordpress uploads'
