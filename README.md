@@ -14,7 +14,7 @@ This repo is currently not well-designed for reuse as a visualization library, n
 
 ⚠️
 
-**Note: As of April 5th 2022, we have [changed](https://github.com/owid/owid-grapher/pull/1359) the environment variable naming and MySQL port used by the database. If you've been running this project since before then, please update your `.env` and MySQL client accordingly.**
+**Note: As of April 5th 2022, we have [changed](https://github.com/owid/owid-grapher/pull/1359) the environment variable naming and MySQL port used by the database. If you've been running this project since before then, please update your `.env` and MySQL client accordingly (see the [example file](./.env.example) as a reference for the required changes).**
 
 ⚠️
 
