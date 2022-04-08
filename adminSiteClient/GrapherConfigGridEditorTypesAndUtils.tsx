@@ -339,38 +339,6 @@ export function SExpressionToJsonLogic(
     })
 }
 
-/** JsonLogic is the easiest format that the React Awesome Query Library can round
-    trip (i.e. deserialize from). Building the internal structure of the query library
-    would be tedious so we convert our SExpressions to JsonLogic. When React Awesome
-    Query Library parses this, it does a couple of undesirable things like convert
-    IsNull queries to == "null". This postprocessing function tries to rectify such
-    issues.
- */
-export function postProcessJsonLogicTree(filterTree: JsonTree | JsonItem) {
-    if (filterTree.type === "group" && filterTree.children1) {
-        if (isArray(filterTree.children1))
-            for (const child of filterTree.children1)
-                postProcessJsonLogicTree(child)
-        else if (isPlainObject(filterTree.children1))
-            for (const child of Object.values(filterTree.children1))
-                postProcessJsonLogicTree(child)
-    } else if (filterTree.type === "rule") {
-        const isNull =
-            filterTree.properties.value.length === 1 &&
-            (filterTree.properties.value[0] === "null" ||
-                filterTree.properties.value[0] === null)
-        const isEqual =
-            filterTree.properties.operator === "equal" ||
-            filterTree.properties.operator === "select_equals"
-        const isUnequal =
-            filterTree.properties.operator === "not_equal" ||
-            filterTree.properties.operator === "select_not_equals"
-        if (isNull && (isEqual || isUnequal)) {
-            filterTree.properties.operator = isEqual ? "is_null" : "is_not_null"
-        }
-    }
-}
-
 export function filterTreeToSExpression(
     filterTree: JsonTree | JsonItem,
     context: OperationContext,

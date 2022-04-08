@@ -1120,16 +1120,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             )
             if (jsonLogic === true) jsonLogic = null // If we have the default query then don't bother any further
 
-            let jsonLogicTree = Utils.loadFromJsonLogic(
+            const jsonLogicTree = Utils.loadFromJsonLogic(
                 jsonLogic as any,
                 this.FilterPanelConfig ?? filterPanelInitialConfig
             )
-
-            if (jsonLogicTree !== undefined) {
-                const mutableTree = Utils.getTree(jsonLogicTree)
-                postProcessJsonLogicTree(mutableTree)
-                jsonLogicTree = QbUtils.loadTree(mutableTree)
-            }
 
             // If we didn't get a working tree then use our default one instead
             const tree =
