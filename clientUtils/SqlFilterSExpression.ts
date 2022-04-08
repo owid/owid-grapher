@@ -1,3 +1,4 @@
+import { match } from "ts-pattern"
 import parse from "s-expression"
 import pointer from "json8-pointer"
 import { isArray, tail, without } from "lodash"
@@ -6,6 +7,18 @@ import { isArray, tail, without } from "lodash"
 // as String (note the uppercase! It really uses the rarely used String object) and
 // all other tokes like numbers or symbols as normal string.
 export type SExprAtom = string | String | SExprAtom[] // eslint-disable-line @typescript-eslint/ban-types
+
+export type JSONPreciselyTyped =
+    | string
+    | number
+    | boolean
+    | null
+    | JSONPreciselyTyped[]
+    | { [key: string]: JSONPreciselyTyped }
+
+export interface JsonLogicContext {
+    processSqlColumnName(columnName: string): string
+}
 
 export enum Arity {
     nullary = "nullary",
@@ -29,24 +42,28 @@ export interface OperationContext {
 export interface Operation {
     toSql(): string
     toSExpr(): string
+    toJsonLogic(context: JsonLogicContext): JSONPreciselyTyped
     expressionType: ExpressionType
 }
 
 export abstract class NumericOperation implements Operation {
     abstract toSql(): string
     abstract toSExpr(): string
+    abstract toJsonLogic(context: JsonLogicContext): JSONPreciselyTyped
     expressionType: ExpressionType = ExpressionType.numeric
 }
 
 export abstract class BooleanOperation implements Operation {
     abstract toSql(): string
     abstract toSExpr(): string
+    abstract toJsonLogic(context: JsonLogicContext): JSONPreciselyTyped
     expressionType: ExpressionType = ExpressionType.boolean
 }
 
 export abstract class StringOperation implements Operation {
     abstract toSql(): string
     abstract toSExpr(): string
+    abstract toJsonLogic(context: JsonLogicContext): JSONPreciselyTyped
     expressionType: ExpressionType = ExpressionType.string
 }
 
@@ -68,6 +85,10 @@ export class BooleanAtom extends BooleanOperation {
     toSExpr(): string {
         return this.value.toString()
     }
+
+    toJsonLogic(_jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        return this.value
+    }
 }
 
 export class NumberAtom extends NumericOperation {
@@ -80,6 +101,10 @@ export class NumberAtom extends NumericOperation {
 
     toSExpr(): string {
         return this.value.toString()
+    }
+
+    toJsonLogic(_jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        return this.value
     }
 }
 const quoteReplaceRegex = /'/g
@@ -105,6 +130,10 @@ export class StringAtom extends StringOperation {
             .toString()
             .replace(backslashReplaceRegex, "\\\\")
             .replace(doubleQuoteReplaceRegex, '\\"')}"`
+    }
+
+    toJsonLogic(_jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        return this.value
     }
 }
 
@@ -147,6 +176,10 @@ export class JsonPointerSymbol implements Operation {
     toSExpr(): string {
         return this.value.toString()
     }
+
+    toJsonLogic(_jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        return { var: this.value }
+    }
 }
 
 export class SqlColumnName implements Operation {
@@ -178,6 +211,10 @@ export class SqlColumnName implements Operation {
 
     toSExpr(): string {
         return this.value.toString()
+    }
+
+    toJsonLogic(jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        return { var: jsonLogicContext.processSqlColumnName(this.value) }
     }
 }
 
@@ -213,6 +250,13 @@ export class ArithmeticOperation extends NumericOperation {
         const operands = this.operands.map((op) => op.toSExpr()).join(" ")
         return `(${this.operator} ${operands})`
     }
+
+    toJsonLogic(jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        const operands = this.operands.map((op) =>
+            op.toJsonLogic(jsonLogicContext)
+        )
+        return { [this.operator.toString()]: operands }
+    }
 }
 
 export enum NullCheckOperator {
@@ -238,6 +282,16 @@ export class NullCheckOperation extends BooleanOperation {
 
     toSExpr(): string {
         return `(${this.operator} ${this.operand.toSExpr()})`
+    }
+
+    toJsonLogic(jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        const op = match(this.operator)
+            .with(NullCheckOperator.isNull, () => "==")
+            .with(NullCheckOperator.isNotNull, () => "!=")
+            .exhaustive()
+        const operand = this.operand.toJsonLogic(jsonLogicContext)
+
+        return { [op]: [operand, null] }
     }
 }
 
@@ -269,6 +323,17 @@ export class EqualityComparision extends BooleanOperation {
         const operands = this.operands.map((op) => op.toSExpr()).join(" ")
         return `(${this.operator} ${operands})`
     }
+
+    toJsonLogic(jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        const op = match(this.operator)
+            .with(EqualityOperator.equal, () => "==")
+            .with(EqualityOperator.unequal, () => "!=")
+            .exhaustive()
+        const operands = this.operands.map((op) =>
+            op.toJsonLogic(jsonLogicContext)
+        )
+        return { [op]: operands }
+    }
 }
 
 export class StringContainsOperation extends BooleanOperation {
@@ -286,6 +351,12 @@ export class StringContainsOperation extends BooleanOperation {
 
     toSExpr(): string {
         return `(CONTAINS ${this.container.toSExpr()} ${this.searchString.toSExpr()})`
+    }
+
+    toJsonLogic(jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        const container = this.container.toJsonLogic(jsonLogicContext)
+        const searchString = this.searchString.toJsonLogic(jsonLogicContext)
+        return { in: [searchString, container] }
     }
 }
 
@@ -321,6 +392,13 @@ export class NumericComparison extends BooleanOperation {
         const operands = this.operands.map((op) => op.toSExpr()).join(" ")
         return `(${this.operator} ${operands})`
     }
+
+    toJsonLogic(jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        const operands = this.operands.map((op) =>
+            op.toJsonLogic(jsonLogicContext)
+        )
+        return { [this.operator.toString()]: operands }
+    }
 }
 
 export enum BinaryLogicOperators {
@@ -351,6 +429,13 @@ export class BinaryLogicOperation extends BooleanOperation {
         const operands = this.operands.map((op) => op.toSExpr()).join(" ")
         return `(${this.operator} ${operands})`
     }
+
+    toJsonLogic(jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        const operands = this.operands.map((op) =>
+            op.toJsonLogic(jsonLogicContext)
+        )
+        return { [this.operator.toString().toLowerCase()]: operands }
+    }
 }
 
 export class Negation extends BooleanOperation {
@@ -364,6 +449,10 @@ export class Negation extends BooleanOperation {
 
     toSExpr(): string {
         return `(NOT ${this.operand.toSExpr()})`
+    }
+
+    toJsonLogic(jsonLogicContext: JsonLogicContext): JSONPreciselyTyped {
+        return { "!": this.operand.toJsonLogic(jsonLogicContext) }
     }
 }
 

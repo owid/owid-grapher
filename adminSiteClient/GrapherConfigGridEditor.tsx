@@ -19,6 +19,7 @@ import {
     isEqual,
     isNil,
     merge,
+    omitBy,
     pick,
     range,
 } from "lodash"
@@ -59,12 +60,7 @@ import {
 } from "../clientUtils/Util.js"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
-import {
-    BinaryLogicOperation,
-    BinaryLogicOperators,
-    BooleanAtom,
-    Operation,
-} from "../clientUtils/SqlFilterSExpression.js"
+import { Operation } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
     VariableAnnotationsRow,
@@ -91,8 +87,13 @@ import {
     ColumnDataSource,
     ColumnDataSourceType,
     ColumnDataSourceUnknown,
+    SExpressionToJsonLogic,
+    fetchVariablesParametersFromQueryString,
+    filterExpressionNoFilter,
+    fetchVariablesParametersToQueryParameters,
+    postProcessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
-import { Query, Utils as QbUtils } from "react-awesome-query-builder"
+import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
 import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
 import codemirror from "codemirror"
@@ -100,6 +101,7 @@ import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
+import { getWindowUrl, setWindowUrl } from "../clientUtils/urls/Url.js"
 
 function HotColorScaleRenderer(props: Record<string, unknown>) {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -214,17 +216,17 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             sortByAscending,
             sortByColumn,
             filterSExpression,
+            numTotalRows,
         } = this
-        const filterOperations = excludeUndefined([filterSExpression])
-        const filterQuery =
-            filterOperations.length === 0
-                ? new BooleanAtom(true)
-                : new BinaryLogicOperation(
-                      BinaryLogicOperators.and,
-                      filterOperations
-                  )
+        const filterQuery = filterSExpression ?? filterExpressionNoFilter
+        const offsetToUse = numTotalRows
+            ? Math.max(
+                  0,
+                  Math.min(desiredPagingOffset / 50, numTotalRows / 50 - 1)
+              ) * 50
+            : desiredPagingOffset
         return {
-            pagingOffset: desiredPagingOffset,
+            offset: offsetToUse,
             filterQuery,
             sortByColumn,
             sortByAscending,
@@ -234,12 +236,26 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         setup that puts in place the fetch logic to retrieve variable annotations
         whenever any of the dataFetchParameters change */
     async componentDidMount() {
+        const url = getWindowUrl()
+        const queryParamsAsDataFetchParams =
+            fetchVariablesParametersFromQueryString(
+                url.queryParams,
+                this.config.sExpressionContext
+            )
+        const nonDefaultDataFetchQueryParams = !isEqual(
+            this.dataFetchParameters,
+            queryParamsAsDataFetchParams
+        )
+
         // Here we chain together a mobx property (dataFetchParameters) to
         // an rxJS observable pipeline to debounce the signal and then
         // use switchMap to create new fetch requests and cancel outstanding ones
         // to finally turn this into a local mobx value again that we subscribe to
         // with an autorun to finally update the dependent properties on this class.
-        const varStream = toStream(() => this.dataFetchParameters, true)
+        const varStream = toStream(
+            () => this.dataFetchParameters,
+            !nonDefaultDataFetchQueryParams
+        )
 
         const observable = from(varStream).pipe(
             debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
@@ -366,7 +382,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         value: string
     ) {
         if (data.origin !== undefined) {
-            console.log({ data })
             // origin seems to be +input when editing and undefined when we change the value programmatically
             const { currentColumnFieldDescription, grapher } = this
             if (currentColumnFieldDescription === undefined) return
@@ -877,7 +892,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
     @action.bound
     clearCellContent() {
-        console.log("Clearing cell content")
         const {
             selectedRow,
             selectedColumn,
@@ -1078,20 +1092,79 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         ).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
+            // Now that we have the field Definitions we can initialize everything, including
+            // the filter fields from the query string
             this.fieldDescriptions = fieldDescriptions
 
             this.initializeColumnSelection(
                 fieldDescriptions,
                 this.currentColumnSet
             )
+
+            // Get query params and convert them into a fetchVariables data structure
+            const url = getWindowUrl()
+            const queryParams = url.queryParams
+            const fetchParamsFromQueryParams =
+                fetchVariablesParametersFromQueryString(
+                    queryParams,
+                    this.config.sExpressionContext
+                )
+
+            // We serialize our own SExpression into the query string. We now
+            // need to get this in a form that the React Awesome Query Builder can process.
+            // The easiest of the formats that library can load is JsonLogic, so we convert
+            // to JsonLogic and postprocess to fix some issues
+            let jsonLogic = SExpressionToJsonLogic(
+                fetchParamsFromQueryParams.filterQuery,
+                this.config.readonlyColumns
+            )
+            if (jsonLogic === true) jsonLogic = null // If we have the default query then don't bother any further
+
+            const jsonLogicTree = Utils.loadFromJsonLogic(
+                jsonLogic as any,
+                this.FilterPanelConfig ?? filterPanelInitialConfig
+            )
+
+            // If we didn't get a working tree then use our default one instead
+            const tree =
+                jsonLogicTree ?? QbUtils.loadTree(initialFilterQueryValue)
             this.filterState = {
                 tree: QbUtils.checkTree(
-                    QbUtils.loadTree(initialFilterQueryValue),
+                    tree,
                     this.FilterPanelConfig ?? filterPanelInitialConfig
                 ),
                 config: this.FilterPanelConfig ?? filterPanelInitialConfig,
             }
+
+            // Now set the remaining filter fields from the parsed query string
+            this.sortByColumn = fetchParamsFromQueryParams.sortByColumn
+            this.sortByAscending = fetchParamsFromQueryParams.sortByAscending
+            this.desiredPagingOffset = fetchParamsFromQueryParams.offset
         })
+
+        // This autorun updates the query params in the URL (without creating history steps)
+        // to always reflect the current data query state (i.e. filtering and paging)
+        const disposer = autorun(() => {
+            const fetchParamsFromQueryParamsAsStrings =
+                fetchVariablesParametersToQueryParameters(
+                    this.dataFetchParameters
+                )
+            const defaultValues = fetchVariablesParametersFromQueryString(
+                {},
+                this.config.sExpressionContext
+            )
+            const defaultValuesAsStrings =
+                fetchVariablesParametersToQueryParameters(defaultValues)
+            // Only store non-default values in the query params
+            const nonDefaultValues = omitBy(
+                fetchParamsFromQueryParamsAsStrings,
+                (value, key) => (defaultValuesAsStrings as any)[key] === value
+            )
+            const url = getWindowUrl()
+            const newUrl = url.setQueryParams(nonDefaultValues)
+            if (!isEqual(url, newUrl)) setWindowUrl(newUrl)
+        })
+        this.disposers.push(disposer)
     }
 
     @action
@@ -1592,12 +1665,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             isEqual(filterState?.config, config)
         )
 
-        if (updateFilterState)
+        if (updateFilterState) {
             this.filterState = {
                 ...filterState,
                 tree: immutableTree,
                 config: config,
             }
+        }
     }
 
     @computed get filterSExpression(): Operation | undefined {

@@ -1,4 +1,4 @@
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
+import { QueryParams, queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,
@@ -19,6 +19,8 @@ import {
     StringOperation,
     BooleanOperation,
     OperationContext,
+    parseToOperation,
+    JSONPreciselyTyped,
 } from "../clientUtils/SqlFilterSExpression.js"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
@@ -120,19 +122,45 @@ export type ColumnSet = FullColumnSet | SpecificColumnSet
 /** All the parameters we need for making a fully specified request to the /variable-annotations
     endpoint. When any of these fields change we need to trigger a new request */
 export interface FetchVariablesParameters {
-    pagingOffset: number
+    offset: number
     filterQuery: Operation
     sortByColumn: string // sort is currently ignored but here for future use
     sortByAscending: boolean // sort is currently ignored but here for future use
 }
 
+export const filterExpressionNoFilter = new BooleanAtom(true)
+
+export function fetchVariablesParametersFromQueryString(
+    params: QueryParams,
+    sExpressionContext: OperationContext
+): FetchVariablesParameters {
+    let filterQuery: Operation | undefined = undefined
+    if (params.hasOwnProperty("filter")) {
+        filterQuery = parseToOperation(params.filter!, sExpressionContext)
+    }
+    return {
+        offset: Number.parseInt(params.offset ?? "0"),
+        filterQuery: filterQuery ?? filterExpressionNoFilter,
+        sortByColumn: params.sortByColumn ?? "id",
+        sortByAscending: params.sortByAscending === "true" ?? false,
+    }
+}
+
+export function fetchVariablesParametersToQueryParameters(
+    params: FetchVariablesParameters
+) {
+    return {
+        filter: params.filterQuery.toSExpr(),
+        offset: params.offset.toString(),
+        sortByColumn: params.sortByColumn,
+        sortByAscending: params.sortByAscending.toString(),
+    }
+}
+
 export function fetchVariablesParametersToQueryParametersString(
     params: FetchVariablesParameters
 ): string {
-    return queryParamsToStr({
-        filter: params.filterQuery.toSExpr(),
-        offset: params.pagingOffset.toString(),
-    })
+    return queryParamsToStr(fetchVariablesParametersToQueryParameters(params))
 }
 
 export interface IconToggleProps {
@@ -291,6 +319,24 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
     else if (str === "not_equal" || str === "select_not_equals")
         return EqualityOperator.unequal
     else return undefined
+}
+
+/** JsonLogic is the easiest format that the React Awesome Query Builder can round
+    trip (i.e. deserialize from). Building the internal structure of the query library
+    would be tedious so we convert our SExpressions to JsonLogic. */
+export function SExpressionToJsonLogic(
+    sExpression: Operation,
+    readOnlyEntries: Map<string, ReadOnlyColumn>
+): JSONPreciselyTyped {
+    return sExpression.toJsonLogic({
+        processSqlColumnName: (columnName) => {
+            const item = [...readOnlyEntries.entries()].find(
+                (item) => item[1].sExpressionColumnTarget === columnName
+            )
+            const mappedColumnName = item![0]
+            return mappedColumnName
+        },
+    })
 }
 
 export function filterTreeToSExpression(
