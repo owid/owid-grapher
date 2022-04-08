@@ -10,7 +10,13 @@
 
 ---
 
-**This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure.**
+This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure.
+
+⚠️
+
+**Note: As of April 5th 2022, we have [changed](https://github.com/owid/owid-grapher/pull/1359) the environment variable naming and MySQL port used by the database. If you've been running this project since before then, please update your `.env` and MySQL client accordingly.**
+
+⚠️
 
 We're gradually making steps towards making our work more reusable, however we still prioritize [needs specific to our project](#why-did-we-start-this-project) that can be at odds with making our tools reusable.
 

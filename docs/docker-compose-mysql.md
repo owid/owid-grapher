@@ -57,7 +57,7 @@ The first time you run this it will take a while to download and set up the data
 
 Now you can open [http://localhost:3030/admin/charts](http://localhost:3030/admin/charts) and start creating charts. Any changes to the TypeScript code you make will be automatically compiled, but you will have to refresh your page to see the changes.
 
-### Inspecting the databases
+## Inspecting the databases
 
 For all operating systems, we recommend using [DBeaver](https://dbeaver.io/).
 
@@ -76,3 +76,31 @@ Use this connection configuration:
 We also have [a schema diagram for reference.](screenshots/er_diagram.png)
 
 Note that in the MySQL database that was set up, the `data_values` table is incomplete – it only contains data used in charts. In production, this table is >30GB (uncompressed) and contains unreviewed and undocumented data, so we currently don't offer a full export of it.
+
+## Resetting your environment
+
+If you've modified or broken your database and want to start over from scratch, you'll need to clear the docker volumes that the database persists on.
+
+To do so, get their names
+
+```bash
+docker volume ls
+```
+
+and remove them with
+
+```bash
+docker volume rm volume_name
+```
+
+The names of the volumes should usually be something like `owid-grapher_mysql_data` and `owid-grapher_mysql_data_public`.
+
+You can also remove your local copies of the database exports if you want to download the latest version. Skip this step if you want your database to be exactly the same as it was on your last setup.
+
+```bash
+rm tmp-downloads/*
+```
+
+With that done, the next time you run `make up`, the database files will be re-downloaded.
+
+A new database will then be created (expect another 10-20 minutes.)
