@@ -19,8 +19,8 @@ import {
     StringOperation,
     BooleanOperation,
     OperationContext,
-    ArithmeticOperation,
     parseToOperation,
+    JSONPreciselyTyped,
 } from "../clientUtils/SqlFilterSExpression.js"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
@@ -49,7 +49,7 @@ import {
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
 import { excludeUndefined, isArray } from "../clientUtils/Util.js"
-import { isNil, isPlainObject, values } from "lodash"
+import { isNil, isPlainObject } from "lodash"
 import {
     EditorOption,
     FieldDescription,
@@ -130,7 +130,7 @@ export interface FetchVariablesParameters {
 
 export const filterExpressionNoFilter = new BooleanAtom(true)
 
-export function fetchVariablesParamtersFromQueryString(
+export function fetchVariablesParametersFromQueryString(
     params: QueryParams,
     sExpressionContext: OperationContext
 ): FetchVariablesParameters {
@@ -327,94 +327,16 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
 export function SExpressionToJsonLogic(
     sExpression: Operation,
     readOnlyEntries: Map<string, ReadOnlyColumn>
-): Record<string, unknown> | number | string | boolean | null {
-    if (sExpression instanceof Negation) {
-        return {
-            "!": SExpressionToJsonLogic(sExpression.operand, readOnlyEntries),
-        }
-    } else if (sExpression instanceof BinaryLogicOperation) {
-        const operands = sExpression.operands.map((op) =>
-            SExpressionToJsonLogic(op, readOnlyEntries)
-        )
-        return {
-            [sExpression.operator.toString().toLowerCase()]: operands,
-        }
-    } else if (sExpression instanceof NumericComparison) {
-        const operands = sExpression.operands.map((op) =>
-            SExpressionToJsonLogic(op, readOnlyEntries)
-        )
-        return {
-            [sExpression.operator.toString()]: operands,
-        }
-    } else if (sExpression instanceof StringContainsOperation) {
-        const container = SExpressionToJsonLogic(
-            sExpression.container,
-            readOnlyEntries
-        )
-        const searchString = SExpressionToJsonLogic(
-            sExpression.searchString,
-            readOnlyEntries
-        )
-
-        return {
-            in: [searchString, container],
-        }
-    } else if (sExpression instanceof EqualityComparision) {
-        const operands = sExpression.operands.map((op) =>
-            SExpressionToJsonLogic(op, readOnlyEntries)
-        )
-        const op = match(sExpression.operator)
-            .with(EqualityOperator.equal, () => "==")
-            .with(EqualityOperator.unequal, () => "!=")
-            .exhaustive()
-        return {
-            [op]: operands,
-        }
-    } else if (sExpression instanceof NullCheckOperation) {
-        const operand = SExpressionToJsonLogic(
-            sExpression.operand,
-            readOnlyEntries
-        )
-        const op = match(sExpression.operator)
-            .with(NullCheckOperator.isNull, () => "==")
-            .with(NullCheckOperator.isNotNull, () => "!=")
-            .exhaustive()
-        return {
-            [op]: [operand, "null"],
-        }
-    } else if (sExpression instanceof ArithmeticOperation) {
-        const operands = sExpression.operands.map((op) =>
-            SExpressionToJsonLogic(op, readOnlyEntries)
-        )
-        return {
-            [sExpression.operator.toString()]: operands,
-        }
-    } else if (sExpression instanceof SqlColumnName) {
-        const item = [...readOnlyEntries.entries()].find(
-            (item) => item[1].sExpressionColumnTarget === sExpression.value
-        )
-        const operand = item![0]
-
-        return {
-            var: operand,
-        }
-    } else if (sExpression instanceof JsonPointerSymbol) {
-        const operand = sExpression.value
-        return {
-            var: operand,
-        }
-    } else if (sExpression instanceof StringAtom) {
-        const operand = sExpression.value
-        return operand
-    } else if (sExpression instanceof NumberAtom) {
-        const operand = sExpression.value
-        return operand
-    } else if (sExpression instanceof BooleanAtom) {
-        const operand = sExpression.value
-        return operand
-    } else {
-        throw Error(`unsupported sExpression: ${sExpression}`)
-    }
+): JSONPreciselyTyped {
+    return sExpression.toJsonLogic({
+        processSqlColumnName: (columnName) => {
+            const item = [...readOnlyEntries.entries()].find(
+                (item) => item[1].sExpressionColumnTarget === columnName
+            )
+            const mappedColumnName = item![0]
+            return mappedColumnName
+        },
+    })
 }
 
 /** JsonLogic is the easiest format that the React Awesome Query Library can round
@@ -430,7 +352,7 @@ export function postProcessJsonLogicTree(filterTree: JsonTree | JsonItem) {
             for (const child of filterTree.children1)
                 postProcessJsonLogicTree(child)
         else if (isPlainObject(filterTree.children1))
-            for (const child of values(filterTree.children1))
+            for (const child of Object.values(filterTree.children1))
                 postProcessJsonLogicTree(child)
     } else if (filterTree.type === "rule") {
         const isNull =

@@ -88,7 +88,7 @@ import {
     ColumnDataSourceType,
     ColumnDataSourceUnknown,
     SExpressionToJsonLogic,
-    fetchVariablesParamtersFromQueryString,
+    fetchVariablesParametersFromQueryString,
     filterExpressionNoFilter,
     fetchVariablesParametersToQueryParameters,
     postProcessJsonLogicTree,
@@ -238,7 +238,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     async componentDidMount() {
         const url = getWindowUrl()
         const queryParamsAsDataFetchParams =
-            fetchVariablesParamtersFromQueryString(
+            fetchVariablesParametersFromQueryString(
                 url.queryParams,
                 this.config.sExpressionContext
             )
@@ -1105,7 +1105,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             const url = getWindowUrl()
             const queryParams = url.queryParams
             const fetchParamsFromQueryParams =
-                fetchVariablesParamtersFromQueryString(
+                fetchVariablesParametersFromQueryString(
                     queryParams,
                     this.config.sExpressionContext
                 )
@@ -1155,7 +1155,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 fetchVariablesParametersToQueryParameters(
                     this.dataFetchParameters
                 )
-            const defaultValues = fetchVariablesParamtersFromQueryString(
+            const defaultValues = fetchVariablesParametersFromQueryString(
                 {},
                 this.config.sExpressionContext
             )
