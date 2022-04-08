@@ -434,7 +434,7 @@ export class BinaryLogicOperation extends BooleanOperation {
         const operands = this.operands.map((op) =>
             op.toJsonLogic(jsonLogicContext)
         )
-        return { [this.operator.toString()]: operands }
+        return { [this.operator.toString().toLowerCase()]: operands }
     }
 }
 
