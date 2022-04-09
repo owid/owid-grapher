@@ -9,7 +9,7 @@ This page describes how to set up a MySQL database loaded with example charts so
 This option uses `make` to spin up all the services with a single command, but it requires a few utilities to be installed:
 
 -   [Docker](https://www.docker.com/get-started)
--   [Node.js and Yarn](docs/local-typescript-setup.md)
+-   [Node.js and Yarn](./local-typescript-setup.md)
 -   [tmux](https://github.com/tmux/tmux/wiki/Installing#binary-packages)
 
 If you're using Windows, we recommend you use the Windows Subsystem for Linux, where you'll require some additional utilities:
