@@ -7,7 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { MultiEmbedderSingleton } from "../../site/multiembedder/MultiEmbedder.js"
 
-export const CLASS_NAME = "wp-block-owid-additional-information"
+export const ADDITIONAL_INFORMATION_CLASS_NAME =
+    "wp-block-owid-additional-information"
 const VARIATION_MERGE_LEFT = "merge-left"
 const VARIATION_FULL_WIDTH = "full-width"
 
@@ -38,7 +39,7 @@ const AdditionalInformation = ({
     )
     const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen)
     const refContainer = useRef<HTMLDivElement>(null)
-    const classes = [CLASS_NAME]
+    const classes = [ADDITIONAL_INFORMATION_CLASS_NAME]
 
     useEffect(() => {
         if (refContainer.current) {
@@ -165,7 +166,7 @@ export const renderAdditionalInformation = ($: CheerioStatic) => {
 
 export const hydrate = () => {
     document
-        .querySelectorAll<HTMLElement>(`.${CLASS_NAME}`)
+        .querySelectorAll<HTMLElement>(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`)
         .forEach((block) => {
             const blockWrapper = block.parentElement
             const titleEl = block.querySelector("h3")

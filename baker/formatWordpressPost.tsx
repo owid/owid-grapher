@@ -42,7 +42,10 @@ import {
     getOwidVariableDisplayConfig,
 } from "../db/model/Variable.js"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue.js"
-import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
+import {
+    ADDITIONAL_INFORMATION_CLASS_NAME,
+    renderAdditionalInformation,
+} from "../site/blocks/AdditionalInformation.js"
 import { renderHelp } from "../site/blocks/Help.js"
 import {
     formatUrls,
@@ -506,7 +509,7 @@ export const formatWordpressPost = async (
             } else if (
                 $heading.is("h3") &&
                 $heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length === 0 &&
-                $heading.closest(".wp-block-owid-additional-information")
+                $heading.closest(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`)
                     .length === 0
             ) {
                 tocHeadings.push({
@@ -522,7 +525,7 @@ export const formatWordpressPost = async (
         // (e.g. within a prominent link block)
         if (
             !$heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length && // already wrapped in <a>
-            !$heading.closest(".wp-block-owid-additional-information").length && // prioritize clean SSR of AdditionalInformation
+            !$heading.closest(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`).length && // prioritize clean SSR of AdditionalInformation
             !$heading.closest(".wp-block-help").length
         ) {
             $heading.attr("id", slug)
