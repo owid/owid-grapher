@@ -133,7 +133,13 @@ export const splitContentIntoSectionsAndColumns = (
                 $el.hasClass("wp-block-columns") ||
                 $el.hasClass("wp-block-owid-grid") ||
                 $el.hasClass(WP_BlockType.FullContentWidth) ||
-                $el.find(
+                // restrict lookup to first-level children to prevent wrongly
+                // matching (unlikely) full-width additional information blocks
+                // within key insights blocks. Full-width additional information
+                // blocks are not really supported within key insights; this is
+                // half optimization (children vs find), half reminder of this
+                // particular edge case.
+                $el.children(
                     '.wp-block-owid-additional-information[data-variation="full-width"]'
                 ).length !== 0
             )
