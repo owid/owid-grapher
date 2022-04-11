@@ -245,6 +245,12 @@ export interface PostRestApi {
         }
     }
 }
+
+export interface KeyInsight {
+    title: string
+    content: string
+}
+
 export interface FullPost {
     id: number
     type: WP_PostType

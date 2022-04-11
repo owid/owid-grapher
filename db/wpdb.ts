@@ -33,6 +33,7 @@ import {
     PostRestApi,
     TopicId,
     GraphType,
+    KeyInsight,
 } from "../clientUtils/owidTypes.js"
 import { memoize } from "../clientUtils/Util.js"
 import { Topic } from "../grapher/core/GrapherConstants.js"
@@ -571,16 +572,6 @@ export const getPostBySlug = async (slug: string): Promise<FullPost> => {
     return getFullPost(postArr)
 }
 
-// Attention: this query is only matching IDs of posts (as opposed to pages).
-// Given that this function is only currently used for rendering key insights,
-// that limitation is not only ok but also desired (pages / topics are not
-// supposed to be mentioned as key insights)
-export const getPostById = async (id: number): Promise<FullPost> => {
-    const postApi = await apiQuery(`${WP_API_ENDPOINT}/posts/${id}`)
-
-    return getFullPost(postApi)
-}
-
 // the /revisions endpoint does not send back all the metadata required for
 // the proper rendering of the post (e.g. authors), hence the double request.
 export const getLatestPostRevision = async (id: number): Promise<FullPost> => {
@@ -666,6 +657,26 @@ export const getBlockContent = async (
     const post = await graphqlQuery(query, { id })
 
     return post.data?.wpBlock?.content ?? undefined
+}
+
+export const getKeyInsights = async (
+    ids: number[]
+): Promise<KeyInsight[] | undefined> => {
+    if (!isWordpressAPIEnabled) return undefined
+
+    const query = `
+    {
+        posts(where: { in: [${ids.toString()}] }) {
+            nodes {
+                title
+                content
+            }
+        }
+    }
+    `
+    const result = await graphqlQuery(query)
+
+    return result.data?.posts.nodes ?? undefined
 }
 
 export const getFullPost = async (
