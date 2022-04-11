@@ -629,14 +629,13 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
         const keyInsights = await getKeyInsights(keyInsightsIds)
         if (!keyInsights) continue
         const titles = keyInsights.map((keyInsight) => keyInsight.title)
-        const slides = keyInsights.map((keyInsight) => keyInsight.content)
 
         const rendered = ReactDOMServer.renderToString(
             <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
                 <div className={`block-wrapper`}>
                     <KeyInsightsThumbs titles={titles} />
                 </div>
-                <KeyInsightsSlides slides={slides} />
+                <KeyInsightsSlides insights={keyInsights} />
             </div>
         )
 

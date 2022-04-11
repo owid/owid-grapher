@@ -512,16 +512,9 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
     /* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
     .wp-block-columns h4 {
-        font-family: $serif-font-stack;
-        font-weight: 400;
-        font-size: 1.5rem;
-        line-height: 1.4em;
+        @include h4-style;
         margin-top: 2.75rem;
         margin-bottom: $vertical-spacing;
-
-        @include sm-only {
-            font-size: 1.25rem;
-        }
     }
 
     .wp-block-columns h5 {

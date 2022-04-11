@@ -94,6 +94,11 @@
             &[data-active] {
                 display: block;
             }
+
+            h4 {
+                @include h4-style;
+                margin: 0 0 $vertical-spacing;
+            }
         }
 
         @include lg-up {

@@ -3,12 +3,14 @@ import ReactDOM from "react-dom"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import { KeyInsight } from "../../clientUtils/owidTypes.js"
 
 export const KEY_INSIGHTS_CLASS_NAME = "key-insights"
 export const KEY_INSIGHTS_THUMBS_CLASS_NAME = "thumbs"
 const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
 const KEY_INSIGHTS_SLIDES_CLASS_NAME = "slides"
 export const KEY_INSIGHTS_SLIDE_CLASS_NAME = "slide"
+export const KEY_INSIGHTS_SLIDE_CONENT_CLASS_NAME = "content"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
@@ -101,14 +103,18 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     )
 }
 
-export const KeyInsightsSlides = ({ slides }: { slides: string[] }) => (
+export const KeyInsightsSlides = ({ insights }: { insights: KeyInsight[] }) => (
     <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
-        {slides.map((slide, idx) => (
-            <div
-                key={idx}
-                className={KEY_INSIGHTS_SLIDE_CLASS_NAME}
-                dangerouslySetInnerHTML={{ __html: slide }}
-            ></div>
+        {insights.map(({ title, content, slug }, idx) => (
+            <div key={idx} className={KEY_INSIGHTS_SLIDE_CLASS_NAME}>
+                <h4>
+                    <a href={`/${slug}`}>{title}</a>
+                </h4>
+                <div
+                    className={KEY_INSIGHTS_SLIDE_CONENT_CLASS_NAME}
+                    dangerouslySetInnerHTML={{ __html: content }}
+                ></div>
+            </div>
         ))}
     </div>
 )
