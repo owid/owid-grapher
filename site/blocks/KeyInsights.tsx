@@ -5,10 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
 export const KEY_INSIGHTS_CLASS_NAME = "key-insights"
-export const THUMBS_CLASS_NAME = "thumbs"
-const THUMB_CLASS_NAME = "thumb"
-const SLIDES_CLASS_NAME = "slides"
-const SLIDE_CLASS_NAME = "slide"
+export const KEY_INSIGHTS_THUMBS_CLASS_NAME = "thumbs"
+const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
+const KEY_INSIGHTS_SLIDES_CLASS_NAME = "slides"
+export const KEY_INSIGHTS_SLIDE_CLASS_NAME = "slide"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
@@ -28,7 +28,9 @@ const Thumb = ({
         <button
             onClick={() => onClick(visibility)}
             className={
-                selected ? `${THUMB_CLASS_NAME} selected` : THUMB_CLASS_NAME
+                selected
+                    ? `${KEY_INSIGHTS_THUMB_CLASS_NAME} selected`
+                    : KEY_INSIGHTS_THUMB_CLASS_NAME
             }
         >
             {title}
@@ -50,7 +52,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     useEffect(() => {
         const slides =
             thumbsRef.current?.parentElement?.parentElement?.querySelector(
-                `.${SLIDES_CLASS_NAME}`
+                `.${KEY_INSIGHTS_SLIDES_CLASS_NAME}`
             )
         if (!slides) return
 
@@ -65,7 +67,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
         // stuck with the imperative approach.
 
         slides
-            .querySelectorAll(`.${SLIDE_CLASS_NAME}`)
+            .querySelectorAll(`.${KEY_INSIGHTS_SLIDE_CLASS_NAME}`)
             .forEach((slide, idx) => {
                 if (idx === Number(selectedId)) {
                     slide.setAttribute("data-active", "true")
@@ -76,7 +78,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     }, [selectedId])
 
     return (
-        <div className={THUMBS_CLASS_NAME} ref={thumbsRef}>
+        <div className={KEY_INSIGHTS_THUMBS_CLASS_NAME} ref={thumbsRef}>
             <ScrollMenu
                 LeftArrow={LeftArrow}
                 RightArrow={RightArrow}
@@ -100,11 +102,11 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
 }
 
 export const KeyInsightsSlides = ({ slides }: { slides: string[] }) => (
-    <div className={SLIDES_CLASS_NAME}>
+    <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
         {slides.map((slide, idx) => (
             <div
                 key={idx}
-                className={SLIDE_CLASS_NAME}
+                className={KEY_INSIGHTS_SLIDE_CLASS_NAME}
                 dangerouslySetInnerHTML={{ __html: slide }}
             ></div>
         ))}
@@ -181,10 +183,10 @@ const RightArrow = () => {
 
 export const hydrateKeyInsights = () => {
     document
-        .querySelectorAll<HTMLElement>(`.${THUMBS_CLASS_NAME}`)
+        .querySelectorAll<HTMLElement>(`.${KEY_INSIGHTS_THUMBS_CLASS_NAME}`)
         .forEach((block) => {
             const titles = Array.from(
-                block.querySelectorAll(`.${THUMB_CLASS_NAME}`)
+                block.querySelectorAll(`.${KEY_INSIGHTS_THUMB_CLASS_NAME}`)
             ).map((thumb) => thumb.innerHTML)
 
             if (!titles.length) return

@@ -61,7 +61,7 @@ import {
     selectHomepagePosts,
     isPostCitable,
     getBlockContent,
-    getPostById,
+    getKeyInsights,
 } from "../db/wpdb.js"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
@@ -73,11 +73,7 @@ import {
     KeyInsightsSlides,
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
-import {
-    formatUrls,
-    getBodyHtml,
-    splitContentIntoSectionsAndColumns,
-} from "../site/formatting.js"
+import { formatUrls, getBodyHtml } from "../site/formatting.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
@@ -621,38 +617,19 @@ const renderExplorerDefaultThumbnail = (): string => {
     )
 }
 
-export const renderKeyInsights = async (
-    $: CheerioStatic,
-    grapherExports?: GrapherExports
-) => {
+export const renderKeyInsights = async (html: string): Promise<string> => {
+    const $ = cheerio.load(html)
+
     for (const block of Array.from($("block[type='key-insights']"))) {
         const $block = $(block)
 
         const keyInsightsIds = $block.data("ids")
-        if (!keyInsightsIds) return
+        if (!keyInsightsIds) continue
 
-        const titles: string[] = []
-        const slides = []
-        for (const id of keyInsightsIds) {
-            const post = await getPostById(id)
-            titles.push(post.title)
-            const formattingOptions = extractFormattingOptions(post.content)
-            // infinte recursion not handled: two posts referencing each other
-            // as key insights will trigger infinite calls to formatPost(). In
-            // practice, key insights are not supposed to embed key insights
-            // themselves, since they are already the smallest piece of
-            // information available.
-            const formattedPost = await formatPost(
-                post,
-                formattingOptions,
-                grapherExports
-            )
-            const cheerioEl = cheerio.load(formattedPost.html)
-
-            splitContentIntoSectionsAndColumns(cheerioEl)
-
-            slides.push(getBodyHtml(cheerioEl))
-        }
+        const keyInsights = await getKeyInsights(keyInsightsIds)
+        if (!keyInsights) continue
+        const titles = keyInsights.map((keyInsight) => keyInsight.title)
+        const slides = keyInsights.map((keyInsight) => keyInsight.content)
 
         const rendered = ReactDOMServer.renderToString(
             <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
@@ -665,4 +642,5 @@ export const renderKeyInsights = async (
 
         $block.replaceWith(rendered)
     }
+    return getBodyHtml($)
 }
