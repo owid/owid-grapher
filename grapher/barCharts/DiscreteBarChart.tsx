@@ -73,7 +73,7 @@ const LEGEND_PADDING = 25
 
 export interface Label {
     valueString: string
-    yearString: string
+    timeString: string
 }
 
 interface DiscreteBarItem {
@@ -205,7 +205,7 @@ export class DiscreteBarChart
             .map(
                 (d) =>
                     this.formatValue(d).valueString +
-                    this.formatValue(d).yearString
+                    this.formatValue(d).timeString
             )
         const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
         return Bounds.forText(longestPositiveLabel, this.valueLabelStyle).width
@@ -222,7 +222,7 @@ export class DiscreteBarChart
             .map(
                 (d) =>
                     this.formatValue(d).valueString +
-                    this.formatValue(d).yearString
+                    this.formatValue(d).timeString
             )
         const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
         return (
@@ -449,7 +449,7 @@ export class DiscreteBarChart
                                 {...this.valueLabelStyle}
                             >
                                 {label.valueString}
-                                <tspan fill="#999">{label.yearString}</tspan>
+                                <tspan fill="#999">{label.timeString}</tspan>
                             </text>
                         </g>
                     )
@@ -482,10 +482,13 @@ export class DiscreteBarChart
         const showYearLabels =
             this.manager.showYearLabels || series.time !== this.targetTime
         const displayValue = column.formatValueShort(series.value)
+        const { timeColumn } = transformedTable
+        const preposition = OwidTable.getPreposition(timeColumn)
+
         return {
             valueString: displayValue,
-            yearString: showYearLabels
-                ? ` in ${transformedTable.timeColumnFormatFunction(
+            timeString: showYearLabels
+                ? ` ${preposition} ${transformedTable.timeColumnFormatFunction(
                       series.time
                   )}`
                 : "",
