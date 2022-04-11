@@ -110,8 +110,14 @@ describe("barcharts with columns as the series", () => {
                 endTime: 2020,
             },
         })
-        expect(chart.formatValue(chart.series[0])).toEqual("1,002")
-        expect(chart.formatValue(chart.series[1])).toEqual("1,000 (2019)")
+        expect(chart.formatValue(chart.series[0])).toEqual({
+            valueString: "1,002",
+            timeString: "",
+        })
+        expect(chart.formatValue(chart.series[1])).toEqual({
+            valueString: "1,000",
+            timeString: " in 2019",
+        })
     })
 })
 
