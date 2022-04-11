@@ -54,6 +54,7 @@ import {
     SUMMARY_CLASSNAME,
 } from "../site/formatting.js"
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
+import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 const initMathJax = () => {
@@ -525,6 +526,7 @@ export const formatWordpressPost = async (
         // (e.g. within a prominent link block)
         if (
             !$heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length && // already wrapped in <a>
+            !$heading.closest(`.${KEY_INSIGHTS_CLASS_NAME}`).length &&
             !$heading.closest(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`).length && // prioritize clean SSR of AdditionalInformation
             !$heading.closest(".wp-block-help").length
         ) {

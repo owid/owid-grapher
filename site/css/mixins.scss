@@ -105,6 +105,17 @@
     line-height: 1.25em;
 }
 
+@mixin h4-style {
+    font-family: $serif-font-stack;
+    font-weight: 400;
+    font-size: 1.5rem;
+    line-height: 1.4em;
+
+    @include sm-only {
+        font-size: 1.25rem;
+    }
+}
+
 @mixin button-disabled {
     &:disabled {
         opacity: 0.5;

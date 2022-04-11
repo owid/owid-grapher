@@ -249,6 +249,7 @@ export interface PostRestApi {
 export interface KeyInsight {
     title: string
     content: string
+    slug: string
 }
 
 export interface FullPost {

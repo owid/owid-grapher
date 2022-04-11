@@ -670,6 +670,7 @@ export const getKeyInsights = async (
             nodes {
                 title
                 content
+                slug
             }
         }
     }
