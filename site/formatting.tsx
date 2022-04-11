@@ -327,7 +327,9 @@ export const getBodyHtml = (cheerioEl: CheerioStatic): string => {
 }
 
 const addGlossaryToSections = (cheerioEl: CheerioStatic) => {
-    const $sections = cheerioEl("section")
+    // highlight glossary terms once per top-level section (ignore sub-sections
+    // created by KeyInsightsHandler)
+    const $sections = cheerioEl("body > section")
     $sections.each((i, el) => {
         const $el = cheerioEl(el)
         const $contents = $el.contents()
