@@ -120,7 +120,7 @@ export {
 import { extent, pairs } from "d3-array"
 export { pairs }
 import dayjs from "./dayjs.js"
-import { formatLocale } from "d3-format"
+import { formatLocale, FormatLocaleObject } from "d3-format"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html.js"
@@ -190,13 +190,16 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
 // See https://observablehq.com/@d3/d3v6-migration-guide#minus
-export const d3Format = formatLocale({
-    decimal: ".",
-    thousands: ",",
-    grouping: [3],
-    minus: "-",
-    currency: ["$", ""],
-}).format
+export const d3Format = (
+    currency: "$" | "£" = "$"
+): FormatLocaleObject["format"] =>
+    formatLocale({
+        decimal: ".",
+        thousands: ",",
+        grouping: [3],
+        minus: "-",
+        currency: [currency, ""],
+    }).format
 
 const getRootSVG = (
     element: Element | SVGGraphicsElement | SVGSVGElement
@@ -281,7 +284,7 @@ export const formatYear = (year: number): string => {
     }
 
     return year < 0
-        ? `${d3Format(",.0f")(Math.abs(year))} BCE`
+        ? `${d3Format()(",.0f")(Math.abs(year))} BCE`
         : year.toString()
 }
 

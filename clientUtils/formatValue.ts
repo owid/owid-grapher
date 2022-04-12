@@ -15,6 +15,10 @@ export function isVeryShortUnit(unit: string): boolean {
     return ["%", "$", "£"].includes(unit)
 }
 
+const checkIsCurrency = (unit: string): unit is "$" | "£" => {
+    return ["$", "£"].includes(unit)
+}
+
 // todo: Should this be numberSuffixes instead of Prefixes?
 export function formatValue(
     value: number,
@@ -28,6 +32,7 @@ export function formatValue(
     const showPlus = options.showPlus ?? false
     const numDecimalPlaces = options.numDecimalPlaces ?? 2
     const unit = options.unit ?? ""
+    const unitIsCurrency = checkIsCurrency(unit)
     const isNoSpaceUnit = options.noSpaceUnit ?? unit[0] === "%"
 
     let output: string = value.toString()
@@ -69,10 +74,15 @@ export function formatValue(
         if (value !== 0 && Math.abs(value) < targetDigits) {
             if (value < 0) output = `>-${targetDigits}`
             else output = `<${targetDigits}`
-        } else
-            output = d3Format(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
+        } else if (unitIsCurrency) {
+            output = d3Format(unit)(
+                `${showPlus ? "+" : ""}$,.${numDecimalPlaces}f`
+            )(value)
+        } else {
+            output = d3Format()(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
                 value
             )
+        }
 
         if (noTrailingZeroes) {
             // Convert e.g. 2.200 to 2.2
@@ -83,9 +93,10 @@ export function formatValue(
         }
     }
 
-    if (unit === "$" || unit === "£") output = unit + output
-    else if (isNoSpaceUnit) output = output + unit
-    else if (unit.length > 0) output = output + " " + unit
+    if (!unitIsCurrency) {
+        if (isNoSpaceUnit) output = output + unit
+        else if (unit.length > 0) output = output + " " + unit
+    }
 
     return output
 }
