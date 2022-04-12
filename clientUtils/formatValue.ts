@@ -5,10 +5,8 @@ export interface TickFormattingOptions {
     unit?: string
     trailingZeroes?: boolean
     spaceBeforeUnit?: boolean
-    numberPrefixes?: boolean
-    shortNumberPrefixes?: boolean
     showPlus?: boolean
-    // numberAbreviation?: "short" | "long"
+    numberAbreviation?: "short" | "long" | false
 }
 
 // Used outside this module to figure out if the unit will be joined with the number.
@@ -20,7 +18,6 @@ const checkIsUnitCurrency = (unit: string): unit is "$" | "£" => {
     return ["$", "£"].includes(unit)
 }
 
-// todo: Should this be numberSuffixes instead of Prefixes?
 export function formatValue(
     value: number,
     options: TickFormattingOptions
@@ -31,41 +28,42 @@ export function formatValue(
         spaceBeforeUnit = unit[0] !== "%",
         showPlus = false,
         numDecimalPlaces = 2,
-        shortNumberPrefixes = false,
+        numberAbreviation = "long",
     } = options
-
-    const numberPrefixes =
-        (options.numberPrefixes || options.shortNumberPrefixes) ?? true
 
     const isUnitCurrency = checkIsUnitCurrency(unit)
 
     let output: string = value.toString()
 
     const absValue = Math.abs(value)
-    if (spaceBeforeUnit && numberPrefixes && absValue >= 1e6) {
+    if (spaceBeforeUnit && numberAbreviation && absValue >= 1e6) {
         if (!isFinite(absValue)) output = "Infinity"
         else if (absValue >= 1e12)
             output = formatValue(value / 1e12, {
                 ...options,
-                unit: shortNumberPrefixes ? "T" : "trillion",
-                spaceBeforeUnit: !shortNumberPrefixes,
+                unit: numberAbreviation === "short" ? "T" : "trillion",
+                spaceBeforeUnit: numberAbreviation === "long",
                 numDecimalPlaces: 2,
             })
         else if (absValue >= 1e9)
             output = formatValue(value / 1e9, {
                 ...options,
-                unit: shortNumberPrefixes ? "B" : "billion",
-                spaceBeforeUnit: !shortNumberPrefixes,
+                unit: numberAbreviation === "short" ? "B" : "billion",
+                spaceBeforeUnit: numberAbreviation === "long",
                 numDecimalPlaces: 2,
             })
         else if (absValue >= 1e6)
             output = formatValue(value / 1e6, {
                 ...options,
-                unit: shortNumberPrefixes ? "M" : "million",
-                spaceBeforeUnit: !shortNumberPrefixes,
+                unit: numberAbreviation === "short" ? "M" : "million",
+                spaceBeforeUnit: numberAbreviation === "long",
                 numDecimalPlaces: 2,
             })
-    } else if (spaceBeforeUnit && shortNumberPrefixes && absValue >= 1e3) {
+    } else if (
+        spaceBeforeUnit &&
+        numberAbreviation === "short" &&
+        absValue >= 1e3
+    ) {
         output = formatValue(value / 1e3, {
             ...options,
             unit: "k",
