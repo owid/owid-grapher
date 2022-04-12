@@ -4,7 +4,7 @@ export interface TickFormattingOptions {
     numDecimalPlaces?: number
     unit?: string
     trailingZeroes?: boolean
-    noSpaceUnit?: boolean
+    spaceBeforeUnit?: boolean
     numberPrefixes?: boolean
     shortNumberPrefixes?: boolean
     showPlus?: boolean
@@ -24,48 +24,50 @@ export function formatValue(
     value: number,
     options: TickFormattingOptions
 ): string {
-    const { trailingZeroes = false } = options
+    const {
+        trailingZeroes = false,
+        unit = "",
+        spaceBeforeUnit = unit[0] !== "%",
+    } = options
     const numberPrefixes =
         (options.numberPrefixes || options.shortNumberPrefixes) ?? true
 
     const shortNumberPrefixes = options.shortNumberPrefixes ?? false
     const showPlus = options.showPlus ?? false
     const numDecimalPlaces = options.numDecimalPlaces ?? 2
-    const unit = options.unit ?? ""
     const unitIsCurrency = checkIsCurrency(unit)
-    const isNoSpaceUnit = options.noSpaceUnit ?? unit[0] === "%"
 
     let output: string = value.toString()
 
     const absValue = Math.abs(value)
-    if (!isNoSpaceUnit && numberPrefixes && absValue >= 1e6) {
+    if (spaceBeforeUnit && numberPrefixes && absValue >= 1e6) {
         if (!isFinite(absValue)) output = "Infinity"
         else if (absValue >= 1e12)
             output = formatValue(value / 1e12, {
                 ...options,
                 unit: shortNumberPrefixes ? "T" : "trillion",
-                noSpaceUnit: shortNumberPrefixes,
+                spaceBeforeUnit: !shortNumberPrefixes,
                 numDecimalPlaces: 2,
             })
         else if (absValue >= 1e9)
             output = formatValue(value / 1e9, {
                 ...options,
                 unit: shortNumberPrefixes ? "B" : "billion",
-                noSpaceUnit: shortNumberPrefixes,
+                spaceBeforeUnit: !shortNumberPrefixes,
                 numDecimalPlaces: 2,
             })
         else if (absValue >= 1e6)
             output = formatValue(value / 1e6, {
                 ...options,
                 unit: shortNumberPrefixes ? "M" : "million",
-                noSpaceUnit: shortNumberPrefixes,
+                spaceBeforeUnit: !shortNumberPrefixes,
                 numDecimalPlaces: 2,
             })
-    } else if (!isNoSpaceUnit && shortNumberPrefixes && absValue >= 1e3) {
+    } else if (spaceBeforeUnit && shortNumberPrefixes && absValue >= 1e3) {
         output = formatValue(value / 1e3, {
             ...options,
             unit: "k",
-            noSpaceUnit: true,
+            spaceBeforeUnit: false,
             numDecimalPlaces: 2,
         })
     } else {
@@ -94,7 +96,7 @@ export function formatValue(
     }
 
     if (!unitIsCurrency) {
-        if (isNoSpaceUnit) output = output + unit
+        if (!spaceBeforeUnit) output = output + unit
         else if (unit.length > 0) output = output + " " + unit
     }
 

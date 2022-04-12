@@ -17,10 +17,10 @@ describe(formatValue, () => {
         ["negative with unit", -1, "-$1", { unit: "$" }],
         ["trailingZeroes true", 1.10, "1.1", { trailingZeroes: false }], 
         ["trailingZeroes false", 1.10, "1.10", { trailingZeroes: true }], 
-        ["$ noSpaceUnit true", 1.1, "$1.1", { noSpaceUnit: true, unit: "$" }],
-        ["$ noSpaceUnit false", 1.1, "$1.1", { noSpaceUnit: false, unit: "$" }],
-        ["% noSpaceUnit false", 1.1, "1.1 %", { noSpaceUnit: false, unit: "%" }],
-        ["% noSpaceUnit false", 1.1, "1.1%", { noSpaceUnit: true, unit: "%" }],
+        ["$ spaceBeforeUnit false", 1.1, "$1.1", { spaceBeforeUnit: false, unit: "$" }],
+        ["$ spaceBeforeUnit true", 1.1, "$1.1", { spaceBeforeUnit: true, unit: "$" }],
+        ["% spaceBeforeUnit true", 1.1, "1.1 %", { spaceBeforeUnit: true, unit: "%" }],
+        ["% spaceBeforeUnit false", 1.1, "1.1%", { spaceBeforeUnit: false, unit: "%" }],
         ["numberPrefixes true", 1000000000, "1 billion", { numberPrefixes: true }],
         ["numberPrefixes true with unit", 1000000000, "$1 billion", { numberPrefixes: true, unit: "$" }],
         // this case appears to not currently work
@@ -33,7 +33,7 @@ describe(formatValue, () => {
         ["showPlus true with unit", 1, "+$1", { showPlus: true, unit: "$" }],
         ["showPlus true with % and 4 decimals", 1.23456, "+1.2346%", {showPlus: true, numDecimalPlaces: 4, unit: "%"}],
         ["showPlus false with $ and trailingZeroes false", 1234.5678, "$1,234.57", {showPlus: false, unit: "$", trailingZeroes: false}],
-        ["showPlus false with $, trailingZeroes true, and noSpaceUnit false", 1234.5678, "$1,234.57", {showPlus: false, unit: "$", trailingZeroes: true, noSpaceUnit: false}],
+        ["showPlus false with $, trailingZeroes true, and spaceBeforeUnit true", 1234.5678, "$1,234.57", {showPlus: false, unit: "$", trailingZeroes: true, spaceBeforeUnit: true}],
     ]
     cases.forEach(([description, input, output, options]) => {
         it(description, () => {
