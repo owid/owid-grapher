@@ -2,7 +2,6 @@ import { linkify } from "../../clientUtils/Util.js"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { decodeHTML } from "entities"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -49,7 +48,7 @@ export class SourcesTab extends React.Component<{
         return (
             <div key={slug} className="datasource-wrapper">
                 <h2>
-                    {decodeHTML(column.name)}{" "}
+                    {column.name}{" "}
                     {editUrl && (
                         <a href={editUrl} target="_blank" rel="noopener">
                             <FontAwesomeIcon icon={faPencilAlt} />
