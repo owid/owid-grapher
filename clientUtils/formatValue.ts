@@ -3,7 +3,7 @@ import { d3Format } from "./Util.js"
 export interface TickFormattingOptions {
     numDecimalPlaces?: number
     unit?: string
-    noTrailingZeroes?: boolean
+    trailingZeroes?: boolean
     noSpaceUnit?: boolean
     numberPrefixes?: boolean
     shortNumberPrefixes?: boolean
@@ -24,7 +24,7 @@ export function formatValue(
     value: number,
     options: TickFormattingOptions
 ): string {
-    const noTrailingZeroes = options.noTrailingZeroes ?? true
+    const { trailingZeroes = false } = options
     const numberPrefixes =
         (options.numberPrefixes || options.shortNumberPrefixes) ?? true
 
@@ -84,7 +84,7 @@ export function formatValue(
             )
         }
 
-        if (noTrailingZeroes) {
+        if (!trailingZeroes) {
             // Convert e.g. 2.200 to 2.2
             const m = output.match(/(.*?[0-9,-]+.[0-9,]*?)0*$/)
             if (m) output = m[1]
