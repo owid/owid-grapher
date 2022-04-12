@@ -344,6 +344,12 @@ export enum VerticalAlign {
     bottom = "bottom",
 }
 
+export enum AxisAlign {
+    start = "start",
+    middle = "middle",
+    end = "end",
+}
+
 export interface GridParameters {
     rows: number
     columns: number
