@@ -48,6 +48,7 @@ import {
     SortConfig,
     Color,
     HorizontalAlign,
+    AxisAlign,
 } from "../../clientUtils/owidTypes.js"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
@@ -256,8 +257,17 @@ export class DiscreteBarChart
         ]
     }
 
+    // NB: y-axis settings are used for the horizontal axis in DiscreteBarChart
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(
+            {
+                // if we have a single-value x axis, we want to have the vertical axis
+                // on the left of the chart
+                singleValueAxisPointAlign: AxisAlign.start,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
     }
 
     @computed get yAxis(): HorizontalAxis {
