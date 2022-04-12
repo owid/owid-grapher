@@ -33,7 +33,7 @@ wp_mysql() {
 }
 
 gr_mysql() {
-  mysql -u${GRAPHER_DB_USER} -p"${GRAPHER_DB_PASSWORD}" -h $GRAPHER_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+  mysql -u${GRAPHER_DB_USER} -p"${GRAPHER_DB_PASS}" -h $GRAPHER_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
 }
 
 DL_FOLDER="/tmp"
@@ -103,7 +103,7 @@ import_grapher_db(){
 check_env GRAPHER_DB_NAME
 check_env GRAPHER_DB_HOST
 check_env GRAPHER_DB_USER
-check_env GRAPHER_DB_PASSWORD
+check_env GRAPHER_DB_PASS
 check_env WORDPRESS_DB_NAME
 check_env WORDPRESS_DB_HOST
 check_env WORDPRESS_DB_USER
