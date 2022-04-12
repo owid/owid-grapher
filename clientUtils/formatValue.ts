@@ -8,6 +8,7 @@ export interface TickFormattingOptions {
     numberPrefixes?: boolean
     shortNumberPrefixes?: boolean
     showPlus?: boolean
+    // numberAbreviation?: "short" | "long"
 }
 
 // Used outside this module to figure out if the unit will be joined with the number.
@@ -15,7 +16,7 @@ export function isVeryShortUnit(unit: string): boolean {
     return ["%", "$", "£"].includes(unit)
 }
 
-const checkIsCurrency = (unit: string): unit is "$" | "£" => {
+const checkIsUnitCurrency = (unit: string): unit is "$" | "£" => {
     return ["$", "£"].includes(unit)
 }
 
@@ -28,14 +29,15 @@ export function formatValue(
         trailingZeroes = false,
         unit = "",
         spaceBeforeUnit = unit[0] !== "%",
+        showPlus = false,
+        numDecimalPlaces = 2,
+        shortNumberPrefixes = false,
     } = options
+
     const numberPrefixes =
         (options.numberPrefixes || options.shortNumberPrefixes) ?? true
 
-    const shortNumberPrefixes = options.shortNumberPrefixes ?? false
-    const showPlus = options.showPlus ?? false
-    const numDecimalPlaces = options.numDecimalPlaces ?? 2
-    const unitIsCurrency = checkIsCurrency(unit)
+    const isUnitCurrency = checkIsUnitCurrency(unit)
 
     let output: string = value.toString()
 
@@ -76,7 +78,7 @@ export function formatValue(
         if (value !== 0 && Math.abs(value) < targetDigits) {
             if (value < 0) output = `>-${targetDigits}`
             else output = `<${targetDigits}`
-        } else if (unitIsCurrency) {
+        } else if (isUnitCurrency) {
             output = d3Format(unit)(
                 `${showPlus ? "+" : ""}$,.${numDecimalPlaces}f`
             )(value)
@@ -95,7 +97,7 @@ export function formatValue(
         }
     }
 
-    if (!unitIsCurrency) {
+    if (!isUnitCurrency) {
         if (!spaceBeforeUnit) output = output + unit
         else if (unit.length > 0) output = output + " " + unit
     }
