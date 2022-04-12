@@ -99,6 +99,16 @@ import_grapher_db(){
   pv $1 | sed s/.\*DEFINER\=\`.\*// | gr_mysql $GRAPHER_DB_NAME
 }
 
+# Check that required env vars are set
+check_env GRAPHER_DB_NAME
+check_env GRAPHER_DB_HOST
+check_env GRAPHER_DB_USER
+check_env GRAPHER_DB_PASSWORD
+check_env WORDPRESS_DB_NAME
+check_env WORDPRESS_DB_HOST
+check_env WORDPRESS_DB_USER
+check_env WORDPRESS_DB_PASSWORD
+
 # Wordpress DB
 if [ "${SKIP_DB_DL}" = false ]; then
   echo "Downloading Wordpress database (live_wordpress)"
@@ -106,12 +116,8 @@ if [ "${SKIP_DB_DL}" = false ]; then
   rsync -hav --progress owid@live-db.owid.io:/tmp/live_wordpress.sql $DL_FOLDER
 fi
 echo "Importing Wordpress database (live_wordpress)"
-check_env WORDPRESS_DB_NAME
-check_env WORDPRESS_DB_HOST
-check_env WORDPRESS_DB_USER
-check_env WORDPRESS_DB_PASSWORD
 purge_wordpress_db
-import_wordpress_db $DL_FOLDER/live_wordpress.sql 
+import_wordpress_db $DL_FOLDER/live_wordpress.sql
 
 # Wordpress uploads
 if [ "${WITH_UPLOADS}" = true ]; then
@@ -126,10 +132,6 @@ if [ "${SKIP_DB_DL}" = false ]; then
   rsync -hav --progress owid@live.owid.io:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
 fi
 echo "Importing live Grapher metadata database (owid_metadata)"
-check_env GRAPHER_DB_NAME
-check_env GRAPHER_DB_HOST
-check_env GRAPHER_DB_USER
-check_env GRAPHER_DB_PASSWORD
 purge_grapher_db
 import_grapher_db $DL_FOLDER/owid_metadata_with_passwords.sql
 
