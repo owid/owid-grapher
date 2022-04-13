@@ -4,7 +4,7 @@
 # Refresh staging targets from live content (run from staging) #
 ################################################################
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../.. && pwd )"
 
 bail() {
     echo "ERROR: $1" 1>&2
@@ -17,11 +17,11 @@ fi
 
 set -a && source $DIR/.env && set +a
 
-if [ "${WP_ENV}" != "staging" ]; then
+if [ $(hostname) != "owid-staging" ]; then
   bail "Please only run on staging."
 fi
 
-STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
+STAGING_SERVER_NAME=$(basename $DIR)
 
 check_env() {
   eval value='$'$1
@@ -29,7 +29,7 @@ check_env() {
 }
 
 wp_mysql() {
-  mysql -u${WORDPRESS_DB_USER} -p"${WORDPRESS_DB_PASSWORD}" -h $WORDPRESS_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+  mysql -u${WORDPRESS_DB_USER} -p"${WORDPRESS_DB_PASS}" -h $WORDPRESS_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
 }
 
 gr_mysql() {
@@ -107,7 +107,7 @@ check_env GRAPHER_DB_PASS
 check_env WORDPRESS_DB_NAME
 check_env WORDPRESS_DB_HOST
 check_env WORDPRESS_DB_USER
-check_env WORDPRESS_DB_PASSWORD
+check_env WORDPRESS_DB_PASS
 
 # Wordpress DB
 if [ "${SKIP_DB_DL}" = false ]; then
