@@ -41,7 +41,7 @@ if (file_exists($root_dir . '/.env')) {
         $dotenv->required([
             'WORDPRESS_DB_NAME',
             'WORDPRESS_DB_USER',
-            'WORDPRESS_DB_PASSWORD',
+            'WORDPRESS_DB_PASS',
         ]);
     }
 }
@@ -73,7 +73,7 @@ Config::define(
  */
 Config::define('DB_NAME', env('WORDPRESS_DB_NAME'));
 Config::define('DB_USER', env('WORDPRESS_DB_USER'));
-Config::define('DB_PASSWORD', env('WORDPRESS_DB_PASSWORD'));
+Config::define('DB_PASSWORD', env('WORDPRESS_DB_PASS'));
 Config::define('DB_HOST', env('WORDPRESS_DB_HOST') ?: 'localhost');
 Config::define('DB_CHARSET', 'utf8mb4');
 Config::define('DB_COLLATE', '');
