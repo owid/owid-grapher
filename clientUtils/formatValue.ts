@@ -48,12 +48,12 @@ function getType({
         // multiply by 100, and then decimal notation with a percent sign
         return "%"
     }
-    if (value <= 1) {
+    if (Math.abs(value) <= 1) {
         // no adjustment
         return ""
     }
     if (numberAbreviation == "long" || numberAbreviation == "short") {
-        if (value > 10000) {
+        if (Math.abs(value) > 999999) {
             // decimal notation with an SI prefix, rounded to significant digits
             return "s"
         }
@@ -134,6 +134,12 @@ function postprocessString({
             numberAbreviation,
         })
     }
+
+    // unit may be "% CO2", so we need to replace d3's "%" with the full unit
+    if (checkIsUnitPercent(unit)) {
+        output = output.replace("%", unit)
+    }
+
     if (spaceBeforeUnit && unit && !checkIsUnitCurrency(unit)) {
         output = output.replace(unit, ` ${unit}`)
     }
