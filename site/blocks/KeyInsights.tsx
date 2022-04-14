@@ -106,7 +106,11 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
 export const KeyInsightsSlides = ({ insights }: { insights: KeyInsight[] }) => (
     <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
         {insights.map(({ title, content, slug }, idx) => (
-            <div key={idx} className={KEY_INSIGHTS_SLIDE_CLASS_NAME}>
+            <div
+                key={idx}
+                className={KEY_INSIGHTS_SLIDE_CLASS_NAME}
+                data-active={idx === 0}
+            >
                 <h4>
                     <a href={`/${slug}`}>{title}</a>
                 </h4>
