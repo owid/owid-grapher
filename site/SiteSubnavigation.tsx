@@ -72,11 +72,6 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             href: "/policy-responses-covid",
             id: "policy-responses",
         },
-        {
-            label: "Exemplars",
-            href: "/identify-covid-exemplars",
-            id: "exemplars",
-        },
     ],
     co2: [
         {
