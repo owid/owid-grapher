@@ -3,7 +3,7 @@ import urlSlug from "url-slug"
 import * as lodash from "lodash"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import { HTTPS_ONLY } from "../settings/serverSettings.js"
+import { BAKED_BASE_URL, HTTPS_ONLY } from "../settings/serverSettings.js"
 import { getTables } from "../db/wpdb.js"
 import Tablepress from "../site/Tablepress.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
@@ -15,7 +15,6 @@ import {
     FormattedPost,
     FormattingOptions,
     FullPost,
-    JsonError,
     TocHeading,
 } from "../clientUtils/owidTypes.js"
 import { Footnote } from "../site/Footnote.js"
@@ -51,6 +50,7 @@ import {
     GRAPHER_PREVIEW_CLASS,
     SUMMARY_CLASSNAME,
 } from "../site/formatting.js"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -173,14 +173,7 @@ export const formatWordpressPost = async (
         const { value, year, unit, entityName } =
             (await getDataValue(queryArgs)) || {}
 
-        if (!value || !year || !entityName)
-            throw new JsonError(
-                `Missing data for query ${dataValueConfigurationString}. Please check the tag for any missing or wrong argument.`
-            )
-        if (!template)
-            throw new JsonError(
-                `Missing template for query ${dataValueConfigurationString}`
-            )
+        if (!value || !year || !entityName || !template) continue
 
         let formattedValue
         if (variableId && chartId) {
@@ -213,10 +206,12 @@ export const formatWordpressPost = async (
         const dataValueProps: DataValueProps | undefined = dataValues.get(
             dataValueConfigurationString
         )
-        if (!dataValueProps)
-            throw new JsonError(
-                `Missing data value for query ${dataValueConfigurationString}`
+        if (!dataValueProps) {
+            logContentErrorAndMaybeSendToSlack(
+                `Missing data value for {{DataValue ${dataValueConfigurationString}}}" in ${BAKED_BASE_URL}/${post.slug}`
             )
+            return "{ ⚠️ Value pending update }"
+        }
         return ReactDOMServer.renderToString(
             <span data-type={BLOCK_WRAPPER_DATATYPE}>
                 <AnnotatingDataValue dataValueProps={dataValueProps} />
