@@ -16,13 +16,12 @@ createWordpressAdminUser() {
     echo "Clearing wordpress password hashes"
     _mysql 'UPDATE wp_users SET user_pass = "";'
 
-    # make an admin@example.com user with password "admin"
     echo "Adding the user admin@example.com with password 'admin'"
     _mysql 'INSERT INTO wp_users (user_login, user_email, user_pass, user_registered, user_nicename) VALUES ("admin", "admin@example.com", "$2y$10$2ilzpLslIA29cZezVXJTDOqLlkGyXK6YcNvr2QPvn95WdmVdnxl2S", NOW(), "Admin");'
 
-    # give the user editor permissions
-    echo "Giving the admin user edit privileges"
-    _mysql 'INSERT INTO wp_usermeta (user_id, meta_key, meta_value) VALUES ((SELECT id FROM wp_users WHERE user_email = "admin@example.com"), "wp_capabilities", "a:1:{s:6:\"editor\";b:1;}");'
+    echo "Giving the admin user administrator privileges"
+    _mysql 'INSERT INTO wp_usermeta (user_id, meta_key, meta_value) VALUES ((SELECT id FROM wp_users WHERE user_email = "admin@example.com"), "wp_capabilities", "a:1:{s:13:"administrator";b:1;}");'
+    _mysql 'INSERT INTO wp_usermeta (user_id, meta_key, meta_value) VALUES ((SELECT id FROM wp_users WHERE user_email = "admin@example.com"), "rich_editing", "true");'
 
     return 0
 }
