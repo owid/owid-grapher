@@ -38,9 +38,9 @@ services:
         depends_on:
             - db
 
-        environment:
-            MYSQL_HOST: db
-            MYSQL_PWD: node
+        env_file:
+            - .env.devcontainer
+
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
         image: mysql/mysql-server:latest
@@ -51,7 +51,7 @@ services:
         ports:
             # Exposing via the port specified for Grapher
             # Should always be the same as the WordPress port, because we store both DBs on the same server
-            - "${GRAPHER_DB_PORT}:3306"
+            - "3306:3306"
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
@@ -72,11 +72,10 @@ services:
             # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
-            DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
             # SSH_AUTH_SOCK: "/ssh-agent"
         env_file:
-            - .env
+            - .env.devcontainer
         depends_on:
             - db
 
