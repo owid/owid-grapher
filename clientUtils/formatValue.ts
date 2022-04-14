@@ -1,4 +1,5 @@
-import { d3Format } from "./Util.js"
+import { FormatSpecifier } from "d3-format"
+import { createFormatter } from "./Util.js"
 
 export interface TickFormattingOptions {
     numDecimalPlaces?: number
@@ -10,95 +11,175 @@ export interface TickFormattingOptions {
 }
 
 // Used outside this module to figure out if the unit will be joined with the number.
-export function isVeryShortUnit(unit: string): boolean {
+export function checkIsVeryShortUnit(unit: string): unit is "$" | "£" | "%" {
     return ["%", "$", "£"].includes(unit)
 }
 
-const checkIsUnitCurrency = (unit: string): unit is "$" | "£" => {
+function checkIsUnitCurrency(unit: string): unit is "$" | "£" {
     return ["$", "£"].includes(unit)
+}
+
+function checkIsUnitPercent(unit: string): unit is "%" {
+    return unit[0] === "%"
+}
+
+function getTrim({ trailingZeroes }: { trailingZeroes: boolean }): "~" | "" {
+    return trailingZeroes ? "" : "~"
+}
+
+function getSign({ showPlus }: { showPlus: boolean }): "+" | "" {
+    return showPlus ? "+" : ""
+}
+
+function getSymbol({ unit }: { unit: string }): "$" | "" {
+    return checkIsUnitCurrency(unit) ? "$" : ""
+}
+
+function getType({
+    numberAbreviation,
+    unit,
+    value,
+}: {
+    numberAbreviation: "long" | "short" | false
+    unit: string
+    value: number
+}): string {
+    if (checkIsUnitPercent(unit)) {
+        // multiply by 100, and then decimal notation with a percent sign
+        return "%"
+    }
+    if (value <= 1) {
+        // no adjustment
+        return ""
+    }
+    if (numberAbreviation == "long" || numberAbreviation == "short") {
+        if (value > 10000) {
+            // decimal notation with an SI prefix, rounded to significant digits
+            return "s"
+        }
+    }
+
+    // decimal notation, rounded to significant digits
+    return "r"
+}
+
+// Awkard logic to preserve decimal-based precision as opposed to d3's significant-figure based precision
+function getPrecision({
+    value,
+    numDecimalPlaces,
+}: {
+    value: number
+    numDecimalPlaces: number
+}): string {
+    if (value < 1) {
+        return `${numDecimalPlaces}`
+    }
+    const decimalIndex = String(value).indexOf(".")
+    if (decimalIndex !== -1) {
+        return `${decimalIndex + numDecimalPlaces}`
+    }
+    return `${numDecimalPlaces + 1}`
+}
+
+// these are still called SI prefixes even though they're at the end of the string
+function checkStringIncludesPrefix(str: string): boolean {
+    return /(y|z|a|f|p|n|µ|m|k|M|G|T|P|E|Z|Y)/.test(str[str.length - 1])
+}
+
+function replaceSIPrefixes({
+    string,
+    numberAbreviation,
+}: {
+    string: string
+    numberAbreviation: "short" | "long"
+}): string {
+    if (!checkStringIncludesPrefix(string)) return string
+    const map: Record<string, Record<string, string>> = {
+        short: {
+            M: "M",
+            G: "B",
+            T: "T",
+            P: "Quad",
+            E: "Quint",
+        },
+        long: {
+            M: " million",
+            G: " billion",
+            T: " trillion",
+            P: " quadrillion",
+            E: " quintillion",
+        },
+    }
+
+    const prefix = string[string.length - 1]
+
+    return string.replace(prefix, map[numberAbreviation][prefix])
+}
+
+function postprocessString({
+    string,
+    numberAbreviation,
+    spaceBeforeUnit,
+    unit,
+}: {
+    string: string
+    numberAbreviation: "long" | "short" | false
+    spaceBeforeUnit: boolean
+    unit: string
+}): string {
+    let output = string
+    if (numberAbreviation) {
+        output = replaceSIPrefixes({
+            string,
+            numberAbreviation,
+        })
+    }
+    if (spaceBeforeUnit && unit && !checkIsUnitCurrency(unit)) {
+        output = output.replace(unit, ` ${unit}`)
+    }
+    return output
 }
 
 export function formatValue(
     value: number,
-    options: TickFormattingOptions
-): string {
-    const {
+    {
         trailingZeroes = false,
         unit = "",
         spaceBeforeUnit = unit[0] !== "%",
         showPlus = false,
         numDecimalPlaces = 2,
         numberAbreviation = "long",
-    } = options
+    }: TickFormattingOptions
+): string {
+    // when type = "%", d3.format multiples the value by 100
+    // an old version of this function didn't use d3.format for percentages
+    // so all our figures involving percentages are now 100x too large
+    // thus we have to convert it to counteract d3's conversion
+    // TODO: divide all percentage chart data by 100
+    const convertedValue = checkIsUnitPercent(unit) ? value / 100 : value
 
-    const isUnitCurrency = checkIsUnitCurrency(unit)
+    if (0 < convertedValue && convertedValue < 0.01) return "<0.01"
 
-    let output: string = value.toString()
+    const formatter = createFormatter(unit)
 
-    const absValue = Math.abs(value)
-    if (spaceBeforeUnit && numberAbreviation && absValue >= 1e6) {
-        if (!isFinite(absValue)) output = "Infinity"
-        else if (absValue >= 1e12)
-            output = formatValue(value / 1e12, {
-                ...options,
-                unit: numberAbreviation === "short" ? "T" : "trillion",
-                spaceBeforeUnit: numberAbreviation === "long",
-                numDecimalPlaces: 2,
-            })
-        else if (absValue >= 1e9)
-            output = formatValue(value / 1e9, {
-                ...options,
-                unit: numberAbreviation === "short" ? "B" : "billion",
-                spaceBeforeUnit: numberAbreviation === "long",
-                numDecimalPlaces: 2,
-            })
-        else if (absValue >= 1e6)
-            output = formatValue(value / 1e6, {
-                ...options,
-                unit: numberAbreviation === "short" ? "M" : "million",
-                spaceBeforeUnit: numberAbreviation === "long",
-                numDecimalPlaces: 2,
-            })
-    } else if (
-        spaceBeforeUnit &&
-        numberAbreviation === "short" &&
-        absValue >= 1e3
-    ) {
-        output = formatValue(value / 1e3, {
-            ...options,
-            unit: "k",
-            spaceBeforeUnit: false,
-            numDecimalPlaces: 2,
-        })
-    } else {
-        const targetDigits = Math.pow(10, -numDecimalPlaces)
+    const specifier = new FormatSpecifier({
+        zero: "0",
+        trim: getTrim({ trailingZeroes }),
+        sign: getSign({ showPlus }),
+        symbol: getSymbol({ unit }),
+        comma: ",",
+        precision: getPrecision({ value: convertedValue, numDecimalPlaces }),
+        type: getType({ numberAbreviation, unit, value: convertedValue }),
+    }).toString()
 
-        if (value !== 0 && Math.abs(value) < targetDigits) {
-            if (value < 0) output = `>-${targetDigits}`
-            else output = `<${targetDigits}`
-        } else if (isUnitCurrency) {
-            output = d3Format(unit)(
-                `${showPlus ? "+" : ""}$,.${numDecimalPlaces}f`
-            )(value)
-        } else {
-            output = d3Format()(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
-                value
-            )
-        }
+    const formattedString = formatter(specifier)(convertedValue)
 
-        if (!trailingZeroes) {
-            // Convert e.g. 2.200 to 2.2
-            const m = output.match(/(.*?[0-9,-]+.[0-9,]*?)0*$/)
-            if (m) output = m[1]
-            if (output[output.length - 1] === ".")
-                output = output.slice(0, output.length - 1)
-        }
-    }
+    const postprocessedString = postprocessString({
+        string: formattedString,
+        numberAbreviation,
+        spaceBeforeUnit,
+        unit,
+    })
 
-    if (!isUnitCurrency) {
-        if (!spaceBeforeUnit) output = output + unit
-        else if (unit.length > 0) output = output + " " + unit
-    }
-
-    return output
+    return postprocessedString
 }

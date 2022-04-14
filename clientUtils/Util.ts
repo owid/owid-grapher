@@ -190,8 +190,8 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
 // See https://observablehq.com/@d3/d3v6-migration-guide#minus
-export const d3Format = (
-    currency: "$" | "£" = "$"
+export const createFormatter = (
+    currency: string = "$"
 ): FormatLocaleObject["format"] =>
     formatLocale({
         decimal: ".",
@@ -284,7 +284,7 @@ export const formatYear = (year: number): string => {
     }
 
     return year < 0
-        ? `${d3Format()(",.0f")(Math.abs(year))} BCE`
+        ? `${createFormatter()(",.0f")(Math.abs(year))} BCE`
         : year.toString()
 }
 
