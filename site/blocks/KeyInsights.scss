@@ -108,6 +108,14 @@ $slide-content-height: 500px;
             height: $slide-content-height;
         }
 
+        @include sm-only {
+            figure[data-grapher-src] {
+                // override default full-width behaviour
+                width: auto;
+                margin: auto;
+            }
+        }
+
         @include lg-up {
             .wp-block-columns.is-style-sticky-right .wp-block-column {
                 &:first-child {
