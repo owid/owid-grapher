@@ -29,7 +29,7 @@ If you want to access MySQL you have two options. ⚠ Note that depending on whi
     In the VS Code terminal that executes inside the devcontainer, run the MySQL command line client:
 
     ```bash
-    mysql -h db -u grapher -p grapher
+    mysql -h db -u grapher -pgrapher
     ```
 
     This will ask you for the password (enter `grapher`) and then show a prompt. See the https://dev.mysql.com/doc/refman/8.0/en/getting-information.html for how to query the database in this interface.
