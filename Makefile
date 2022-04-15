@@ -48,6 +48,26 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 		bind Q kill-server \
 		|| make down
 
+up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata.sql.gz
+	@make validate.env
+	@make check-port-3306
+	@echo '==> Building grapher'
+	yarn install
+	yarn run tsc -b
+
+	@echo '==> Starting dev environment'
+	tmux new-session -s grapher \
+		-n admin \
+			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
+			set remain-on-exit on \; \
+		new-window -n webpack 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		bind R respawn-pane -k \; \
+		bind X kill-pane \; \
+		bind Q kill-server
+
+
 up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@make validate.env.full
 	@make check-port-3306
@@ -94,6 +114,12 @@ create-if-missing.env:
 	@if test ! -f .env; then \
 		echo 'Copying .env.example-grapher --> .env'; \
 		cp .env.example-grapher .env; \
+	fi
+
+create-if-missing.env.devcontainer:
+	@if test ! -f .env; then \
+		echo 'Copying .env.devcontainer --> .env'; \
+		cp .env.devcontainer .env; \
 	fi
 
 validate.env:
