@@ -17,6 +17,6 @@
     // "forwardPorts": [3000, 27017],
 
     // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-    "remoteUser": "node",
-    "postCreateCommand": "/bin/bash -c ./devTools/docker/devcontainer-postprocess.sh"
+    "remoteUser": "node"
+    // "postCreateCommand": "make up.devcontainer" // We could experiment with starting the make command automatically
 }

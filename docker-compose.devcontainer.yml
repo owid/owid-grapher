@@ -51,7 +51,8 @@ services:
         ports:
             # Exposing via the port specified for Grapher
             # Should always be the same as the WordPress port, because we store both DBs on the same server
-            - "3306:3306"
+            - "3307:3306" # Hardcoded here to 3307 because docker-compose in the VS Code Devcontainer setup is run
+            # from the users shell on the host OS where the env vars are not yet set
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
@@ -72,6 +73,7 @@ services:
             # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
+            DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
             # SSH_AUTH_SOCK: "/ssh-agent"
         env_file:
