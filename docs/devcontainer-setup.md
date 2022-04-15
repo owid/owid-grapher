@@ -20,13 +20,13 @@ Now navigate to http://localhost:3030/admin/charts in a browser and have a look 
 
 To stop the admin servers, press `<C-b>, Q` in the terminal to kill the window and end all 3 processes when you are done. Close VS Code to shut down all docker containers and free up the resources of running the MySQL docker container.
 
-## Accessing Mysql
+## Accessing MySQL
 
-If you want to access mysql you have two options. ⚠ Note that depending on which one you choose, you will have to use different ports!
+If you want to access MySQL you have two options. ⚠ Note that depending on which one you choose, you will have to use different ports!
 
 1. From the terminal
 
-    In the VS Code terminal that executes inside the devcontainer, run the mysql command line client:
+    In the VS Code terminal that executes inside the devcontainer, run the MySQL command line client:
 
     ```bash
     mysql -h db -u grapher -p grapher
@@ -93,6 +93,6 @@ To check the status, make sure you run the following commands in a terminal **ou
 docker-compose -f docker-compose.devcontainer.yml logs -f
 ```
 
-This will follow all log entries (i.e. it will print log statements while they happen) of all three containers: the app-1 container (your devcontainer with node, yarn etc), the db-1 container (mysql), and the db-load-data container (that loads the data and then stops). On the first run of the devcontainer setup, this last container will download two gz files into the tmp-downloads folder and then ingest them into the mysql database. This whole process can take between 5 and 20 minutes. When it is done you should see this message:
+This will follow all log entries (i.e. it will print log statements while they happen) of all three containers: the app-1 container (your devcontainer with node, yarn etc), the db-1 container (MySQL), and the db-load-data container (that loads the data and then stops). On the first run of the devcontainer setup, this last container will download two gz files into the tmp-downloads folder and then ingest them into the MySQL database. This whole process can take between 5 and 20 minutes. When it is done you should see this message:
 
 ✅ All done, grapher DB is loaded ✅
