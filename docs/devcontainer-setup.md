@@ -4,11 +4,11 @@ This page describes how to run our develpment environment entirely within a VS C
 
 ⚠ If you are on Windows, make sure that you configure git to use linux line ending (LF) instead of windows line endings (CRLR) before checking out this repository on your local machine. Follow the [Set up git on windows](./before-you-start-on-windows.md) instructions.
 
-Once you have the tools mentioned above installed, just open this repository in VS Code. You should see a notice in the lower left that asks if you want to open this again inside a devcontainer. Answer yes and it will spin that up. Note that the first time you run this it needs to download and ingest the database which takes 5-20 minutes. To see if the database loading has finished refer to the [Checking the docker compose logs](#checking-the-docker-compose-logs) section
+Once you have the tools mentioned above installed, just open this repository in VS Code. You should see a notice in the lower left that asks if you want to open this again inside a devcontainer. Answer yes and it will spin that up. Note that the first time you run this it needs to download and ingest the database which takes 5-20 minutes. To see if the database loading has finished refer to the [Checking the docker compose logs](#checking-the-docker-compose-logs) section.
 
 If you had the devcontainer setup running previously and get a message on the lower right asking to rebuild the devcontainer then confirm this to apply any changes to the configuration that have been made.
 
-Once the database has been loaded run the following steps in VS Code's terminal (i.e. the terminal running inside the devcontainer):
+Once the database has been loaded run the following steps in VS Code's terminal (i.e. the terminal running inside the devcontainer). On MacOS, the first run of this can be slow due to an issue with yarn and docker - if so just be patient.
 
 ```bash
 make up.devcontainer
