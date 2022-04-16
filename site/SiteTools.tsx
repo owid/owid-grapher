@@ -1,6 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import { FeedbackPrompt } from "./Feedback.js"
+import { HiringButton } from "./HiringButton.js"
 import { ScrollDirection, useScrollDirection } from "./hooks.js"
 import {
     NewsletterSubscription,
@@ -23,6 +24,7 @@ const SiteTools = () => {
                 context={NewsletterSubscriptionContext.Floating}
             />
             <FeedbackPrompt />
+            <HiringButton />
         </div>
     )
 }
