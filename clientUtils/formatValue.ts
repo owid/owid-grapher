@@ -58,7 +58,7 @@ function getType({
     }
 
     // decimal notation, rounded to significant digits
-    return "r"
+    return "f"
 }
 
 // Preserving decimal-based precision as opposed to d3's significant-figure based precision
@@ -79,7 +79,7 @@ function getPrecision({
 
 // these are still called SI prefixes even though they're at the end of the string
 function checkStringIncludesPrefix(str: string): boolean {
-    return /(y|z|a|f|p|n|µ|m|k|M|G|T|P|E|Z|Y)/.test(str[str.length - 1])
+    return /(k|M|G|T|P|E)/.test(str[str.length - 1])
 }
 
 function replaceSIPrefixes({
