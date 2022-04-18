@@ -52,18 +52,17 @@ function getType({
         // no adjustment
         return ""
     }
-    if (numberAbreviation == "long" || numberAbreviation == "short") {
-        if (Math.abs(value) > 999999) {
-            // decimal notation with an SI prefix, rounded to significant digits
-            return "s"
-        }
+    if (numberAbreviation) {
+        // decimal notation with an SI prefix, rounded to significant digits
+        return "s"
     }
 
     // decimal notation, rounded to significant digits
     return "r"
 }
 
-// Awkard logic to preserve decimal-based precision as opposed to d3's significant-figure based precision
+// Preserving decimal-based precision as opposed to d3's significant-figure based precision
+// We could change the site to use significant figures instead and remove this
 function getPrecision({
     value,
     numDecimalPlaces,
@@ -71,13 +70,10 @@ function getPrecision({
     value: number
     numDecimalPlaces: number
 }): string {
-    if (value < 1) {
+    if (Math.abs(value) < 1) {
         return `${numDecimalPlaces}`
     }
-    const decimalIndex = String(value).indexOf(".")
-    if (decimalIndex !== -1) {
-        return `${decimalIndex + numDecimalPlaces}`
-    }
+
     return `${numDecimalPlaces + 1}`
 }
 
@@ -96,6 +92,7 @@ function replaceSIPrefixes({
     if (!checkStringIncludesPrefix(string)) return string
     const map: Record<string, Record<string, string>> = {
         short: {
+            k: "k",
             M: "M",
             G: "B",
             T: "T",
@@ -103,6 +100,7 @@ function replaceSIPrefixes({
             E: "Quint",
         },
         long: {
+            k: "k",
             M: " million",
             G: " billion",
             T: " trillion",
@@ -128,6 +126,7 @@ function postprocessString({
     unit: string
 }): string {
     let output = string
+
     if (numberAbreviation) {
         output = replaceSIPrefixes({
             string,
@@ -135,13 +134,16 @@ function postprocessString({
         })
     }
 
-    // unit may be "% CO2", so we need to replace d3's "%" with the full unit
-    if (checkIsUnitPercent(unit)) {
-        output = output.replace("%", unit)
-    }
-
-    if (spaceBeforeUnit && unit && !checkIsUnitCurrency(unit)) {
-        output = output.replace(unit, ` ${unit}`)
+    if (unit) {
+        const appendage = spaceBeforeUnit ? ` ${unit}` : unit
+        if (checkIsUnitPercent(unit)) {
+            // unit may be something like "% CO2", so we need to replace d3's "%" with the full unit
+            output = output.replace("%", appendage)
+        } else if (!checkIsUnitCurrency(unit)) {
+            // If the unit is not a percentage or currency (e.g. "pp"), d3 won't have included it at all,
+            // so we just add it to the end
+            output = output + appendage
+        }
     }
     return output
 }
@@ -151,13 +153,13 @@ export function formatValue(
     {
         trailingZeroes = false,
         unit = "",
-        spaceBeforeUnit = unit[0] !== "%",
+        spaceBeforeUnit = !checkIsUnitPercent(unit),
         showPlus = false,
         numDecimalPlaces = 2,
         numberAbreviation = "long",
     }: TickFormattingOptions
 ): string {
-    // when type = "%", d3.format multiples the value by 100
+    // when type = "%", d3.format multiples the value by 100.
     // an old version of this function didn't use d3.format for percentages
     // so all our figures involving percentages are now 100x too large
     // thus we have to convert it to counteract d3's conversion
