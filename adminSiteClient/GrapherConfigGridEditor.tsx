@@ -686,6 +686,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .with(EditorOption.checkbox, () => "checkbox")
             .with(EditorOption.dropdown, () => "dropdown")
             .with(EditorOption.numeric, () => "numeric")
+            .with(EditorOption.numericWithLatestEarliest, () => "numeric")
             .with(EditorOption.textfield, () => "text")
             .with(EditorOption.textarea, () => "text")
             .with(EditorOption.colorEditor, () => "colorScale")

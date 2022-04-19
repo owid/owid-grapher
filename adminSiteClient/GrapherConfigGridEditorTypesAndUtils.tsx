@@ -37,8 +37,6 @@ import {
     Builder,
     BuilderProps,
     JsonTree,
-    Operator,
-    Operators,
     SimpleField,
 } from "react-awesome-query-builder"
 import { Utils as QbUtils } from "react-awesome-query-builder"
@@ -521,6 +519,7 @@ export function simpleColumnToFilterPanelFieldConfig(
             label: column.label,
             type: fieldType,
             valueSources: ["value"],
+            excludeOperators: ["is_latest", "is_earliest"],
             //preferWidgets: widget [widget],
         },
     ]
@@ -535,16 +534,20 @@ export function fieldDescriptionToFilterPanelFieldConfig(
         .with(EditorOption.dropdown, () => "select")
         .with(EditorOption.mappingEditor, () => undefined)
         .with(EditorOption.numeric, () => "number")
+        .with(EditorOption.numericWithLatestEarliest, () => "number")
         .with(EditorOption.primitiveListEditor, () => undefined)
         .with(EditorOption.textarea, () => "text")
         .with(EditorOption.textfield, () => "text")
         .exhaustive()
 
-    if (widget !== undefined)
+    if (widget !== undefined) {
+        const excludedOperators =
+            description.editor === EditorOption.numericWithLatestEarliest
+                ? []
+                : ["is_latest", "is_earliest"]
         return [
             description.pointer,
             {
-                // TODO: can we suppress the is_latest operator here on numeric fields that don't allow it?
                 label: description.pointer,
                 type: widget,
                 valueSources: ["value"],
@@ -552,9 +555,10 @@ export function fieldDescriptionToFilterPanelFieldConfig(
                 fieldSettings: {
                     listValues: description.enumOptions,
                 },
+                excludeOperators: excludedOperators,
             },
         ]
-    else return undefined
+    } else return undefined
 }
 
 export function renderBuilder(props: BuilderProps) {
