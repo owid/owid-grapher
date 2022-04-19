@@ -37,6 +37,8 @@ import {
     Builder,
     BuilderProps,
     JsonTree,
+    Operator,
+    Operators,
     SimpleField,
 } from "react-awesome-query-builder"
 import { Utils as QbUtils } from "react-awesome-query-builder"
@@ -257,6 +259,7 @@ export function isConfigColumn(columnName: string): boolean {
 }
 
 export const filterPanelInitialConfig: BasicConfig = AntdConfig as BasicConfig
+
 export const initialFilterQueryValue: JsonGroup = {
     id: QbUtils.uuid(),
     type: "group",
@@ -452,6 +455,12 @@ export function filterTreeToSExpression(
                         new StringAtom(""),
                     ])
                 })
+                .with("is_latest", (_) => {
+                    return new EqualityComparision(EqualityOperator.equal, [
+                        field,
+                        new StringAtom("latest"),
+                    ])
+                })
 
                 .otherwise(() => undefined)
         )
@@ -497,6 +506,7 @@ export function fieldDescriptionToFilterPanelFieldConfig(
         return [
             description.pointer,
             {
+                // TODO: can we suppress the is_latest operator here on numeric fields that don't allow it?
                 label: description.pointer,
                 type: widget,
                 valueSources: ["value"],

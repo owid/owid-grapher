@@ -1760,6 +1760,19 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         //     "multiselect_not_equals",
         // ]
         config.operators = pick(config.operators, operatorsToKeep) as any
+
+        config.operators = {
+            ...config.operators,
+            is_latest: {
+                label: "Is latest",
+                labelForFormat: "Is latest",
+                sqlOp: "=",
+                cardinality: 0,
+                jsonLogic: "==",
+            },
+        } as any
+        config.types.number.widgets.number.operators!.push("is_latest")
+
         config.settings.customFieldSelectProps = { showSearch: true }
         return config
     }
