@@ -48,38 +48,35 @@ function getType({
         // multiply by 100, and then decimal notation with a percent sign
         return "%"
     }
-    if (Math.abs(value) <= 1) {
-        // no adjustment
-        return ""
-    }
     if (numberAbreviation) {
+        // do not abbreviate thousands
+        if (numberAbreviation === "long" && Math.abs(value) < 1e6) {
+            // fixed-point notation (i.e. fixed number of decimal points)
+            return "f"
+        }
         // decimal notation with an SI prefix, rounded to significant digits
         return "s"
     }
 
-    // decimal notation, rounded to significant digits
+    // fixed-point notation (i.e. fixed number of decimal points)
     return "f"
 }
 
-// Preserving decimal-based precision as opposed to d3's significant-figure based precision
-// We could change the site to use significant figures instead and remove this
 function getPrecision({
     value,
     numDecimalPlaces,
+    numberAbreviation,
 }: {
     value: number
     numDecimalPlaces: number
+    numberAbreviation: "short" | "long" | false
 }): string {
-    if (Math.abs(value) < 1) {
+    if (Math.abs(value) < 1e6 && numberAbreviation !== "short") {
         return `${numDecimalPlaces}`
     }
 
+    // when dealing with numbers larger than a million, include one more significant figure so we get 1.23 million instead of 1.2 million
     return `${numDecimalPlaces + 1}`
-}
-
-// these are still called SI prefixes even though they're at the end of the string
-function checkStringIncludesPrefix(str: string): boolean {
-    return /(k|M|G|T|P|E)/.test(str[str.length - 1])
 }
 
 function replaceSIPrefixes({
@@ -89,8 +86,9 @@ function replaceSIPrefixes({
     string: string
     numberAbreviation: "short" | "long"
 }): string {
-    if (!checkStringIncludesPrefix(string)) return string
-    const map: Record<string, Record<string, string>> = {
+    const prefix = string[string.length - 1]
+
+    const prefixMap: Record<string, Record<string, string>> = {
         short: {
             k: "k",
             M: "M",
@@ -109,9 +107,11 @@ function replaceSIPrefixes({
         },
     }
 
-    const prefix = string[string.length - 1]
+    if (prefixMap[numberAbreviation][prefix]) {
+        return string.replace(prefix, prefixMap[numberAbreviation][prefix])
+    }
 
-    return string.replace(prefix, map[numberAbreviation][prefix])
+    return string
 }
 
 function postprocessString({
@@ -170,13 +170,19 @@ export function formatValue(
 
     const formatter = createFormatter(unit)
 
+    // Explore how specifiers work here
+    // https://observablehq.com/@ikesau/d3-format-interactive-demo
     const specifier = new FormatSpecifier({
         zero: "0",
         trim: getTrim({ trailingZeroes }),
         sign: getSign({ showPlus }),
         symbol: getSymbol({ unit }),
         comma: ",",
-        precision: getPrecision({ value: convertedValue, numDecimalPlaces }),
+        precision: getPrecision({
+            value: convertedValue,
+            numDecimalPlaces,
+            numberAbreviation,
+        }),
         type: getType({ numberAbreviation, unit, value: convertedValue }),
     }).toString()
 
