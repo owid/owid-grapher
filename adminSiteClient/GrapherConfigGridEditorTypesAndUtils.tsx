@@ -342,6 +342,38 @@ export function SExpressionToJsonLogic(
     })
 }
 
+/** JsonLogic is the easiest format that the React Awesome Query Library can round
+    trip (i.e. deserialize from). Building the internal structure of the query library
+    would be tedious so we convert our SExpressions to JsonLogic. When React Awesome
+    Query Library parses this, we need to convert some custom things like the is_latest
+    query operator that we added to RAQL that in our SExpressions are represented as
+    field = "latest"
+ */
+export function postProcessJsonLogicTree(filterTree: JsonTree | JsonItem) {
+    if (filterTree.type === "group" && filterTree.children1) {
+        if (isArray(filterTree.children1))
+            for (const child of filterTree.children1)
+                postProcessJsonLogicTree(child)
+        else if (isPlainObject(filterTree.children1))
+            for (const child of Object.values(filterTree.children1))
+                postProcessJsonLogicTree(child)
+    } else if (filterTree.type === "rule") {
+        const isLatest =
+            filterTree.properties.value.length === 1 &&
+            filterTree.properties.value[0] === "latest"
+        const isEarliest =
+            filterTree.properties.value.length === 1 &&
+            filterTree.properties.value[0] === "earliest"
+        const isEqual =
+            filterTree.properties.operator === "equal" ||
+            filterTree.properties.operator === "select_equals"
+        if (isLatest && isEqual) {
+            filterTree.properties.operator = "is_latest"
+        } else if (isEarliest && isEqual) {
+            filterTree.properties.operator = "is_earliest"
+        }
+    }
+}
 export function filterTreeToSExpression(
     filterTree: JsonTree | JsonItem,
     context: OperationContext,
@@ -459,6 +491,12 @@ export function filterTreeToSExpression(
                     return new EqualityComparision(EqualityOperator.equal, [
                         field,
                         new StringAtom("latest"),
+                    ])
+                })
+                .with("is_earliest", (_) => {
+                    return new EqualityComparision(EqualityOperator.equal, [
+                        field,
+                        new StringAtom("earliest"),
                     ])
                 })
 

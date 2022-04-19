@@ -91,6 +91,7 @@ import {
     fetchVariablesParametersFromQueryString,
     filterExpressionNoFilter,
     fetchVariablesParametersToQueryParameters,
+    postProcessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
@@ -1119,10 +1120,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             )
             if (jsonLogic === true) jsonLogic = null // If we have the default query then don't bother any further
 
-            const jsonLogicTree = Utils.loadFromJsonLogic(
+            let jsonLogicTree = Utils.loadFromJsonLogic(
                 jsonLogic as any,
                 this.FilterPanelConfig ?? filterPanelInitialConfig
             )
+
+            if (jsonLogicTree !== undefined) {
+                const mutableTree = Utils.getTree(jsonLogicTree)
+                postProcessJsonLogicTree(mutableTree)
+                jsonLogicTree = QbUtils.loadTree(mutableTree)
+            }
 
             // If we didn't get a working tree then use our default one instead
             const tree =
@@ -1770,8 +1777,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 cardinality: 0,
                 jsonLogic: "==",
             },
+            is_earliest: {
+                label: "Is earliest",
+                labelForFormat: "Is earliest",
+                sqlOp: "=",
+                cardinality: 0,
+                jsonLogic: "==",
+            },
         } as any
         config.types.number.widgets.number.operators!.push("is_latest")
+        config.types.number.widgets.number.operators!.push("is_earliest")
 
         config.settings.customFieldSelectProps = { showSearch: true }
         return config
