@@ -6,6 +6,9 @@ import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import * as lodash from "lodash"
 import { TableOfContents } from "./TableOfContents.js"
 import { slugify } from "../clientUtils/Util.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { BAKED_BASE_URL } from "../settings/serverSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 
 export interface ChartIndexItem {
     id: number
@@ -22,10 +25,11 @@ export interface TagWithCharts {
 }
 
 export const ChartsIndexPage = (props: {
+    explorers: ExplorerProgram[]
     chartItems: ChartIndexItem[]
     baseUrl: string
 }) => {
-    const { chartItems, baseUrl } = props
+    const { explorers, chartItems, baseUrl } = props
 
     const allTags = lodash.sortBy(
         lodash.uniqBy(
@@ -49,7 +53,7 @@ export const ChartsIndexPage = (props: {
         tag.charts = lodash.sortBy(tag.charts, (c) => c.title.trim())
     }
 
-    const pageTitle = "Charts"
+    const pageTitle = "Explorers & Charts"
     const tocEntries = allTags.map((t) => {
         return {
             isSubheading: true,
@@ -85,6 +89,23 @@ export const ChartsIndexPage = (props: {
                                             autoFocus
                                         />
                                     </header>
+                                    <ul>
+                                        {explorers.map(
+                                            ({
+                                                title,
+                                                explorerTitle,
+                                                slug,
+                                            }) => (
+                                                <li key={slug}>
+                                                    <a
+                                                        href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
+                                                    >
+                                                        {explorerTitle ?? title}
+                                                    </a>
+                                                </li>
+                                            )
+                                        )}
+                                    </ul>
                                     {allTags.map((t) => (
                                         <section key={t.id}>
                                             <h2 id={slugify(t.name)}>

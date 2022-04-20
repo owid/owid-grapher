@@ -84,7 +84,11 @@ import { resolveInternalRedirect } from "./redirects.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
-export const renderChartsPage = async () => {
+export const renderChartsPage = async (
+    explorerAdminServer: ExplorerAdminServer
+) => {
+    const explorers = await explorerAdminServer.getAllPublishedExplorers()
+
     const chartItems = (await queryMysql(`
         SELECT
             id,
@@ -116,7 +120,11 @@ export const renderChartsPage = async () => {
     }
 
     return renderToHtmlPage(
-        <ChartsIndexPage chartItems={chartItems} baseUrl={BAKED_BASE_URL} />
+        <ChartsIndexPage
+            explorers={explorers}
+            chartItems={chartItems}
+            baseUrl={BAKED_BASE_URL}
+        />
     )
 }
 
