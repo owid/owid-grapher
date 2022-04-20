@@ -89,23 +89,27 @@ export const ChartsIndexPage = (props: {
                                             autoFocus
                                         />
                                     </header>
-                                    <ul>
-                                        {explorers.map(
-                                            ({
-                                                title,
-                                                explorerTitle,
-                                                slug,
-                                            }) => (
-                                                <li key={slug}>
-                                                    <a
-                                                        href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
-                                                    >
-                                                        {explorerTitle ?? title}
-                                                    </a>
-                                                </li>
-                                            )
-                                        )}
-                                    </ul>
+                                    <section id="explorers">
+                                        <h2>Explorers</h2>
+                                        <ul>
+                                            {explorers.map(
+                                                ({
+                                                    title,
+                                                    explorerTitle,
+                                                    slug,
+                                                }) => (
+                                                    <li key={slug}>
+                                                        <a
+                                                            href={`${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
+                                                        >
+                                                            {explorerTitle ??
+                                                                title}
+                                                        </a>
+                                                    </li>
+                                                )
+                                            )}
+                                        </ul>
+                                    </section>
                                     {allTags.map((t) => (
                                         <section key={t.id}>
                                             <h2 id={slugify(t.name)}>

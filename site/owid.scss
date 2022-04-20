@@ -999,6 +999,11 @@ html:not(.js) {
     }
 }
 
+.ChartsIndexPage #explorers {
+    padding-bottom: $vertical-spacing;
+    border-bottom: 1px solid $primary-color-200;
+}
+
 .SearchPage > main,
 .NotFoundPage > main {
     > form {
