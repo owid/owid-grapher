@@ -10,7 +10,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const inDir = parsedArgs["i"] ?? "grapherData"
         const outDir = parsedArgs["o"] ?? "grapherSvgs"
-        const numPartitions = parsedArgs["n"] ?? 1
+        const targetConfig = parsedArgs["c"]
         if (!fs.existsSync(inDir))
             throw `Input directory does not exist ${inDir}`
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
@@ -19,7 +19,11 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const directories = []
         for await (const entry of dir) {
             if (entry.isDirectory()) {
-                directories.push(entry.name)
+                if (String(targetConfig) === entry.name) {
+                    directories.push(entry.name)
+                } else if (!targetConfig) {
+                    directories.push(entry.name)
+                }
             }
         }
 
@@ -52,11 +56,12 @@ if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`export-graphs.js - utility to export grapher svg renderings and a summary csv file
 
 Usage:
-    export-graphs.js (-i DIR) (-o DIR)
+    export-graphs.js (-i DIR) (-o DIR) (-c ID)
 
 Options:
     -i DIR         Input directory containing the data. [default: grapherData]
     -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: grapherSvgs]
+    -c ID          A specific config ID that you want to run instead of generating SVGs from all configs [default: undefined] 
     `)
     process.exit(0)
 } else {
