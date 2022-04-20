@@ -110,7 +110,6 @@ function replaceSIPrefixes({
     if (prefixMap[numberAbreviation][prefix]) {
         return string.replace(prefix, prefixMap[numberAbreviation][prefix])
     }
-
     return string
 }
 
@@ -119,17 +118,25 @@ function postprocessString({
     numberAbreviation,
     spaceBeforeUnit,
     unit,
+    value,
 }: {
     string: string
     numberAbreviation: "long" | "short" | false
     spaceBeforeUnit: boolean
     unit: string
+    value: number
 }): string {
     let output = string
 
+    // handling insignificant values, and more logic to convert between d3's percentage magnitude and ours
+    const tooSmallThreshold = checkIsUnitPercent(unit) ? 0.0001 : 0.01
+    if (0 < value && value < tooSmallThreshold) {
+        output = "<" + output.replace(/0\.?(\d+)?/, "0.01")
+    }
+
     if (numberAbreviation) {
         output = replaceSIPrefixes({
-            string,
+            string: output,
             numberAbreviation,
         })
     }
@@ -166,8 +173,6 @@ export function formatValue(
     // TODO: divide all percentage chart data by 100
     const convertedValue = checkIsUnitPercent(unit) ? value / 100 : value
 
-    if (0 < convertedValue && convertedValue < 0.01) return "<0.01"
-
     const formatter = createFormatter(unit)
 
     // Explore how specifiers work here
@@ -193,6 +198,7 @@ export function formatValue(
         numberAbreviation,
         spaceBeforeUnit,
         unit,
+        value: convertedValue,
     })
 
     return postprocessedString

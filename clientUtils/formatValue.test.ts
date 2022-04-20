@@ -6,6 +6,7 @@ describe(formatValue, () => {
     const cases: [string, number, string, TickFormattingOptions][] = [
         ["default", 1, "1", {}],
         ["default negative", -1, "-1", {}],
+        ["default small", 0.001, "<0.01", {}],
         ["default large specific", 1234567890, "1.23 billion", {}],
         ["default large specific with rounding", 1239999999, "1.24 billion", {}],
         ["default small", 0.0000000001, "<0.01", {}],
@@ -55,6 +56,9 @@ describe(formatValue, () => {
         ["$ spaceBeforeUnit true", 1.1, "$1.1", { spaceBeforeUnit: true, unit: "$" }],
         ["% spaceBeforeUnit true", 1.1, "1.1 %", { spaceBeforeUnit: true, unit: "%" }],
         ["% spaceBeforeUnit false", 1.1, "1.1%", { spaceBeforeUnit: false, unit: "%" }],
+        ["% small", 0.1, "0.1%", { unit: "%" }],
+        ["% very small", 0.001, "<0.01%", { unit: "%" }],
+        ["$ very small", 0.001, "<$0.01", { unit: "$" }],
         ["%compound spaceBeforeUnit false", 1.1, "1.1%compound", { spaceBeforeUnit: false, unit: "%compound" }],
         ["numberAbreviation long", 1000000000, "1 billion", { numberAbreviation: "long" }],
         ["numberAbreviation long with unit", 1000000000, "$1 billion", { numberAbreviation: "long", unit: "$" }],
