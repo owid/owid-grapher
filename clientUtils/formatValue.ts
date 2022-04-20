@@ -75,8 +75,12 @@ function getPrecision({
         return `${numDecimalPlaces}`
     }
 
-    // when dealing with numbers larger than a million, include one more significant figure so we get 1.23 million instead of 1.2 million
-    return `${numDecimalPlaces + 1}`
+    // when dealing with abreviated numbers, adjust precision so we get 12.84 million instead of 13 million
+    // the logarithm division gets the number of "tens columns" a number has, resetting every 3 columns
+    // e.g. 1 million -> 0, 10 million -> 1, 100 million -> 2, 1 billion -> 0
+    const precisionPadding =
+        Math.round((Math.log(value) / Math.log(10)) % 3) + 1
+    return `${precisionPadding + numDecimalPlaces}`
 }
 
 function replaceSIPrefixes({
