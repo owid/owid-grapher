@@ -134,7 +134,7 @@ function postprocessString({
 
     // handling insignificant values, and more logic to convert between d3's percentage magnitude and ours
     const tooSmallThreshold = checkIsUnitPercent(unit) ? 0.0001 : 0.01
-    if (0 < value && value < tooSmallThreshold) {
+    if (numberAbreviation && 0 < value && value < tooSmallThreshold) {
         output = "<" + output.replace(/0\.?(\d+)?/, "0.01")
     }
 

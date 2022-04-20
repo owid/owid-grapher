@@ -7,6 +7,7 @@ describe(formatValue, () => {
         ["default", 1, "1", {}],
         ["default negative", -1, "-1", {}],
         ["default small", 0.001, "<0.01", {}],
+        ["default million specific", 1179766, "1.18 million", {}],
         ["default billion specific", 1234567890, "1.23 billion", {}],
         ["default 10 billion specific", 12345678901, "12.35 billion", {}],
         ["default billion with rounding", 1239999999, "1.24 billion", {}],
