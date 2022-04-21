@@ -54,6 +54,7 @@ import {
     EditorOption,
     FieldDescription,
 } from "../clientUtils/schemaProcessing.js"
+import Papa from "papaparse"
 
 export function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
@@ -102,6 +103,7 @@ export enum Tabs {
     EditorTab = "EditorTab",
     FilterTab = "FilterTab",
     ColumnsTab = "ColumnsTab",
+    ImportExportTab = "ImportExportTab",
 }
 
 export const ALL_TABS = Object.values(Tabs)
@@ -172,7 +174,6 @@ export interface IconToggleProps {
 
 export enum ColumnDataSourceType {
     FieldDescription = "FieldDescription",
-    MultipleFieldDescriptions = "MultipleFieldDescriptions",
     ReadOnlyColumn = "ReadOnlyColumn",
     Unkown = "Unknown",
 }
@@ -573,6 +574,61 @@ export function renderBuilder(props: BuilderProps) {
     )
 }
 
+export function prepareColumnSetForCsvExport(
+    columnsToInclude: ColumnDataSource[],
+    config: GrapherConfigGridEditorConfig
+) {
+    const columnsToExport = [...columnsToInclude]
+    if (
+        !columnsToExport.some(
+            (col) => col.columnInformation.key === config.primaryKeyColumnName
+        )
+    ) {
+        const primaryKeyColumn = config.readonlyColumns.get(
+            config.primaryKeyColumnName
+        )
+        if (primaryKeyColumn === undefined)
+            throw new Error("Primary key column not found")
+        columnsToExport.push({
+            kind: ColumnDataSourceType.ReadOnlyColumn,
+            readOnlyColumn: primaryKeyColumn,
+            columnInformation: {
+                key: primaryKeyColumn.key,
+                visible: true,
+                description: primaryKeyColumn.label,
+            },
+        })
+    }
+    return columnsToExport
+}
+
+export function createCsv(
+    richRows: VariableAnnotationsRow[],
+    columnsToInclude: ColumnDataSource[]
+) {
+    const rowsToSerialize = richRows.map((row) => {
+        const rowToSerialize: Record<string, unknown> = {}
+        columnsToInclude.forEach((column) => {
+            match(column)
+                .with({ kind: ColumnDataSourceType.ReadOnlyColumn }, (c) => {
+                    rowToSerialize[c.columnInformation.key] = (
+                        row as unknown as Record<string, any>
+                    )[c.columnInformation.key]
+                })
+                .with({ kind: ColumnDataSourceType.FieldDescription }, (c) => {
+                    rowToSerialize[c.description.pointer] =
+                        c.description.getter(
+                            row.config as unknown as Record<string, unknown>
+                        )
+                })
+                .otherwise(() => undefined)
+        })
+        return rowToSerialize
+    })
+    const csvString = Papa.unparse(rowsToSerialize)
+    return csvString
+}
+
 export interface GrapherConfigGridEditorConfig {
     source: GrapherConfigGridEditorSource
     sExpressionContext: OperationContext
@@ -581,6 +637,7 @@ export interface GrapherConfigGridEditorConfig {
     hiddenColumns: Set<string>
     columnSet: ColumnSet[]
     finalVariableLayerModificationFn: (id: number) => Partial<GrapherInterface>
+    primaryKeyColumnName: string
 }
 export interface GrapherConfigGridEditorProps {
     config: GrapherConfigGridEditorConfig

@@ -129,6 +129,7 @@ const config: GrapherConfigGridEditorConfig = {
     hiddenColumns: BULK_CHART_EDIT_HIDDEN_COLUMNS,
     columnSet: bulkChartEditorColumnSets,
     finalVariableLayerModificationFn: () => ({}),
+    primaryKeyColumnName: "id",
 }
 
 export class BulkGrapherConfigEditorPage extends React.Component {

@@ -23,7 +23,7 @@ import {
     pick,
     range,
 } from "lodash"
-
+import { saveAs } from "file-saver"
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -92,6 +92,8 @@ import {
     filterExpressionNoFilter,
     fetchVariablesParametersToQueryParameters,
     postprocessJsonLogicTree,
+    prepareColumnSetForCsvExport,
+    createCsv,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
@@ -1277,7 +1279,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                 .with(Tabs.ColumnsTab, () =>
                                     this.renderColumnsTab()
                                 )
-                                .otherwise(() => null)}
+                                .with(Tabs.ImportExportTab, () =>
+                                    this.renderImportExportTab()
+                                )
+                                .exhaustive()}
                             {this.renderPreviewArea()}
                         </div>
                     </div>
@@ -1521,6 +1526,55 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             )
             this.columnSelection = newSelection
         }
+    }
+
+    @action.bound
+    onExportClick(filename: string) {
+        const { columnDataSources, config, richDataRows } = this
+        if (richDataRows === undefined) {
+            console.warn(
+                "Rich data rows was undefined when clicking export - shouldn't happen"
+            )
+            return
+        }
+        const visibleColumns = columnDataSources.filter(
+            (col) => col.columnInformation.visible
+        )
+        const columns = prepareColumnSetForCsvExport(visibleColumns, config)
+        const csvText = createCsv(richDataRows, columns)
+        saveAs(
+            new Blob([csvText], { type: "text/plain;charset=utf-8" }),
+            filename
+        )
+    }
+
+    renderImportExportTab(): JSX.Element {
+        return (
+            <section>
+                <div className="container">
+                    <h3>Export to CSV</h3>
+                    <p className="form-text text-muted">
+                        Make sure to download both CSVs and keep the original
+                        unmodified. When importing the CSV again you will need
+                        both the unmodified original and the edited version of
+                        the data.
+                    </p>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => this.onExportClick("original.csv")}
+                    >
+                        Download original CSV
+                    </button>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => this.onExportClick("editable.csv")}
+                    >
+                        Download editable CSV
+                    </button>
+                    <h3>Import edited CSV</h3>
+                </div>
+            </section>
+        )
     }
 
     renderColumnsTab(): JSX.Element {

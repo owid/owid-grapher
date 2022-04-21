@@ -150,6 +150,7 @@ const config: GrapherConfigGridEditorConfig = {
             variableId: id,
         },
     }),
+    primaryKeyColumnName: "id",
 }
 
 export class VariablesAnnotationPage extends React.Component {
