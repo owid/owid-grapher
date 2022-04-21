@@ -17,6 +17,7 @@ export enum EditorOption {
     textarea = "textarea",
     dropdown = "dropdown",
     numeric = "numeric",
+    numericWithLatestEarliest = "numericWithLatestEarliest",
     checkbox = "checkbox",
     colorEditor = "colorEditor",
     mappingEditor = "mappingEditor",
@@ -83,9 +84,8 @@ function getEditorOptionForType(
     else if (isArray(type)) {
         // the following line is aspecial case hack for fields that are usually numeric but can have a
         // special string like "latest"
-        console.log("field type is array", type)
         if (type[0] === "number" && type[1] === "string")
-            return EditorOption.numeric
+            return EditorOption.numericWithLatestEarliest
         else return EditorOption.textfield
     } else if (type === "array") return EditorOption.primitiveListEditor
     else return EditorOption.textfield

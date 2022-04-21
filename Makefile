@@ -26,6 +26,8 @@ help:
 	@echo '  make down.full    stop any services still running'
 	@echo
 
+up: export DEBUG = 'knex:query'
+
 up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 	@make validate.env
 	@make check-port-3306
@@ -37,7 +39,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
-		new-window -n admin -e DEBUG='knex:query' \
+		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
@@ -47,6 +49,27 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 		bind X kill-pane \; \
 		bind Q kill-server \
 		|| make down
+
+up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata.sql.gz
+	@make validate.env
+	@make check-port-3306
+	@echo '==> Building grapher'
+	yarn install
+	yarn run tsc -b
+
+	@echo '==> Starting dev environment'
+	tmux new-session -s grapher \
+		-n admin \
+			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
+			set remain-on-exit on \; \
+		new-window -n webpack 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
+		bind R respawn-pane -k \; \
+		bind X kill-pane \; \
+		bind Q kill-server
+
+up.full: export DEBUG = 'knex:query'
 
 up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_chartdata.sql.gz tmp-downloads/live_wordpress.sql.gz wordpress/web/app/uploads/2022
 	@make validate.env.full
@@ -61,7 +84,7 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 	tmux new-session -s grapher \
 		-n docker 'docker-compose -f docker-compose.full.yml up' \; \
 			set remain-on-exit on \; \
-		new-window -n admin -e DEBUG='knex:query' \
+		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
@@ -94,6 +117,12 @@ create-if-missing.env:
 	@if test ! -f .env; then \
 		echo 'Copying .env.example-grapher --> .env'; \
 		cp .env.example-grapher .env; \
+	fi
+
+create-if-missing.env.devcontainer:
+	@if test ! -f .env; then \
+		echo 'Copying .env.devcontainer --> .env'; \
+		cp .env.devcontainer .env; \
 	fi
 
 validate.env:
@@ -130,7 +159,7 @@ tmp-downloads/owid_chartdata.sql.gz:
 
 tmp-downloads/live_wordpress.sql.gz:
 	@echo '==> Downloading wordpress data'
-	./devtools/docker/download-wordpress-mysql.sh
+	./devTools/docker/download-wordpress-mysql.sh
 
 wordpress/.env:
 	@echo 'Copying wordpress/.env.example --> wordpress/.env'
@@ -138,4 +167,4 @@ wordpress/.env:
 
 wordpress/web/app/uploads/2022:
 	@echo '==> Downloading wordpress uploads'
-	./devtools/docker/download-wordpress-uploads.sh
+	./devTools/docker/download-wordpress-uploads.sh

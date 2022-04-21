@@ -1,14 +1,15 @@
 version: "3.7"
 
-# This docker-compose file creates a full local dev environment for both grapher and wordpress for use
+# This docker-compose file creates a full local dev environment for grapher to be used
 # in a Visual Studio Code Remote Container extension workflow. It is targeted at the general public to
 # easly get started.
 
 # This setup allows for all development to happen inside docker containers, i.e. the host only has to have
 # Docker, VS Code and the VS Code Remote Container extension installed.
 
-# The mysql database server is exposed on the host at the default mysql port of 3306 so you can use DB admin
-# utilities on the host working against localhost:3306.
+# The mysql database server is exposed on the host at the nonstandard port of 3307 so you can use DB admin
+# utilities on the host working against localhost:3307. When connecting from inside a container (i.e. using
+# host: db) then make sure to use the default port 3306.
 
 # You should not start this docker-compose file manually. Everything will be managed by the VS Code remote
 # container extension when you open the repo in VS Code (a popup will ask you to open the VS Code window again
@@ -38,9 +39,9 @@ services:
         depends_on:
             - db
 
-        environment:
-            MYSQL_HOST: db
-            MYSQL_PWD: node
+        env_file:
+            - .env.devcontainer
+
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
         image: mysql/mysql-server:latest
@@ -49,34 +50,28 @@ services:
         volumes:
             - mysql_data:/var/lib/mysql
         ports:
-            # Exposing via the port specified for Grapher
-            # Should always be the same as the WordPress port, because we store both DBs on the same server
-            - "${GRAPHER_DB_PORT}:3306"
+            - "3307:3306" # Hardcoded here to 3307 because docker-compose in the VS Code Devcontainer setup is run
+            # from the users shell on the host OS where the env vars are not yet set
         environment:
             MYSQL_ROOT_PASSWORD: weeniest-stretch-contaminate-gnarl
             MYSQL_ROOT_HOST: "%"
 
     # mysql 8 container with slight augmentation (+curl, +unzip, +ssh client, ...) for running the DB init scripts
     # These init scripts check if the grapher and wordpress databases and users are missing, if so they create them
-    # and pull the data to have a working dev environment. As the wordpress donwload needs a working ssh access, it
-    # mounts the SSH agent and ~/.ssh directory into the container
+    # and pull the data to have a working dev environment.
     db-load-data:
         build:
             context: ./devTools/docker/mysql-init-docker
-        # image: mysql/mysql-server:latest
         command: "/app/grapher-only-mysql-init.sh"
         volumes:
             - ./devTools/docker:/app
             - ./tmp-downloads:/tmp-downloads
-            # - ~/.ssh:/user/.ssh # map the .ssh directory into the container so it knows about the owid-live ssh configuration
-            # - ${SSH_AUTH_SOCK}:/ssh-agent # Forward the SSH agent socket into the container
         environment:
             DB_ROOT_PASS: weeniest-stretch-contaminate-gnarl
             DB_ROOT_HOST: db
             DATA_FOLDER: "/tmp-downloads"
-            # SSH_AUTH_SOCK: "/ssh-agent"
         env_file:
-            - .env
+            - .env.devcontainer
         depends_on:
             - db
 

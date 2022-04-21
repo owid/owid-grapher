@@ -12,7 +12,7 @@ This option uses `make` to spin up all the services with a single command, but i
 -   [Node.js and Yarn](./local-typescript-setup.md)
 -   [tmux](https://github.com/tmux/tmux/wiki/Installing#binary-packages)
 
-If you're using Windows, we recommend you use the Windows Subsystem for Linux, where you'll require some additional utilities:
+If you're using Windows, we recommend you use the Windows Subsystem for Linux, where you'll require some additional utilities. Please also make sure to check out the [before you start on windows guide](before-you-start-on-windows.md). To install the additional tools, run the following in a WSL terminal:
 
 ```bash
 apt install -y build-essential finger

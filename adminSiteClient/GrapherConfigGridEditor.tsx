@@ -91,6 +91,7 @@ import {
     fetchVariablesParametersFromQueryString,
     filterExpressionNoFilter,
     fetchVariablesParametersToQueryParameters,
+    postprocessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
@@ -685,6 +686,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .with(EditorOption.checkbox, () => "checkbox")
             .with(EditorOption.dropdown, () => "dropdown")
             .with(EditorOption.numeric, () => "numeric")
+            .with(EditorOption.numericWithLatestEarliest, () => "numeric")
             .with(EditorOption.textfield, () => "text")
             .with(EditorOption.textarea, () => "text")
             .with(EditorOption.colorEditor, () => "colorScale")
@@ -1119,10 +1121,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             )
             if (jsonLogic === true) jsonLogic = null // If we have the default query then don't bother any further
 
-            const jsonLogicTree = Utils.loadFromJsonLogic(
+            let jsonLogicTree = Utils.loadFromJsonLogic(
                 jsonLogic as any,
                 this.FilterPanelConfig ?? filterPanelInitialConfig
             )
+
+            if (jsonLogicTree !== undefined) {
+                const mutableTree = Utils.getTree(jsonLogicTree)
+                postprocessJsonLogicTree(mutableTree)
+                jsonLogicTree = QbUtils.loadTree(mutableTree)
+            }
 
             // If we didn't get a working tree then use our default one instead
             const tree =
@@ -1760,6 +1768,27 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         //     "multiselect_not_equals",
         // ]
         config.operators = pick(config.operators, operatorsToKeep) as any
+
+        config.operators = {
+            ...config.operators,
+            is_latest: {
+                label: "Is latest",
+                labelForFormat: "Is latest",
+                sqlOp: "=",
+                cardinality: 0,
+                jsonLogic: "==",
+            },
+            is_earliest: {
+                label: "Is earliest",
+                labelForFormat: "Is earliest",
+                sqlOp: "=",
+                cardinality: 0,
+                jsonLogic: "==",
+            },
+        } as any
+        config.types.number.widgets.number.operators!.push("is_latest")
+        config.types.number.widgets.number.operators!.push("is_earliest")
+
         config.settings.customFieldSelectProps = { showSearch: true }
         return config
     }
