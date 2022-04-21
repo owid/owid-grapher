@@ -112,13 +112,19 @@ export class EntitySelectorModal extends React.Component<{
         document.removeEventListener("click", this.onDocumentClick)
     }
 
+    @action.bound onEscapeKeyDown(
+        e: React.KeyboardEvent<HTMLInputElement>
+    ): void {
+        if (e.key === "Escape") this.props.onDismiss()
+    }
+
     @action.bound onSearchKeyDown(
         e: React.KeyboardEvent<HTMLInputElement>
     ): void {
         if (e.key === "Enter" && this.searchResults.length > 0) {
             this.onSelect(this.searchResults[0].name)
             this.searchInput = ""
-        } else if (e.key === "Escape") this.props.onDismiss()
+        }
     }
 
     @action.bound onClear(): void {
@@ -190,7 +196,7 @@ export class EntitySelectorModal extends React.Component<{
                         </h2>
                     </header>
                     <div className="entities wrapper">
-                        <div className="searchResults">
+                        <div className="searchResults" onKeyDown={this.onEscapeKeyDown}>
                             <input
                                 type="search"
                                 placeholder="Search..."
