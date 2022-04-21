@@ -112,7 +112,7 @@ export class EntitySelectorModal extends React.Component<{
         document.removeEventListener("click", this.onDocumentClick)
     }
 
-    @action.bound onEscapeKeyDown(
+    @action.bound onOverlayKeyDown(
         e: React.KeyboardEvent<HTMLInputElement>
     ): void {
         if (e.key === "Escape") this.props.onDismiss()
@@ -178,7 +178,7 @@ export class EntitySelectorModal extends React.Component<{
         const { searchResults, searchInput } = this
 
         return (
-            <div className="entitySelectorOverlay">
+            <div className="entitySelectorOverlay" onKeyDown={this.onOverlayKeyDown}>
                 <div
                     ref={this.base}
                     className={
@@ -196,7 +196,7 @@ export class EntitySelectorModal extends React.Component<{
                         </h2>
                     </header>
                     <div className="entities wrapper">
-                        <div className="searchResults" onKeyDown={this.onEscapeKeyDown}>
+                        <div className="searchResults">
                             <input
                                 type="search"
                                 placeholder="Search..."
