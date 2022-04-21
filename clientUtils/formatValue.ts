@@ -76,10 +76,10 @@ function getPrecision({
     }
 
     // when dealing with abreviated numbers, adjust precision so we get 12.84 million instead of 13 million
-    // the logarithm division gets the number of "tens columns" a number has, resetting every 3 columns
-    // e.g. 1 million -> 0, 10 million -> 1, 100 million -> 2, 1 billion -> 0
-    const precisionPadding =
-        Math.round((Math.log(value) / Math.log(10)) % 3) + 1
+    // this modulo one-liner counts the "tens columns" of the value
+    // 1234 -> 1, 12345 -> 2, 123456 -> 3, 1 million -> 1
+    const precisionPadding = ((String(Math.floor(value)).length - 1) % 3) + 1
+
     // always show 2 decimal places for abbreviated numbers
     return `${precisionPadding + 2}`
 }
