@@ -80,7 +80,8 @@ function getPrecision({
     // e.g. 1 million -> 0, 10 million -> 1, 100 million -> 2, 1 billion -> 0
     const precisionPadding =
         Math.round((Math.log(value) / Math.log(10)) % 3) + 1
-    return `${precisionPadding + numDecimalPlaces}`
+    // always show 2 decimal places for abbreviated numbers
+    return `${precisionPadding + 2}`
 }
 
 function replaceSIPrefixes({
@@ -132,7 +133,7 @@ function postprocessString({
 }): string {
     let output = string
 
-    // handling insignificant values, and more logic to convert between d3's percentage magnitude and ours
+    // handling insignificant values, more logic to convert between d3's percentage magnitude and ours
     const tooSmallThreshold = checkIsUnitPercent(unit) ? 0.0001 : 0.01
     if (numberAbreviation && 0 < value && value < tooSmallThreshold) {
         output = "<" + output.replace(/0\.?(\d+)?/, "0.01")
