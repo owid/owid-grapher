@@ -91,7 +91,7 @@ import {
     fetchVariablesParametersFromQueryString,
     filterExpressionNoFilter,
     fetchVariablesParametersToQueryParameters,
-    postProcessJsonLogicTree,
+    postprocessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
@@ -1128,7 +1128,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
             if (jsonLogicTree !== undefined) {
                 const mutableTree = Utils.getTree(jsonLogicTree)
-                postProcessJsonLogicTree(mutableTree)
+                postprocessJsonLogicTree(mutableTree)
                 jsonLogicTree = QbUtils.loadTree(mutableTree)
             }
 

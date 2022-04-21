@@ -347,24 +347,26 @@ export function SExpressionToJsonLogic(
     query operator that we added to RAQL that in our SExpressions are represented as
     field = "latest"
  */
-export function postProcessJsonLogicTree(filterTree: JsonTree | JsonItem) {
+export function postprocessJsonLogicTree(filterTree: JsonTree | JsonItem) {
     if (filterTree.type === "group" && filterTree.children1) {
-        if (isArray(filterTree.children1))
-            for (const child of filterTree.children1)
-                postProcessJsonLogicTree(child)
-        else if (isPlainObject(filterTree.children1))
+        if (
+            isArray(filterTree.children1) ||
+            isPlainObject(filterTree.children1)
+        )
             for (const child of Object.values(filterTree.children1))
-                postProcessJsonLogicTree(child)
+                postprocessJsonLogicTree(child)
     } else if (filterTree.type === "rule") {
-        const isLatest =
-            filterTree.properties.value.length === 1 &&
-            filterTree.properties.value[0] === "latest"
-        const isEarliest =
-            filterTree.properties.value.length === 1 &&
-            filterTree.properties.value[0] === "earliest"
-        const isEqual =
-            filterTree.properties.operator === "equal" ||
-            filterTree.properties.operator === "select_equals"
+        const {
+            properties: { value, operator },
+        } = filterTree
+
+        if (value.length !== 1) return
+
+        const isLatest = value[0] === "latest"
+
+        const isEarliest = value[0] === "earliest"
+
+        const isEqual = operator === "equal" || operator === "select_equals"
         if (isLatest && isEqual) {
             filterTree.properties.operator = "is_latest"
         } else if (isEarliest && isEqual) {
