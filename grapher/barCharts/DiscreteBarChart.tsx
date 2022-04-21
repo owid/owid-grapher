@@ -418,7 +418,9 @@ export class DiscreteBarChart
                                 fill="#555"
                                 dominantBaseline="middle"
                                 textAnchor="end"
-                                {...this.legendLabelStyle}
+                                fontSize={this.barHeight < 6 ? 10
+                                : this.barHeight < 8 ? 11 : 0.75 * this.fontSize}
+                                fontWeight={700}
                             >
                                 {series.seriesName}
                             </text>
