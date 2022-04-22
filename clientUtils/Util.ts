@@ -349,11 +349,12 @@ export const previous = <T>(set: T[], current: T): T => {
 export const domainExtent = (
     numValues: number[],
     scaleType: ScaleType,
-    maxValueMultiplierForPadding = 1
+    maxValueMultiplierForPadding = 1,
+    userDomain?: number[]
 ): [number, number] => {
     const filterValues =
         scaleType === ScaleType.log ? numValues.filter((v) => v > 0) : numValues
-    const [minValue, maxValue] = extent(filterValues)
+    let [minValue, maxValue] = extent(filterValues)
 
     if (
         minValue !== undefined &&
@@ -365,6 +366,14 @@ export const domainExtent = (
             return [minValue, maxValue * maxValueMultiplierForPadding]
         } else {
             // Only one value, make up a reasonable default
+
+            if (userDomain !== undefined) {
+                // if there are user defined domains, use them.
+
+                if (minValue > userDomain[0]) minValue = userDomain[0]
+                if (maxValue < userDomain[1]) maxValue = userDomain[1]
+                return [minValue, maxValue]
+            }
             return scaleType === ScaleType.log
                 ? [minValue / 10, minValue * 10]
                 : [minValue - 1, maxValue + 1]

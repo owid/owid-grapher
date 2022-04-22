@@ -826,7 +826,10 @@ export class ScatterPlotChart
                 scaleType,
                 this.manager.zoomToSelection && this.selectedPoints.length
                     ? 1.1
-                    : 1
+                    : 1,
+                property === "y"
+                    ? this.yAxisConfig.toVerticalAxis().domain
+                    : this.xAxisConfig.toHorizontalAxis().domain
             )
         }
 
