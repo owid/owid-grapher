@@ -76,8 +76,8 @@ function getPrecision({
     }
 
     // when dealing with abreviated numbers, adjust precision so we get 12.84 million instead of 13 million
-    // this modulo one-liner counts the "tens columns" of the value
-    // 1234 -> 1, 12345 -> 2, 123456 -> 3, 1 million -> 1
+    // this modulo one-liner counts the "place columns" of the number, resetting every 3
+    // 1 -> 1, 48 -> 2, 981 -> 3, 7222 -> 1
     const precisionPadding = ((String(Math.floor(value)).length - 1) % 3) + 1
 
     // always show 2 decimal places for abbreviated numbers
@@ -124,19 +124,24 @@ function postprocessString({
     spaceBeforeUnit,
     unit,
     value,
+    numDecimalPlaces,
 }: {
     string: string
     numberAbreviation: "long" | "short" | false
     spaceBeforeUnit: boolean
     unit: string
     value: number
+    numDecimalPlaces: number
 }): string {
     let output = string
 
     // handling insignificant values, more logic to convert between d3's percentage magnitude and ours
-    const tooSmallThreshold = checkIsUnitPercent(unit) ? 0.0001 : 0.01
-    if (numberAbreviation && 0 < value && value < tooSmallThreshold) {
-        output = "<" + output.replace(/0\.?(\d+)?/, "0.01")
+    const tooSmallThreshold = checkIsUnitPercent(unit)
+        ? Math.pow(10, -numDecimalPlaces - 2)
+        : Math.pow(10, -numDecimalPlaces)
+    const floatingPointThreshold = Number(tooSmallThreshold.toPrecision(1))
+    if (numberAbreviation && 0 < value && value < floatingPointThreshold) {
+        output = "<" + output.replace(/0\.?(\d+)?/, `${floatingPointThreshold}`)
     }
 
     if (numberAbreviation) {
@@ -204,6 +209,7 @@ export function formatValue(
         spaceBeforeUnit,
         unit,
         value: convertedValue,
+        numDecimalPlaces,
     })
 
     return postprocessedString
