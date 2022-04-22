@@ -44,7 +44,7 @@ describe(formatValue, () => {
         ["million short prefix", 1000000, "1M", { numberAbreviation: "short" }],
         ["billion short prefix", 1000000000, "1B", { numberAbreviation: "short" }],
         ["trillion short prefix", 1000000000000, "1T", { numberAbreviation: "short" }],
-        ["quadrillion short prefix", 1000000000000000, "1Quad", { numberAbreviation: "short" }],
+        ["quadrillion short prefix", 1000000000000000, "1P", { numberAbreviation: "short" }],
         ["2 decimals with integer", 1, "1", { numDecimalPlaces: 2 }],
         ["2 decimals with float", 1.123, "1.12", { numDecimalPlaces: 2 }],
         ["4 decimals with float", 1.123, "1.123", { numDecimalPlaces: 4 }],

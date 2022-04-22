@@ -44,21 +44,28 @@ function getType({
     unit: string
     value: number
 }): string {
+    // %: multiply by 100, and then decimal notation with a percent sign
+    // f: fixed-point notation (i.e. fixed number of decimal points)
+    // s: decimal notation with an SI prefix, rounded to significant digits
+
     if (checkIsUnitPercent(unit)) {
-        // multiply by 100, and then decimal notation with a percent sign
         return "%"
     }
-    if (numberAbreviation) {
-        // do not abbreviate thousands
-        if (numberAbreviation === "long" && Math.abs(value) < 1e6) {
-            // fixed-point notation (i.e. fixed number of decimal points)
+    if (numberAbreviation === "long") {
+        // do not abbreviate until 1 million
+        if (Math.abs(value) < 1e6) {
             return "f"
         }
-        // decimal notation with an SI prefix, rounded to significant digits
+        return "s"
+    }
+    if (numberAbreviation === "short") {
+        // do not abbreviate until 1 thousand
+        if (Math.abs(value) < 1000) {
+            return "f"
+        }
         return "s"
     }
 
-    // fixed-point notation (i.e. fixed number of decimal points)
     return "f"
 }
 
@@ -80,7 +87,7 @@ function getPrecision({
     // 1 -> 1, 48 -> 2, 981 -> 3, 7222 -> 1
     const precisionPadding = ((String(Math.floor(value)).length - 1) % 3) + 1
 
-    // always show 2 decimal places for abbreviated numbers
+    // hard-coded 2 decimal places for abbreviated numbers
     return `${precisionPadding + 2}`
 }
 
@@ -99,8 +106,10 @@ function replaceSIPrefixes({
             M: "M",
             G: "B",
             T: "T",
-            P: "Quad",
-            E: "Quint",
+            P: "P",
+            E: "E",
+            Z: "Z",
+            Y: "Y",
         },
         long: {
             k: "k",
@@ -109,6 +118,8 @@ function replaceSIPrefixes({
             T: " trillion",
             P: " quadrillion",
             E: " quintillion",
+            Z: " sextillion",
+            Y: " septillion",
         },
     }
 
@@ -135,13 +146,13 @@ function postprocessString({
 }): string {
     let output = string
 
-    // handling insignificant values, more logic to convert between d3's percentage magnitude and ours
-    const tooSmallThreshold = checkIsUnitPercent(unit)
-        ? Math.pow(10, -numDecimalPlaces - 2)
-        : Math.pow(10, -numDecimalPlaces)
-    const floatingPointThreshold = Number(tooSmallThreshold.toPrecision(1))
-    if (numberAbreviation && 0 < value && value < floatingPointThreshold) {
-        output = "<" + output.replace(/0\.?(\d+)?/, `${floatingPointThreshold}`)
+    // handling infinitesimal values, more logic to convert between d3's percentage magnitude and ours
+    const decimals = checkIsUnitPercent(unit)
+        ? numDecimalPlaces + 2
+        : numDecimalPlaces
+    const tooSmallThreshold = Number(Math.pow(10, -decimals).toPrecision(1))
+    if (numberAbreviation && 0 < value && value < tooSmallThreshold) {
+        output = "<" + output.replace(/0\.?(\d+)?/, `${tooSmallThreshold}`)
     }
 
     if (numberAbreviation) {
