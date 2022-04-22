@@ -60,6 +60,12 @@ $xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
     }
 }
 
+@mixin lg-down {
+    @media (max-width: $lg-min-width - 0.0625rem) {
+        @content;
+    }
+}
+
 @mixin lg-up {
     @media (min-width: $lg-min-width) {
         @content;

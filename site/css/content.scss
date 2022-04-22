@@ -23,8 +23,7 @@
 }
 
 .article-content img.lightbox-enabled:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    opacity: 0.9;
+    @include image-hover;
     cursor: zoom-in;
 }
 
