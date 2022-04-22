@@ -2,10 +2,10 @@ import React from "react"
 import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Link } from "react-router-dom"
-import Papa from "papaparse"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { TextField } from "./Forms.js"
+import { CSV, CSVSelector } from "./CSVSelector.js"
 import { capitalize } from "../clientUtils/Util.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
@@ -407,73 +407,6 @@ class Readme extends React.Component {
                 </div>
             </div>
         )
-    }
-}
-
-@observer
-class CSVSelector extends React.Component<{
-    onCSV: (csv: CSV) => void
-}> {
-    fileInput?: HTMLInputElement
-
-    @action.bound onChooseCSV({ target }: { target: HTMLInputElement }) {
-        const file = target.files && target.files[0]
-        if (!file) return
-
-        const reader = new FileReader()
-        reader.onload = (e) => {
-            const csv = e?.target?.result
-            if (csv && typeof csv === "string") {
-                const res = Papa.parse<string[]>(csv, {
-                    delimiter: ",",
-                    skipEmptyLines: true,
-                })
-
-                const csvObj: CSV = new CSV({
-                    filename: file.name,
-                    rows: res.data,
-                } as any)
-                this.props.onCSV(csvObj)
-            } else {
-                console.error("CSV was falsy")
-            }
-        }
-        reader.readAsText(file)
-    }
-
-    render() {
-        return (
-            <div>
-                <label htmlFor="file">Upload CSV</label>
-                <br />
-                <input
-                    id="file"
-                    type="file"
-                    onChange={this.onChooseCSV}
-                    ref={(e) => (this.fileInput = e as HTMLInputElement)}
-                />
-                <div
-                    className="text-muted small"
-                    style={{ marginTop: "0.25rem" }}
-                >
-                    See README for example CSV. Maximum file size: 10MB.
-                </div>
-            </div>
-        )
-    }
-
-    componentDidMount() {
-        if (this.fileInput) this.fileInput.value = ""
-    }
-}
-
-class CSV {
-    filename: string
-    rows: string[][]
-
-    constructor({ filename = "", rows = [] }) {
-        this.filename = filename
-        this.rows = rows
     }
 }
 
