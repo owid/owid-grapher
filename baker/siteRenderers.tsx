@@ -29,7 +29,10 @@ import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
 } from "../settings/serverSettings.js"
-import { RECAPTCHA_SITE_KEY } from "../settings/clientSettings.js"
+import {
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+    RECAPTCHA_SITE_KEY,
+} from "../settings/clientSettings.js"
 import {
     EntriesByYearPage,
     EntriesForYearPage,
@@ -605,13 +608,7 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
 const renderGrapherImageByChartSlug = async (
     chartSlug: string
 ): Promise<string | null> => {
-    const chart = await Chart.getBySlug(chartSlug)
-    if (!chart) return null
-
-    const canonicalSlug = chart?.config?.slug
-    if (!canonicalSlug) return null
-
-    return `<img src="${BAKED_BASE_URL}/grapher/exports/${canonicalSlug}.svg" />`
+    return `<img src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chartSlug}.svg" />`
 }
 
 const renderExplorerDefaultThumbnail = (): string => {
