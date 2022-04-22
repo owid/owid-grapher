@@ -3,6 +3,7 @@ import ReactDOM from "react-dom"
 import { useState, useEffect, useRef } from "react"
 import { MultiEmbedderSingleton } from "../../site/multiembedder/MultiEmbedder.js"
 import { RelatedChart } from "../../clientUtils/owidTypes.js"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
 
 const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
@@ -48,7 +49,11 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                         }
                                     }}
                                 >
-                                    {chart.title}
+                                    {/* todo: not production ready, <img> wrapped in <a> conflicts with assumption in article image processing */}
+                                    <img
+                                        src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.slug}.svg`}
+                                    ></img>
+                                    <span>{chart.title}</span>
                                 </a>
                                 {chart.variantName ? (
                                     <span className="variantName">
