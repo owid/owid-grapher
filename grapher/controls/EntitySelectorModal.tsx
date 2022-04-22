@@ -178,7 +178,10 @@ export class EntitySelectorModal extends React.Component<{
         const { searchResults, searchInput } = this
 
         return (
-            <div className="entitySelectorOverlay" onKeyDown={this.onOverlayKeyDown}>
+            <div
+                className="entitySelectorOverlay"
+                onKeyDown={this.onOverlayKeyDown}
+            >
                 <div
                     ref={this.base}
                     className={
