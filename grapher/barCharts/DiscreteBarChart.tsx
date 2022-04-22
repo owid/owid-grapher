@@ -165,8 +165,9 @@ export class DiscreteBarChart
         fontSize: number
         fontWeight: number
     } {
+        const availableHeight = this.boundsWithoutColorLegend.height / this.barCount
         return {
-            fontSize: 0.75 * this.fontSize,
+            fontSize: Math.min(0.75 * this.fontSize, 1.1 * availableHeight),
             fontWeight: 700,
         }
     }
@@ -175,8 +176,9 @@ export class DiscreteBarChart
         fontSize: number
         fontWeight: number
     } {
+        const availableHeight = this.boundsWithoutColorLegend.height / this.barCount
         return {
-            fontSize: 0.75 * this.fontSize,
+            fontSize: Math.min(0.75 * this.fontSize, 1.1 * availableHeight),
             fontWeight: 400,
         }
     }
@@ -418,9 +420,7 @@ export class DiscreteBarChart
                                 fill="#555"
                                 dominantBaseline="middle"
                                 textAnchor="end"
-                                fontSize={this.barHeight < 6 ? 10
-                                : this.barHeight < 8 ? 11 : 0.75 * this.fontSize}
-                                fontWeight={700}
+                                {...this.legendLabelStyle}
                             >
                                 {series.seriesName}
                             </text>
