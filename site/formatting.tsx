@@ -14,7 +14,7 @@ import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
 import {
     KEY_INSIGHTS_CLASS_NAME,
     KEY_INSIGHTS_SLIDE_CLASS_NAME,
-    KEY_INSIGHTS_SLIDE_CONENT_CLASS_NAME,
+    KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME,
 } from "./blocks/KeyInsights.js"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
@@ -165,7 +165,7 @@ export const splitContentIntoSectionsAndColumns = (
 
                 // Split the content of each slide into columns
                 $el.find(
-                    `.${KEY_INSIGHTS_SLIDE_CLASS_NAME} > .${KEY_INSIGHTS_SLIDE_CONENT_CLASS_NAME}`
+                    `.${KEY_INSIGHTS_SLIDE_CLASS_NAME} > .${KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME}`
                 ).each((_, slide) => {
                     const $slide = cheerioEl(slide)
                     const slideInnerHtml = $slide.html()
