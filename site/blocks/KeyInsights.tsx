@@ -10,7 +10,6 @@ export const KEY_INSIGHTS_THUMBS_CLASS_NAME = "thumbs"
 const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
 const KEY_INSIGHTS_SLIDES_CLASS_NAME = "slides"
 export const KEY_INSIGHTS_SLIDE_CLASS_NAME = "slide"
-export const KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME = "content"
 
 type scrollVisibilityApiType = React.ContextType<typeof VisibilityContext>
 
@@ -110,15 +109,8 @@ export const KeyInsightsSlides = ({ insights }: { insights: KeyInsight[] }) => (
                 key={idx}
                 className={KEY_INSIGHTS_SLIDE_CLASS_NAME}
                 data-active={idx === 0}
-            >
-                <h4>
-                    <a href={`/${slug}`}>{title}</a>
-                </h4>
-                <div
-                    className={KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME}
-                    dangerouslySetInnerHTML={{ __html: content }}
-                ></div>
-            </div>
+                dangerouslySetInnerHTML={{ __html: content }}
+            ></div>
         ))}
     </div>
 )
