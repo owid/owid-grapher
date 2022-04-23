@@ -47,6 +47,7 @@ import {
     FormattingOptions,
     FullPost,
     JsonError,
+    KeyInsight,
     PostRow,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
@@ -61,7 +62,6 @@ import {
     selectHomepagePosts,
     isPostCitable,
     getBlockContent,
-    getKeyInsights,
 } from "../db/wpdb.js"
 import { mysqlFirst, queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
@@ -623,11 +623,14 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
     for (const block of Array.from($("block[type='key-insights']"))) {
         const $block = $(block)
 
-        const keyInsightsIds = $block.data("ids")
-        if (!keyInsightsIds) continue
-
-        const keyInsights = await getKeyInsights(keyInsightsIds)
-        if (!keyInsights) continue
+        const keyInsights = extractKeyInsights($, $block)
+        if (!keyInsights.length) {
+            logContentErrorAndMaybeSendToSlack(
+                "No valid key insights found within block, content removed."
+            )
+            $block.remove()
+            continue
+        }
         const titles = keyInsights.map((keyInsight) => keyInsight.title)
 
         const rendered = ReactDOMServer.renderToString(
@@ -642,4 +645,30 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
         $block.replaceWith(rendered)
     }
     return getBodyHtml($)
+}
+
+export const extractKeyInsights = (
+    $: CheerioStatic,
+    $block: Cheerio
+): KeyInsight[] => {
+    const keyInsightTitles = $block.find("h4").toArray()
+    const keyInsights: KeyInsight[] = []
+
+    for (const titleEl of keyInsightTitles) {
+        const $titleEl = $(titleEl)
+        const content = $.html($titleEl.nextUntil($("h4")))
+        const slug = $titleEl.attr("id")
+        const title = $titleEl.html()
+
+        if (!content || !title || !slug) {
+            logContentErrorAndMaybeSendToSlack(
+                `Missing content or anchor on key insight title tag for "${title}"`
+            )
+            continue
+        }
+
+        keyInsights.push({ title, content, slug })
+    }
+
+    return keyInsights
 }

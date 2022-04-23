@@ -659,27 +659,6 @@ export const getBlockContent = async (
     return post.data?.wpBlock?.content ?? undefined
 }
 
-export const getKeyInsights = async (
-    ids: number[]
-): Promise<KeyInsight[] | undefined> => {
-    if (!isWordpressAPIEnabled) return undefined
-
-    const query = `
-    {
-        posts(where: { in: [${ids.toString()}] }) {
-            nodes {
-                title
-                content
-                slug
-            }
-        }
-    }
-    `
-    const result = await graphqlQuery(query)
-
-    return result.data?.posts.nodes ?? undefined
-}
-
 export const getFullPost = async (
     postApi: any,
     excludeContent?: boolean
