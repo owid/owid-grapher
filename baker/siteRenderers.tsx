@@ -656,7 +656,10 @@ export const extractKeyInsights = (
 
     for (const titleEl of keyInsightTitles) {
         const $titleEl = $(titleEl)
-        const content = $.html($titleEl.nextUntil($("h4")))
+        // include title in slide content and deal with it in
+        // splitContentIntoSectionsAndColumns()
+        const $content = $titleEl.nextUntil($("h4")).addBack()
+        const content = $.html($content)
         const slug = $titleEl.attr("id")
         const title = $titleEl.html()
 
