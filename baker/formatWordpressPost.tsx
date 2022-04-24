@@ -526,12 +526,11 @@ export const formatWordpressPost = async (
         // (e.g. within a prominent link block)
         if (
             !$heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length && // already wrapped in <a>
-            !$heading.closest(`.${KEY_INSIGHTS_CLASS_NAME}`).length &&
             !$heading.closest(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`).length && // prioritize clean SSR of AdditionalInformation
             !$heading.closest(".wp-block-help").length
         ) {
             $heading.attr("id", slug)
-            $heading.prepend(
+            $heading.append(
                 `<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`
             )
         }
