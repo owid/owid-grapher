@@ -85,7 +85,8 @@ function getPrecision({
     // when dealing with abreviated numbers, adjust precision so we get 12.84 million instead of 13 million
     // this modulo one-liner counts the "place columns" of the number, resetting every 3
     // 1 -> 1, 48 -> 2, 981 -> 3, 7222 -> 1
-    const precisionPadding = ((String(Math.floor(value)).length - 1) % 3) + 1
+    const precisionPadding =
+        ((String(Math.floor(Math.abs(value))).length - 1) % 3) + 1
 
     // hard-coded 2 decimal places for abbreviated numbers
     return `${precisionPadding + 2}`
