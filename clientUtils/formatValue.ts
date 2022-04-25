@@ -70,10 +70,10 @@ function getPrecision({
     }
 
     // when dealing with abreviated numbers, adjust precision so we get 12.84 million instead of 13 million
-    // this modulo one-liner counts the "place columns" of the number, resetting every 3
+    // the modulo one-liner counts the "place columns" of the number, resetting every 3
     // 1 -> 1, 48 -> 2, 981 -> 3, 7222 -> 1
-    const precisionPadding =
-        ((String(Math.floor(Math.abs(value))).length - 1) % 3) + 1
+    const numberOfDigits = String(Math.floor(Math.abs(value))).length
+    const precisionPadding = ((numberOfDigits - 1) % 3) + 1
 
     // hard-coded 2 decimal places for abbreviated numbers
     return `${precisionPadding + 2}`
@@ -136,7 +136,6 @@ function postprocessString({
 
     // handling infinitesimal values
     const tooSmallThreshold = Math.pow(10, -numDecimalPlaces).toPrecision(1)
-
     if (numberAbreviation && 0 < value && value < +tooSmallThreshold) {
         output = "<" + output.replace(/0\.?(\d+)?/, tooSmallThreshold)
     }
@@ -152,6 +151,7 @@ function postprocessString({
         const appendage = spaceBeforeUnit ? ` ${unit}` : unit
         output += appendage
     }
+
     return output
 }
 
