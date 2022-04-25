@@ -54,7 +54,6 @@ import {
     SUMMARY_CLASSNAME,
 } from "../site/formatting.js"
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
-import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 const initMathJax = () => {
