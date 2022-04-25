@@ -161,13 +161,17 @@ export class DiscreteBarChart
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get labelFontSize(): number {
+        const availableHeight = this.boundsWithoutColorLegend.height / this.barCount
+        return Math.min(0.75 * this.fontSize, 1.1 * availableHeight)
+    }
+
     @computed private get legendLabelStyle(): {
         fontSize: number
         fontWeight: number
     } {
-        const availableHeight = this.boundsWithoutColorLegend.height / this.barCount
         return {
-            fontSize: Math.min(0.75 * this.fontSize, 1.1 * availableHeight),
+            fontSize: this.labelFontSize,
             fontWeight: 700,
         }
     }
@@ -176,9 +180,8 @@ export class DiscreteBarChart
         fontSize: number
         fontWeight: number
     } {
-        const availableHeight = this.boundsWithoutColorLegend.height / this.barCount
         return {
-            fontSize: Math.min(0.75 * this.fontSize, 1.1 * availableHeight),
+            fontSize: this.labelFontSize,
             fontWeight: 400,
         }
     }
