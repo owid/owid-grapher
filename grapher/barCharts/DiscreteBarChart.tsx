@@ -162,7 +162,8 @@ export class DiscreteBarChart
     }
 
     @computed private get labelFontSize(): number {
-        const availableHeight = this.boundsWithoutColorLegend.height / this.barCount
+        const availableHeight =
+            this.boundsWithoutColorLegend.height / this.barCount
         return Math.min(0.75 * this.fontSize, 1.1 * availableHeight)
     }
 
