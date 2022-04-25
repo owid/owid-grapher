@@ -62,7 +62,7 @@ describe(formatValue, () => {
         ["% spaceBeforeUnit true", 1.1, "1.1 %", { spaceBeforeUnit: true, unit: "%" }],
         ["% spaceBeforeUnit false", 1.1, "1.1%", { spaceBeforeUnit: false, unit: "%" }],
         ["% small", 0.1, "0.1%", { unit: "%" }],
-        ["% very small", 0.001, "<0.0001%", { unit: "%" }],
+        ["% very small", 0.001, "<0.01%", { unit: "%" }],
         ["$ very small", 0.001, "<$0.01", { unit: "$" }],
         ["%compound spaceBeforeUnit false", 1.1, "1.1%compound", { spaceBeforeUnit: false, unit: "%compound" }],
         ["numberAbreviation long", 1000000000, "1 billion", { numberAbreviation: "long" }],

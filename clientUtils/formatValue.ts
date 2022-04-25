@@ -53,17 +53,11 @@ function getType({
     }
     if (numberAbreviation === "long") {
         // do not abbreviate until 1 million
-        if (Math.abs(value) < 1e6) {
-            return "f"
-        }
-        return "s"
+        return Math.abs(value) < 1e6 ? "f" : "s"
     }
     if (numberAbreviation === "short") {
         // do not abbreviate until 1 thousand
-        if (Math.abs(value) < 1000) {
-            return "f"
-        }
-        return "s"
+        return Math.abs(value) < 1000 ? "f" : "s"
     }
 
     return "f"
@@ -153,7 +147,12 @@ function postprocessString({
         : numDecimalPlaces
     const tooSmallThreshold = Number(Math.pow(10, -decimals).toPrecision(1))
     if (numberAbreviation && 0 < value && value < tooSmallThreshold) {
-        output = "<" + output.replace(/0\.?(\d+)?/, `${tooSmallThreshold}`)
+        output =
+            "<" +
+            output.replace(
+                /0\.?(\d+)?/,
+                Math.pow(10, -numDecimalPlaces).toPrecision(1)
+            )
     }
 
     if (numberAbreviation) {
