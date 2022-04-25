@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -19,7 +19,6 @@ const Thumb = ({
     selected,
 }: {
     title: string
-    itemId: string
     onClick: (visibility: scrollVisibilityApiType) => void
     selected: boolean
 }) => {
@@ -41,7 +40,21 @@ const Thumb = ({
 
 export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     const [selectedId, setSelectedId] = useState<string>("0")
-    const thumbsRef = useRef<HTMLDivElement>(null)
+    const [slides, setSlides] = useState<HTMLElement | null>(null)
+
+    // Not using useRef() here so that the  "select slide based on hash" effect,
+    // running on page load only, runs after the ref has been attached (and not
+    // on first render, which would be before)
+    // https://reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node
+    const thumbsRef = useCallback((node) => {
+        if (node !== null) {
+            setSlides(
+                node.parentElement?.parentElement?.querySelector(
+                    `.${KEY_INSIGHTS_SLIDES_CLASS_NAME}`
+                )
+            )
+        }
+    }, [])
 
     const handleThumbClickFactory = (itemId: string) => {
         return ({ scrollToItem, getItemById }: scrollVisibilityApiType) => {
@@ -50,11 +63,23 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
         }
     }
 
+    // Select active slide based on URL fragment
     useEffect(() => {
-        const slides =
-            thumbsRef.current?.parentElement?.parentElement?.querySelector(
-                `.${KEY_INSIGHTS_SLIDES_CLASS_NAME}`
-            )
+        if (!slides) return
+
+        const hash = document.location.hash
+        if (!hash) return
+
+        const selectedSlideIdx = Array.from(
+            slides.querySelectorAll(`.${KEY_INSIGHTS_SLIDE_CLASS_NAME}`)
+        ).findIndex((slide) => slide.querySelector(hash))
+
+        if (selectedSlideIdx === -1) return
+        setSelectedId(selectedSlideIdx.toString())
+    }, [slides])
+
+    // Select active slide when corresponding thumb clicked
+    useEffect(() => {
         if (!slides) return
 
         // A less imperative, more React way to do this would be preferred. To
@@ -72,8 +97,10 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
             .forEach((slide, idx) => {
                 if (idx === Number(selectedId)) {
                     slide.setAttribute("data-active", "true")
+                    const anchor = slide.querySelector("h4")?.getAttribute("id")
+                    if (anchor) history.replaceState(null, "", `#${anchor}`)
                 } else {
-                    slide.removeAttribute("data-active")
+                    slide.setAttribute("data-active", "false")
                 }
             })
     }, [selectedId])
@@ -91,7 +118,6 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                         <Thumb
                             title={title}
                             key={itemId}
-                            itemId={itemId}
                             onClick={handleThumbClickFactory(itemId)}
                             selected={itemId === selectedId}
                         />
@@ -104,7 +130,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
 
 export const KeyInsightsSlides = ({ insights }: { insights: KeyInsight[] }) => (
     <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
-        {insights.map(({ title, content, slug }, idx) => (
+        {insights.map(({ content }, idx) => (
             <div
                 key={idx}
                 className={KEY_INSIGHTS_SLIDE_CLASS_NAME}

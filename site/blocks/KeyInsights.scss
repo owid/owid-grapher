@@ -93,7 +93,7 @@ $slide-content-height: 500px;
 
         .slide {
             display: none;
-            &[data-active] {
+            &[data-active="true"] {
                 display: block;
             }
 
