@@ -4,8 +4,10 @@ import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { KeyInsight } from "../../clientUtils/owidTypes.js"
+import { getWindowUrl, setWindowUrl } from "../../clientUtils/urls/Url.js"
 
 export const KEY_INSIGHTS_CLASS_NAME = "key-insights"
+export const KEY_INSIGHTS_INSIGHT_PARAM = "insight"
 export const KEY_INSIGHTS_THUMBS_CLASS_NAME = "thumbs"
 const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
 const KEY_INSIGHTS_SLIDES_CLASS_NAME = "slides"
@@ -56,16 +58,21 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
         }
     }, [])
 
-    // Select active slide based on URL fragment
+    // Select active slide based on URL
     useEffect(() => {
         if (!slides) return
 
-        const hash = document.location.hash
-        if (!hash) return
+        const windowUrl = getWindowUrl()
+        if (!windowUrl.queryParams.insight) return
 
+        // find the slide containing the h4 with the id matching the ?insight query param
         const selectedSlideIdx = Array.from(
             slides.querySelectorAll(`.${KEY_INSIGHTS_SLIDE_CLASS_NAME}`)
-        ).findIndex((slide) => slide.querySelector(hash))
+        ).findIndex((slide) =>
+            slide.querySelector(
+                `#${windowUrl.queryParams[KEY_INSIGHTS_INSIGHT_PARAM]}`
+            )
+        )
 
         if (selectedSlideIdx === -1) return
         setSelectedId(selectedSlideIdx.toString())
@@ -98,8 +105,16 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
             .forEach((slide, idx) => {
                 if (idx === Number(selectedId)) {
                     slide.setAttribute("data-active", "true")
+                    const windowUrl = getWindowUrl()
                     const anchor = slide.querySelector("h4")?.getAttribute("id")
-                    if (anchor) history.replaceState(null, "", `#${anchor}`)
+                    if (!anchor) return
+                    setWindowUrl(
+                        windowUrl
+                            .updateQueryParams({
+                                [KEY_INSIGHTS_INSIGHT_PARAM]: anchor,
+                            })
+                            .update({ hash: "#key-insights" })
+                    )
                 } else {
                     slide.setAttribute("data-active", "false")
                 }
