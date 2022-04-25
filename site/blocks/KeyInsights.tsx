@@ -19,15 +19,13 @@ const Thumb = ({
     selected,
 }: {
     title: string
-    onClick: (visibility: scrollVisibilityApiType) => void
+    onClick: () => void
     itemId: string // needed by react-horizontal-scrolling-menu, see lib's examples
     selected: boolean
 }) => {
-    const visibility = useContext(VisibilityContext)
-
     return (
         <button
-            onClick={() => onClick(visibility)}
+            onClick={onClick}
             className={
                 selected
                     ? `${KEY_INSIGHTS_THUMB_CLASS_NAME} selected`
@@ -42,6 +40,7 @@ const Thumb = ({
 export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     const [selectedId, setSelectedId] = useState<string>("0")
     const [slides, setSlides] = useState<HTMLElement | null>(null)
+    const apiRef = React.useRef({} as scrollVisibilityApiType)
 
     // Not using useRef() here so that the  "select slide based on hash" effect,
     // running on page load only, runs after the ref has been attached (and not
@@ -56,13 +55,6 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
             )
         }
     }, [])
-
-    const handleThumbClickFactory = (itemId: string) => {
-        return ({ scrollToItem, getItemById }: scrollVisibilityApiType) => {
-            setSelectedId(itemId)
-            scrollToItem(getItemById(itemId), "smooth", "center", "nearest")
-        }
-    }
 
     // Select active slide based on URL fragment
     useEffect(() => {
@@ -79,7 +71,15 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
         setSelectedId(selectedSlideIdx.toString())
     }, [slides])
 
-    // Select active slide when corresponding thumb clicked
+    // Scroll to selected item
+    useEffect(() => {
+        const itemElement = apiRef.current.getItemElementById(selectedId)
+        if (!itemElement) return
+
+        apiRef.current.scrollToItem(itemElement, "smooth", "center", "nearest")
+    }, [selectedId])
+
+    // Select active slide when corresponding thumb selected
     useEffect(() => {
         if (!slides) return
 
@@ -112,6 +112,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                 LeftArrow={LeftArrow}
                 RightArrow={RightArrow}
                 transitionDuration={200}
+                apiRef={apiRef}
             >
                 {titles.map((title, i) => {
                     const itemId = `${i}`
@@ -120,7 +121,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                             title={title}
                             key={itemId}
                             itemId={itemId}
-                            onClick={handleThumbClickFactory(itemId)}
+                            onClick={() => setSelectedId(itemId)}
                             selected={itemId === selectedId}
                         />
                     )
