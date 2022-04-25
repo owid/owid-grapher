@@ -37,20 +37,13 @@ function getSymbol({ unit }: { unit: string }): "$" | "" {
 
 function getType({
     numberAbreviation,
-    unit,
     value,
 }: {
     numberAbreviation: "long" | "short" | false
-    unit: string
     value: number
 }): string {
-    // %: multiply by 100, and then decimal notation with a percent sign
     // f: fixed-point notation (i.e. fixed number of decimal points)
     // s: decimal notation with an SI prefix, rounded to significant digits
-
-    if (checkIsUnitPercent(unit)) {
-        return "%"
-    }
     if (numberAbreviation === "long") {
         // do not abbreviate until 1 million
         return Math.abs(value) < 1e6 ? "f" : "s"
@@ -141,18 +134,11 @@ function postprocessString({
 }): string {
     let output = string
 
-    // handling infinitesimal values, more logic to convert between d3's percentage magnitude and ours
-    const decimals = checkIsUnitPercent(unit)
-        ? numDecimalPlaces + 2
-        : numDecimalPlaces
-    const tooSmallThreshold = Number(Math.pow(10, -decimals).toPrecision(1))
-    if (numberAbreviation && 0 < value && value < tooSmallThreshold) {
-        output =
-            "<" +
-            output.replace(
-                /0\.?(\d+)?/,
-                Math.pow(10, -numDecimalPlaces).toPrecision(1)
-            )
+    // handling infinitesimal values
+    const tooSmallThreshold = Math.pow(10, -numDecimalPlaces).toPrecision(1)
+
+    if (numberAbreviation && 0 < value && value < +tooSmallThreshold) {
+        output = "<" + output.replace(/0\.?(\d+)?/, tooSmallThreshold)
     }
 
     if (numberAbreviation) {
@@ -162,16 +148,9 @@ function postprocessString({
         })
     }
 
-    if (unit) {
+    if (unit && !checkIsUnitCurrency(unit)) {
         const appendage = spaceBeforeUnit ? ` ${unit}` : unit
-        if (checkIsUnitPercent(unit)) {
-            // unit may be something like "% CO2", so we need to replace d3's "%" with the full unit
-            output = output.replace("%", appendage)
-        } else if (!checkIsUnitCurrency(unit)) {
-            // If the unit is not a percentage or currency (e.g. "pp"), d3 won't have included it at all,
-            // so we just add it to the end
-            output = output + appendage
-        }
+        output += appendage
     }
     return output
 }
@@ -187,13 +166,6 @@ export function formatValue(
         numberAbreviation = "long",
     }: TickFormattingOptions
 ): string {
-    // when type = "%", d3.format multiples the value by 100.
-    // an old version of this function didn't use d3.format for percentages
-    // so all our figures involving percentages are now 100x too large
-    // thus we have to convert it to counteract d3's conversion
-    // TODO: divide all percentage chart data by 100
-    const convertedValue = checkIsUnitPercent(unit) ? value / 100 : value
-
     const formatter = createFormatter(unit)
 
     // Explore how specifiers work here
@@ -205,21 +177,21 @@ export function formatValue(
         symbol: getSymbol({ unit }),
         comma: ",",
         precision: getPrecision({
-            value: convertedValue,
+            value,
             numDecimalPlaces,
             numberAbreviation,
         }),
-        type: getType({ numberAbreviation, unit, value: convertedValue }),
+        type: getType({ numberAbreviation, value }),
     }).toString()
 
-    const formattedString = formatter(specifier)(convertedValue)
+    const formattedString = formatter(specifier)(value)
 
     const postprocessedString = postprocessString({
         string: formattedString,
         numberAbreviation,
         spaceBeforeUnit,
         unit,
-        value: convertedValue,
+        value,
         numDecimalPlaces,
     })
 
