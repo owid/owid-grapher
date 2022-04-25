@@ -58,21 +58,8 @@ $zindex-Tooltip: 20;
     .flash {
         margin: 10px;
     }
-    .clickable,
-    button {
+    .clickable {
         cursor: pointer;
-        -webkit-user-select: none;
-        -ms-user-select: none;
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        user-select: none;
-    }
-    .noselect {
-        -webkit-user-select: none;
-        -ms-user-select: none;
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        user-select: none;
     }
     input[type="checkbox"] {
         cursor: pointer;
