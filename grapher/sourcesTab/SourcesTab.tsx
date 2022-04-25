@@ -8,7 +8,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { OwidColumnDef } from "../../coreTable/OwidTableConstants.js"
 
-const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
+const formatText = (s: string): string =>
+    linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
 export interface SourcesTabManager {
     adminBaseUrl?: string
