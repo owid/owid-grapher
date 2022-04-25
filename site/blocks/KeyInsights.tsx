@@ -217,7 +217,7 @@ export const hydrateKeyInsights = () => {
         .forEach((block) => {
             const titles = Array.from(
                 block.querySelectorAll(`.${KEY_INSIGHTS_THUMB_CLASS_NAME}`)
-            ).map((thumb) => thumb.innerHTML)
+            ).map((thumb) => thumb.textContent || "")
 
             if (!titles.length) return
 
