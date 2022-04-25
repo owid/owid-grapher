@@ -20,6 +20,7 @@ const Thumb = ({
 }: {
     title: string
     onClick: (visibility: scrollVisibilityApiType) => void
+    itemId: string // needed by react-horizontal-scrolling-menu, see lib's examples
     selected: boolean
 }) => {
     const visibility = useContext(VisibilityContext)
@@ -118,6 +119,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                         <Thumb
                             title={title}
                             key={itemId}
+                            itemId={itemId}
                             onClick={handleThumbClickFactory(itemId)}
                             selected={itemId === selectedId}
                         />
