@@ -5,7 +5,7 @@ import { MultiEmbedderSingleton } from "../../site/multiembedder/MultiEmbedder.j
 import { RelatedChart } from "../../clientUtils/owidTypes.js"
 import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
 
-const RELATED_CHARTS_CLASS_NAME = "related-charts"
+export const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
 export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const refChartContainer = useRef<HTMLDivElement>(null)
@@ -54,6 +54,8 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                         loading="lazy"
                                         data-no-lightbox
                                         data-no-img-formatting
+                                        width={850}
+                                        height={600}
                                     ></img>
                                     <span>{chart.title}</span>
                                 </a>
