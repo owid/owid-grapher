@@ -19,6 +19,8 @@ import {
 import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTable.js"
 import { getBodyHtml } from "../site/formatting.js"
 import { Url } from "../clientUtils/urls/Url.js"
+import * as path from "path"
+import { capitalize } from "../clientUtils/Util.js"
 
 export const DEEP_LINK_CLASS = "deep-link"
 
