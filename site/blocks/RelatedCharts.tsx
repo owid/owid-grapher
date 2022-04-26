@@ -49,9 +49,11 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                         }
                                     }}
                                 >
-                                    {/* todo: not production ready, <img> wrapped in <a> conflicts with assumption in article image processing */}
                                     <img
                                         src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.slug}.svg`}
+                                        loading="lazy"
+                                        data-no-lightbox
+                                        data-no-img-formatting
                                     ></img>
                                     <span>{chart.title}</span>
                                 </a>
