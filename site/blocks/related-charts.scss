@@ -26,7 +26,8 @@
                 @include lg-down {
                     display: flex;
                     overflow-x: auto;
-                    padding-bottom: $vertical-spacing; // making space for the scrollbar
+                    margin-bottom: $vertical-spacing / 2; // making space for the scrollbar
+                    padding-bottom: 1.5rem;
                     li {
                         flex: 0 0 min(50vw, 13rem);
                         margin-right: 1rem;
