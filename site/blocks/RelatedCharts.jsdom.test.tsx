@@ -5,6 +5,7 @@ import { RelatedCharts } from "./RelatedCharts.js"
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
 configure({ adapter: new Adapter() })
 
 const charts = [
@@ -24,8 +25,15 @@ it("renders active chart links and loads respective chart on click", () => {
     expect(wrapper.find("li")).toHaveLength(2)
 
     expect(wrapper.find("li").first().hasClass("active")).toEqual(true)
-
     expect(wrapper.find("li").first().text()).toBe("Chart 1")
+    expect(
+        wrapper
+            .find("li")
+            .first()
+            .find(
+                `img[src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${charts[0].slug}.svg"]`
+            )
+    ).toHaveLength(1)
 
     wrapper.find("a").forEach((link, idx) => {
         link.simulate("click")
