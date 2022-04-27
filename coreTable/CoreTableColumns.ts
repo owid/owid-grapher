@@ -532,7 +532,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         options?: TickFormattingOptions
     ): string {
         return super.formatValueShortWithAbbreviations(value, {
-            numberAbreviation: "short",
+            numberAbbreviation: "short",
             // only include a unit if it's very short (e.g. %, $ or £)
             ...omitUndefinedValues({
                 unit:

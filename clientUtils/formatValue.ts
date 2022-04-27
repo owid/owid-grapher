@@ -7,7 +7,7 @@ export interface TickFormattingOptions {
     trailingZeroes?: boolean
     spaceBeforeUnit?: boolean
     showPlus?: boolean
-    numberAbreviation?: "short" | "long" | false
+    numberAbbreviation?: "short" | "long" | false
 }
 
 // Used outside this module to figure out if the unit will be joined with the number.
@@ -36,19 +36,19 @@ function getSymbol({ unit }: { unit: string }): "$" | "" {
 }
 
 function getType({
-    numberAbreviation,
+    numberAbbreviation,
     value,
 }: {
-    numberAbreviation: "long" | "short" | false
+    numberAbbreviation: "long" | "short" | false
     value: number
 }): string {
     // f: fixed-point notation (i.e. fixed number of decimal points)
     // s: decimal notation with an SI prefix, rounded to significant digits
-    if (numberAbreviation === "long") {
+    if (numberAbbreviation === "long") {
         // do not abbreviate until 1 million
         return Math.abs(value) < 1e6 ? "f" : "s"
     }
-    if (numberAbreviation === "short") {
+    if (numberAbbreviation === "short") {
         // do not abbreviate until 1 thousand
         return Math.abs(value) < 1000 ? "f" : "s"
     }
@@ -59,17 +59,17 @@ function getType({
 function getPrecision({
     value,
     numDecimalPlaces,
-    numberAbreviation,
+    numberAbbreviation,
 }: {
     value: number
     numDecimalPlaces: number
-    numberAbreviation: "short" | "long" | false
+    numberAbbreviation: "short" | "long" | false
 }): string {
-    if (Math.abs(value) < 1e6 && numberAbreviation !== "short") {
+    if (Math.abs(value) < 1e6 && numberAbbreviation !== "short") {
         return `${numDecimalPlaces}`
     }
 
-    // when dealing with abreviated numbers, adjust precision so we get 12.84 million instead of 13 million
+    // when dealing with abbreviated numbers, adjust precision so we get 12.84 million instead of 13 million
     // the modulo one-liner counts the "place columns" of the number, resetting every 3
     // 1 -> 1, 48 -> 2, 981 -> 3, 7222 -> 1
     const numberOfDigits = String(Math.floor(Math.abs(value))).length
@@ -81,10 +81,10 @@ function getPrecision({
 
 function replaceSIPrefixes({
     string,
-    numberAbreviation,
+    numberAbbreviation,
 }: {
     string: string
-    numberAbreviation: "short" | "long"
+    numberAbbreviation: "short" | "long"
 }): string {
     const prefix = string[string.length - 1]
 
@@ -111,22 +111,22 @@ function replaceSIPrefixes({
         },
     }
 
-    if (prefixMap[numberAbreviation][prefix]) {
-        return string.replace(prefix, prefixMap[numberAbreviation][prefix])
+    if (prefixMap[numberAbbreviation][prefix]) {
+        return string.replace(prefix, prefixMap[numberAbbreviation][prefix])
     }
     return string
 }
 
 function postprocessString({
     string,
-    numberAbreviation,
+    numberAbbreviation,
     spaceBeforeUnit,
     unit,
     value,
     numDecimalPlaces,
 }: {
     string: string
-    numberAbreviation: "long" | "short" | false
+    numberAbbreviation: "long" | "short" | false
     spaceBeforeUnit: boolean
     unit: string
     value: number
@@ -136,14 +136,14 @@ function postprocessString({
 
     // handling infinitesimal values
     const tooSmallThreshold = Math.pow(10, -numDecimalPlaces).toPrecision(1)
-    if (numberAbreviation && 0 < value && value < +tooSmallThreshold) {
+    if (numberAbbreviation && 0 < value && value < +tooSmallThreshold) {
         output = "<" + output.replace(/0\.?(\d+)?/, tooSmallThreshold)
     }
 
-    if (numberAbreviation) {
+    if (numberAbbreviation) {
         output = replaceSIPrefixes({
             string: output,
-            numberAbreviation,
+            numberAbbreviation,
         })
     }
 
@@ -163,7 +163,7 @@ export function formatValue(
         spaceBeforeUnit = !checkIsUnitPercent(unit),
         showPlus = false,
         numDecimalPlaces = 2,
-        numberAbreviation = "long",
+        numberAbbreviation = "long",
     }: TickFormattingOptions
 ): string {
     const formatter = createFormatter(unit)
@@ -179,16 +179,16 @@ export function formatValue(
         precision: getPrecision({
             value,
             numDecimalPlaces,
-            numberAbreviation,
+            numberAbbreviation,
         }),
-        type: getType({ numberAbreviation, value }),
+        type: getType({ numberAbbreviation, value }),
     }).toString()
 
     const formattedString = formatter(specifier)(value)
 
     const postprocessedString = postprocessString({
         string: formattedString,
-        numberAbreviation,
+        numberAbbreviation,
         spaceBeforeUnit,
         unit,
         value,
