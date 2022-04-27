@@ -41,7 +41,7 @@ function getType({
 }: {
     numberAbbreviation: "long" | "short" | false
     value: number
-}): string {
+}): "f" | "s" {
     // f: fixed-point notation (i.e. fixed number of decimal points)
     // s: decimal notation with an SI prefix, rounded to significant digits
     if (numberAbbreviation === "long") {
@@ -50,7 +50,7 @@ function getType({
     }
     if (numberAbbreviation === "short") {
         // do not abbreviate until 1 thousand
-        return Math.abs(value) < 1000 ? "f" : "s"
+        return Math.abs(value) < 1e3 ? "f" : "s"
     }
 
     return "f"
@@ -59,13 +59,13 @@ function getType({
 function getPrecision({
     value,
     numDecimalPlaces,
-    numberAbbreviation,
+    type,
 }: {
     value: number
     numDecimalPlaces: number
-    numberAbbreviation: "short" | "long" | false
+    type: "f" | "s"
 }): string {
-    if (Math.abs(value) < 1e6 && numberAbbreviation !== "short") {
+    if (type === "f") {
         return `${numDecimalPlaces}`
     }
 
@@ -179,7 +179,7 @@ export function formatValue(
         precision: getPrecision({
             value,
             numDecimalPlaces,
-            numberAbbreviation,
+            type: getType({ numberAbbreviation, value }),
         }),
         type: getType({ numberAbbreviation, value }),
     }).toString()
