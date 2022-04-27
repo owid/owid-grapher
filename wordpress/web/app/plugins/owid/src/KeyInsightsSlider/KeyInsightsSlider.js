@@ -12,6 +12,7 @@ import {
 } from "@wordpress/components"
 import { useState, useEffect } from "@wordpress/element"
 import { registerBlockType } from "@wordpress/blocks"
+import block from "./block.json"
 
 const blockStyle = {
     border: "1px dashed lightgrey",
@@ -21,7 +22,7 @@ const blockStyle = {
 
 const BLOCK_TEMPLATE = [["core/paragraph", { placeholder: "Enter content..." }]]
 
-const KeyInsights = {
+const KeyInsightsSlider = {
     edit: ({ attributes: { anchor = "", title }, setAttributes }) => {
         const [isAnchorLocked, setAnchorLocked] = useState(true)
         const blockProps = useBlockProps({ style: blockStyle })
@@ -41,7 +42,7 @@ const KeyInsights = {
         return (
             <>
                 <InspectorControls>
-                    <PanelBody title="Link" initialOpen={true}>
+                    <PanelBody title="Key insights slider" initialOpen={true}>
                         <PanelRow>
                             <TextControl
                                 label="Anchor"
@@ -85,6 +86,6 @@ const KeyInsights = {
     save: (props) => <InnerBlocks.Content />,
 }
 
-export const registerKeyInsights = () => {
-    registerBlockType("owid/key-insights", KeyInsights)
+export const registerKeyInsightsSlider = () => {
+    registerBlockType(block.name, KeyInsightsSlider)
 }

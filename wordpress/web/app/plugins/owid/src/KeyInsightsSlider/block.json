@@ -1,8 +1,8 @@
 {
     "$schema": "https://schemas.wp.org/trunk/block.json",
     "apiVersion": 2,
-    "name": "owid/key-insights",
-    "title": "Key Insights",
+    "name": "owid/key-insights-slider",
+    "title": "Key insights slider",
     "icon": "admin-network",
     "category": "layout",
     "attributes": {
