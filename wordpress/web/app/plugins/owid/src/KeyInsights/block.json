@@ -1,0 +1,16 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "owid/key-insights",
+    "title": "Key Insights",
+    "icon": "admin-network",
+    "category": "layout",
+    "attributes": {
+        "title": {
+            "type": "string"
+        },
+        "anchor": {
+            "type": "string"
+        }
+    }
+}

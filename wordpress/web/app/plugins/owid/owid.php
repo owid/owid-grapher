@@ -120,7 +120,7 @@ function register()
     wp_register_script(
         'owid-blocks-script',
         plugins_url('build/blocks.js', __FILE__),
-        ['wp-blocks', 'wp-compose', 'wp-hooks', 'wp-editor'],
+        ['wp-blocks', 'wp-compose', 'wp-hooks', 'wp-editor', 'wp-element'],
         filemtime(plugin_dir_path(__FILE__) . 'build/blocks.js')
     );
 
@@ -163,6 +163,10 @@ function register()
     register_block_type('owid/card', [
         'editor_script' => 'owid-blocks-script',
         'render_callback' => __NAMESPACE__ . '\blocks\card\render',
+    ]);
+
+    register_block_type(__DIR__ . '/src/KeyInsights', [
+        'render_callback' => __NAMESPACE__ . '\blocks\key_insights\render',
     ]);
 }
 
