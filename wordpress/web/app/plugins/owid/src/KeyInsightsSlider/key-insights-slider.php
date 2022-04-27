@@ -1,6 +1,6 @@
 <?php
 
-namespace OWID\blocks\key_insights;
+namespace OWID\blocks\key_insights_slider;
 
 function render($attributes, $content)
 {

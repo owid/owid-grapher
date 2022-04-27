@@ -165,8 +165,9 @@ function register()
         'render_callback' => __NAMESPACE__ . '\blocks\card\render',
     ]);
 
-    register_block_type(__DIR__ . '/src/KeyInsights', [
-        'render_callback' => __NAMESPACE__ . '\blocks\key_insights\render',
+    register_block_type(__DIR__ . '/src/KeyInsightsSlider', [
+        'render_callback' =>
+            __NAMESPACE__ . '\blocks\key_insights_slider\render',
     ]);
 }
 
