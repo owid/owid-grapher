@@ -38,12 +38,17 @@ function getSymbol({ unit }: { unit: string }): "$" | "" {
 function getType({
     numberAbbreviation,
     value,
+    unit,
 }: {
     numberAbbreviation: "long" | "short" | false
     value: number
+    unit: string
 }): "f" | "s" {
     // f: fixed-point notation (i.e. fixed number of decimal points)
     // s: decimal notation with an SI prefix, rounded to significant digits
+    if (checkIsUnitPercent(unit)) {
+        return "f"
+    }
     if (numberAbbreviation === "long") {
         // do not abbreviate until 1 million
         return Math.abs(value) < 1e6 ? "f" : "s"
@@ -179,9 +184,9 @@ export function formatValue(
         precision: getPrecision({
             value,
             numDecimalPlaces,
-            type: getType({ numberAbbreviation, value }),
+            type: getType({ numberAbbreviation, value, unit }),
         }),
-        type: getType({ numberAbbreviation, value }),
+        type: getType({ numberAbbreviation, value, unit }),
     }).toString()
 
     const formattedString = formatter(specifier)(value)

@@ -72,6 +72,7 @@ describe(formatValue, () => {
         ["numberAbbreviation billion specific", 123456789012, "123.46 billion", { numberAbbreviation: "long" }],
         ["numberAbbreviation long with unit", 1000000000, "$1 billion", { numberAbbreviation: "long", unit: "$" }],
         ["numberAbbreviation short", 1000000000, "1B", { numberAbbreviation: "short" }],
+        ["numberAbbreviation %", 20000, "20,000%", { numberAbbreviation: "short", unit: "%" }],
         ["numberAbbreviation false", 1000000000, "1,000,000,000", { numberAbbreviation: false }],
         ["numberAbbreviation false very small", 0.000000001, "0.000000001", { numberAbbreviation: false, numDecimalPlaces: 10 }],
         ["showPlus true", 1, "+1", { showPlus: true }],
