@@ -2,19 +2,19 @@ import { PanelRow, ToggleControl, TextControl } from "@wordpress/components"
 import { useState, useEffect } from "@wordpress/element"
 import { deburr } from "lodash"
 
-const SyncingAnchorSettings = ({ rawTitle, anchor, updateAnchor }) => {
+const SyncingAnchorSettings = ({ rawTitle, slug, updateSlug }) => {
     const [isAnchorSyncing, setAnchorSyncing] = useState(false)
     const slugFromTitle = getSlug(rawTitle)
 
     useEffect(() => {
-        if (!rawTitle || !anchor) {
+        if (!rawTitle || !slug) {
             setAnchorSyncing(true)
         }
     }, [])
 
     useEffect(() => {
         if (!isAnchorSyncing) return
-        updateAnchor(slugFromTitle)
+        updateSlug(slugFromTitle)
     }, [rawTitle])
 
     return (
@@ -22,11 +22,11 @@ const SyncingAnchorSettings = ({ rawTitle, anchor, updateAnchor }) => {
             <PanelRow>
                 <TextControl
                     label="Anchor"
-                    value={anchor}
-                    onChange={updateAnchor}
+                    value={slug}
+                    onChange={updateSlug}
                     disabled={!isAnchorSyncing}
                     help={`Status: ${
-                        anchor === slugFromTitle
+                        slug === slugFromTitle
                             ? "in sync with title"
                             : "out of sync with title"
                     }`}
@@ -43,7 +43,7 @@ const SyncingAnchorSettings = ({ rawTitle, anchor, updateAnchor }) => {
                     checked={isAnchorSyncing}
                     onChange={(newState) => {
                         setAnchorSyncing(newState)
-                        if (newState) updateAnchor(slugFromTitle)
+                        if (newState) updateSlug(slugFromTitle)
                     }}
                 />
             </PanelRow>
