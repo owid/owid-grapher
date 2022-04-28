@@ -169,6 +169,10 @@ function register()
         'render_callback' =>
             __NAMESPACE__ . '\blocks\key_insights_slider\render',
     ]);
+
+    register_block_type(__DIR__ . '/src/KeyInsight', [
+        'render_callback' => __NAMESPACE__ . '\blocks\key_insight\render',
+    ]);
 }
 
 function graphql_register_types()

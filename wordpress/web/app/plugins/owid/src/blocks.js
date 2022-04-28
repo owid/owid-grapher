@@ -7,6 +7,7 @@ import Byline from "./Byline/Byline.js"
 import Grid from "./Grid/Grid.js"
 import Card from "./Card/Card.js"
 import { registerKeyInsightsSlider } from "./KeyInsightsSlider/KeyInsightsSlider.js"
+import { registerKeyInsight } from "./KeyInsight/KeyInsight.js"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
 const { addFilter } = wp.hooks
@@ -20,6 +21,7 @@ registerBlockType("owid/byline", Byline)
 registerBlockType("owid/grid", Grid)
 registerBlockType("owid/card", Card)
 registerKeyInsightsSlider()
+registerKeyInsight()
 
 registerBlockStyle("core/columns", {
     name: "sticky-right",
