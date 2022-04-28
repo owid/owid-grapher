@@ -20,15 +20,15 @@ const BLOCK_TEMPLATE = [
 ]
 
 const KeyInsight = {
-    edit: ({ attributes: { anchor = "", title }, setAttributes }) => {
+    edit: ({ attributes: { slug = "", title }, setAttributes }) => {
         const blockProps = useBlockProps({ style: blockStyle })
 
         const onChangeTitle = (newTitle) => {
             setAttributes({ title: newTitle })
         }
 
-        const updateAnchor = (newAnchor) => {
-            setAttributes({ anchor: newAnchor })
+        const updateSlug = (newSlug) => {
+            setAttributes({ slug: newSlug })
         }
 
         return (
@@ -36,9 +36,9 @@ const KeyInsight = {
                 <InspectorControls>
                     <PanelBody title="Key insight" initialOpen={true}>
                         <SyncingAnchorSettings
-                            updateAnchor={updateAnchor}
+                            updateSlug={updateSlug}
                             rawTitle={title}
-                            anchor={anchor}
+                            slug={slug}
                         />
                     </PanelBody>
                 </InspectorControls>

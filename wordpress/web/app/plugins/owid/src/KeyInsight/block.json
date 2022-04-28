@@ -12,7 +12,7 @@
         "title": {
             "type": "string"
         },
-        "anchor": {
+        "slug": {
             "type": "string"
         }
     }

@@ -23,7 +23,7 @@ const BLOCK_TEMPLATE = [
 
 const KeyInsightsSlider = {
     edit: ({
-        attributes: { anchor = "key-insights", title = "Key insights" },
+        attributes: { slug = "key-insights", title = "Key insights" },
         setAttributes,
     }) => {
         const blockProps = useBlockProps({ style: blockStyle })
@@ -32,8 +32,8 @@ const KeyInsightsSlider = {
             setAttributes({ title: newTitle })
         }
 
-        const updateAnchor = (newAnchor) => {
-            setAttributes({ anchor: newAnchor })
+        const updateSlug = (newSlug) => {
+            setAttributes({ slug: newSlug })
         }
 
         return (
@@ -41,9 +41,9 @@ const KeyInsightsSlider = {
                 <InspectorControls>
                     <PanelBody title="Key insights slider" initialOpen={true}>
                         <SyncingAnchorSettings
-                            updateAnchor={updateAnchor}
+                            updateSlug={updateSlug}
                             rawTitle={title}
-                            anchor={anchor}
+                            slug={slug}
                         />
                     </PanelBody>
                 </InspectorControls>
