@@ -23,7 +23,7 @@ const SyncingAnchorSettings = ({ rawTitle, slug, updateSlug }) => {
                 <TextControl
                     label="Anchor"
                     value={slug}
-                    onChange={updateSlug}
+                    onChange={(newSlug) => updateSlug(getSlug(newSlug))}
                     disabled={!isAnchorSyncing}
                     help={`Status: ${
                         slug === slugFromTitle
