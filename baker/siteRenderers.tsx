@@ -645,13 +645,15 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
         const titles = keyInsights.map((keyInsight) => keyInsight.title)
 
         const rendered = ReactDOMServer.renderToString(
-            <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
+            <>
                 <h3 id={slug}>{title}</h3>
-                <div className={`block-wrapper`}>
-                    <KeyInsightsThumbs titles={titles} />
+                <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
+                    <div className="block-wrapper">
+                        <KeyInsightsThumbs titles={titles} />
+                    </div>
+                    <KeyInsightsSlides insights={keyInsights} />
                 </div>
-                <KeyInsightsSlides insights={keyInsights} />
-            </div>
+            </>
         )
 
         $block.replaceWith(rendered)

@@ -43,6 +43,7 @@ const Thumb = ({
 export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     const [selectedId, setSelectedId] = useState<string>("0")
     const [slides, setSlides] = useState<HTMLElement | null>(null)
+    const [slug, setSlug] = useState<string>("")
     const apiRef = React.useRef({} as scrollVisibilityApiType)
 
     // Not using useRef() here so that the  "select slide based on hash" effect,
@@ -51,11 +52,15 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     // https://reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node
     const thumbsRef = useCallback((node) => {
         if (node !== null) {
+            const keyInsightsNode = node.parentElement?.parentElement
+
             setSlides(
-                node.parentElement?.parentElement?.querySelector(
+                keyInsightsNode?.querySelector(
                     `.${KEY_INSIGHTS_SLIDES_CLASS_NAME}`
                 )
             )
+            // get slug from previous <h3>
+            setSlug(keyInsightsNode?.previousElementSibling?.getAttribute("id"))
         }
     }, [])
 
@@ -114,7 +119,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                             .updateQueryParams({
                                 [KEY_INSIGHTS_INSIGHT_PARAM]: anchor,
                             })
-                            .update({ hash: "#key-insights" })
+                            .update({ hash: `#${slug}` })
                     )
                 } else {
                     slide.setAttribute("data-active", "false")
