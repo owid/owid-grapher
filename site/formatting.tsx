@@ -14,6 +14,7 @@ import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
 import {
     KEY_INSIGHTS_CLASS_NAME,
     KEY_INSIGHTS_SLIDE_CLASS_NAME,
+    KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME,
 } from "./blocks/KeyInsights.js"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
@@ -166,21 +167,23 @@ export const splitContentIntoSectionsAndColumns = (
                 $el.find(`.${KEY_INSIGHTS_SLIDE_CLASS_NAME}`).each(
                     (_, slide) => {
                         const $slide = cheerioEl(slide)
-                        // the h4 title create an (undesirable here) column set
-                        // in splitContentIntoSectionsAndColumns() below. So we
-                        // remove it and reinject it after the column splitting
-                        // processing.
-                        const $title = $slide.find("h4").remove()
-                        const slideInnerHtml = $slide.html()
-                        if (!slideInnerHtml) return
-                        const $ = cheerio.load(slideInnerHtml)
+                        const $title = $slide.find("h4")
+                        const $slideContent = $slide.find(
+                            `.${KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME}`
+                        )
+                        const slideContentHtml = $slideContent.html()
+
+                        if (!slideContentHtml) return
+                        const $ = cheerio.load(slideContentHtml)
                         splitContentIntoSectionsAndColumns($)
-                        $slide.html(getBodyHtml($))
-                        // reinject the title in the first column
+                        $slideContent.html(getBodyHtml($))
+
+                        // the h4 title creates an (undesirable here) column set
+                        // in splitContentIntoSectionsAndColumns(). So we inject
+                        // it into the first column after processing move the
                         $slide
                             .find(".wp-block-column:first-child")
                             .prepend($title)
-                        return
                     }
                 )
 
