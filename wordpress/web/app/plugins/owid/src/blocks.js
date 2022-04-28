@@ -8,6 +8,7 @@ import Grid from "./Grid/Grid.js"
 import Card from "./Card/Card.js"
 import { registerKeyInsightsSlider } from "./KeyInsightsSlider/KeyInsightsSlider.js"
 import { registerKeyInsight } from "./KeyInsight/KeyInsight.js"
+import { registerTechnicalText } from "./TechnicalText/TechnicalText.js"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
 const { addFilter } = wp.hooks
@@ -22,6 +23,7 @@ registerBlockType("owid/grid", Grid)
 registerBlockType("owid/card", Card)
 registerKeyInsightsSlider()
 registerKeyInsight()
+registerTechnicalText()
 
 registerBlockStyle("core/columns", {
     name: "sticky-right",

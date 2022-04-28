@@ -173,6 +173,10 @@ function register()
     register_block_type(__DIR__ . '/src/KeyInsight', [
         'render_callback' => __NAMESPACE__ . '\blocks\key_insight\render',
     ]);
+
+    register_block_type(__DIR__ . '/src/TechnicalText', [
+        'render_callback' => __NAMESPACE__ . '\blocks\technical_text\render',
+    ]);
 }
 
 function graphql_register_types()
