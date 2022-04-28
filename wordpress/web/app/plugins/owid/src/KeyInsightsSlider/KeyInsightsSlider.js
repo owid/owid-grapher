@@ -6,6 +6,7 @@ import {
 } from "@wordpress/block-editor"
 import { PanelBody } from "@wordpress/components"
 import { registerBlockType } from "@wordpress/blocks"
+import { useEffect } from "@wordpress/element"
 import SyncingAnchorSettings from "../SyncingAnchorSettings/SyncingAnchorSettings"
 import block from "./block.json"
 import keyInsightBlock from "../KeyInsight/block.json"
@@ -21,11 +22,11 @@ const BLOCK_TEMPLATE = [
     ["core/paragraph"],
 ]
 
+const DEFAULT_TITLE = "Key insights"
+const DEFAULT_SLUG = "key-insights"
+
 const KeyInsightsSlider = {
-    edit: ({
-        attributes: { slug = "key-insights", title = "Key insights" },
-        setAttributes,
-    }) => {
+    edit: ({ attributes: { slug, title }, setAttributes }) => {
         const blockProps = useBlockProps({ style: blockStyle })
 
         const onChangeTitle = (newTitle) => {
@@ -35,6 +36,12 @@ const KeyInsightsSlider = {
         const updateSlug = (newSlug) => {
             setAttributes({ slug: newSlug })
         }
+
+        useEffect(() => {
+            if (!title && !slug) {
+                setAttributes({ title: DEFAULT_TITLE, slug: DEFAULT_SLUG })
+            }
+        }, [title, slug])
 
         return (
             <>
