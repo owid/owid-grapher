@@ -622,6 +622,17 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
 
     for (const block of Array.from($("block[type='key-insights']"))) {
         const $block = $(block)
+        // only selecting <title> and <slug> from direct children, to not match
+        // titles and slugs from individual key insights slides.
+        const title = $block.find("> title").text()
+        const slug = $block.find("> slug").text()
+        if (!title || !slug) {
+            logContentErrorAndMaybeSendToSlack(
+                "Title or anchor missing for key insights block, content removed."
+            )
+            $block.remove()
+            continue
+        }
 
         const keyInsights = extractKeyInsights($, $block)
         if (!keyInsights.length) {
@@ -635,6 +646,7 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
 
         const rendered = ReactDOMServer.renderToString(
             <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
+                <h3 id={slug}>{title}</h3>
                 <div className={`block-wrapper`}>
                     <KeyInsightsThumbs titles={titles} />
                 </div>
@@ -649,24 +661,26 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
 
 export const extractKeyInsights = (
     $: CheerioStatic,
-    $block: Cheerio
+    $wrapper: Cheerio
 ): KeyInsight[] => {
-    const keyInsightTitles = $block.find("h4").toArray()
     const keyInsights: KeyInsight[] = []
 
-    for (const titleEl of keyInsightTitles) {
-        const $titleEl = $(titleEl)
-        const slug = $titleEl.attr("id")
-        const title = $titleEl.text()
-        // include title in slide content and deal with it in
-        // splitContentIntoSectionsAndColumns().
-        // Attention: after the next line, $titleEl === $content
-        const $content = $titleEl.nextUntil($("h4")).addBack()
-        const content = $.html($content)
+    for (const block of Array.from(
+        $wrapper.find("block[type='key-insight']")
+    )) {
+        const $block = $(block)
+        // restrictive children selector not strictly necessary here for now but
+        // kept for consistency and evolutions of the block. In the future, key
+        // insights could host other blocks with <title> tags
+        const title = $block.find("> title").text()
+        const slug = $block.find("> slug").text()
+        const content = $block.find("> content").html()
 
-        if (!content || !title || !slug) {
+        if (!title || !slug || !content) {
             logContentErrorAndMaybeSendToSlack(
-                `Missing content or anchor on key insight title tag for "${title}"`
+                `Missing title, slug or content for key insight "${
+                    title || slug
+                }"`
             )
             continue
         }
