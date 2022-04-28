@@ -475,20 +475,21 @@ export const formatWordpressPost = async (
     // Table of contents and deep links
     const tocHeadings: TocHeading[] = []
     const existingSlugs: string[] = []
-    let parentHeading: TocHeading | null = null
+    let parentSlug: string | null = null
 
     cheerioEl("h1, h2, h3, h4").each((_, el) => {
         const $heading = cheerioEl(el)
         const headingText = $heading.text()
 
-        let slug = urlSlug(headingText)
+        let slug = $heading.attr("id") ?? urlSlug(headingText)
 
         // Avoid If the slug already exists, try prepend the parent
-        if (existingSlugs.indexOf(slug) !== -1 && parentHeading) {
-            slug = `${parentHeading.slug}-${slug}`
+        if (existingSlugs.indexOf(slug) !== -1 && parentSlug) {
+            slug = `${parentSlug}-${slug}`
         }
 
         existingSlugs.push(slug)
+        if ($heading.is("h2")) parentSlug = slug
 
         // Table of contents
         if (formattingOptions.toc) {
@@ -505,7 +506,6 @@ export const formatWordpressPost = async (
                     isSubheading: false,
                 }
                 tocHeadings.push(tocHeading)
-                parentHeading = tocHeading
             } else if (
                 $heading.is("h3") &&
                 $heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length === 0 &&
