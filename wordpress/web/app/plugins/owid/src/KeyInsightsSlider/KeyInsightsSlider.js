@@ -4,81 +4,62 @@ import {
     useBlockProps,
     RichText,
 } from "@wordpress/block-editor"
-import {
-    PanelBody,
-    PanelRow,
-    ToggleControl,
-    TextControl,
-} from "@wordpress/components"
-import { useState, useEffect } from "@wordpress/element"
+import { PanelBody } from "@wordpress/components"
 import { registerBlockType } from "@wordpress/blocks"
+import SyncingAnchorSettings from "../SyncingAnchorSettings/SyncingAnchorSettings"
 import block from "./block.json"
+import keyInsightBlock from "../KeyInsight/block.json"
 
 const blockStyle = {
     border: "1px dashed lightgrey",
     padding: "0 1rem",
-    color: "#6e87a2",
 }
 
-const BLOCK_TEMPLATE = [["core/paragraph", { placeholder: "Enter content..." }]]
+const BLOCK_TEMPLATE = [
+    [keyInsightBlock.name],
+    [keyInsightBlock.name],
+    ["core/paragraph"],
+]
 
 const KeyInsightsSlider = {
-    edit: ({ attributes: { anchor = "", title }, setAttributes }) => {
-        const [isAnchorLocked, setAnchorLocked] = useState(true)
+    edit: ({
+        attributes: { anchor = "key-insights", title = "Key insights" },
+        setAttributes,
+    }) => {
         const blockProps = useBlockProps({ style: blockStyle })
 
         const onChangeTitle = (newTitle) => {
             setAttributes({ title: newTitle })
-            if (isAnchorLocked) return
-            setAttributes({ anchor: newTitle })
         }
 
-        useEffect(() => {
-            if (!title || !anchor) {
-                setAnchorLocked(false)
-            }
-        }, [])
+        const updateAnchor = (newAnchor) => {
+            setAttributes({ anchor: newAnchor })
+        }
 
         return (
             <>
                 <InspectorControls>
                     <PanelBody title="Key insights slider" initialOpen={true}>
-                        <PanelRow>
-                            <TextControl
-                                label="Anchor"
-                                value={anchor}
-                                onChange={(newAnchor) =>
-                                    setAttributes({ anchor: newAnchor })
-                                }
-                                disabled={isAnchorLocked}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <ToggleControl
-                                label={`Anchor ${
-                                    !isAnchorLocked ? "un" : ""
-                                }locked`}
-                                help={
-                                    !isAnchorLocked &&
-                                    "Updating to the title will update the anchor"
-                                }
-                                checked={!isAnchorLocked}
-                                onChange={(state) => {
-                                    setAnchorLocked(!state)
-                                }}
-                            />
-                        </PanelRow>
+                        <SyncingAnchorSettings
+                            updateAnchor={updateAnchor}
+                            rawTitle={title}
+                            anchor={anchor}
+                        />
                     </PanelBody>
                 </InspectorControls>
                 <div {...blockProps}>
                     <RichText
-                        tagName="h4"
+                        tagName="h3"
                         onChange={onChangeTitle}
                         value={title}
                         // withoutInteractiveFormatting <-- doesn't remove bold and italic formatting
-                        allowedFormats={[]}
+                        allowedFormats={[]} // update SyncAnchorSettings to handle HTML if allowing formatting here
+                        placeholder="Enter title of the key insights block..."
                     />
-                    <InnerBlocks template={BLOCK_TEMPLATE} />
+                    <InnerBlocks
+                        allowedBlocks={[keyInsightBlock.name]}
+                        template={BLOCK_TEMPLATE}
+                    />
                 </div>
             </>
         )

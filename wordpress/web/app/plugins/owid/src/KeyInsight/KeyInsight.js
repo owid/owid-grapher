@@ -4,13 +4,8 @@ import {
     useBlockProps,
     RichText,
 } from "@wordpress/block-editor"
-import {
-    PanelBody,
-    PanelRow,
-    ToggleControl,
-    TextControl,
-} from "@wordpress/components"
-import { useState, useEffect } from "@wordpress/element"
+import { PanelBody } from "@wordpress/components"
+import SyncingAnchorSettings from "../SyncingAnchorSettings/SyncingAnchorSettings"
 import { registerBlockType } from "@wordpress/blocks"
 import block from "./block.json"
 
@@ -26,50 +21,25 @@ const BLOCK_TEMPLATE = [
 
 const KeyInsight = {
     edit: ({ attributes: { anchor = "", title }, setAttributes }) => {
-        const [isAnchorLocked, setAnchorLocked] = useState(true)
         const blockProps = useBlockProps({ style: blockStyle })
 
         const onChangeTitle = (newTitle) => {
             setAttributes({ title: newTitle })
-            if (isAnchorLocked) return
-            setAttributes({ anchor: newTitle })
         }
 
-        useEffect(() => {
-            if (!title || !anchor) {
-                setAnchorLocked(false)
-            }
-        }, [])
+        const updateAnchor = (newAnchor) => {
+            setAttributes({ anchor: newAnchor })
+        }
 
         return (
             <>
                 <InspectorControls>
                     <PanelBody title="Key insight" initialOpen={true}>
-                        <PanelRow>
-                            <TextControl
-                                label="Anchor"
-                                value={anchor}
-                                onChange={(newAnchor) =>
-                                    setAttributes({ anchor: newAnchor })
-                                }
-                                disabled={isAnchorLocked}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <ToggleControl
-                                label={`Anchor ${
-                                    !isAnchorLocked ? "un" : ""
-                                }locked`}
-                                help={
-                                    !isAnchorLocked &&
-                                    "Updating to the title will update the anchor"
-                                }
-                                checked={!isAnchorLocked}
-                                onChange={(state) => {
-                                    setAnchorLocked(!state)
-                                }}
-                            />
-                        </PanelRow>
+                        <SyncingAnchorSettings
+                            updateAnchor={updateAnchor}
+                            rawTitle={title}
+                            anchor={anchor}
+                        />
                     </PanelBody>
                 </InspectorControls>
                 <div {...blockProps}>
@@ -78,7 +48,7 @@ const KeyInsight = {
                         onChange={onChangeTitle}
                         value={title}
                         // withoutInteractiveFormatting <-- doesn't remove bold and italic formatting
-                        allowedFormats={[]}
+                        allowedFormats={[]} // update SyncAnchorSettings to handle HTML if allowing formatting here
                         placeholder="Enter key insight title..."
                     />
                     <InnerBlocks template={BLOCK_TEMPLATE} />
