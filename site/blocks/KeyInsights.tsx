@@ -86,10 +86,10 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
 
     // Scroll to selected item
     useEffect(() => {
-        const itemElement = apiRef.current.getItemElementById(selectedId)
-        if (!itemElement) return
+        const item = apiRef.current.getItemById(selectedId)
+        if (!item) return
 
-        apiRef.current.scrollToItem(itemElement, "smooth", "center", "nearest")
+        apiRef.current.scrollToItem(item, "smooth", "center", "nearest")
     }, [selectedId])
 
     // Select active slide when corresponding thumb selected
