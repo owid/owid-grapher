@@ -439,6 +439,7 @@ export class LineChart
 
         return (
             <Tooltip
+                id={this.renderUid}
                 tooltipManager={this.manager}
                 x={dualAxis.horizontalAxis.place(hoverX)}
                 y={

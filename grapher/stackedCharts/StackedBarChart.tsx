@@ -228,6 +228,7 @@ export class StackedBarChart
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
         return (
             <Tooltip
+                id={this.renderUid}
                 tooltipManager={this.props.manager}
                 x={xPos + barWidth}
                 y={yPos}
