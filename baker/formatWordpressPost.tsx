@@ -55,6 +55,7 @@ import {
 } from "../site/formatting.js"
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -483,7 +484,6 @@ export const formatWordpressPost = async (
 
         let slug = $heading.attr("id") ?? urlSlug(headingText)
 
-        // Avoid If the slug already exists, try prepend the parent
         if (existingSlugs.indexOf(slug) !== -1 && parentSlug) {
             slug = `${parentSlug}-${slug}`
         }
@@ -521,18 +521,18 @@ export const formatWordpressPost = async (
             }
         }
 
-        // Add deep link for headings not contained in <a> tags already
-        // (e.g. within a prominent link block)
         if (
-            !$heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length && // already wrapped in <a>
-            !$heading.closest(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`).length && // prioritize clean SSR of AdditionalInformation
-            !$heading.closest(".wp-block-help").length
-        ) {
-            $heading.attr("id", slug)
-            $heading.append(
-                `<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`
-            )
-        }
+            $heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length || // already wrapped in <a>
+            $heading.closest(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`).length || // prioritize clean SSR of AdditionalInformation
+            $heading.closest(".wp-block-help").length
+        )
+            return
+
+        $heading.attr("id", slug)
+
+        if ($heading.closest(`.${KEY_INSIGHTS_CLASS_NAME}`).length) return
+
+        $heading.append(`<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`)
     })
 
     return {
