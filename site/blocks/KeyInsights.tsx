@@ -6,7 +6,7 @@ import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { KeyInsight } from "../../clientUtils/owidTypes.js"
 import { getWindowUrl, setWindowUrl } from "../../clientUtils/urls/Url.js"
 
-export const KEY_INSIGHTS_CLASS_NAME = "key-insights"
+export const KEY_INSIGHTS_CLASS_NAME = "wp-block-owid-key-insights"
 export const KEY_INSIGHTS_INSIGHT_PARAM = "insight"
 export const KEY_INSIGHTS_THUMBS_CLASS_NAME = "thumbs"
 const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
@@ -240,7 +240,9 @@ const RightArrow = () => {
 
 export const hydrateKeyInsights = () => {
     document
-        .querySelectorAll<HTMLElement>(`.${KEY_INSIGHTS_THUMBS_CLASS_NAME}`)
+        .querySelectorAll<HTMLElement>(
+            `.${KEY_INSIGHTS_CLASS_NAME} .${KEY_INSIGHTS_THUMBS_CLASS_NAME}`
+        )
         .forEach((block) => {
             const titles = Array.from(
                 block.querySelectorAll(`.${KEY_INSIGHTS_THUMB_CLASS_NAME}`)
