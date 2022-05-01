@@ -7,6 +7,7 @@ import {
     sortBy,
     max,
     numberMagnitude,
+    sortedUniqBy,
 } from "../../clientUtils/Util.js"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { TextWrap } from "../text/TextWrap.js"
@@ -478,7 +479,12 @@ export class HorizontalAxis extends AbstractAxis {
                     priority: startEndPrio,
                 },
             ]
-        return uniq(ticks)
+
+        // sort by value, then priority.
+        // this way, we don't end up with two ticks of the same value but different priorities.
+        // instead, we deduplicate by choosing the highest priority (i.e. lowest priority value).
+        const sortedTicks = sortBy(ticks, (tick) => [tick.value, tick.priority])
+        return sortedUniqBy(sortedTicks, (t) => t.value)
     }
 
     placeTickLabel(value: number): TickLabelPlacement {
