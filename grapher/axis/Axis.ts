@@ -462,11 +462,7 @@ export class HorizontalAxis extends AbstractAxis {
 
         // Make sure the start and end values are present, if they're whole numbers
         const startEndPrio = this.scaleType === ScaleType.log ? 2 : 1
-        if (
-            domain[0] % 1 === 0 &&
-            // Make sure that start value is not already present.
-            !ticks.some((tick) => tick.value === domain[0])
-        )
+        if (domain[0] % 1 === 0)
             ticks = [
                 {
                     value: domain[0],
@@ -474,12 +470,7 @@ export class HorizontalAxis extends AbstractAxis {
                 },
                 ...ticks,
             ]
-        if (
-            domain[1] % 1 === 0 &&
-            this.hideFractionalTicks &&
-            // Make sure that end value is not already present.
-            !ticks.some((tick) => tick.value === domain[1])
-        )
+        if (domain[1] % 1 === 0 && this.hideFractionalTicks)
             ticks = [
                 ...ticks,
                 {
