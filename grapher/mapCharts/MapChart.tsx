@@ -333,9 +333,7 @@ export class MapChart
                 if (label !== undefined && label !== "") return label
             }
             else if (isString(d)) {
-                const bin = colorScale.getBinForValue(d)
-                const label = bin?.label
-                if (label !== undefined && label !== "") return label
+                return d
             }
             return mapColumn?.formatValueLong(d) ?? ""
         }
