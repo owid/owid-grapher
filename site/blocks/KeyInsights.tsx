@@ -1,10 +1,4 @@
-import React, {
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -133,6 +127,19 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                             .updateQueryParams({
                                 [KEY_INSIGHTS_INSIGHT_PARAM]: anchor,
                             })
+                            // When a key insight slug is changed, links
+                            // pointing to that key insight soft-break and take
+                            // readers to the top of the page. Adding an anchor
+                            // pointing to the the block title (h3) serves as a
+                            // stopgap, taking readers to the key insights block
+                            // instead but without selecting a particular
+                            // insight.
+                            //
+                            // This also improves the UX of readers coming
+                            // through shared insights URL. e.g.
+                            // /key-insights-demo?insight=insight-1#key-insights
+                            // shows the whole insights block, including its
+                            // titles (the target of the anchor).
                             .update({ hash: `#${slug}` })
                     )
                 } else {
