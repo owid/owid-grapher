@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react"
 import ReactDOM from "react-dom"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -9,8 +15,8 @@ import { getWindowUrl, setWindowUrl } from "../../clientUtils/urls/Url.js"
 export const KEY_INSIGHTS_CLASS_NAME = "wp-block-owid-key-insights"
 export const KEY_INSIGHTS_INSIGHT_PARAM = "insight"
 export const KEY_INSIGHTS_THUMBS_CLASS_NAME = "thumbs"
-const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
-const KEY_INSIGHTS_SLIDES_CLASS_NAME = "slides"
+export const KEY_INSIGHTS_THUMB_CLASS_NAME = "thumb"
+export const KEY_INSIGHTS_SLIDES_CLASS_NAME = "slides"
 export const KEY_INSIGHTS_SLIDE_CLASS_NAME = "slide"
 export const KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME = "content"
 
@@ -29,17 +35,25 @@ const Thumb = ({
     return (
         <button
             onClick={onClick}
-            className={
-                selected
-                    ? `${KEY_INSIGHTS_THUMB_CLASS_NAME} selected`
-                    : KEY_INSIGHTS_THUMB_CLASS_NAME
-            }
+            role="tab"
+            aria-selected={selected}
+            className={KEY_INSIGHTS_THUMB_CLASS_NAME}
         >
             {title}
         </button>
     )
 }
 
+/**
+ * Tab-based switcher for key insights
+ *
+ * NB: this component has only received limited efforts towards accessibility.
+ *
+ * A next possible step would be to managage focus via arrow keys (see
+ * https://w3c.github.io/aria/#managingfocus). A good implementation of
+ * accessibility practices for this kind of widget is available at
+ * https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/tab_role
+ */
 export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     const [selectedId, setSelectedId] = useState<string>("0")
     const [slides, setSlides] = useState<HTMLElement | null>(null)
@@ -128,7 +142,11 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     }, [selectedId])
 
     return (
-        <div className={KEY_INSIGHTS_THUMBS_CLASS_NAME} ref={thumbsRef}>
+        <div
+            className={KEY_INSIGHTS_THUMBS_CLASS_NAME}
+            role="tablist"
+            ref={thumbsRef}
+        >
             <ScrollMenu
                 LeftArrow={LeftArrow}
                 RightArrow={RightArrow}
@@ -142,7 +160,9 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                             title={title}
                             key={itemId}
                             itemId={itemId}
-                            onClick={() => setSelectedId(itemId)}
+                            onClick={() => {
+                                setSelectedId(itemId)
+                            }}
                             selected={itemId === selectedId}
                         />
                     )
@@ -159,6 +179,8 @@ export const KeyInsightsSlides = ({ insights }: { insights: KeyInsight[] }) => (
                 key={idx}
                 className={KEY_INSIGHTS_SLIDE_CLASS_NAME}
                 data-active={idx === 0}
+                role="tabpanel"
+                tabIndex={0}
             >
                 <h4 id={slug}>{title}</h4>
                 <div
