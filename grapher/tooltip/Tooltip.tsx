@@ -83,7 +83,7 @@ export class TooltipContainer extends React.Component<{
         if (!tooltipsMap) return null
         const tooltips = Object.entries(tooltipsMap.toJSON())
         return (
-            <>
+            <div className="tooltip-container">
                 {tooltips.map(([id, tooltip]) => (
                     <TooltipCard
                         {...tooltip}
@@ -92,7 +92,7 @@ export class TooltipContainer extends React.Component<{
                         containerHeight={this.props.containerHeight}
                     />
                 ))}
-            </>
+            </div>
         )
     }
 

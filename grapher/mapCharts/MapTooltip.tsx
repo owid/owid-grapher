@@ -199,7 +199,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         return (
             <Tooltip
-                id={this.tooltipTarget.featureId}
+                id="mapTooltip"
                 tooltipManager={this.props.manager}
                 key="mapTooltip"
                 x={tooltipTarget.x}

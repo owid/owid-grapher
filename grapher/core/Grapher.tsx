@@ -54,7 +54,7 @@ import {
     LegacyDimensionsManager,
 } from "../chart/ChartDimension.js"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
-import { TooltipProps, TooltipManager } from "../tooltip/TooltipProps.js"
+import { TooltipManager } from "../tooltip/TooltipProps.js"
 import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,

@@ -259,7 +259,7 @@ class Lines extends React.Component<LinesProps> {
     private container?: SVGElement
     componentDidMount(): void {
         const base = this.base.current as SVGGElement
-        const container = base.closest("svg") as SVGElement
+        const container = base.closest("g.LineChart") as SVGElement
         container.addEventListener("mousemove", this.onCursorMove)
         container.addEventListener("mouseleave", this.onCursorLeave)
         container.addEventListener("touchstart", this.onCursorMove)
@@ -364,14 +364,10 @@ export class LineChart
         return table
     }
 
-    // todo: rename mouseHoverX -> hoverX and hoverX -> activeX
-    @observable mouseHoverX?: number = undefined
-    @action.bound onHover(hoverX: number | undefined): void {
-        this.mouseHoverX = hoverX
-    }
+    @observable hoverX?: number = undefined
 
-    @computed get hoverX(): number | undefined {
-        return this.mouseHoverX ?? this.props.manager.annotation?.year
+    @action.bound onHover(hoverX: number | undefined): void {
+        this.hoverX = hoverX ?? this.props.manager.annotation?.year
     }
 
     @computed private get manager(): LineChartManager {
@@ -707,7 +703,7 @@ export class LineChart
                 />
             )
 
-        const { manager, tooltip, dualAxis, hoverX, clipPath } = this
+        const { hoverX, manager, tooltip, dualAxis, clipPath } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
         const comparisonLines = manager.comparisonLines || []
