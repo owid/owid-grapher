@@ -81,7 +81,7 @@ $slide-content-height: 500px;
             border: 1px solid $primary-color;
         }
 
-        &.selected {
+        &[aria-selected="true"] {
             background-color: $primary-color-100;
             border-color: $primary-color;
             font-weight: 700;
