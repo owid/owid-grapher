@@ -7,7 +7,7 @@ function render($attributes, $content)
     $block = <<<EOD
 	<div class="technical-text">
 		$content
-	</block>
+	</div>
 EOD;
 
     return $block;
