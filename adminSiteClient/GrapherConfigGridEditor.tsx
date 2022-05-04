@@ -8,7 +8,7 @@ import {
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
-import { match, __ } from "ts-pattern"
+import { match, P } from "ts-pattern"
 //import * as lodash from "lodash"
 import {
     cloneDeep,
@@ -57,6 +57,7 @@ import {
     stringifyUnkownError,
     excludeUndefined,
     moveArrayItemToIndex,
+    differenceOfSets,
 } from "../clientUtils/Util.js"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
@@ -94,6 +95,7 @@ import {
     postprocessJsonLogicTree,
     prepareColumnSetForCsvExport,
     createCsv,
+    coerceType,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
@@ -104,6 +106,7 @@ import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
 import { getWindowUrl, setWindowUrl } from "../clientUtils/urls/Url.js"
+import { CSV, CSVSelector } from "./CSVSelector.js"
 
 function HotColorScaleRenderer(props: Record<string, unknown>) {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -570,11 +573,16 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 console.error("Could not find row id in do step!", rowId)
             else {
                 // apply the change to the richDataRows json structure
-
-                richDataRows[rowId].config = applyPatch(
-                    patch,
-                    richDataRows[rowId].config
-                )
+                try {
+                    richDataRows[rowId].config = applyPatch(
+                        patch,
+                        richDataRows[rowId].config
+                    )
+                } catch (e) {
+                    throw new Error(
+                        `Could not apply patch to row with id ${patch.id}, target field ${patch.jsonPointer}. The assumed old value was "${patch.oldValue}", the new value was "${patch.newValue}"`
+                    )
+                }
             }
         }
         if (this.selectedRow) this.updatePreviewToRow(this.selectedRow)
@@ -1001,8 +1009,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 Number.isNaN(Number.parseInt(firstNewValue))
             )
             .with([FieldType.boolean, "boolean"], () => false)
-            .with([FieldType.complex, __], () => false) // complex types, e.g. color scales, are handled specially, allow them here
-            .with([[__], "string"], () => false)
+            .with([FieldType.complex, P._], () => false) // complex types, e.g. color scales, are handled specially, allow them here
+            .with([[P._], "string"], () => false)
 
             .otherwise(() => true)
         if (invalidTypeAssignment) return false
@@ -1548,6 +1556,189 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
     }
 
+    @observable.ref originalCsv: CSV | undefined = undefined
+    @observable.ref editedCsv: CSV | undefined = undefined
+
+    @action.bound
+    onCsvLoaded(csv: CSV, targetIsOriginal: boolean): void {
+        const { columnDataSources } = this
+        const firstRow = csv.rows[0]
+        if (!firstRow.find((item) => item === this.config.primaryKeyColumnName))
+            this.context.admin.setErrorMessage({
+                title: "Invalid CSV",
+                content: "Imported CSV did not contain an ID column!",
+            })
+        const possibleColumns = new Set(
+            columnDataSources.map((col) => col.columnInformation.key)
+        )
+        const unmatchedColumns = differenceOfSets([
+            new Set(firstRow),
+            possibleColumns,
+        ])
+        if (unmatchedColumns.size > 0) {
+            this.context.admin.setErrorMessage({
+                title: "Invalid CSV",
+                content: `Imported CSV had unknown columns: ${[
+                    ...unmatchedColumns,
+                ].join(", ")}`,
+            })
+            return
+        }
+        if (targetIsOriginal) this.originalCsv = csv
+        else this.editedCsv = csv
+    }
+
+    @action.bound
+    onImportClick() {
+        const { originalCsv, editedCsv, columnDataSources } = this
+        if (originalCsv === undefined || editedCsv === undefined) return
+
+        const columnDataSourceMap = new Map(
+            columnDataSources.map((col) => [col.columnInformation.key, col])
+        )
+
+        const originalIdIndex = originalCsv.rows[0].findIndex(
+            (item) => item === this.config.primaryKeyColumnName
+        )
+        const editedIdIndex = editedCsv.rows[0].findIndex(
+            (item) => item === this.config.primaryKeyColumnName
+        )
+        const originalRowIds = originalCsv.rows
+            .slice(1)
+            .map((row) => row[originalIdIndex])
+        const editedRowIds = editedCsv.rows
+            .slice(1)
+            .map((row) => row[editedIdIndex])
+        const originalRowIdsSet = new Set(originalRowIds)
+        const editedRowIdsSet = new Set(editedRowIds)
+        if (originalRowIdsSet.size !== originalRowIds.length) {
+            this.context.admin.setErrorMessage({
+                title: "Invalid CSV",
+                content: "Imported original CSV contained duplicate row IDs!",
+            })
+            return
+        }
+        if (editedRowIdsSet.size !== editedRowIds.length) {
+            this.context.admin.setErrorMessage({
+                title: "Invalid CSV",
+                content: "Imported edited CSV contained duplicate row IDs!",
+            })
+            return
+        }
+        if (differenceOfSets([editedRowIdsSet, originalRowIdsSet]).size > 0) {
+            this.context.admin.setErrorMessage({
+                title: "Invalid CSV",
+                content:
+                    "Imported edited CSV contained row IDs that were not in the original CSV!",
+            })
+            return
+        }
+
+        const originalColumnLabels = originalCsv.rows[0]
+        const editedColumnLabels = editedCsv.rows[0]
+        if (
+            differenceOfSets([
+                new Set(editedColumnLabels),
+                new Set(originalColumnLabels),
+            ]).size > 0
+        ) {
+            this.context.admin.setErrorMessage({
+                title: "Invalid CSV",
+                content:
+                    "Imported edited CSV contained columns that were not in the original CSV!",
+            })
+            return
+        }
+
+        const editedToOriginalColumnMapping = new Map(
+            editedColumnLabels.map((label, index) => [
+                index,
+                originalColumnLabels.indexOf(label),
+            ])
+        )
+
+        const editedToOriginalRowMapping = new Map(
+            editedRowIds.map((label, index) => [
+                label,
+                originalRowIds.indexOf(label),
+            ])
+        )
+
+        const patches: GrapherConfigPatch[] = []
+        const affectedRows = new Set<string>()
+        for (const editedRow of editedCsv.rows.slice(1)) {
+            const editedRowId = editedRow[editedIdIndex]
+            const originalRow =
+                originalCsv.rows[
+                    editedToOriginalRowMapping.get(editedRowId)! + 1
+                ]
+            for (let i = 0; i < editedRow.length; i++) {
+                if (i === editedIdIndex) continue
+                const editedStringValue = editedRow[i]
+                const originalStringValue =
+                    originalRow[editedToOriginalColumnMapping.get(i)!]
+                const columnDataSource = columnDataSourceMap.get(
+                    editedColumnLabels[i]
+                )!
+                const type = match(columnDataSource)
+                    .with(
+                        { kind: ColumnDataSourceType.FieldDescription },
+                        (item) => item.description.type
+                    )
+                    .with(
+                        { kind: ColumnDataSourceType.ReadOnlyColumn },
+                        (item) => item.readOnlyColumn.type
+                    )
+                    .with(
+                        { kind: ColumnDataSourceType.Unkown },
+                        () => undefined
+                    )
+                    .exhaustive()
+                const editedValue = coerceType(type, editedStringValue)
+                const originalValue = coerceType(type, originalStringValue)
+                if (editedValue !== originalValue) {
+                    affectedRows.add(editedRowId)
+                    // If we have a non-readonly column (i.e. one that is given in the schmea
+                    // and that can have a default value) then we need to check if the original
+                    // value is equal to the default value for the patch algorithm to be able
+                    // to treat defaults and missing correctly
+                    const oldValueIsEquivalentToNullOrUndefined =
+                        columnDataSource.kind ===
+                            ColumnDataSourceType.FieldDescription &&
+                        columnDataSource.description.default !== undefined &&
+                        columnDataSource.description.default === originalValue
+
+                    patches.push({
+                        id: Number.parseInt(editedRowId),
+                        oldValue: originalValue,
+                        oldValueIsEquivalentToNullOrUndefined:
+                            oldValueIsEquivalentToNullOrUndefined,
+                        newValue: editedValue,
+                        jsonPointer: editedColumnLabels[i],
+                    })
+                }
+            }
+        }
+        this.doAction({ patches })
+            .then(
+                action(() => {
+                    alert(
+                        `Successfully applied ${patches.length} patches to ${affectedRows.size} rows`
+                    )
+                    this.originalCsv = undefined
+                    this.editedCsv = undefined
+                })
+            )
+            .catch(
+                action((err) =>
+                    this.context.admin.setErrorMessage({
+                        title: "Importing failed",
+                        content: err.message,
+                    })
+                )
+            )
+    }
+
     renderImportExportTab(): JSX.Element {
         return (
             <section>
@@ -1559,19 +1750,60 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         both the unmodified original and the edited version of
                         the data.
                     </p>
+                    <div className="form-group">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => this.onExportClick("original.csv")}
+                        >
+                            Download original CSV
+                        </button>
+                    </div>
+                    <div className="form-group">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => this.onExportClick("editable.csv")}
+                        >
+                            Download editable CSV
+                        </button>
+                    </div>
+                    <h3>Import original and edited CSVs</h3>
+                    <p className="form-text text-muted">
+                        Upload both the original, unchanged CSV here as well as
+                        the one containing your edits. The two files will be
+                        compared and only changes will be applied. Note that
+                        importing can fail if the values in the database for
+                        changes cells are different now than they are in the
+                        original file - this is for safety reasons so you don't
+                        overwrite edits that others have done since the export.
+                    </p>
+                    <div className="form-group">
+                        <CSVSelector
+                            onCSV={(csv: CSV): void =>
+                                this.onCsvLoaded(csv, true)
+                            }
+                            uploadLabel="Upload original CSV"
+                            noteText="Upload the unchanged CSV file you downloaded earlier."
+                        ></CSVSelector>
+                    </div>
+                    <div className="form-group">
+                        <CSVSelector
+                            onCSV={(csv: CSV): void =>
+                                this.onCsvLoaded(csv, false)
+                            }
+                            uploadLabel="Upload edited CSV"
+                            noteText="Upload the CSV file that you changed here."
+                        ></CSVSelector>
+                    </div>
                     <button
                         className="btn btn-primary"
-                        onClick={() => this.onExportClick("original.csv")}
+                        onClick={() => this.onImportClick()}
+                        disabled={
+                            this.originalCsv === undefined ||
+                            this.editedCsv === undefined
+                        }
                     >
-                        Download original CSV
+                        Import edits from CSV files
                     </button>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => this.onExportClick("editable.csv")}
-                    >
-                        Download editable CSV
-                    </button>
-                    <h3>Import edited CSV</h3>
                 </div>
             </section>
         )

@@ -10,6 +10,7 @@ import {
     GrapherConfigGridEditorConfig,
     GrapherConfigGridEditorSource,
     ReadOnlyColumn,
+    ReadonlyType,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 
 const readOnlyBulkGrapherConfigEditorColumnNamesFields: Map<
@@ -20,49 +21,49 @@ const readOnlyBulkGrapherConfigEditorColumnNamesFields: Map<
         {
             key: "id",
             label: "Id",
-            type: "number" as const,
+            type: ReadonlyType.number,
             sExpressionColumnTarget:
                 WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_ID,
         },
         {
             key: "createdAt",
             label: "Created at",
-            type: "datetime" as const,
+            type: ReadonlyType.datetime,
             sExpressionColumnTarget:
                 WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_CREATED_AT,
         },
         {
             key: "updatedAt",
             label: "Updated at",
-            type: "datetime" as const,
+            type: ReadonlyType.datetime,
             sExpressionColumnTarget:
                 WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_UPDATED_AT,
         },
         {
             key: "lastEditedAt",
             label: "Last edited at",
-            type: "datetime" as const,
+            type: ReadonlyType.datetime,
             sExpressionColumnTarget:
                 WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_AT,
         },
         {
             key: "publishedAt",
             label: "Published at",
-            type: "datetime" as const,
+            type: ReadonlyType.datetime,
             sExpressionColumnTarget:
                 WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_PUBLISHED_AT,
         },
         {
             key: "lastEditedByUser",
             label: "Last edited by user",
-            type: "string" as const,
+            type: ReadonlyType.string,
             sExpressionColumnTarget:
                 WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_LAST_EDITED_BY_USER,
         },
         {
             key: "publishedByUser",
             label: "Published by user",
-            type: "string" as const,
+            type: ReadonlyType.string,
             sExpressionColumnTarget:
                 WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_CHART_PUBLISHED_BY_USER,
         },

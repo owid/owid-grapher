@@ -31,6 +31,8 @@ export class CSVSelector extends React.Component<CSVSelectorProps> {
                     this.errors = res.errors.map(
                         (e) => `Row ${e.row}: ${e.message}`
                     )
+                } else if (res.data.length === 0) {
+                    this.errors = ["The CSV file contained no rows"]
                 } else {
                     const csvObj: CSV = new CSV({
                         filename: file.name,
@@ -42,6 +44,7 @@ export class CSVSelector extends React.Component<CSVSelectorProps> {
                 this.errors = ["Could not read CSV file as text"]
             }
         }
+        this.errors = []
         reader.readAsText(file)
     }
 

@@ -11,6 +11,7 @@ import {
     GrapherConfigGridEditorConfig,
     GrapherConfigGridEditorSource,
     ReadOnlyColumn,
+    ReadonlyType,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 
 const readOnlyVariableAnnotationColumnNamesFields: Map<string, ReadOnlyColumn> =
@@ -19,49 +20,49 @@ const readOnlyVariableAnnotationColumnNamesFields: Map<string, ReadOnlyColumn> =
             {
                 key: "id",
                 label: "Id",
-                type: "number" as const,
+                type: ReadonlyType.number,
                 sExpressionColumnTarget:
                     WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_ID,
             },
             {
                 key: "name",
                 label: "Variable name",
-                type: "string" as const,
+                type: ReadonlyType.string,
                 sExpressionColumnTarget:
                     WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_NAME,
             },
             {
                 key: "datasetname",
                 label: "Dataset name",
-                type: "string" as const,
+                type: ReadonlyType.string,
                 sExpressionColumnTarget:
                     WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_DATASET_NAME,
             },
             {
                 key: "namespacename",
                 label: "Namespace name",
-                type: "string" as const,
+                type: ReadonlyType.string,
                 sExpressionColumnTarget:
                     WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_NAMESPACE_NAME,
             },
             {
                 key: "description",
                 label: "Description",
-                type: "string" as const,
+                type: ReadonlyType.string,
                 sExpressionColumnTarget:
                     WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_DESCRIPTION,
             },
             {
                 key: "createdAt",
                 label: "Created at",
-                type: "datetime" as const,
+                type: ReadonlyType.datetime,
                 sExpressionColumnTarget:
                     WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_CREATED_AT,
             },
             {
                 key: "updatedAt",
                 label: "Updated at",
-                type: "datetime" as const,
+                type: ReadonlyType.datetime,
                 sExpressionColumnTarget:
                     WHITELISTED_SQL_COLUMN_NAMES.SQL_COLUMN_NAME_VARIABLE_UPDATED_AT,
             },

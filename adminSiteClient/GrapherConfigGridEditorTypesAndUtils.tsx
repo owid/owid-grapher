@@ -47,12 +47,13 @@ import {
     Config,
     ImmutableTree,
 } from "react-awesome-query-builder"
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import { excludeUndefined, isArray } from "../clientUtils/Util.js"
 import { isNil, isPlainObject } from "lodash"
 import {
     EditorOption,
     FieldDescription,
+    FieldType,
 } from "../clientUtils/schemaProcessing.js"
 import Papa from "papaparse"
 
@@ -234,10 +235,16 @@ export function searchFieldStringToFilterOperations(
 
 // TODO: create a type and add the correct column names for the query
 
+export enum ReadonlyType {
+    string = "string",
+    datetime = "datetime",
+    number = "number",
+}
+
 export interface ReadOnlyColumn {
     label: string
     key: string
-    type: "string" | "datetime" | "number"
+    type: ReadonlyType
     sExpressionColumnTarget: string
 }
 
@@ -511,9 +518,9 @@ export function simpleColumnToFilterPanelFieldConfig(
     column: ReadOnlyColumn
 ): [string, SimpleField] {
     const fieldType = match(column.type)
-        .with("string", () => "text")
-        .with("number", () => "number")
-        .with("datetime", () => "datetime")
+        .with(ReadonlyType.string, () => "text")
+        .with(ReadonlyType.number, () => "number")
+        .with(ReadonlyType.datetime, () => "datetime")
         .exhaustive()
 
     return [
@@ -641,4 +648,44 @@ export interface GrapherConfigGridEditorConfig {
 }
 export interface GrapherConfigGridEditorProps {
     config: GrapherConfigGridEditorConfig
+}
+export function coerceType(
+    type: ReadonlyType | FieldType | FieldType[] | undefined,
+    editedStringValue: string
+): any {
+    return match(type)
+        .with(ReadonlyType.number, FieldType.number, () =>
+            Number.parseFloat(editedStringValue)
+        )
+        .with(FieldType.integer, () => Number.parseInt(editedStringValue))
+        .with(
+            FieldType.boolean,
+            () => editedStringValue.toLowerCase() === "true"
+        )
+        .with(
+            ReadonlyType.string,
+            ReadonlyType.datetime,
+            FieldType.string,
+            () => editedStringValue
+        )
+        .with(FieldType.complex, () => editedStringValue)
+        .with(undefined, () => editedStringValue)
+        .with(
+            P.array(
+                P.union(
+                    FieldType.string,
+                    FieldType.boolean,
+                    FieldType.number,
+                    FieldType.integer,
+                    FieldType.complex
+                )
+            ),
+            (types) => {
+                for (const type of types) {
+                    const coerced = coerceType(type, editedStringValue)
+                    if (coerced !== undefined) return coerced
+                }
+            }
+        )
+        .exhaustive()
 }

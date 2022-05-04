@@ -19452,10 +19452,10 @@ ts-node@10.4.0:
     make-error "^1.1.1"
     yn "3.1.1"
 
-ts-pattern@^3.3.3:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/ts-pattern/-/ts-pattern-3.3.3.tgz#d15f4417b3f9161089da945885771c13606fd06a"
-  integrity sha512-Z5EFi6g6wyX3uDFHqxF5W5c5h663oZg9O6aOiAT7fqNu0HPSfCxtHzrQ7SblTy738Mrg2Ezorky8H5aUOm8Pvg==
+ts-pattern@^4:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/ts-pattern/-/ts-pattern-4.0.2.tgz#b36afdb2de1ec0224539dcb7cea3a57c41453b9f"
+  integrity sha512-eHqR/7A6fcw05vCOfnL6RwgGJbVi9G/YHTdYdjYmElhDdJ1SMn7pWs+6+YuxygaFwQS/g+cIDlu+UD8IVpur1A==
 
 ts-pnp@^1.1.6:
   version "1.2.0"
