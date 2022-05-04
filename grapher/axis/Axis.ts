@@ -7,6 +7,7 @@ import {
     sortBy,
     max,
     numberMagnitude,
+    sortedUniqBy,
 } from "../../clientUtils/Util.js"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { TextWrap } from "../text/TextWrap.js"
@@ -462,11 +463,7 @@ export class HorizontalAxis extends AbstractAxis {
 
         // Make sure the start and end values are present, if they're whole numbers
         const startEndPrio = this.scaleType === ScaleType.log ? 2 : 1
-        if (
-            domain[0] % 1 === 0 &&
-            // Make sure that start value is not already present.
-            !ticks.some((tick) => tick.value === domain[0])
-        )
+        if (domain[0] % 1 === 0)
             ticks = [
                 {
                     value: domain[0],
@@ -474,12 +471,7 @@ export class HorizontalAxis extends AbstractAxis {
                 },
                 ...ticks,
             ]
-        if (
-            domain[1] % 1 === 0 &&
-            this.hideFractionalTicks &&
-            // Make sure that end value is not already present.
-            !ticks.some((tick) => tick.value === domain[1])
-        )
+        if (domain[1] % 1 === 0 && this.hideFractionalTicks)
             ticks = [
                 ...ticks,
                 {
@@ -487,7 +479,12 @@ export class HorizontalAxis extends AbstractAxis {
                     priority: startEndPrio,
                 },
             ]
-        return uniq(ticks)
+
+        // sort by value, then priority.
+        // this way, we don't end up with two ticks of the same value but different priorities.
+        // instead, we deduplicate by choosing the highest priority (i.e. lowest priority value).
+        const sortedTicks = sortBy(ticks, [(t) => t.value, (t) => t.priority])
+        return sortedUniqBy(sortedTicks, (t) => t.value)
     }
 
     placeTickLabel(value: number): TickLabelPlacement {

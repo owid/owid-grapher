@@ -2,7 +2,10 @@
 
 import { HorizontalAxis } from "../axis/Axis.js"
 import { ScaleType } from "../core/GrapherConstants.js"
-import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"
+import {
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+} from "../../coreTable/OwidTableSynthesizers.js"
 import { AxisConfig } from "./AxisConfig.js"
 import { AxisConfigInterface } from "./AxisConfigInterface.js"
 
@@ -115,6 +118,32 @@ it("a single-value domain plots to lower or upper end of range", () => {
     expect(axis.place(-1)).toEqual(0)
     expect(axis.place(0)).toEqual(0)
     expect(axis.place(1)).toEqual(500)
+})
+
+describe("tick labels", () => {
+    // see https://github.com/owid/owid-grapher/issues/1267
+    it("includes sufficient decimal places for small values", () => {
+        const config: AxisConfigInterface = {
+            min: 0,
+            max: 0.0004,
+        }
+        const axis = new AxisConfig(config).toHorizontalAxis()
+        axis.range = [0, 500]
+        // we need to set a formatColumn, otherwise the tick labels are not formatted at all
+        axis.formatColumn = SynthesizeFruitTable().get("Fruit")
+
+        const formattedTickLabels = axis.tickLabels.map((l) => l.formattedValue)
+        expect(formattedTickLabels).toEqual([
+            "0",
+            "0.00005",
+            "0.0001",
+            "0.00015",
+            "0.0002",
+            "0.00025",
+            "0.0003",
+            "0.00035",
+        ])
+    })
 })
 
 describe("manual ticks", () => {
