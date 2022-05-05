@@ -215,6 +215,8 @@ export class StackedBarChart
             yColumns,
             inputTable,
             hoverSeries,
+            series,
+            rawSeries,
         } = this
         if (hoverBar === undefined) return
 
@@ -226,6 +228,9 @@ export class StackedBarChart
         )
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
+        let total = 0
+        let currentValue  = 0
+        let value = 0
         return (
             <Tooltip
                 tooltipManager={this.props.manager}
@@ -233,34 +238,99 @@ export class StackedBarChart
                 y={yPos}
                 style={{ textAlign: "center" }}
             >
-                <h3
+                <table 
                     style={{
-                        padding: "0.3em 0.9em",
-                        margin: 0,
-                        backgroundColor: "#fcfcfc",
-                        borderBottom: "1px solid #ebebeb",
-                        fontWeight: "normal",
-                        fontSize: "1em",
+                        lineHeight: "1em",
+                        whiteSpace: "normal",
+                        borderSpacing: "0.5em",
                     }}
                 >
-                    {hoverSeries?.seriesName}
-                </h3>
-                <p
-                    style={{
-                        margin: 0,
-                        padding: "0.3em 0.9em",
-                        fontSize: "0.8em",
-                    }}
-                >
-                    <span>{yColumn.formatValueLong(hoverBar.value)}</span>
-                    <br />
-                    in
-                    <br />
-                    <span>
-                        {inputTable.timeColumnFormatFunction(hoverBar.position)}
-                    </span>
-                </p>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <h3
+                                    style={{
+                                        padding: "0.3em 0.9em",
+                                        margin: 0,
+                                        backgroundColor: "#fcfcfc",
+                                        borderBottom: "1px solid #ebebeb",
+                                        fontWeight: "normal",
+                                        fontSize: "1em",
+                                    }}
+                                >
+                                    {inputTable.timeColumnFormatFunction(hoverBar.position)}
+                                </h3>
+                            </td>
+                        </tr>
+                        {console.log(series)}
+                        {console.log(yColumn)}
+                        {series.map((series, index) => {
+                            // currentValue = series.points[index].value
+                            series.points.map((bar, index) => {
+                                if (bar.position === hoverBar.position) {
+                                    currentValue = series.points[index].value
+                                    total += currentValue
+                                }
+                            })
+                            return (
+                                <tr>
+                                    <td>
+                                        {series.seriesName}
+                                    </td>
+                                    <td>
+                                        {yColumn.formatValueLong(currentValue)}
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                        <tr>
+                            <td
+                                style={{
+                                    paddingRight: "0.8em",
+                                    fontSize: "0.9em",
+                                }}
+                            >
+                                Total
+                            </td>
+                            <td
+                                style={{
+                                    textAlign: "right",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {total}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </Tooltip>
+            //     <h3
+            //         style={{
+            //             padding: "0.3em 0.9em",
+            //             margin: 0,
+            //             backgroundColor: "#fcfcfc",
+            //             borderBottom: "1px solid #ebebeb",
+            //             fontWeight: "normal",
+            //             fontSize: "1em",
+            //         }}
+            //     >
+            //         {hoverSeries?.seriesName}
+            //     </h3>
+            //     <p
+            //         style={{
+            //             margin: 0,
+            //             padding: "0.3em 0.9em",
+            //             fontSize: "0.8em",
+            //         }}
+            //     >
+            //         <span>{yColumn.formatValueLong(hoverBar.value)}</span>
+            //         <br />
+            //         in
+            //         <br />
+            //         <span>
+            //             {inputTable.timeColumnFormatFunction(hoverBar.position)}
+            //         </span>
+            //     </p>
         )
     }
 
