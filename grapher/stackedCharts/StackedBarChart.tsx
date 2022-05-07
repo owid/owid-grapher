@@ -228,7 +228,7 @@ export class StackedBarChart
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
         let total = 0
-        let currentValue  = 0
+        let currentValue = 0
         return (
             <Tooltip
                 tooltipManager={this.props.manager}
@@ -236,7 +236,7 @@ export class StackedBarChart
                 y={yPos}
                 style={{ textAlign: "center" }}
             >
-                <table 
+                <table
                     style={{
                         lineHeight: "1em",
                         whiteSpace: "normal",
@@ -245,9 +245,7 @@ export class StackedBarChart
                 >
                     <tbody>
                         <tr>
-                            <td
-                                colSpan={2}
-                            >
+                            <td colSpan={2}>
                                 <h3
                                     style={{
                                         padding: "0.3em 0.9em",
@@ -258,7 +256,9 @@ export class StackedBarChart
                                         fontSize: "1em",
                                     }}
                                 >
-                                    {inputTable.timeColumnFormatFunction(hoverBar.position)}
+                                    {inputTable.timeColumnFormatFunction(
+                                        hoverBar.position
+                                    )}
                                 </h3>
                             </td>
                         </tr>
@@ -273,36 +273,34 @@ export class StackedBarChart
                             return (
                                 <tr
                                     style={{
-                                        fontWeight: 
-                                        hoverSeries?.seriesName === series.seriesName 
-                                        ? "bold" : undefined
+                                        fontWeight:
+                                            hoverSeries?.seriesName ===
+                                            series.seriesName
+                                                ? "bold"
+                                                : undefined,
+                                        fontSize: "0.9em",
                                     }}
                                 >
-                                    <td>
-                                        {series.seriesName}
-                                    </td>
+                                    <td>{series.seriesName}</td>
                                     <td>
                                         {yColumn.formatValueLong(currentValue)}
                                     </td>
                                 </tr>
                             )
                         })}
-                        <tr>
-                            <td
-                                style={{
-                                    paddingRight: "0.8em",
-                                    fontSize: "0.9em",
-                                }}
-                            >
-                                Total
-                            </td>
+                        <tr
+                            style={{
+                                fontSize: "0.9em",
+                            }}
+                        >
+                            <td>Total</td>
                             <td
                                 style={{
                                     textAlign: "right",
                                     whiteSpace: "nowrap",
                                 }}
                             >
-                                {total}
+                                {yColumn.formatValueLong(total)}
                             </td>
                         </tr>
                     </tbody>
