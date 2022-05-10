@@ -318,33 +318,6 @@ export class StackedBarChart
                     </tbody>
                 </table>
             </Tooltip>
-            //     <h3
-            //         style={{
-            //             padding: "0.3em 0.9em",
-            //             margin: 0,
-            //             backgroundColor: "#fcfcfc",
-            //             borderBottom: "1px solid #ebebeb",
-            //             fontWeight: "normal",
-            //             fontSize: "1em",
-            //         }}
-            //     >
-            //         {hoverSeries?.seriesName}
-            //     </h3>
-            //     <p
-            //         style={{
-            //             margin: 0,
-            //             padding: "0.3em 0.9em",
-            //             fontSize: "0.8em",
-            //         }}
-            //     >
-            //         <span>{yColumn.formatValueLong(hoverBar.value)}</span>
-            //         <br />
-            //         in
-            //         <br />
-            //         <span>
-            //             {inputTable.timeColumnFormatFunction(hoverBar.position)}
-            //         </span>
-            //     </p>
         )
     }
 
