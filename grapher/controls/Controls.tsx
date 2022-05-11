@@ -158,48 +158,6 @@ export class ZoomToggle extends React.Component<{
     }
 }
 
-export interface SmallCountriesFilterManager {
-    populationFilterOption?: number
-    minPopulationFilter?: number
-}
-
-@observer
-export class FilterSmallCountriesToggle extends React.Component<{
-    manager: SmallCountriesFilterManager
-}> {
-    @action.bound private onChange(): void {
-        this.manager.minPopulationFilter = this.manager.minPopulationFilter
-            ? undefined
-            : this.filterOption
-    }
-
-    @computed private get manager(): SmallCountriesFilterManager {
-        return this.props.manager
-    }
-
-    @computed private get filterOption(): number {
-        return this.manager.populationFilterOption ?? 1e6
-    }
-
-    render(): JSX.Element {
-        const label = `Hide countries < ${formatValue(
-            this.filterOption,
-            {}
-        )} people`
-        return (
-            <label className="clickable">
-                <input
-                    type="checkbox"
-                    checked={!!this.manager.minPopulationFilter}
-                    onChange={this.onChange}
-                    data-track-note="chart-filter-small-countries"
-                />{" "}
-                &nbsp;{label}
-            </label>
-        )
-    }
-}
-
 export interface FacetStrategyDropdownManager {
     availableFacetStrategies: FacetStrategy[]
     facetStrategy?: FacetStrategy

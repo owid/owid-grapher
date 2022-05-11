@@ -103,7 +103,6 @@ import {
     FacetStrategyDropdownManager,
     FooterControls,
     FooterControlsManager,
-    SmallCountriesFilterManager,
 } from "../controls/Controls.js"
 import { TooltipView } from "../tooltip/Tooltip.js"
 import { EntitySelectorModal } from "../controls/EntitySelectorModal.js"
@@ -229,7 +228,6 @@ export class Grapher
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ShareMenuManager,
-        SmallCountriesFilterManager,
         AbsRelToggleManager,
         TooltipManager,
         FooterControlsManager,
@@ -2454,10 +2452,6 @@ export class Grapher
         return isMobile()
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)
-    }
-
-    @computed get showSmallCountriesFilterToggle(): boolean {
-        return this.isScatter && this.hasCountriesSmallerThanFilterOption
     }
 
     @computed get showYScaleToggle(): boolean | undefined {

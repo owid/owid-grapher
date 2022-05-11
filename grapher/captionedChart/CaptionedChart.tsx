@@ -24,8 +24,6 @@ import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList.js"
 import {
     ZoomToggle,
     AbsRelToggle,
-    FilterSmallCountriesToggle,
-    SmallCountriesFilterManager,
     AbsRelToggleManager,
     FacetYDomainToggle,
     FacetYDomainToggleManager,
@@ -46,7 +44,6 @@ import { AxisConfig } from "../axis/AxisConfig.js"
 export interface CaptionedChartManager
     extends ChartManager,
         MapChartManager,
-        SmallCountriesFilterManager,
         AbsRelToggleManager,
         FooterManager,
         HeaderManager,
@@ -64,7 +61,6 @@ export interface CaptionedChartManager
     whatAreWeWaitingFor?: string
     entityType?: string
     entityTypePlural?: string
-    showSmallCountriesFilterToggle?: boolean
     showYScaleToggle?: boolean
     showXScaleToggle?: boolean
     showZoomToggle?: boolean
@@ -283,14 +279,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             controls.push(
                 <FacetYDomainToggle
                     key="FacetYDomainToggle"
-                    manager={manager}
-                />
-            )
-
-        if (manager.showSmallCountriesFilterToggle)
-            controls.push(
-                <FilterSmallCountriesToggle
-                    key="FilterSmallCountriesToggle"
                     manager={manager}
                 />
             )
