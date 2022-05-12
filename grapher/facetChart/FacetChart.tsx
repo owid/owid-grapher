@@ -251,6 +251,8 @@ export class FacetChart
             colorScale,
             sortConfig,
             startHandleTimeBound,
+            startTime,
+            endTime,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -301,6 +303,8 @@ export class FacetChart
                 colorScaleColumnOverride,
                 sortConfig,
                 startHandleTimeBound,
+                startTime,
+                endTime,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
