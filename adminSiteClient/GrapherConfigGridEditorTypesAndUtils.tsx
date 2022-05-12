@@ -649,19 +649,31 @@ export interface GrapherConfigGridEditorConfig {
 export interface GrapherConfigGridEditorProps {
     config: GrapherConfigGridEditorConfig
 }
-export function coerceType(
+export function tryCoerceType(
     type: ReadonlyType | FieldType | FieldType[] | undefined,
     editedStringValue: string
 ): any {
+    // This function tries to convert a value into something more specific
+    // than a string value if the type indicates that is should do so.
+    // It always falls back to string and we leave identification of issues
+    // to the schema validation logic - this way special values like "latest"
+    // can be accepted while "dummy" for minTime for example will be rejected.
     return match(type)
-        .with(ReadonlyType.number, FieldType.number, () =>
-            Number.parseFloat(editedStringValue)
-        )
-        .with(FieldType.integer, () => Number.parseInt(editedStringValue))
-        .with(
-            FieldType.boolean,
-            () => editedStringValue.toLowerCase() === "true"
-        )
+        .with(ReadonlyType.number, FieldType.number, () => {
+            const parsed = Number.parseFloat(editedStringValue)
+            if (Number.isNaN(parsed)) return editedStringValue
+            else return parsed
+        })
+        .with(FieldType.integer, () => {
+            const parsed = Number.parseInt(editedStringValue)
+            if (Number.isNaN(parsed)) return editedStringValue
+            else return parsed
+        })
+        .with(FieldType.boolean, () => {
+            if (editedStringValue.toLowerCase() === "true") return true
+            else if (editedStringValue.toLowerCase() === "false") return false
+            else return editedStringValue
+        })
         .with(
             ReadonlyType.string,
             ReadonlyType.datetime,
@@ -682,7 +694,7 @@ export function coerceType(
             ),
             (types) => {
                 for (const type of types) {
-                    const coerced = coerceType(type, editedStringValue)
+                    const coerced = tryCoerceType(type, editedStringValue)
                     if (coerced !== undefined) return coerced
                 }
             }

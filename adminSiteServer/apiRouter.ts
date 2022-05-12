@@ -72,9 +72,22 @@ import {
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import { parseIntOrUndefined } from "../clientUtils/Util.js"
+import Ajv, { JSONSchemaType, ValidateFunction } from "ajv"
+import addFormats from "ajv-formats"
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
+let validateSchema: ValidateFunction<GrapherInterface> | undefined = undefined
+
+const createSchemaValidation = async () => {
+    const ajv = new Ajv()
+    addFormats(ajv)
+
+    const json: JSONSchemaType<GrapherInterface> = await fetch(
+        "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.001.json"
+    ).then((response) => response.json())
+    validateSchema = ajv.compile(json)
+}
 // Call this to trigger build and deployment of static charts on change
 const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
     if (!BAKE_ON_CHANGE) {
@@ -1433,7 +1446,13 @@ apiRouter.patch("/chart-bulk-update", async (req, res) => {
         // console.log("ids", configsAndIds.map((item : any) => item.id))
         for (const patchSet of patchesList) {
             const config = configMap.get(patchSet.id)
-            configMap.set(patchSet.id, applyPatch(patchSet, config))
+            const updatedConfig = applyPatch(patchSet, config)
+            configMap.set(patchSet.id, updatedConfig)
+            if (validateSchema && !validateSchema(updatedConfig))
+                throw new JsonError(
+                    `Grapher config would become schema-invalid after applying patch for row ${patchSet.id}, field ${patchSet.jsonPointer}!`,
+                    400
+                )
         }
 
         for (const [id, newConfig] of configMap.entries()) {

@@ -95,7 +95,7 @@ import {
     postprocessJsonLogicTree,
     prepareColumnSetForCsvExport,
     createCsv,
-    coerceType,
+    tryCoerceType,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
 // types
@@ -107,6 +107,10 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
 import { getWindowUrl, setWindowUrl } from "../clientUtils/urls/Url.js"
 import { CSV, CSVSelector } from "./CSVSelector.js"
+import Ajv, { JSONSchemaType, ValidateFunction } from "ajv"
+import addFormats from "ajv-formats"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { JsonError } from "../clientUtils/owidTypes.js"
 
 function HotColorScaleRenderer(props: Record<string, unknown>) {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -205,6 +209,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable sortByAscending: boolean = false
     readonly config: GrapherConfigGridEditorConfig
     disposers: Disposer[] = []
+    validateSchema: ValidateFunction<GrapherInterface> | undefined
 
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)
@@ -562,8 +567,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         sends an HTTP patch request and puts the step onto the undo stack */
     @action
     async doAction(action: Action): Promise<void> {
-        const { richDataRows } = this
-        if (richDataRows === undefined) return
+        const { richDataRows, validateSchema } = this
+        if (richDataRows === undefined || validateSchema === undefined) return
 
         this.undoStack.push(action)
 
@@ -574,10 +579,27 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             else {
                 // apply the change to the richDataRows json structure
                 try {
+                    const validationResultBefore = validateSchema(
+                        richDataRows[rowId].config
+                    )
+                    if (!validationResultBefore)
+                        console.error(
+                            "Validation failed before applying the patch!",
+                            validateSchema.errors
+                        )
                     richDataRows[rowId].config = applyPatch(
                         patch,
                         richDataRows[rowId].config
                     )
+                    const validationResultAfter = validateSchema(
+                        richDataRows[rowId].config
+                    )
+                    if (!validationResultAfter)
+                        throw new Error(
+                            `Validation failed after applying the patch! ${validateSchema.errors!.join(
+                                ", "
+                            )}`
+                        )
                 } catch (e) {
                     throw new Error(
                         `Could not apply patch to row with id ${patch.id}, target field ${patch.jsonPointer}. The assumed old value was "${patch.oldValue}", the new value was "${patch.newValue}"`
@@ -1098,9 +1120,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     async getFieldDefinitions() {
         // TODO: this should switch to files.ourwordindata.org but if I do this I get a CORS error -
         // areh HEAD requests not forwarded?
-        const json = await fetch(
+        const json: JSONSchemaType<GrapherInterface> = await fetch(
             "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.001.json"
         ).then((response) => response.json())
+        const ajv = new Ajv()
+        addFormats(ajv)
+        this.validateSchema = ajv.compile(json)
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
             // Now that we have the field Definitions we can initialize everything, including
@@ -1694,8 +1719,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         () => undefined
                     )
                     .exhaustive()
-                const editedValue = coerceType(type, editedStringValue)
-                const originalValue = coerceType(type, originalStringValue)
+                const editedValue = tryCoerceType(type, editedStringValue)
+                const originalValue = tryCoerceType(type, originalStringValue)
                 if (editedValue !== originalValue) {
                     affectedRows.add(editedRowId)
                     // If we have a non-readonly column (i.e. one that is given in the schmea
@@ -1732,7 +1757,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .catch(
                 action((err) =>
                     this.context.admin.setErrorMessage({
-                        title: "Importing failed",
+                        title: "Importing failed - no patches were sent to the server",
                         content: err.message,
                     })
                 )
