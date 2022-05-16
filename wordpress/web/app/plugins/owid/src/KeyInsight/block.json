@@ -5,9 +5,7 @@
     "title": "Key insight",
     "icon": "admin-network",
     "category": "layout",
-    "parent": [
-        "owid/key-insights-slider"
-    ],
+    "parent": ["owid/key-insights-slider"],
     "attributes": {
         "title": {
             "type": "string"
