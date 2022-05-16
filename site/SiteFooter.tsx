@@ -173,7 +173,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                     <div className="owid-col owid-col--lg-1">
                         <div className="logos">
                             <a
-                                href="https://www.oxfordmartin.ox.ac.uk/research/programmes/global-development"
+                                href="https://www.oxfordmartin.ox.ac.uk/global-development"
                                 className="partner-logo"
                                 data-track-note="footer-navigation"
                             >
