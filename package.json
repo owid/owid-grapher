@@ -240,6 +240,9 @@
         "tmex": "^1.0.8",
         "tsc-watch": "^4.2.9"
     },
+    "resolutions": {
+        "**/webpack": "^5.0.0"
+    },
     "prettier": {
         "semi": false
     },
