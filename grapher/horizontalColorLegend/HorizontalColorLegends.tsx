@@ -675,6 +675,10 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return this.manager.categoricalLegendData ?? []
     }
 
+    @computed private get visibleCategoricalBins(): CategoricalBin[] {
+        return this.categoricalLegendData.filter((bin) => !bin.isHidden)
+    }
+
     @computed private get markLines(): MarkLine[] {
         const fontSize = this.fontSize * 0.8
         const rectSize = this.fontSize * 0.75
@@ -685,7 +689,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         let marks: CategoricalMark[] = []
         let xOffset = 0
         let yOffset = 0
-        this.categoricalLegendData.forEach((bin) => {
+        this.visibleCategoricalBins.forEach((bin) => {
             const labelBounds = Bounds.forText(bin.text, { fontSize })
             const markWidth =
                 rectSize + rectPadding + labelBounds.width + markPadding

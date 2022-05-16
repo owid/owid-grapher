@@ -873,6 +873,8 @@ export class MarimekkoChart
 
     @computed get categoricalLegendData(): CategoricalBin[] {
         const { colorColumnSlug, colorScale, series } = this
+        const customHiddenCategories =
+            this.colorScaleConfig?.customHiddenCategories
         if (colorColumnSlug) return colorScale.categoricalLegendBins
         else
             return series.map((series, index) => {
@@ -881,6 +883,9 @@ export class MarimekkoChart
                     value: series.seriesName,
                     label: series.seriesName,
                     color: series.color,
+                    isHidden:
+                        customHiddenCategories &&
+                        !!customHiddenCategories[series.seriesName],
                 })
             })
     }
@@ -1193,7 +1198,7 @@ export class MarimekkoChart
                 MarimekkoChart.labelCandidateFromItem(
                     {
                         entityName: row.entityName,
-                        xValue: row.value,
+                        xValue: xColumnAtLastTimePoint ? row.value : 1,
                         ySortValue: ySizeMap.get(row.entityName),
                     },
                     baseFontSize,
