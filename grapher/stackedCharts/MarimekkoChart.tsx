@@ -676,7 +676,7 @@ export class MarimekkoChart
         const { manager, xAxisLabelBase, xDomainDefault, xColumn } = this
         const config = this.xAxisConfig
         let axis = config.toHorizontalAxis()
-        if (manager.isRelativeMode) {
+        if (manager.isRelativeMode && this.xColumn) {
             // MobX and classes  interact in an annoying way here so we have to construct a new object via
             // an object copy of the AxisConfig class instance to be able to set a property without
             // making MobX unhappy about a mutation originating from a computed property
