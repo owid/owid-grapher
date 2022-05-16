@@ -1,5 +1,5 @@
 import webpack from "webpack"
-import "webpack-dev-server" // magic import for types
+import "webpack-dev-server" // just imported for type magic
 import path from "path"
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
@@ -8,7 +8,7 @@ const { WebpackManifestPlugin } = require("webpack-manifest-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const DotenvWebpackPlugin = require("dotenv-webpack")
 
-const config = async (env: any, argv: any): Promise<webpack.Configuration> => {
+const config = (env: any, argv: any): webpack.Configuration => {
     const isProduction = argv.mode === "production"
 
     // baseDir is necessary to make webpack.config.ts use the correct path both in TS as well as in
@@ -31,14 +31,13 @@ const config = async (env: any, argv: any): Promise<webpack.Configuration> => {
             admin: "./adminSiteClient/admin.entry.js",
             owid: "./site/owid.entry.js",
         },
-        target: "web",
         optimization: {
             splitChunks: {
                 cacheGroups: {
                     // The bundle created through this cache group contains all the dependencies
                     // that are _both_ used by owid.entry.js and admin.entry.js.
                     vendors: {
-                        test: (module: any) =>
+                        test: (module: webpack.NormalModule) =>
                             !module.type?.startsWith("css") && // no need to split CSS, since there's very little vendor css anyway
                             /[\\/]node_modules[\\/]/.test(module.resource),
                         name: "vendors",
@@ -61,13 +60,14 @@ const config = async (env: any, argv: any): Promise<webpack.Configuration> => {
         },
         output: {
             path: path.join(javascriptDir, "webpack"),
+            publicPath: "",
             filename: "[name].js",
         },
         resolve: {
             extensions: [".js", ".css"],
             modules: ["node_modules", javascriptDir, baseDir], // baseDir is required for resolving *.scss files
             fallback: {
-                // This is needed so Webpack ignores "dotenv" imports in bundled code
+                // don't polyfill these Node modules
                 fs: false,
                 os: false,
                 path: false,
@@ -96,12 +96,7 @@ const config = async (env: any, argv: any): Promise<webpack.Configuration> => {
                 },
                 {
                     test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
-                    loader: "url-loader",
-                    options: {
-                        limit: 10000,
-                        useRelativePaths: true,
-                        publicPath: "../",
-                    },
+                    use: "asset",
                 },
             ],
         },
@@ -125,7 +120,6 @@ const config = async (env: any, argv: any): Promise<webpack.Configuration> => {
         devServer: {
             host: "localhost",
             port: 8090,
-            // static: { directory: path.join(baseDir, "public") },
             allowedHosts: "all",
             headers: {
                 "Access-Control-Allow-Origin": "*",

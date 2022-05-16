@@ -33,15 +33,9 @@ const configAdjuster = ({ config }: { config: webpack.Configuration }) => {
         new MiniCssExtractPlugin({ filename: "[name].css" }),
     ])
 
-    config.resolve!.fallback = {
-        // This is needed so Webpack ignores "dotenv" imports in bundled code
-        assert: false,
-        fs: false,
-        os: false,
-        path: false,
-    }
-
     config.resolve!.modules = ["node_modules", javascriptDir, baseDir] // baseDir is required for resolving *.scss files
+
+    config.resolve!.fallback = { fs: false, path: false }
 
     return config
 }
