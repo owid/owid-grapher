@@ -1,14 +1,14 @@
 import webpack from "webpack"
+import "webpack-dev-server" // magic import for types
 import path from "path"
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const ManifestPlugin = require("webpack-manifest-plugin")
+const { WebpackManifestPlugin } = require("webpack-manifest-plugin")
 
-const TerserJSPlugin = require("terser-webpack-plugin")
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const DotenvWebpackPlugin = require("dotenv-webpack")
 
-const config: webpack.ConfigurationFactory = async (env, argv) => {
+const config = async (env: any, argv: any): Promise<webpack.Configuration> => {
     const isProduction = argv.mode === "production"
 
     // baseDir is necessary to make webpack.config.ts use the correct path both in TS as well as in
@@ -20,18 +20,25 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
 
     const javascriptDir = path.resolve(baseDir, "itsJustJavascript")
     return {
+        cache: {
+            type: "filesystem",
+            buildDependencies: {
+                config: [__filename],
+            },
+        },
         context: javascriptDir,
         entry: {
             admin: "./adminSiteClient/admin.entry.js",
             owid: "./site/owid.entry.js",
         },
+        target: "web",
         optimization: {
             splitChunks: {
                 cacheGroups: {
                     // The bundle created through this cache group contains all the dependencies
                     // that are _both_ used by owid.entry.js and admin.entry.js.
                     vendors: {
-                        test: (module) =>
+                        test: (module: any) =>
                             !module.type?.startsWith("css") && // no need to split CSS, since there's very little vendor css anyway
                             /[\\/]node_modules[\\/]/.test(module.resource),
                         name: "vendors",
@@ -50,7 +57,7 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
                 },
             },
             minimize: isProduction,
-            minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()],
+            minimizer: ["...", new CssMinimizerPlugin()],
         },
         output: {
             path: path.join(javascriptDir, "webpack"),
@@ -59,10 +66,12 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
         resolve: {
             extensions: [".js", ".css"],
             modules: ["node_modules", javascriptDir, baseDir], // baseDir is required for resolving *.scss files
-        },
-        node: {
-            // This is needed so Webpack ignores "dotenv" imports in bundled code
-            fs: "empty",
+            fallback: {
+                // This is needed so Webpack ignores "dotenv" imports in bundled code
+                fs: false,
+                os: false,
+                path: false,
+            },
         },
         module: {
             rules: [
@@ -76,7 +85,12 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
                     test: /\.s?css$/,
                     use: [
                         MiniCssExtractPlugin.loader,
-                        "css-loader?url=false",
+                        {
+                            loader: "css-loader",
+                            options: {
+                                url: false,
+                            },
+                        },
                         "sass-loader",
                     ],
                 },
@@ -98,21 +112,21 @@ const config: webpack.ConfigurationFactory = async (env, argv) => {
             new MiniCssExtractPlugin({ filename: "[name].css" }),
 
             // Writes manifest.json which production code reads to know paths to asset files
-            new ManifestPlugin(),
+            new WebpackManifestPlugin(),
 
             // Provide client-side settings from .env
             new DotenvWebpackPlugin(),
 
-            // Ensure serverSettings.ts and clientSettingsReader.ts never end up in a webpack build by accident
-            new webpack.IgnorePlugin(
-                /settings\/(serverSettings|clientSettingsReader)/
-            ),
+            // Ensure serverSettings.ts never end up in a webpack build by accident
+            new webpack.IgnorePlugin({
+                resourceRegExp: /settings\/serverSettings/,
+            }),
         ],
         devServer: {
             host: "localhost",
             port: 8090,
-            contentBase: "public",
-            disableHostCheck: true,
+            // static: { directory: path.join(baseDir, "public") },
+            allowedHosts: "all",
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods":
