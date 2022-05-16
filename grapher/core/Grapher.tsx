@@ -70,7 +70,6 @@ import {
     queryParamsToStr,
     setWindowQueryStr,
 } from "../../clientUtils/urls/UrlUtils.js"
-import { populationMap } from "../../coreTable/PopulationMap.js"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
