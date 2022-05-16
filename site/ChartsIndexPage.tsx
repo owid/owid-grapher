@@ -31,6 +31,10 @@ export const ChartsIndexPage = (props: {
 }) => {
     const { explorers, chartItems, baseUrl } = props
 
+    const EXPLORERS_ID = "explorers"
+    const EXPLORERS_TITLE = "Explorers"
+    const CHARTS_ID = "charts"
+
     const allTags = lodash.sortBy(
         lodash.uniqBy(
             lodash.flatten(chartItems.map((item) => item.tags)),
@@ -54,13 +58,27 @@ export const ChartsIndexPage = (props: {
     }
 
     const pageTitle = "Explorers & Charts"
-    const tocEntries = allTags.map((t) => {
-        return {
-            isSubheading: true,
-            slug: slugify(t.name),
-            text: t.name,
-        }
-    })
+    const tocEntries = [
+        {
+            isSubheading: false,
+            slug: EXPLORERS_ID,
+            text: EXPLORERS_TITLE,
+        },
+        {
+            isSubheading: false,
+            slug: CHARTS_ID,
+            text: "Charts",
+        },
+    ]
+    tocEntries.push(
+        ...allTags.map((t) => {
+            return {
+                isSubheading: true,
+                slug: slugify(t.name),
+                text: t.name,
+            }
+        })
+    )
 
     return (
         <html>
@@ -89,8 +107,10 @@ export const ChartsIndexPage = (props: {
                                             autoFocus
                                         />
                                     </header>
-                                    <section id="explorers">
-                                        <h2>Explorers</h2>
+                                    <section id="explorers-section">
+                                        <h2 id={EXPLORERS_ID}>
+                                            {EXPLORERS_TITLE}
+                                        </h2>
                                         <ul>
                                             {explorers.map(
                                                 ({
@@ -110,6 +130,7 @@ export const ChartsIndexPage = (props: {
                                             )}
                                         </ul>
                                     </section>
+                                    <a id={CHARTS_ID} />
                                     {allTags.map((t) => (
                                         <section key={t.id}>
                                             <h2 id={slugify(t.name)}>
