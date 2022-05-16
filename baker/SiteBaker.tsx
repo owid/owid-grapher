@@ -228,7 +228,7 @@ export class SiteBaker {
         await bakeAllExplorerRedirects(this.bakedSiteDir, explorerAdminServer)
 
         await bakeAllPublishedExplorers(
-            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`,
+            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`,
             explorerAdminServer
         )
 

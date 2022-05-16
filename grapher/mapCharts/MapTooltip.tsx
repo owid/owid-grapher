@@ -264,7 +264,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             >
                                 {datum
                                     ? this.props.formatValue(datum.value)
-                                    : "No data"}
+                                    : this.props.formatValue("No data")}
                             </div>
                             <div className="time">
                                 {preposition}{" "}

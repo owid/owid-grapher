@@ -1,5 +1,5 @@
 name: Continuous Integration
-on: [push]
+on: [push, pull_request]
 
 jobs:
     # Checks for prettify errors, TypeScript errors and runs Jest tests.

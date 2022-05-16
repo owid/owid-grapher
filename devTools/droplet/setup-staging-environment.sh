@@ -105,7 +105,7 @@ pm2 save
 
 
 ## Update mysql DB:
-/home/owid/NEW_NAME-wordpress/scripts/refresh-staging.sh -c -u
+/home/owid/NEW_NAME/devTools/droplet/refresh-staging-db.sh -c -u
 
 ## Deploy from grapher on your dev machine
 # yarn buildAndDeploySite NEW_NAME

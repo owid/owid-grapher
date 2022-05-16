@@ -257,6 +257,7 @@ export function isConfigColumn(columnName: string): boolean {
 }
 
 export const filterPanelInitialConfig: BasicConfig = AntdConfig as BasicConfig
+
 export const initialFilterQueryValue: JsonGroup = {
     id: QbUtils.uuid(),
     type: "group",
@@ -339,6 +340,40 @@ export function SExpressionToJsonLogic(
     })
 }
 
+/** JsonLogic is the easiest format that the React Awesome Query Library can round
+    trip (i.e. deserialize from). Building the internal structure of the query library
+    would be tedious so we convert our SExpressions to JsonLogic. When React Awesome
+    Query Library parses this, we need to convert some custom things like the is_latest
+    query operator that we added to RAQL that in our SExpressions are represented as
+    field = "latest"
+ */
+export function postprocessJsonLogicTree(filterTree: JsonTree | JsonItem) {
+    if (filterTree.type === "group" && filterTree.children1) {
+        if (
+            isArray(filterTree.children1) ||
+            isPlainObject(filterTree.children1)
+        )
+            for (const child of Object.values(filterTree.children1))
+                postprocessJsonLogicTree(child)
+    } else if (filterTree.type === "rule") {
+        const {
+            properties: { value, operator },
+        } = filterTree
+
+        if (value.length !== 1) return
+
+        const isLatest = value[0] === "latest"
+
+        const isEarliest = value[0] === "earliest"
+
+        const isEqual = operator === "equal" || operator === "select_equals"
+        if (isLatest && isEqual) {
+            filterTree.properties.operator = "is_latest"
+        } else if (isEarliest && isEqual) {
+            filterTree.properties.operator = "is_earliest"
+        }
+    }
+}
 export function filterTreeToSExpression(
     filterTree: JsonTree | JsonItem,
     context: OperationContext,
@@ -452,6 +487,18 @@ export function filterTreeToSExpression(
                         new StringAtom(""),
                     ])
                 })
+                .with("is_latest", (_) => {
+                    return new EqualityComparision(EqualityOperator.equal, [
+                        field,
+                        new StringAtom("latest"),
+                    ])
+                })
+                .with("is_earliest", (_) => {
+                    return new EqualityComparision(EqualityOperator.equal, [
+                        field,
+                        new StringAtom("earliest"),
+                    ])
+                })
 
                 .otherwise(() => undefined)
         )
@@ -474,6 +521,7 @@ export function simpleColumnToFilterPanelFieldConfig(
             label: column.label,
             type: fieldType,
             valueSources: ["value"],
+            excludeOperators: ["is_latest", "is_earliest"],
             //preferWidgets: widget [widget],
         },
     ]
@@ -488,12 +536,17 @@ export function fieldDescriptionToFilterPanelFieldConfig(
         .with(EditorOption.dropdown, () => "select")
         .with(EditorOption.mappingEditor, () => undefined)
         .with(EditorOption.numeric, () => "number")
+        .with(EditorOption.numericWithLatestEarliest, () => "number")
         .with(EditorOption.primitiveListEditor, () => undefined)
         .with(EditorOption.textarea, () => "text")
         .with(EditorOption.textfield, () => "text")
         .exhaustive()
 
-    if (widget !== undefined)
+    if (widget !== undefined) {
+        const excludedOperators =
+            description.editor === EditorOption.numericWithLatestEarliest
+                ? []
+                : ["is_latest", "is_earliest"]
         return [
             description.pointer,
             {
@@ -504,9 +557,10 @@ export function fieldDescriptionToFilterPanelFieldConfig(
                 fieldSettings: {
                     listValues: description.enumOptions,
                 },
+                excludeOperators: excludedOperators,
             },
         ]
-    else return undefined
+    } else return undefined
 }
 
 export function renderBuilder(props: BuilderProps) {

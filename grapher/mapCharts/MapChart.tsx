@@ -326,12 +326,13 @@ export class MapChart
         const { mapConfig, mapColumn, colorScale } = this
 
         return (d: PrimitiveType): string => {
-            if (isString(d)) return d
-            else if (mapConfig.tooltipUseCustomLabels) {
+            if (mapConfig.tooltipUseCustomLabels) {
                 // Find the bin (and its label) that this value belongs to
                 const bin = colorScale.getBinForValue(d)
                 const label = bin?.label
                 if (label !== undefined && label !== "") return label
+            } else if (isString(d)) {
+                return d
             }
             return mapColumn?.formatValueLong(d) ?? ""
         }

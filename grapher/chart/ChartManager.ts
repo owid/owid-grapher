@@ -71,6 +71,11 @@ export interface ChartManager {
     hidePoints?: boolean // for line options
     startHandleTimeBound?: TimeBound // for relative-to-first-year line chart
 
+    // we need endTime so DiscreteBarCharts and StackedDiscreteBarCharts can
+    // know what date the timeline is set to. and let's pass startTime in, too.
+    startTime?: number
+    endTime?: number
+
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
     seriesStrategy?: SeriesStrategy
 

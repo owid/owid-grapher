@@ -15,6 +15,7 @@ ports:
 
 tasks:
     # set everything up
+    # this is run in the prebuild state and should be ready when launching a new workspace
     - init: |
           gp await-port 3306 && ./db/downloadAndCreateDatabase.sh
           mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';"
@@ -43,3 +44,8 @@ github:
         branches: true
         pullRequests: true
         addCheck: false
+
+vscode:
+    extensions:
+        - dbaeumer.vscode-eslint
+        - esbenp.prettier-vscode
