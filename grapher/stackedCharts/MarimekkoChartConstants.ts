@@ -72,6 +72,7 @@ export interface TooltipProps {
     timeColumn: CoreColumn
     yAxisColumn: CoreColumn
     xAxisColumn: CoreColumn
+    xOverrideTime?: Time
 }
 
 export interface EntityWithSize {

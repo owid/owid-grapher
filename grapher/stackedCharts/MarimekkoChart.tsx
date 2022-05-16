@@ -953,6 +953,7 @@ export class MarimekkoChart
         const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
         const timeColumn = this.inputTable.timeColumn
+        const xOverrideTime = this.manager.xOverrideTime
         const yAxisColumn = this.formatColumn
         const xAxisColumn = this.xColumn
         const labelYOffset = 0
@@ -1046,6 +1047,7 @@ export class MarimekkoChart
                 timeColumn,
                 yAxisColumn,
                 xAxisColumn,
+                xOverrideTime,
             }
 
             const barWidth =
@@ -1549,11 +1551,13 @@ export class MarimekkoChart
 
     static Tooltip(props: TooltipProps): JSX.Element {
         const isSingleVariable = props.item.bars.length === 1
-        // shouldShowXTimeNoitice is a bit of a lie since at the moment we don't include
-        // entities that don't have x values for the current year. This might change though
-        // and then the mechanism is already in place
+        // TODO: when we have proper time support to work across date/year variables then
+        // this should be set properly and the x axis time be passed in on it's own.
+        // For now we disable x axis notices when the xOverrideTime is set which is
+        // usually the case when matching day and year variables
         const shouldShowXTimeNotice =
-            props.item.xPoint.time !== props.targetTime
+            props.item.xPoint.time !== props.targetTime &&
+            props.xOverrideTime === undefined
         let hasTimeNotice = shouldShowXTimeNotice
         const header = isSingleVariable ? (
             <tr>
