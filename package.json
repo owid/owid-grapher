@@ -219,8 +219,8 @@
         "workerpool": "^6.2.0"
     },
     "devDependencies": {
-        "@storybook/addon-essentials": "^6.3.8",
-        "@storybook/react": "^6.3.8",
+        "@storybook/addon-essentials": "^6.4.22",
+        "@storybook/react": "^6.4.22",
         "@types/jest": "^27.0.2",
         "@types/opener": "^1.4.0",
         "@typescript-eslint/eslint-plugin": "^5.15.0",
@@ -234,7 +234,7 @@
         "opener": "^1.5.2",
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
-        "storybook": "^6.3.8",
+        "storybook": "^6.4.22",
         "tmex": "^1.0.8",
         "tsc-watch": "^4.2.9"
     },
