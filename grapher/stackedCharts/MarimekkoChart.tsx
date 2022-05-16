@@ -332,7 +332,7 @@ export class MarimekkoChart
         const { excludedEntities, includedEntities } = this.manager
         const { inputTable } = this
         if (!this.yColumnSlugs.length) return inputTable
-        if (!this.xColumnSlug) return inputTable
+        // if (!this.xColumnSlug) return inputTable
 
         if (excludedEntities || includedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
@@ -362,7 +362,7 @@ export class MarimekkoChart
 
     transformTable(table: OwidTable): OwidTable {
         if (!this.yColumnSlugs.length) return table
-        if (!this.xColumnSlug) return table
+        // if (!this.xColumnSlug) return table
         const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
@@ -372,7 +372,8 @@ export class MarimekkoChart
             table = table.interpolateColumnWithTolerance(slug)
         })
 
-        table = table.interpolateColumnWithTolerance(xColumnSlug)
+        if (xColumnSlug)
+            table = table.interpolateColumnWithTolerance(xColumnSlug)
 
         if (colorColumnSlug) {
             const tolerance =
@@ -388,13 +389,15 @@ export class MarimekkoChart
         if (!manager.showNoDataArea)
             table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
 
-        table = table.dropRowsWithErrorValuesForColumn(xColumnSlug)
+        if (xColumnSlug)
+            table = table.dropRowsWithErrorValuesForColumn(xColumnSlug)
         if (manager.isRelativeMode) {
             // TODO: this should not be necessary but we sometimes get NoMatchingValuesAfterJoin if both relative and showNoDataArea are set
             table = table.dropRowsWithErrorValuesForColumn(
                 table.timeColumn.slug
             )
-            table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
+            if (xColumnSlug)
+                table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
         }
 
         return table
@@ -454,7 +457,7 @@ export class MarimekkoChart
         }))
     }
 
-    @computed get xSeries(): SimpleChartSeries {
+    @computed get xSeries(): SimpleChartSeries | undefined {
         const createStackedXPoints = (
             rows: OwidVariableRow<any>[]
         ): SimplePoint[] => {
@@ -468,6 +471,7 @@ export class MarimekkoChart
             }
             return points
         }
+        if (this.xColumn === undefined) return undefined
         const column = this.xColumn
         return {
             seriesName: column.displayName,
@@ -486,9 +490,9 @@ export class MarimekkoChart
         return this.manager.xColumnSlug
     }
 
-    @computed protected get xColumn(): CoreColumn {
+    @computed protected get xColumn(): CoreColumn | undefined {
+        if (this.xColumnSlug === undefined) return undefined
         const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
-        if (!columnSlugs.length) console.warn("No x column slug!")
         return this.transformedTable.getColumns(columnSlugs)[0]
     }
 
@@ -511,7 +515,8 @@ export class MarimekkoChart
         else return undefined
     }
     @computed protected get xColumnAtLastTimePoint(): CoreColumn | undefined {
-        const columnSlug = this.xColumnSlug ? [this.xColumnSlug] : []
+        if (this.xColumnSlug === undefined) return undefined
+        const columnSlug = [this.xColumnSlug]
         if (this.tableAtLatestTimelineTimepoint)
             return this.tableAtLatestTimelineTimepoint.getColumns(columnSlug)[0]
         else return undefined
@@ -623,9 +628,11 @@ export class MarimekkoChart
         ]
     }
     @computed private get xDomainDefault(): [number, number] {
-        const sum = sumBy(this.xSeries.points, (point) => point.value)
+        if (this.xSeries !== undefined) {
+            const sum = sumBy(this.xSeries.points, (point) => point.value)
 
-        return [this.x0, sum]
+            return [this.x0, sum]
+        } else return [this.x0, this.items.length]
     }
 
     @computed private get xRange(): [number, number] {
@@ -662,7 +669,7 @@ export class MarimekkoChart
         const xDimName = this.xColumn?.displayName
         if (this.manager.xOverrideTime !== undefined)
             return `${xDimName} in ${this.manager.xOverrideTime}`
-        return xDimName
+        return xDimName ?? "" // This sets the axis label to emtpy if we don't have an x column - not entirely sure this is what we want
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
@@ -713,37 +720,43 @@ export class MarimekkoChart
         EntityColorData
     > {
         const { colorColumn, colorScale } = this
-        const entityNames = this.xColumn.uniqEntityNames
+        const entityNames =
+            this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
         const hasColorColumn = !colorColumn.isMissing
         const colorRowsByEntity = hasColorColumn
             ? colorColumn.owidRowsByEntityName
             : undefined
         const domainColorMap = new Map<string, EntityColorData>()
-        for (const name of entityNames) {
-            const colorDomainValue = colorRowsByEntity?.get(name)?.[0]
+        if (entityNames !== undefined) {
+            for (const name of entityNames) {
+                const colorDomainValue = colorRowsByEntity?.get(name)?.[0]
 
-            if (colorDomainValue) {
-                const color = colorScale.getColor(colorDomainValue.value)
-                if (color)
-                    domainColorMap.set(name, {
-                        color,
-                        colorDomainValue: colorDomainValue.value,
-                    })
+                if (colorDomainValue) {
+                    const color = colorScale.getColor(colorDomainValue.value)
+                    if (color)
+                        domainColorMap.set(name, {
+                            color,
+                            colorDomainValue: colorDomainValue.value,
+                        })
+                }
             }
         }
         return domainColorMap
     }
 
     @computed private get items(): Item[] {
-        const entityNames = this.xColumn.uniqEntityNames
+        const entityNames =
+            this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
         const { xSeries, series, domainColorForEntityMap } = this
 
         const items: Item[] = entityNames
             .map((entityName) => {
-                const xPoint = xSeries.points.find(
-                    (point) => point.entity === entityName
-                )
-                if (!xPoint) return undefined
+                const xPoint = xSeries
+                    ? xSeries.points.find(
+                          (point) => point.entity === entityName
+                      )
+                    : undefined
+                if (xSeries && !xPoint) return undefined
 
                 const color = domainColorForEntityMap.get(entityName)
 
@@ -815,8 +828,9 @@ export class MarimekkoChart
         let currentX = 0
         for (const item of sortedItems) {
             placedItems.push({ ...item, xPosition: currentX })
+            const xValue = item.xPoint?.value ?? 1 // one is the default here because if no x dim is given we make all bars the same width
             const preciseX =
-                dualAxis.horizontalAxis.place(item.xPoint.value) -
+                dualAxis.horizontalAxis.place(xValue) -
                 dualAxis.horizontalAxis.place(x0)
             currentX += preciseX
         }
@@ -979,9 +993,9 @@ export class MarimekkoChart
             const lastItem = last(placedItems)!
             const noDataRangeStartX =
                 firstNanValueItem.xPosition + dualAxis.horizontalAxis.place(x0)
+            const xValue = lastItem.xPoint?.value ?? 1
             const noDataRangeEndX =
-                lastItem?.xPosition +
-                dualAxis.horizontalAxis.place(lastItem.xPoint.value)
+                lastItem?.xPosition + dualAxis.horizontalAxis.place(xValue)
             const yStart = dualAxis.verticalAxis.place(y0)
 
             const noDataLabelX =
@@ -1050,8 +1064,9 @@ export class MarimekkoChart
                 xOverrideTime,
             }
 
+            const xValue = xPoint?.value ?? 1
             const barWidth =
-                dualAxis.horizontalAxis.place(xPoint.value) -
+                dualAxis.horizontalAxis.place(xValue) -
                 dualAxis.horizontalAxis.place(x0)
 
             const isSelected = selectionSet.has(entityName)
@@ -1153,8 +1168,7 @@ export class MarimekkoChart
             paddingInPixels,
         } = this
 
-        if (!xColumnAtLastTimePoint || yColumnsAtLastTimePoint.length === 0)
-            return []
+        if (yColumnsAtLastTimePoint.length === 0) return []
 
         // Measure the labels (before any rotation, just normal horizontal labels)
         const selectedItemsSet = new Set(
@@ -1170,9 +1184,12 @@ export class MarimekkoChart
                 row.value,
             ])
         )
+        const labelCanidateSource = xColumnAtLastTimePoint
+            ? xColumnAtLastTimePoint
+            : yColumnsAtLastTimePoint[0]
 
         const labelCandidates: LabelCandidate[] =
-            xColumnAtLastTimePoint.owidRows.map((row) =>
+            labelCanidateSource.owidRows.map((row) =>
                 MarimekkoChart.labelCandidateFromItem(
                     {
                         entityName: row.entityName,
@@ -1259,7 +1276,9 @@ export class MarimekkoChart
         const labelsWithPlacements: LabelWithPlacement[] = labels
             .map(({ candidate, labelElement }) => {
                 const item = placedItemsMap.get(candidate.item.entityName)
-                const xPoint = item?.xPoint.value ?? 0
+                if (!item)
+                    console.error("Could not find item in placedItemsMap")
+                const xPoint = item?.xPoint?.value ?? 1
                 const barWidth =
                     dualAxis.horizontalAxis.place(xPoint) -
                     dualAxis.horizontalAxis.place(x0)
@@ -1556,6 +1575,7 @@ export class MarimekkoChart
         // For now we disable x axis notices when the xOverrideTime is set which is
         // usually the case when matching day and year variables
         const shouldShowXTimeNotice =
+            props.item.xPoint &&
             props.item.xPoint.time !== props.targetTime &&
             props.xOverrideTime === undefined
         let hasTimeNotice = shouldShowXTimeNotice
@@ -1678,44 +1698,46 @@ export class MarimekkoChart
                             </tr>
                         )
                     })}
-                    <tr>
-                        <td></td>
-                        <td>{props.xAxisColumn.displayName}</td>
-                        <td
-                            style={{
-                                textAlign: "right",
-                                whiteSpace: "nowrap",
-                            }}
-                        >
-                            {props.xAxisColumn.formatValueShort(
-                                props.item.xPoint.value
-                            )}
-                            {shouldShowXTimeNotice && (
-                                <td
-                                    style={{
-                                        fontWeight: "normal",
-                                        color: "#707070",
-                                        fontSize: "0.8em",
-                                        whiteSpace: "nowrap",
-                                        paddingLeft: "8px",
-                                    }}
-                                >
-                                    <span className="icon">
-                                        <FontAwesomeIcon
-                                            icon={faInfoCircle}
-                                            style={{
-                                                marginRight: "0.25em",
-                                            }}
-                                        />{" "}
-                                    </span>
-                                    {props.timeColumn.formatValue(
-                                        props.item.xPoint.time
-                                    )}
-                                </td>
-                            )}
-                        </td>
-                        <td></td>
-                    </tr>
+                    {props.item.xPoint && props.xAxisColumn && (
+                        <tr>
+                            <td></td>
+                            <td>{props.xAxisColumn.displayName}</td>
+                            <td
+                                style={{
+                                    textAlign: "right",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {props.xAxisColumn.formatValueShort(
+                                    props.item.xPoint.value
+                                )}
+                                {shouldShowXTimeNotice && (
+                                    <td
+                                        style={{
+                                            fontWeight: "normal",
+                                            color: "#707070",
+                                            fontSize: "0.8em",
+                                            whiteSpace: "nowrap",
+                                            paddingLeft: "8px",
+                                        }}
+                                    >
+                                        <span className="icon">
+                                            <FontAwesomeIcon
+                                                icon={faInfoCircle}
+                                                style={{
+                                                    marginRight: "0.25em",
+                                                }}
+                                            />{" "}
+                                        </span>
+                                        {props.timeColumn.formatValue(
+                                            props.item.xPoint.time
+                                        )}
+                                    </td>
+                                )}
+                            </td>
+                            <td></td>
+                        </tr>
+                    )}
                     {hasTimeNotice && (
                         <tr>
                             <td
@@ -1755,7 +1777,6 @@ export class MarimekkoChart
         const { yColumns, yColumnSlugs, xColumn } = this
 
         if (!column) return "No Y column to chart"
-        if (!xColumn) return "No X column to chart"
 
         return yColumns.every((col) => col.isEmpty)
             ? `No matching data in columns ${yColumnSlugs.join(", ")}`
