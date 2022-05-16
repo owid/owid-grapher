@@ -328,7 +328,7 @@ export class MarimekkoChart
     defaultNoDataColor = "#959595"
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
-    @computed get filteredTable(): OwidTable {
+    transformTable(table: OwidTable): OwidTable {
         const { excludedEntities, includedEntities } = this.manager
         const { inputTable } = this
         if (!this.yColumnSlugs.length) return inputTable
@@ -352,16 +352,12 @@ export class MarimekkoChart
             const includedList = includedEntities
                 ? includedEntities.join(", ")
                 : ""
-            return inputTable.columnFilter(
+            table = inputTable.columnFilter(
                 OwidTableSlugs.entityId,
                 filterFn,
                 `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
             )
-        } else return inputTable
-    }
-
-    transformTable(table: OwidTable): OwidTable {
-        if (!this.yColumnSlugs.length) return table
+        } else table = inputTable
         // if (!this.xColumnSlug) return table
         const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
 
@@ -412,10 +408,8 @@ export class MarimekkoChart
     }
 
     @computed get transformedTable(): OwidTable {
-        return (
-            this.manager.transformedTable ??
-            this.transformTable(this.filteredTable)
-        )
+        const { inputTable } = this
+        return this.manager.transformedTable ?? this.transformTable(inputTable)
     }
 
     @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
@@ -566,7 +560,7 @@ export class MarimekkoChart
             // We need to use filteredTable in order to get consistent coloring for a variable across
             // charts, e.g. each continent being assigned to the same color.
             // inputTable is unfiltered, so it contains every value that exists in the variable.
-            this.filteredTable.get(this.colorColumnSlug)
+            this.inputTable.get(this.colorColumnSlug)
         )
     }
     @computed private get sortConfig(): SortConfig {
