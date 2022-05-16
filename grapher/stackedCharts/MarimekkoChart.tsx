@@ -328,11 +328,11 @@ export class MarimekkoChart
     defaultNoDataColor = "#959595"
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
-    transformTable(table: OwidTable): OwidTable {
-        if (!this.yColumnSlugs.length) return table
-        if (!this.xColumnSlug) return table
+    @computed get filteredTable(): OwidTable {
         const { excludedEntities, includedEntities } = this.manager
-        const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
+        const { inputTable } = this
+        if (!this.yColumnSlugs.length) return inputTable
+        if (!this.xColumnSlug) return inputTable
 
         if (excludedEntities || includedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
@@ -352,12 +352,18 @@ export class MarimekkoChart
             const includedList = includedEntities
                 ? includedEntities.join(", ")
                 : ""
-            table = table.columnFilter(
+            return inputTable.columnFilter(
                 OwidTableSlugs.entityId,
                 filterFn,
                 `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
             )
-        }
+        } else return inputTable
+    }
+
+    transformTable(table: OwidTable): OwidTable {
+        if (!this.yColumnSlugs.length) return table
+        if (!this.xColumnSlug) return table
+        const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(yColumnSlugs)
@@ -405,7 +411,7 @@ export class MarimekkoChart
     @computed get transformedTable(): OwidTable {
         return (
             this.manager.transformedTable ??
-            this.transformTable(this.inputTable)
+            this.transformTable(this.filteredTable)
         )
     }
 
@@ -552,10 +558,10 @@ export class MarimekkoChart
             // For faceted charts, we have to get the values of inputTable before it's filtered by
             // the faceting logic.
             this.manager.colorScaleColumnOverride ??
-            // We need to use inputTable in order to get consistent coloring for a variable across
+            // We need to use filteredTable in order to get consistent coloring for a variable across
             // charts, e.g. each continent being assigned to the same color.
             // inputTable is unfiltered, so it contains every value that exists in the variable.
-            this.inputTable.get(this.colorColumnSlug)
+            this.filteredTable.get(this.colorColumnSlug)
         )
     }
     @computed private get sortConfig(): SortConfig {
