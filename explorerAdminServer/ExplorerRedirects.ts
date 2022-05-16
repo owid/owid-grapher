@@ -96,22 +96,22 @@ const explorerRedirectTableMatrix = [
     [
         "legacyToGridCovidExplorer",
         "/grapher/covid-deaths-days-since-per-million",
-        "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&deathsMetric=true&totalFreq=true&aligned=true&perCapita=true&smoothing=0&country=&hideControls=true",
+        "yScale=log&zoomToSelection=true&deathsMetric=true&totalFreq=true&aligned=true&perCapita=true&smoothing=0&country=&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",
         "/grapher/covid-confirmed-daily-cases-epidemiological-trajectory",
-        "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&casesMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=&hideControls=true",
+        "yScale=log&zoomToSelection=true&casesMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",
         "/grapher/covid-confirmed-daily-cases-since-100th-case",
-        "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&casesMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=&hideControls=true",
+        "yScale=log&zoomToSelection=true&casesMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",
         "/grapher/covid-confirmed-daily-deaths-epidemiological-trajectory",
-        "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&deathsMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=&hideControls=true",
+        "yScale=log&zoomToSelection=true&deathsMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",
@@ -121,12 +121,12 @@ const explorerRedirectTableMatrix = [
     [
         "legacyToGridCovidExplorer",
         "/grapher/covid-daily-deaths-trajectory-per-million",
-        "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&deathsMetric=true&dailyFreq=true&aligned=true&perCapita=true&smoothing=7&country=&hideControls=true",
+        "yScale=log&zoomToSelection=true&deathsMetric=true&dailyFreq=true&aligned=true&perCapita=true&smoothing=7&country=&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",
         "/grapher/covid-daily-cases-trajectory-per-million",
-        "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&casesMetric=true&dailyFreq=true&aligned=true&perCapita=true&smoothing=7&country=&hideControls=true",
+        "yScale=log&zoomToSelection=true&casesMetric=true&dailyFreq=true&aligned=true&perCapita=true&smoothing=7&country=&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",
@@ -156,7 +156,7 @@ const explorerRedirectTableMatrix = [
     [
         "legacyToGridCovidExplorer",
         "/grapher/daily-covid-deaths-per-million-7-day-average",
-        "zoomToSelection=true&minPopulationFilter=1000000&deathsMetric=true&dailyFreq=true&perCapita=true&smoothing=7&country=USA~GBR~ITA~DEU~KOR~ZAF~BRA&pickerMetric=location&pickerSort=asc&hideControls=true",
+        "zoomToSelection=true&deathsMetric=true&dailyFreq=true&perCapita=true&smoothing=7&country=USA~GBR~ITA~DEU~KOR~ZAF~BRA&pickerMetric=location&pickerSort=asc&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",
@@ -166,7 +166,7 @@ const explorerRedirectTableMatrix = [
     [
         "legacyToGridCovidExplorer",
         "/grapher/daily-new-confirmed-cases-of-covid-19-per-million-tests-per-case",
-        "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc&hideControls=true",
+        "yScale=log&zoomToSelection=true&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc&hideControls=true",
     ],
     [
         "legacyToGridCovidExplorer",

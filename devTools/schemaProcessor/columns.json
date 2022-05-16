@@ -761,11 +761,6 @@
         "editor": "checkbox"
     },
     {
-        "type": "integer",
-        "pointer": "/minPopulationFilter",
-        "editor": "numeric"
-    },
-    {
         "type": "boolean",
         "pointer": "/showYearLabels",
         "default": false,

@@ -68,7 +68,6 @@ export interface DataTableManager {
     entityType: string
     endTime?: Time
     startTime?: Time
-    minPopulationFilter?: number
     dataTableSlugs?: ColumnSlug[]
 }
 
@@ -468,11 +467,6 @@ export class DataTable extends React.Component<{
 
     @computed private get entityNames(): string[] {
         let tableForEntities = this.table
-        if (this.manager.minPopulationFilter)
-            tableForEntities = tableForEntities.filterByPopulationExcept(
-                this.manager.minPopulationFilter,
-                this.selectionArray.selectedEntityNames
-            )
         return union(
             ...this.columnsToShow.map(
                 (col) => tableForEntities.get(col.slug).uniqEntityNames
