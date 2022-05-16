@@ -220,6 +220,8 @@
     },
     "devDependencies": {
         "@storybook/addon-essentials": "^6.4.22",
+        "@storybook/builder-webpack5": "^6.4.22",
+        "@storybook/manager-webpack5": "^6.4.22",
         "@storybook/react": "^6.4.22",
         "@types/jest": "^27.0.2",
         "@types/opener": "^1.4.0",
