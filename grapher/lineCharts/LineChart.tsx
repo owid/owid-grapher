@@ -364,10 +364,10 @@ export class LineChart
         return table
     }
 
-    @observable hoverX?: number = undefined
+    @observable hoverX?: number = this.props.manager.annotation?.year
 
     @action.bound onHover(hoverX: number | undefined): void {
-        this.hoverX = hoverX ?? this.props.manager.annotation?.year
+        this.hoverX = hoverX
     }
 
     @computed private get manager(): LineChartManager {

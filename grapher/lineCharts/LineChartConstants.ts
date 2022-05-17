@@ -1,7 +1,6 @@
 import { DualAxis } from "../axis/Axis.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import { SeriesName } from "../core/GrapherConstants.js"
-import { TimeBound } from "../../clientUtils/TimeBounds.js"
 import { ChartSeries } from "../chart/ChartInterface.js"
 import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { Color } from "../../clientUtils/owidTypes.js"
