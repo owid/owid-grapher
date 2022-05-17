@@ -70,7 +70,6 @@ import {
     queryParamsToStr,
     setWindowQueryStr,
 } from "../../clientUtils/urls/UrlUtils.js"
-import { populationMap } from "../../coreTable/PopulationMap.js"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
@@ -103,7 +102,6 @@ import {
     FacetStrategyDropdownManager,
     FooterControls,
     FooterControlsManager,
-    SmallCountriesFilterManager,
 } from "../controls/Controls.js"
 import { TooltipView } from "../tooltip/Tooltip.js"
 import { EntitySelectorModal } from "../controls/EntitySelectorModal.js"
@@ -229,7 +227,6 @@ export class Grapher
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ShareMenuManager,
-        SmallCountriesFilterManager,
         AbsRelToggleManager,
         TooltipManager,
         FooterControlsManager,
@@ -264,7 +261,6 @@ export class Grapher
     @observable.ref entityTypePlural = "countries"
     @observable.ref hideTimeline?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
-    @observable.ref minPopulationFilter?: number = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
@@ -465,10 +461,6 @@ export class Grapher
         this.zoomToSelection =
             params.zoomToSelection === "true" ? true : this.zoomToSelection
 
-        this.minPopulationFilter = params.minPopulationFilter
-            ? parseInt(params.minPopulationFilter)
-            : this.minPopulationFilter
-
         // Axis scale mode
         const xScaleType = params.xScale
         if (xScaleType) {
@@ -574,7 +566,7 @@ export class Grapher
     }
 
     @computed
-    private get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
+    get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterAuthorTimelineFilter
         if (!this.isReady || !this.isChartOrMapTab) return table
         return this.chartInstance.transformTable(table)
@@ -604,24 +596,9 @@ export class Grapher
     }
 
     @computed
-    get tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter(): OwidTable {
-        const table = this.tableAfterAuthorTimelineAndActiveChartTransform
-        // todo: could make these separate memoized computeds to speed up
-        // todo: add cross filtering. 1 dimension at a time.
-        return this.minPopulationFilter
-            ? table.filterByPopulationExcept(
-                  this.minPopulationFilter,
-                  this.selection.selectedEntityNames
-              )
-            : table
-    }
-
-    @computed
     private get tableAfterAllTransformsAndFilters(): OwidTable {
         const { startTime, endTime } = this
-        const table =
-            this
-                .tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter
+        const table = this.tableAfterAuthorTimelineAndActiveChartTransform
 
         if (startTime === undefined || endTime === undefined) return table
 
@@ -669,23 +646,6 @@ export class Grapher
         return `${this.adminBaseUrl}/admin/${
             this.manager?.editUrl ?? `charts/${this.id}/edit`
         }`
-    }
-
-    private populationFilterToggleOption = 1e6
-    // Make the default filter toggle option reflect what is initially loaded.
-    @computed get populationFilterOption(): number {
-        if (this.minPopulationFilter)
-            this.populationFilterToggleOption = this.minPopulationFilter
-        return this.populationFilterToggleOption
-    }
-
-    // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
-    @computed private get hasCountriesSmallerThanFilterOption(): boolean {
-        return this.inputTable.availableEntityNames.some(
-            (entityName) =>
-                populationMap[entityName] &&
-                populationMap[entityName] < this.populationFilterOption
-        )
     }
 
     // at startDrag, we want to show the full axis
@@ -854,7 +814,7 @@ export class Grapher
         // times on the timeline for which data may not exist, e.g. when the selected entity
         // doesn't contain data for all years in the table.
         // -@danielgavrilov, 2020-10-22
-        return this.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter.getTimesUniqSortedAscForColumns(
+        return this.tableAfterAuthorTimelineAndActiveChartTransform.getTimesUniqSortedAscForColumns(
             columnSlugs
         )
     }
@@ -1806,12 +1766,6 @@ export class Grapher
                 category: "Selection",
             },
             {
-                combo: "f",
-                fn: (): void => this.toggleFilterAllCommand(),
-                title: "Hide unselected",
-                category: "Selection",
-            },
-            {
                 combo: "p",
                 fn: (): void => this.togglePlayingCommand(),
                 title: this.isPlaying ? `Pause` : `Play`,
@@ -1873,11 +1827,6 @@ export class Grapher
         this.setTimeFromTimeQueryParam(
             next(["latest", "earliest", ".."], this.timeParam!)
         )
-    }
-
-    @action.bound private toggleFilterAllCommand(): void {
-        this.minPopulationFilter =
-            this.minPopulationFilter === 2e9 ? undefined : 2e9
     }
 
     @action.bound private toggleYScaleTypeCommand(): void {
@@ -2254,7 +2203,6 @@ export class Grapher
         this.yAxis.scaleType = authorsVersion.yAxis.scaleType
         this.stackMode = authorsVersion.stackMode
         this.zoomToSelection = authorsVersion.zoomToSelection
-        this.minPopulationFilter = authorsVersion.minPopulationFilter
         this.compareEndPointsOnly = authorsVersion.compareEndPointsOnly
         this.minTime = authorsVersion.minTime
         this.maxTime = authorsVersion.maxTime
@@ -2303,7 +2251,6 @@ export class Grapher
         params.yScale = this.yAxis.scaleType
         params.stackMode = this.stackMode
         params.zoomToSelection = this.zoomToSelection ? "true" : undefined
-        params.minPopulationFilter = this.minPopulationFilter?.toString()
         params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
         params.time = this.timeParam
         params.region = this.map.projection
@@ -2454,10 +2401,6 @@ export class Grapher
         return isMobile()
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)
-    }
-
-    @computed get showSmallCountriesFilterToggle(): boolean {
-        return this.isScatter && this.hasCountriesSmallerThanFilterOption
     }
 
     @computed get showYScaleToggle(): boolean | undefined {

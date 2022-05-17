@@ -588,10 +588,6 @@ properties:
         type: boolean
         default: false
         description: Whether to zoom to the selected data points
-    minPopulationFilter:
-        type: integer
-        description: Cutoff for the minimum population filter that users can toggle on some charts
-        minimum: 0
     showYearLabels:
         type: boolean
         default: false

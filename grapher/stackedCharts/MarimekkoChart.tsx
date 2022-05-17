@@ -488,7 +488,7 @@ export class MarimekkoChart
 
     @computed private get latestTime(): number | undefined {
         const times =
-            this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.getTimesUniqSortedAscForColumns(
+            this.manager.tableAfterAuthorTimelineAndActiveChartTransform?.getTimesUniqSortedAscForColumns(
                 this.yColumnSlugs
             )
 
@@ -498,7 +498,7 @@ export class MarimekkoChart
         | OwidTable
         | undefined {
         if (this.latestTime)
-            return this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.filterByTargetTimes(
+            return this.manager.tableAfterAuthorTimelineAndActiveChartTransform?.filterByTargetTimes(
                 [this.latestTime],
                 0
             )

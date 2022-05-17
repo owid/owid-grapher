@@ -12,7 +12,7 @@ export interface MarimekkoChartManager extends ChartManager {
     excludedEntities?: EntityId[]
     matchingEntitiesOnly?: boolean
     xOverrideTime?: number
-    tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?: OwidTable
+    tableAfterAuthorTimelineAndActiveChartTransform?: OwidTable
     sortConfig?: SortConfig
     hideNoDataArea?: boolean
     includedEntities?: number[]
