@@ -248,6 +248,7 @@ export interface PostRestApi {
 
 export interface KeyInsight {
     title: string
+    isTitleHidden?: boolean
     content: string
     slug: string
 }

@@ -26,11 +26,15 @@ beforeEach(() => {
     window.IntersectionObserver = mockIntersectionObserver
 })
 
-const generateKeyInsights = (count: number): KeyInsight[] => {
+const generateKeyInsights = (
+    count: number,
+    { isTitleHidden = false }: { isTitleHidden?: boolean } = {}
+): KeyInsight[] => {
     return [...new Array(count)].map((_, idx) => ({
         title: `Key insight ${idx}`,
         slug: `key-insight-${idx}`,
         content: `content ${idx}`,
+        isTitleHidden,
     }))
 }
 
@@ -51,6 +55,14 @@ const renderKeyInsights = (keyInsights: KeyInsight[]) => {
         </>
     )
 }
+
+it("renders key insights with hidden titles", () => {
+    const keyInsights = generateKeyInsights(3, { isTitleHidden: true })
+    renderKeyInsights(keyInsights)
+
+    expect(screen.getAllByRole("tab")).toHaveLength(3)
+    expect(screen.queryAllByRole("heading", { level: 4 })).toHaveLength(0)
+})
 
 it("renders key insights and selects the first one", () => {
     const keyInsights = generateKeyInsights(3)
