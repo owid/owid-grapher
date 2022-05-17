@@ -1190,7 +1190,10 @@ export class MarimekkoChart
                 MarimekkoChart.labelCandidateFromItem(
                     {
                         entityName: row.entityName,
-                        xValue: xColumnAtLastTimePoint ? row.value : 1,
+                        xValue:
+                            xColumnAtLastTimePoint !== undefined
+                                ? row.value
+                                : 1,
                         ySortValue: ySizeMap.get(row.entityName),
                     },
                     baseFontSize,
@@ -1219,21 +1222,21 @@ export class MarimekkoChart
         const firstDefined = labelCandidates.find(
             (item) => item.item.ySortValue !== undefined
         )
-        const labelCharacterCountThreshold = 1.4 * averageCharacterCount
+        //const labelCharacterCountThreshold = 1.4 * averageCharacterCount
         // Always pick the first and last element and the first one that is not undefined for y
         // but only if it is less than 1.4 times as long in character count as the average label (avoid
         // picking "Democratic Republic of Congo" for this reason and thus needing lots of space)
         if (
-            firstDefined &&
-            firstDefined.item.entityName.length < labelCharacterCountThreshold
+            firstDefined
+            // &&             firstDefined.item.entityName.length < labelCharacterCountThreshold
         )
             firstDefined.isPicked = true
         const labelHeight = labelCandidates[0].bounds.height
-        if (
-            labelCandidates[labelCandidates.length - 1].item.entityName.length <
-            labelCharacterCountThreshold
-        )
-            labelCandidates[labelCandidates.length - 1].isPicked = true
+        // if (
+        //     labelCandidates[labelCandidates.length - 1].item.entityName.length <
+        //     labelCharacterCountThreshold
+        // )
+        labelCandidates[labelCandidates.length - 1].isPicked = true
         const availablePixels = xRange[1] - xRange[0]
 
         const numLabelsToAdd = Math.floor(
