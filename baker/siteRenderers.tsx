@@ -674,7 +674,9 @@ export const extractKeyInsights = (
         // restrictive children selector not strictly necessary here for now but
         // kept for consistency and evolutions of the block. In the future, key
         // insights could host other blocks with <title> tags
-        const title = $block.find("> title").text()
+        const $title = $block.find("> title")
+        const title = $title.text()
+        const isTitleHidden = $title.attr("is-hidden") === "1"
         const slug = $block.find("> slug").text()
         const content = $block.find("> content").html()
 
@@ -687,7 +689,7 @@ export const extractKeyInsights = (
             continue
         }
 
-        keyInsights.push({ title, content, slug })
+        keyInsights.push({ title, isTitleHidden, content, slug })
     }
 
     return keyInsights

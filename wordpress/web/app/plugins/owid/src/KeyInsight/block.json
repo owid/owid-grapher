@@ -10,6 +10,9 @@
         "title": {
             "type": "string"
         },
+        "isTitleHidden": {
+            "type": "boolean"
+        },
         "slug": {
             "type": "string"
         }

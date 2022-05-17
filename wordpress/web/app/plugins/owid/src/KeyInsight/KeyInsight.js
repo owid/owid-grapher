@@ -4,7 +4,7 @@ import {
     useBlockProps,
     RichText,
 } from "@wordpress/block-editor"
-import { PanelBody } from "@wordpress/components"
+import { PanelBody, PanelRow, ToggleControl } from "@wordpress/components"
 import SyncingAnchorSettings from "../SyncingAnchorSettings/SyncingAnchorSettings"
 import { registerBlockType } from "@wordpress/blocks"
 import block from "./block.json"
@@ -20,7 +20,10 @@ const BLOCK_TEMPLATE = [
 ]
 
 const KeyInsight = {
-    edit: ({ attributes: { slug = "", title }, setAttributes }) => {
+    edit: ({
+        attributes: { slug = "", title, isTitleHidden = false },
+        setAttributes,
+    }) => {
         const blockProps = useBlockProps({ style: blockStyle })
 
         const onChangeTitle = (newTitle) => {
@@ -29,6 +32,10 @@ const KeyInsight = {
 
         const updateSlug = (newSlug) => {
             setAttributes({ slug: newSlug })
+        }
+
+        const updateTitleHidden = (newState) => {
+            setAttributes({ isTitleHidden: newState })
         }
 
         return (
@@ -40,6 +47,14 @@ const KeyInsight = {
                             rawTitle={title}
                             slug={slug}
                         />
+                        <PanelRow>
+                            <ToggleControl
+                                label={"Hide title"}
+                                help="Hide title in slide content"
+                                checked={isTitleHidden}
+                                onChange={updateTitleHidden}
+                            />
+                        </PanelRow>
                     </PanelBody>
                 </InspectorControls>
                 <div {...blockProps}>

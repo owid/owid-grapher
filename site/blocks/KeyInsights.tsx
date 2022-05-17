@@ -181,7 +181,7 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
 
 export const KeyInsightsSlides = ({ insights }: { insights: KeyInsight[] }) => (
     <div className={KEY_INSIGHTS_SLIDES_CLASS_NAME}>
-        {insights.map(({ title, slug, content }, idx) => (
+        {insights.map(({ title, isTitleHidden, slug, content }, idx) => (
             <div
                 key={idx}
                 className={KEY_INSIGHTS_SLIDE_CLASS_NAME}
@@ -189,7 +189,9 @@ export const KeyInsightsSlides = ({ insights }: { insights: KeyInsight[] }) => (
                 role="tabpanel"
                 tabIndex={0}
             >
-                <h4 id={slug}>{title}</h4>
+                <h4 style={isTitleHidden ? { display: "none" } : {}} id={slug}>
+                    {title}
+                </h4>
                 <div
                     className={KEY_INSIGHTS_SLIDE_CONTENT_CLASS_NAME}
                     dangerouslySetInnerHTML={{ __html: content }}
