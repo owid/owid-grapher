@@ -1,7 +1,6 @@
 import { observer } from "mobx-react"
 import React from "react"
 import { computed, action } from "mobx"
-import copy from "copy-to-clipboard"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter.js"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook.js"
@@ -99,10 +98,18 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @action.bound onCopy(): void {
+    @action.bound onCopyUrl(): void {
         if (!this.canonicalUrl) return
 
-        if (copy(this.canonicalUrl)) this.setState({ copied: true })
+        try {
+            navigator.clipboard.writeText(this.canonicalUrl)
+            this.setState({ copied: true })
+        } catch (err) {
+            console.error(
+                "couldn't copy to clipboard using navigator.clipboard",
+                err
+            )
+        }
     }
 
     @computed get twitterHref(): string {
@@ -170,15 +177,17 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
                     </a>
                 )}
-                <a
-                    className="btn"
-                    title="Copy link to clipboard"
-                    data-track-note="chart-share-copylink"
-                    onClick={this.onCopy}
-                >
-                    <FontAwesomeIcon icon={faCopy} />
-                    {this.state.copied ? "Copied!" : "Copy link"}
-                </a>
+                {"clipboard" in navigator && (
+                    <a
+                        className="btn"
+                        title="Copy link to clipboard"
+                        data-track-note="chart-share-copylink"
+                        onClick={this.onCopyUrl}
+                    >
+                        <FontAwesomeIcon icon={faCopy} />
+                        {this.state.copied ? "Copied!" : "Copy link"}
+                    </a>
+                )}
                 {editUrl && (
                     <a
                         className="btn"
