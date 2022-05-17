@@ -1220,7 +1220,7 @@ export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
     })
 }
 
-export function isPlainObjectWithGuard(
+export function checkIsPlainObjectWithGuard(
     x: unknown
 ): x is Record<string, unknown> {
     return isPlainObject(x)
@@ -1229,7 +1229,7 @@ export function isPlainObjectWithGuard(
 function checkIsTouchEvent(
     event: unknown
 ): event is React.TouchEvent | TouchEvent {
-    if (isPlainObjectWithGuard(event)) {
+    if (checkIsPlainObjectWithGuard(event)) {
         return event.hasOwnProperty("targetTouches")
     }
     return false
