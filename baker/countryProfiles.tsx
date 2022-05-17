@@ -10,7 +10,6 @@ import {
 import { Variable } from "../db/model/Variable.js"
 import { SiteBaker } from "./SiteBaker.js"
 import { countries, getCountry } from "../clientUtils/countries.js"
-import { OwidTable } from "../coreTable/OwidTable.js"
 import { JsonError } from "../clientUtils/owidTypes.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
 
@@ -29,6 +28,11 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
     return result
 }
 
+const checkShouldShowIndicator = (grapher: GrapherInterface) =>
+    (grapher.hasChartTab ?? true) &&
+    (grapher.type ?? "LineChart") === "LineChart" &&
+    grapher.dimensions?.length === 1
+
 // Find the charts that will be shown on the country profile page (if they have that country)
 // TODO: make this page per variable instead
 const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
@@ -38,12 +42,8 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
                 .knexTable("charts")
                 .whereRaw("publishedAt is not null and is_indexable is true")
         ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
-        return graphers.filter(
-            (grapher) =>
-                (grapher.hasChartTab ?? true) &&
-                (grapher.type ?? "LineChart") === "LineChart" &&
-                grapher.dimensions?.length === 1
-        )
+
+        return graphers.filter(checkShouldShowIndicator)
     })
 
 const countryIndicatorVariables = async (): Promise<Variable.Row[]> =>
