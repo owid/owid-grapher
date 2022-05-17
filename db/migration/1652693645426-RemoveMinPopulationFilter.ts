@@ -8,6 +8,7 @@ export class RemoveMinPopulationFilter1652693645426
     public async up(queryRunner: QueryRunner): Promise<void> {
         const tables = {
             charts: "config",
+            chart_revisions: "config",
             suggested_chart_revisions: "suggestedConfig",
         }
 
