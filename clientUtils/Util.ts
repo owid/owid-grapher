@@ -137,6 +137,7 @@ import {
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds.js"
+import React from "react"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -209,12 +210,9 @@ const getRootSVG = (
 
 export const getRelativeMouse = (
     node: Element | SVGGraphicsElement | SVGSVGElement,
-    event: TouchEvent | { clientX: number; clientY: number }
+    event: React.TouchEvent | TouchEvent | { clientX: number; clientY: number }
 ): PointVector => {
-    const isTouchEvent = !!(event as TouchEvent).targetTouches
-    const eventOwner = isTouchEvent
-        ? (event as TouchEvent).targetTouches[0]
-        : (event as MouseEvent)
+    const eventOwner = checkIsTouchEvent(event) ? event.targetTouches[0] : event
 
     const { clientX, clientY } = eventOwner
 
@@ -1226,6 +1224,15 @@ export function isPlainObjectWithGuard(
     x: unknown
 ): x is Record<string, unknown> {
     return isPlainObject(x)
+}
+
+function checkIsTouchEvent(
+    event: unknown
+): event is React.TouchEvent | TouchEvent {
+    if (isPlainObjectWithGuard(event)) {
+        return event.hasOwnProperty("targetTouches")
+    }
+    return false
 }
 
 export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {

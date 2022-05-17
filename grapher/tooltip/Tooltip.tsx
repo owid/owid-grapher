@@ -28,7 +28,7 @@ class TooltipCard extends React.Component<
         this.updateBounds()
     }
 
-    @computed private get rendered(): JSX.Element {
+    render(): JSX.Element {
         const offsetX = this.props.offsetX ?? 0
         let offsetY = this.props.offsetY ?? 0
         if (this.props.offsetYDirection === "upward") {
@@ -66,9 +66,6 @@ class TooltipCard extends React.Component<
                 {this.props.children}
             </div>
         )
-    }
-    render(): JSX.Element {
-        return this.rendered
     }
 }
 

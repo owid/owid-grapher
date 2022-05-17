@@ -107,33 +107,6 @@ const LEGEND_PADDING = 25
 class Lines extends React.Component<LinesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed private get allValues(): LinePoint[] {
-        return flatten(this.props.placedSeries.map((series) => series.points))
-    }
-
-    @action.bound private onCursorMove(ev: MouseEvent | TouchEvent): void {
-        const { dualAxis } = this.props
-        const { horizontalAxis } = dualAxis
-
-        if (!this.base.current) return
-
-        const mouse = getRelativeMouse(this.base.current, ev)
-
-        let hoverX
-        if (dualAxis.innerBounds.contains(mouse)) {
-            const closestValue = minBy(this.allValues, (point) =>
-                Math.abs(horizontalAxis.place(point.x) - mouse.x)
-            )
-            hoverX = closestValue?.x
-        }
-
-        this.props.onHover(hoverX)
-    }
-
-    @action.bound private onCursorLeave(): void {
-        this.props.onHover(undefined)
-    }
-
     @computed get bounds(): Bounds {
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(
@@ -256,31 +229,6 @@ class Lines extends React.Component<LinesProps> {
         ))
     }
 
-    private container?: SVGElement
-    componentDidMount(): void {
-        const base = this.base.current as SVGGElement
-        const container = base.closest("g.LineChart") as SVGElement
-        container.addEventListener("mousemove", this.onCursorMove)
-        container.addEventListener("mouseleave", this.onCursorLeave)
-        container.addEventListener("touchstart", this.onCursorMove)
-        container.addEventListener("touchmove", this.onCursorMove)
-        container.addEventListener("touchend", this.onCursorLeave)
-        container.addEventListener("touchcancel", this.onCursorLeave)
-        this.container = container
-    }
-
-    componentWillUnmount(): void {
-        const { container } = this
-        if (!container) return
-
-        container.removeEventListener("mousemove", this.onCursorMove)
-        container.removeEventListener("mouseleave", this.onCursorLeave)
-        container.removeEventListener("touchstart", this.onCursorMove)
-        container.removeEventListener("touchmove", this.onCursorMove)
-        container.removeEventListener("touchend", this.onCursorLeave)
-        container.removeEventListener("touchcancel", this.onCursorLeave)
-    }
-
     render(): JSX.Element {
         const { bounds } = this
 
@@ -362,6 +310,32 @@ export class LineChart
             )
         }
         return table
+    }
+
+    @action.bound private onCursorLeave(): void {
+        this.onHover(undefined)
+    }
+
+    @computed private get allValues(): LinePoint[] {
+        return flatten(this.placedSeries.map((series) => series.points))
+    }
+
+    @action.bound private onCursorMove(
+        ev: React.MouseEvent | React.TouchEvent
+    ): void {
+        if (!this.base.current) return
+
+        const mouse = getRelativeMouse(this.base.current, ev)
+
+        let hoverX
+        if (this.dualAxis.innerBounds.contains(mouse)) {
+            const closestValue = minBy(this.allValues, (point) =>
+                Math.abs(this.dualAxis.horizontalAxis.place(point.x) - mouse.x)
+            )
+            hoverX = closestValue?.x
+        }
+
+        this.onHover(hoverX)
     }
 
     @observable hoverX?: number = this.props.manager.annotation?.year
@@ -712,7 +686,16 @@ export class LineChart
 
         // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
         return (
-            <g ref={this.base} className="LineChart">
+            <g
+                ref={this.base}
+                className="LineChart"
+                onMouseLeave={this.onCursorLeave}
+                onTouchEnd={this.onCursorLeave}
+                onTouchCancel={this.onCursorLeave}
+                onMouseMove={this.onCursorMove}
+                onTouchStart={this.onCursorMove}
+                onTouchMove={this.onCursorMove}
+            >
                 {clipPath.element}
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
