@@ -504,7 +504,9 @@ export const renderProminentLinks = async (
                     : resolvedUrl.isExplorer
                     ? renderExplorerDefaultThumbnail()
                     : resolvedUrl.isGrapher && resolvedUrl.slug
-                    ? await renderGrapherImageByChartSlug(resolvedUrl.slug)
+                    ? renderGrapherThumbnailByResolvedChartSlug(
+                          resolvedUrl.slug
+                      )
                     : await renderPostThumbnailBySlug(resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
@@ -605,9 +607,17 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
     return explorer.explorerTitle
 }
 
-const renderGrapherImageByChartSlug = async (
+/**
+ * Renders a chart thumbnail given a slug. The slug is considered "resolved",
+ * meaning it has gone through the internal URL resolver and is final from a
+ * redirects perspective.
+ *
+ * @param chartSlug
+ * @returns
+ */
+const renderGrapherThumbnailByResolvedChartSlug = (
     chartSlug: string
-): Promise<string | null> => {
+): string | null => {
     return `<img src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chartSlug}.svg" />`
 }
 
