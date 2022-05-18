@@ -102,6 +102,9 @@ export class ExplorerProgram extends GridProgram {
 
     static fromMatrix(slug: string, matrix: CoreMatrix) {
         const str = matrix
+            .map((row) =>
+                row.map((cell) => cell && `${cell}`.replace(/\n/g, "\\n"))
+            )
             .map((row) => row.join(GRID_CELL_DELIMITER))
             .join(GRID_NODE_DELIMITER)
         return new ExplorerProgram(slug, str)

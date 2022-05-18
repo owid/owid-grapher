@@ -318,7 +318,11 @@ class HotEditor extends React.Component<{
 
     private get hotSettings() {
         const { program, programOnDisk } = this
-        const data = program.asArrays
+
+        // replace literal `\n` with newlines
+        const data = program.asArrays.map((row) =>
+            row.map((cell) => cell.replace(/\\n/g, "\n"))
+        )
 
         const { currentlySelectedGrapherRow } = program
 
