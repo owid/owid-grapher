@@ -1229,7 +1229,7 @@ export function checkIsPlainObjectWithGuard(
 function checkIsTouchEvent(
     event: unknown
 ): event is React.TouchEvent | TouchEvent {
-    if (checkIsPlainObjectWithGuard(event)) {
+    if (isObject(event)) {
         return event.hasOwnProperty("targetTouches")
     }
     return false
