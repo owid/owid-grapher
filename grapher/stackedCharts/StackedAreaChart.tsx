@@ -335,6 +335,7 @@ export class StackedAreaChart
 
         return (
             <Tooltip
+                id={this.renderUid}
                 tooltipManager={this.props.manager}
                 x={dualAxis.horizontalAxis.place(bottomSeriesPoint.position)}
                 y={

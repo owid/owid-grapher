@@ -54,7 +54,7 @@ import {
     LegacyDimensionsManager,
 } from "../chart/ChartDimension.js"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
-import { TooltipProps, TooltipManager } from "../tooltip/TooltipProps.js"
+import { TooltipManager } from "../tooltip/TooltipProps.js"
 import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
@@ -103,7 +103,7 @@ import {
     FooterControls,
     FooterControlsManager,
 } from "../controls/Controls.js"
-import { TooltipView } from "../tooltip/Tooltip.js"
+import { TooltipContainer } from "../tooltip/Tooltip.js"
 import { EntitySelectorModal } from "../controls/EntitySelectorModal.js"
 import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab.js"
 import ReactDOM from "react-dom"
@@ -631,7 +631,7 @@ export class Grapher
 
     @observable.ref isMediaCard = false
     @observable.ref isExportingtoSvgOrPng = false
-    @observable.ref tooltip?: TooltipProps
+    tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
     @observable.ref isSelectingData = false
 
@@ -2076,9 +2076,9 @@ export class Grapher
                 <FooterControls manager={this} />
                 {this.renderOverlayTab()}
                 {this.popups}
-                <TooltipView
-                    width={this.renderWidth}
-                    height={this.renderHeight}
+                <TooltipContainer
+                    containerWidth={this.renderWidth}
+                    containerHeight={this.renderHeight}
                     tooltipProvider={this}
                 />
                 {this.isSelectingData && (
