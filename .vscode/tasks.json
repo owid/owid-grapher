@@ -36,8 +36,8 @@
                 },
                 "background": {
                     "activeOnStart": true,
-                    "beginsPattern": "｢wdm｣: Compiling...",
-                    "endsPattern": "｢wdm｣: (Compiled successfully|Failed to compile).$"
+                    "beginsPattern": "assets by status",
+                    "endsPattern": "webpack [\\S]+ compiled"
                 }
             }
         },
