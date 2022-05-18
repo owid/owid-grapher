@@ -611,9 +611,6 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
  * Renders a chart thumbnail given a slug. The slug is considered "resolved",
  * meaning it has gone through the internal URL resolver and is final from a
  * redirects perspective.
- *
- * @param chartSlug
- * @returns
  */
 const renderGrapherThumbnailByResolvedChartSlug = (
     chartSlug: string
