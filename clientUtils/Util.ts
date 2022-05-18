@@ -1230,7 +1230,7 @@ function checkIsTouchEvent(
     event: unknown
 ): event is React.TouchEvent | TouchEvent {
     if (isObject(event)) {
-        return event.hasOwnProperty("targetTouches")
+        return "targetTouches" in event
     }
     return false
 }
