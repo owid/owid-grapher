@@ -338,10 +338,14 @@ export class LineChart
         this.onHover(hoverX)
     }
 
-    @observable hoverX?: number = this.props.manager.annotation?.year
+    @observable hoverX?: number = undefined
 
     @action.bound onHover(hoverX: number | undefined): void {
         this.hoverX = hoverX
+    }
+
+    @computed get activeX(): number | undefined {
+        return this.hoverX ?? this.props.manager.annotation?.year
     }
 
     @computed private get manager(): LineChartManager {
@@ -395,23 +399,23 @@ export class LineChart
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        const { hoverX, dualAxis, inputTable, formatColumn, hasColorScale } =
+        const { activeX, dualAxis, inputTable, formatColumn, hasColorScale } =
             this
 
-        if (hoverX === undefined) return undefined
+        if (activeX === undefined) return undefined
 
         const sortedData = sortBy(this.series, (series) => {
-            const value = series.points.find((point) => point.x === hoverX)
+            const value = series.points.find((point) => point.x === activeX)
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formatted = inputTable.timeColumnFormatFunction(hoverX)
+        const formatted = inputTable.timeColumnFormatFunction(activeX)
 
         return (
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.manager}
-                x={dualAxis.horizontalAxis.place(hoverX)}
+                x={dualAxis.horizontalAxis.place(activeX)}
                 y={
                     dualAxis.verticalAxis.rangeMin +
                     dualAxis.verticalAxis.rangeSize / 2
@@ -451,7 +455,7 @@ export class LineChart
                     <tbody>
                         {sortedData.map((series) => {
                             const value = series.points.find(
-                                (point) => point.x === hoverX
+                                (point) => point.x === activeX
                             )
 
                             const annotation = this.getAnnotationsForSeries(
@@ -471,8 +475,8 @@ export class LineChart
                                 if (
                                     startX === undefined ||
                                     endX === undefined ||
-                                    startX > hoverX ||
-                                    endX < hoverX
+                                    startX > activeX ||
+                                    endX < activeX
                                 )
                                     return undefined
                             }
@@ -677,7 +681,7 @@ export class LineChart
                 />
             )
 
-        const { hoverX, manager, tooltip, dualAxis, clipPath } = this
+        const { activeX, manager, tooltip, dualAxis, clipPath } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
         const comparisonLines = manager.comparisonLines || []
@@ -721,18 +725,18 @@ export class LineChart
                         markerRadius={this.markerRadius}
                     />
                 </g>
-                {hoverX !== undefined && (
+                {activeX !== undefined && (
                     <g className="hoverIndicator">
                         <line
-                            x1={horizontalAxis.place(hoverX)}
+                            x1={horizontalAxis.place(activeX)}
                             y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(hoverX)}
+                            x2={horizontalAxis.place(activeX)}
                             y2={verticalAxis.range[1]}
                             stroke="rgba(180,180,180,.4)"
                         />
                         {this.series.map((series) => {
                             const value = series.points.find(
-                                (point) => point.x === hoverX
+                                (point) => point.x === activeX
                             )
                             if (!value || this.seriesIsBlurred(series))
                                 return null
