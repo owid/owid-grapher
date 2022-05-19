@@ -356,6 +356,14 @@ abstract class AbstractAxis {
         return parseFloat(this.d3_scale(value).toFixed(1))
     }
 
+    /** This function returns the inverse of place - i.e. give a screen space
+     *  coordinate, it returns the corresponding domain value. This is useful
+     *  for cases where you want to make sure that something is at least one pixel high.
+     */
+    invert(value: number): number {
+        return this.d3_scale.invert(value)
+    }
+
     @computed get tickFontSize(): number {
         return 0.9 * this.fontSize
     }
