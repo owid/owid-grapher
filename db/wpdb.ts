@@ -241,7 +241,7 @@ export const getDocumentsInfo = async (
     const typePlural = `${type}s`
     const query = `
     query($cursor: String){
-        ${typePlural}(first:50, after: $cursor, where:{${where}}) {
+        ${typePlural}(first:5, after: $cursor, where:{${where}}) {
             pageInfo {
                 hasNextPage
                 endCursor
@@ -703,20 +703,22 @@ export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
             nodes {
                 id: databaseId
                 name: title
+                slug
             }
         }
       }`
 
     const documents = await graphqlQuery(query, { cursor })
     const pageInfo = documents.data.pages.pageInfo
-    const topics: Topic[] = documents.data.pages.nodes
-    if (topics.length === 0) return []
+    const topics: Topic[] = documents.data.pages.nodes.map(
+        (topic: { slug: any }) => ({
+            ...topic,
+            url: `ourworldindata.org/${topic.slug}`,
+        })
+    )
+    if (!pageInfo.hasNextPage) return topics
 
-    if (pageInfo.hasNextPage) {
-        return topics.concat(await getTopics(pageInfo.endCursor))
-    } else {
-        return topics
-    }
+    return topics.concat(await getTopics(pageInfo.endCursor))
 }
 
 interface TablepressTable {

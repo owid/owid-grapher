@@ -80,6 +80,7 @@ export interface RelatedQuestionsConfig {
 export interface Topic {
     id: TopicId
     name: string
+    url: string
 }
 
 export const WorldEntityName = "World"

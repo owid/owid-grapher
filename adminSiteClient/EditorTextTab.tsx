@@ -1,5 +1,5 @@
 import React from "react"
-import { action, runInAction } from "mobx"
+import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor.js"
 import {
@@ -25,8 +25,17 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"
+import { faSync } from "@fortawesome/free-solid-svg-icons/faSync"
 import Select from "react-select"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
+
+const getTopicName = (topicId: number, allTopics: Topic[]): string => {
+    return allTopics.find((t) => t.id === topicId)?.name || ""
+}
+
+const getTopicUrl = (topicId: number, allTopics: Topic[]): string => {
+    return allTopics.find((t) => t.id === topicId)?.url || ""
+}
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -54,6 +63,22 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onRemoveRelatedQuestion(idx: number) {
         const { grapher } = this.props.editor
         grapher.relatedQuestions.splice(idx, 1)
+    }
+
+    @computed get isOriginUrlInSyncWithTopics() {
+        const { grapher } = this.props.editor
+        return (
+            grapher.originUrl ===
+            getTopicUrl(grapher?.topicIds?.[0], this.props.editor.allTopics)
+        )
+    }
+
+    @action.bound syncOriginUrlWithTopics() {
+        const { grapher } = this.props.editor
+        grapher.originUrl = getTopicUrl(
+            grapher?.topicIds?.[0],
+            this.props.editor.allTopics
+        )
     }
 
     render() {
@@ -121,12 +146,17 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />
-                    <BindString
+                    <AutoTextField
                         label="Origin url"
-                        field="originUrl"
-                        store={grapher}
-                        placeholder={grapher.originUrlWithProtocol}
-                        helpText="The page containing this chart where more context can be found"
+                        value={grapher.originUrl}
+                        onValue={(value) =>
+                            runInAction(() => {
+                                grapher.originUrl = value
+                            })
+                        }
+                        isAuto={this.isOriginUrlInSyncWithTopics}
+                        onToggleAuto={this.syncOriginUrlWithTopics}
+                        helpText="Human-friendly URL for this chart"
                     />
                     {references && references.length > 0 && (
                         <div className="originSuggestions">
@@ -151,6 +181,10 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                 <TopicsSection
                     allTopics={this.props.editor.allTopics}
                     grapher={grapher}
+                    isOriginUrlInSyncWithTopics={
+                        this.isOriginUrlInSyncWithTopics
+                    }
+                    syncOriginUrlWithTopics={this.syncOriginUrlWithTopics}
                 />
 
                 <Section name="Related">
@@ -223,6 +257,8 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
 class TopicsSection extends React.Component<{
     allTopics: Topic[]
     grapher: Grapher
+    isOriginUrlInSyncWithTopics: boolean
+    syncOriginUrlWithTopics: () => void
 }> {
     render() {
         const { grapher } = this.props
@@ -237,17 +273,32 @@ class TopicsSection extends React.Component<{
                     isMulti={true}
                     value={grapher.topicIds.map((topicId) => ({
                         id: topicId,
-                        name:
-                            this.props.allTopics.find((t) => t.id === topicId)
-                                ?.name || "TOPIC NOT FOUND",
+                        name: getTopicName(topicId, this.props.allTopics),
                     }))}
                     onChange={(topics) =>
                         runInAction(() => {
                             grapher.topicIds = topics.map((topic) => topic.id)
+                            // Keep originUrl in sync with the first topic if it
+                            // currently is. Otherwise, consider it has been
+                            // overriden and leave it as-is.
+                            if (this.props.isOriginUrlInSyncWithTopics) {
+                                this.props.syncOriginUrlWithTopics()
+                            }
                         })
                     }
                     menuPlacement="auto"
                 />
+                {!this.props.isOriginUrlInSyncWithTopics && (
+                    <p className="alert alert-warning d-flex justify-content-between align-items-center mt-2">
+                        The origin URL is out of sync with the first topic.{" "}
+                        <button
+                            className="btn btn-warning"
+                            onClick={this.props.syncOriginUrlWithTopics}
+                        >
+                            <FontAwesomeIcon icon={faSync} /> Sync
+                        </button>
+                    </p>
+                )}
             </Section>
         )
     }
