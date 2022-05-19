@@ -558,7 +558,7 @@ export class MarimekkoChart
             // charts, e.g. each continent being assigned to the same color.
             // inputTable is unfiltered, so it contains every value that exists in the variable.
 
-            manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.get(
+            manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
                 this.colorColumnSlug
             ) ??
             inputTable.get(this.colorColumnSlug)
@@ -795,7 +795,7 @@ export class MarimekkoChart
         let sortFunc: (a: Item, b: Item) => number
         switch (sortConfig.sortBy) {
             case SortBy.custom:
-                sortFunc = () => 0
+                sortFunc = (): number => 0
                 break
             case SortBy.entityName:
                 sortFunc = (a: Item, b: Item): number =>
@@ -1830,7 +1830,7 @@ export class MarimekkoChart
 
     @computed get failMessage(): string {
         const column = this.yColumns[0]
-        const { yColumns, yColumnSlugs, xColumn } = this
+        const { yColumns, yColumnSlugs } = this
 
         if (!column) return "No Y column to chart"
 
