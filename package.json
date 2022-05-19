@@ -198,7 +198,7 @@
         "source-map-loader": "^3.0.1",
         "string-pixel-width": "^1.10.0",
         "stripe": "^8.38.0",
-        "striptags": "^3.1.1",
+        "striptags": "^3.2.0",
         "svgo": "^2.8.0",
         "terser-webpack-plugin": "^4.2.3",
         "timezone-mock": "^1.0.18",
