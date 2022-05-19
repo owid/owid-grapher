@@ -549,14 +549,19 @@ export class MarimekkoChart
     }
 
     @computed get colorScaleColumn(): CoreColumn {
+        const { manager, inputTable } = this
         return (
             // For faceted charts, we have to get the values of inputTable before it's filtered by
             // the faceting logic.
-            this.manager.colorScaleColumnOverride ??
+            manager.colorScaleColumnOverride ??
             // We need to use filteredTable in order to get consistent coloring for a variable across
             // charts, e.g. each continent being assigned to the same color.
             // inputTable is unfiltered, so it contains every value that exists in the variable.
-            this.inputTable.get(this.colorColumnSlug)
+
+            manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.get(
+                this.colorColumnSlug
+            ) ??
+            inputTable.get(this.colorColumnSlug)
         )
     }
     @computed private get sortConfig(): SortConfig {
