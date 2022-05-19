@@ -1492,6 +1492,7 @@ export class Grapher
         )
             return false
 
+        if (this.isMarimekko && this.xColumnSlug === undefined) return false
         return !this.hideRelativeToggle
     }
 
@@ -2437,7 +2438,7 @@ export class Grapher
     }
 
     @computed get showNoDataAreaToggle(): boolean {
-        return this.isMarimekko
+        return this.isMarimekko && this.xColumnSlug !== undefined
     }
 
     @computed get showChangeEntityButton(): boolean {
