@@ -119,6 +119,7 @@ export class TopicsOriginUrl1652989496261 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         const allTopics = await getTopics()
         const topicsNotFound = new Set()
+        let countTopicsNotFound = 0
 
         const rows = await queryRunner.query(
             `
@@ -150,6 +151,7 @@ export class TopicsOriginUrl1652989496261 implements MigrationInterface {
 
             if (!topicId) {
                 topicsNotFound.add(originUrl.fullUrl)
+                countTopicsNotFound++
                 continue
             }
 
@@ -160,6 +162,9 @@ export class TopicsOriginUrl1652989496261 implements MigrationInterface {
             `)
         }
         console.log(topicsNotFound)
+        console.log(
+            `A topic could not be derived from the origin URL for ${countTopicsNotFound}/${rows.length} charts`
+        )
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
