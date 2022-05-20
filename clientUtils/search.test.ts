@@ -37,6 +37,7 @@ describe(htmlToPlaintext, () => {
         const text = htmlToPlaintext(html)
 
         expect(text).toEqual(`HI
+
 cool
 
 sounds good`)
