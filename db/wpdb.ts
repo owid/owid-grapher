@@ -713,7 +713,7 @@ export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
     const topics: Topic[] = documents.data.pages.nodes.map(
         (topic: { slug: any }) => ({
             ...topic,
-            url: `ourworldindata.org/${topic.slug}`,
+            url: `${BAKED_BASE_URL}/${topic.slug}`,
         })
     )
     if (!pageInfo.hasNextPage) return topics
