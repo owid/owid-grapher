@@ -2,6 +2,13 @@
 
 import { TopicsOriginUrl1652989496261 as migration } from "../migration/1652989496261-TopicsOriginUrl.js"
 
+const getWordpressRedirectsMap = jest.spyOn(
+    migration,
+    "getWordpressRedirectsMap"
+)
+
+type ArrayForMap = [string, string][]
+
 it("normalizes origin urls", async () => {
     const normalizedPath = `/test`
     const urls = [
@@ -11,6 +18,14 @@ it("normalizes origin urls", async () => {
         "ourworldindata.org/test",
         "OurWorldInData.org/test",
     ]
+
+    const src = "/some"
+    const target = "/redirect"
+    const redirectsArr: ArrayForMap = [[src, target]]
+
+    getWordpressRedirectsMap.mockImplementation(() =>
+        Promise.resolve(new Map(redirectsArr))
+    )
 
     urls.forEach(async (url) => {
         expect((await migration.resolveOriginUrl(url)).pathname).toEqual(
@@ -30,6 +45,15 @@ it("resolves origin urls", async () => {
         "/global-education",
         "/no-poverty",
     ]
+
+    const redirectsArr: ArrayForMap = [
+        ["/international-trade", "/trade-and-globalization"],
+        ["/global-rise-of-education", "/global-education"],
+    ]
+
+    getWordpressRedirectsMap.mockImplementation(() =>
+        Promise.resolve(new Map(redirectsArr))
+    )
 
     urls.forEach(async (url, idx) => {
         expect((await migration.resolveOriginUrl(url)).pathname).toEqual(
