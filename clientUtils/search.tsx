@@ -1,6 +1,6 @@
 import { flatten } from "./Util.js"
 import chunk from "chunk-text"
-import { fromString } from "html-to-text"
+import { htmlToText } from "html-to-text"
 import { drop, escapeRegExp, sortBy } from "lodash"
 import React from "react"
 
@@ -153,7 +153,7 @@ export function highlightFunctionForSearchWords(
 }
 
 export const htmlToPlaintext = (html: string): string =>
-    fromString(html, {
+    htmlToText(html, {
         tables: true,
         ignoreHref: true,
         wordwrap: false,
