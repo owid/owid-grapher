@@ -215,7 +215,9 @@
         "workerpool": "^6.2.0"
     },
     "devDependencies": {
-        "@storybook/addon-essentials": "^6.4.22",
+        "@storybook/addon-measure": "^6.4.22",
+        "@storybook/addon-outline": "^6.4.22",
+        "@storybook/addon-viewport": "^6.4.22",
         "@storybook/builder-webpack5": "^6.4.22",
         "@storybook/manager-webpack5": "^6.4.22",
         "@storybook/react": "^6.4.22",
