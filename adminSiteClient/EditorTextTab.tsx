@@ -74,6 +74,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     }
 
     @action.bound syncOriginUrlWithTopics() {
+        if (!TOPICS_CONTENT_GRAPH) return
         const { grapher } = this.props.editor
         grapher.originUrl = getTopicUrl(
             grapher?.topicIds?.[0],
@@ -288,17 +289,18 @@ class TopicsSection extends React.Component<{
                     }
                     menuPlacement="auto"
                 />
-                {!this.props.isOriginUrlInSyncWithTopics && (
-                    <p className="alert alert-warning d-flex justify-content-between align-items-center mt-2">
-                        The origin URL is out of sync with the first topic.{" "}
-                        <button
-                            className="btn btn-warning"
-                            onClick={this.props.syncOriginUrlWithTopics}
-                        >
-                            <FontAwesomeIcon icon={faSync} /> Sync
-                        </button>
-                    </p>
-                )}
+                {TOPICS_CONTENT_GRAPH &&
+                    !this.props.isOriginUrlInSyncWithTopics && (
+                        <p className="alert alert-warning d-flex justify-content-between align-items-center mt-2">
+                            The origin URL is out of sync with the first topic.{" "}
+                            <button
+                                className="btn btn-warning"
+                                onClick={this.props.syncOriginUrlWithTopics}
+                            >
+                                <FontAwesomeIcon icon={faSync} /> Sync
+                            </button>
+                        </p>
+                    )}
             </Section>
         )
     }
