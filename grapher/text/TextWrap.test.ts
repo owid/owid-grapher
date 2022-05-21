@@ -92,4 +92,20 @@ describe("lines()", () => {
             "short one",
         ])
     })
+
+    it("should work in rawHtml mode", () => {
+        // the HTML version of this string won't fit into a width of 150, but it will once the HTML tags are stripped
+        // - that's what the rawHtml mode is for.
+        const text =
+            "an <strong>important</strong> <a href='https://youtu.be/dQw4w9WgXcQ'>line</a>"
+        const wrap = new TextWrap({
+            text,
+            maxWidth: 150,
+            fontSize: FONT_SIZE,
+            rawHtml: true,
+        })
+        expect(wrap.lines.map((l) => l.text)).toEqual([
+            "an <strong>important</strong> <a href='https://youtu.be/dQw4w9WgXcQ'>line</a>",
+        ])
+    })
 })
