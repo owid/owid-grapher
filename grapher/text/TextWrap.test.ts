@@ -75,3 +75,21 @@ describe(shortenForTargetWidth, () => {
         expect(shortenForTargetWidth(text, 1)).toEqual("")
     })
 })
+
+describe("lines()", () => {
+    it("should not contain any newline characters", () => {
+        const text = "a very very very very long line\n\nshort one"
+        const wrap = new TextWrap({
+            text,
+            maxWidth: 100,
+            fontSize: FONT_SIZE,
+        })
+        expect(wrap.lines.map((l) => l.text)).toEqual([
+            "a very very",
+            "very very long",
+            "line",
+            "",
+            "short one",
+        ])
+    })
+})
