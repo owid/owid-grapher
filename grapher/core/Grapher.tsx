@@ -46,6 +46,8 @@ import {
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
     FacetAxisDomain,
+    DEFAULT_GRAPHER_WIDTH,
+    DEFAULT_GRAPHER_HEIGHT,
 } from "../core/GrapherConstants.js"
 import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
 import * as Cookies from "js-cookie"
@@ -1426,7 +1428,7 @@ export class Grapher
     @computed get idealBounds(): Bounds {
         return this.isMediaCard
             ? new Bounds(0, 0, 1200, 630)
-            : new Bounds(0, 0, 850, 600)
+            : new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
 
     @computed get hasYDimension(): boolean {
@@ -1564,7 +1566,10 @@ export class Grapher
     }
 
     @computed private get isPortrait(): boolean {
-        return this.bounds.width < this.bounds.height && this.bounds.width < 850
+        return (
+            this.bounds.width < this.bounds.height &&
+            this.bounds.width < DEFAULT_GRAPHER_WIDTH
+        )
     }
 
     @computed private get widthForDeviceOrientation(): number {
