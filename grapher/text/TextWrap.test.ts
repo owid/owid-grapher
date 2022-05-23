@@ -62,6 +62,13 @@ describe("height()", () => {
         const text = ""
         expect(renderedHeight(text)).toEqual(0)
     })
+
+    it("calculates correct height for multiple newlines", () => {
+        const lineHeight = renderedHeight("test")
+        expect(renderedHeight("test\n\ntest")).toBeGreaterThanOrEqual(
+            renderedHeight("test\ntest") + lineHeight
+        )
+    })
 })
 
 describe(shortenForTargetWidth, () => {
@@ -73,5 +80,39 @@ describe(shortenForTargetWidth, () => {
     it("should return empty string if there's no space at all", () => {
         const text = "a short string"
         expect(shortenForTargetWidth(text, 1)).toEqual("")
+    })
+})
+
+describe("lines()", () => {
+    it("should not contain any newline characters", () => {
+        const text = "a very very very very long line\n\nshort one"
+        const wrap = new TextWrap({
+            text,
+            maxWidth: 100,
+            fontSize: FONT_SIZE,
+        })
+        expect(wrap.lines.map((l) => l.text)).toEqual([
+            "a very very",
+            "very very long",
+            "line",
+            "",
+            "short one",
+        ])
+    })
+
+    it("should work in rawHtml mode", () => {
+        // the HTML version of this string won't fit into a width of 150, but it will once the HTML tags are stripped
+        // - that's what the rawHtml mode is for.
+        const text =
+            "an <strong>important</strong> <a href='https://youtu.be/dQw4w9WgXcQ'>line</a>"
+        const wrap = new TextWrap({
+            text,
+            maxWidth: 150,
+            fontSize: FONT_SIZE,
+            rawHtml: true,
+        })
+        expect(wrap.lines.map((l) => l.text)).toEqual([
+            "an <strong>important</strong> <a href='https://youtu.be/dQw4w9WgXcQ'>line</a>",
+        ])
     })
 })
