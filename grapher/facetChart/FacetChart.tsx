@@ -341,6 +341,18 @@ export class FacetChart
         const { intermediateChartInstances } = this
         // Define the global axis config, shared between all facets
         const sharedAxesSizes: PositionMap<number> = {}
+
+        // When the Y axis is uniform for all facets:
+        // - for most charts, we want to only show the axis on the left-most facet charts, and omit
+        //   it on the others
+        // - for bar charts the Y axis is plotted horizontally, so we don't want to omit it
+        const isSharedYAxis =
+            this.uniformYAxis &&
+            ![
+                ChartTypeName.StackedDiscreteBar,
+                ChartTypeName.DiscreteBar,
+            ].includes(this.chartTypeName)
+
         const axes: AxesInfo = {
             x: {
                 config: {},
@@ -359,12 +371,7 @@ export class FacetChart
                 config: {},
                 axisAccessor: (instance) => instance.yAxis,
                 uniform: this.uniformYAxis,
-                shared:
-                    this.uniformYAxis &&
-                    ![
-                        ChartTypeName.StackedDiscreteBar,
-                        ChartTypeName.DiscreteBar,
-                    ].includes(this.chartTypeName),
+                shared: isSharedYAxis,
             },
         }
         values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
