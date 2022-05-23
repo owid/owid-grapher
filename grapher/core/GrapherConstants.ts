@@ -47,6 +47,9 @@ export enum FacetStrategy {
 
 export enum FacetAxisDomain {
     independent = "independent", // all facets have their own y domain
+    // TODO: rename to "uniform", since "shared" has a different meaning when
+    // axes are being plotted (it means the axis is omitted).
+    // Need to migrate Grapher & Explorer configs.
     shared = "shared", // all facets share the same y domain
 }
 
