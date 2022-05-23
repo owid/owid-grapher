@@ -541,7 +541,7 @@ export class LineChart
                                             ? "No data"
                                             : formatColumn.formatValueShort(
                                                   value.y,
-                                                  { noTrailingZeroes: false }
+                                                  { trailingZeroes: true }
                                               )}
                                     </td>
                                     {hasColorScale && (
@@ -557,8 +557,7 @@ export class LineChart
                                                 ? this.colorColumn.formatValueShort(
                                                       value.colorValue,
                                                       {
-                                                          noTrailingZeroes:
-                                                              false,
+                                                          trailingZeroes: true,
                                                       }
                                                   )
                                                 : undefined}

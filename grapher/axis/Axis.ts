@@ -298,7 +298,7 @@ abstract class AbstractAxis {
     private getTickFormattingOptions(): TickFormattingOptions {
         const options: TickFormattingOptions = {}
         if (this.config.compactLabels) {
-            options.shortNumberPrefixes = true
+            options.numberAbbreviation = "short"
         }
         // The chart's tick formatting function is used by default to format axis ticks. This means
         // that the chart's `numDecimalPlaces` is also used by default to format the axis ticks.

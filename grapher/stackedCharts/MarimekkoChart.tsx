@@ -1638,7 +1638,7 @@ export class MarimekkoChart
                                         : props.yAxisColumn.formatValueShort(
                                               bar.yPoint.value,
                                               {
-                                                  noTrailingZeroes: false,
+                                                  trailingZeroes: true,
                                               }
                                           )}
                                 </td>

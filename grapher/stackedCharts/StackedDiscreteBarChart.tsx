@@ -720,7 +720,7 @@ export class StackedDiscreteBarChart
                                         : props.formatColumn.formatValueShort(
                                               bar.point.value,
                                               {
-                                                  noTrailingZeroes: false,
+                                                  trailingZeroes: true,
                                               }
                                           )}
                                 </td>
@@ -770,7 +770,7 @@ export class StackedDiscreteBarChart
                                 {props.formatColumn.formatValueShort(
                                     item.totalValue,
                                     {
-                                        noTrailingZeroes: false,
+                                        trailingZeroes: true,
                                     }
                                 )}
                             </td>
