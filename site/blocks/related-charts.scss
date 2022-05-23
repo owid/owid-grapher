@@ -42,6 +42,7 @@
 
                 img {
                     margin-bottom: $vertical-spacing / 2;
+                    border: 1px solid transparent;
                 }
 
                 a:hover img {
@@ -56,8 +57,11 @@
                 a {
                     @include cancel-link-styles;
                 }
+                img {
+                    border: 1px solid $primary-color;
+                }
                 pointer-events: none;
-                opacity: 0.5;
+                // opacity: 0.5;
             }
             a:visited {
                 color: $link-color;
