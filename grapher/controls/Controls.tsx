@@ -122,7 +122,7 @@ export class FacetYDomainToggle extends React.Component<{
                     onChange={this.onToggle}
                     data-track-note="chart-facet-ydomain-toggle"
                 />{" "}
-                &nbsp;Uniform y-axis
+                &nbsp;Align axis scales
             </label>
         )
     }
