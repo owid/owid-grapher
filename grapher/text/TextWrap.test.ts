@@ -62,6 +62,13 @@ describe("height()", () => {
         const text = ""
         expect(renderedHeight(text)).toEqual(0)
     })
+
+    it("calculates correct height for multiple newlines", () => {
+        const lineHeight = renderedHeight("test")
+        expect(renderedHeight("test\n\ntest")).toBeGreaterThanOrEqual(
+            renderedHeight("test\ntest") + lineHeight
+        )
+    })
 })
 
 describe(shortenForTargetWidth, () => {
