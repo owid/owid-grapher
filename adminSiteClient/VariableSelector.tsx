@@ -19,7 +19,7 @@ import { observer } from "mobx-react"
 import Select from "react-select"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive.js"
+import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
 
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor.js"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms.js"

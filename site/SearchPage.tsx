@@ -3,7 +3,7 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch.js"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 export const SearchPage = (props: { baseUrl: string }) => {
     const { baseUrl } = props

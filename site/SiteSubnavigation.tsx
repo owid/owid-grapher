@@ -1,6 +1,6 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft.js"
+import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { SubNavId } from "../clientUtils/owidTypes.js"
 
 export interface SubnavItem {
