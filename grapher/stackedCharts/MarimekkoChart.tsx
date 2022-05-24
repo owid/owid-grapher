@@ -52,7 +52,7 @@ import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { TippyIfInteractive } from "../chart/Tippy.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {

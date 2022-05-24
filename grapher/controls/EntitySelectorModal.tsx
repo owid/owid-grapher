@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 import { isTouchDevice, sortBy } from "../../clientUtils/Util.js"
 import { FuzzySearch } from "./FuzzySearch.js"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 

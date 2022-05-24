@@ -2,7 +2,7 @@ import React from "react"
 import { useEffect, useState } from "react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck.js"
+import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
 import { Action, getTodayDate } from "./CookiePreferencesManager.js"
 
 export const CookieNotice = ({

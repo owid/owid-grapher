@@ -2,12 +2,12 @@ import { observer } from "mobx-react"
 import React from "react"
 import { computed, action } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter.js"
-import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook.js"
-import { faCode } from "@fortawesome/free-solid-svg-icons/faCode.js"
-import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt.js"
-import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy.js"
-import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit.js"
+import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
+import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
+import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
+import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
+import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
+import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
 
 export interface ShareMenuManager {
     slug?: string

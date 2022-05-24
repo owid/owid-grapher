@@ -4,7 +4,7 @@ import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 import AnimateHeight from "react-animate-height"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight.js"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { MultiEmbedderSingleton } from "../../site/multiembedder/MultiEmbedder.js"
 
 export const CLASS_NAME = "wp-block-owid-additional-information"

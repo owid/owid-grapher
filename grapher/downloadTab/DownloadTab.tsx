@@ -4,8 +4,8 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle.js"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import {
     triggerDownloadFromBlob,

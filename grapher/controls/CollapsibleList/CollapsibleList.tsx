@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { throttle } from "../../../clientUtils/Util.js"
 import { Tippy } from "../../chart/Tippy.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCog } from "@fortawesome/free-solid-svg-icons/faCog.js"
+import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 
 interface ListChild {
     index: number

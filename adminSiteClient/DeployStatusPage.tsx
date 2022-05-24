@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { action, observable, runInAction } from "mobx"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle.js"
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
