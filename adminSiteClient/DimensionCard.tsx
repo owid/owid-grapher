@@ -13,7 +13,7 @@ import {
 import { Link } from "./Link.js"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
 import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
+import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "../coreTable/OwidTable.js"
@@ -136,7 +136,7 @@ export class DimensionCard extends React.Component<{
                                 className="clickable"
                                 onClick={this.props.onEdit}
                             >
-                                <FontAwesomeIcon icon={faExchangeAlt} />
+                                <FontAwesomeIcon icon={faRightLeft} />
                             </div>
                         )}
                         {this.props.onRemove && (

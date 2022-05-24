@@ -18,7 +18,7 @@ import { MapChartManager } from "../mapCharts/MapChartConstants.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
 import { FacetChart } from "../facetChart/FacetChart.js"
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
+import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList.js"
 import {
@@ -242,7 +242,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     className="ChangeEntityButton"
                     onClick={this.startSelecting}
                 >
-                    <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                    <FontAwesomeIcon icon={faRightLeft} /> Change{" "}
                     {manager.entityType}
                 </button>
             )
