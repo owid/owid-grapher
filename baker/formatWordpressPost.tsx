@@ -268,7 +268,7 @@ export const formatWordpressPost = async (
         post.relatedCharts.length !== 0
     ) {
         const allCharts = `
-        <block type="additional-information" default-open="true">
+        <block type="additional-information" default-open="false">
             <content>
                 <h3>All our interactive charts on ${post.title}</h3>
                 ${ReactDOMServer.renderToStaticMarkup(
