@@ -14,7 +14,7 @@ import { pick, capitalize } from "../clientUtils/Util.js"
 import { Colorpicker } from "./Colorpicker.js"
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog.js"
 import { faLink } from "@fortawesome/free-solid-svg-icons/faLink.js"
-import { faPaintBrush } from "@fortawesome/free-solid-svg-icons/faPaintBrush.js"
+import { faPaintbrush } from "@fortawesome/free-solid-svg-icons/faPaintbrush.js"
 import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
@@ -539,7 +539,7 @@ export class ColorBox extends React.Component<{
             >
                 <div className="ColorBox" style={style}>
                     {color === undefined && (
-                        <FontAwesomeIcon icon={faPaintBrush} />
+                        <FontAwesomeIcon icon={faPaintbrush} />
                     )}
                 </div>
             </Tippy>
