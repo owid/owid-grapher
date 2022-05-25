@@ -11,6 +11,7 @@ import {
     partition,
     cloneDeep,
     first,
+    sortBy,
 } from "../../clientUtils/Util.js"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -558,9 +559,14 @@ export class MarimekkoChart
             // charts, e.g. each continent being assigned to the same color.
             // inputTable is unfiltered, so it contains every value that exists in the variable.
 
-            manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
-                this.colorColumnSlug
-            ) ??
+            // 2022-05-25: I considered using the filtered table below to get rid of Antarctica automatically
+            // but the way things are currently done this leads to a shift in the colors assigned to continents
+            // (i.e. they are no longer consistent cross the site). I think this downside is heavier than the
+            // upside so I comment this out for now. Reconsider when we do colors differently.
+
+            // manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
+            //     this.colorColumnSlug
+            // ) ??
             inputTable.get(this.colorColumnSlug)
         )
     }
@@ -792,46 +798,35 @@ export class MarimekkoChart
     @computed private get sortedItems(): Item[] {
         const { items, sortConfig } = this
 
-        let sortFunc: (a: Item, b: Item) => number
+        let sortByFuncs: ((item: Item) => number | string | undefined)[]
         switch (sortConfig.sortBy) {
             case SortBy.custom:
-                sortFunc = (): number => 0
+                sortByFuncs = [(): undefined => undefined]
                 break
             case SortBy.entityName:
-                sortFunc = (a: Item, b: Item): number =>
-                    a.entityName.localeCompare(b.entityName)
+                sortByFuncs = [(item: Item): string => item.entityName]
                 break
             case SortBy.column:
                 const sortColumnSlug = sortConfig.sortColumnSlug
-                sortFunc = (a: Item, b: Item): number => {
-                    const aValue =
-                        a.bars.find((bar) => bar.seriesName === sortColumnSlug)
-                            ?.yPoint.value ?? 0
-                    const bValue =
-                        b.bars.find((bar) => bar.seriesName === sortColumnSlug)
-                            ?.yPoint.value ?? 0
-                    const diff = aValue - bValue
-                    if (diff !== 0) return diff
-                    return a.entityName.localeCompare(b.entityName)
-                }
+                sortByFuncs = [
+                    (item: Item): number =>
+                        item.bars.find((b) => b.seriesName === sortColumnSlug)
+                            ?.yPoint.value ?? 0,
+                    (item: Item): string => item.entityName,
+                ]
                 break
             default:
             case SortBy.total:
-                sortFunc = (a: Item, b: Item): number => {
-                    const aLastPoint = last(a.bars)?.yPoint
-                    const bLastPoint = last(b.bars)?.yPoint
-                    const aValue =
-                        (aLastPoint?.valueOffset ?? 0) +
-                        (aLastPoint?.value ?? 0)
-                    const bValue =
-                        (bLastPoint?.valueOffset ?? 0) +
-                        (bLastPoint?.value ?? 0)
-                    const diff = aValue - bValue
-                    if (diff !== 0) return diff
-                    else return a.entityName.localeCompare(b.entityName)
-                }
+                sortByFuncs = [
+                    (item: Item): number => {
+                        const lastPoint = last(item.bars)?.yPoint
+                        if (!lastPoint) return 0
+                        return lastPoint.valueOffset + lastPoint.value
+                    },
+                    (item: Item): string => item.entityName,
+                ]
         }
-        const sortedItems = items.sort(sortFunc)
+        const sortedItems = sortBy(items, sortByFuncs)
         const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
         if (sortOrder === SortOrder.desc) sortedItems.reverse()
 
@@ -1293,7 +1288,7 @@ export class MarimekkoChart
         const labelHeight = labelCandidates[0].bounds.height
 
         const numLabelsToAdd = Math.floor(
-            Math.min(availablePixels / (labelHeight + paddingInPixels) / 3, 20) // factor 4 is arbitrary to taste
+            Math.min(availablePixels / (labelHeight + paddingInPixels) / 3, 20) // factor 3 is arbitrary to taste
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
             labelCandidates,

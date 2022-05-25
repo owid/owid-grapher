@@ -356,7 +356,7 @@ abstract class AbstractAxis {
         return parseFloat(this.d3_scale(value).toFixed(1))
     }
 
-    /** This function returns the inverse of place - i.e. give a screen space
+    /** This function returns the inverse of place - i.e. given a screen space
      *  coordinate, it returns the corresponding domain value. This is useful
      *  for cases where you want to make sure that something is at least one pixel high.
      */
