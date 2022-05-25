@@ -19,8 +19,8 @@ import { Tooltip } from "../tooltip/Tooltip.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { ColorScaleManager } from "../color/ColorScale.js"
 import {
-    AbstactStackedChart,
-    AbstactStackedChartProps,
+    AbstractStackedChart,
+    AbstractStackedChartProps,
 } from "./AbstractStackedChart.js"
 import { StackedPoint, StackedSeries } from "./StackedConstants.js"
 import { VerticalAxis } from "../axis/Axis.js"
@@ -97,12 +97,12 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
 @observer
 export class StackedBarChart
-    extends AbstactStackedChart
+    extends AbstractStackedChart
     implements VerticalColorLegendManager, ColorScaleManager
 {
     readonly minBarSpacing = 4
 
-    constructor(props: AbstactStackedChartProps) {
+    constructor(props: AbstractStackedChartProps) {
         super(props)
     }
 

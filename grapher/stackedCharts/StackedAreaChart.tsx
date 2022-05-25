@@ -23,8 +23,8 @@ import { NoDataModal } from "../noDataModal/NoDataModal.js"
 import { Tooltip } from "../tooltip/Tooltip.js"
 import { rgb } from "d3-color"
 import {
-    AbstactStackedChart,
-    AbstactStackedChartProps,
+    AbstractStackedChart,
+    AbstractStackedChartProps,
 } from "../stackedCharts/AbstractStackedChart.js"
 import { StackedSeries } from "./StackedConstants.js"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils.js"
@@ -216,10 +216,10 @@ class Areas extends React.Component<AreasProps> {
 
 @observer
 export class StackedAreaChart
-    extends AbstactStackedChart
+    extends AbstractStackedChart
     implements LineLegendManager
 {
-    constructor(props: AbstactStackedChartProps) {
+    constructor(props: AbstractStackedChartProps) {
         super(props)
     }
 
