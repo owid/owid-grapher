@@ -13,6 +13,7 @@ import {
     excludeUndefined,
     isNumber,
     sortedUniqBy,
+    isMobile,
 } from "../../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -327,8 +328,13 @@ export class LineChart
 
         const mouse = getRelativeMouse(this.base.current, ev)
 
+        const boxPadding = isMobile() ? 44 : 25
+
+        // expand the box width, so it's easier to see the tooltip for the first & last timepoints
+        const boundedBox = this.dualAxis.innerBounds.padWidth(-boxPadding)
+
         let hoverX
-        if (this.dualAxis.innerBounds.contains(mouse)) {
+        if (boundedBox.contains(mouse)) {
             const closestValue = minBy(this.allValues, (point) =>
                 Math.abs(this.dualAxis.horizontalAxis.place(point.x) - mouse.x)
             )
@@ -700,6 +706,11 @@ export class LineChart
                 onTouchMove={this.onCursorMove}
             >
                 {clipPath.element}
+                <rect {...this.bounds.toProps()} fill="transparent">
+                    {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
+                    whole charting area, including the axis, the entity labels, and the whitespace next to them.
+                    We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
+                </rect>
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
