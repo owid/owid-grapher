@@ -41,8 +41,6 @@ const BLUR_COLOR = "#ddd"
 
 @observer
 class Areas extends React.Component<AreasProps> {
-    base: React.RefObject<SVGGElement> = React.createRef()
-
     private seriesIsBlur(series: StackedSeries<Time>): boolean {
         return (
             this.props.focusedSeriesNames.length > 0 &&
@@ -122,7 +120,7 @@ class Areas extends React.Component<AreasProps> {
         const { horizontalAxis, verticalAxis } = dualAxis
 
         return (
-            <g ref={this.base} className="Areas">
+            <g className="Areas">
                 <rect
                     x={horizontalAxis.range[0]}
                     y={verticalAxis.range[1]}

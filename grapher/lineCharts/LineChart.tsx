@@ -106,8 +106,6 @@ const LEGEND_PADDING = 25
 
 @observer
 class Lines extends React.Component<LinesProps> {
-    base: React.RefObject<SVGGElement> = React.createRef()
-
     @computed get bounds(): Bounds {
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(
@@ -234,7 +232,7 @@ class Lines extends React.Component<LinesProps> {
         const { bounds } = this
 
         return (
-            <g ref={this.base} className="Lines">
+            <g className="Lines">
                 <rect
                     x={Math.round(bounds.x)}
                     y={Math.round(bounds.y)}
