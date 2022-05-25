@@ -404,6 +404,47 @@ export class LineChart
         )
     }
 
+    @computed get activeXVerticalLine(): JSX.Element | undefined {
+        const { activeX, dualAxis } = this
+        const { horizontalAxis, verticalAxis } = dualAxis
+
+        if (activeX === undefined) return undefined
+
+        return (
+            <g className="hoverIndicator">
+                <line
+                    x1={horizontalAxis.place(activeX)}
+                    y1={verticalAxis.range[0]}
+                    x2={horizontalAxis.place(activeX)}
+                    y2={verticalAxis.range[1]}
+                    stroke="rgba(180,180,180,.4)"
+                />
+                {this.series.map((series) => {
+                    const value = series.points.find(
+                        (point) => point.x === activeX
+                    )
+                    if (!value || this.seriesIsBlurred(series)) return null
+
+                    return (
+                        <circle
+                            key={getSeriesKey(series)}
+                            cx={horizontalAxis.place(value.x)}
+                            cy={verticalAxis.place(value.y)}
+                            r={this.lineStrokeWidth / 2 + 3.5}
+                            fill={
+                                this.hasColorScale
+                                    ? this.getColorScaleColor(value.colorValue)
+                                    : series.color
+                            }
+                            stroke="#fff"
+                            strokeWidth={0.5}
+                        />
+                    )
+                })}
+            </g>
+        )
+    }
+
     @computed private get tooltip(): JSX.Element | undefined {
         const { activeX, dualAxis, inputTable, formatColumn, hasColorScale } =
             this
@@ -686,8 +727,8 @@ export class LineChart
                 />
             )
 
-        const { activeX, manager, tooltip, dualAxis, clipPath } = this
-        const { horizontalAxis, verticalAxis } = dualAxis
+        const { manager, tooltip, dualAxis, clipPath, activeXVerticalLine } =
+            this
 
         const comparisonLines = manager.comparisonLines || []
 
@@ -734,42 +775,7 @@ export class LineChart
                         markerRadius={this.markerRadius}
                     />
                 </g>
-                {activeX !== undefined && (
-                    <g className="hoverIndicator">
-                        <line
-                            x1={horizontalAxis.place(activeX)}
-                            y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(activeX)}
-                            y2={verticalAxis.range[1]}
-                            stroke="rgba(180,180,180,.4)"
-                        />
-                        {this.series.map((series) => {
-                            const value = series.points.find(
-                                (point) => point.x === activeX
-                            )
-                            if (!value || this.seriesIsBlurred(series))
-                                return null
-
-                            return (
-                                <circle
-                                    key={getSeriesKey(series)}
-                                    cx={horizontalAxis.place(value.x)}
-                                    cy={verticalAxis.place(value.y)}
-                                    r={this.lineStrokeWidth / 2 + 3.5}
-                                    fill={
-                                        this.hasColorScale
-                                            ? this.getColorScaleColor(
-                                                  value.colorValue
-                                              )
-                                            : series.color
-                                    }
-                                    stroke="#fff"
-                                    strokeWidth={0.5}
-                                />
-                            )
-                        })}
-                    </g>
-                )}
+                {activeXVerticalLine}
 
                 {tooltip}
             </g>
