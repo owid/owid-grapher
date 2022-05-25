@@ -706,7 +706,7 @@ export class MarimekkoChart
         return sortedItems.filter((item) => selectedSet.has(item.entityName))
     }
 
-    @computed private get uniqueEntitiyNames(): EntityName[] | undefined {
+    @computed private get uniqueEntityNames(): EntityName[] | undefined {
         return this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
     }
 
@@ -714,14 +714,14 @@ export class MarimekkoChart
         string,
         EntityColorData
     > {
-        const { colorColumn, colorScale, uniqueEntitiyNames } = this
+        const { colorColumn, colorScale, uniqueEntityNames } = this
         const hasColorColumn = !colorColumn.isMissing
         const colorRowsByEntity = hasColorColumn
             ? colorColumn.owidRowsByEntityName
             : undefined
         const domainColorMap = new Map<string, EntityColorData>()
-        if (uniqueEntitiyNames !== undefined) {
-            for (const name of uniqueEntitiyNames) {
+        if (uniqueEntityNames !== undefined) {
+            for (const name of uniqueEntityNames) {
                 const colorDomainValue = colorRowsByEntity?.get(name)?.[0]
 
                 if (colorDomainValue) {
@@ -738,12 +738,12 @@ export class MarimekkoChart
     }
 
     @computed private get items(): Item[] {
-        const { xSeries, series, domainColorForEntityMap, uniqueEntitiyNames } =
+        const { xSeries, series, domainColorForEntityMap, uniqueEntityNames } =
             this
 
-        if (uniqueEntitiyNames === undefined) return []
+        if (uniqueEntityNames === undefined) return []
 
-        const items: Item[] = uniqueEntitiyNames
+        const items: Item[] = uniqueEntityNames
             .map((entityName) => {
                 const xPoint = xSeries
                     ? xSeries.points.find(
