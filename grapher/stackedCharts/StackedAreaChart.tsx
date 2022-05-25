@@ -8,6 +8,7 @@ import {
     makeSafeForCSS,
     minBy,
     excludeUndefined,
+    isMobile,
 } from "../../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
 import { SeriesName } from "../core/GrapherConstants.js"
@@ -230,26 +231,28 @@ export class StackedAreaChart
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ): void {
+        if (!this.base.current) return
         const { dualAxis, series } = this
 
-        if (this.base.current) {
-            const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
+        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
-            if (dualAxis.innerBounds.contains(mouse)) {
-                const closestPoint = minBy(series[0].points, (d) =>
-                    Math.abs(
-                        dualAxis.horizontalAxis.place(d.position) - mouse.x
-                    )
-                )
-                if (closestPoint) {
-                    const index = series[0].points.indexOf(closestPoint)
-                    this.hoveredPointIndex = index
-                } else {
-                    this.hoveredPointIndex = undefined
-                }
+        const boxPadding = isMobile() ? 44 : 25
+
+        // expand the box width, so it's easier to see the tooltip for the first & last timepoints
+        const boundedBox = this.dualAxis.innerBounds.padWidth(-boxPadding)
+
+        if (boundedBox.contains(mouse)) {
+            const closestPoint = minBy(series[0].points, (d) =>
+                Math.abs(dualAxis.horizontalAxis.place(d.position) - mouse.x)
+            )
+            if (closestPoint) {
+                const index = series[0].points.indexOf(closestPoint)
+                this.hoveredPointIndex = index
             } else {
                 this.hoveredPointIndex = undefined
             }
+        } else {
+            this.hoveredPointIndex = undefined
         }
     }
 
@@ -443,6 +446,11 @@ export class StackedAreaChart
                 onTouchMove={this.onCursorMove}
             >
                 {clipPath.element}
+                <rect {...this.bounds.toProps()} fill="transparent">
+                    {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
+                    whole charting area, including the axis, the entity labels, and the whitespace next to them.
+                    We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
+                </rect>
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}
