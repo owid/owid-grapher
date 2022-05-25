@@ -330,9 +330,8 @@ export class MarimekkoChart
 
     transformTable(table: OwidTable): OwidTable {
         const { excludedEntities, includedEntities } = this.manager
-        const { inputTable } = this
-        if (!this.yColumnSlugs.length) return inputTable
-        // if (!this.xColumnSlug) return inputTable
+        const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
+        if (!this.yColumnSlugs.length) return table
 
         if (excludedEntities || includedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
@@ -352,14 +351,12 @@ export class MarimekkoChart
             const includedList = includedEntities
                 ? includedEntities.join(", ")
                 : ""
-            table = inputTable.columnFilter(
+            table = table.columnFilter(
                 OwidTableSlugs.entityId,
                 filterFn,
                 `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
             )
-        } else table = inputTable
-        // if (!this.xColumnSlug) return table
-        const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
+        } else table = table
 
         // TODO: remove this filter once we don't have mixed type columns in datasets
         table = table.replaceNonNumericCellsWithErrorValues(yColumnSlugs)
@@ -709,20 +706,22 @@ export class MarimekkoChart
         return sortedItems.filter((item) => selectedSet.has(item.entityName))
     }
 
+    @computed private get uniqueEntitiyNames(): EntityName[] | undefined {
+        return this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
+    }
+
     @computed private get domainColorForEntityMap(): Map<
         string,
         EntityColorData
     > {
-        const { colorColumn, colorScale } = this
-        const entityNames =
-            this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
+        const { colorColumn, colorScale, uniqueEntitiyNames } = this
         const hasColorColumn = !colorColumn.isMissing
         const colorRowsByEntity = hasColorColumn
             ? colorColumn.owidRowsByEntityName
             : undefined
         const domainColorMap = new Map<string, EntityColorData>()
-        if (entityNames !== undefined) {
-            for (const name of entityNames) {
+        if (uniqueEntitiyNames !== undefined) {
+            for (const name of uniqueEntitiyNames) {
                 const colorDomainValue = colorRowsByEntity?.get(name)?.[0]
 
                 if (colorDomainValue) {
@@ -739,11 +738,12 @@ export class MarimekkoChart
     }
 
     @computed private get items(): Item[] {
-        const entityNames =
-            this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
-        const { xSeries, series, domainColorForEntityMap } = this
+        const { xSeries, series, domainColorForEntityMap, uniqueEntitiyNames } =
+            this
 
-        const items: Item[] = entityNames
+        if (uniqueEntitiyNames === undefined) return []
+
+        const items: Item[] = uniqueEntitiyNames
             .map((entityName) => {
                 const xPoint = xSeries
                     ? xSeries.points.find(
@@ -877,9 +877,7 @@ export class MarimekkoChart
                     value: series.seriesName,
                     label: series.seriesName,
                     color: series.color,
-                    isHidden:
-                        customHiddenCategories &&
-                        !!customHiddenCategories[series.seriesName],
+                    isHidden: !!customHiddenCategories?.[series.seriesName],
                 })
             })
     }
@@ -1183,12 +1181,12 @@ export class MarimekkoChart
                 row.value,
             ])
         )
-        const labelCanidateSource = xColumnAtLastTimePoint
+        const labelCandidateSource = xColumnAtLastTimePoint
             ? xColumnAtLastTimePoint
             : yColumnsAtLastTimePoint[0]
 
         const labelCandidates: LabelCandidate[] =
-            labelCanidateSource.owidRows.map((row) =>
+            labelCandidateSource.owidRows.map((row) =>
                 MarimekkoChart.labelCandidateFromItem(
                     {
                         entityName: row.entityName,
