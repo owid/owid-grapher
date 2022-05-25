@@ -30,7 +30,6 @@ export interface LinesProps {
     dualAxis: DualAxis
     placedSeries: PlacedLineChartSeries[]
     focusedSeriesNames: SeriesName[]
-    onHover: (hoverX: number | undefined) => void
     hidePoints?: boolean
     lineStrokeWidth?: number
     lineOutlineWidth?: number

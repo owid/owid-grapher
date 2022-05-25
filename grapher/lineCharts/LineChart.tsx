@@ -728,7 +728,6 @@ export class LineChart
                         dualAxis={dualAxis}
                         placedSeries={this.placedSeries}
                         hidePoints={manager.hidePoints}
-                        onHover={this.onHover}
                         focusedSeriesNames={this.focusedSeriesNames}
                         lineStrokeWidth={this.lineStrokeWidth}
                         lineOutlineWidth={this.lineOutlineWidth}
