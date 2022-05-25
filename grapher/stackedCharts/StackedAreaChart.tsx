@@ -35,7 +35,6 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
     seriesArr: readonly StackedSeries<Time>[]
     focusedSeriesNames: SeriesName[]
-    onHover: (hoverIndex: number | undefined) => void
 }
 
 const BLUR_COLOR = "#ddd"
@@ -43,41 +42,6 @@ const BLUR_COLOR = "#ddd"
 @observer
 class Areas extends React.Component<AreasProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
-
-    @observable hoverIndex?: number
-
-    @action.bound private onCursorMove(
-        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
-    ): void {
-        const { dualAxis, seriesArr } = this.props
-
-        if (this.base.current) {
-            const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
-
-            if (dualAxis.innerBounds.contains(mouse)) {
-                const closestPoint = minBy(seriesArr[0].points, (d) =>
-                    Math.abs(
-                        dualAxis.horizontalAxis.place(d.position) - mouse.x
-                    )
-                )
-                if (closestPoint) {
-                    const index = seriesArr[0].points.indexOf(closestPoint)
-                    this.hoverIndex = index
-                } else {
-                    this.hoverIndex = undefined
-                }
-            } else {
-                this.hoverIndex = undefined
-            }
-
-            this.props.onHover(this.hoverIndex)
-        }
-    }
-
-    @action.bound private onCursorLeave(): void {
-        this.hoverIndex = undefined
-        this.props.onHover(this.hoverIndex)
-    }
 
     private seriesIsBlur(series: StackedSeries<Time>): boolean {
         return (
@@ -154,21 +118,11 @@ class Areas extends React.Component<AreasProps> {
     }
 
     render(): JSX.Element {
-        const { dualAxis, seriesArr } = this.props
+        const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
-        const { hoverIndex } = this
 
         return (
-            <g
-                ref={this.base}
-                className="Areas"
-                onMouseMove={this.onCursorMove}
-                onMouseLeave={this.onCursorLeave}
-                onTouchStart={this.onCursorMove}
-                onTouchMove={this.onCursorMove}
-                onTouchEnd={this.onCursorLeave}
-                onTouchCancel={this.onCursorLeave}
-            >
+            <g ref={this.base} className="Areas">
                 <rect
                     x={horizontalAxis.range[0]}
                     y={verticalAxis.range[1]}
@@ -179,36 +133,6 @@ class Areas extends React.Component<AreasProps> {
                 />
                 {this.areas}
                 {this.borders}
-                {hoverIndex !== undefined && (
-                    <g className="hoverIndicator">
-                        {seriesArr.map((series) => {
-                            const point = series.points[hoverIndex]
-                            return this.seriesIsBlur(series) ||
-                                point.fake ? null : (
-                                <circle
-                                    key={series.seriesName}
-                                    cx={horizontalAxis.place(point.position)}
-                                    cy={verticalAxis.place(
-                                        point.value + point.valueOffset
-                                    )}
-                                    r={2}
-                                    fill={series.color}
-                                />
-                            )
-                        })}
-                        <line
-                            x1={horizontalAxis.place(
-                                seriesArr[0].points[hoverIndex].position
-                            )}
-                            y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(
-                                seriesArr[0].points[hoverIndex].position
-                            )}
-                            y2={verticalAxis.range[1]}
-                            stroke="rgba(180,180,180,.4)"
-                        />
-                    </g>
-                )}
             </g>
         )
     }
@@ -258,9 +182,6 @@ export class StackedAreaChart
     }
 
     @observable hoveredPointIndex?: number
-    @action.bound onHover(hoverIndex: number | undefined): void {
-        this.hoveredPointIndex = hoverIndex
-    }
 
     @observable hoverSeriesName?: SeriesName
     @action.bound onLineLegendClick(): void {
@@ -305,6 +226,73 @@ export class StackedAreaChart
         return (
             this.focusedSeriesNames.length > 0 &&
             !this.focusedSeriesNames.includes(series.seriesName)
+        )
+    }
+
+    @action.bound private onCursorMove(
+        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
+    ): void {
+        const { dualAxis, series } = this
+
+        if (this.base.current) {
+            const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
+
+            if (dualAxis.innerBounds.contains(mouse)) {
+                const closestPoint = minBy(series[0].points, (d) =>
+                    Math.abs(
+                        dualAxis.horizontalAxis.place(d.position) - mouse.x
+                    )
+                )
+                if (closestPoint) {
+                    const index = series[0].points.indexOf(closestPoint)
+                    this.hoveredPointIndex = index
+                } else {
+                    this.hoveredPointIndex = undefined
+                }
+            } else {
+                this.hoveredPointIndex = undefined
+            }
+        }
+    }
+
+    @action.bound private onCursorLeave(): void {
+        this.hoveredPointIndex = undefined
+    }
+
+    @computed private get activeXVerticalLine(): JSX.Element | undefined {
+        const { dualAxis, series, hoveredPointIndex } = this
+        const { horizontalAxis, verticalAxis } = dualAxis
+
+        if (hoveredPointIndex === undefined) return undefined
+
+        return (
+            <g className="hoverIndicator">
+                {series.map((series) => {
+                    const point = series.points[hoveredPointIndex]
+                    return this.seriesIsBlur(series) || point.fake ? null : (
+                        <circle
+                            key={series.seriesName}
+                            cx={horizontalAxis.place(point.position)}
+                            cy={verticalAxis.place(
+                                point.value + point.valueOffset
+                            )}
+                            r={2}
+                            fill={series.color}
+                        />
+                    )
+                })}
+                <line
+                    x1={horizontalAxis.place(
+                        series[0].points[hoveredPointIndex].position
+                    )}
+                    y1={verticalAxis.range[0]}
+                    x2={horizontalAxis.place(
+                        series[0].points[hoveredPointIndex].position
+                    )}
+                    y2={verticalAxis.range[1]}
+                    stroke="rgba(180,180,180,.4)"
+                />
+            </g>
         )
     }
 
@@ -446,7 +434,16 @@ export class StackedAreaChart
         })
 
         return (
-            <g ref={this.base} className="StackedArea">
+            <g
+                ref={this.base}
+                className="StackedArea"
+                onMouseLeave={this.onCursorLeave}
+                onTouchEnd={this.onCursorLeave}
+                onTouchCancel={this.onCursorLeave}
+                onMouseMove={this.onCursorMove}
+                onTouchStart={this.onCursorMove}
+                onTouchMove={this.onCursorMove}
+            >
                 {clipPath.element}
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <g clipPath={clipPath.id}>
@@ -455,9 +452,9 @@ export class StackedAreaChart
                         dualAxis={dualAxis}
                         seriesArr={series}
                         focusedSeriesNames={this.focusedSeriesNames}
-                        onHover={this.onHover}
                     />
                 </g>
+                {this.activeXVerticalLine}
                 {this.tooltip}
             </g>
         )
