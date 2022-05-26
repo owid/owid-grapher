@@ -7,10 +7,11 @@ import {
     last,
     flatten,
     excludeUndefined,
-    sortBy,
     sumBy,
     partition,
+    cloneDeep,
     first,
+    sortBy,
 } from "../../clientUtils/Util.js"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -18,7 +19,6 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import {
     BASE_FONT_SIZE,
     EntitySelectionMode,
-    SeriesName,
 } from "../core/GrapherConstants.js"
 import { DualAxisComponent } from "../axis/AxisViews.js"
 import { NoDataModal } from "../noDataModal/NoDataModal.js"
@@ -550,14 +550,24 @@ export class MarimekkoChart
     }
 
     @computed get colorScaleColumn(): CoreColumn {
+        const { manager, inputTable } = this
         return (
             // For faceted charts, we have to get the values of inputTable before it's filtered by
             // the faceting logic.
-            this.manager.colorScaleColumnOverride ??
+            manager.colorScaleColumnOverride ??
             // We need to use filteredTable in order to get consistent coloring for a variable across
             // charts, e.g. each continent being assigned to the same color.
             // inputTable is unfiltered, so it contains every value that exists in the variable.
-            this.inputTable.get(this.colorColumnSlug)
+
+            // 2022-05-25: I considered using the filtered table below to get rid of Antarctica automatically
+            // but the way things are currently done this leads to a shift in the colors assigned to continents
+            // (i.e. they are no longer consistent cross the site). I think this downside is heavier than the
+            // upside so I comment this out for now. Reconsider when we do colors differently.
+
+            // manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
+            //     this.colorColumnSlug
+            // ) ??
+            inputTable.get(this.colorColumnSlug)
         )
     }
     @computed private get sortConfig(): SortConfig {
@@ -635,8 +645,14 @@ export class MarimekkoChart
     }
 
     @computed private get xAxisConfig(): AxisConfig {
+        const { xColumnSlug } = this
         return new AxisConfig(
-            { ...this.manager.xAxisConfig, orient: Position.top },
+            {
+                ...this.manager.xAxisConfig,
+                orient: Position.top,
+                hideAxis: xColumnSlug === undefined,
+                hideGridlines: xColumnSlug === undefined,
+            },
             this
         )
     }
@@ -667,7 +683,7 @@ export class MarimekkoChart
         const { manager, xAxisLabelBase, xDomainDefault, xColumn } = this
         const config = this.xAxisConfig
         let axis = config.toHorizontalAxis()
-        if (manager.isRelativeMode && this.xColumn) {
+        if (manager.isRelativeMode && xColumn) {
             // MobX and classes  interact in an annoying way here so we have to construct a new object via
             // an object copy of the AxisConfig class instance to be able to set a property without
             // making MobX unhappy about a mutation originating from a computed property
@@ -782,29 +798,35 @@ export class MarimekkoChart
     @computed private get sortedItems(): Item[] {
         const { items, sortConfig } = this
 
-        let sortByFunc: (item: Item) => number | string | undefined
+        let sortByFuncs: ((item: Item) => number | string | undefined)[]
         switch (sortConfig.sortBy) {
             case SortBy.custom:
-                sortByFunc = () => undefined
+                sortByFuncs = [(): undefined => undefined]
                 break
             case SortBy.entityName:
-                sortByFunc = (item: Item): string => item.entityName
+                sortByFuncs = [(item: Item): string => item.entityName]
                 break
             case SortBy.column:
                 const sortColumnSlug = sortConfig.sortColumnSlug
-                sortByFunc = (item: Item): number =>
-                    item.bars.find((b) => b.seriesName === sortColumnSlug)
-                        ?.yPoint.value ?? 0
+                sortByFuncs = [
+                    (item: Item): number =>
+                        item.bars.find((b) => b.seriesName === sortColumnSlug)
+                            ?.yPoint.value ?? 0,
+                    (item: Item): string => item.entityName,
+                ]
                 break
             default:
             case SortBy.total:
-                sortByFunc = (item: Item): number => {
-                    const lastPoint = last(item.bars)?.yPoint
-                    if (!lastPoint) return 0
-                    return lastPoint.valueOffset + lastPoint.value
-                }
+                sortByFuncs = [
+                    (item: Item): number => {
+                        const lastPoint = last(item.bars)?.yPoint
+                        if (!lastPoint) return 0
+                        return lastPoint.valueOffset + lastPoint.value
+                    },
+                    (item: Item): string => item.entityName,
+                ]
         }
-        const sortedItems = sortBy(items, sortByFunc)
+        const sortedItems = sortBy(items, sortByFuncs)
         const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
         if (sortOrder === SortOrder.desc) sortedItems.reverse()
 
@@ -1073,9 +1095,33 @@ export class MarimekkoChart
                     !focusColorBin.contains(entityColor?.colorDomainValue)) ||
                 (hasSelection && !isSelected)
 
+            // figure out what the minimum height in domain space has to be so
+            // that a bar is at least one pixel high in screen space.
+            const yAxisOnePixelDomainEquivalent =
+                this.dualAxis.verticalAxis.invert(
+                    this.dualAxis.verticalAxis.place(y0) - 1
+                ) -
+                this.dualAxis.verticalAxis.invert(
+                    this.dualAxis.verticalAxis.place(y0)
+                )
+            const adjustedBars = []
+            let currentY = 0
+            for (const bar of bars) {
+                const barCopy = cloneDeep(bar)
+                // we want to draw bars at least one pixel high so that they are guaranteed to have a
+                // visual representation in our chart (as a 1px line in this case)
+                barCopy.yPoint.value = Math.max(
+                    barCopy.yPoint.value,
+                    yAxisOnePixelDomainEquivalent
+                )
+                barCopy.yPoint.valueOffset = currentY
+                currentY += barCopy.yPoint.value
+                adjustedBars.push(barCopy)
+            }
+
             const barsProps = {
                 entityName,
-                bars,
+                bars: adjustedBars,
                 xPoint,
                 entityColor,
                 isFaint,
@@ -1162,6 +1208,7 @@ export class MarimekkoChart
             selectedItems,
             xRange,
             baseFontSize,
+            sortConfig,
             paddingInPixels,
         } = this
 
@@ -1190,7 +1237,10 @@ export class MarimekkoChart
                 MarimekkoChart.labelCandidateFromItem(
                     {
                         entityName: row.entityName,
-                        xValue: xColumnAtLastTimePoint ? row.value : 1,
+                        xValue:
+                            xColumnAtLastTimePoint !== undefined
+                                ? row.value
+                                : 1,
                         ySortValue: ySizeMap.get(row.entityName),
                     },
                     baseFontSize,
@@ -1202,9 +1252,11 @@ export class MarimekkoChart
             const yRowsForA = a.item.ySortValue
             const yRowsForB = b.item.ySortValue
 
-            if (yRowsForA !== undefined && yRowsForB !== undefined)
-                return yRowsForB - yRowsForA
-            else if (yRowsForA === undefined && yRowsForB !== undefined)
+            if (yRowsForA !== undefined && yRowsForB !== undefined) {
+                const diff = yRowsForB - yRowsForA
+                if (diff !== 0) return diff
+                else return b.item.entityName.localeCompare(a.item.entityName)
+            } else if (yRowsForA === undefined && yRowsForB !== undefined)
                 return -1
             else if (yRowsForA !== undefined && yRowsForB === undefined)
                 return 1
@@ -1212,32 +1264,31 @@ export class MarimekkoChart
             else return 0
         })
 
-        const averageCharacterCount =
-            sumBy(labelCandidates, (item) => item.item.entityName.length) /
-            labelCandidates.length
+        if (sortConfig.sortOrder === SortOrder.desc) {
+            labelCandidates.reverse()
+        }
 
-        const firstDefined = labelCandidates.find(
-            (item) => item.item.ySortValue !== undefined
+        const [sortedLabelsWithValues, sortedLabelsWithoutValues] = partition(
+            labelCandidates,
+            (item) =>
+                item.item.ySortValue !== 0 && item.item.ySortValue !== undefined
         )
-        const labelCharacterCountThreshold = 1.4 * averageCharacterCount
-        // Always pick the first and last element and the first one that is not undefined for y
-        // but only if it is less than 1.4 times as long in character count as the average label (avoid
-        // picking "Democratic Republic of Congo" for this reason and thus needing lots of space)
-        if (
-            firstDefined &&
-            firstDefined.item.entityName.length < labelCharacterCountThreshold
-        )
-            firstDefined.isPicked = true
-        const labelHeight = labelCandidates[0].bounds.height
-        if (
-            labelCandidates[labelCandidates.length - 1].item.entityName.length <
-            labelCharacterCountThreshold
-        )
-            labelCandidates[labelCandidates.length - 1].isPicked = true
+
+        if (sortedLabelsWithValues.length) {
+            first(sortedLabelsWithValues)!.isPicked = true
+            last(sortedLabelsWithValues)!.isPicked = true
+        }
+        if (sortedLabelsWithoutValues.length) {
+            if (sortConfig.sortOrder === SortOrder.desc)
+                first(sortedLabelsWithoutValues)!.isPicked = true
+            else last(sortedLabelsWithoutValues)!.isPicked = true
+        }
         const availablePixels = xRange[1] - xRange[0]
 
+        const labelHeight = labelCandidates[0].bounds.height
+
         const numLabelsToAdd = Math.floor(
-            Math.min(availablePixels / (labelHeight + paddingInPixels) / 4, 20) // factor 4 is arbitrary to taste
+            Math.min(availablePixels / (labelHeight + paddingInPixels) / 3, 20) // factor 3 is arbitrary to taste
         )
         const chunks = MarimekkoChart.splitIntoEqualDomainSizeChunks(
             labelCandidates,
@@ -1338,9 +1389,11 @@ export class MarimekkoChart
         // labels we don't want to use +infinity :) so we Math.min it with the longest label width
         if (labelsWithPlacements.length === 0) return []
 
-        labelsWithPlacements.sort(
-            (a, b) => a.preferredPlacement - b.preferredPlacement
-        )
+        labelsWithPlacements.sort((a, b) => {
+            const diff = a.preferredPlacement - b.preferredPlacement
+            if (diff !== 0) return diff
+            else return a.labelKey.localeCompare(b.labelKey)
+        })
 
         const labelWidth = unrotatedHighestLabelHeight
         const correctionFactor =
@@ -1363,7 +1416,8 @@ export class MarimekkoChart
         ].correctedPlacement = Math.min(
             labelsWithPlacements[labelsWithPlacements.length - 1]
                 .correctedPlacement,
-            dualAxis.horizontalAxis.rangeSize
+            dualAxis.horizontalAxis.rangeSize +
+                dualAxis.horizontalAxis.place(x0)
         )
         for (let i = labelsWithPlacements.length - 1; i > 0; i--) {
             const current = labelsWithPlacements[i]
@@ -1771,7 +1825,7 @@ export class MarimekkoChart
 
     @computed get failMessage(): string {
         const column = this.yColumns[0]
-        const { yColumns, yColumnSlugs, xColumn } = this
+        const { yColumns, yColumnSlugs } = this
 
         if (!column) return "No Y column to chart"
 
