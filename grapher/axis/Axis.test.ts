@@ -8,6 +8,7 @@ import {
 } from "../../coreTable/OwidTableSynthesizers.js"
 import { AxisConfig } from "./AxisConfig.js"
 import { AxisConfigInterface } from "./AxisConfigInterface.js"
+import { AxisAlign } from "../../clientUtils/owidTypes.js"
 
 it("can create an axis", () => {
     const axisConfig = new AxisConfig({
@@ -108,16 +109,23 @@ it("creates compact labels", () => {
     ).toBeTruthy()
 })
 
-it("a single-value domain plots to lower or upper end of range", () => {
-    const config: AxisConfigInterface = {
-        min: 0,
-        max: 0,
+describe("singleValueAxisPointAlign", () => {
+    const testAlign = (align: AxisAlign | undefined, expected: number) => {
+        const config: AxisConfigInterface = {
+            min: 0,
+            max: 0,
+            singleValueAxisPointAlign: align,
+        }
+        const axis = new AxisConfig(config).toVerticalAxis()
+        axis.range = [0, 500]
+        expect(axis.place(-1)).toEqual(expected)
+        expect(axis.place(0)).toEqual(expected)
+        expect(axis.place(1)).toEqual(expected)
     }
-    const axis = new AxisConfig(config).toVerticalAxis()
-    axis.range = [0, 500]
-    expect(axis.place(-1)).toEqual(0)
-    expect(axis.place(0)).toEqual(0)
-    expect(axis.place(1)).toEqual(500)
+    it("aligns to start", () => testAlign(AxisAlign.start, 0))
+    it("aligns to middle", () => testAlign(AxisAlign.middle, 250))
+    it("aligns to end", () => testAlign(AxisAlign.end, 500))
+    it("defaults to middle", () => testAlign(undefined, 250))
 })
 
 describe("tick labels", () => {

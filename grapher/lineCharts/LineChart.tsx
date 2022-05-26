@@ -73,6 +73,7 @@ import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline.js"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import {
+    AxisAlign,
     Color,
     HorizontalAlign,
     PrimitiveType,
@@ -1126,7 +1127,16 @@ export class LineChart
 
     @computed private get yAxisConfig(): AxisConfig {
         // TODO: enable nice axis ticks for linear scales
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(
+            {
+                // if we only have a single y value (probably 0), we want the
+                // horizontal axis to be at the bottom of the chart.
+                // see https://github.com/owid/owid-grapher/pull/975#issuecomment-890798547
+                singleValueAxisPointAlign: AxisAlign.start,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {

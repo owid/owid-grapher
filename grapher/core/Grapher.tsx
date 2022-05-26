@@ -1137,14 +1137,7 @@ export class Grapher
 
             // StackedBar, StackedArea, and DiscreteBar charts never display a timeline
             case GrapherTabOption.chart:
-                return (
-                    !this.hideTimeline &&
-                    !(
-                        this.isStackedBar ||
-                        this.isStackedArea ||
-                        this.isDiscreteBar
-                    )
-                )
+                return !this.hideTimeline && !this.isDiscreteBar
 
             default:
                 return false

@@ -95,13 +95,24 @@ class Areas extends React.Component<AreasProps> {
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         let prevPoints = [xBottomLeft, xBottomRight]
         return seriesArr.map((series) => {
-            const mainPoints = series.points.map(
-                (point) =>
-                    [
-                        horizontalAxis.place(point.position),
-                        verticalAxis.place(point.value + point.valueOffset),
-                    ] as [number, number]
-            )
+            let mainPoints: [number, number][] = []
+            if (series.points.length > 1) {
+                mainPoints = series.points.map(
+                    (point) =>
+                        [
+                            horizontalAxis.place(point.position),
+                            verticalAxis.place(point.value + point.valueOffset),
+                        ] as [number, number]
+                )
+            } else if (series.points.length === 1) {
+                // We only have one point, so make it so it stretches out over the whole x axis range
+                const point = series.points[0]
+                const y = verticalAxis.place(point.value + point.valueOffset)
+                mainPoints = [
+                    [horizontalAxis.range[0], y],
+                    [horizontalAxis.range[1], y],
+                ]
+            }
             const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
             prevPoints = mainPoints
 
