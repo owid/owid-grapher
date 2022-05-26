@@ -58,7 +58,7 @@ export interface Item {
     entityName: string
     entityColor: EntityColorData | undefined
     bars: Bar[] // contains the y values for every y variable
-    xPoint: SimplePoint // contains the single x value
+    xPoint: SimplePoint | undefined // contains the single x value
 }
 
 export interface PlacedItem extends Item {
@@ -71,7 +71,8 @@ export interface TooltipProps {
     targetTime?: Time
     timeColumn: CoreColumn
     yAxisColumn: CoreColumn
-    xAxisColumn: CoreColumn
+    xAxisColumn: CoreColumn | undefined
+    xOverrideTime?: Time
 }
 
 export interface EntityWithSize {
