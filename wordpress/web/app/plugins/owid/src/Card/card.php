@@ -8,9 +8,7 @@ function render($attributes, $content)
 
     $title = null;
     if (!empty($attributes['title'])) {
-        $title =
-            "<div class=\"title\">{$attributes['title']}" .
-            "</div class=\"title\">";
+        $title = "<h3>{$attributes['title']}</h3>";
     }
 
     $linkStart = $linkEnd = null;
@@ -53,9 +51,9 @@ function render($attributes, $content)
       <div class="$classes" data-no-lightbox>
         $linkStart
             $figure
-            <div class="text-wrapper">
+            <div class="content-wrapper">
               $title
-              <div class="description">
+              <div class="content">
                 $content
               </div>
             </div>

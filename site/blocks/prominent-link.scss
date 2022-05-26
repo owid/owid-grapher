@@ -24,22 +24,22 @@
         @include cancel-link-styles;
     }
 
-    &[data-style="is-style-default"] {
-        @include left-media-columns;
-        margin-bottom: 2rem;
-        a {
-            display: block;
-            padding: $padding-x-sm;
-            @include md-up {
-                padding: $padding-x-md;
-            }
-        }
+    // &[data-style="is-style-default"] {
+    //     // @include left-media-columns;
+    //     margin-bottom: 2rem;
+    //     a {
+    //         display: block;
+    //         padding: $padding-x-sm;
+    //         @include md-up {
+    //             padding: $padding-x-md;
+    //         }
+    //     }
 
-        h3 {
-            @include h3-style;
-            margin-top: 0;
-        }
-    }
+    //     h3 {
+    //         @include h3-style;
+    //         margin-top: 0;
+    //     }
+    // }
 
     &[data-style="is-style-thin"] {
         background-color: transparent;

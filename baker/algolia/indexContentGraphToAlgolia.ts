@@ -11,10 +11,8 @@ import * as wpdb from "../../db/wpdb.js"
 import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { formatUrls } from "../../site/formatting.js"
-import {
-    CONTENT_GRAPH_ALGOLIA_INDEX,
-    getAlgoliaClient,
-} from "./configureAlgolia.js"
+import { ALGOLIA_GRAPH_INDEX } from "../../site/SearchGraph.js"
+import { getAlgoliaClient } from "./configureAlgolia.js"
 interface TopicsTrailsByLevel {
     [facetLevelKey: string]: string[]
 }
@@ -149,7 +147,7 @@ const indexContentGraphToAlgolia = async () => {
             return
         }
 
-        const index = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
+        const index = client.initIndex(ALGOLIA_GRAPH_INDEX)
         index.replaceAllObjects(records, {
             autoGenerateObjectIDIfNotExist: true,
         })

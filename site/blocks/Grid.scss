@@ -1,4 +1,5 @@
-.wp-block-owid-grid {
+.wp-block-owid-grid,
+.ais-Hits-list {
     display: grid;
     grid-gap: $vertical-spacing;
     grid-template-columns: repeat(1, 1fr);

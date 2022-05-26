@@ -99,6 +99,8 @@ html.IsInIframe .StandaloneGrapherOrExplorerPage {
 
     > main {
         min-height: inherit;
+        display: flex;
+        flex-direction: row-reverse;
     }
 
     main figure[data-grapher-src] {
@@ -115,8 +117,11 @@ html.IsInIframe .StandaloneGrapherOrExplorerPage {
     .donate-footer,
     .cookie-notice,
     .site-footer,
-    .related-research-data,
     .explorerContentContainer {
         display: none;
+    }
+
+    .related-research-data {
+        max-width: 300px;
     }
 }

@@ -72,6 +72,8 @@ window.runSiteFooterScripts = () => {
     } else {
         hydrateProminentLink()
     }
+
+    window.GLightbox()
 }
 
 runMonkeyPatchForGoogleTranslate()

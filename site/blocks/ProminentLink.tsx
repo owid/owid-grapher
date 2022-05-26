@@ -13,6 +13,7 @@ import { Url } from "../../clientUtils/urls/Url.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { DEFAULT_GRAPHER_WIDTH } from "../../grapher/core/GrapherConstants.js"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -109,18 +110,18 @@ export class ProminentLink extends React.Component<{
         const renderDefaultStyle = () => {
             return (
                 <>
-                    {this.props.title ? (
-                        <h3>
-                            <span
-                                dangerouslySetInnerHTML={{
-                                    __html: this.props.title,
-                                }}
-                            />
-                            <FontAwesomeIcon icon={faArrowRight} />
-                        </h3>
-                    ) : null}
+                    {renderImage()}
                     <div className="content-wrapper">
-                        {renderImage()}
+                        {this.props.title ? (
+                            <h3>
+                                <span
+                                    dangerouslySetInnerHTML={{
+                                        __html: this.props.title,
+                                    }}
+                                />
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </h3>
+                        ) : null}
                         {renderContent()}
                     </div>
                 </>
@@ -136,7 +137,13 @@ export class ProminentLink extends React.Component<{
                 data-style={this.style}
                 data-title={this.props.title}
             >
-                <a href={this.updatedUrl.fullUrl} {...target}>
+                <a
+                    href={this.updatedUrl.fullUrl}
+                    className="glightbox"
+                    // see .related-research-data width
+                    data-width={`${DEFAULT_GRAPHER_WIDTH + 300}`}
+                    {...target}
+                >
                     {this.style === ProminentLinkStyles.thin
                         ? renderThinStyle()
                         : renderDefaultStyle()}

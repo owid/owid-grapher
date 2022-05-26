@@ -4,14 +4,12 @@ import {
     ALGOLIA_ID,
     TOPICS_CONTENT_GRAPH,
 } from "../../settings/clientSettings.js"
-
+import { ALGOLIA_GRAPH_INDEX } from "../../site/SearchGraph.js"
 import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
 import { countries } from "../../clientUtils/countries.js"
-
-export const CONTENT_GRAPH_ALGOLIA_INDEX = "graph"
 
 export const getAlgoliaClient = (): SearchClient | undefined => {
     if (!ALGOLIA_ID || !ALGOLIA_SECRET_KEY) {
@@ -147,7 +145,7 @@ export const configureAlgolia = async () => {
     })
 
     if (TOPICS_CONTENT_GRAPH) {
-        const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
+        const graphIndex = client.initIndex(ALGOLIA_GRAPH_INDEX)
 
         await graphIndex.setSettings({
             attributesForFaceting: [
