@@ -14,6 +14,8 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import { ProminentLink, ProminentLinkStyles } from "./blocks/ProminentLink.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 export const ALGOLIA_GRAPH_INDEX = "graph"
 const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
@@ -26,8 +28,18 @@ export const SearchGraph = () => {
             searchClient={searchClient}
             indexName={ALGOLIA_GRAPH_INDEX}
         >
-            <SearchBox onFocus={() => setShowHits(true)} />
-            {showHits ? (
+            <div className="search-box-reset">
+                <SearchBox onFocus={() => setShowHits(true)} />
+                {showHits && (
+                    <button
+                        className="close"
+                        onClick={() => setShowHits(false)}
+                    >
+                        <FontAwesomeIcon icon={faTimes} /> Close
+                    </button>
+                )}
+            </div>
+            {showHits && (
                 <div className="menu-hits">
                     <div className="menu">
                         <h4>Topics</h4>
@@ -43,7 +55,7 @@ export const SearchGraph = () => {
                     </div>
                     <Hits hitComponent={Hit} />
                 </div>
-            ) : null}
+            )}
         </InstantSearch>
     )
 }

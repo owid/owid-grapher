@@ -1,9 +1,19 @@
 .wp-block-search-graph {
     .menu-hits {
         display: flex;
+        min-height: 100vh;
 
         ul {
             padding-left: 1rem;
+        }
+    }
+
+    .search-box-reset {
+        display: flex;
+        button.close {
+            @include popover-box-button;
+            line-height: 1;
+            margin-left: 1rem;
         }
     }
 
