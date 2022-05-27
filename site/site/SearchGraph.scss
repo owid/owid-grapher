@@ -1,5 +1,39 @@
 .wp-block-search-graph {
     .menu-hits {
         display: flex;
+
+        ul {
+            padding-left: 1rem;
+        }
+    }
+
+    .menu {
+        flex: 0 0 10rem;
+    }
+
+    li {
+        line-height: 1.2;
+        &.ais-HierarchicalMenu-item--selected {
+            font-weight: bold;
+        }
+    }
+
+    .ais-Hits-list,
+    .ais-RefinementList-list {
+        list-style-type: none;
+    }
+
+    .ais-HierarchicalMenu-count,
+    .ais-RefinementList-count {
+        background-color: $primary-color-200;
+        border: 1px solid $primary-color-400;
+        padding: 3px;
+        margin-left: 0.5rem;
+        font-size: 0.8rem;
+        border-radius: 5px;
+    }
+
+    .ais-RefinementList-checkbox {
+        margin-right: 0.5rem;
     }
 }

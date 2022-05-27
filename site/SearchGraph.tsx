@@ -4,6 +4,7 @@ import {
     HierarchicalMenu,
     Hits,
     InstantSearch,
+    RefinementList,
     SearchBox,
 } from "react-instantsearch-hooks-web"
 import ReactDOM from "react-dom"
@@ -28,13 +29,18 @@ export const SearchGraph = () => {
             <SearchBox onFocus={() => setShowHits(true)} />
             {showHits ? (
                 <div className="menu-hits">
-                    <HierarchicalMenu
-                        attributes={[
-                            "topics.lvl0",
-                            "topics.lvl1",
-                            "topics.lvl2",
-                        ]}
-                    />
+                    <div className="menu">
+                        <h4>Topics</h4>
+                        <HierarchicalMenu
+                            attributes={[
+                                "topics.lvl0",
+                                "topics.lvl1",
+                                "topics.lvl2",
+                            ]}
+                        />
+                        <h4>Type</h4>
+                        <RefinementList attribute="type" />
+                    </div>
                     <Hits hitComponent={Hit} />
                 </div>
             ) : null}

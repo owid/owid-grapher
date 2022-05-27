@@ -158,7 +158,10 @@ const addEmbeddedChartsToGraph = async (
             try {
                 await graph.update(GraphType.Chart, {
                     id,
-                    push: { embeddedIn: document.id },
+                    push: {
+                        embeddedIn: document.id,
+                        parentTopics: document.id,
+                    },
                 })
             } catch (err) {
                 // ConflictErrors occur here when a chart <-> post
@@ -179,6 +182,18 @@ export const removeUnpublishedDocuments = async (graph: any): Promise<void> => {
 
     if (isEmpty(ids)) return
     await graph.delete(GraphType.Document, ids)
+}
+
+export const removeNonEmbeddedCharts = async (graph: any): Promise<void> => {
+    const ids = (
+        await graph.find(GraphType.Chart, null, {
+            fields: { id: true },
+            exists: { embeddedIn: false },
+        })
+    ).payload.records?.map((record: { id: number }) => record.id)
+
+    if (isEmpty(ids)) return
+    await graph.delete(GraphType.Chart, ids)
 }
 
 export const fortuneRecordTypes = {
@@ -220,8 +235,12 @@ export const getContentGraph = once(async () => {
         "",
         `categoryId: ${ENTRIES_CATEGORY_ID}, ${orderBy}`
     )
-    const posts = await getDocumentsInfo(WP_PostType.Post, "", orderBy)
-    const documents = [...entries, ...posts]
+    // const posts = await getDocumentsInfo(WP_PostType.Post, "", orderBy)
+    // const documents = [...entries, ...posts]
+    const documents = entries.filter((document) => {
+        // const allowed = [50901, 50932]
+        return [50901, 50932, 50936].includes(document.id)
+    })
     await addDocumentsToGraph(documents, graph)
 
     // Add all public charts
@@ -230,6 +249,8 @@ export const getContentGraph = once(async () => {
 
     // Add all embedded charts
     await addEmbeddedChartsToGraph(documents, graph)
+
+    await removeNonEmbeddedCharts(graph)
 
     // Unpublished topics might be referenced as a parent. As a result, only the
     // referential information (id) is present.
@@ -242,8 +263,8 @@ export const getContentGraph = once(async () => {
 // (see launch.json). This will let you inspect the graph without running the
 // risk of mistakenly sending thousands of records to Algolia.
 
-// const main = async (): Promise<void> => {
-//     const graph = await getContentGraph()
-// }
+const main = async (): Promise<void> => {
+    const graph = await getContentGraph()
+}
 
-// if (require.main === module) main()
+if (require.main === module) main()
