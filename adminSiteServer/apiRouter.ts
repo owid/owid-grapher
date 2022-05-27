@@ -58,22 +58,12 @@ import { JsonError, PostRow } from "../clientUtils/owidTypes.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
-// import {
-//     BinaryLogicOperation,
-//     BinaryLogicOperators,
-//     EqualityComparision,
-//     EqualityOperator,
-//     parseToOperation,
-//     SqlColumnName,
-//     StringAtom,
-// } from "../clientUtils/SqlFilterSExpression.js"
 import {
     OperationContext,
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import { parseIntOrUndefined } from "../clientUtils/Util.js"
-import { string } from "prop-types"
-//import parse = require("s-expression")
+
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
