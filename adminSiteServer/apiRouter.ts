@@ -57,15 +57,6 @@ import { JsonError, PostRow } from "../clientUtils/owidTypes.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
-// import {
-//     BinaryLogicOperation,
-//     BinaryLogicOperators,
-//     EqualityComparision,
-//     EqualityOperator,
-//     parseToOperation,
-//     SqlColumnName,
-//     StringAtom,
-// } from "../clientUtils/SqlFilterSExpression.js"
 import {
     OperationContext,
     parseToOperation,
