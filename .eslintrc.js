@@ -1,4 +1,5 @@
 module.exports = {
+    plugins: ["react-hooks"],
     extends: [
         "plugin:react/recommended",
         "plugin:@typescript-eslint/recommended",
@@ -45,6 +46,8 @@ module.exports = {
         "react/no-render-return-value": "warn",
         "react/no-unescaped-entities": "off", // This rule is overly noisy in JSX blocks when quotes are used for little gain
         "react/prop-types": "warn",
+        "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
+        "react-hooks/exhaustive-deps": "warn", // Checks effect dependencies
     },
     settings: {
         react: {
