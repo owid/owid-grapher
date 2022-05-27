@@ -72,6 +72,7 @@ import {
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import { parseIntOrUndefined } from "../clientUtils/Util.js"
+import { string } from "prop-types"
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
@@ -2484,6 +2485,40 @@ apiRouter.get("/deploys.json", async () => ({
 
 apiRouter.put("/deploy", async (req: Request, res: Response) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+})
+
+apiRouter.get("/details", async () => ({
+    details: await db.queryMysql(
+        `SELECT id, category, term, title, content  FROM details`
+    ),
+}))
+
+apiRouter.post("/details", async (req) => {
+    const { category, term, title, content } = req.body
+    const result = await db.execute(
+        `INSERT INTO details (category, term,title, content)
+            VALUES (?, ?, ?, ?)`,
+        [category, term, title, content]
+    )
+
+    return {
+        id: result.insertId,
+    }
+})
+
+apiRouter.delete("/details/:id", async (req) => {
+    const { id } = req.params
+
+    await db.execute(`DELETE FROM details WHERE id=?`, [id])
+})
+
+apiRouter.put("/details/:id", async (req) => {
+    const { id } = req.params
+    const { category, term, title, content } = req.body
+    await db.execute(
+        `UPDATE details SET category=?, term=?, title=?, content=? WHERE id = ?`,
+        [category, term, title, content, id]
+    )
 })
 
 export { apiRouter }
