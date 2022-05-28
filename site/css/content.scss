@@ -192,10 +192,10 @@ figure[data-explorer-src] {
 
         .wp-block-column {
             &:first-child {
-                margin-right: $padding-x-md / 2;
+                margin-right: $padding-x-md * 0.5;
             }
             &:last-child {
-                margin-left: $padding-x-md / 2;
+                margin-left: $padding-x-md * 0.5;
             }
         }
 
@@ -236,10 +236,10 @@ figure[data-explorer-src] {
     @include xlg-up {
         &.is-style-side-by-side {
             .wp-block-column {
-                flex: 0 0 ($text-max-content-width + $graph-max-content-width) /
-                    2;
-                max-width: ($text-max-content-width + $graph-max-content-width) /
-                    2; // forcing charts to behave when resizing up
+                flex: 0 0 ($text-max-content-width + $graph-max-content-width) *
+                    0.5;
+                max-width: ($text-max-content-width + $graph-max-content-width) *
+                    0.5; // forcing charts to behave when resizing up
             }
         }
     }
