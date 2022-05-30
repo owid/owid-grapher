@@ -233,6 +233,10 @@ const saveGrapher = async (
         return rows.length > 0
     }
 
+    if (validateSchema && !validateSchema(newConfig)) {
+        throw new JsonError(`Chart config failed schema validation`)
+    }
+
     // When a chart is published, check for conflicts
     if (newConfig.isPublished) {
         if (!isValidSlug(newConfig.slug))
@@ -1053,6 +1057,14 @@ apiRouter.post(
                     ])
                 }
             })
+
+            // Make sure that charts pass the schema validation before we insert them
+            for (const suggestedConfig of suggestedConfigs) {
+                if (validateSchema && !validateSchema(suggestedConfig))
+                    throw new JsonError(
+                        `Chart config did not pass schema validation: ${suggestedConfig.id}`
+                    )
+            }
 
             // inserts suggested chart revisions
             const result = await t.execute(
