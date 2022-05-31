@@ -13,6 +13,7 @@ import {
     excludeUndefined,
     isNumber,
     sortedUniqBy,
+    isMobile,
 } from "../../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -106,8 +107,6 @@ const LEGEND_PADDING = 25
 
 @observer
 class Lines extends React.Component<LinesProps> {
-    base: React.RefObject<SVGGElement> = React.createRef()
-
     @computed get bounds(): Bounds {
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(
@@ -234,7 +233,7 @@ class Lines extends React.Component<LinesProps> {
         const { bounds } = this
 
         return (
-            <g ref={this.base} className="Lines">
+            <g className="Lines">
                 <rect
                     x={Math.round(bounds.x)}
                     y={Math.round(bounds.y)}
@@ -328,8 +327,16 @@ export class LineChart
 
         const mouse = getRelativeMouse(this.base.current, ev)
 
+        const boxPadding = isMobile() ? 44 : 25
+
+        // expand the box width, so it's easier to see the tooltip for the first & last timepoints
+        const boundedBox = this.dualAxis.innerBounds.expand({
+            left: boxPadding,
+            right: boxPadding,
+        })
+
         let hoverX
-        if (this.dualAxis.innerBounds.contains(mouse)) {
+        if (boundedBox.contains(mouse)) {
             const closestValue = minBy(this.allValues, (point) =>
                 Math.abs(this.dualAxis.horizontalAxis.place(point.x) - mouse.x)
             )
@@ -396,6 +403,47 @@ export class LineChart
         return (
             this.isFocusMode &&
             !this.focusedSeriesNames.includes(series.seriesName)
+        )
+    }
+
+    @computed get activeXVerticalLine(): JSX.Element | undefined {
+        const { activeX, dualAxis } = this
+        const { horizontalAxis, verticalAxis } = dualAxis
+
+        if (activeX === undefined) return undefined
+
+        return (
+            <g className="hoverIndicator">
+                <line
+                    x1={horizontalAxis.place(activeX)}
+                    y1={verticalAxis.range[0]}
+                    x2={horizontalAxis.place(activeX)}
+                    y2={verticalAxis.range[1]}
+                    stroke="rgba(180,180,180,.4)"
+                />
+                {this.series.map((series) => {
+                    const value = series.points.find(
+                        (point) => point.x === activeX
+                    )
+                    if (!value || this.seriesIsBlurred(series)) return null
+
+                    return (
+                        <circle
+                            key={getSeriesKey(series)}
+                            cx={horizontalAxis.place(value.x)}
+                            cy={verticalAxis.place(value.y)}
+                            r={this.lineStrokeWidth / 2 + 3.5}
+                            fill={
+                                this.hasColorScale
+                                    ? this.getColorScaleColor(value.colorValue)
+                                    : series.color
+                            }
+                            stroke="#fff"
+                            strokeWidth={0.5}
+                        />
+                    )
+                })}
+            </g>
         )
     }
 
@@ -681,8 +729,8 @@ export class LineChart
                 />
             )
 
-        const { activeX, manager, tooltip, dualAxis, clipPath } = this
-        const { horizontalAxis, verticalAxis } = dualAxis
+        const { manager, tooltip, dualAxis, clipPath, activeXVerticalLine } =
+            this
 
         const comparisonLines = manager.comparisonLines || []
 
@@ -701,6 +749,11 @@ export class LineChart
                 onTouchMove={this.onCursorMove}
             >
                 {clipPath.element}
+                <rect {...this.bounds.toProps()} fill="transparent">
+                    {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
+                    whole charting area, including the axis, the entity labels, and the whitespace next to them.
+                    We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
+                </rect>
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
@@ -718,49 +771,13 @@ export class LineChart
                         dualAxis={dualAxis}
                         placedSeries={this.placedSeries}
                         hidePoints={manager.hidePoints}
-                        onHover={this.onHover}
                         focusedSeriesNames={this.focusedSeriesNames}
                         lineStrokeWidth={this.lineStrokeWidth}
                         lineOutlineWidth={this.lineOutlineWidth}
                         markerRadius={this.markerRadius}
                     />
                 </g>
-                {activeX !== undefined && (
-                    <g className="hoverIndicator">
-                        <line
-                            x1={horizontalAxis.place(activeX)}
-                            y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(activeX)}
-                            y2={verticalAxis.range[1]}
-                            stroke="rgba(180,180,180,.4)"
-                        />
-                        {this.series.map((series) => {
-                            const value = series.points.find(
-                                (point) => point.x === activeX
-                            )
-                            if (!value || this.seriesIsBlurred(series))
-                                return null
-
-                            return (
-                                <circle
-                                    key={getSeriesKey(series)}
-                                    cx={horizontalAxis.place(value.x)}
-                                    cy={verticalAxis.place(value.y)}
-                                    r={this.lineStrokeWidth / 2 + 3.5}
-                                    fill={
-                                        this.hasColorScale
-                                            ? this.getColorScaleColor(
-                                                  value.colorValue
-                                              )
-                                            : series.color
-                                    }
-                                    stroke="#fff"
-                                    strokeWidth={0.5}
-                                />
-                            )
-                        })}
-                    </g>
-                )}
+                {activeXVerticalLine}
 
                 {tooltip}
             </g>
