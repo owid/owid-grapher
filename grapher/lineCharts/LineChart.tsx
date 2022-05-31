@@ -329,7 +329,10 @@ export class LineChart
         const boxPadding = isMobile() ? 44 : 25
 
         // expand the box width, so it's easier to see the tooltip for the first & last timepoints
-        const boundedBox = this.dualAxis.innerBounds.padWidth(-boxPadding)
+        const boundedBox = this.dualAxis.innerBounds.expand({
+            left: boxPadding,
+            right: boxPadding,
+        })
 
         let hoverX
         if (boundedBox.contains(mouse)) {
