@@ -2491,6 +2491,7 @@ apiRouter.post("/details", async (req) => {
     )
 
     return {
+        success: true,
         id: result.insertId,
     }
 })
@@ -2521,6 +2522,7 @@ apiRouter.delete("/details/:id", async (req) => {
     }
 
     await db.execute(`DELETE FROM details WHERE id=?`, [id])
+    return { success: true }
 })
 
 apiRouter.put("/details/:id", async (req) => {
@@ -2530,6 +2532,7 @@ apiRouter.put("/details/:id", async (req) => {
         `UPDATE details SET category=?, term=?, title=?, content=? WHERE id = ?`,
         [category, term, title, content, id]
     )
+    return { success: true }
 })
 
 export { apiRouter }

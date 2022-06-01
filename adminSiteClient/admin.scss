@@ -39,6 +39,10 @@ body {
         @extend .clickable;
     }
 
+    .btn:disabled {
+        cursor: default;
+    }
+
     a.logout:hover:after {
         content: " (logout)";
     }
@@ -46,6 +50,21 @@ body {
     .navbar {
         z-index: 3;
         font-size: 0.95rem;
+    }
+
+    // overriding bootstrap defaults that break the navbar buttons
+    @media screen and (max-width: 992px) {
+        .navbar.navbar-expand-lg {
+            flex-wrap: nowrap;
+
+            .navbar-nav {
+                flex-direction: row;
+            }
+
+            .nav-link {
+                padding: 7px;
+            }
+        }
     }
 
     .navbar-brand {
@@ -1155,5 +1174,45 @@ main:not(.ChartEditorPage) {
         border-radius: 0.4em;
         margin: 0.4em 0;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+}
+
+.dod-table {
+    margin: 32px;
+    width: calc(100% - 64px);
+    white-space: pre-line;
+    background-color: #fafafa;
+
+    td span {
+        font-family: monospace;
+    }
+
+    td button {
+        width: 45%;
+    }
+
+    .dod-table-header--id {
+        width: 10%;
+    }
+    .dod-table-header--term {
+        width: 10%;
+    }
+    .dod-table-header--title {
+        width: 20%;
+    }
+    .dod-table-header--content {
+        width: 40%;
+    }
+    .dod-table-header--actions {
+        width: 20%;
+    }
+    .CodeMirror {
+        height: auto;
+    }
+
+    .react-codemirror2.details__codemirror {
+        // counteract the padding of  the codemirror input
+        margin: -4px;
+        outline: 1px solid #cbcbcb;
     }
 }
