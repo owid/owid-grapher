@@ -33,7 +33,6 @@ import {
     PostRestApi,
     TopicId,
     GraphType,
-    KeyInsight,
 } from "../clientUtils/owidTypes.js"
 import { memoize } from "../clientUtils/Util.js"
 import { Topic } from "../grapher/core/GrapherConstants.js"
