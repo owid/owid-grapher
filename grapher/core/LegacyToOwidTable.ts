@@ -256,7 +256,9 @@ const columnDefFromOwidVariable = (
         retrievedDate: source?.retrievedDate,
         additionalInfo: source?.additionalInfo,
         owidVariableId: variable.id,
-        type: isContinent ? ColumnTypeNames.Continent : ColumnTypeNames.Numeric,
+        type: isContinent
+            ? ColumnTypeNames.Continent
+            : ColumnTypeNames.MixedType,
     }
 }
 
