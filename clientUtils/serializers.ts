@@ -1,7 +1,7 @@
 const jsonCommentDelimiter = "\n//EMBEDDED_JSON\n"
 // Stringifies JSON for placing into an arbitrary doc, for later extraction without parsing the whole doc
 export const serializeJSONForHTML = (
-    obj: Record<string, unknown>,
+    obj: unknown,
     delimiter = jsonCommentDelimiter
 ): string =>
     `${delimiter}${
