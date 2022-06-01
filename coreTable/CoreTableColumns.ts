@@ -595,12 +595,12 @@ abstract class AbstractNumericColumn<
  * We strive to have clearly typed variables in the future, but for now our
  * grapher variables are still untyped. Most are number-only, but we also have some
  * string-only, and even some mixed ones.
- * Hence, MixedTypeColumn is used to store grapher variables.
+ * Hence, NumberOrStringColumn is used to store grapher variables.
  * It is not ideal that it extends AbstractNumericColumn, but that ensures that we
  * have implementations of formatValueShortWithAbbreviations and the like already.
  * -- @marcelgerber, 2022-07-01
  */
-class MixedTypeColumn extends AbstractNumericColumn<number | string> {
+class NumberOrStringColumn extends AbstractNumericColumn<number | string> {
     formatValue(value: any, options?: TickFormattingOptions): string {
         if (isNumber(value)) {
             return super.formatValue(value, options)
@@ -776,7 +776,7 @@ export const ColumnTypeMap = {
     Categorical: CategoricalColumn,
     Region: RegionColumn,
     Continent: ContinentColumn,
-    MixedType: MixedTypeColumn,
+    NumberOrString: NumberOrStringColumn,
     Numeric: NumericColumn,
     Day: DayColumn,
     Date: DateColumn,

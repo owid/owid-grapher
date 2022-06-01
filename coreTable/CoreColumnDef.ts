@@ -3,7 +3,7 @@ import { ColumnSlug } from "../clientUtils/owidTypes.js"
 import { CoreValueType, Color } from "./CoreTableConstants.js"
 
 export enum ColumnTypeNames {
-    MixedType = "MixedType",
+    NumberOrString = "NumberOrString",
     Numeric = "Numeric",
     String = "String",
     Region = "Region",

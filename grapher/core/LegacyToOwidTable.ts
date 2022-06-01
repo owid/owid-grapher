@@ -258,7 +258,7 @@ const columnDefFromOwidVariable = (
         owidVariableId: variable.id,
         type: isContinent
             ? ColumnTypeNames.Continent
-            : ColumnTypeNames.MixedType,
+            : ColumnTypeNames.NumberOrString,
     }
 }
 

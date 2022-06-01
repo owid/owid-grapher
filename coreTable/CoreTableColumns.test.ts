@@ -47,8 +47,10 @@ describe(ColumnTypeNames.Quarter, () => {
     })
 })
 
-describe(ColumnTypeMap.MixedType, () => {
-    const col = new ColumnTypeMap.MixedType(new OwidTable(), { slug: "test" })
+describe(ColumnTypeMap.NumberOrString, () => {
+    const col = new ColumnTypeMap.NumberOrString(new OwidTable(), {
+        slug: "test",
+    })
 
     it("should format values correctly", () => {
         expect(col.formatValue(null)).toEqual("")
@@ -61,6 +63,7 @@ describe(ColumnTypeMap.MixedType, () => {
     it("should parse values correctly", () => {
         expect(col.parse(1.19)).toEqual(1.19)
         expect(col.parse("1.19")).toEqual(1.19)
+        expect(col.parse(-5.62431784101729e-5)).toEqual(-5.62431784101729e-5)
         expect(col.parse("test")).toEqual("test")
     })
 })
