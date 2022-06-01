@@ -175,7 +175,7 @@ export class OldChart {
 
     id: number
     config: any
-    constructor(id: number, config: any) {
+    constructor(id: number, config: Record<string, unknown>) {
         this.id = id
         this.config = config
 

@@ -117,9 +117,7 @@ export class SuggestedChartRevision extends BaseEntity {
         return false
     }
 
-    static checkCanPending(
-        suggestedChartRevision: SuggestedChartRevision
-    ): boolean {
+    static checkCanPending(): boolean {
         // note: a suggestion cannot be altered to pending from another status
         return false
     }

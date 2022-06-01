@@ -23,6 +23,7 @@ import {
     ErrorValue,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
+    DroppedForTesting,
 } from "./ErrorValues.js"
 import {
     OwidEntityCodeColumnDef,
@@ -119,7 +120,7 @@ export const standardizeSlugs = (
 
 export const guessColumnDefFromSlugAndRow = (
     slug: string,
-    sampleValue: any
+    sampleValue: unknown
 ): CoreColumnDef => {
     const valueType = typeof sampleValue
 
@@ -165,7 +166,7 @@ export const guessColumnDefFromSlugAndRow = (
         }
 
     if (valueType === "string") {
-        if (sampleValue.match(/^\d+$/))
+        if (String(sampleValue).match(/^\d+$/))
             return {
                 slug,
                 type: ColumnTypeNames.Numeric,
@@ -188,6 +189,7 @@ export const makeRowFromColumnStore = (
     return row
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface InterpolationContext {}
 
 export interface LinearInterpolationContext extends InterpolationContext {
@@ -532,7 +534,8 @@ export const replaceRandomCellsInColumnStore = (
     howMany = 1,
     columnSlugs: ColumnSlug[] = [],
     seed = Date.now(),
-    replacementGenerator: () => any = () => ErrorValueTypes.DroppedForTesting
+    replacementGenerator: () => any = (): DroppedForTesting =>
+        ErrorValueTypes.DroppedForTesting
 ): CoreColumnStore => {
     const newStore: CoreColumnStore = Object.assign({}, columnStore)
     columnSlugs.forEach((slug) => {
@@ -616,7 +619,7 @@ export const rowsToMatrix = (rows: any[]): CoreMatrix | undefined =>
 
 const isRowEmpty = (row: any[]): boolean => row.every(isCellEmpty)
 
-export const isCellEmpty = (cell: any): boolean =>
+export const isCellEmpty = (cell: unknown): boolean =>
     cell === null || cell === undefined || cell === ""
 
 export const trimEmptyRows = (matrix: CoreMatrix): CoreMatrix => {

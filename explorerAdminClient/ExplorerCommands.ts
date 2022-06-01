@@ -38,6 +38,7 @@ abstract class HotCommand {
 
     // handles the "this" binding needed by HOT
     toHotCommand(): HotContextMenu.MenuItemConfig {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const baseCommand = this
         return {
             name: function () {

@@ -110,7 +110,10 @@ it("creates compact labels", () => {
 })
 
 describe("singleValueAxisPointAlign", () => {
-    const testAlign = (align: AxisAlign | undefined, expected: number) => {
+    const testAlign = (
+        align: AxisAlign | undefined,
+        expected: number
+    ): void => {
         const config: AxisConfigInterface = {
             min: 0,
             max: 0,

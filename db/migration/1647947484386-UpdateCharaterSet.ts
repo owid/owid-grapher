@@ -45,5 +45,6 @@ SET FOREIGN_KEY_CHECKS = 1;
         }
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public async down(): Promise<void> {}
 }

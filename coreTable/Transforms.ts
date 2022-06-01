@@ -188,7 +188,7 @@ const multiplyBy = (
     columnStore: CoreColumnStore,
     columnSlug: ColumnSlug,
     factor: number
-) =>
+): (number | ErrorValue)[] =>
     columnStore[columnSlug].map((value) =>
         isNotErrorValue(value) ? (value as number) * factor : value
     )
@@ -197,7 +197,7 @@ const subtract = (
     columnStore: CoreColumnStore,
     columnSlugA: ColumnSlug,
     columnSlugB: ColumnSlug
-) => {
+): number[] => {
     const values = columnStore[columnSlugA] as number[]
     const subValues = columnStore[columnSlugB] as number[]
     return subValues.map((subValue, index) => {
@@ -227,20 +227,22 @@ const where = (
     const values = columnStore[columnSlug]
     const conditionValues = columnStore[conditionSlug]
     const operator = condition.shift()
-    let passes = (value: any) => true
+    let passes: (value: any) => boolean = () => true
     if (operator === WhereOperators.isNot || operator === WhereOperators.is) {
         const result = operator === "isNot" ? false : true
         const list = condition.join(" ").split(" or ")
         const set = new Set(list)
-        passes = (value: any) => (set.has(value) ? result : !result)
+        passes = (value: any): boolean => (set.has(value) ? result : !result)
     } else if (operator === WhereOperators.isGreaterThan)
-        passes = (value: any) => value > parseFloat(condition.join(""))
+        passes = (value: any): boolean => value > parseFloat(condition.join(""))
     else if (operator === WhereOperators.isGreaterThanOrEqual)
-        passes = (value: any) => value >= parseFloat(condition.join(""))
+        passes = (value: any): boolean =>
+            value >= parseFloat(condition.join(""))
     else if (operator === WhereOperators.isLessThan)
-        passes = (value: any) => value < parseFloat(condition.join(""))
+        passes = (value: any): boolean => value < parseFloat(condition.join(""))
     else if (operator === WhereOperators.isLessThanOrEqual)
-        passes = (value: any) => value <= parseFloat(condition.join(""))
+        passes = (value: any): boolean =>
+            value <= parseFloat(condition.join(""))
 
     return values.map((value, index) =>
         passes(conditionValues[index]) ? value : ErrorValueTypes.FilteredValue

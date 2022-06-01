@@ -269,14 +269,13 @@ export class Bounds {
     }
 
     intersects(otherBounds: Bounds): boolean {
-        const r1 = this
         const r2 = otherBounds
 
         return !(
-            r2.left > r1.right ||
-            r2.right < r1.left ||
-            r2.top > r1.bottom ||
-            r2.bottom < r1.top
+            r2.left > this.right ||
+            r2.right < this.left ||
+            r2.top > this.bottom ||
+            r2.bottom < this.top
         )
     }
 
