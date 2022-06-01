@@ -80,7 +80,10 @@ export class GridProgram {
     private ring(position: CellPosition) {
         const matrix = this.asArrays
         const numRows = matrix.length
-        if (!numRows) return (function* generator() {})()
+        if (!numRows)
+            return (function* generator() {
+                // no rows to iterate over
+            })()
         const pointer = {
             ...position,
             started: false,

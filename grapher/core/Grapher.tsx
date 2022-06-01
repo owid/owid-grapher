@@ -140,6 +140,7 @@ import {
     EntityId,
     EntityName,
     OwidColumnDef,
+    OwidVariableRow,
 } from "../../coreTable/OwidTableConstants.js"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import * as Mousetrap from "mousetrap"
@@ -149,7 +150,7 @@ import {
     DefaultChartClass,
 } from "../chart/ChartTypeMap.js"
 import { ColorSchemeName } from "../color/ColorConstants.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { Entity, SelectionArray } from "../selection/SelectionArray.js"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants.js"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils.js"
@@ -1622,7 +1623,7 @@ export class Grapher
     }
 
     // Filter data to what can be display on the map (across all times)
-    @computed get mappableData() {
+    @computed get mappableData(): OwidVariableRow<any>[] {
         return this.inputTable
             .get(this.mapColumnSlug)
             .owidRows.filter((row) => isOnTheMap(row.entityName))
@@ -1860,7 +1861,7 @@ export class Grapher
             this.props.table?.availableEntities ?? []
         )
 
-    @computed get availableEntities() {
+    @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities
     }
 
@@ -2499,7 +2500,7 @@ export class Grapher
 
     @computed get timeParam(): string | undefined {
         const { timeColumn } = this.table
-        const formatTime = (t: Time) =>
+        const formatTime = (t: Time): string =>
             timeBoundToTimeBoundString(
                 t,
                 timeColumn instanceof ColumnTypeMap.Day

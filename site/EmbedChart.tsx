@@ -11,7 +11,6 @@ import { Grapher } from "../grapher/core/Grapher.js"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
 import { Url } from "../clientUtils/urls/Url.js"
-import { excludeUndefined } from "../clientUtils/Util.js"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {

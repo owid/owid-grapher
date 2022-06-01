@@ -20,7 +20,7 @@ export const useTriggerWhenClickOutside = (
         return () => {
             document.removeEventListener("mousedown", handleClick)
         }
-    }, [active])
+    }, [active, container, trigger])
 }
 
 export enum ScrollDirection {
@@ -29,11 +29,10 @@ export enum ScrollDirection {
 }
 
 export const useScrollDirection = () => {
-    let lastScrollY = window.pageYOffset
-
     const [direction, setDirection] = useState<null | ScrollDirection>(null)
 
     useEffect(() => {
+        let lastScrollY = window.pageYOffset
         const updateDirection = () => {
             const scrollY = window.pageYOffset
             setDirection(

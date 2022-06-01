@@ -45,6 +45,12 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     onBarMouseLeave: () => void
 }
 
+interface TickmarkPlacement {
+    text: string
+    bounds: Bounds
+    isHidden: boolean
+}
+
 @observer
 class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     base: React.RefObject<SVGRectElement> = React.createRef()
@@ -328,7 +334,7 @@ export class StackedBarChart
     }
 
     // Place ticks centered beneath the bars, before doing overlap detection
-    @computed private get tickPlacements() {
+    @computed private get tickPlacements(): TickmarkPlacement[] {
         const { mapXValueToOffset, barWidth, dualAxis } = this
         const { xValues } = this
         const { horizontalAxis } = dualAxis
@@ -349,7 +355,7 @@ export class StackedBarChart
         })
     }
 
-    @computed get ticks() {
+    @computed get ticks(): TickmarkPlacement[] {
         const { tickPlacements } = this
 
         for (let i = 0; i < tickPlacements.length; i++) {
@@ -377,8 +383,6 @@ export class StackedBarChart
     @action.bound onLegendMouseLeave(): void {
         this.hoverColor = undefined
     }
-
-    @action.bound onLegendClick(): void {}
 
     @action.bound onBarMouseOver(
         bar: StackedPoint<Time>,
