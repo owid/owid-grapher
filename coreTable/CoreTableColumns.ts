@@ -515,12 +515,12 @@ class BooleanColumn extends AbstractCoreColumn<boolean> {
     }
 }
 
-abstract class AbstractNumericColumn<
-    T extends PrimitiveType = number
+abstract class AbstractColumnWithNumberFormatting<
+    T extends PrimitiveType
 > extends AbstractCoreColumn<T> {
     jsType = JsTypes.number
 
-    formatValue(value: number, options?: TickFormattingOptions): string {
+    formatValue(value: any, options?: TickFormattingOptions): string {
         if (isNumber(value)) {
             return formatValue(value, {
                 numDecimalPlaces: this.numDecimalPlaces,
@@ -531,7 +531,7 @@ abstract class AbstractNumericColumn<
     }
 
     formatValueShortWithAbbreviations(
-        value: number,
+        value: any,
         options?: TickFormattingOptions
     ): string {
         return super.formatValueShortWithAbbreviations(value, {
@@ -548,7 +548,7 @@ abstract class AbstractNumericColumn<
         })
     }
 
-    formatValueShort(value: number, options?: TickFormattingOptions): string {
+    formatValueShort(value: any, options?: TickFormattingOptions): string {
         return super.formatValueShort(value, {
             ...omitUndefinedValues({
                 unit: this.shortUnit,
@@ -557,7 +557,7 @@ abstract class AbstractNumericColumn<
         })
     }
 
-    formatValueLong(value: number, options?: TickFormattingOptions): string {
+    formatValueLong(value: any, options?: TickFormattingOptions): string {
         return super.formatValueLong(value, {
             ...omitUndefinedValues({
                 unit: this.unit,
@@ -571,15 +571,46 @@ abstract class AbstractNumericColumn<
             (val) => typeof val === "number" && val % 1 === 0
         )
     }
+}
 
-    parse(val: any): number | T | ErrorValue {
+/**
+ * We strive to have clearly typed variables in the future, but for now our
+ * grapher variables are still untyped. Most are number-only, but we also have some
+ * string-only, and even some mixed ones.
+ * Hence, NumberOrStringColumn is used to store grapher variables.
+ * It extends AbstractColumnWithNumberFormatting, which ensures that we have
+ * implementations of formatValueShortWithAbbreviations and the like already.
+ * -- @marcelgerber, 2022-07-01
+ */
+class NumberOrStringColumn extends AbstractColumnWithNumberFormatting<
+    number | string
+> {
+    formatValue(value: any, options?: TickFormattingOptions): string {
+        if (isNumber(value)) {
+            return super.formatValue(value, options)
+        }
+        return anyToString(value)
+    }
+    parse(val: any): number | string | ErrorValue {
+        if (val === null) return ErrorValueTypes.NullButShouldBeNumber
+        if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
+        if (Number.isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
+
+        const num = parseFloat(val)
+        if (Number.isNaN(num)) return val // return string value
+
+        return num
+    }
+}
+
+abstract class AbstractNumericColumn extends AbstractColumnWithNumberFormatting<number> {
+    parse(val: any): number | ErrorValue {
         if (val === null) return ErrorValueTypes.NullButShouldBeNumber
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
         if (val === "") return ErrorValueTypes.BlankButShouldBeNumber
         if (isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
 
         const res = this._parse(val)
-
         if (isNaN(res))
             return ErrorValueTypes.NotAParseableNumberButShouldBeNumber
 
@@ -588,36 +619,6 @@ abstract class AbstractNumericColumn<
 
     protected _parse(val: any): number {
         return parseFloat(val)
-    }
-}
-
-/**
- * We strive to have clearly typed variables in the future, but for now our
- * grapher variables are still untyped. Most are number-only, but we also have some
- * string-only, and even some mixed ones.
- * Hence, NumberOrStringColumn is used to store grapher variables.
- * It is not ideal that it extends AbstractNumericColumn, but that ensures that we
- * have implementations of formatValueShortWithAbbreviations and the like already.
- * -- @marcelgerber, 2022-07-01
- */
-class NumberOrStringColumn extends AbstractNumericColumn<number | string> {
-    formatValue(value: any, options?: TickFormattingOptions): string {
-        if (isNumber(value)) {
-            return super.formatValue(value, options)
-        }
-        return anyToString(value)
-    }
-
-    parse(val: any): number | string | ErrorValue {
-        if (val === null) return ErrorValueTypes.NullButShouldBeNumber
-        if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
-        if (Number.isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
-
-        const num = parseFloat(val)
-
-        if (Number.isNaN(num)) return val
-
-        return num
     }
 }
 
