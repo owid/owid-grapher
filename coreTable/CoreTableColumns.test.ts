@@ -46,3 +46,21 @@ describe(ColumnTypeNames.Quarter, () => {
         expect(csvFormatted).toEqual("2020-Q1")
     })
 })
+
+describe(ColumnTypeMap.MixedType, () => {
+    const col = new ColumnTypeMap.MixedType(new OwidTable(), { slug: "test" })
+
+    it("should format values correctly", () => {
+        expect(col.formatValue(null)).toEqual("")
+        expect(col.formatValue("")).toEqual("")
+        expect(col.formatValue("test")).toEqual("test")
+        expect(col.formatValue(1.19)).toEqual("1.19")
+        expect(col.formatValue(1.191919)).toEqual("1.19")
+    })
+
+    it("should parse values correctly", () => {
+        expect(col.parse(1.19)).toEqual(1.19)
+        expect(col.parse("1.19")).toEqual(1.19)
+        expect(col.parse("test")).toEqual("test")
+    })
+})
