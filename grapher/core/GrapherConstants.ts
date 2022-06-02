@@ -20,6 +20,9 @@ export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 
+export const DEFAULT_GRAPHER_WIDTH = 850
+export const DEFAULT_GRAPHER_HEIGHT = 600
+
 export enum CookieKey {
     isAdmin = "isAdmin",
 }
@@ -47,6 +50,9 @@ export enum FacetStrategy {
 
 export enum FacetAxisDomain {
     independent = "independent", // all facets have their own y domain
+    // TODO: rename to "uniform", since "shared" has a different meaning when
+    // axes are being plotted (it means the axis is omitted).
+    // Need to migrate Grapher & Explorer configs.
     shared = "shared", // all facets share the same y domain
 }
 

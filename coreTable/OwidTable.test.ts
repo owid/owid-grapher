@@ -197,21 +197,6 @@ iceland,ice,123123456.2,3
 usa,us,23,`)
 })
 
-describe("filtering", () => {
-    it("can filter by population", () => {
-        const table = SynthesizeFruitTable({ timeRange: [2000, 2001] })
-        expect(table.filterByPopulationExcept(100).numRows).toEqual(2)
-    })
-
-    it("can filter by population on empty table", () => {
-        const table = BlankOwidTable()
-        expect(
-            table.filterByPopulationExcept(1).filterByPopulationExcept(1e12)
-                .numRows
-        ).toEqual(0)
-    })
-})
-
 describe("time filtering", () => {
     it("can filter by time domain", () => {
         const table = SynthesizeGDPTable({

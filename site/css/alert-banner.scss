@@ -3,7 +3,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: $vertical-spacing / 2 1rem; // match header spacing
+        padding: $vertical-spacing * 0.5 1rem; // match header spacing
         color: $primary-color;
         font-size: 0.9rem;
         background-color: $tertiary-color;

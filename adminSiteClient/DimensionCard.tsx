@@ -11,13 +11,13 @@ import {
     ColorBox,
 } from "./Forms.js"
 import { Link } from "./Link.js"
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown.js"
-import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp.js"
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt.js"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
+import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
+import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "../coreTable/OwidTable.js"
-import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV.js"
+import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 
 @observer
 export class DimensionCard extends React.Component<{
@@ -136,7 +136,7 @@ export class DimensionCard extends React.Component<{
                                 className="clickable"
                                 onClick={this.props.onEdit}
                             >
-                                <FontAwesomeIcon icon={faExchangeAlt} />
+                                <FontAwesomeIcon icon={faRightLeft} />
                             </div>
                         )}
                         {this.props.onRemove && (

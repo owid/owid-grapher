@@ -12,10 +12,10 @@ import { observer } from "mobx-react"
 
 import { pick, capitalize } from "../clientUtils/Util.js"
 import { Colorpicker } from "./Colorpicker.js"
-import { faCog } from "@fortawesome/free-solid-svg-icons/faCog.js"
-import { faLink } from "@fortawesome/free-solid-svg-icons/faLink.js"
-import { faPaintBrush } from "@fortawesome/free-solid-svg-icons/faPaintBrush.js"
-import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink.js"
+import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
+import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
+import { faPaintbrush } from "@fortawesome/free-solid-svg-icons/faPaintbrush"
+import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export class FieldsRow extends React.Component {
@@ -539,7 +539,7 @@ export class ColorBox extends React.Component<{
             >
                 <div className="ColorBox" style={style}>
                     {color === undefined && (
-                        <FontAwesomeIcon icon={faPaintBrush} />
+                        <FontAwesomeIcon icon={faPaintbrush} />
                     )}
                 </div>
             </Tippy>
@@ -948,7 +948,7 @@ import { TagBadge, Tag } from "./TagBadge.js"
 
 import ReactTags from "react-tag-autocomplete"
 import { Tippy } from "../grapher/chart/Tippy.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle.js"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer
 class EditTags extends React.Component<{

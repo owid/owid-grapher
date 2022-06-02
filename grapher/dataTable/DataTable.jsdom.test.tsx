@@ -119,21 +119,3 @@ describe("when the table doesn't have data for all rows", () => {
         expect(view.find(".closest-time-notice-icon").text()).toContain("2001")
     })
 })
-
-describe("when you try to hide countries", () => {
-    let grapher: Grapher
-    let view: ShallowWrapper
-    beforeAll(() => {
-        grapher = childMortalityGrapher()
-        view = shallow(<DataTable manager={grapher} />)
-    })
-
-    it("initially renders small countries", () => {
-        expect(view.find("tbody tr")).toHaveLength(2)
-    })
-
-    it("renders no small countries after filter is added", () => {
-        grapher.minPopulationFilter = 1e6
-        expect(view.find("tbody tr")).toHaveLength(1)
-    })
-})

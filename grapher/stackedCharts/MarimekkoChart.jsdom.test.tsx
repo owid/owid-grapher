@@ -69,7 +69,7 @@ it("can filter years correctly", () => {
         { value: 1000, entity: "small", time: 2001 },
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries.points).toEqual(expectedXPoints)
+    expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
         {
@@ -172,7 +172,7 @@ it("shows no data points at the end", () => {
         { value: 1000, entity: "small", time: 2001 },
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries.points).toEqual(expectedXPoints)
+    expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
         {
@@ -279,7 +279,7 @@ test("interpolation works as expected", () => {
         { value: 1000, entity: "small", time: 2001 },
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries.points).toEqual(expectedXPoints)
+    expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
         {
@@ -407,7 +407,7 @@ it("can deal with y columns with missing values", () => {
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints1)
     expect(chart.series[1].points).toEqual(expectedYPoints2)
-    expect(chart.xSeries.points).toEqual(expectedXPoints)
+    expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
         {

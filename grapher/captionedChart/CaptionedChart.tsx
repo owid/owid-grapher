@@ -18,14 +18,12 @@ import { MapChartManager } from "../mapCharts/MapChartConstants.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
 import { FacetChart } from "../facetChart/FacetChart.js"
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt.js"
+import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList.js"
 import {
     ZoomToggle,
     AbsRelToggle,
-    FilterSmallCountriesToggle,
-    SmallCountriesFilterManager,
     AbsRelToggleManager,
     FacetYDomainToggle,
     FacetYDomainToggleManager,
@@ -35,7 +33,7 @@ import {
 } from "../controls/Controls.js"
 import { ScaleSelector } from "../controls/ScaleSelector.js"
 import { AddEntityButton } from "../controls/AddEntityButton.js"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt.js"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "../footer/FooterManager.js"
 import { HeaderManager } from "../header/HeaderManager.js"
 import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
@@ -46,7 +44,6 @@ import { AxisConfig } from "../axis/AxisConfig.js"
 export interface CaptionedChartManager
     extends ChartManager,
         MapChartManager,
-        SmallCountriesFilterManager,
         AbsRelToggleManager,
         FooterManager,
         HeaderManager,
@@ -64,7 +61,6 @@ export interface CaptionedChartManager
     whatAreWeWaitingFor?: string
     entityType?: string
     entityTypePlural?: string
-    showSmallCountriesFilterToggle?: boolean
     showYScaleToggle?: boolean
     showXScaleToggle?: boolean
     showZoomToggle?: boolean
@@ -246,7 +242,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     className="ChangeEntityButton"
                     onClick={this.startSelecting}
                 >
-                    <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                    <FontAwesomeIcon icon={faRightLeft} /> Change{" "}
                     {manager.entityType}
                 </button>
             )
@@ -283,14 +279,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             controls.push(
                 <FacetYDomainToggle
                     key="FacetYDomainToggle"
-                    manager={manager}
-                />
-            )
-
-        if (manager.showSmallCountriesFilterToggle)
-            controls.push(
-                <FilterSmallCountriesToggle
-                    key="FilterSmallCountriesToggle"
                     manager={manager}
                 />
             )

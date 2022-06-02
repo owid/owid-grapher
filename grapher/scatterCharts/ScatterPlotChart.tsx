@@ -302,7 +302,7 @@ export class ScatterPlotChart
     // This is why we need the table before the timeline filter is applied.
     @computed private get colorsInUse(): Color[] {
         const allValues =
-            this.manager.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter?.get(
+            this.manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
                 this.colorColumnSlug
             )?.valuesIncludingErrorValues ?? []
         // Need to convert InvalidCell to undefined for color scale to assign correct color

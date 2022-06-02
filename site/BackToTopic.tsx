@@ -2,7 +2,7 @@ import React from "react"
 import { SubNavId } from "../clientUtils/owidTypes.js"
 import { getSubnavItem, subnavs } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons/faArrowLeft.js"
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons/faArrowLeft"
 
 export const BackToTopic = ({
     subnavId,

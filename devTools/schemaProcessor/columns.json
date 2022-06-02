@@ -2,7 +2,7 @@
     {
         "type": "string",
         "pointer": "/$schema",
-        "default": "https://owid.nyc3.digitaloceanspaces.com/schemas/grapher-schema.v001.json",
+        "default": "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
         "editor": "textfield"
     },
     {
@@ -759,11 +759,6 @@
         "pointer": "/zoomToSelection",
         "default": false,
         "editor": "checkbox"
-    },
-    {
-        "type": "integer",
-        "pointer": "/minPopulationFilter",
-        "editor": "numeric"
     },
     {
         "type": "boolean",

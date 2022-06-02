@@ -88,7 +88,8 @@ export class Bounds {
 
         const isBold = fontWeight >= 600
 
-        let bounds = Bounds.empty()
+        const height = fontSize
+        let bounds = new Bounds(x, y - height, 0, height)
         if (str) {
             // pixelWidth uses a precomputed character width table to quickly give a
             // rough estimate of string width based on characters in a string - it is probably not
@@ -98,8 +99,7 @@ export class Bounds {
                 size: fontSize,
                 bold: isBold,
             })
-            const height = fontSize
-            bounds = new Bounds(x, y - height, width, height)
+            bounds = bounds.set({ width })
         }
 
         return bounds

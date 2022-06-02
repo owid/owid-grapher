@@ -83,12 +83,12 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                                             )}
                                         >
                                             {indicator.name}
-                                            {indicator.variantName
-                                                ? " (" +
-                                                  indicator.variantName +
-                                                  ")"
-                                                : ""}
                                         </a>
+                                        {indicator.variantName && (
+                                            <span className="variantName">
+                                                {indicator.variantName}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="indicatorValue">
                                         ({indicator.year})

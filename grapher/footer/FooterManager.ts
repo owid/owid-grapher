@@ -1,4 +1,4 @@
-import { TooltipProps } from "../tooltip/TooltipProps.js"
+import { TooltipManager } from "../tooltip/TooltipProps.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
 
 export interface FooterManager {
@@ -10,6 +10,6 @@ export interface FooterManager {
     originUrlWithProtocol?: string
     isMediaCard?: boolean
     currentTab?: string
-    tooltip?: TooltipProps
+    tooltips?: TooltipManager["tooltips"]
     tabBounds?: Bounds
 }

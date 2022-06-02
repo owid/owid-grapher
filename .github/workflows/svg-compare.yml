@@ -1,5 +1,5 @@
 name: SVG diff
-on: [push]
+on: [push, pull_request]
 
 jobs:
     svgTester:
@@ -12,10 +12,19 @@ jobs:
             - uses: ./.github/actions/setup-node-yarn-deps
             - uses: ./.github/actions/build-tsc
 
-            - name: Extract branch name
+            - name: Set branch name and token for OWID runs
+              if: ${{ github.repository_owner == 'owid' }}
               shell: bash
-              run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-              id: extract_branch
+              run: |
+                  echo "PUSH_BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+                  echo "TOKEN=${{ secrets.GITHUBPAT }}" >> $GITHUB_ENV
+
+            - name: Set branch name and token for runs from a fork
+              if: ${{ github.repository_owner != 'owid' }}
+              shell: bash
+              run: |
+                  echo "PUSH_BRANCH_NAME=${{ github.repository_owner }}/${{ github.ref_name }}" >> $GITHUB_ENV
+                  echo "TOKEN=${{ github.token }}" >> $GITHUB_ENV
 
             # Checkout the owid-grapher-svgs repo into a subfolder. Use a Personal Access Token for checkout so the
             # action will have permission to push later on if required.
@@ -24,15 +33,15 @@ jobs:
               with:
                   repository: "owid/owid-grapher-svgs"
                   path: owid-grapher-svgs
-                  token: ${{ secrets.GITHUBPAT }}
+                  token: ${{ env.TOKEN }}
 
             # Switch to or create a branch on that repo that matches the branch name we are on in the owid-grapher repo
             # but only do this if we are not on master in owid-graphers (in this case we want to commit and push on master
             # in owid-grapher-svgs as well)
             - name: create owid-grapher-svgs local branch
-              if: ${{ steps.extract_branch.outputs.branch != 'master'}}
+              if: ${{ env.PUSH_BRANCH_NAME != 'master'}}
               working-directory: owid-grapher-svgs
-              run: git branch ${{ steps.extract_branch.outputs.branch }} && git checkout ${{ steps.extract_branch.outputs.branch }}
+              run: git branch ${{ env.PUSH_BRANCH_NAME }} && git checkout ${{ env.PUSH_BRANCH_NAME }}
 
             # Run the verify tool overwriting any svgs. Stdout is piped to compare-result which will be a 0 byte file if everything works or contain failed grapher ids otherwise
             - name: Run tests & checks
@@ -45,7 +54,7 @@ jobs:
               if: ${{ steps.run-verify-graphs.outcome == 'failure' }}
               with:
                   repository: ./owid-grapher-svgs/
-                  branch: ${{ steps.extract_branch.outputs.branch }}
+                  branch: ${{ env.PUSH_BRANCH_NAME }}
                   push_options: "--force"
                   commit_message: Automated commit with svg differences triggered by commit https://github.com/owid/owid-grapher/commit/${{github.sha}}
 
@@ -53,8 +62,8 @@ jobs:
             # we do not want to fail because the differences on master are intended to be authorative and thus there is no
             # reason to mark this action as failed.
             - name: Fail with error message if we had differences
-              if: ${{ steps.run-verify-graphs.outcome == 'failure' && steps.extract_branch.outputs.branch != 'master' }}
+              if: ${{ steps.run-verify-graphs.outcome == 'failure' && env.PUSH_BRANCH_NAME != 'master' }}
               uses: actions/github-script@v3
               with:
                   script: |
-                      core.setFailed('SVGs were different from reference! Please check diffs at https://github.com/owid/owid-grapher-svgs/commits/${{ steps.extract_branch.outputs.branch }}')
+                      core.setFailed('SVGs were different from reference! Please check diffs at https://github.com/owid/owid-grapher-svgs/commits/${{ env.PUSH_BRANCH_NAME }}')

@@ -37,15 +37,15 @@ import { SelectionArray } from "../selection/SelectionArray.js"
 import { CategoricalBin } from "../color/ColorScaleBin.js"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends.js"
 
-export interface AbstactStackedChartProps {
+export interface AbstractStackedChartProps {
     bounds?: Bounds
     manager: ChartManager
     disableLinearInterpolation?: boolean // just for testing
 }
 
 @observer
-export class AbstactStackedChart
-    extends React.Component<AbstactStackedChartProps>
+export class AbstractStackedChart
+    extends React.Component<AbstractStackedChartProps>
     implements ChartInterface, FontSizeManager
 {
     transformTable(table: OwidTable): OwidTable {

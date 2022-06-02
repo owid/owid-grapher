@@ -103,13 +103,17 @@ export class TextWrap {
                 startsWithNewline(word) ||
                 (nextBounds.width + 10 > maxWidth && line.length >= 1)
             ) {
+                const wordWithoutNewline = word.replace(/^\n/, "")
                 lines.push({
                     text: line.join(" "),
                     width: lineBounds.width,
                     height: lineBounds.height,
                 })
-                line = [word]
-                lineBounds = Bounds.forText(word, { fontSize, fontWeight })
+                line = [wordWithoutNewline]
+                lineBounds = Bounds.forText(wordWithoutNewline, {
+                    fontSize,
+                    fontWeight,
+                })
             } else {
                 line = nextLine
                 lineBounds = nextBounds

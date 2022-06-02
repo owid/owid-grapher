@@ -8,7 +8,7 @@ export default {
     component: MapTooltip,
 }
 
-// todo: refactor TooltipView stuff so we can decouple from Grapher
+// todo: refactor TooltipContainer stuff so we can decouple from Grapher
 export const WithSparkChart = (): JSX.Element => (
     <Grapher {...legacyMapGrapher} />
 )

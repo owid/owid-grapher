@@ -52,7 +52,7 @@ it("does not split full-width elements", () => {
     const $ = cheerio.load(content)
 
     splitContentIntoSectionsAndColumns($)
-    expect(cheerio.html($("section").children().eq(1))).toEqual(h3)
+    expect($.html($("section").children().eq(1))).toEqual(h3)
 })
 
 it("places h4 in its own columns set", () => {

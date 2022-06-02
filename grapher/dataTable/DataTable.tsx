@@ -3,7 +3,7 @@ import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { SortOrder, Time } from "../../coreTable/CoreTableConstants.js"
 import {
     EntityName,
@@ -68,7 +68,6 @@ export interface DataTableManager {
     entityType: string
     endTime?: Time
     startTime?: Time
-    minPopulationFilter?: number
     dataTableSlugs?: ColumnSlug[]
 }
 
@@ -467,12 +466,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get entityNames(): string[] {
-        let tableForEntities = this.table
-        if (this.manager.minPopulationFilter)
-            tableForEntities = tableForEntities.filterByPopulationExcept(
-                this.manager.minPopulationFilter,
-                this.selectionArray.selectedEntityNames
-            )
+        const tableForEntities = this.table
         return union(
             ...this.columnsToShow.map(
                 (col) => tableForEntities.get(col.slug).uniqEntityNames
@@ -492,8 +486,8 @@ export class DataTable extends React.Component<{
         return value === undefined
             ? value
             : column.formatValueShort(value, {
-                  numberPrefixes: false,
-                  noTrailingZeroes: false,
+                  numberAbbreviation: false,
+                  trailingZeroes: true,
                   ...formattingOverrides,
               })
     }

@@ -12,8 +12,8 @@ import {
     Section,
 } from "./Forms.js"
 import { ChartEditor } from "./ChartEditor.js"
-import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV.js"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
+import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "../coreTable/OwidTableConstants.js"
 import { EntitySelectionMode } from "../grapher/core/GrapherConstants.js"

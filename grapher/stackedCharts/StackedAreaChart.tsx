@@ -8,6 +8,7 @@ import {
     makeSafeForCSS,
     minBy,
     excludeUndefined,
+    isMobile,
 } from "../../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
 import { SeriesName } from "../core/GrapherConstants.js"
@@ -23,8 +24,8 @@ import { NoDataModal } from "../noDataModal/NoDataModal.js"
 import { Tooltip } from "../tooltip/Tooltip.js"
 import { rgb } from "d3-color"
 import {
-    AbstactStackedChart,
-    AbstactStackedChartProps,
+    AbstractStackedChart,
+    AbstractStackedChartProps,
 } from "../stackedCharts/AbstractStackedChart.js"
 import { StackedSeries } from "./StackedConstants.js"
 import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils.js"
@@ -35,50 +36,12 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
     seriesArr: readonly StackedSeries<Time>[]
     focusedSeriesNames: SeriesName[]
-    onHover: (hoverIndex: number | undefined) => void
 }
 
 const BLUR_COLOR = "#ddd"
 
 @observer
 class Areas extends React.Component<AreasProps> {
-    base: React.RefObject<SVGGElement> = React.createRef()
-
-    @observable hoverIndex?: number
-
-    @action.bound private onCursorMove(
-        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
-    ): void {
-        const { dualAxis, seriesArr } = this.props
-
-        if (this.base.current) {
-            const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
-
-            if (dualAxis.innerBounds.contains(mouse)) {
-                const closestPoint = minBy(seriesArr[0].points, (d) =>
-                    Math.abs(
-                        dualAxis.horizontalAxis.place(d.position) - mouse.x
-                    )
-                )
-                if (closestPoint) {
-                    const index = seriesArr[0].points.indexOf(closestPoint)
-                    this.hoverIndex = index
-                } else {
-                    this.hoverIndex = undefined
-                }
-            } else {
-                this.hoverIndex = undefined
-            }
-
-            this.props.onHover(this.hoverIndex)
-        }
-    }
-
-    @action.bound private onCursorLeave(): void {
-        this.hoverIndex = undefined
-        this.props.onHover(this.hoverIndex)
-    }
-
     private seriesIsBlur(series: StackedSeries<Time>): boolean {
         return (
             this.props.focusedSeriesNames.length > 0 &&
@@ -95,13 +58,24 @@ class Areas extends React.Component<AreasProps> {
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         let prevPoints = [xBottomLeft, xBottomRight]
         return seriesArr.map((series) => {
-            const mainPoints = series.points.map(
-                (point) =>
-                    [
-                        horizontalAxis.place(point.position),
-                        verticalAxis.place(point.value + point.valueOffset),
-                    ] as [number, number]
-            )
+            let mainPoints: [number, number][] = []
+            if (series.points.length > 1) {
+                mainPoints = series.points.map(
+                    (point) =>
+                        [
+                            horizontalAxis.place(point.position),
+                            verticalAxis.place(point.value + point.valueOffset),
+                        ] as [number, number]
+                )
+            } else if (series.points.length === 1) {
+                // We only have one point, so make it so it stretches out over the whole x axis range
+                const point = series.points[0]
+                const y = verticalAxis.place(point.value + point.valueOffset)
+                mainPoints = [
+                    [horizontalAxis.range[0], y],
+                    [horizontalAxis.range[1], y],
+                ]
+            }
             const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
             prevPoints = mainPoints
 
@@ -154,21 +128,11 @@ class Areas extends React.Component<AreasProps> {
     }
 
     render(): JSX.Element {
-        const { dualAxis, seriesArr } = this.props
+        const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
-        const { hoverIndex } = this
 
         return (
-            <g
-                ref={this.base}
-                className="Areas"
-                onMouseMove={this.onCursorMove}
-                onMouseLeave={this.onCursorLeave}
-                onTouchStart={this.onCursorMove}
-                onTouchMove={this.onCursorMove}
-                onTouchEnd={this.onCursorLeave}
-                onTouchCancel={this.onCursorLeave}
-            >
+            <g className="Areas">
                 <rect
                     x={horizontalAxis.range[0]}
                     y={verticalAxis.range[1]}
@@ -179,36 +143,6 @@ class Areas extends React.Component<AreasProps> {
                 />
                 {this.areas}
                 {this.borders}
-                {hoverIndex !== undefined && (
-                    <g className="hoverIndicator">
-                        {seriesArr.map((series) => {
-                            const point = series.points[hoverIndex]
-                            return this.seriesIsBlur(series) ||
-                                point.fake ? null : (
-                                <circle
-                                    key={series.seriesName}
-                                    cx={horizontalAxis.place(point.position)}
-                                    cy={verticalAxis.place(
-                                        point.value + point.valueOffset
-                                    )}
-                                    r={2}
-                                    fill={series.color}
-                                />
-                            )
-                        })}
-                        <line
-                            x1={horizontalAxis.place(
-                                seriesArr[0].points[hoverIndex].position
-                            )}
-                            y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(
-                                seriesArr[0].points[hoverIndex].position
-                            )}
-                            y2={verticalAxis.range[1]}
-                            stroke="rgba(180,180,180,.4)"
-                        />
-                    </g>
-                )}
             </g>
         )
     }
@@ -216,10 +150,10 @@ class Areas extends React.Component<AreasProps> {
 
 @observer
 export class StackedAreaChart
-    extends AbstactStackedChart
+    extends AbstractStackedChart
     implements LineLegendManager
 {
-    constructor(props: AbstactStackedChartProps) {
+    constructor(props: AbstractStackedChartProps) {
         super(props)
     }
 
@@ -258,9 +192,6 @@ export class StackedAreaChart
     }
 
     @observable hoveredPointIndex?: number
-    @action.bound onHover(hoverIndex: number | undefined): void {
-        this.hoveredPointIndex = hoverIndex
-    }
 
     @observable hoverSeriesName?: SeriesName
     @action.bound onLineLegendClick(): void {
@@ -308,6 +239,78 @@ export class StackedAreaChart
         )
     }
 
+    @action.bound private onCursorMove(
+        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
+    ): void {
+        if (!this.base.current) return
+        const { dualAxis, series } = this
+
+        const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
+
+        const boxPadding = isMobile() ? 44 : 25
+
+        // expand the box width, so it's easier to see the tooltip for the first & last timepoints
+        const boundedBox = this.dualAxis.innerBounds.expand({
+            left: boxPadding,
+            right: boxPadding,
+        })
+
+        if (boundedBox.contains(mouse)) {
+            const closestPoint = minBy(series[0].points, (d) =>
+                Math.abs(dualAxis.horizontalAxis.place(d.position) - mouse.x)
+            )
+            if (closestPoint) {
+                const index = series[0].points.indexOf(closestPoint)
+                this.hoveredPointIndex = index
+            } else {
+                this.hoveredPointIndex = undefined
+            }
+        } else {
+            this.hoveredPointIndex = undefined
+        }
+    }
+
+    @action.bound private onCursorLeave(): void {
+        this.hoveredPointIndex = undefined
+    }
+
+    @computed private get activeXVerticalLine(): JSX.Element | undefined {
+        const { dualAxis, series, hoveredPointIndex } = this
+        const { horizontalAxis, verticalAxis } = dualAxis
+
+        if (hoveredPointIndex === undefined) return undefined
+
+        return (
+            <g className="hoverIndicator">
+                {series.map((series) => {
+                    const point = series.points[hoveredPointIndex]
+                    return this.seriesIsBlur(series) || point.fake ? null : (
+                        <circle
+                            key={series.seriesName}
+                            cx={horizontalAxis.place(point.position)}
+                            cy={verticalAxis.place(
+                                point.value + point.valueOffset
+                            )}
+                            r={2}
+                            fill={series.color}
+                        />
+                    )
+                })}
+                <line
+                    x1={horizontalAxis.place(
+                        series[0].points[hoveredPointIndex].position
+                    )}
+                    y1={verticalAxis.range[0]}
+                    x2={horizontalAxis.place(
+                        series[0].points[hoveredPointIndex].position
+                    )}
+                    y2={verticalAxis.range[1]}
+                    stroke="rgba(180,180,180,.4)"
+                />
+            </g>
+        )
+    }
+
     @computed private get tooltip(): JSX.Element | undefined {
         if (this.hoveredPointIndex === undefined) return undefined
 
@@ -335,6 +338,7 @@ export class StackedAreaChart
 
         return (
             <Tooltip
+                id={this.renderUid}
                 tooltipManager={this.props.manager}
                 x={dualAxis.horizontalAxis.place(bottomSeriesPoint.position)}
                 y={
@@ -445,8 +449,22 @@ export class StackedAreaChart
         })
 
         return (
-            <g ref={this.base} className="StackedArea">
+            <g
+                ref={this.base}
+                className="StackedArea"
+                onMouseLeave={this.onCursorLeave}
+                onTouchEnd={this.onCursorLeave}
+                onTouchCancel={this.onCursorLeave}
+                onMouseMove={this.onCursorMove}
+                onTouchStart={this.onCursorMove}
+                onTouchMove={this.onCursorMove}
+            >
                 {clipPath.element}
+                <rect {...this.bounds.toProps()} fill="transparent">
+                    {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
+                    whole charting area, including the axis, the entity labels, and the whitespace next to them.
+                    We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
+                </rect>
                 <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
                 <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}
@@ -454,9 +472,9 @@ export class StackedAreaChart
                         dualAxis={dualAxis}
                         seriesArr={series}
                         focusedSeriesNames={this.focusedSeriesNames}
-                        onHover={this.onHover}
                     />
                 </g>
+                {this.activeXVerticalLine}
                 {this.tooltip}
             </g>
         )

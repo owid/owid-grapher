@@ -246,6 +246,7 @@ export class Footer extends React.Component<{
                 {!this.isCompact && license}
                 {tooltipTarget && (
                     <Tooltip
+                        id="footer"
                         tooltipManager={this.manager}
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}

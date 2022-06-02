@@ -29,7 +29,10 @@ import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
 } from "../settings/serverSettings.js"
-import { RECAPTCHA_SITE_KEY } from "../settings/clientSettings.js"
+import {
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+    RECAPTCHA_SITE_KEY,
+} from "../settings/clientSettings.js"
 import {
     EntriesByYearPage,
     EntriesForYearPage,
@@ -84,7 +87,11 @@ import { resolveInternalRedirect } from "./redirects.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
-export const renderChartsPage = async () => {
+export const renderChartsPage = async (
+    explorerAdminServer: ExplorerAdminServer
+) => {
+    const explorers = await explorerAdminServer.getAllPublishedExplorers()
+
     const chartItems = (await queryMysql(`
         SELECT
             id,
@@ -116,7 +123,11 @@ export const renderChartsPage = async () => {
     }
 
     return renderToHtmlPage(
-        <ChartsIndexPage chartItems={chartItems} baseUrl={BAKED_BASE_URL} />
+        <ChartsIndexPage
+            explorers={explorers}
+            chartItems={chartItems}
+            baseUrl={BAKED_BASE_URL}
+        />
     )
 }
 
@@ -493,7 +504,9 @@ export const renderProminentLinks = async (
                     : resolvedUrl.isExplorer
                     ? renderExplorerDefaultThumbnail()
                     : resolvedUrl.isGrapher && resolvedUrl.slug
-                    ? await renderGrapherImageByChartSlug(resolvedUrl.slug)
+                    ? renderGrapherThumbnailByResolvedChartSlug(
+                          resolvedUrl.slug
+                      )
                     : await renderPostThumbnailBySlug(resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
@@ -594,16 +607,15 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
     return explorer.explorerTitle
 }
 
-const renderGrapherImageByChartSlug = async (
+/**
+ * Renders a chart thumbnail given a slug. The slug is considered "resolved",
+ * meaning it has gone through the internal URL resolver and is final from a
+ * redirects perspective.
+ */
+const renderGrapherThumbnailByResolvedChartSlug = (
     chartSlug: string
-): Promise<string | null> => {
-    const chart = await Chart.getBySlug(chartSlug)
-    if (!chart) return null
-
-    const canonicalSlug = chart?.config?.slug
-    if (!canonicalSlug) return null
-
-    return `<img src="${BAKED_BASE_URL}/grapher/exports/${canonicalSlug}.svg" />`
+): string | null => {
+    return `<img src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chartSlug}.svg" />`
 }
 
 const renderExplorerDefaultThumbnail = (): string => {

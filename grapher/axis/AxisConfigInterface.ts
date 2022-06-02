@@ -1,4 +1,4 @@
-import { Position } from "../../clientUtils/owidTypes.js"
+import { AxisAlign, Position } from "../../clientUtils/owidTypes.js"
 import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants.js"
 
 export interface Tickmark {
@@ -68,4 +68,11 @@ export interface AxisConfigInterface {
      * To control the domain, use `min` and `max`.
      */
     ticks?: Tickmark[]
+
+    /**
+     * What to do when .place() is called on an axis that only contains a single
+     * domain value.
+     * Should the point be placed at the start, middle or end of the axis?
+     */
+    singleValueAxisPointAlign?: AxisAlign
 }

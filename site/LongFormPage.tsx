@@ -7,9 +7,9 @@ import { SiteFooter } from "./SiteFooter.js"
 import { addContentFeatures, formatAuthors } from "../site/formatting.js"
 import { SiteSubnavigation } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faBook } from "@fortawesome/free-solid-svg-icons/faBook.js"
-import { faSync } from "@fortawesome/free-solid-svg-icons/faSync.js"
-import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons.js"
+import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
+import { faSync } from "@fortawesome/free-solid-svg-icons/faSync"
+import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { TableOfContents } from "../site/TableOfContents.js"
 import {
     FormattedPost,

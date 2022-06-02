@@ -52,7 +52,6 @@ export interface GrapherInterface extends SortConfig {
     entityTypePlural?: string
     hideTimeline?: boolean
     zoomToSelection?: boolean
-    minPopulationFilter?: number
     showYearLabels?: boolean // Always show year in labels for bar charts
     hasChartTab?: boolean
     hasMapTab?: boolean
@@ -101,7 +100,6 @@ export interface GrapherQueryParams extends QueryParams {
     overlay?: string
     stackMode?: string
     zoomToSelection?: string
-    minPopulationFilter?: string
     xScale?: string
     yScale?: string
     time?: string
@@ -144,7 +142,6 @@ export const grapherKeysToSerialize = [
     "entityTypePlural",
     "hideTimeline",
     "zoomToSelection",
-    "minPopulationFilter",
     "showYearLabels",
     "hasChartTab",
     "hasMapTab",

@@ -35,7 +35,7 @@ it("can create a chart", () => {
     expect(chart.failMessage).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(5)
-    expect(chart.xSeries.points.length).toEqual(5)
+    expect(chart.xSeries!.points.length).toEqual(5)
     expect(chart.placedItems.length).toEqual(5)
     //expect(chart.placedItems)
 })
@@ -96,7 +96,7 @@ it("can display a Marimekko chart correctly", () => {
         { value: 1000, entity: "small", time: 2001 },
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries.points).toEqual(expectedXPoints)
+    expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
         {
@@ -230,7 +230,7 @@ it("can display two time series stacked correctly", () => {
     ]
     expect(chart.series[0].points).toEqual(expectedYPointsFirstSeries)
     expect(chart.series[1].points).toEqual(expectedYPointsSecondSeries)
-    expect(chart.xSeries.points).toEqual(expectedXPoints)
+    expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
         {
@@ -358,7 +358,7 @@ it("can do sorting", () => {
         { value: 1000, entity: "CC", time: 2001 },
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries.points).toEqual(expectedXPoints)
+    expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     const items = new Map<string, Item>([
         [

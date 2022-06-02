@@ -232,10 +232,15 @@
 
 @mixin titling($h1-font-size) {
     .supertitle {
-        margin-bottom: -($h1-font-size / 10);
-        font-size: $h1-font-size * 40 / 100;
+        margin-bottom: -($h1-font-size * 0.1);
+        font-size: $h1-font-size * 40 * 0.01;
     }
     h1 {
         font-size: $h1-font-size;
     }
+}
+
+@mixin image-hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0.9;
 }

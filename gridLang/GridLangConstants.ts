@@ -65,6 +65,7 @@ export const StringCellDef: CellDef = {
     keyword: "",
     cssClass: "StringCellDef",
     description: "",
+    parse: (value: any) => `${value}`.replace(/\\n/g, "\n"),
 }
 
 export const StringDeclarationDef: CellDef = {

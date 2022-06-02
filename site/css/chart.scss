@@ -1,3 +1,5 @@
+@use "sass:math";
+
 .StandaloneGrapherOrExplorerPage main figure[data-grapher-src],
 #fallback {
     display: flex;
@@ -10,10 +12,10 @@
     // The landscape values)
     $orientation-width: 680px;
     $orientation-height: 480px;
-    $ideal-ratio: $orientation-width / $orientation-height;
+    $ideal-ratio: math.div($orientation-width, $orientation-height);
 
     $max-width: 1250px; // The rough max-width across all pages on the site
-    $max-height: $max-width / $ideal-ratio;
+    $max-height: math.div($max-width, $ideal-ratio);
 
     // Charts shouldn't be below this height in any circumstance, whether mobile or not.
     // Except in iframes, where we override this.
@@ -33,7 +35,7 @@
     // to avoid using unnecessary space.
     @media (min-width: $orientation-width) {
         // We no longer use the full height
-        max-height: #{1 / $ideal-ratio * 100}vw;
+        max-height: #{math.div(1, $ideal-ratio) * 100}vw;
     }
 
     @media (min-width: $max-width) {

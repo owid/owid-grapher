@@ -9,9 +9,8 @@ module.exports = {
         ecmaFeatures: {
             jsx: true,
         },
-        project: "./**/tsconfig.json",
+        project: "./tsconfig.eslint.json",
         ecmaVersion: 2018,
-        sourceType: "module",
     },
     overrides: [
         {

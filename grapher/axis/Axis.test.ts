@@ -2,9 +2,13 @@
 
 import { HorizontalAxis } from "../axis/Axis.js"
 import { ScaleType } from "../core/GrapherConstants.js"
-import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"
+import {
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+} from "../../coreTable/OwidTableSynthesizers.js"
 import { AxisConfig } from "./AxisConfig.js"
 import { AxisConfigInterface } from "./AxisConfigInterface.js"
+import { AxisAlign } from "../../clientUtils/owidTypes.js"
 
 it("can create an axis", () => {
     const axisConfig = new AxisConfig({
@@ -105,16 +109,49 @@ it("creates compact labels", () => {
     ).toBeTruthy()
 })
 
-it("a single-value domain plots to lower or upper end of range", () => {
-    const config: AxisConfigInterface = {
-        min: 0,
-        max: 0,
+describe("singleValueAxisPointAlign", () => {
+    const testAlign = (align: AxisAlign | undefined, expected: number) => {
+        const config: AxisConfigInterface = {
+            min: 0,
+            max: 0,
+            singleValueAxisPointAlign: align,
+        }
+        const axis = new AxisConfig(config).toVerticalAxis()
+        axis.range = [0, 500]
+        expect(axis.place(-1)).toEqual(expected)
+        expect(axis.place(0)).toEqual(expected)
+        expect(axis.place(1)).toEqual(expected)
     }
-    const axis = new AxisConfig(config).toVerticalAxis()
-    axis.range = [0, 500]
-    expect(axis.place(-1)).toEqual(0)
-    expect(axis.place(0)).toEqual(0)
-    expect(axis.place(1)).toEqual(500)
+    it("aligns to start", () => testAlign(AxisAlign.start, 0))
+    it("aligns to middle", () => testAlign(AxisAlign.middle, 250))
+    it("aligns to end", () => testAlign(AxisAlign.end, 500))
+    it("defaults to middle", () => testAlign(undefined, 250))
+})
+
+describe("tick labels", () => {
+    // see https://github.com/owid/owid-grapher/issues/1267
+    it("includes sufficient decimal places for small values", () => {
+        const config: AxisConfigInterface = {
+            min: 0,
+            max: 0.0004,
+        }
+        const axis = new AxisConfig(config).toHorizontalAxis()
+        axis.range = [0, 500]
+        // we need to set a formatColumn, otherwise the tick labels are not formatted at all
+        axis.formatColumn = SynthesizeFruitTable().get("Fruit")
+
+        const formattedTickLabels = axis.tickLabels.map((l) => l.formattedValue)
+        expect(formattedTickLabels).toEqual([
+            "0",
+            "0.00005",
+            "0.0001",
+            "0.00015",
+            "0.0002",
+            "0.00025",
+            "0.0003",
+            "0.00035",
+        ])
+    })
 })
 
 describe("manual ticks", () => {

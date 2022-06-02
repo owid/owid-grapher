@@ -10,7 +10,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const inDir = parsedArgs["i"] ?? "grapherData"
         let outDir = parsedArgs["o"] ?? "grapherSvgs"
-        const targetConfigs: string[] = (parsedArgs["c"] ?? "")
+        const targetConfigs: string[] = (String(parsedArgs["c"]) ?? "")
             .split(",")
             .map(String)
             .filter((entry: string) => entry)

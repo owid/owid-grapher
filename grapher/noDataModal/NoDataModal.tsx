@@ -3,8 +3,8 @@ import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus.js"
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt.js"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
 
 export interface NoDataModalManager {
     canChangeEntity?: boolean
@@ -55,7 +55,7 @@ export class NoDataModal extends React.Component<{
                                 className="action"
                                 onClick={this.onDataSelect}
                             >
-                                <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                                <FontAwesomeIcon icon={faRightLeft} /> Change{" "}
                                 {entityType}
                             </button>
                         )}

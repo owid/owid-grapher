@@ -33,6 +33,21 @@ interface ChartItem {
     slug: string
 }
 
+function checkHasComparisonView(comparisonUrl: string): boolean {
+    if (!comparisonUrl) return false
+    if (IS_LIVE && comparisonUrl === DEFAULT_COMPARISON_URL) return false
+    return true
+}
+
+function getViewPropsFromQueryParams(
+    params: Omit<EmbedTestPageQueryParams, "originalUrl">
+): Pick<EmbedTestPageProps, "comparisonUrl" | "hasComparisonView"> {
+    const comparisonUrl = params.comparisonUrl ?? DEFAULT_COMPARISON_URL
+    const hasComparisonView = checkHasComparisonView(comparisonUrl)
+
+    return { comparisonUrl, hasComparisonView }
+}
+
 function parseStringArrayOrUndefined(param: string | undefined): string[] {
     if (param === undefined) return []
     return param.split(",")
@@ -261,13 +276,15 @@ async function propsFromQueryParams(
                   .fullUrl
             : undefined
 
+    const viewProps = getViewPropsFromQueryParams(params)
+
     return {
+        ...viewProps,
         prevPageUrl: prevPageUrl,
         nextPageUrl: nextPageUrl,
         charts: charts,
         currentPage: page,
         totalPages: numPages,
-        comparisonUrl: params.comparisonUrl ?? "https://ourworldindata.org",
     }
 }
 
@@ -278,6 +295,7 @@ interface EmbedTestPageProps {
     totalPages?: number
     charts: ChartItem[]
     comparisonUrl: string
+    hasComparisonView: boolean
 }
 
 function EmbedTestPage(props: EmbedTestPageProps) {
@@ -349,8 +367,10 @@ function EmbedTestPage(props: EmbedTestPageProps) {
             <body>
                 <div className="row">
                     <div className="side-by-side">
-                        <h3>{props.comparisonUrl}</h3>
-                        {!IS_LIVE && <h3>{BAKED_BASE_URL}</h3>}
+                        {props.hasComparisonView && (
+                            <h3>{props.comparisonUrl}</h3>
+                        )}
+                        <h3>{BAKED_BASE_URL}</h3>
                     </div>
                 </div>
                 {props.charts.map((chart) => (
@@ -366,15 +386,15 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                             </a>
                         </div>
                         <div className="side-by-side">
-                            <iframe
-                                src={`${props.comparisonUrl}/grapher/${chart.slug}`}
-                                loading="lazy"
-                            />
-                            {!IS_LIVE && (
-                                <figure
-                                    data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                            {props.hasComparisonView && (
+                                <iframe
+                                    src={`${props.comparisonUrl}/grapher/${chart.slug}`}
+                                    loading="lazy"
                                 />
                             )}
+                            <figure
+                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                            />
                         </div>
                     </div>
                 ))}
@@ -408,6 +428,7 @@ testPageRouter.get("/embeds/:id", async (req, res) => {
     const chart = await Chart.createQueryBuilder()
         .where("id = :id", { id: id })
         .getOne()
+    const viewProps = await getViewPropsFromQueryParams(req.query)
     if (chart) {
         const charts = [
             {
@@ -422,6 +443,7 @@ testPageRouter.get("/embeds/:id", async (req, res) => {
                 <EmbedTestPage
                     charts={charts}
                     comparisonUrl={DEFAULT_COMPARISON_URL}
+                    hasComparisonView={viewProps.hasComparisonView}
                 />
             )
         )
@@ -541,14 +563,14 @@ function EmbedVariantsTestPage(
                     <div key={chart.slug} className="row">
                         <div className="chart-id">{chart.id}</div>
                         <div className="side-by-side">
-                            <iframe
-                                src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
-                            />
-                            {!IS_LIVE && (
-                                <figure
-                                    data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                            {props.hasComparisonView && (
+                                <iframe
+                                    src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
                                 />
                             )}
+                            <figure
+                                data-grapher-src={`${BAKED_GRAPHER_URL}/${chart.slug}`}
+                            />
                         </div>
                     </div>
                 ))}
@@ -579,8 +601,16 @@ testPageRouter.get("/previews", async (req, res) => {
 testPageRouter.get("/embedVariants", async (req, res) => {
     const rows = await db.queryMysql(`SELECT config FROM charts WHERE id=64`)
     const charts = rows.map((row: any) => JSON.parse(row.config))
+    const viewProps = await getViewPropsFromQueryParams(req.query)
 
-    res.send(renderToHtmlPage(<EmbedVariantsTestPage charts={charts} />))
+    res.send(
+        renderToHtmlPage(
+            <EmbedVariantsTestPage
+                charts={charts}
+                hasComparisonView={viewProps.hasComparisonView}
+            />
+        )
+    )
 })
 
 testPageRouter.get("/:slug.svg", async (req, res) => {

@@ -6,7 +6,7 @@ import {
     SeriesStrategy,
 } from "../core/GrapherConstants.js"
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
-import { TooltipProps } from "../tooltip/TooltipProps.js"
+import { TooltipManager } from "../tooltip/TooltipProps.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import { ColorSchemeName } from "../color/ColorConstants.js"
@@ -36,7 +36,7 @@ export interface ChartManager {
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean
-    tooltip?: TooltipProps
+    tooltips?: TooltipManager["tooltips"]
     useTimelineDomains?: boolean
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
@@ -70,6 +70,11 @@ export interface ChartManager {
 
     hidePoints?: boolean // for line options
     startHandleTimeBound?: TimeBound // for relative-to-first-year line chart
+
+    // we need endTime so DiscreteBarCharts and StackedDiscreteBarCharts can
+    // know what date the timeline is set to. and let's pass startTime in, too.
+    startTime?: number
+    endTime?: number
 
     facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
     seriesStrategy?: SeriesStrategy

@@ -2,7 +2,7 @@ import React from "react"
 import classnames from "classnames"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons/faQuestionCircle.js"
+import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons/faQuestionCircle"
 
 import { Tippy } from "../chart/Tippy.js"
 
