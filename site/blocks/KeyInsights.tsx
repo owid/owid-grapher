@@ -146,6 +146,8 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                     slide.setAttribute("data-active", "false")
                 }
             })
+        // see https://github.com/owid/owid-grapher/pull/1435#discussion_r888058198
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedId])
 
     return (
