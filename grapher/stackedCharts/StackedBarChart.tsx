@@ -1,7 +1,7 @@
 import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { uniq, makeSafeForCSS } from "../../clientUtils/Util.js"
+import { uniq, makeSafeForCSS, sum } from "../../clientUtils/Util.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import {
     VerticalAxisComponent,
@@ -227,60 +227,44 @@ export class StackedBarChart
         )
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
-        let total = 0
-        let currentValue = 0
+        const seriesRows = [...series].reverse().map((series) => ({
+            seriesName: series.seriesName,
+            color: series.color,
+            isHovered: hoverSeries?.seriesName === series.seriesName,
+            point: series.points.find(
+                (bar) => bar.position === hoverBar.position
+            ),
+        }))
+        const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
         return (
             <Tooltip
                 id={this.renderUid}
                 tooltipManager={this.props.manager}
                 x={xPos + barWidth}
                 y={yPos}
-                style={{ textAlign: "center" }}
+                style={{ padding: "0.3em" }}
+                offsetX={4}
             >
-                <table
-                    style={{
-                        lineHeight: "1em",
-                        whiteSpace: "normal",
-                        borderSpacing: "0.5em",
-                    }}
-                >
+                <table style={{ fontSize: "0.9em", lineHeight: "1.4em" }}>
                     <tbody>
                         <tr>
                             <td colSpan={3}>
-                                <h3
-                                    style={{
-                                        padding: "0.3em 0.9em",
-                                        margin: 0,
-                                        backgroundColor: "#fcfcfc",
-                                        borderBottom: "1px solid #ebebeb",
-                                        fontWeight: "normal",
-                                        fontSize: "1em",
-                                    }}
-                                >
+                                <strong>
                                     {inputTable.timeColumnFormatFunction(
                                         hoverBar.position
                                     )}
-                                </h3>
+                                </strong>
                             </td>
                         </tr>
-                        {[...series].reverse().map((series) => {
-                            // currentValue = series.points[index].value
-                            series.points.map((bar, index) => {
-                                if (bar.position === hoverBar.position) {
-                                    currentValue = series.points[index].value
-                                    total += currentValue
-                                }
-                            })
-                            return (
+                        {seriesRows.map(
+                            ({ seriesName, color, isHovered, point }) => (
                                 <tr
+                                    key={seriesName}
                                     style={{
-                                        fontWeight:
-                                            hoverSeries?.seriesName ===
-                                            series.seriesName
-                                                ? "bold"
-                                                : undefined,
-                                        fontSize: "0.9em",
-                                        textAlign: "left",
+                                        color: isHovered ? "#000" : "#888",
+                                        fontWeight: isHovered
+                                            ? "bold"
+                                            : undefined,
                                     }}
                                 >
                                     <td>
@@ -288,23 +272,28 @@ export class StackedBarChart
                                             style={{
                                                 width: "10px",
                                                 height: "10px",
-                                                backgroundColor: series.color,
                                                 display: "inline-block",
+                                                marginRight: "2px",
+                                                backgroundColor: color,
                                             }}
                                         />
                                     </td>
-                                    <td>{series.seriesName}</td>
-                                    <td>
-                                        {yColumn.formatValueLong(currentValue)}
+                                    <td>{seriesName}</td>
+                                    <td
+                                        style={{
+                                            textAlign: "right",
+                                            whiteSpace: "nowrap",
+                                            paddingLeft: "0.8em",
+                                        }}
+                                    >
+                                        {yColumn.formatValueLong(point?.value, {
+                                            trailingZeroes: true,
+                                        })}
                                     </td>
                                 </tr>
                             )
-                        })}
-                        <tr
-                            style={{
-                                fontSize: "0.9em",
-                            }}
-                        >
+                        )}
+                        <tr>
                             <td></td>
                             <td>Total</td>
                             <td
@@ -313,7 +302,9 @@ export class StackedBarChart
                                     whiteSpace: "nowrap",
                                 }}
                             >
-                                {yColumn.formatValueLong(total)}
+                                {yColumn.formatValueLong(totalValue, {
+                                    trailingZeroes: true,
+                                })}
                             </td>
                         </tr>
                     </tbody>
