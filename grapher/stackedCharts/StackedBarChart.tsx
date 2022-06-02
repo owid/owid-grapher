@@ -236,6 +236,7 @@ export class StackedBarChart
             ),
         }))
         const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
+        const showTotalValue: boolean = seriesRows.length > 1
         return (
             <Tooltip
                 id={this.renderUid}
@@ -293,20 +294,22 @@ export class StackedBarChart
                                 </tr>
                             )
                         )}
-                        <tr>
-                            <td></td>
-                            <td>Total</td>
-                            <td
-                                style={{
-                                    textAlign: "right",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {yColumn.formatValueLong(totalValue, {
-                                    trailingZeroes: true,
-                                })}
-                            </td>
-                        </tr>
+                        {showTotalValue && (
+                            <tr>
+                                <td></td>
+                                <td>Total</td>
+                                <td
+                                    style={{
+                                        textAlign: "right",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {yColumn.formatValueLong(totalValue, {
+                                        trailingZeroes: true,
+                                    })}
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </Tooltip>
