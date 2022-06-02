@@ -6,7 +6,7 @@
         },
         {
             "path": "./itsJustJavascript/webpack/vendors.js",
-            "maxSize": "850 KB"
+            "maxSize": "900 KB"
         },
         {
             "path": "./itsJustJavascript/webpack/owid.js",
