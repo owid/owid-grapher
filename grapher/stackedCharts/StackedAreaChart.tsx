@@ -393,7 +393,8 @@ export class StackedAreaChart
                                             {point.fake
                                                 ? "No data"
                                                 : yColumn.formatValueLong(
-                                                      point.value
+                                                      point.value,
+                                                      { trailingZeroes: true }
                                                   )}
                                         </td>
                                     </tr>
@@ -415,7 +416,8 @@ export class StackedAreaChart
                                     <span>
                                         <strong>
                                             {yColumn.formatValueLong(
-                                                totalValue
+                                                totalValue,
+                                                { trailingZeroes: true }
                                             )}
                                         </strong>
                                     </span>
