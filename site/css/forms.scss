@@ -44,7 +44,7 @@ $radio-bullet-size: 8px;
         left: 0;
         width: $radio-icon-size;
         height: $radio-icon-size;
-        margin-top: -$radio-icon-size / 2;
+        margin-top: -$radio-icon-size * 0.5;
         border: 2px solid currentColor;
         border-radius: 50%;
         background: transparent;
@@ -58,10 +58,10 @@ $radio-bullet-size: 8px;
         content: "";
         position: absolute;
         top: 50%;
-        left: ($radio-icon-size - $radio-bullet-size) / 2;
+        left: ($radio-icon-size - $radio-bullet-size) * 0.5;
         width: $radio-bullet-size;
         height: $radio-bullet-size;
-        margin-top: -$radio-bullet-size / 2;
+        margin-top: -$radio-bullet-size * 0.5;
         border: 2px solid transparent;
         border-radius: 50%;
         background: currentColor;
@@ -111,7 +111,7 @@ $checkbox-check-height: 4px;
         left: 0;
         width: $checkbox-icon-size;
         height: $checkbox-icon-size;
-        margin-top: -$checkbox-icon-size / 2;
+        margin-top: -$checkbox-icon-size * 0.5;
         border: 2px solid currentColor;
         background: transparent;
     }
@@ -124,10 +124,10 @@ $checkbox-check-height: 4px;
         content: "";
         position: absolute;
         top: 50%;
-        left: ($checkbox-icon-size - $checkbox-check-width) / 2;
+        left: ($checkbox-icon-size - $checkbox-check-width) * 0.5;
         width: $checkbox-check-width;
         height: $checkbox-check-height;
-        margin-top: -($checkbox-check-height + 2) / 2;
+        margin-top: -($checkbox-check-height + 2) * 0.5;
         border-width: 0 0 3px 3px;
         border-style: solid;
         border-color: currentColor;
@@ -157,12 +157,12 @@ $checkbox-check-height: 4px;
 
     input[type="checkbox"] + label::before {
         top: 0;
-        margin-top: -$checkbox-icon-size / 2 + 11px;
+        margin-top: -$checkbox-icon-size * 0.5 + 11px;
     }
 
     input[type="checkbox"]:checked + label::after {
         top: 0;
-        margin-top: -$checkbox-check-height / 2 + 10px;
+        margin-top: -$checkbox-check-height * 0.5 + 10px;
     }
 
     label {
