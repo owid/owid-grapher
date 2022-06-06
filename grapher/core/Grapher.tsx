@@ -48,6 +48,7 @@ import {
     FacetAxisDomain,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
+    Detail,
 } from "../core/GrapherConstants.js"
 import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
 import * as Cookies from "js-cookie"
@@ -310,6 +311,7 @@ export class Grapher
     @observable includedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
+    @observable details: Record<string, Record<string, Detail>> = {}
     @observable.ref annotation?: Annotation = undefined
 
     @observable hideFacetControl?: boolean = true
@@ -2239,6 +2241,7 @@ export class Grapher
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions
+        this.details = grapher.details
     }
 
     debounceMode = false

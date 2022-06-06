@@ -7,6 +7,7 @@ import {
     EntitySelection,
     ChartTypeName,
     FacetStrategy,
+    Detail,
 } from "./GrapherConstants.js"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import { TimeBound } from "../../clientUtils/TimeBounds.js"
@@ -58,6 +59,7 @@ export interface GrapherInterface extends SortConfig {
     tab?: GrapherTabOption
     overlay?: GrapherTabOption
     relatedQuestions?: RelatedQuestionsConfig[]
+    details?: Record<string, Record<string, Detail>>
     internalNotes?: string
     variantName?: string
     originUrl?: string
@@ -176,4 +178,5 @@ export const grapherKeysToSerialize = [
     "comparisonLines",
     "relatedQuestions",
     "topicIds",
+    "details",
 ]

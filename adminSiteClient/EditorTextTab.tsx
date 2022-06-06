@@ -1,5 +1,5 @@
 import React from "react"
-import { action, runInAction } from "mobx"
+import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor.js"
 import {
@@ -27,6 +27,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import Select from "react-select"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
+import { getIndexableKeys } from "../clientUtils/Util.js"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -54,6 +55,25 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onRemoveRelatedQuestion(idx: number) {
         const { grapher } = this.props.editor
         grapher.relatedQuestions.splice(idx, 1)
+    }
+
+    @computed get errorMessages() {
+        const { invalidDetailReferences } = this.props.editor.manager
+        const keys = getIndexableKeys(invalidDetailReferences)
+
+        const errorMessages: Partial<Record<typeof keys[number], string>> = {}
+
+        keys.forEach((key) => {
+            const references = invalidDetailReferences[key]
+            if (references.length) {
+                errorMessages[
+                    key
+                ] = `Invalid detail(s) specified: ${references.map(
+                    (reference) => reference.join("::")
+                )}`
+            }
+        })
+        return errorMessages
     }
 
     render() {
@@ -97,6 +117,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
                         softCharacterLimit={280}
+                        errorMessage={this.errorMessages.subtitle}
                     />
                     <RadioGroup
                         label="Logo"
@@ -145,6 +166,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         store={grapher}
                         helpText="Any important clarification needed to avoid miscommunication"
                         softCharacterLimit={140}
+                        errorMessage={this.errorMessages.note}
                     />
                 </Section>
 

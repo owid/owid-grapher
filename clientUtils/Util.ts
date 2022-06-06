@@ -1265,3 +1265,7 @@ export function moveArrayItemToIndex<Item>(
     newArray.splice(toIndex, 0, removed)
     return newArray
 }
+
+export const getIndexableKeys = Object.keys as <T extends object>(
+    obj: T
+) => Array<keyof T>

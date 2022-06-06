@@ -88,6 +88,14 @@ export interface Topic {
     name: string
 }
 
+export interface Detail {
+    category: string
+    term: string
+    title: string
+    content: string
+    id: number
+}
+
 export const WorldEntityName = "World"
 
 // When a user hovers over a connected series line in a ScatterPlot we show
