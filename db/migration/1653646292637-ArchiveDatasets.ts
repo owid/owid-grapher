@@ -171,16 +171,13 @@ const deleteDatasets = async (
         [datasetIds]
     )
 
-    await queryRunner.query(
-        `DELETE from variables WHERE datasetId in (?)`,
-        [datasetIds]
-    )
-    await queryRunner.query(
-        `DELETE from sources WHERE datasetId in (?)`,
-        [datasetIds]
-    )
-    await queryRunner.query(
-        `DELETE from datasets WHERE id in (?)`,
-        [datasetIds]
-    )
+    await queryRunner.query(`DELETE from variables WHERE datasetId in (?)`, [
+        datasetIds,
+    ])
+    await queryRunner.query(`DELETE from sources WHERE datasetId in (?)`, [
+        datasetIds,
+    ])
+    await queryRunner.query(`DELETE from datasets WHERE id in (?)`, [
+        datasetIds,
+    ])
 }
