@@ -1,11 +1,12 @@
 import React from "react"
-import { action, observable } from "mobx"
+import { action, computed, observable } from "mobx"
 import { bind } from "decko"
 import { observer } from "mobx-react"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { every, sortBy } from "lodash"
 import { Controlled } from "react-codemirror2"
+import { stringifyUnkownError } from "../clientUtils/Util.js"
 
 interface Detail {
     category: string
@@ -21,6 +22,7 @@ const detailKeys = ["category", "term", "title", "content"] as const
 
 interface DetailRowProps {
     detail: Detail
+    details: Detail[]
     deleteDetail: (id: number) => Promise<void>
 }
 
@@ -40,12 +42,23 @@ class DetailRow extends React.Component<DetailRowProps> {
 
     @action.bound async handleEdit() {
         if (this.isEditing) {
-            await this.context.admin.requestJSON(
-                `/api/details/${this.props.detail.id}`,
-                this.props.detail,
-                "PUT"
-            )
-            this.isEditing = false
+            try {
+                await this.context.admin.requestJSON(
+                    `/api/details/${this.props.detail.id}`,
+                    this.props.detail,
+                    "PUT",
+                    { onFailure: "continue" }
+                )
+                this.isEditing = false
+            } catch (error) {
+                console.error(error)
+                this.context.admin.setErrorMessage({
+                    title: "Unable to update detail",
+                    content:
+                        stringifyUnkownError(error) ||
+                        "Check the developer console for more information.",
+                })
+            }
         } else {
             this.isEditing = true
         }
@@ -65,6 +78,7 @@ class DetailRow extends React.Component<DetailRowProps> {
     @action.bound async handleDelete() {
         if (this.isDeleting) {
             await this.props.deleteDetail(this.props.detail.id)
+            this.isDeleting = false
             const body = document.querySelector("body")
             body?.removeEventListener("click", this.handleClickOff)
         } else {
@@ -73,6 +87,18 @@ class DetailRow extends React.Component<DetailRowProps> {
             this.isDeleting = true
         }
     }
+
+    @computed get doesDetailConflict(): boolean {
+        if (!this.isEditing) return false
+
+        const { category, term } = this.props.detail
+        return (
+            this.props.details.filter(
+                (other) => other.category === category && other.term === term
+            ).length > 1
+        )
+    }
+
     render() {
         return (
             <tr>
@@ -106,7 +132,14 @@ class DetailRow extends React.Component<DetailRowProps> {
                 <td>
                     <div className="d-flex justify-content-between">
                         <button
-                            disabled={this.isDeleting}
+                            disabled={
+                                this.isDeleting || this.doesDetailConflict
+                            }
+                            title={
+                                this.doesDetailConflict
+                                    ? "A detail with this category::term combination already exists"
+                                    : ""
+                            }
                             className="btn btn-primary"
                             onClick={() => this.handleEdit()}
                         >
@@ -139,23 +172,43 @@ class NewDetail extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @action.bound async handleSubmit() {
-        const { id } = await this.context.admin.requestJSON(
-            "/api/details",
-            this.detail,
-            "POST"
+    @computed get doesDetailConflict(): boolean {
+        const { category, term } = this.detail
+        return (
+            this.props.details.filter(
+                (other) => other.category === category && other.term === term
+            ).length > 0
         )
+    }
 
-        this.props.details.push({
-            ...this.detail,
-            id,
-        })
+    @action.bound async handleSubmit() {
+        try {
+            const { id } = await this.context.admin.requestJSON(
+                "/api/details",
+                this.detail,
+                "POST",
+                { onFailure: "continue" }
+            )
 
-        this.detail = {
-            category: "",
-            term: "",
-            title: "",
-            content: "",
+            this.props.details.push({
+                ...this.detail,
+                id,
+            })
+
+            this.detail = {
+                category: "",
+                term: "",
+                title: "",
+                content: "",
+            }
+        } catch (error) {
+            console.error(error)
+            this.context.admin.setErrorMessage({
+                title: "Unable to save detail",
+                content:
+                    stringifyUnkownError(error) ||
+                    "Check the developer console for more information.",
+            })
         }
     }
 
@@ -181,7 +234,14 @@ class NewDetail extends React.Component<{
                     <button
                         className="btn btn-primary"
                         onClick={() => this.handleSubmit()}
-                        disabled={!every(this.detail)}
+                        disabled={
+                            !every(this.detail) || this.doesDetailConflict
+                        }
+                        title={
+                            this.doesDetailConflict
+                                ? "A detail with this category::term combination already exists"
+                                : ""
+                        }
                     >
                         Submit
                     </button>
@@ -204,8 +264,23 @@ export class DetailsOnDemandPage extends React.Component {
     }
 
     @bind async deleteDetail(id: number) {
-        await this.context.admin.requestJSON(`/api/details/${id}`, {}, "DELETE")
-        this.details = this.details.filter((detail) => detail.id !== id)
+        try {
+            await this.context.admin.requestJSON(
+                `/api/details/${id}`,
+                {},
+                "DELETE",
+                { onFailure: "continue" }
+            )
+            this.details = this.details.filter((detail) => detail.id !== id)
+        } catch (error) {
+            console.error(error)
+            this.context.admin.setErrorMessage({
+                title: "Unable to delete detail",
+                content:
+                    stringifyUnkownError(error) ||
+                    "Check the developer console for more information.",
+            })
+        }
     }
 
     componentDidMount() {
@@ -243,6 +318,7 @@ export class DetailsOnDemandPage extends React.Component {
                     <tbody>
                         {this.details.map((detail) => (
                             <DetailRow
+                                details={this.details}
                                 detail={detail}
                                 deleteDetail={this.deleteDetail}
                                 key={detail.id}
