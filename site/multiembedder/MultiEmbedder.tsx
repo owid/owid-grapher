@@ -57,18 +57,14 @@ class MultiEmbedder {
     graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
     constructor() {
-        if (typeof window !== "undefined" && "IntersectionObserver" in window) {
-            this.figuresObserver = new IntersectionObserver(
-                this.onIntersecting.bind(this),
-                {
-                    rootMargin: "200%",
-                }
-            )
-        } else {
-            console.warn(
-                "IntersectionObserver not available; interactive embeds won't load on this page"
-            )
-        }
+        if (typeof window === "undefined") return
+
+        this.figuresObserver = new IntersectionObserver(
+            this.onIntersecting.bind(this),
+            {
+                rootMargin: "200%",
+            }
+        )
     }
 
     /**
