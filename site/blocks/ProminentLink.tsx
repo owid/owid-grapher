@@ -1,7 +1,5 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
-import { observer } from "mobx-react"
-import { computed } from "mobx"
 import { union } from "../../clientUtils/Util.js"
 import {
     getSelectedEntityNamesParam,
@@ -10,10 +8,12 @@ import {
 } from "../../grapher/core/EntityUrlBuilder.js"
 import { SelectionArray } from "../../grapher/selection/SelectionArray.js"
 import { Url } from "../../clientUtils/urls/Url.js"
-import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { DEFAULT_GRAPHER_WIDTH } from "../../grapher/core/GrapherConstants.js"
+import Glightbox, { GlightboxApi } from "glightbox"
+import { autorun } from "mobx"
+import { observer } from "mobx-react-lite"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -24,63 +24,76 @@ export enum ProminentLinkStyles {
 
 export const WITH_IMAGE = "with-image"
 
-@observer
-export class ProminentLink extends React.Component<{
-    href: string
-    style: string | null
-    title: string | null
-    content?: string | null
-    image?: string | null
-    globalEntitySelection?: SelectionArray
-}> {
-    @computed get originalUrl(): Url {
-        return migrateSelectedEntityNamesParam(Url.fromURL(this.props.href))
-    }
+export const ProminentLink = observer(
+    ({
+        href,
+        style = ProminentLinkStyles.default,
+        title,
+        content,
+        image,
+        globalEntitySelection,
+        globalGallery,
+    }: {
+        href: string
+        style: string | null
+        title: string | null
+        content?: string | null
+        image?: string | null
+        globalEntitySelection?: SelectionArray
+        globalGallery?: GlightboxApi
+    }) => {
+        const originalUrl = migrateSelectedEntityNamesParam(Url.fromURL(href))
+        const [updatedUrl, setUpdatedUrl] = useState(originalUrl)
 
-    @computed private get originalSelectedEntities(): EntityName[] {
-        return getSelectedEntityNamesParam(this.originalUrl) ?? []
-    }
+        useEffect(
+            () =>
+                autorun(() => {
+                    const originalSelectedEntities =
+                        getSelectedEntityNamesParam(originalUrl) ?? []
 
-    @computed private get entitiesInGlobalEntitySelection(): EntityName[] {
-        return this.props.globalEntitySelection?.selectedEntityNames ?? []
-    }
+                    const entitiesInGlobalEntitySelection =
+                        globalEntitySelection?.selectedEntityNames ?? []
 
-    @computed private get updatedUrl(): Url {
-        const newEntityList = union(
-            this.originalSelectedEntities,
-            this.entitiesInGlobalEntitySelection
+                    const newEntityList = union(
+                        originalSelectedEntities,
+                        entitiesInGlobalEntitySelection
+                    )
+
+                    setUpdatedUrl(
+                        newEntityList.length === 0
+                            ? originalUrl
+                            : setSelectedEntityNamesParam(
+                                  originalUrl,
+                                  newEntityList
+                              )
+                    )
+                }),
+            []
         )
-        if (newEntityList.length === 0) return this.originalUrl
 
-        return setSelectedEntityNamesParam(this.originalUrl, newEntityList)
-    }
+        useEffect(() => {
+            // optim: see possible optimization in hydratePromminentLinks()
+            globalGallery?.reload()
+        }, [updatedUrl])
 
-    @computed private get style(): string {
-        return this.props.style || ProminentLinkStyles.default
-    }
-
-    render() {
-        const classes = [
-            PROMINENT_LINK_CLASSNAME,
-            this.props.image ? WITH_IMAGE : null,
-        ]
+        const classes = [PROMINENT_LINK_CLASSNAME, image ? WITH_IMAGE : null]
 
         const renderImage = () => {
-            return this.props.image ? (
+            return image ? (
                 <figure
                     dangerouslySetInnerHTML={{
-                        __html: this.props.image,
+                        __html: image,
                     }}
                 />
             ) : null
         }
 
         const renderContent = () => {
-            return this.props.content ? (
+            return content ? (
                 <div
                     className="content"
                     dangerouslySetInnerHTML={{
-                        __html: this.props.content,
+                        __html: content,
                     }}
                 />
             ) : null
@@ -92,11 +105,11 @@ export class ProminentLink extends React.Component<{
                     {renderImage()}
                     <div className="content-wrapper">
                         {renderContent()}
-                        {this.props.title ? (
+                        {title ? (
                             <div className="title">
                                 <span
                                     dangerouslySetInnerHTML={{
-                                        __html: this.props.title,
+                                        __html: title,
                                     }}
                                 />
                                 <FontAwesomeIcon icon={faArrowRight} />
@@ -112,11 +125,11 @@ export class ProminentLink extends React.Component<{
                 <>
                     {renderImage()}
                     <div className="content-wrapper">
-                        {this.props.title ? (
+                        {title ? (
                             <h3>
                                 <span
                                     dangerouslySetInnerHTML={{
-                                        __html: this.props.title,
+                                        __html: title,
                                     }}
                                 />
                                 <FontAwesomeIcon icon={faArrowRight} />
@@ -128,34 +141,35 @@ export class ProminentLink extends React.Component<{
             )
         }
 
-        const target = this.updatedUrl.isGrapher ? { target: "_blank" } : {}
+        const target = updatedUrl.isGrapher ? { target: "_blank" } : {}
 
         return (
             <div
                 className={classes.join(" ")}
                 data-no-lightbox
-                data-style={this.style}
-                data-title={this.props.title}
+                data-style={style}
+                data-title={title}
             >
                 <a
-                    href={this.updatedUrl.fullUrl}
+                    href={updatedUrl.fullUrl}
                     className="glightbox"
                     // see .related-research-data width
                     data-width={`${DEFAULT_GRAPHER_WIDTH + 300}`}
                     {...target}
                 >
-                    {this.style === ProminentLinkStyles.thin
+                    {style === ProminentLinkStyles.thin
                         ? renderThinStyle()
                         : renderDefaultStyle()}
                 </a>
             </div>
         )
     }
-}
-
+)
 export const hydrateProminentLink = (
     globalEntitySelection?: SelectionArray
 ) => {
+    const globalGallery = Glightbox()
+
     document
         .querySelectorAll<HTMLElement>(`.${PROMINENT_LINK_CLASSNAME}`)
         .forEach((block) => {
@@ -175,12 +189,25 @@ export const hydrateProminentLink = (
                     content={content}
                     image={image}
                     globalEntitySelection={globalEntitySelection}
+                    globalGallery={globalGallery}
                 />
             )
 
-            // this should be a hydrate() call, but it does not work on page
-            // load for some reason (works fine when interacting with the global
-            // entity selector afterwards). Maybe a race condition with Mobx?
-            ReactDOM.render(rendered, block.parentElement)
+            ReactDOM.hydrate(rendered, block.parentElement)
         })
+
+    // This is an optimization to run the prominent link gallery code once per
+    // update of the selected entities in the global country selector.
+    // Technically, reloading in an effect in every promient links works too.
+
+    // reaction(
+    //     () => globalEntitySelection?.selectedEntityNames,
+    //     () => {
+    //         // Hack: without the setTimeout, there seems to be a race condition
+    //         // by which prominent link urls are updated before the reload can
+    //         // happen
+    //         setTimeout(() => globalGallery.reload())
+    //     },
+    //     { fireImmediately: true }
+    // )
 }

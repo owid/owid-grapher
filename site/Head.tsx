@@ -56,10 +56,6 @@ export const Head = (props: {
             />
             <link rel="stylesheet" href={webpackUrl("commons.css", baseUrl)} />
             <link rel="stylesheet" href={webpackUrl("owid.css", baseUrl)} />
-            <link
-                rel="stylesheet"
-                href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css"
-            />
             {props.children}
         </head>
     )

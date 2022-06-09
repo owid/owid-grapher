@@ -257,7 +257,6 @@ export const SiteFooter = (props: SiteFooterProps) => (
             </div>
             <div className="site-tools" />
             <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry" />
-            <script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
 
             <script src={webpackUrl("commons.js", props.baseUrl)} />
             <script src={webpackUrl("vendors.js", props.baseUrl)} />
