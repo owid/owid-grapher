@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faHandshake } from "@fortawesome/free-solid-svg-icons/faHandshake"
 import React from "react"
 import ReactDOM from "react-dom"
 import { FeedbackPrompt } from "./Feedback.js"
@@ -23,6 +25,9 @@ const SiteTools = () => {
                 context={NewsletterSubscriptionContext.Floating}
             />
             <FeedbackPrompt />
+            <a className="prompt" data-track-note="page-open-jobs" href="/jobs">
+                <FontAwesomeIcon icon={faHandshake} /> Jobs
+            </a>
         </div>
     )
 }
