@@ -36,10 +36,14 @@ import { Grapher } from "../grapher/core/Grapher.js"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
 import { CoreTable } from "../coreTable/CoreTable.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { hydrateProminentLink } from "./blocks/ProminentLink.js"
+import {
+    hydrateProminentLink,
+    PROMINENT_LINK_CLASSNAME,
+} from "./blocks/ProminentLink.js"
 import Bugsnag from "@bugsnag/js"
 import BugsnagPluginReact from "@bugsnag/plugin-react"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
+import Glightbox from "glightbox"
 
 declare let window: any
 window.Grapher = Grapher
@@ -68,7 +72,10 @@ window.runSiteFooterScripts = () => {
     if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
         MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
         MultiEmbedderSingleton.embedAll()
-        hydrateProminentLink(MultiEmbedderSingleton.selection)
+        hydrateProminentLink(
+            MultiEmbedderSingleton.selection,
+            Glightbox({ selector: `.${PROMINENT_LINK_CLASSNAME} a` })
+        )
     } else {
         hydrateProminentLink()
     }

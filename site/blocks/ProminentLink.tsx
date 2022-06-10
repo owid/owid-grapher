@@ -11,9 +11,9 @@ import { Url } from "../../clientUtils/urls/Url.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { DEFAULT_GRAPHER_WIDTH } from "../../grapher/core/GrapherConstants.js"
-import Glightbox, { GlightboxApi } from "glightbox"
+import { GlightboxApi } from "glightbox"
 import { autorun } from "mobx"
-import { observer } from "mobx-react-lite"
+import { observer, useStaticRendering } from "mobx-react-lite"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -32,7 +32,8 @@ export const ProminentLink = observer(
         content,
         image,
         globalEntitySelection,
-        globalGallery,
+        gallery,
+        galleryId,
     }: {
         href: string
         style: string | null
@@ -40,7 +41,8 @@ export const ProminentLink = observer(
         content?: string | null
         image?: string | null
         globalEntitySelection?: SelectionArray
-        globalGallery?: GlightboxApi
+        gallery?: GlightboxApi
+        galleryId?: string
     }) => {
         const originalUrl = migrateSelectedEntityNamesParam(Url.fromURL(href))
         const [updatedUrl, setUpdatedUrl] = useState(originalUrl)
@@ -73,7 +75,7 @@ export const ProminentLink = observer(
 
         useEffect(() => {
             // optim: see possible optimization in hydratePromminentLinks()
-            globalGallery?.reload()
+            gallery?.reload()
         }, [updatedUrl])
 
         const classes = [PROMINENT_LINK_CLASSNAME, image ? WITH_IMAGE : null]
@@ -152,7 +154,6 @@ export const ProminentLink = observer(
             >
                 <a
                     href={updatedUrl.fullUrl}
-                    className="glightbox"
                     // see .related-research-data width
                     data-width={`${DEFAULT_GRAPHER_WIDTH + 300}`}
                     {...target}
@@ -166,10 +167,9 @@ export const ProminentLink = observer(
     }
 )
 export const hydrateProminentLink = (
-    globalEntitySelection?: SelectionArray
+    globalEntitySelection?: SelectionArray,
+    globalGallery?: GlightboxApi
 ) => {
-    const globalGallery = Glightbox()
-
     document
         .querySelectorAll<HTMLElement>(`.${PROMINENT_LINK_CLASSNAME}`)
         .forEach((block) => {
@@ -189,7 +189,7 @@ export const hydrateProminentLink = (
                     content={content}
                     image={image}
                     globalEntitySelection={globalEntitySelection}
-                    globalGallery={globalGallery}
+                    gallery={globalGallery}
                 />
             )
 
