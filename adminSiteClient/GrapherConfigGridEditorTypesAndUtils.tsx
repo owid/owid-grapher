@@ -24,7 +24,7 @@ import {
 } from "../clientUtils/SqlFilterSExpression.js"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
