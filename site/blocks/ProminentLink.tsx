@@ -24,6 +24,13 @@ export enum ProminentLinkStyles {
 
 export const WITH_IMAGE = "with-image"
 
+// Fixes the useLayoutEffect warning triggered by observer() running on the server
+// Probably not needed with Mobx 6
+// https://mobx-react.js.org/recipes-ssr
+if (typeof window === "undefined") {
+    useStaticRendering(true)
+}
+
 export const ProminentLink = observer(
     ({
         href,
