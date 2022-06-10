@@ -1,5 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faHandshake } from "@fortawesome/free-solid-svg-icons/faHandshake"
 import React from "react"
 import ReactDOM from "react-dom"
 import { FeedbackPrompt } from "./Feedback.js"
@@ -9,6 +7,8 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
+import { faHandshake } from "@fortawesome/free-solid-svg-icons/faHandshake"
 
 const SITE_TOOLS_CLASS = "site-tools"
 
