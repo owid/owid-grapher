@@ -26,7 +26,10 @@ import {
     GrapherInterface,
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface.js"
-import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
+import {
+    Detail,
+    SuggestedChartRevisionStatus,
+} from "../clientUtils/owidTypes.js"
 import {
     GrapherConfigPatch,
     BulkGrapherConfigResponse,
@@ -61,7 +64,6 @@ import {
     OperationContext,
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
-import { parseIntOrUndefined } from "../clientUtils/Util.js"
 import {
     getTagsByPostId,
     postsTable,
@@ -69,6 +71,9 @@ import {
     setTagsForPost,
 } from "../db/model/Post.js"
 //import parse = require("s-expression")
+import { parseIntOrUndefined, trimObject } from "../clientUtils/Util.js"
+import { omit, set, update } from "lodash"
+
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
@@ -2551,12 +2556,42 @@ apiRouter.delete("/details/:id", async (req) => {
 })
 
 apiRouter.put("/details/:id", async (req) => {
-    const { id } = req.params
-    const { category, term, title, content } = req.body
+    const {
+        params: { id },
+        body: detail,
+    } = req
+    const { category, term, title, content }: Detail = detail
+
+    const [original]: Detail[] = await db.execute(
+        `SELECT * FROM details WHERE id=?`,
+        [id]
+    )
+
     await db.execute(
-        `UPDATE details SET category=?, term=?, title=?, content=? WHERE id = ?`,
+        `UPDATE details SET category=?, term=?, title=?, content=? WHERE id=?`,
         [category, term, title, content, id]
     )
+
+    const references: { id: string; config: string }[] = await db.queryMysql(
+        `SELECT id, config FROM charts WHERE config LIKE '%(hover::${original.category}::${original.term})%'`
+    )
+
+    for (let { id: referenceId, config: jsonConfig } of references) {
+        jsonConfig = jsonConfig.replaceAll(
+            new RegExp(`(hover::${original.category}::${original.term})`, "g"),
+            `(hover::${category}::${term})`
+        )
+
+        let config = JSON.parse(jsonConfig)
+        config = omit(config, `details.${original.category}.${original.term}`)
+        config = update(config, "details", trimObject)
+        config = set(config, ["details", category, term], detail)
+
+        await db.queryMysql(`UPDATE charts SET config=? WHERE id=?`, [
+            JSON.stringify(config),
+            referenceId,
+        ])
+    }
 })
 
 export { apiRouter }
