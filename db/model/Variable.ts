@@ -14,36 +14,36 @@ import {
 } from "../../clientUtils/owidTypes.js"
 import { OwidSource } from "../../clientUtils/OwidSource.js"
 
-export namespace Variable {
-    export interface Row {
-        id: number
-        name: string
-        code: string | null
-        unit: string
-        shortUnit: string | null
-        description: string | null
-        createdAt: Date
-        updatedAt: Date
-        datasetId: number
-        sourceId: number
-        display: OwidVariableDisplayConfigInterface
-        coverage?: string
-        timespan?: string
-        columnOrder?: number
+export interface VariableRow {
+    id: number
+    name: string
+    code: string | null
+    unit: string
+    shortUnit: string | null
+    description: string | null
+    createdAt: Date
+    updatedAt: Date
+    datasetId: number
+    sourceId: number
+    display: OwidVariableDisplayConfigInterface
+    coverage?: string
+    timespan?: string
+    columnOrder?: number
+}
+
+export type UnparsedVariableRow = VariableRow & { display: string }
+
+export type Field = keyof VariableRow
+
+export const variableTable = "variables"
+
+export function parseVariableRows(
+    plainRows: UnparsedVariableRow[]
+): VariableRow[] {
+    for (const row of plainRows) {
+        row.display = row.display ? JSON.parse(row.display) : undefined
     }
-
-    export type UnparsedRow = Row & { display: string }
-
-    export type Field = keyof Row
-
-    export const table = "variables"
-
-    export function rows(plainRows: UnparsedRow[]): Row[] {
-        for (const row of plainRows) {
-            row.display = row.display ? JSON.parse(row.display) : undefined
-        }
-        return plainRows
-    }
+    return plainRows
 }
 
 export async function getVariableData(variableIds: number[]): Promise<any> {
@@ -51,7 +51,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
     const data: OwidVariablesAndEntityKey = { variables: {}, entityKey: {} }
 
     type VariableQueryRow = Readonly<
-        Variable.UnparsedRow & {
+        UnparsedVariableRow & {
             display: string
             datasetName: string
             nonRedistributable: number
