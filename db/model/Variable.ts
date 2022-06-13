@@ -46,7 +46,9 @@ export function parseVariableRows(
     return plainRows
 }
 
-export async function getVariableData(variableIds: number[]): Promise<any> {
+export async function getVariableData(
+    variableIds: number[]
+): Promise<OwidVariablesAndEntityKey> {
     variableIds = lodash.uniq(variableIds)
     const data: OwidVariablesAndEntityKey = { variables: {}, entityKey: {} }
 
