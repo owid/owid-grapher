@@ -2527,7 +2527,7 @@ apiRouter.delete("/details/:id", async (req) => {
     await db.execute(`DELETE FROM details WHERE id=?`, [id])
 })
 
-apiRouter.put("/details/:id", async (req) => {
+apiRouter.put("/details/:id", async (req, res) => {
     const {
         params: { id },
         body: detail,
@@ -2548,22 +2548,27 @@ apiRouter.put("/details/:id", async (req) => {
         `SELECT id, config FROM charts WHERE config LIKE '%(hover::${original.category}::${original.term})%'`
     )
 
-    for (let { id: referenceId, config: jsonConfig } of references) {
+    for (let { config: jsonConfig } of references) {
+        const originalConfig = JSON.parse(jsonConfig)
+
+        // replace syntax references with new category and term
         jsonConfig = jsonConfig.replaceAll(
-            new RegExp(`(hover::${original.category}::${original.term})`, "g"),
-            `(hover::${category}::${term})`
+            new RegExp(`hover::${original.category}::${original.term}`, "g"),
+            `hover::${category}::${term}`
         )
+        // replace old detail definition, remove any empty categories, and add new one
+        const newConfig = JSON.parse(jsonConfig)
+        const originalPath = `${original.category}.${original.term}`
+        newConfig.details = omit(newConfig.details, originalPath)
+        newConfig.details = trimObject(newConfig.details)
+        newConfig.details = set(newConfig.details, [category, term], detail)
 
-        let config = JSON.parse(jsonConfig)
-        config = omit(config, `details.${original.category}.${original.term}`)
-        config = update(config, "details", trimObject)
-        config = set(config, ["details", category, term], detail)
-
-        await db.queryMysql(`UPDATE charts SET config=? WHERE id=?`, [
-            JSON.stringify(config),
-            referenceId,
-        ])
+        await db.transaction(async (t) => {
+            return saveGrapher(t, res.locals.user, newConfig, originalConfig)
+        })
     }
+
+    return { success: true }
 })
 
 export { apiRouter }
