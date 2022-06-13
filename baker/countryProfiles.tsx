@@ -7,11 +7,15 @@ import {
     CountryProfileIndicator,
     CountryProfilePage,
 } from "../site/CountryProfilePage.js"
-import { Variable } from "../db/model/Variable.js"
 import { SiteBaker } from "./SiteBaker.js"
 import { countries, getCountry } from "../clientUtils/countries.js"
 import { JsonError } from "../clientUtils/owidTypes.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
+import {
+    parseVariableRows,
+    VariableRow,
+    variableTable,
+} from "../db/model/Variable.js"
 
 export const countriesIndexPage = (baseUrl: string) =>
     renderToHtmlPage(
@@ -46,13 +50,13 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
         return graphers.filter(checkShouldShowIndicator)
     })
 
-const countryIndicatorVariables = async (): Promise<Variable.Row[]> =>
+const countryIndicatorVariables = async (): Promise<VariableRow[]> =>
     bakeCache(countryIndicatorVariables, async () => {
         const variableIds = (await countryIndicatorGraphers()).map(
             (c) => c.dimensions![0]!.variableId
         )
-        return Variable.rows(
-            await db.knexTable(Variable.table).whereIn("id", variableIds)
+        return parseVariableRows(
+            await db.knexTable(variableTable).whereIn("id", variableIds)
         )
     })
 
