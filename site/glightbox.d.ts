@@ -11,7 +11,20 @@ declare module "glightbox" {
         reload: () => void
     }
 
+    interface Element {
+        href?: string
+        type?: "image" | "video" | "external"
+        title?: string
+        description?: string
+        height?: number
+        width?: number
+        content?: string | HTMLElement | null
+        alt?: string
+        source?: "youtube" | "vimeo" | "local"
+    }
     interface Options {
         selector?: string
+        elements?: Element[]
+        autoplayVideos?: boolean
     }
 }
