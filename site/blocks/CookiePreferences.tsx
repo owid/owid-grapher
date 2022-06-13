@@ -1,5 +1,5 @@
 import dayjs from "../../clientUtils/dayjs.js"
-import React from "react"
+import React, { ReactPortal } from "react"
 import ReactDOM from "react-dom"
 import {
     Action,
@@ -73,7 +73,7 @@ export const CookiePreferences = ({
     preferences: Preference[]
     date?: string
     dispatch: any
-}) => {
+}): ReactPortal | null => {
     const cookiePreferencesDomSlot = document.querySelector(
         ".wp-block-cookie-preferences"
     )
