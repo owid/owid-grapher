@@ -29,9 +29,11 @@ const algoliaClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
 export const SearchGraph = ({
     galleryId,
     gallery,
+    defaultTopicTrail,
 }: {
     galleryId: string
     gallery: GlightboxApi
+    defaultTopicTrail?: string
 }) => {
     const [showSearch, setShowSearch] = useState(false)
     const searchGraphRef = useRef<HTMLDivElement>(null)
@@ -81,16 +83,13 @@ export const SearchGraph = ({
                 <InstantSearch
                     searchClient={algoliaClient}
                     indexName={ALGOLIA_GRAPH_INDEX}
-                    // todo: initial state
-                    // initialUiState={{
-                    //     [ALGOLIA_GRAPH_INDEX]: {
-                    //         hierarchicalMenu: {
-                    //             "topics.lvl0": [
-                    //                 "Poverty > Global extreme poverty",
-                    //             ],
-                    //         },
-                    //     },
-                    // }}
+                    initialUiState={{
+                        [ALGOLIA_GRAPH_INDEX]: {
+                            hierarchicalMenu: {
+                                "topics.lvl0": [defaultTopicTrail ?? ""],
+                            },
+                        },
+                    }}
                     onStateChange={({ uiState, setUiState }) => {
                         setUiState(uiState)
                         // Hack: reload the gallery after UI update
@@ -125,12 +124,25 @@ export const SearchGraph = ({
 export function runSearchGraph() {
     const searchElements = document.querySelectorAll(".wp-block-search-graph")
     searchElements.forEach((element, idx) => {
+        // The separator between topics in topic trails is ">" in Algolia
+        // hierarchical menu. When used in an HTML attribute, this closes the
+        // current HTML tag prematurely, hence the replacement separator "::".
+        // In a future version of the block, topic trails might be defined more
+        // semantically in Wordpress or come from the content graph (as opposed
+        // to hardcoded in the HTML markup).
+        const defaultTopicTrail = element
+            .getAttribute("data-default-topic")
+            ?.replaceAll(/\s*::\s*/g, " > ")
         const galleryId = `search-graph-${idx}`
         const gallery = Glightbox({
             selector: `.${galleryId} .${PROMINENT_LINK_CLASSNAME} a `,
         })
         ReactDOM.render(
-            <SearchGraph galleryId={galleryId} gallery={gallery} />,
+            <SearchGraph
+                galleryId={galleryId}
+                gallery={gallery}
+                defaultTopicTrail={defaultTopicTrail}
+            />,
             element
         )
     })
