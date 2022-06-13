@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import algoliasearch from "algoliasearch/lite"
 import {
     HierarchicalMenu,
@@ -21,9 +21,10 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import Glightbox, { GlightboxApi } from "glightbox"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 export const ALGOLIA_GRAPH_INDEX = "graph"
-const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+const algoliaClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
 
 export const SearchGraph = ({
     galleryId,
@@ -32,7 +33,8 @@ export const SearchGraph = ({
     galleryId: string
     gallery: GlightboxApi
 }) => {
-    const [showHits, setShowHits] = useState(false)
+    const [showSearch, setShowSearch] = useState(false)
+    const searchGraphRef = useRef<HTMLDivElement>(null)
 
     const Hit = ({ hit }: { hit: { image: string; title: string } }) => {
         if (!hit.image) return null
@@ -50,58 +52,79 @@ export const SearchGraph = ({
                             <img src="${hit.image}" />
                         </figure>`}
                     gallery={gallery}
-                    galleryId={galleryId}
                 />
             </div>
         )
     }
 
+    // Hide default key chart selection when opening search
+    useEffect(() => {
+        const contentGraphSearchEl =
+            searchGraphRef.current?.parentElement?.nextElementSibling
+        if (showSearch) {
+            contentGraphSearchEl?.classList.add("hide")
+        } else {
+            contentGraphSearchEl?.classList.remove("hide")
+        }
+    }, [showSearch])
+
     return (
-        <InstantSearch
-            searchClient={searchClient}
-            indexName={ALGOLIA_GRAPH_INDEX}
-            onStateChange={({ uiState, setUiState }) => {
-                setUiState(uiState)
-                // Hack to reload the gallery after UI update
-                setTimeout(() => gallery.reload(), 50)
-            }}
-        >
-            <div className="search-box-reset">
-                <SearchBox onFocus={() => setShowHits(true)} />
-                {showHits && (
-                    <button
-                        className="close"
-                        onClick={() => setShowHits(false)}
-                    >
-                        <FontAwesomeIcon icon={faTimes} /> Close
-                    </button>
-                )}
-            </div>
-            {showHits && (
-                <div className="menu-hits">
-                    <div className="menu">
-                        <h4>Topics</h4>
-                        <HierarchicalMenu
-                            attributes={[
-                                "topics.lvl0",
-                                "topics.lvl1",
-                                "topics.lvl2",
-                            ]}
-                        />
-                        <h4>Type</h4>
-                        <RefinementList attribute="type" />
+        <div ref={searchGraphRef}>
+            <button
+                className="toggle"
+                onClick={() => setShowSearch(!showSearch)}
+            >
+                <FontAwesomeIcon icon={showSearch ? faTimes : faSearch} />
+                {showSearch ? "Close" : "Open"}
+            </button>
+            {showSearch && (
+                <InstantSearch
+                    searchClient={algoliaClient}
+                    indexName={ALGOLIA_GRAPH_INDEX}
+                    // todo: initial state
+                    // initialUiState={{
+                    //     [ALGOLIA_GRAPH_INDEX]: {
+                    //         hierarchicalMenu: {
+                    //             "topics.lvl0": [
+                    //                 "Poverty > Global extreme poverty",
+                    //             ],
+                    //         },
+                    //     },
+                    // }}
+                    onStateChange={({ uiState, setUiState }) => {
+                        setUiState(uiState)
+                        // Hack: reload the gallery after UI update
+                        setTimeout(() => gallery.reload(), 50)
+                    }}
+                >
+                    <SearchBox />
+
+                    <div className="menu-hits">
+                        <div className="menu">
+                            <h4>Topics</h4>
+                            <HierarchicalMenu
+                                attributes={[
+                                    "topics.lvl0",
+                                    "topics.lvl1",
+                                    "topics.lvl2",
+                                ]}
+                            />
+                            <h4>Type</h4>
+                            <RefinementList attribute="type" />
+                        </div>
+                        <div className={galleryId}>
+                            <Hits hitComponent={Hit} />
+                        </div>
                     </div>
-                    <Hits classNames={{ list: galleryId }} hitComponent={Hit} />
-                </div>
+                </InstantSearch>
             )}
-        </InstantSearch>
+        </div>
     )
 }
 
 export function runSearchGraph() {
     const searchElements = document.querySelectorAll(".wp-block-search-graph")
     searchElements.forEach((element, idx) => {
-        // const project = element.getAttribute("data-project")
         const galleryId = `search-graph-${idx}`
         const gallery = Glightbox({
             selector: `.${galleryId} .${PROMINENT_LINK_CLASSNAME} a `,

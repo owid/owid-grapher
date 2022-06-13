@@ -40,7 +40,6 @@ export const ProminentLink = observer(
         image,
         globalEntitySelection,
         gallery,
-        galleryId,
     }: {
         href: string
         style: string | null
@@ -49,7 +48,6 @@ export const ProminentLink = observer(
         image?: string | null
         globalEntitySelection?: SelectionArray
         gallery?: GlightboxApi
-        galleryId?: string
     }) => {
         const originalUrl = migrateSelectedEntityNamesParam(Url.fromURL(href))
         const [updatedUrl, setUpdatedUrl] = useState(originalUrl)
@@ -205,14 +203,14 @@ export const hydrateProminentLink = (
 
     // This is an optimization to run the prominent link gallery code once per
     // update of the selected entities in the global country selector.
-    // Technically, reloading in an effect in every promient links works too.
+    // Technically, reloading in an effect in every prominent link works too.
 
     // reaction(
     //     () => globalEntitySelection?.selectedEntityNames,
     //     () => {
     //         // Hack: without the setTimeout, there seems to be a race condition
-    //         // by which prominent link urls are updated before the reload can
-    //         // happen
+    //         // by which the reload happens before prominent link urls are
+    //         // updated
     //         setTimeout(() => globalGallery.reload())
     //     },
     //     { fireImmediately: true }
