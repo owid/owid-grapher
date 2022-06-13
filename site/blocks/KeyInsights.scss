@@ -1,3 +1,5 @@
+@use "sass:math";
+
 $slide-content-height: 500px;
 
 .wp-block-owid-key-insights {
@@ -128,7 +130,7 @@ $slide-content-height: 500px;
                     );
                     // Shifting margin to padding to make space for scrollbar
                     margin-right: 0;
-                    padding-right: $padding-x-md / 2;
+                    padding-right: math.div($padding-x-md, 2);
 
                     > *:first-child {
                         margin-top: 0;
