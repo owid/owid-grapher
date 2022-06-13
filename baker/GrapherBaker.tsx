@@ -3,7 +3,6 @@ import { Chart } from "../db/model/Chart.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
-import { Post } from "../db/model/Post.js"
 import { excludeUndefined, urlToSlug, without } from "../clientUtils/Util.js"
 import {
     getRelatedArticles,
@@ -26,10 +25,11 @@ import * as db from "../db/db.js"
 import * as glob from "glob"
 import { JsonError } from "../clientUtils/owidTypes.js"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
+import { getPostBySlug } from "../db/model/Post.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug ? await Post.bySlug(postSlug) : undefined
+    const post = postSlug ? await getPostBySlug(postSlug) : undefined
     const relatedCharts =
         post && isWordpressDBEnabled
             ? await getRelatedCharts(post.id)

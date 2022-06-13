@@ -3,9 +3,9 @@
 
 import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
-import { Post } from "./model/Post.js"
 import { keyBy } from "../clientUtils/Util.js"
 import { PostRow } from "../clientUtils/owidTypes.js"
+import { selectPosts, postsTable } from "./model/Post.js"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
@@ -15,8 +15,8 @@ const syncPostsToGrapher = async (): Promise<void> => {
     )
 
     const doesExistInWordpress = keyBy(rows, "ID")
-    const existsInGrapher = await Post.select("id").from(
-        db.knexInstance().from(Post.table)
+    const existsInGrapher = await selectPosts("id").from(
+        db.knexInstance().from(postsTable)
     )
     const doesExistInGrapher = keyBy(existsInGrapher, "id")
 
@@ -44,12 +44,12 @@ const syncPostsToGrapher = async (): Promise<void> => {
 
     await db.knexInstance().transaction(async (t) => {
         if (toDelete.length)
-            await t.whereIn("id", toDelete).delete().from(Post.table)
+            await t.whereIn("id", toDelete).delete().from(postsTable)
 
         for (const row of toInsert) {
             if (doesExistInGrapher[row.id])
-                await t.update(row).where("id", "=", row.id).into(Post.table)
-            else await t.insert(row).into(Post.table)
+                await t.update(row).where("id", "=", row.id).into(postsTable)
+            else await t.insert(row).into(postsTable)
         }
     })
 }

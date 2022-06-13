@@ -47,7 +47,6 @@ import {
 } from "./gitDataExport.js"
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
-import { Post } from "../db/model/Post.js"
 import { camelCaseProperties } from "../clientUtils/string.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
@@ -72,6 +71,12 @@ import {
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import { parseIntOrUndefined } from "../clientUtils/Util.js"
+import {
+    getTagsByPostId,
+    postsTable,
+    selectPosts,
+    setTagsForPost,
+} from "../db/model/Post.js"
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
@@ -2155,15 +2160,15 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await Post.select(
+    const rows = await selectPosts(
         "id",
         "title",
         "type",
         "status",
         "updated_at"
-    ).from(db.knexInstance().from(Post.table).orderBy("updated_at", "desc"))
+    ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
 
-    const tagsByPostId = await Post.tagsByPostId()
+    const tagsByPostId = await getTagsByPostId()
 
     const authorship = await wpdb.getAuthorship()
 
@@ -2218,7 +2223,7 @@ apiRouter.post(
     async (req: Request, res: Response) => {
         const postId = expectInt(req.params.postId)
 
-        await Post.setTags(postId, req.body.tagIds)
+        await setTagsForPost(postId, req.body.tagIds)
 
         return { success: true }
     }
@@ -2227,7 +2232,7 @@ apiRouter.post(
 apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
     const postId = expectInt(req.params.postId)
     const post = (await db
-        .knexTable(Post.table)
+        .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
         .first()) as PostRow | undefined
