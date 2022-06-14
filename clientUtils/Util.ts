@@ -710,7 +710,7 @@ export const es6mapValues = <K, V, M>(
         })
     )
 
-interface DataValue {
+export interface DataValue {
     time: Time | undefined
     value: number | string | undefined
 }
