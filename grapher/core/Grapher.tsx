@@ -195,10 +195,10 @@ async function loadVariablesDataAdmin(
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
         const dataPromise = window.admin.getJSON(
-            `/api/data/variables/data/${variableId}`
+            `/api/data/variables/data/${variableId}.json`
         ) as Promise<OwidVariableMixedData>
         const metadataPromise = window.admin.getJSON(
-            `/api/data/variables/metadata/${variableId}`
+            `/api/data/variables/metadata/${variableId}.json`
         ) as Promise<OwidVariableWithSourceAndDimension>
         const [data, metadata] = await Promise.all([
             dataPromise,
@@ -219,8 +219,8 @@ async function loadVariablesDataSite(
     baseUrl: string
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
-        const dataPromise = fetch(`${baseUrl}/data/${variableId}`)
-        const metadataPromise = fetch(`${baseUrl}/metadata/${variableId}`)
+        const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
+        const metadataPromise = fetch(`${baseUrl}metadata/${variableId}.json`)
         const [dataResponse, metadataResponse] = await Promise.all([
             dataPromise,
             metadataPromise,

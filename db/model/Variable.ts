@@ -88,7 +88,7 @@ export async function getVariableData(
         [variableId]
     )
 
-    const dataQuery = db.mysqlFirst(
+    const dataQuery = db.queryMysql(
         `
         SELECT
             value,
