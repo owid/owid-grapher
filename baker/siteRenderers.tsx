@@ -658,7 +658,7 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
 
         $block.replaceWith(rendered)
     }
-    return getBodyHtml($)
+    return $.html()
 }
 
 export const extractKeyInsights = (
