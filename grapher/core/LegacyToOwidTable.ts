@@ -110,6 +110,8 @@ export const legacyToOwidTableAndDimensions = (
                 ...trimObject(dimension.display),
             }
         }
+        if (dimension.targetYear !== undefined)
+            valueColumnDef.targetTime = dimension.targetYear
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
 
         // Annotations column
