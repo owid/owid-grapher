@@ -457,6 +457,7 @@ export class DataTable extends React.Component<{
         return this.table.columnsAsArray.filter(
             (column) =>
                 !skips.has(column.slug) &&
+                !column.slug.endsWith("-originalTime") &&
                 //  dim.property !== "color" &&
                 (column.display?.includeInTable ?? true)
         )
