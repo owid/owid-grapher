@@ -503,7 +503,12 @@ export class DataTable extends React.Component<{
 
     @computed get columnsWithValues(): Dimension[] {
         return this.columnsToShow.map((sourceColumn) => {
-            const targetTimes = this.targetTimes ?? [sourceColumn.maxTime]
+            let targetTimes: number[]
+            if (sourceColumn.def.targetTime !== undefined)
+                targetTimes = [sourceColumn.def.targetTime]
+            else if (this.targetTimes !== undefined)
+                targetTimes = this.targetTimes
+            else targetTimes = [sourceColumn.maxTime]
 
             const targetTimeMode =
                 targetTimes.length < 2
