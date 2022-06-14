@@ -154,12 +154,6 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         </ul>
                     )}
                 </Section>
-                <Section name="Highlight toggle">
-                    <p>
-                        Allow users to toggle a particular chart selection state
-                        to highlight certain entities.
-                    </p>
-                </Section>
             </div>
         )
     }
