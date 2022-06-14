@@ -6,8 +6,10 @@ import {
     OwidVariableDisplayConfigInterface,
 } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
 import {
-    OwidVariableDataMetadataDimensionsMap,
-    OwidVariableDimensionValue,
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableDimensionValueFull,
+    OwidVariableDimensionValuePartial,
     OwidVariableMixedData,
     OwidVariableWithSourceAndType,
 } from "../../clientUtils/OwidVariable.js"
@@ -51,9 +53,13 @@ export function parseVariableRows(
     return plainRows
 }
 
+// TODO: we'll want to split this into getVariableData and getVariableMetadata once
+// the data API can provide us with the type and distinct dimension values for a
+// variable. Before that we need to fetch and iterate the data before we can return
+// the metadata so it doesn't make much sense to split this into two functions yet.
 export async function getVariableData(
     variableId: number
-): Promise<OwidVariableDataMetadataDimensionsMap> {
+): Promise<OwidVariableDataMetadataDimensions> {
     //const data: OwidVariablesAndEntityKey = { variables: {}, entityKey: {} }
 
     type VariableQueryRow = Readonly<
@@ -132,8 +138,8 @@ export async function getVariableData(
         values: [],
     }
 
-    const entityMap = new Map<number, OwidVariableDimensionValue>()
-    const yearMap = new Map<number, OwidVariableDimensionValue>()
+    const entityMap = new Map<number, OwidVariableDimensionValueFull>()
+    const yearMap = new Map<number, OwidVariableDimensionValuePartial>()
 
     const results = await dataQuery
     let encounteredFloatDataValues = false
@@ -179,12 +185,27 @@ export async function getVariableData(
 
     return {
         data: variableData,
-        metadata: variableMetadata,
-        dimensions: {
-            years: { values: Array.from(yearMap.values()) },
-            entities: { values: Array.from(entityMap.values()) },
+        metadata: {
+            ...variableMetadata,
+            dimensions: {
+                years: { values: Array.from(yearMap.values()) },
+                entities: { values: Array.from(entityMap.values()) },
+            },
         },
     }
+}
+
+export async function getDataForMultipleVariables(
+    variableIds: number[]
+): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const promises = variableIds.map(
+        async (id) => await getVariableData(id as number)
+    )
+    const allVariablesDataAndMetadata = await Promise.all(promises)
+    const allVariablesDataAndMetadataMap = new Map(
+        allVariablesDataAndMetadata.map((item) => [item.metadata.id, item])
+    )
+    return allVariablesDataAndMetadataMap
 }
 
 // TODO use this in Dataset.writeCSV() maybe?

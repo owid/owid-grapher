@@ -67,6 +67,10 @@ export interface OwidVariableWithSource {
     source?: OwidSource
 }
 
+export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
+    dimensions: OwidVariableDimensions
+}
+
 export interface OwidVariableMixedData {
     years: number[]
     entities: number[]
@@ -81,7 +85,7 @@ export type OwidVariableWithSourceAndType = OwidVariableWithSource & {
 }
 
 export interface OwidVariableDimension {
-    values: OwidVariableDimensionValue[]
+    values: OwidVariableDimensionValuePartial[]
 }
 
 export interface OwidVariableDimensions {
@@ -89,20 +93,25 @@ export interface OwidVariableDimensions {
     entities: OwidVariableDimension
 }
 
-export interface OwidVariableDataMetadataDimensionsMap {
+export type OwidVariableDataMetadataDimensions = {
     data: OwidVariableMixedData
-    metadata: OwidVariableWithSourceAndType
-    dimensions: OwidVariableDimensions
+    metadata: OwidVariableWithSourceAndDimension
 }
+export type MultipleOwidVariableDataDimensionsMap = Map<
+    number,
+    OwidVariableDataMetadataDimensions
+>
 
-export interface OwidVariableDimensionValue {
+export interface OwidVariableDimensionValuePartial {
     id: number
     name?: string
     code?: string
 }
+export type OwidVariableDimensionValueFull =
+    Required<OwidVariableDimensionValuePartial>
 
 export interface OwidEntityKey {
-    [id: string]: PartialBy<OwidVariableDimensionValue, "id">
+    [id: string]: OwidVariableDimensionValuePartial
 }
 
 export interface OwidVariablesAndEntityKey {

@@ -49,7 +49,10 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
 } from "../core/GrapherConstants.js"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariablesAndEntityKey,
+} from "../../clientUtils/OwidVariable.js"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,
@@ -679,6 +682,7 @@ export class Grapher
 
         try {
             if (this.useAdminAPI) {
+                // TODO grapher model: switch this to downloading multiple data and metadata files
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
@@ -695,14 +699,18 @@ export class Grapher
         }
     }
 
-    @action.bound receiveOwidData(json: OwidVariablesAndEntityKey): void {
+    @action.bound receiveOwidData(
+        json: MultipleOwidVariableDataDimensionsMap
+    ): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         this._receiveOwidDataAndApplySelection(json)
     }
 
     @action.bound private _setInputTable(
-        json: OwidVariablesAndEntityKey,
+        json: MultipleOwidVariableDataDimensionsMap,
         legacyConfig: Partial<LegacyGrapherInterface>
     ): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         const { dimensions, table } = legacyToOwidTableAndDimensions(
             json,
             legacyConfig
@@ -723,6 +731,7 @@ export class Grapher
     }
 
     @action rebuildInputOwidTable(): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         if (!this.legacyVariableDataJson) return
         this._setInputTable(
             this.legacyVariableDataJson,
@@ -886,12 +895,14 @@ export class Grapher
     }
 
     @computed private get dataFileName(): string {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         return `${this.variableIds.join("+")}.json?v=${
             this.isEditor ? undefined : this.cacheTag
         }`
     }
 
     @computed get dataUrl(): string {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         return `${this.bakedGrapherURL ?? ""}/data/variables/${
             this.dataFileName
         }`

@@ -73,6 +73,7 @@ describe("when the page is rendered", () => {
     )
 
     it("preloads the data", () => {
+        // TODO grapher model: switch this to metadata and data paths
         const path = "/grapher/data/variables/3512.json?v=5"
         const selector = `link[rel="preload"][href="${path}"]`
         expect(view.find(selector)).toHaveLength(1)

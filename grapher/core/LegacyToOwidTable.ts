@@ -122,7 +122,9 @@ export const legacyToOwidTableAndDimensions = (
 
         const times = timeColumnValuesFromOwidVariable(variable)
         const entityIds = variable.entities ?? []
-        const entityNames = entityIds.map((id) => entityMetaById[id].name)
+        const entityNames = entityIds.map(
+            (id) => entityMetaById[id].name ?? id.toString()
+        )
         const entityCodes = entityIds.map((id) => entityMetaById[id].code)
 
         // If there is a conversionFactor, apply it.
@@ -149,12 +151,13 @@ export const legacyToOwidTableAndDimensions = (
         }
 
         if (entityColorColumnSlug) {
-            columnStore[entityColorColumnSlug] = entityIds.map(
-                (entityId) =>
-                    grapherConfig.selectedEntityColors?.[
-                        entityMetaById[entityId].name
-                    ] ?? entityColorMap.get(entityId)
-            )
+            columnStore[entityColorColumnSlug] = entityIds.map((entityId) => {
+                const entityName = entityMetaById[entityId].name
+                const selectedEntityColors = grapherConfig.selectedEntityColors
+                return entityName && selectedEntityColors
+                    ? selectedEntityColors[entityName]
+                    : entityColorMap.get(entityId)
+            })
         }
 
         // Build the tables

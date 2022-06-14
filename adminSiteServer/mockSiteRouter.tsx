@@ -72,16 +72,21 @@ mockSiteRouter.get(`/entries-by-year/:year`, async (req, res) =>
 )
 
 mockSiteRouter.get(
-    "/grapher/data/variables/:variableIds.json",
+    "/grapher/data/variables/data/:variableId.json",
     async (req, res) => {
         res.set("Access-Control-Allow-Origin", "*")
-        res.json(
-            await getVariableData(
-                (req.params.variableIds as string)
-                    .split("+")
-                    .map((v) => expectInt(v))
-            )
+        res.json((await getVariableData(expectInt(req.params.variableId))).data)
+    }
+)
+
+mockSiteRouter.get(
+    "/grapher/data/variables/metadata/:variableId.json",
+    async (req, res) => {
+        res.set("Access-Control-Allow-Origin", "*")
+        const variableData = await getVariableData(
+            expectInt(req.params.variableId)
         )
+        res.json(variableData.metadata)
     }
 )
 

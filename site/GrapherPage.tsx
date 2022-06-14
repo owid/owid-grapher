@@ -68,6 +68,9 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     figure { display: none !important; }
                 `}</style>
                 </noscript>
+                {
+                    // TODO grapher model: switch this to downloading multiple data and metadata files
+                }
                 <link
                     rel="preload"
                     href={`/grapher/data/variables/${variableIds.join(
