@@ -51,7 +51,9 @@ export class OwidVariableDisplayConfig
     }
 }
 
-export interface OwidVariableWithDataAndSource {
+export type OwidVariableTypeOptions = "string" | "float" | "int" | "mixed"
+
+export interface OwidVariableWithSource {
     id: number
     name?: string
     description?: string
@@ -63,19 +65,44 @@ export interface OwidVariableWithDataAndSource {
     coverage?: string
     nonRedistributable?: boolean
     source?: OwidSource
+}
+
+export interface OwidVariableMixedData {
     years: number[]
     entities: number[]
     values: (string | number)[]
 }
 
-export interface OwidEntityMeta {
+export type OwidVariableWithDataAndSource = OwidVariableWithSource &
+    OwidVariableMixedData
+
+export type OwidVariableWithSourceAndType = OwidVariableWithSource & {
+    type: OwidVariableTypeOptions
+}
+
+export interface OwidVariableDimension {
+    values: OwidVariableDimensionValue[]
+}
+
+export interface OwidVariableDimensions {
+    years: OwidVariableDimension
+    entities: OwidVariableDimension
+}
+
+export interface OwidVariableDataMetadataDimensionsMap {
+    data: OwidVariableMixedData
+    metadata: OwidVariableWithSourceAndType
+    dimensions: OwidVariableDimensions
+}
+
+export interface OwidVariableDimensionValue {
     id: number
-    name: string
-    code: string
+    name?: string
+    code?: string
 }
 
 export interface OwidEntityKey {
-    [id: string]: PartialBy<OwidEntityMeta, "id">
+    [id: string]: PartialBy<OwidVariableDimensionValue, "id">
 }
 
 export interface OwidVariablesAndEntityKey {
