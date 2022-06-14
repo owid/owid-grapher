@@ -107,6 +107,9 @@ export const SearchGraph = ({
                                     "topics.lvl1",
                                     "topics.lvl2",
                                 ]}
+                                limit={1}
+                                showMore
+                                sortBy={["isRefined"]}
                             />
                             <h4>Type</h4>
                             <RefinementList attribute="type" />
