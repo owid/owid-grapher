@@ -11,7 +11,10 @@ import { Country } from "../clientUtils/countries.js"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { DATA_VALUE } from "../site/DataValue.js"
-import { OwidVariablesAndEntityKey } from "../clientUtils/OwidVariable.js"
+import {
+    OwidVariableDataMetadataDimensions,
+    OwidVariablesAndEntityKey,
+} from "../clientUtils/OwidVariable.js"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
@@ -106,18 +109,22 @@ export const formatDataValue = (
     legacyChartDimension: OwidChartDimensionInterface | undefined
 ) => {
     if (!legacyChartDimension) return
-    const legacyVariableConfig: OwidVariablesAndEntityKey = {
-        entityKey: {},
-        variables: {
-            [variableId]: {
-                id: variableId,
-                display: legacyVariableDisplayConfig,
-                values: [value],
-                years: [],
-                entities: [],
+    const legacyVariable: OwidVariableDataMetadataDimensions = {
+        data: {
+            values: [value],
+            years: [],
+            entities: [],
+        },
+        metadata: {
+            id: variableId,
+            display: legacyVariableDisplayConfig,
+            dimensions: {
+                years: { values: [] },
+                entities: { values: [] },
             },
         },
     }
+    const legacyVariableDataMap = new Map([[variableId, legacyVariable]])
 
     const legacyGrapherConfig = {
         dimensions: [
@@ -128,7 +135,7 @@ export const formatDataValue = (
     }
 
     const { table, dimensions } = legacyToOwidTableAndDimensions(
-        legacyVariableConfig,
+        legacyVariableDataMap,
         legacyGrapherConfig
     )
 

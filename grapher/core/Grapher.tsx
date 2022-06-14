@@ -192,7 +192,7 @@ const legacyConfigToConfig = (
 
 async function loadVariablesDataAdmin(
     variableIds: number[]
-): MultipleOwidVariableDataDimensionsMap {
+): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
         const dataPromise = window.admin.getJSON(
             `/api/data/variables/data/${variableId}`
@@ -217,7 +217,7 @@ async function loadVariablesDataAdmin(
 async function loadVariablesDataSite(
     variableIds: number[],
     baseUrl: string
-): MultipleOwidVariableDataDimensionsMap {
+): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
         const dataPromise = fetch(`${baseUrl}/data/${variableId}`)
         const metadataPromise = fetch(`${baseUrl}/metadata/${variableId}`)
@@ -944,7 +944,6 @@ export class Grapher
     @computed.struct private get variableIds(): number[] {
         return uniq(this.dimensions.map((d) => d.variableId))
     }
-
 
     @computed get dataBaseUrl(): string {
         return `${this.bakedGrapherURL ?? ""}/data/variables/`
