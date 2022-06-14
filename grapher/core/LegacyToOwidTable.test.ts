@@ -5,7 +5,11 @@ import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
 import { ColumnTypeMap } from "../../coreTable/CoreTableColumns.js"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableDataMetadataDimensions,
+    OwidVariablesAndEntityKey,
+} from "../../clientUtils/OwidVariable.js"
 import {
     OwidColumnDef,
     OwidTableSlugs,
@@ -14,18 +18,23 @@ import {
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
 describe(legacyToOwidTableAndDimensions, () => {
-    const legacyVariableConfig: OwidVariablesAndEntityKey = {
-        entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
-        variables: {
-            "2": {
-                id: 2,
-                display: { conversionFactor: 100 },
-                entities: [1],
-                values: [8],
-                years: [2020],
+    const legacyVariableEntry: OwidVariableDataMetadataDimensions = {
+        data: { entities: [1], values: [8], years: [2020] },
+        metadata: {
+            id: 2,
+            display: { conversionFactor: 100 },
+
+            dimensions: {
+                years: { values: [{ id: 2020 }] },
+                entities: {
+                    values: [{ name: "World", code: "OWID_WRL", id: 1 }],
+                },
             },
         },
     }
+    const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap = new Map(
+        [[2, legacyVariableEntry]]
+    )
     const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
         dimensions: [
             {
