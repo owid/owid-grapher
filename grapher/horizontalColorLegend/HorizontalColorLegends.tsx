@@ -622,7 +622,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     }
 }
 
-interface NumericBinRectProps extends React.SVGProps<SVGRectElement> {
+interface NumericBinRectProps extends React.SVGAttributes<SVGElement> {
     x: number
     y: number
     width: number

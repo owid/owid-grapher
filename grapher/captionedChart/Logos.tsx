@@ -83,12 +83,11 @@ export class Logo {
 
     renderHTML(): JSX.Element {
         const { spec } = this
-        const props: React.HTMLAttributes<HTMLDivElement & HTMLAnchorElement> =
-            {
-                className: "logo",
-                dangerouslySetInnerHTML: { __html: spec.svg },
-                style: { height: `${spec.targetHeight}px` },
-            }
+        const props: React.HTMLAttributes<HTMLElement> = {
+            className: "logo",
+            dangerouslySetInnerHTML: { __html: spec.svg },
+            style: { height: `${spec.targetHeight}px` },
+        }
         if (this.props.isLink || !spec.url) return <div {...props} />
         return <a {...props} href={spec.url} target="_blank" rel="noopener" />
     }
