@@ -213,6 +213,8 @@ export class DataTable extends React.Component<{
             const actualColumn = dim.coreTableColumn
             const unit =
                 actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
+            const targetTime =
+                dim.columns.length == 1 ? dim.columns[0].targetTime : undefined
             const columnName =
                 actualColumn.displayName !== ""
                     ? actualColumn.displayName
@@ -220,8 +222,17 @@ export class DataTable extends React.Component<{
 
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <span className="name">{upperFirst(columnName)}</span>
-                    <span className="unit">{unit}</span>
+                    <div className="name">{upperFirst(columnName)}</div>
+                    <div>
+                        <span className="unit">{unit}</span>{" "}
+                        <span className="divider">
+                            {unit && targetTime !== undefined && "•"}
+                        </span>{" "}
+                        <span className="time">
+                            {targetTime !== undefined &&
+                                actualColumn.table.formatTime(targetTime)}
+                        </span>
+                    </div>
                 </React.Fragment>
             )
 

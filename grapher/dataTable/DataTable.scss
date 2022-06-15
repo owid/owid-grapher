@@ -172,12 +172,12 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     .dimension {
         text-align: right;
 
-        .name,
-        .unit {
-            display: block;
+        .divider {
+            opacity: 0.25;
         }
 
-        .unit {
+        .unit,
+        .time {
             font-weight: 700;
             opacity: 0.5;
             padding-bottom: 3px;
