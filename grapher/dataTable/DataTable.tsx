@@ -230,7 +230,9 @@ export class DataTable extends React.Component<{
                         </span>{" "}
                         <span className="time">
                             {targetTime !== undefined &&
-                                actualColumn.table.formatTime(targetTime)}
+                                actualColumn.originalTimeColumn.formatValue(
+                                    targetTime
+                                )}
                         </span>
                     </div>
                 </React.Fragment>
@@ -262,7 +264,9 @@ export class DataTable extends React.Component<{
             dim.columns.map((column, i) => {
                 const headerText = isDeltaColumn(column.key)
                     ? columnNameByType[column.key]
-                    : dim.coreTableColumn.table.formatTime(column.targetTime!)
+                    : dim.coreTableColumn.originalTimeColumn.formatValue(
+                          column.targetTime!
+                      )
                 return (
                     <ColumnHeader
                         key={column.key}
@@ -335,8 +339,10 @@ export class DataTable extends React.Component<{
             >
                 {shouldShowClosestTimeNotice &&
                     makeClosestTimeNotice(
-                        actualColumn.table.formatTime(column.targetTime!),
-                        actualColumn.table.formatTime(value.time!) // todo: add back format: "MMM D",
+                        actualColumn.originalTimeColumn.formatValue(
+                            column.targetTime!
+                        ),
+                        actualColumn.originalTimeColumn.formatValue(value.time!) // todo: add back format: "MMM D",
                     )}
                 <span>{value.displayValue}</span>
             </td>
