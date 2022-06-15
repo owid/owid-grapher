@@ -458,7 +458,7 @@ export class LineChart
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formatted = inputTable.timeColumnFormatFunction(activeX)
+        const formatted = formatColumn.formatTime(activeX)
 
         return (
             <Tooltip

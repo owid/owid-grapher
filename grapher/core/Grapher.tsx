@@ -1710,7 +1710,7 @@ export class Grapher
     }
 
     formatTimeFn(time: Time): string {
-        return this.inputTable.timeColumnFormatFunction(time)
+        return this.inputTable.timeColumn.formatTime(time)
     }
 
     @action.bound private toggleTabCommand(): void {
@@ -2395,8 +2395,6 @@ export class Grapher
 
     formatTime(value: Time): string {
         const timeColumn = this.table.timeColumn
-        if (timeColumn.isMissing)
-            return this.table.timeColumnFormatFunction(value)
         return isMobile()
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)

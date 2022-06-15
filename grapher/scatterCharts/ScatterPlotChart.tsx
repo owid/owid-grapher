@@ -392,13 +392,13 @@ export class ScatterPlotChart
     }
 
     @computed get displayStartTime(): string {
-        return this.transformedTable.timeColumnFormatFunction(
+        return this.transformedTable.timeColumn.formatTime(
             this.transformedTable.minTime ?? 1900
         )
     }
 
     @computed get displayEndTime(): string {
-        return this.transformedTable.timeColumnFormatFunction(
+        return this.transformedTable.timeColumn.formatTime(
             this.transformedTable.maxTime ?? 2000
         )
     }
@@ -945,7 +945,7 @@ export class ScatterPlotChart
         } else if (strat === ScatterPointLabelStrategy.x) {
             label = this.xColumn?.formatValue(row[this.xColumnSlug])
         } else {
-            label = this.transformedTable.timeColumnFormatFunction(
+            label = this.transformedTable.timeColumn.formatTime(
                 row[this.transformedTable.timeColumn.slug]
             )
         }

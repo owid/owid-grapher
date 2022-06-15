@@ -353,7 +353,7 @@ export class StackedAreaChart
                         <tr>
                             <td>
                                 <strong>
-                                    {this.inputTable.timeColumnFormatFunction(
+                                    {yColumn.formatTime(
                                         bottomSeriesPoint.position
                                     )}
                                 </strong>
