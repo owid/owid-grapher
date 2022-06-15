@@ -10,7 +10,10 @@ import { SelectionArray } from "../../grapher/selection/SelectionArray.js"
 import { Url } from "../../clientUtils/urls/Url.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
-import { DEFAULT_GRAPHER_WIDTH } from "../../grapher/core/GrapherConstants.js"
+import {
+    DEFAULT_GRAPHER_WIDTH,
+    GRAPHER_SHOW_CONTEXT_PARAM,
+} from "../../grapher/core/GrapherConstants.js"
 import { GlightboxApi } from "glightbox"
 import { autorun } from "mobx"
 import { observer, useStaticRendering } from "mobx-react-lite"
@@ -148,7 +151,15 @@ export const ProminentLink = observer(
             )
         }
 
-        const target = updatedUrl.isGrapher ? { target: "_blank" } : {}
+        let target = {}
+        let updatedUrlWithContext = updatedUrl
+
+        if (updatedUrl.isGrapher) {
+            target = { target: "_blank" }
+            updatedUrlWithContext = updatedUrl.updateQueryParams({
+                [GRAPHER_SHOW_CONTEXT_PARAM]: "true",
+            })
+        }
 
         return (
             <div
@@ -158,7 +169,7 @@ export const ProminentLink = observer(
                 data-title={title}
             >
                 <a
-                    href={updatedUrl.fullUrl}
+                    href={updatedUrlWithContext.fullUrl}
                     // see .related-research-data width
                     data-width={`${DEFAULT_GRAPHER_WIDTH + 300}`}
                     {...target}
