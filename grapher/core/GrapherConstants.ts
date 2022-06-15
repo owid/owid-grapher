@@ -20,6 +20,9 @@ export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 
+export const GRAPHER_SHOW_CONTEXT_CLASS = "show-context"
+export const GRAPHER_SHOW_CONTEXT_PARAM = "showContext"
+
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
