@@ -1,0 +1,50 @@
+.wp-block-all-charts {
+    ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+
+        @include lg-down {
+            display: flex;
+            overflow-x: auto;
+            margin-bottom: $vertical-spacing * 0.5; // making space for the scrollbar
+            padding-bottom: 1.5rem;
+            li {
+                flex: 0 0 min(50vw, 13rem);
+                margin-right: 1rem;
+            }
+        }
+
+        @include lg-up {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: $vertical-spacing;
+        }
+
+        img {
+            margin-bottom: $vertical-spacing * 0.5;
+            border: 1px solid transparent;
+        }
+
+        a:hover img {
+            @include image-hover;
+        }
+
+        font-size: 14px;
+        line-height: 1.2;
+    }
+}
+
+.modal {
+    .all-charts-gallery {
+        .navigation {
+            position: absolute;
+            bottom: 0;
+        }
+        iframe {
+            width: 850px;
+            height: 600px;
+            border: 0px none;
+        }
+    }
+}
