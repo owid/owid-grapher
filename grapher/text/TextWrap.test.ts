@@ -1,6 +1,10 @@
 #! /usr/bin/env jest
 
-import { TextWrap, shortenForTargetWidth } from "./TextWrap.js"
+import {
+    TextWrap,
+    shortenForTargetWidth,
+    checkIsBeginningOfDod,
+} from "./TextWrap.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
 
 const FONT_SIZE = 14
@@ -114,5 +118,63 @@ describe("lines()", () => {
         expect(wrap.lines.map((l) => l.text)).toEqual([
             "an <strong>important</strong> <a href='https://youtu.be/dQw4w9WgXcQ'>line</a>",
         ])
+    })
+})
+
+describe("checkIsBeginningOfDod", () => {
+    it("should return true on one-word DoDs", () => {
+        const result = checkIsBeginningOfDod(
+            "[word](hover::category::term)",
+            []
+        )
+        expect(result).toEqual(true)
+    })
+
+    it("should return true on multi-word DoDs", () => {
+        const result = checkIsBeginningOfDod("[first", [
+            "second](hover::category::term)",
+        ])
+        expect(result).toEqual(true)
+    })
+
+    it("should return true on DoDs with newlines", () => {
+        const result = checkIsBeginningOfDod(
+            "\n[word](hover::category::term)",
+            []
+        )
+        expect(result).toEqual(true)
+    })
+
+    it("should return true on multi-word DoDs with newlines", () => {
+        const result = checkIsBeginningOfDod("\n[first", [
+            "second](hover::category::term)",
+        ])
+        expect(result).toEqual(true)
+    })
+
+    it("should return false on other brackets", () => {
+        const result = checkIsBeginningOfDod("[not_a_dod]", [])
+        expect(result).toEqual(false)
+    })
+
+    it("should return false on other brackets even where there is a DoD later", () => {
+        const result = checkIsBeginningOfDod("[not_a_dod]", [
+            "[dod](hover::category::term)",
+        ])
+        expect(result).toEqual(false)
+    })
+
+    it("should return false on multi-word brackets", () => {
+        const result = checkIsBeginningOfDod("[not", ["a", "dod]"])
+        expect(result).toEqual(false)
+    })
+
+    it("should return true when there is a DoD inside brackets", () => {
+        const result = checkIsBeginningOfDod("[inside", [
+            "some",
+            "brackets](hover::category::term)",
+            "end]",
+        ])
+        expect(result).toEqual(true)
     })
 })

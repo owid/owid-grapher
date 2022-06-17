@@ -168,6 +168,7 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
+import DetailsOnDemandContainer from "../detailsOnDemand/detailsOnDemand.js"
 
 declare const window: any
 
@@ -1069,6 +1070,10 @@ export class Grapher
 
     @computed get displaySlug(): string {
         return this.slug ?? slugify(this.displayTitle)
+    }
+
+    @computed get details(): GrapherInterface["details"] {
+        return this.props.details ?? {}
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
@@ -2085,6 +2090,13 @@ export class Grapher
                         isMulti={!this.canChangeEntity}
                         selectionArray={this.selection}
                         onDismiss={action(() => (this.isSelectingData = false))}
+                    />
+                )}
+                {this.base.current && (
+                    <DetailsOnDemandContainer
+                        containerElement={this.base.current}
+                        details={this.details}
+                        tooltipManager={this}
                     />
                 )}
             </>

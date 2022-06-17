@@ -1,0 +1,46 @@
+span.dod-term {
+    border-bottom: 1px dotted $controls-color;
+    color: $controls-color;
+
+    &:hover {
+        color: darken($controls-color, 10%);
+    }
+}
+
+.dod-tooltip {
+    max-width: 300px;
+    min-width: 300px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    pointer-events: all;
+    padding: 24px;
+    background-image: linear-gradient(0deg, #f4f4f4, #f9f9f9);
+
+    .dod-title {
+        order: 1;
+        flex-grow: 1;
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .dod-category-container {
+        order: 2;
+    }
+
+    .dod-category {
+        background: #f4e2f6;
+        color: #8e6096;
+        padding: 2px 6px;
+        border-radius: 2px;
+        margin: -8px;
+        text-transform: uppercase;
+        font-size: 11px;
+    }
+
+    .dod-content {
+        order: 3;
+        width: 100%;
+        white-space: break-spaces;
+    }
+}
