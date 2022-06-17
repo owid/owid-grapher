@@ -4,7 +4,10 @@ import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import { TextWrap } from "../text/TextWrap.js"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
-import { getRelativeMouse } from "../../clientUtils/Util.js"
+import {
+    exposeInstanceOnWindow,
+    getRelativeMouse,
+} from "../../clientUtils/Util.js"
 import { Tooltip } from "../tooltip/Tooltip.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { FooterManager } from "./FooterManager.js"

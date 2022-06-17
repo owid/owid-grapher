@@ -77,6 +77,13 @@ export interface GrapherInterface extends SortConfig {
     selectedEntityColors?: { [entityName: string]: string | undefined }
     selectedEntityIds?: EntityId[]
     facet?: FacetStrategy
+    details?: Record<
+        string,
+        Record<
+            string,
+            { title: string; content: string; term: string; category: string }
+        >
+    >
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
@@ -176,4 +183,5 @@ export const grapherKeysToSerialize = [
     "comparisonLines",
     "relatedQuestions",
     "topicIds",
+    "details",
 ]

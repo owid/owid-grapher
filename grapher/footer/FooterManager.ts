@@ -12,4 +12,5 @@ export interface FooterManager {
     currentTab?: string
     tooltips?: TooltipManager["tooltips"]
     tabBounds?: Bounds
+    details?: any
 }
