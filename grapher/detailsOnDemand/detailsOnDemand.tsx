@@ -1,4 +1,5 @@
 import React from "react"
+import Markdown from "markdown-to-jsx"
 import { observer } from "mobx-react"
 import { GrapherInterface } from "../core/GrapherInterface.js"
 import { TooltipManager } from "../tooltip/TooltipProps.js"
@@ -57,7 +58,9 @@ export default class DetailsOnDemandContainer extends React.Component<DetailsOnD
                     <p className="dod-category">{category}</p>
                 </div>
                 <h4 className="dod-title">{details[category][term].title}</h4>
-                <p className="dod-content">{details[category][term].content}</p>
+                <Markdown className="dod-content">
+                    {details[category][term].content}
+                </Markdown>
             </div>
         )
         tooltipManager.tooltips.set(this.tooltipId, {

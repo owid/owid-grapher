@@ -143,6 +143,7 @@
         "knex": "^2.1.0",
         "linkifyjs": "^2.1.9",
         "lodash": "^4.17.20",
+        "markdown-to-jsx": "^7.1.7",
         "mathjax-full": "^3.1.0",
         "md5": "^2.3.0",
         "mini-css-extract-plugin": "^2.6.1",
