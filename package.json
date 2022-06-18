@@ -229,7 +229,7 @@
         "cypress": "9.3.1",
         "eslint-config-prettier": "^8.5.0",
         "eslint-plugin-react": "^7.30.0",
-        "http-server": "^14.0.0",
+        "http-server": "^14.1.1",
         "jest": "^28.1.0",
         "jest-environment-jsdom": "^28.1.0",
         "opener": "^1.5.2",
