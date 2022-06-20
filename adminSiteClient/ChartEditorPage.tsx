@@ -272,28 +272,32 @@ export class ChartEditorPage
         this.fetchTopics()
     }
 
-    dispose!: IReactionDisposer
-    disposeDetailHandler!: IReactionDisposer
+    disposers: IReactionDisposer[] = []
+
     componentDidMount(): void {
         this.refresh()
 
-        this.dispose = reaction(
-            () => this.editor && this.editor.previewMode,
-            () => {
-                if (this.editor) {
-                    localStorage.setItem(
-                        "editorPreviewMode",
-                        this.editor.previewMode
-                    )
+        this.disposers.push(
+            reaction(
+                () => this.editor && this.editor.previewMode,
+                () => {
+                    if (this.editor) {
+                        localStorage.setItem(
+                            "editorPreviewMode",
+                            this.editor.previewMode
+                        )
+                    }
                 }
-            }
+            )
         )
 
-        this.disposeDetailHandler = reaction(
-            () => this.currentlyReferencedDetails,
-            (currentlyReferencedDetails = {}) => {
-                this.grapher.details = currentlyReferencedDetails
-            }
+        this.disposers.push(
+            reaction(
+                () => this.currentlyReferencedDetails,
+                (currentlyReferencedDetails = {}) => {
+                    this.grapher.details = currentlyReferencedDetails
+                }
+            )
         )
     }
 
@@ -304,8 +308,7 @@ export class ChartEditorPage
     }
 
     componentWillUnmount(): void {
-        this.dispose()
-        this.disposeDetailHandler()
+        this.disposers.forEach((dispose) => dispose())
     }
 
     render(): JSX.Element {
