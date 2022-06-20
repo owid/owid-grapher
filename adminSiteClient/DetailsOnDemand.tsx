@@ -35,11 +35,6 @@ class DetailRow extends React.Component<DetailRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    constructor(props: DetailRowProps) {
-        super(props)
-        this.handleClickOff = this.handleClickOff.bind(this)
-    }
-
     @action.bound async handleEdit() {
         if (this.isEditing) {
             try {
@@ -69,8 +64,7 @@ class DetailRow extends React.Component<DetailRowProps> {
             .target
 
         if (!this.deleteButtonRef?.current?.contains(target as Node)) {
-            const body = document.querySelector("body")
-            body?.removeEventListener("click", this.handleClickOff)
+            document.body.removeEventListener("click", this.handleClickOff)
             this.isDeleting = false
         }
     }
@@ -79,11 +73,9 @@ class DetailRow extends React.Component<DetailRowProps> {
         if (this.isDeleting) {
             await this.props.deleteDetail(this.props.detail.id)
             this.isDeleting = false
-            const body = document.querySelector("body")
-            body?.removeEventListener("click", this.handleClickOff)
+            document.body.removeEventListener("click", this.handleClickOff)
         } else {
-            const body = document.querySelector("body")
-            body?.addEventListener("click", this.handleClickOff)
+            document.body.addEventListener("click", this.handleClickOff)
             this.isDeleting = true
         }
     }
