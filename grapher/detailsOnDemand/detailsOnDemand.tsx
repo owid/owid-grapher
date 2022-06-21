@@ -3,7 +3,7 @@ import Markdown from "markdown-to-jsx"
 import { observer } from "mobx-react"
 import { GrapherInterface } from "../core/GrapherInterface.js"
 import { TooltipManager } from "../tooltip/TooltipProps.js"
-import { checkIsChildOfClass } from "../../clientUtils/Util.js"
+import { checkIsChildOfClass, isTouchDevice } from "../../clientUtils/Util.js"
 
 interface DetailsOnDemandContainerProps {
     containerElement?: React.RefObject<HTMLDivElement>["current"]
@@ -15,6 +15,7 @@ interface DetailsOnDemandContainerProps {
 export default class DetailsOnDemandContainer extends React.Component<DetailsOnDemandContainerProps> {
     constructor(props: DetailsOnDemandContainerProps) {
         super(props)
+        this.handleClick = this.handleClick.bind(this)
         this.handleMouseover = this.handleMouseover.bind(this)
         this.removeTooltip = this.removeTooltip.bind(this)
     }
@@ -23,17 +24,27 @@ export default class DetailsOnDemandContainer extends React.Component<DetailsOnD
     tooltipId: string | undefined
 
     componentDidMount() {
-        this.props.containerElement?.addEventListener(
-            "mouseover",
-            this.handleMouseover
-        )
+        if (isTouchDevice()) {
+            this.props.containerElement?.addEventListener(
+                "click",
+                this.handleClick
+            )
+        } else {
+            this.props.containerElement?.addEventListener(
+                "mouseover",
+                this.handleMouseover
+            )
+        }
     }
 
     componentWillUnmount() {
-        this.props.containerElement?.removeEventListener(
-            "mouseover",
-            this.handleMouseover
-        )
+        if (isTouchDevice()) {
+        } else {
+            this.props.containerElement?.removeEventListener(
+                "mouseover",
+                this.handleMouseover
+            )
+        }
     }
 
     renderTooltip(element: HTMLElement) {
@@ -58,7 +69,22 @@ export default class DetailsOnDemandContainer extends React.Component<DetailsOnD
                     <p className="dod-category">{category}</p>
                 </div>
                 <h4 className="dod-title">{details[category][term].title}</h4>
-                <Markdown className="dod-content">
+                <Markdown
+                    className="dod-content"
+                    options={{
+                        overrides: {
+                            a: ({ children, ...props }) => (
+                                <a
+                                    rel="noopener noreferrer"
+                                    target="_blank"
+                                    {...props}
+                                >
+                                    {children}
+                                </a>
+                            ),
+                        },
+                    }}
+                >
                     {details[category][term].content}
                 </Markdown>
             </div>
@@ -69,6 +95,9 @@ export default class DetailsOnDemandContainer extends React.Component<DetailsOnD
             tooltipManager,
             x,
             y,
+            style: {
+                animation: "appear 50ms cubic-bezier(0.47, 0, 0.74, 0.71)",
+            },
         })
     }
 
@@ -84,6 +113,15 @@ export default class DetailsOnDemandContainer extends React.Component<DetailsOnD
                     this.tooltipId = undefined
                 }
             }, 80)
+        }
+    }
+
+    handleClick(event: MouseEvent) {
+        const element = event.target as HTMLElement
+        if (checkIsChildOfClass(element, "dod-term")) {
+            this.renderTooltip(element)
+        } else if (!checkIsChildOfClass(element, "dod-tooltip")) {
+            this.removeTooltip()
         }
     }
 
