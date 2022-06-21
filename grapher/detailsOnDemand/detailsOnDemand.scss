@@ -8,8 +8,7 @@ span.dod-term {
 }
 
 .dod-tooltip {
-    max-width: 300px;
-    min-width: 300px;
+    width: 300px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -43,5 +42,14 @@ span.dod-term {
         width: 100%;
         white-space: break-spaces;
         margin: 16px 0;
+    }
+}
+
+@media (max-width: 400px) {
+    .dod-tooltip {
+        width: 98vw;
+        border: 1px solid #d0d0d0;
+        margin: 0;
+        border-radius: 1px;
     }
 }
