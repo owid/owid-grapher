@@ -70,6 +70,9 @@ export interface CoreColumnDef extends ColumnColorScale {
     retrievedDate?: string
     additionalInfo?: string
 
+    // Informational only
+    targetTime?: number
+
     // For developer internal use only.
     values?: CoreValueType[]
     generator?: () => number // A function for generating synthetic data for testing
