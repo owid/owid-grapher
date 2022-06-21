@@ -31,7 +31,7 @@ export class SourcesTab extends React.Component<{
     }
 
     private renderSource(column: CoreColumn): JSX.Element {
-        const { table, slug, source, def } = column
+        const { slug, source, def } = column
         const { datasetId, coverage } = def as OwidColumnDef
 
         const editUrl = this.manager.showAdminControls
@@ -41,9 +41,9 @@ export class SourcesTab extends React.Component<{
         const { minTime, maxTime } = column
         let timespan = ""
         if (minTime !== undefined && maxTime !== undefined)
-            timespan = `${table.timeColumn?.formatValue(
-                minTime
-            )} – ${table.timeColumn?.formatValue(maxTime)}`
+            timespan = `${column.formatTime(minTime)} – ${column.formatTime(
+                maxTime
+            )}`
 
         return (
             <div key={slug} className="datasource-wrapper">

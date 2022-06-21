@@ -194,6 +194,10 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return csvEscape(anyToString(value))
     }
 
+    formatTime(time: number): string {
+        return this.originalTimeColumn.formatValue(time)
+    }
+
     @imemo get numDecimalPlaces(): number {
         return this.display?.numDecimalPlaces ?? 2
     }
@@ -683,6 +687,10 @@ export abstract class TimeColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
 
     abstract preposition: string
+
+    formatTime(time: number): string {
+        return this.formatValue(time)
+    }
 
     parse(val: any): number | ErrorValue {
         return parseInt(val)

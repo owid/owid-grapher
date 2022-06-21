@@ -251,9 +251,7 @@ export class StackedBarChart
                         <tr>
                             <td colSpan={3}>
                                 <strong>
-                                    {inputTable.timeColumnFormatFunction(
-                                        hoverBar.position
-                                    )}
+                                    {yColumn.formatTime(hoverBar.position)}
                                 </strong>
                             </td>
                         </tr>

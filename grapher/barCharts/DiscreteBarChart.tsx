@@ -504,9 +504,7 @@ export class DiscreteBarChart
         return {
             valueString: displayValue,
             timeString: showYearLabels
-                ? ` ${preposition} ${transformedTable.timeColumnFormatFunction(
-                      series.time
-                  )}`
+                ? ` ${preposition} ${column.formatTime(series.time)}`
                 : "",
         }
     }
