@@ -68,21 +68,11 @@ export const AllCharts = ({ charts }: { charts: RelatedChart[] }) => {
                             <GalleryArrow
                                 disabled={isFirstSlideActive}
                                 onClick={() => setActiveSlide(activeSlide - 1)}
-                                label={
-                                    !isFirstSlideActive
-                                        ? charts[activeSlide - 1].title
-                                        : ""
-                                }
                                 direction={GalleryArrowDirection.prev}
                             ></GalleryArrow>
                             <GalleryArrow
                                 disabled={isLastSlideActive}
                                 onClick={() => setActiveSlide(activeSlide + 1)}
-                                label={
-                                    !isLastSlideActive
-                                        ? charts[activeSlide + 1].title
-                                        : ""
-                                }
                                 direction={GalleryArrowDirection.next}
                             ></GalleryArrow>
                         </div>
