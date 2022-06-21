@@ -15,6 +15,7 @@ interface DetailsOnDemandContainerProps {
 export default class DetailsOnDemandContainer extends React.Component<DetailsOnDemandContainerProps> {
     constructor(props: DetailsOnDemandContainerProps) {
         super(props)
+        this.handleFocus = this.handleFocus.bind(this)
         this.handleClick = this.handleClick.bind(this)
         this.handleMouseover = this.handleMouseover.bind(this)
         this.removeTooltip = this.removeTooltip.bind(this)
@@ -34,7 +35,17 @@ export default class DetailsOnDemandContainer extends React.Component<DetailsOnD
                 "mouseover",
                 this.handleMouseover
             )
+            this.props.containerElement?.addEventListener(
+                "focusin",
+                this.handleFocus
+            )
         }
+
+        document.body.addEventListener("keydown", (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                this.removeTooltip()
+            }
+        })
     }
 
     componentWillUnmount() {
@@ -107,6 +118,8 @@ export default class DetailsOnDemandContainer extends React.Component<DetailsOnD
 
     removeTooltip() {
         if (this.tooltipId) {
+            // using a timeout before removing so that the tooltip doesn't disppear
+            // while the user is moving their mouse to hover over it
             this.timeout = setTimeout(() => {
                 if (this.tooltipId) {
                     this.props.tooltipManager.tooltips?.delete(this.tooltipId)
@@ -118,9 +131,24 @@ export default class DetailsOnDemandContainer extends React.Component<DetailsOnD
 
     handleClick(event: MouseEvent) {
         const element = event.target as HTMLElement
+        // clicking on the span
         if (checkIsChildOfClass(element, "dod-term")) {
             this.renderTooltip(element)
-        } else if (!checkIsChildOfClass(element, "dod-tooltip")) {
+        }
+        // clicking on anything that isn't the tooltip
+        else if (!checkIsChildOfClass(element, "dod-tooltip")) {
+            this.removeTooltip()
+        }
+    }
+
+    handleFocus(event: FocusEvent) {
+        const element = event.target as HTMLElement
+        // focusing on the span
+        if (checkIsChildOfClass(element, "dod-term")) {
+            this.renderTooltip(element)
+        }
+        // focusing on something else
+        else if (!checkIsChildOfClass(element, "dod-tooltip")) {
             this.removeTooltip()
         }
     }

@@ -149,7 +149,7 @@ export class TextWrap {
                     word,
                     subsequentWords
                 )
-                dodSpanOpenTag = `<span class="dod-term" data-category="${category}" data-term="${term}">`
+                dodSpanOpenTag = `<span aria-label="A definition for ${term}" tabindex="0" type="button" class="dod-term" data-category="${category}" data-term="${term}">`
                 word = word.replace(/\[/, dodSpanOpenTag)
             }
 
