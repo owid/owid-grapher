@@ -1,4 +1,4 @@
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import { faArrowLeftLong } from "@fortawesome/free-solid-svg-icons/faArrowLeftLong"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import React from "react"
 
@@ -11,15 +11,13 @@ export const GalleryArrow = ({
     disabled,
     onClick,
     direction,
-    label,
 }: {
     disabled: boolean
     onClick: VoidFunction
     direction: GalleryArrowDirection
-    label: string
 }) => {
     const flip =
-        direction === GalleryArrowDirection.prev ? "horizontal" : undefined
+        direction === GalleryArrowDirection.next ? "horizontal" : undefined
     const classes = ["gallery-arrow", direction]
 
     return (
@@ -28,8 +26,7 @@ export const GalleryArrow = ({
             onClick={onClick}
             className={classes.join(" ")}
         >
-            <div className="label">{label}</div>
-            <FontAwesomeIcon icon={faAngleRight} flip={flip} />
+            <FontAwesomeIcon icon={faArrowLeftLong} flip={flip} />
         </button>
     )
 }
