@@ -1,6 +1,6 @@
 @use "sass:math";
 
-$slide-content-height: 500px;
+$slide-content-height: $grapher-height;
 
 .wp-block-owid-key-insights {
     @include block-shadow;
@@ -106,7 +106,6 @@ $slide-content-height: 500px;
         }
 
         figure[data-grapher-src]:not(.grapherPreview) {
-            // shorter than regular $grapher-height to accommodate smaller screens
             height: $slide-content-height;
         }
 
