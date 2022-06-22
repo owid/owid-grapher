@@ -60,6 +60,8 @@ export const EMBEDDED_EXPLORER_GRAPHER_CONFIGS =
 
 export const EXPLORER_EMBEDDED_FIGURE_SELECTOR = "data-explorer-src"
 
+export const EXPLORER_PAGE_BODY_CLASS = "StandaloneExplorerPage"
+
 export const ExplorerContainerId = "ExplorerContainer"
 
 export const GetAllExplorersRoute = "allExplorers.json"

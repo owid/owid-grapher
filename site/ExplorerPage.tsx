@@ -9,11 +9,11 @@ import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_DELIMITER,
     ExplorerContainerId,
+    EXPLORER_PAGE_BODY_CLASS,
 } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { serializeJSONForHTML } from "../clientUtils/serializers.js"
-import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 
 interface ExplorerPageSettings {
@@ -86,7 +86,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
             >
                 <IFrameDetector />
             </Head>
-            <body className={GRAPHER_PAGE_BODY_CLASS}>
+            <body className={EXPLORER_PAGE_BODY_CLASS}>
                 <SiteHeader
                     baseUrl={baseUrl}
                     hideAlertBanner={hideAlertBanner || false}

@@ -1,6 +1,6 @@
 @use "sass:math";
 
-.StandaloneGrapherOrExplorerPage main figure[data-grapher-src],
+.StandaloneGrapherPage main figure[data-grapher-src],
 #fallback {
     display: flex;
     align-items: center;
@@ -63,7 +63,7 @@
     border: 1px solid #ccc;
 }
 
-.StandaloneGrapherOrExplorerPage main {
+.StandaloneGrapherPage main {
     .related-research-data {
         @include block-spacing;
         margin-top: $vertical-spacing;
@@ -90,7 +90,7 @@
     }
 }
 
-html.IsInIframe .StandaloneGrapherOrExplorerPage {
+html.IsInIframe .StandaloneGrapherPage {
     background-color: inherit;
 
     > main {
@@ -105,14 +105,8 @@ html.IsInIframe .StandaloneGrapherOrExplorerPage {
         max-width: none;
     }
 
-    .site-header,
-    .alert-banner,
-    .offset-subnavigation,
-    .donate-footer,
-    .cookie-notice,
-    .site-footer,
-    .related-research-data,
-    .explorerContentContainer {
+    @include hide-site-chrome;
+    .related-research-data {
         display: none;
     }
 }

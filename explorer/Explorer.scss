@@ -67,6 +67,15 @@ html.IsInIframe #ExplorerContainer {
     }
 }
 
+html.IsInIframe .StandaloneExplorerPage {
+    background-color: inherit;
+
+    @include hide-site-chrome;
+    .explorerContentContainer {
+        display: none;
+    }
+}
+
 html.IsInIframe .Explorer,
 .Explorer.is-embed {
     height: 100%;
