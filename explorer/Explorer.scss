@@ -5,6 +5,11 @@ $explorer-min-width-first-col: 200px;
 $explorer-padding: 0.5rem;
 
 #ExplorerContainer {
+    @include content-wrapper;
+    @include lg-up {
+        max-width: $text-max-content-width + $graph-max-content-width + 3 *
+            $padding-x-md;
+    }
     min-height: $placeholder-height;
     width: 100%;
     position: relative;
@@ -82,7 +87,6 @@ html.IsInIframe .ExplorerFigure,
     margin: 0 auto;
     padding-top: $explorer-grid-gap;
     width: 100%;
-    max-width: $max-width-covid-data-explorer;
     height: 90vh;
     max-height: 900px;
     min-height: 480px;

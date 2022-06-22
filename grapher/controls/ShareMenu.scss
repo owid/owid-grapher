@@ -64,6 +64,8 @@ $zindex-embedMenu: 12;
     top: 5%;
     width: 90%;
     height: 90%;
+    display: flex;
+    flex-direction: column;
     border: 1px solid #e0e0e0;
     box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.12), 0 2px 2px 0 rgba(0, 0, 0, 0.24);
     background: rgba(255, 255, 255, 0.95);
@@ -73,13 +75,12 @@ $zindex-embedMenu: 12;
 }
 
 .embedMenu p {
-    margin-bottom: 0;
     margin-bottom: 0.5em;
 }
 
 .embedMenu textarea {
     width: 100%;
-    height: 80%;
+    flex: 1;
 }
 
 .GrapherComponent.mobile .ShareMenu .btn-embed {
