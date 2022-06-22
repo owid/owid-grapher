@@ -61,20 +61,31 @@ export const AllCharts = ({ charts }: { charts: RelatedChart[] }) => {
                 <Modal onClose={() => setGalleryOpen(false)}>
                     <div className="all-charts-gallery">
                         <iframe
-                            src={`https://ourworldindata.org/grapher/${charts[activeSlide].slug}`}
+                            src={`/grapher/${charts[activeSlide].slug}`}
                             loading="lazy"
+                            data-possibly-with-context
                         />
-                        <div className="navigation">
-                            <GalleryArrow
-                                disabled={isFirstSlideActive}
-                                onClick={() => setActiveSlide(activeSlide - 1)}
-                                direction={GalleryArrowDirection.prev}
-                            ></GalleryArrow>
-                            <GalleryArrow
-                                disabled={isLastSlideActive}
-                                onClick={() => setActiveSlide(activeSlide + 1)}
-                                direction={GalleryArrowDirection.next}
-                            ></GalleryArrow>
+                        <div className="navigation-wrapper">
+                            <div className="spacer"></div>
+                            <div className="navigation">
+                                <GalleryArrow
+                                    disabled={isFirstSlideActive}
+                                    onClick={() =>
+                                        setActiveSlide(activeSlide - 1)
+                                    }
+                                    direction={GalleryArrowDirection.prev}
+                                ></GalleryArrow>
+                                <div className="gallery-pagination">
+                                    Chart {activeSlide + 1} of {charts.length}
+                                </div>
+                                <GalleryArrow
+                                    disabled={isLastSlideActive}
+                                    onClick={() =>
+                                        setActiveSlide(activeSlide + 1)
+                                    }
+                                    direction={GalleryArrowDirection.next}
+                                ></GalleryArrow>
+                            </div>
                         </div>
                     </div>
                 </Modal>

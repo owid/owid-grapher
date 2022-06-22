@@ -1,3 +1,5 @@
+@use "sass:math";
+
 /*******************************************************************************
  * Spacing
  */
@@ -32,7 +34,9 @@ $wrapper-max-width: $text-min-content-width + $graph-min-content-width + 3 *
 
 $grid-card-min-width: 20rem;
 
-$grapher-height: 575px;
+// Chart
+$ideal-chart-ratio: math.div(850, 600);
+$grapher-height-in-columns: 575px;
 /*******************************************************************************
 * Breakpoints
 */

@@ -103,7 +103,7 @@
 
 .article-content figure[data-grapher-src]:not(.grapherPreview),
 .SearchResults figure[data-grapher-src]:not(.grapherPreview) {
-    height: $grapher-height;
+    height: $grapher-height-in-columns;
 }
 
 @include sm-only {

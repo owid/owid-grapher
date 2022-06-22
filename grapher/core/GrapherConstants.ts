@@ -19,6 +19,7 @@ export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_PAGE_BODY_CLASS = "StandaloneGrapherOrExplorerPage"
 
 export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
+export const GRAPHER_IFRAME_POSSIBLY_WITH_CONTEXT_CLASS = "PossiblyWithContext"
 
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600

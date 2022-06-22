@@ -106,7 +106,7 @@ $slide-content-height: 500px;
         }
 
         figure[data-grapher-src]:not(.grapherPreview) {
-            // shorter than regular $grapher-height to accommodate smaller screens
+            // shorter than regular $grapher-height-in-columns to accommodate smaller screens
             height: $slide-content-height;
         }
 
