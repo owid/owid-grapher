@@ -417,33 +417,6 @@ export const cagr = (
 export const makeAnnotationsSlug = (columnSlug: string): string =>
     `${columnSlug}-annotations`
 
-// Todo: add unit tests
-export const relativeMinAndMax = (
-    points: Point[],
-    property: "x" | "y"
-): [number, number] => {
-    let minChange = 0
-    let maxChange = 0
-
-    const filteredPoints = points.filter(
-        (point) => point.x !== 0 && point.y !== 0
-    )
-
-    for (let i = 0; i < filteredPoints.length; i++) {
-        const indexValue = filteredPoints[i]
-        for (let j = i + 1; j < filteredPoints.length; j++) {
-            const targetValue = filteredPoints[j]
-
-            if (targetValue.entityName !== indexValue.entityName) continue
-
-            const change = cagrFromPoints(indexValue, targetValue, property)
-            if (change < minChange) minChange = change
-            if (change > maxChange) maxChange = change
-        }
-    }
-    return [minChange, maxChange]
-}
-
 export const isVisible = (elm: HTMLElement | null): boolean => {
     if (!elm || !elm.getBoundingClientRect) return false
     const rect = elm.getBoundingClientRect()

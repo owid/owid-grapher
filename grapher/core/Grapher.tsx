@@ -730,9 +730,6 @@ export class Grapher
         }`
     }
 
-    // at startDrag, we want to show the full axis
-    @observable.ref useTimelineDomains = false
-
     /**
      * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
      */
@@ -2506,12 +2503,10 @@ export class Grapher
     // todo: restore this behavior??
     onStartPlayOrDrag(): void {
         this.debounceMode = true
-        this.useTimelineDomains = true
     }
 
     onStopPlayOrDrag(): void {
         this.debounceMode = false
-        this.useTimelineDomains = false
     }
 
     @computed get disablePlay(): boolean {

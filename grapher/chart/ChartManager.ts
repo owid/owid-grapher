@@ -37,7 +37,6 @@ export interface ChartManager {
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean
     tooltips?: TooltipManager["tooltips"]
-    useTimelineDomains?: boolean
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
     compareEndPointsOnly?: boolean

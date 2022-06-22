@@ -13,7 +13,6 @@ import {
     isNumber,
     domainExtent,
     lowerCaseFirstLetterUnlessAbbreviation,
-    relativeMinAndMax,
     exposeInstanceOnWindow,
     groupBy,
     sampleFrom,
@@ -820,22 +819,10 @@ export class ScatterPlotChart
     // domains across the entire timeline
     private domainDefault(property: "x" | "y"): [number, number] {
         const scaleType = property === "x" ? this.xScaleType : this.yScaleType
-        if (!this.manager.useTimelineDomains) {
-            return domainExtent(
-                this.pointsForAxisDomains.map((point) => point[property]),
-                scaleType,
-                this.manager.zoomToSelection && this.selectedPoints.length
-                    ? 1.1
-                    : 1
-            )
-        }
-
-        if (this.manager.isRelativeMode)
-            return relativeMinAndMax(this.allPoints, property)
-
         return domainExtent(
-            this.allPoints.map((v) => v[property]),
-            scaleType
+            this.pointsForAxisDomains.map((point) => point[property]),
+            scaleType,
+            this.manager.zoomToSelection && this.selectedPoints.length ? 1.1 : 1
         )
     }
 
