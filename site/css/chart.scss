@@ -63,12 +63,6 @@
     border: 1px solid #ccc;
 }
 
-.StandaloneGrapherOrExplorerPage .site-subnavigation {
-    padding-left: 1rem;
-    margin: 0 auto;
-    max-width: $max-width-covid-data-explorer;
-}
-
 .StandaloneGrapherOrExplorerPage main {
     .related-research-data {
         @include block-spacing;

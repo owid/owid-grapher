@@ -170,10 +170,16 @@
 }
 
 .site-subnavigation {
+    @include content-wrapper;
+    @include lg-up {
+        max-width: $text-max-content-width + $graph-max-content-width + 3 *
+            $padding-x-md;
+    }
     color: $primary-color;
     position: relative;
 
     @include sm-only {
+        padding-right: 0;
         &::before {
             content: "";
             position: absolute;

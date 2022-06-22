@@ -5,17 +5,11 @@
     }
 
     .content-and-footnotes,
-    .article-header,
-    .site-subnavigation {
+    .article-header {
         @include content-wrapper;
         @include lg-up {
             max-width: $text-max-content-width + $graph-max-content-width + 3 *
                 $padding-x-md;
-        }
-    }
-    @include sm-only {
-        .site-subnavigation {
-            padding-right: 0;
         }
     }
 
