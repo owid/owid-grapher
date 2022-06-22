@@ -42,14 +42,14 @@ export const Modal = ({
 
     if (!container) return null
     return ReactDOM.createPortal(
-        <>
-            <div className="content">{children}</div>
+        <div className="modal-panel">
             <div className="tools">
                 <button aria-label="Close" onClick={onClose} className="close">
                     <FontAwesomeIcon icon={faPlus} />
                 </button>
             </div>
-        </>,
+            {children}
+        </div>,
         container
     )
 }

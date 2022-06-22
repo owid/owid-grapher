@@ -35,16 +35,55 @@
     }
 }
 
-.modal {
-    .all-charts-gallery {
-        .navigation {
-            position: absolute;
-            bottom: 0;
+// Only supported inside Modals
+.all-charts-gallery {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    iframe {
+        flex: 1;
+        border: 0px none;
+
+        @include lg-up {
+            max-height: $grapher-height-in-columns;
         }
-        iframe {
-            width: 850px;
-            height: 600px;
-            border: 0px none;
+    }
+
+    .navigation-wrapper {
+        @include lg-down {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            .gallery-pagination {
+                margin: 0 $padding-x-md;
+            }
+        }
+
+        // Mimic grapher page spacing to align navigation arrows with the chart
+        @include lg-up {
+            @include content-wrapper;
+            display: flex;
+            margin: 2rem auto;
+            max-width: $text-max-content-width + $graph-max-content-width + 3 *
+                $padding-x-md;
+
+            .spacer {
+                @include text-column;
+                margin-right: $padding-x-md * 0.5;
+            }
+
+            .navigation {
+                @include media-column;
+                margin-left: $padding-x-md * 0.5;
+            }
         }
     }
 }

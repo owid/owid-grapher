@@ -90,34 +90,39 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
 
-                    {((relatedArticles && relatedArticles.length != 0) ||
-                        (relatedCharts && relatedCharts.length != 0)) && (
-                        <div className="related-research-data">
-                            <h2>All our related research and data</h2>
-                            {relatedArticles && relatedArticles.length != 0 && (
-                                <RelatedArticles articles={relatedArticles} />
-                            )}
-                            {relatedCharts && relatedCharts.length !== 0 && (
-                                <>
-                                    <h3>Charts</h3>
-                                    <ul>
-                                        {relatedCharts
-                                            .filter(
-                                                (chartItem) =>
-                                                    chartItem.slug !==
-                                                    grapher.slug
-                                            )
-                                            .map((c) => (
-                                                <ChartListItemVariant
-                                                    key={c.slug}
-                                                    chart={c}
-                                                />
-                                            ))}
-                                    </ul>
-                                </>
-                            )}
-                        </div>
-                    )}
+                    <div className="related-research-data">
+                        {((relatedArticles && relatedArticles.length != 0) ||
+                            (relatedCharts && relatedCharts.length != 0)) && (
+                            <>
+                                <h2>All our related research and data</h2>
+                                {relatedArticles &&
+                                    relatedArticles.length != 0 && (
+                                        <RelatedArticles
+                                            articles={relatedArticles}
+                                        />
+                                    )}
+                                {relatedCharts && relatedCharts.length !== 0 && (
+                                    <>
+                                        <h3>Charts</h3>
+                                        <ul>
+                                            {relatedCharts
+                                                .filter(
+                                                    (chartItem) =>
+                                                        chartItem.slug !==
+                                                        grapher.slug
+                                                )
+                                                .map((c) => (
+                                                    <ChartListItemVariant
+                                                        key={c.slug}
+                                                        chart={c}
+                                                    />
+                                                ))}
+                                        </ul>
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </main>
                 <SiteFooter baseUrl={baseUrl} />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
