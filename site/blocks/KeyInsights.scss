@@ -1,0 +1,151 @@
+@use "sass:math";
+
+$slide-content-height: $grapher-height;
+
+.wp-block-owid-key-insights {
+    @include block-shadow;
+    background-color: $white;
+
+    // Some of these styles are injected in the page through
+    // react-horizontal-scrolling-menu's style-loader
+    // (https://webpack.js.org/loaders/style-loader/). They are repeated here to
+    // prevent a FOUC.
+    .react-horizontal-scrolling-menu--wrapper {
+        display: flex;
+        position: relative;
+    }
+
+    .react-horizontal-scrolling-menu--scroll-container {
+        display: flex;
+        height: max-content;
+        overflow-y: hidden;
+        position: relative;
+        width: 100%;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+        scrollbar-width: none;
+    }
+
+    .arrow {
+        position: absolute;
+        z-index: $zindex-input;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background: $primary-color-30;
+        border: none;
+        font-size: 1.5rem;
+        width: 3rem;
+        padding: 0;
+        transition: all 0.2s;
+        cursor: pointer;
+
+        &:hover {
+            color: $primary-color-600;
+        }
+
+        &.left {
+            left: 0;
+            box-shadow: 0.5rem 0 0.5rem $primary-color-30;
+            clip-path: inset(0 -2.5rem 0 0);
+        }
+        &.right {
+            right: 0;
+            box-shadow: -0.5rem 0 0.5rem $primary-color-30;
+            clip-path: inset(0 0 0 -2.5rem);
+        }
+    }
+
+    .thumbs {
+        background-color: $primary-color-30;
+        border-bottom: 1px solid #efefef;
+        padding: 0 0.5rem;
+    }
+
+    .thumb {
+        @include block-shadow;
+
+        width: 16rem;
+        min-height: 5rem;
+        margin: 0.5rem;
+        padding: 0.5rem;
+        background-color: $white;
+        border: 1px solid $white;
+        border-radius: 2px;
+        transition: background-color 0.2s;
+
+        &:hover {
+            cursor: pointer;
+            background-color: $primary-color-30;
+            border: 1px solid $primary-color;
+        }
+
+        &[aria-selected="true"] {
+            background-color: $primary-color-100;
+            border-color: $primary-color;
+            font-weight: 700;
+        }
+    }
+
+    .slides {
+        padding: 0.5rem 1rem;
+
+        .slide {
+            display: none;
+            &[data-active="true"] {
+                display: block;
+            }
+
+            h4 {
+                @include h4-style;
+                margin: 0 0 $vertical-spacing;
+            }
+        }
+
+        figure[data-grapher-src]:not(.grapherPreview) {
+            height: $slide-content-height;
+        }
+
+        @include sm-only {
+            figure[data-grapher-src] {
+                // override default full-width behaviour
+                width: auto;
+                margin: auto;
+            }
+        }
+
+        @include lg-up {
+            .wp-block-columns.is-style-sticky-right .wp-block-column {
+                &:first-child {
+                    height: $slide-content-height;
+                    overflow-y: auto;
+                    -webkit-mask-image: linear-gradient(
+                        180deg,
+                        #000 90%,
+                        transparent
+                    );
+                    // Shifting margin to padding to make space for scrollbar
+                    margin-right: 0;
+                    padding-right: math.div($padding-x-md, 2);
+
+                    > *:first-child {
+                        margin-top: 0;
+                    }
+
+                    > *:last-child {
+                        margin-bottom: 3rem;
+                    }
+                }
+
+                &:last-child {
+                    > *:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+    }
+}

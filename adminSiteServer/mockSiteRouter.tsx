@@ -132,9 +132,10 @@ mockSiteRouter.get("/donate", async (req, res) =>
     res.send(await renderDonatePage())
 )
 
-mockSiteRouter.get("/charts", async (req, res) =>
-    res.send(await renderChartsPage())
-)
+mockSiteRouter.get("/charts", async (req, res) => {
+    const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+    res.send(await renderChartsPage(explorerAdminServer))
+})
 
 countryProfileSpecs.forEach((spec) =>
     mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) =>

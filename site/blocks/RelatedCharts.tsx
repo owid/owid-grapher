@@ -1,20 +1,21 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { useState, useEffect, useRef } from "react"
-import { MultiEmbedderSingleton } from "../../site/multiembedder/MultiEmbedder.js"
+import { useState, useRef } from "react"
 import { RelatedChart } from "../../clientUtils/owidTypes.js"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
+import {
+    DEFAULT_GRAPHER_HEIGHT,
+    DEFAULT_GRAPHER_WIDTH,
+} from "../../grapher/core/GrapherConstants.js"
+import { useEmbedChart } from "../hooks.js"
 
-const RELATED_CHARTS_CLASS_NAME = "related-charts"
+export const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
 export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const refChartContainer = useRef<HTMLDivElement>(null)
     const [currentChart, setCurrentChart] = useState<RelatedChart>(charts[0])
 
-    useEffect(() => {
-        if (refChartContainer.current)
-            // Track newly injected <figure> elements in embedder
-            MultiEmbedderSingleton.observeFigures(refChartContainer.current)
-    }, [currentChart])
+    useEmbedChart(currentChart, refChartContainer)
 
     return (
         <div className={RELATED_CHARTS_CLASS_NAME}>
@@ -48,7 +49,15 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                         }
                                     }}
                                 >
-                                    {chart.title}
+                                    <img
+                                        src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.slug}.svg`}
+                                        loading="lazy"
+                                        data-no-lightbox
+                                        data-no-img-formatting
+                                        width={DEFAULT_GRAPHER_WIDTH}
+                                        height={DEFAULT_GRAPHER_HEIGHT}
+                                    ></img>
+                                    <span>{chart.title}</span>
                                 </a>
                                 {chart.variantName ? (
                                     <span className="variantName">

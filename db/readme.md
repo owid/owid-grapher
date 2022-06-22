@@ -2,9 +2,7 @@
 
 This folder contains the code for interacting with our MySQL database. We store wordpress content, charts, data, and more in MySQL.
 
-## Setup
-
-See the root [README](../README.md).
+There are [multiple ways to run and serve the database](/docs/setup-options-overview.md), depending on your needs.
 
 ## Migrations
 
@@ -33,7 +31,7 @@ Run:
 yarn typeorm migration:create -n MigrationName
 ```
 
-And then populate the file with the SQL statements to alter the tables, using [past migration files](./migration) for reference if needed. Don't forget to rebuild the javascript artifacts now from typescript view `yarn buildTsc`, then run migrations with `yarn runDbMigrations`.
+And then populate the file with the SQL statements to alter the tables, using [past migration files](./migration) for reference if needed. Don't forget to rebuild the JavaScript artifacts now from TypeScript view `yarn buildTsc`, then run migrations with `yarn runDbMigrations`.
 
 Make sure you write a **down** migration in case there is any chance things can go wrong we'd need to revert it.
 

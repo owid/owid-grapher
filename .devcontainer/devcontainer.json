@@ -17,6 +17,6 @@
     // "forwardPorts": [3000, 27017],
 
     // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-    "remoteUser": "node",
-    "postCreateCommand": "sudo chown node node_modules"
+    "remoteUser": "node"
+    // "postCreateCommand": "make up.devcontainer" // We could experiment with starting the make command automatically
 }

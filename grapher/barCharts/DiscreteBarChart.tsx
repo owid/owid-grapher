@@ -48,6 +48,7 @@ import {
     SortConfig,
     Color,
     HorizontalAlign,
+    AxisAlign,
 } from "../../clientUtils/owidTypes.js"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
@@ -70,6 +71,11 @@ const labelToTextPadding = 10
 const labelToBarPadding = 5
 
 const LEGEND_PADDING = 25
+
+export interface Label {
+    valueString: string
+    timeString: string
+}
 
 interface DiscreteBarItem {
     seriesName: string
@@ -156,12 +162,18 @@ export class DiscreteBarChart
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get labelFontSize(): number {
+        const availableHeight =
+            this.boundsWithoutColorLegend.height / this.barCount
+        return Math.min(0.75 * this.fontSize, 1.1 * availableHeight)
+    }
+
     @computed private get legendLabelStyle(): {
         fontSize: number
         fontWeight: number
     } {
         return {
-            fontSize: 0.75 * this.fontSize,
+            fontSize: this.labelFontSize,
             fontWeight: 700,
         }
     }
@@ -171,7 +183,7 @@ export class DiscreteBarChart
         fontWeight: number
     } {
         return {
-            fontSize: 0.75 * this.fontSize,
+            fontSize: this.labelFontSize,
             fontWeight: 400,
         }
     }
@@ -197,7 +209,11 @@ export class DiscreteBarChart
 
         const positiveLabels = this.series
             .filter((d) => d.value >= 0)
-            .map((d) => this.formatValue(d))
+            .map(
+                (d) =>
+                    this.formatValue(d).valueString +
+                    this.formatValue(d).timeString
+            )
         const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
         return Bounds.forText(longestPositiveLabel, this.valueLabelStyle).width
     }
@@ -210,7 +226,11 @@ export class DiscreteBarChart
 
         const negativeLabels = this.series
             .filter((d) => d.value < 0)
-            .map((d) => this.formatValue(d))
+            .map(
+                (d) =>
+                    this.formatValue(d).valueString +
+                    this.formatValue(d).timeString
+            )
         const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
         return (
             Bounds.forText(longestNegativeLabel, this.valueLabelStyle).width +
@@ -243,8 +263,17 @@ export class DiscreteBarChart
         ]
     }
 
+    // NB: y-axis settings are used for the horizontal axis in DiscreteBarChart
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(
+            {
+                // if we have a single-value x axis, we want to have the vertical axis
+                // on the left of the chart
+                singleValueAxisPointAlign: AxisAlign.start,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
     }
 
     @computed get yAxis(): HorizontalAxis {
@@ -379,11 +408,13 @@ export class DiscreteBarChart
                         ? yAxis.place(this.x0) - barX
                         : yAxis.place(series.value) - barX
                     const barColor = series.color
-                    const valueLabel = this.formatValue(series)
+                    const label = this.formatValue(series)
                     const labelX = isNegative
                         ? barX -
-                          Bounds.forText(valueLabel, this.valueLabelStyle)
-                              .width -
+                          Bounds.forText(
+                              label.valueString,
+                              this.valueLabelStyle
+                          ).width -
                           labelToTextPadding
                         : barX - labelToBarPadding
 
@@ -433,7 +464,8 @@ export class DiscreteBarChart
                                 textAnchor={isNegative ? "end" : "start"}
                                 {...this.valueLabelStyle}
                             >
-                                {valueLabel}
+                                {label.valueString}
+                                <tspan fill="#999">{label.timeString}</tspan>
                             </text>
                         </g>
                     )
@@ -459,19 +491,22 @@ export class DiscreteBarChart
             : ""
     }
 
-    formatValue(series: DiscreteBarSeries): string {
+    formatValue(series: DiscreteBarSeries): Label {
         const column = this.yColumns[0] // todo: do we need to use the right column here?
         const { transformedTable } = this
 
         const showYearLabels =
             this.manager.showYearLabels || series.time !== this.targetTime
         const displayValue = column.formatValueShort(series.value)
-        return (
-            displayValue +
-            (showYearLabels
-                ? ` (${transformedTable.timeColumnFormatFunction(series.time)})`
-                : "")
-        )
+        const { timeColumn } = transformedTable
+        const preposition = OwidTable.getPreposition(timeColumn)
+
+        return {
+            valueString: displayValue,
+            timeString: showYearLabels
+                ? ` ${preposition} ${column.formatTime(series.time)}`
+                : "",
+        }
     }
 
     @computed private get yColumnSlugs(): string[] {

@@ -54,12 +54,23 @@ export const IncompleteDataTable = (
                     isProjection: false,
                 },
             },
+            {
+                variableId: 3512,
+                property: DimensionProperty.x,
+                targetYear: 2010,
+                display: {
+                    name: "Children in 2010",
+                    unit: "% of children under 5",
+                    tolerance: 1,
+                    isProjection: false,
+                },
+            },
         ],
         ...props,
         owidDataset: {
             variables: {
                 "3512": {
-                    years: [2000, 2001, 2010, 2010],
+                    years: [2000, 2001, 2010, 2009],
                     entities: [207, 33, 15, 207],
                     values: [4, 22, 20, 34],
                     id: 3512,

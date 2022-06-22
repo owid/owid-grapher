@@ -38,11 +38,19 @@
     font-weight: bold;
 }
 
+.datasource-wrapper table {
+    border-spacing: 0;
+}
+
 .datasource-wrapper td {
     padding: 8px;
     line-height: 1.42857143;
     vertical-align: top;
     border-top: 1px solid #ddd;
+}
+
+.datasource-wrapper tr:first-child td {
+    border: 0;
 }
 
 .datasource-property {

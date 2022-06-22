@@ -1,6 +1,6 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown.js"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { TocHeading } from "../clientUtils/owidTypes.js"
 
 export const SectionHeading = ({

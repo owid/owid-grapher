@@ -63,6 +63,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "United Arab Emirates",
         code: "ARE",
         slug: "united-arab-emirates",
+        variantNames: ["UAE"],
         iso3166: "AE",
     },
     {

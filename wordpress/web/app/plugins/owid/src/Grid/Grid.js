@@ -13,7 +13,7 @@ const Grid = {
     edit: ({ className }) => {
         return (
             <div style={blockStyle} className={className}>
-                <InnerBlocks />
+                <InnerBlocks orientation="horizontal" />
             </div>
         )
     },

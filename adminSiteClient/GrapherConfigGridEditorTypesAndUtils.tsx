@@ -1,4 +1,4 @@
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
+import { QueryParams, queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,
@@ -19,10 +19,12 @@ import {
     StringOperation,
     BooleanOperation,
     OperationContext,
+    parseToOperation,
+    JSONPreciselyTyped,
 } from "../clientUtils/SqlFilterSExpression.js"
 import React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
@@ -120,19 +122,45 @@ export type ColumnSet = FullColumnSet | SpecificColumnSet
 /** All the parameters we need for making a fully specified request to the /variable-annotations
     endpoint. When any of these fields change we need to trigger a new request */
 export interface FetchVariablesParameters {
-    pagingOffset: number
+    offset: number
     filterQuery: Operation
     sortByColumn: string // sort is currently ignored but here for future use
     sortByAscending: boolean // sort is currently ignored but here for future use
 }
 
+export const filterExpressionNoFilter = new BooleanAtom(true)
+
+export function fetchVariablesParametersFromQueryString(
+    params: QueryParams,
+    sExpressionContext: OperationContext
+): FetchVariablesParameters {
+    let filterQuery: Operation | undefined = undefined
+    if (params.hasOwnProperty("filter")) {
+        filterQuery = parseToOperation(params.filter!, sExpressionContext)
+    }
+    return {
+        offset: Number.parseInt(params.offset ?? "0"),
+        filterQuery: filterQuery ?? filterExpressionNoFilter,
+        sortByColumn: params.sortByColumn ?? "id",
+        sortByAscending: params.sortByAscending === "true" ?? false,
+    }
+}
+
+export function fetchVariablesParametersToQueryParameters(
+    params: FetchVariablesParameters
+) {
+    return {
+        filter: params.filterQuery.toSExpr(),
+        offset: params.offset.toString(),
+        sortByColumn: params.sortByColumn,
+        sortByAscending: params.sortByAscending.toString(),
+    }
+}
+
 export function fetchVariablesParametersToQueryParametersString(
     params: FetchVariablesParameters
 ): string {
-    return queryParamsToStr({
-        filter: params.filterQuery.toSExpr(),
-        offset: params.pagingOffset.toString(),
-    })
+    return queryParamsToStr(fetchVariablesParametersToQueryParameters(params))
 }
 
 export interface IconToggleProps {
@@ -229,6 +257,7 @@ export function isConfigColumn(columnName: string): boolean {
 }
 
 export const filterPanelInitialConfig: BasicConfig = AntdConfig as BasicConfig
+
 export const initialFilterQueryValue: JsonGroup = {
     id: QbUtils.uuid(),
     type: "group",
@@ -293,6 +322,58 @@ export function getEqualityOperator(str: string): EqualityOperator | undefined {
     else return undefined
 }
 
+/** JsonLogic is the easiest format that the React Awesome Query Builder can round
+    trip (i.e. deserialize from). Building the internal structure of the query library
+    would be tedious so we convert our SExpressions to JsonLogic. */
+export function SExpressionToJsonLogic(
+    sExpression: Operation,
+    readOnlyEntries: Map<string, ReadOnlyColumn>
+): JSONPreciselyTyped {
+    return sExpression.toJsonLogic({
+        processSqlColumnName: (columnName) => {
+            const item = [...readOnlyEntries.entries()].find(
+                (item) => item[1].sExpressionColumnTarget === columnName
+            )
+            const mappedColumnName = item![0]
+            return mappedColumnName
+        },
+    })
+}
+
+/** JsonLogic is the easiest format that the React Awesome Query Library can round
+    trip (i.e. deserialize from). Building the internal structure of the query library
+    would be tedious so we convert our SExpressions to JsonLogic. When React Awesome
+    Query Library parses this, we need to convert some custom things like the is_latest
+    query operator that we added to RAQL that in our SExpressions are represented as
+    field = "latest"
+ */
+export function postprocessJsonLogicTree(filterTree: JsonTree | JsonItem) {
+    if (filterTree.type === "group" && filterTree.children1) {
+        if (
+            isArray(filterTree.children1) ||
+            isPlainObject(filterTree.children1)
+        )
+            for (const child of Object.values(filterTree.children1))
+                postprocessJsonLogicTree(child)
+    } else if (filterTree.type === "rule") {
+        const {
+            properties: { value, operator },
+        } = filterTree
+
+        if (value.length !== 1) return
+
+        const isLatest = value[0] === "latest"
+
+        const isEarliest = value[0] === "earliest"
+
+        const isEqual = operator === "equal" || operator === "select_equals"
+        if (isLatest && isEqual) {
+            filterTree.properties.operator = "is_latest"
+        } else if (isEarliest && isEqual) {
+            filterTree.properties.operator = "is_earliest"
+        }
+    }
+}
 export function filterTreeToSExpression(
     filterTree: JsonTree | JsonItem,
     context: OperationContext,
@@ -406,6 +487,18 @@ export function filterTreeToSExpression(
                         new StringAtom(""),
                     ])
                 })
+                .with("is_latest", (_) => {
+                    return new EqualityComparision(EqualityOperator.equal, [
+                        field,
+                        new StringAtom("latest"),
+                    ])
+                })
+                .with("is_earliest", (_) => {
+                    return new EqualityComparision(EqualityOperator.equal, [
+                        field,
+                        new StringAtom("earliest"),
+                    ])
+                })
 
                 .otherwise(() => undefined)
         )
@@ -428,6 +521,7 @@ export function simpleColumnToFilterPanelFieldConfig(
             label: column.label,
             type: fieldType,
             valueSources: ["value"],
+            excludeOperators: ["is_latest", "is_earliest"],
             //preferWidgets: widget [widget],
         },
     ]
@@ -442,12 +536,17 @@ export function fieldDescriptionToFilterPanelFieldConfig(
         .with(EditorOption.dropdown, () => "select")
         .with(EditorOption.mappingEditor, () => undefined)
         .with(EditorOption.numeric, () => "number")
+        .with(EditorOption.numericWithLatestEarliest, () => "number")
         .with(EditorOption.primitiveListEditor, () => undefined)
         .with(EditorOption.textarea, () => "text")
         .with(EditorOption.textfield, () => "text")
         .exhaustive()
 
-    if (widget !== undefined)
+    if (widget !== undefined) {
+        const excludedOperators =
+            description.editor === EditorOption.numericWithLatestEarliest
+                ? []
+                : ["is_latest", "is_earliest"]
         return [
             description.pointer,
             {
@@ -458,9 +557,10 @@ export function fieldDescriptionToFilterPanelFieldConfig(
                 fieldSettings: {
                     listValues: description.enumOptions,
                 },
+                excludeOperators: excludedOperators,
             },
         ]
-    else return undefined
+    } else return undefined
 }
 
 export function renderBuilder(props: BuilderProps) {

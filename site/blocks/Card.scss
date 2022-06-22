@@ -9,8 +9,8 @@
     }
 
     .text-wrapper {
-        padding: $padding-x-sm / 2;
-        padding-top: $vertical-spacing / 2;
+        padding: $padding-x-sm * 0.5;
+        padding-top: $vertical-spacing * 0.5;
     }
 
     figure,
@@ -25,7 +25,7 @@
     }
 
     .title {
-        margin-bottom: $vertical-spacing / 2;
+        margin-bottom: $vertical-spacing * 0.5;
         font-family: $serif-font-stack;
         font-size: 1.3rem;
         font-weight: bold;

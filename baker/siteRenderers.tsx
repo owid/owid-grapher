@@ -29,7 +29,10 @@ import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
 } from "../settings/serverSettings.js"
-import { RECAPTCHA_SITE_KEY } from "../settings/clientSettings.js"
+import {
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+    RECAPTCHA_SITE_KEY,
+} from "../settings/clientSettings.js"
 import {
     EntriesByYearPage,
     EntriesForYearPage,
@@ -44,6 +47,7 @@ import {
     FormattingOptions,
     FullPost,
     JsonError,
+    KeyInsight,
     PostRow,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
@@ -64,9 +68,12 @@ import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
-import { formatUrls } from "../site/formatting.js"
-import { renderHelp } from "../site/blocks/Help.js"
-import { renderAdditionalInformation } from "../site/blocks/AdditionalInformation.js"
+import {
+    KeyInsightsThumbs,
+    KeyInsightsSlides,
+    KEY_INSIGHTS_CLASS_NAME,
+} from "../site/blocks/KeyInsights.js"
+import { formatUrls, getBodyHtml } from "../site/formatting.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
@@ -84,7 +91,11 @@ import { resolveInternalRedirect } from "./redirects.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
-export const renderChartsPage = async () => {
+export const renderChartsPage = async (
+    explorerAdminServer: ExplorerAdminServer
+) => {
+    const explorers = await explorerAdminServer.getAllPublishedExplorers()
+
     const chartItems = (await queryMysql(`
         SELECT
             id,
@@ -116,7 +127,11 @@ export const renderChartsPage = async () => {
     }
 
     return renderToHtmlPage(
-        <ChartsIndexPage chartItems={chartItems} baseUrl={BAKED_BASE_URL} />
+        <ChartsIndexPage
+            explorers={explorers}
+            chartItems={chartItems}
+            baseUrl={BAKED_BASE_URL}
+        />
     )
 }
 
@@ -144,8 +159,6 @@ export const renderPost = async (
     baseUrl: string = BAKED_BASE_URL,
     grapherExports?: GrapherExports
 ) => {
-    let exportsByUrl = grapherExports
-
     if (!grapherExports) {
         const $ = cheerio.load(post.content)
 
@@ -157,13 +170,13 @@ export const renderPost = async (
         // This can be slow if uncached!
         await bakeGrapherUrls(grapherUrls)
 
-        exportsByUrl = await getGrapherExportsByUrl()
+        grapherExports = await getGrapherExportsByUrl()
     }
 
     // Extract formatting options from post HTML comment (if any)
     const formattingOptions = extractFormattingOptions(post.content)
 
-    const formatted = await formatPost(post, formattingOptions, exportsByUrl)
+    const formatted = await formatPost(post, formattingOptions, grapherExports)
 
     const pageOverrides = await getPageOverrides(post, formattingOptions)
     const citationStatus =
@@ -493,7 +506,9 @@ export const renderProminentLinks = async (
                     : resolvedUrl.isExplorer
                     ? renderExplorerDefaultThumbnail()
                     : resolvedUrl.isGrapher && resolvedUrl.slug
-                    ? await renderGrapherImageByChartSlug(resolvedUrl.slug)
+                    ? renderGrapherThumbnailByResolvedChartSlug(
+                          resolvedUrl.slug
+                      )
                     : await renderPostThumbnailBySlug(resolvedUrl.slug))
 
             const rendered = ReactDOMServer.renderToStaticMarkup(
@@ -523,15 +538,6 @@ export const renderReusableBlock = async (
     await renderProminentLinks(cheerioEl, containerPostId)
 
     return cheerioEl("body").html() ?? undefined
-}
-
-export const renderBlocks = async (
-    cheerioEl: CheerioStatic,
-    containerPostId: number
-) => {
-    renderAdditionalInformation(cheerioEl)
-    renderHelp(cheerioEl)
-    await renderProminentLinks(cheerioEl, containerPostId)
 }
 
 export const renderExplorerPage = async (
@@ -594,20 +600,97 @@ const getExplorerTitleByUrl = async (url: Url): Promise<string | undefined> => {
     return explorer.explorerTitle
 }
 
-const renderGrapherImageByChartSlug = async (
+/**
+ * Renders a chart thumbnail given a slug. The slug is considered "resolved",
+ * meaning it has gone through the internal URL resolver and is final from a
+ * redirects perspective.
+ */
+const renderGrapherThumbnailByResolvedChartSlug = (
     chartSlug: string
-): Promise<string | null> => {
-    const chart = await Chart.getBySlug(chartSlug)
-    if (!chart) return null
-
-    const canonicalSlug = chart?.config?.slug
-    if (!canonicalSlug) return null
-
-    return `<img src="${BAKED_BASE_URL}/grapher/exports/${canonicalSlug}.svg" />`
+): string | null => {
+    return `<img src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chartSlug}.svg" />`
 }
 
 const renderExplorerDefaultThumbnail = (): string => {
     return ReactDOMServer.renderToStaticMarkup(
         <img src={`${BAKED_BASE_URL}/default-thumbnail.jpg`} />
     )
+}
+
+export const renderKeyInsights = async (html: string): Promise<string> => {
+    const $ = cheerio.load(html)
+
+    for (const block of Array.from($("block[type='key-insights']"))) {
+        const $block = $(block)
+        // only selecting <title> and <slug> from direct children, to not match
+        // titles and slugs from individual key insights slides.
+        const title = $block.find("> title").text()
+        const slug = $block.find("> slug").text()
+        if (!title || !slug) {
+            logContentErrorAndMaybeSendToSlack(
+                "Title or anchor missing for key insights block, content removed."
+            )
+            $block.remove()
+            continue
+        }
+
+        const keyInsights = extractKeyInsights($, $block)
+        if (!keyInsights.length) {
+            logContentErrorAndMaybeSendToSlack(
+                "No valid key insights found within block, content removed."
+            )
+            $block.remove()
+            continue
+        }
+        const titles = keyInsights.map((keyInsight) => keyInsight.title)
+
+        const rendered = ReactDOMServer.renderToString(
+            <>
+                <h3 id={slug}>{title}</h3>
+                <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
+                    <div className="block-wrapper">
+                        <KeyInsightsThumbs titles={titles} />
+                    </div>
+                    <KeyInsightsSlides insights={keyInsights} />
+                </div>
+            </>
+        )
+
+        $block.replaceWith(rendered)
+    }
+    return $.html()
+}
+
+export const extractKeyInsights = (
+    $: CheerioStatic,
+    $wrapper: Cheerio
+): KeyInsight[] => {
+    const keyInsights: KeyInsight[] = []
+
+    for (const block of Array.from(
+        $wrapper.find("block[type='key-insight']")
+    )) {
+        const $block = $(block)
+        // restrictive children selector not strictly necessary here for now but
+        // kept for consistency and evolutions of the block. In the future, key
+        // insights could host other blocks with <title> tags
+        const $title = $block.find("> title")
+        const title = $title.text()
+        const isTitleHidden = $title.attr("is-hidden") === "1"
+        const slug = $block.find("> slug").text()
+        const content = $block.find("> content").html()
+
+        if (!title || !slug || !content) {
+            logContentErrorAndMaybeSendToSlack(
+                `Missing title, slug or content for key insight "${
+                    title || slug
+                }"`
+            )
+            continue
+        }
+
+        keyInsights.push({ title, isTitleHidden, content, slug })
+    }
+
+    return keyInsights
 }

@@ -32,6 +32,7 @@ $wrapper-max-width: $text-min-content-width + $graph-min-content-width + 3 *
 
 $grid-card-min-width: 20rem;
 
+$grapher-height: 575px;
 /*******************************************************************************
 * Breakpoints
 */
@@ -56,6 +57,12 @@ $xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
 
 @mixin md-up {
     @media (min-width: $md-min-width) {
+        @content;
+    }
+}
+
+@mixin lg-down {
+    @media (max-width: $lg-min-width - 0.0625rem) {
         @content;
     }
 }

@@ -25,7 +25,7 @@ import dayjs from "../clientUtils/dayjs.js"
 import { OwidSource } from "../clientUtils/OwidSource.js"
 import {
     formatValue,
-    isVeryShortUnit,
+    checkIsVeryShortUnit,
     TickFormattingOptions,
 } from "../clientUtils/formatValue.js"
 import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
@@ -192,6 +192,10 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // A method for formatting for CSV
     formatForCsv(value: JS_TYPE): string {
         return csvEscape(anyToString(value))
+    }
+
+    formatTime(time: number): string {
+        return this.originalTimeColumn.formatValue(time)
     }
 
     @imemo get numDecimalPlaces(): number {
@@ -514,10 +518,13 @@ class BooleanColumn extends AbstractCoreColumn<boolean> {
         return !!val
     }
 }
-abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
+
+abstract class AbstractColumnWithNumberFormatting<
+    T extends PrimitiveType
+> extends AbstractCoreColumn<T> {
     jsType = JsTypes.number
 
-    formatValue(value: number, options?: TickFormattingOptions): string {
+    formatValue(value: any, options?: TickFormattingOptions): string {
         if (isNumber(value)) {
             return formatValue(value, {
                 numDecimalPlaces: this.numDecimalPlaces,
@@ -528,16 +535,16 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     }
 
     formatValueShortWithAbbreviations(
-        value: number,
+        value: any,
         options?: TickFormattingOptions
     ): string {
         return super.formatValueShortWithAbbreviations(value, {
-            shortNumberPrefixes: true,
+            numberAbbreviation: "short",
             // only include a unit if it's very short (e.g. %, $ or £)
             ...omitUndefinedValues({
                 unit:
                     this.shortUnit !== undefined &&
-                    isVeryShortUnit(this.shortUnit)
+                    checkIsVeryShortUnit(this.shortUnit)
                         ? this.shortUnit
                         : undefined,
             }),
@@ -545,7 +552,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         })
     }
 
-    formatValueShort(value: number, options?: TickFormattingOptions): string {
+    formatValueShort(value: any, options?: TickFormattingOptions): string {
         return super.formatValueShort(value, {
             ...omitUndefinedValues({
                 unit: this.shortUnit,
@@ -554,7 +561,7 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         })
     }
 
-    formatValueLong(value: number, options?: TickFormattingOptions): string {
+    formatValueLong(value: any, options?: TickFormattingOptions): string {
         return super.formatValueLong(value, {
             ...omitUndefinedValues({
                 unit: this.unit,
@@ -564,9 +571,43 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     }
 
     @imemo get isAllIntegers(): boolean {
-        return this.values.every((val) => val % 1 === 0)
+        return this.values.every(
+            (val) => typeof val === "number" && val % 1 === 0
+        )
     }
+}
 
+/**
+ * We strive to have clearly typed variables in the future, but for now our
+ * grapher variables are still untyped. Most are number-only, but we also have some
+ * string-only, and even some mixed ones.
+ * Hence, NumberOrStringColumn is used to store grapher variables.
+ * It extends AbstractColumnWithNumberFormatting, which ensures that we have
+ * implementations of formatValueShortWithAbbreviations and the like already.
+ * -- @marcelgerber, 2022-07-01
+ */
+class NumberOrStringColumn extends AbstractColumnWithNumberFormatting<
+    number | string
+> {
+    formatValue(value: any, options?: TickFormattingOptions): string {
+        if (isNumber(value)) {
+            return super.formatValue(value, options)
+        }
+        return anyToString(value)
+    }
+    parse(val: any): number | string | ErrorValue {
+        if (val === null) return ErrorValueTypes.NullButShouldBeNumber
+        if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
+        if (Number.isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
+
+        const num = parseFloat(val)
+        if (Number.isNaN(num)) return val // return string value
+
+        return num
+    }
+}
+
+abstract class AbstractNumericColumn extends AbstractColumnWithNumberFormatting<number> {
     parse(val: any): number | ErrorValue {
         if (val === null) return ErrorValueTypes.NullButShouldBeNumber
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
@@ -574,7 +615,6 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         if (isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
 
         const res = this._parse(val)
-
         if (isNaN(res))
             return ErrorValueTypes.NotAParseableNumberButShouldBeNumber
 
@@ -615,7 +655,6 @@ class CurrencyColumn extends NumericColumn {
 class PercentageColumn extends NumericColumn {
     formatValue(value: number, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
-            numberPrefixes: false,
             unit: "%",
             ...options,
         })
@@ -648,6 +687,10 @@ export abstract class TimeColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
 
     abstract preposition: string
+
+    formatTime(time: number): string {
+        return this.formatValue(time)
+    }
 
     parse(val: any): number | ErrorValue {
         return parseInt(val)
@@ -742,6 +785,7 @@ export const ColumnTypeMap = {
     Categorical: CategoricalColumn,
     Region: RegionColumn,
     Continent: ContinentColumn,
+    NumberOrString: NumberOrStringColumn,
     Numeric: NumericColumn,
     Day: DayColumn,
     Date: DateColumn,

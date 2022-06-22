@@ -4,11 +4,11 @@ import { observer } from "mobx-react"
 import { TimelineComponent } from "../timeline/TimelineComponent.js"
 import { formatValue } from "../../clientUtils/formatValue.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload.js"
-import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt.js"
-import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand.js"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt.js"
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown.js"
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
+import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
 import {
     FacetAxisDomain,
     FacetStrategy,
@@ -122,7 +122,7 @@ export class FacetYDomainToggle extends React.Component<{
                     onChange={this.onToggle}
                     data-track-note="chart-facet-ydomain-toggle"
                 />{" "}
-                &nbsp;Uniform y-axis
+                &nbsp;Align axis scales
             </label>
         )
     }
@@ -153,48 +153,6 @@ export class ZoomToggle extends React.Component<{
                     data-track-note="chart-zoom-to-selection"
                 />{" "}
                 {label}
-            </label>
-        )
-    }
-}
-
-export interface SmallCountriesFilterManager {
-    populationFilterOption?: number
-    minPopulationFilter?: number
-}
-
-@observer
-export class FilterSmallCountriesToggle extends React.Component<{
-    manager: SmallCountriesFilterManager
-}> {
-    @action.bound private onChange(): void {
-        this.manager.minPopulationFilter = this.manager.minPopulationFilter
-            ? undefined
-            : this.filterOption
-    }
-
-    @computed private get manager(): SmallCountriesFilterManager {
-        return this.props.manager
-    }
-
-    @computed private get filterOption(): number {
-        return this.manager.populationFilterOption ?? 1e6
-    }
-
-    render(): JSX.Element {
-        const label = `Hide countries < ${formatValue(
-            this.filterOption,
-            {}
-        )} people`
-        return (
-            <label className="clickable">
-                <input
-                    type="checkbox"
-                    checked={!!this.manager.minPopulationFilter}
-                    onChange={this.onChange}
-                    data-track-note="chart-filter-small-countries"
-                />{" "}
-                &nbsp;{label}
             </label>
         )
     }

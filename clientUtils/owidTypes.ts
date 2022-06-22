@@ -66,7 +66,6 @@ export interface FormattedPost extends FullPost {
     info?: string
     html: string
     style?: string
-    references: Record<string, unknown>[]
     footnotes: string[]
     tocHeadings: TocHeading[]
     pageDesc: string
@@ -246,6 +245,14 @@ export interface PostRestApi {
         }
     }
 }
+
+export interface KeyInsight {
+    title: string
+    isTitleHidden?: boolean
+    content: string
+    slug: string
+}
+
 export interface FullPost {
     id: number
     type: WP_PostType
@@ -269,6 +276,10 @@ export enum WP_ColumnStyle {
     StickyRight = "sticky-right",
     StickyLeft = "sticky-left",
     SideBySide = "side-by-side",
+}
+
+export enum WP_BlockType {
+    FullContentWidth = "wp-block-full-content-width", // not an actual WP block yet
 }
 
 export enum SuggestedChartRevisionStatus {
@@ -342,6 +353,12 @@ export enum VerticalAlign {
     top = "top",
     middle = "middle",
     bottom = "bottom",
+}
+
+export enum AxisAlign {
+    start = "start",
+    middle = "middle",
+    end = "end",
 }
 
 export interface GridParameters {

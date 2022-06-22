@@ -3,6 +3,7 @@ import { ColumnSlug } from "../clientUtils/owidTypes.js"
 import { CoreValueType, Color } from "./CoreTableConstants.js"
 
 export enum ColumnTypeNames {
+    NumberOrString = "NumberOrString",
     Numeric = "Numeric",
     String = "String",
     Region = "Region",
@@ -68,6 +69,9 @@ export interface CoreColumnDef extends ColumnColorScale {
     dataPublisherSource?: string
     retrievedDate?: string
     additionalInfo?: string
+
+    // Informational only
+    targetTime?: number
 
     // For developer internal use only.
     values?: CoreValueType[]

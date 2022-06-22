@@ -1,6 +1,6 @@
 # Local database setup.
 
-If you want to develop on your local system without any docker containers then you'll need to set up mysql on your host OS and run the steps below.
+If you want to develop on your local system without any Docker containers then you'll need to set up MySQL on your host OS and run the steps below.
 
 ### Remove the password
 

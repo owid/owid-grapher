@@ -1,12 +1,55 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "npm",
-            "script": "lint",
-            "problemMatcher": ["$eslint-stylish"]
+            "label": "docker start (full)",
+            "type": "shell",
+            "command": "docker compose -f docker-compose.full.yml up -d",
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "startTscServer",
+            "type": "shell",
+            "command": "yarn startTscServer",
+            "problemMatcher": ["$tsc-watch"],
+            "isBackground": true,
+            "presentation": {
+                "group": "watch"
+            }
+        },
+        {
+            "label": "startSiteFront",
+            "type": "shell",
+            "command": "yarn startSiteFront",
+            "isBackground": true,
+            "presentation": {
+                "group": "watch"
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "ERROR in (\\S*)",
+                    "kind": "file",
+                    "message": 0,
+                    "file": 1
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "assets by status",
+                    "endsPattern": "webpack [\\S]+ compiled"
+                }
+            }
+        },
+        {
+            "label": "start (full)",
+            "dependsOn": [
+                "docker start (full)",
+                "startTscServer",
+                "startSiteFront"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
         }
     ]
 }

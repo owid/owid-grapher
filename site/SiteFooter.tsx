@@ -1,7 +1,7 @@
 import React from "react"
 import { webpackUrl } from "../site/webpackUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight.js"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -173,7 +173,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                     <div className="owid-col owid-col--lg-1">
                         <div className="logos">
                             <a
-                                href="https://www.oxfordmartin.ox.ac.uk/research/programmes/global-development"
+                                href="https://www.oxfordmartin.ox.ac.uk/global-development"
                                 className="partner-logo"
                                 data-track-note="footer-navigation"
                             >
@@ -199,9 +199,9 @@ export const SiteFooter = (props: SiteFooterProps) => (
                     <div className="owid-col flex-2">
                         <div className="legal">
                             <p>
-                                License: All the material produced by Our World
-                                in Data, including interactive visualizations
-                                and code, are completely open access under the{" "}
+                                Licenses: All visualizations, data, and articles
+                                produced by Our World in Data are open access
+                                under the{" "}
                                 <a
                                     href="https://creativecommons.org/licenses/by/4.0/"
                                     target="_blank"
@@ -209,12 +209,22 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 >
                                     Creative Commons BY license
                                 </a>
-                                . You have the permission to use, distribute,
-                                and reproduce these in any medium, provided the
-                                source and authors are credited. All other
-                                material, including data produced by third
-                                parties and made available by Our World in Data,
-                                is subject to the license terms from the
+                                . You have permission to use, distribute, and
+                                reproduce these in any medium, provided the
+                                source and authors are credited. All the
+                                software and code that we write is open source
+                                and made available via GitHub under the
+                                permissive{" "}
+                                <a
+                                    href="https://github.com/owid/owid-grapher/blob/master/LICENSE.md "
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    MIT license
+                                </a>
+                                . All other material, including data produced by
+                                third parties and made available by Our World in
+                                Data, is subject to the license terms from the
                                 original third-party authors.
                             </p>
                             <p>

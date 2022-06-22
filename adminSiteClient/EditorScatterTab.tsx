@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher.js"
 import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine.js"
 import { Toggle, NumberField, SelectField, Section } from "./Forms.js"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus.js"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ScatterPointLabelStrategy } from "../grapher/core/GrapherConstants.js"
 import { EntityName } from "../coreTable/OwidTableConstants.js"
@@ -153,12 +153,6 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                             ))}
                         </ul>
                     )}
-                </Section>
-                <Section name="Highlight toggle">
-                    <p>
-                        Allow users to toggle a particular chart selection state
-                        to highlight certain entities.
-                    </p>
                 </Section>
             </div>
         )

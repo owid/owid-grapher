@@ -498,8 +498,7 @@ describe("colors & legend", () => {
         colorColumnSlug: "color",
         sizeColumnSlug: "size",
         table,
-        tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter:
-            tableWithoutChina,
+        tableAfterAuthorTimelineAndActiveChartTransform: tableWithoutChina,
     }
 
     const chart = new ScatterPlotChart({ manager })

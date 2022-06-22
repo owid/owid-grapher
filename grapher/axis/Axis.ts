@@ -7,6 +7,7 @@ import {
     sortBy,
     max,
     numberMagnitude,
+    sortedUniqBy,
 } from "../../clientUtils/Util.js"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { TextWrap } from "../text/TextWrap.js"
@@ -14,6 +15,7 @@ import { AxisConfig } from "./AxisConfig.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { ValueRange } from "../../coreTable/CoreTableConstants.js"
 import {
+    AxisAlign,
     HorizontalAlign,
     Position,
     ScaleType,
@@ -297,7 +299,7 @@ abstract class AbstractAxis {
     private getTickFormattingOptions(): TickFormattingOptions {
         const options: TickFormattingOptions = {}
         if (this.config.compactLabels) {
-            options.shortNumberPrefixes = true
+            options.numberAbbreviation = "short"
         }
         // The chart's tick formatting function is used by default to format axis ticks. This means
         // that the chart's `numDecimalPlaces` is also used by default to format the axis ticks.
@@ -345,14 +347,30 @@ abstract class AbstractAxis {
         } else if (this.domain[0] === this.domain[1]) {
             // When the domain is a single value, the D3 scale will by default place
             // the value at the middle of the range.
-            // We instead want to place it at the end, in order to avoid an axis
-            // domain line being plotted in the middle of a chart (most of the time
-            // this occurs, the domain is [0, 0]).
+            // We instead want to customize what happens - sometimes we want to place the point
+            // at the start of the range instead.
+            // see https://github.com/owid/owid-grapher/pull/1367#issuecomment-1090845181.
             //
-            // -@danielgavrilov, 2021-08-02
-            return value > this.domain[0] ? this.range[1] : this.range[0]
+            // -@marcelgerber, 2022-04-12
+            switch (this.config.singleValueAxisPointAlign) {
+                case AxisAlign.start:
+                    return this.range[0]
+                case AxisAlign.end:
+                    return this.range[1]
+                case AxisAlign.middle:
+                default:
+                    return (this.range[0] + this.range[1]) / 2
+            }
         }
         return parseFloat(this.d3_scale(value).toFixed(1))
+    }
+
+    /** This function returns the inverse of place - i.e. given a screen space
+     *  coordinate, it returns the corresponding domain value. This is useful
+     *  for cases where you want to make sure that something is at least one pixel high.
+     */
+    invert(value: number): number {
+        return this.d3_scale.invert(value)
     }
 
     @computed get tickFontSize(): number {
@@ -478,7 +496,12 @@ export class HorizontalAxis extends AbstractAxis {
                     priority: startEndPrio,
                 },
             ]
-        return uniq(ticks)
+
+        // sort by value, then priority.
+        // this way, we don't end up with two ticks of the same value but different priorities.
+        // instead, we deduplicate by choosing the highest priority (i.e. lowest priority value).
+        const sortedTicks = sortBy(ticks, [(t) => t.value, (t) => t.priority])
+        return sortedUniqBy(sortedTicks, (t) => t.value)
     }
 
     placeTickLabel(value: number): TickLabelPlacement {

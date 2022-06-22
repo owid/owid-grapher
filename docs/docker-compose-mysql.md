@@ -1,44 +1,40 @@
-# Local development setup with mysql and the Grapher admin
+# Local development setup with MySQL and the Grapher admin
 
-This page describes how to set up a mysql database loaded with example charts so you can use the Admin UI to visually create and edit charts.
-
-Before you get to the steps here you have to set up a local typescript development environment as documented [here](local-typescript-setup.md).
+This page describes how to set up a MySQL database loaded with example charts so you can use the Admin UI to visually create and edit charts.
 
 ![admin-ui](./screenshots/admin-ui.png)
 
 ## Prerequisites
 
-We use [docker](https://www.docker.com/) to unify our development setup. Additionally, we provide a make file to automate downloading the required database dumps and starting all the required services.
+This option uses `make` to spin up all the services with a single command, but it requires a few utilities to be installed:
 
-This means that on your computer you'll need to install [docker](https://www.docker.com/) and a few utilities:
+-   [Docker](https://www.docker.com/get-started)
+-   [Node.js and Yarn](./local-typescript-setup.md)
+-   [tmux](https://github.com/tmux/tmux/wiki/Installing#binary-packages)
 
-### Mac OS installation steps
-
-```bash
-brew install tmux
-```
-
-### Linux/Windows intallation steps
-
-On Windows we only support development using the Windows Subsystem for Linux. In the steps below we assume that you are using a debian/ubuntu flavour on Linux.
+If you're using Windows, we recommend you use the Windows Subsystem for Linux, where you'll require some additional utilities. Please also make sure to check out the [before you start on windows guide](before-you-start-on-windows.md). To install the additional tools, run the following in a WSL terminal:
 
 ```bash
-apt install -y build-essential finger tmux
+apt install -y build-essential finger
 ```
 
-## Additional optional prequisites
+## Optional prequisites
 
 If you want to work with the explorer admin then you need to clone the "owid-content" folder as a **sibling** to the owid-grapher. Note that this is not required just to create or edit single charts which is normally sufficient for development of new features or bug fixes.
 
-    ```bash
-    git clone https://github.com/owid/owid-content
-    ```
+```bash
+git clone https://github.com/owid/owid-content
+```
 
-# Starting our development environment
+## Starting our development environment
 
-One quick thing to check is if you are already running MySQL on your computer at port 3306 and if so to stop this service while running the docker setup. Our docker based setup tries to expose the MySQL docker container at port 3306 of your computer for easy interaction with other tools (e.g. a SQL editor). If this port is already taken then starting this container will fail.
+Make a copy of `.env.example-grapher` for the server to configure itself with.
 
-All you need to do now is to open a terminal and run
+```bash
+cp .env.example-grapher .env
+```
+
+Then run:
 
 ```bash
 make up
@@ -47,11 +43,11 @@ make up
 This should fire up a tmux console with 4 tabs:
 
 1. A tab that gives a brief overview of how to use this tmux setup
-2. A tab that outputs the docker compose container logs
-3. A tab that shows the result of the typescript watch compiler process
+2. A tab that outputs the Docker compose container logs
+3. A tab that shows the result of the TypeScript watch compiler process
 4. A tab that shows the output of the webpack and admin server watch processes
 
-The first time you run this it will take a while to download and set up the database (5-15 minutes is expected). Switch to the database tab and wait until you see this message:
+The first time you run this it will take a while to download and set up the database (10-20 minutes is expected). Switch to the database tab and wait until you see this message:
 
 ```
 ✅ All done, grapher DB is loaded ✅
@@ -59,12 +55,52 @@ The first time you run this it will take a while to download and set up the data
 
 ![Terminal screenshot of the running system](./screenshots/tmux-setup.png)
 
-Now you can open [http://localhost:3030/admin/charts](http://localhost:3030/admin/charts) and start creating charts. Any changes to the typescript code you make will be automatically compiled but you will have to refresh the admin page to see changes (i.e. we don not have a hot reloading setup that you may know from other React projects).
+Now you can open [http://localhost:3030/admin/charts](http://localhost:3030/admin/charts) and start creating charts. Any changes to the TypeScript code you make will be automatically compiled, but you will have to refresh your page to see the changes.
 
-Note that in the MySQL database that was set up, the `data_values` table will be incomplete – it will only contain data used in charts. In production, this table is >30GB (uncompressed) and contains unreviewed and undocumented data, so we currently don't offer a full export of it.
+## Inspecting the databases
 
-### Inspecting the database
+For all operating systems, we recommend using [DBeaver](https://dbeaver.io/).
 
-On macOS, we recommend using [Sequel Pro](http://www.sequelpro.com/) (it's free). [DBeaver](https://dbeaver.io/) is also free, works well also and is available on more operating systems.
+The MySQL server is exposed on port **3307** as opposed to port 3306 to avoid port conflicts with any local SQL clients you may have running.
 
-We also have [**a rough sketch of the schema**](https://user-images.githubusercontent.com/1308115/64631358-d920e680-d3ee-11e9-90a7-b45d942a7259.png) as it was on November 2019 (there may be slight changes).
+Use this connection configuration:
+| key | value |
+|---|---|
+| host | `localhost` |
+| port | `3307` |
+| username | `root` |
+| password | `weeniest-stretch-contaminate-gnarl` |
+
+(The root development password is set in this [docker-compose file](https://github.com/owid/owid-grapher/blob/master/docker-compose.grapher.yml#L40))
+
+We also have [a schema diagram for reference.](screenshots/er_diagram.png)
+
+Note that in the MySQL database that was set up, the `data_values` table is incomplete – it only contains data used in charts. In production, this table is >30GB (uncompressed) and contains unreviewed and undocumented data, so we currently don't offer a full export of it.
+
+## Resetting your environment
+
+If you've modified or broken your database and want to start over from scratch, you'll need to clear the docker volumes that the database persists on.
+
+To do so, get their names
+
+```bash
+docker volume ls
+```
+
+and remove them with
+
+```bash
+docker volume rm volume_name
+```
+
+The names of the volumes should usually be something like `owid-grapher_mysql_data` and `owid-grapher_mysql_data_public`.
+
+You can also remove your local copies of the database exports if you want to download the latest version. Skip this step if you want your database to be exactly the same as it was on your last setup.
+
+```bash
+rm tmp-downloads/*
+```
+
+With that done, the next time you run `make up`, the database files will be re-downloaded.
+
+A new database will then be created (expect another 10-20 minutes.)

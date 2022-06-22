@@ -13,6 +13,7 @@ import {
     excludeUndefined,
     isNumber,
     sortedUniqBy,
+    isMobile,
 } from "../../clientUtils/Util.js"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -73,6 +74,7 @@ import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline.js"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import {
+    AxisAlign,
     Color,
     HorizontalAlign,
     PrimitiveType,
@@ -105,35 +107,6 @@ const LEGEND_PADDING = 25
 
 @observer
 class Lines extends React.Component<LinesProps> {
-    base: React.RefObject<SVGGElement> = React.createRef()
-
-    @computed private get allValues(): LinePoint[] {
-        return flatten(this.props.placedSeries.map((series) => series.points))
-    }
-
-    @action.bound private onCursorMove(ev: MouseEvent | TouchEvent): void {
-        const { dualAxis } = this.props
-        const { horizontalAxis } = dualAxis
-
-        if (!this.base.current) return
-
-        const mouse = getRelativeMouse(this.base.current, ev)
-
-        let hoverX
-        if (dualAxis.innerBounds.contains(mouse)) {
-            const closestValue = minBy(this.allValues, (point) =>
-                Math.abs(horizontalAxis.place(point.x) - mouse.x)
-            )
-            hoverX = closestValue?.x
-        }
-
-        this.props.onHover(hoverX)
-    }
-
-    @action.bound private onCursorLeave(): void {
-        this.props.onHover(undefined)
-    }
-
     @computed get bounds(): Bounds {
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(
@@ -256,36 +229,11 @@ class Lines extends React.Component<LinesProps> {
         ))
     }
 
-    private container?: SVGElement
-    componentDidMount(): void {
-        const base = this.base.current as SVGGElement
-        const container = base.closest("svg") as SVGElement
-        container.addEventListener("mousemove", this.onCursorMove)
-        container.addEventListener("mouseleave", this.onCursorLeave)
-        container.addEventListener("touchstart", this.onCursorMove)
-        container.addEventListener("touchmove", this.onCursorMove)
-        container.addEventListener("touchend", this.onCursorLeave)
-        container.addEventListener("touchcancel", this.onCursorLeave)
-        this.container = container
-    }
-
-    componentWillUnmount(): void {
-        const { container } = this
-        if (!container) return
-
-        container.removeEventListener("mousemove", this.onCursorMove)
-        container.removeEventListener("mouseleave", this.onCursorLeave)
-        container.removeEventListener("touchstart", this.onCursorMove)
-        container.removeEventListener("touchmove", this.onCursorMove)
-        container.removeEventListener("touchend", this.onCursorLeave)
-        container.removeEventListener("touchcancel", this.onCursorLeave)
-    }
-
     render(): JSX.Element {
         const { bounds } = this
 
         return (
-            <g ref={this.base} className="Lines">
+            <g className="Lines">
                 <rect
                     x={Math.round(bounds.x)}
                     y={Math.round(bounds.y)}
@@ -364,14 +312,48 @@ export class LineChart
         return table
     }
 
-    // todo: rename mouseHoverX -> hoverX and hoverX -> activeX
-    @observable mouseHoverX?: number = undefined
-    @action.bound onHover(hoverX: number | undefined): void {
-        this.mouseHoverX = hoverX
+    @action.bound private onCursorLeave(): void {
+        this.onHover(undefined)
     }
 
-    @computed get hoverX(): number | undefined {
-        return this.mouseHoverX ?? this.props.manager.annotation?.year
+    @computed private get allValues(): LinePoint[] {
+        return flatten(this.placedSeries.map((series) => series.points))
+    }
+
+    @action.bound private onCursorMove(
+        ev: React.MouseEvent | React.TouchEvent
+    ): void {
+        if (!this.base.current) return
+
+        const mouse = getRelativeMouse(this.base.current, ev)
+
+        const boxPadding = isMobile() ? 44 : 25
+
+        // expand the box width, so it's easier to see the tooltip for the first & last timepoints
+        const boundedBox = this.dualAxis.innerBounds.expand({
+            left: boxPadding,
+            right: boxPadding,
+        })
+
+        let hoverX
+        if (boundedBox.contains(mouse)) {
+            const closestValue = minBy(this.allValues, (point) =>
+                Math.abs(this.dualAxis.horizontalAxis.place(point.x) - mouse.x)
+            )
+            hoverX = closestValue?.x
+        }
+
+        this.onHover(hoverX)
+    }
+
+    @observable hoverX?: number = undefined
+
+    @action.bound onHover(hoverX: number | undefined): void {
+        this.hoverX = hoverX
+    }
+
+    @computed get activeX(): number | undefined {
+        return this.hoverX ?? this.props.manager.annotation?.year
     }
 
     @computed private get manager(): LineChartManager {
@@ -424,23 +406,65 @@ export class LineChart
         )
     }
 
+    @computed get activeXVerticalLine(): JSX.Element | undefined {
+        const { activeX, dualAxis } = this
+        const { horizontalAxis, verticalAxis } = dualAxis
+
+        if (activeX === undefined) return undefined
+
+        return (
+            <g className="hoverIndicator">
+                <line
+                    x1={horizontalAxis.place(activeX)}
+                    y1={verticalAxis.range[0]}
+                    x2={horizontalAxis.place(activeX)}
+                    y2={verticalAxis.range[1]}
+                    stroke="rgba(180,180,180,.4)"
+                />
+                {this.series.map((series) => {
+                    const value = series.points.find(
+                        (point) => point.x === activeX
+                    )
+                    if (!value || this.seriesIsBlurred(series)) return null
+
+                    return (
+                        <circle
+                            key={getSeriesKey(series)}
+                            cx={horizontalAxis.place(value.x)}
+                            cy={verticalAxis.place(value.y)}
+                            r={this.lineStrokeWidth / 2 + 3.5}
+                            fill={
+                                this.hasColorScale
+                                    ? this.getColorScaleColor(value.colorValue)
+                                    : series.color
+                            }
+                            stroke="#fff"
+                            strokeWidth={0.5}
+                        />
+                    )
+                })}
+            </g>
+        )
+    }
+
     @computed private get tooltip(): JSX.Element | undefined {
-        const { hoverX, dualAxis, inputTable, formatColumn, hasColorScale } =
+        const { activeX, dualAxis, inputTable, formatColumn, hasColorScale } =
             this
 
-        if (hoverX === undefined) return undefined
+        if (activeX === undefined) return undefined
 
         const sortedData = sortBy(this.series, (series) => {
-            const value = series.points.find((point) => point.x === hoverX)
+            const value = series.points.find((point) => point.x === activeX)
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formatted = inputTable.timeColumnFormatFunction(hoverX)
+        const formatted = formatColumn.formatTime(activeX)
 
         return (
             <Tooltip
+                id={this.renderUid}
                 tooltipManager={this.manager}
-                x={dualAxis.horizontalAxis.place(hoverX)}
+                x={dualAxis.horizontalAxis.place(activeX)}
                 y={
                     dualAxis.verticalAxis.rangeMin +
                     dualAxis.verticalAxis.rangeSize / 2
@@ -480,7 +504,7 @@ export class LineChart
                     <tbody>
                         {sortedData.map((series) => {
                             const value = series.points.find(
-                                (point) => point.x === hoverX
+                                (point) => point.x === activeX
                             )
 
                             const annotation = this.getAnnotationsForSeries(
@@ -500,8 +524,8 @@ export class LineChart
                                 if (
                                     startX === undefined ||
                                     endX === undefined ||
-                                    startX > hoverX ||
-                                    endX < hoverX
+                                    startX > activeX ||
+                                    endX < activeX
                                 )
                                     return undefined
                             }
@@ -566,7 +590,7 @@ export class LineChart
                                             ? "No data"
                                             : formatColumn.formatValueShort(
                                                   value.y,
-                                                  { noTrailingZeroes: false }
+                                                  { trailingZeroes: true }
                                               )}
                                     </td>
                                     {hasColorScale && (
@@ -582,8 +606,7 @@ export class LineChart
                                                 ? this.colorColumn.formatValueShort(
                                                       value.colorValue,
                                                       {
-                                                          noTrailingZeroes:
-                                                              false,
+                                                          trailingZeroes: true,
                                                       }
                                                   )
                                                 : undefined}
@@ -706,8 +729,8 @@ export class LineChart
                 />
             )
 
-        const { manager, tooltip, dualAxis, hoverX, clipPath } = this
-        const { horizontalAxis, verticalAxis } = dualAxis
+        const { manager, tooltip, dualAxis, clipPath, activeXVerticalLine } =
+            this
 
         const comparisonLines = manager.comparisonLines || []
 
@@ -715,8 +738,22 @@ export class LineChart
 
         // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
         return (
-            <g ref={this.base} className="LineChart">
+            <g
+                ref={this.base}
+                className="LineChart"
+                onMouseLeave={this.onCursorLeave}
+                onTouchEnd={this.onCursorLeave}
+                onTouchCancel={this.onCursorLeave}
+                onMouseMove={this.onCursorMove}
+                onTouchStart={this.onCursorMove}
+                onTouchMove={this.onCursorMove}
+            >
                 {clipPath.element}
+                <rect {...this.bounds.toProps()} fill="transparent">
+                    {/* This <rect> ensures that the parent <g> is big enough such that we get mouse hover events for the
+                    whole charting area, including the axis, the entity labels, and the whitespace next to them.
+                    We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
+                </rect>
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
@@ -734,49 +771,13 @@ export class LineChart
                         dualAxis={dualAxis}
                         placedSeries={this.placedSeries}
                         hidePoints={manager.hidePoints}
-                        onHover={this.onHover}
                         focusedSeriesNames={this.focusedSeriesNames}
                         lineStrokeWidth={this.lineStrokeWidth}
                         lineOutlineWidth={this.lineOutlineWidth}
                         markerRadius={this.markerRadius}
                     />
                 </g>
-                {hoverX !== undefined && (
-                    <g className="hoverIndicator">
-                        <line
-                            x1={horizontalAxis.place(hoverX)}
-                            y1={verticalAxis.range[0]}
-                            x2={horizontalAxis.place(hoverX)}
-                            y2={verticalAxis.range[1]}
-                            stroke="rgba(180,180,180,.4)"
-                        />
-                        {this.series.map((series) => {
-                            const value = series.points.find(
-                                (point) => point.x === hoverX
-                            )
-                            if (!value || this.seriesIsBlurred(series))
-                                return null
-
-                            return (
-                                <circle
-                                    key={getSeriesKey(series)}
-                                    cx={horizontalAxis.place(value.x)}
-                                    cy={verticalAxis.place(value.y)}
-                                    r={this.lineStrokeWidth / 2 + 3.5}
-                                    fill={
-                                        this.hasColorScale
-                                            ? this.getColorScaleColor(
-                                                  value.colorValue
-                                              )
-                                            : series.color
-                                    }
-                                    stroke="#fff"
-                                    strokeWidth={0.5}
-                                />
-                            )
-                        })}
-                    </g>
-                )}
+                {activeXVerticalLine}
 
                 {tooltip}
             </g>
@@ -1143,7 +1144,16 @@ export class LineChart
 
     @computed private get yAxisConfig(): AxisConfig {
         // TODO: enable nice axis ticks for linear scales
-        return new AxisConfig(this.manager.yAxisConfig, this)
+        return new AxisConfig(
+            {
+                // if we only have a single y value (probably 0), we want the
+                // horizontal axis to be at the bottom of the chart.
+                // see https://github.com/owid/owid-grapher/pull/975#issuecomment-890798547
+                singleValueAxisPointAlign: AxisAlign.start,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {

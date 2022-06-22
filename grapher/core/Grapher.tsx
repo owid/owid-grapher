@@ -46,6 +46,8 @@ import {
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
     FacetAxisDomain,
+    DEFAULT_GRAPHER_WIDTH,
+    DEFAULT_GRAPHER_HEIGHT,
 } from "../core/GrapherConstants.js"
 import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
 import * as Cookies from "js-cookie"
@@ -54,7 +56,7 @@ import {
     LegacyDimensionsManager,
 } from "../chart/ChartDimension.js"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
-import { TooltipProps, TooltipManager } from "../tooltip/TooltipProps.js"
+import { TooltipManager } from "../tooltip/TooltipProps.js"
 import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
@@ -70,7 +72,6 @@ import {
     queryParamsToStr,
     setWindowQueryStr,
 } from "../../clientUtils/urls/UrlUtils.js"
-import { populationMap } from "../../coreTable/PopulationMap.js"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
@@ -97,15 +98,14 @@ import { ColumnSlugs, Time } from "../../coreTable/CoreTableConstants.js"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle.js"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
     AbsRelToggleManager,
     FacetStrategyDropdownManager,
     FooterControls,
     FooterControlsManager,
-    SmallCountriesFilterManager,
 } from "../controls/Controls.js"
-import { TooltipView } from "../tooltip/Tooltip.js"
+import { TooltipContainer } from "../tooltip/Tooltip.js"
 import { EntitySelectorModal } from "../controls/EntitySelectorModal.js"
 import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab.js"
 import ReactDOM from "react-dom"
@@ -229,7 +229,6 @@ export class Grapher
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ShareMenuManager,
-        SmallCountriesFilterManager,
         AbsRelToggleManager,
         TooltipManager,
         FooterControlsManager,
@@ -264,7 +263,6 @@ export class Grapher
     @observable.ref entityTypePlural = "countries"
     @observable.ref hideTimeline?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
-    @observable.ref minPopulationFilter?: number = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
@@ -465,10 +463,6 @@ export class Grapher
         this.zoomToSelection =
             params.zoomToSelection === "true" ? true : this.zoomToSelection
 
-        this.minPopulationFilter = params.minPopulationFilter
-            ? parseInt(params.minPopulationFilter)
-            : this.minPopulationFilter
-
         // Axis scale mode
         const xScaleType = params.xScale
         if (xScaleType) {
@@ -574,7 +568,7 @@ export class Grapher
     }
 
     @computed
-    private get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
+    get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterAuthorTimelineFilter
         if (!this.isReady || !this.isChartOrMapTab) return table
         return this.chartInstance.transformTable(table)
@@ -604,24 +598,9 @@ export class Grapher
     }
 
     @computed
-    get tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter(): OwidTable {
-        const table = this.tableAfterAuthorTimelineAndActiveChartTransform
-        // todo: could make these separate memoized computeds to speed up
-        // todo: add cross filtering. 1 dimension at a time.
-        return this.minPopulationFilter
-            ? table.filterByPopulationExcept(
-                  this.minPopulationFilter,
-                  this.selection.selectedEntityNames
-              )
-            : table
-    }
-
-    @computed
     private get tableAfterAllTransformsAndFilters(): OwidTable {
         const { startTime, endTime } = this
-        const table =
-            this
-                .tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter
+        const table = this.tableAfterAuthorTimelineAndActiveChartTransform
 
         if (startTime === undefined || endTime === undefined) return table
 
@@ -654,7 +633,7 @@ export class Grapher
 
     @observable.ref isMediaCard = false
     @observable.ref isExportingtoSvgOrPng = false
-    @observable.ref tooltip?: TooltipProps
+    tooltips?: TooltipManager["tooltips"] = observable.map({}, { deep: false })
     @observable isPlaying = false
     @observable.ref isSelectingData = false
 
@@ -669,23 +648,6 @@ export class Grapher
         return `${this.adminBaseUrl}/admin/${
             this.manager?.editUrl ?? `charts/${this.id}/edit`
         }`
-    }
-
-    private populationFilterToggleOption = 1e6
-    // Make the default filter toggle option reflect what is initially loaded.
-    @computed get populationFilterOption(): number {
-        if (this.minPopulationFilter)
-            this.populationFilterToggleOption = this.minPopulationFilter
-        return this.populationFilterToggleOption
-    }
-
-    // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
-    @computed private get hasCountriesSmallerThanFilterOption(): boolean {
-        return this.inputTable.availableEntityNames.some(
-            (entityName) =>
-                populationMap[entityName] &&
-                populationMap[entityName] < this.populationFilterOption
-        )
     }
 
     // at startDrag, we want to show the full axis
@@ -854,7 +816,7 @@ export class Grapher
         // times on the timeline for which data may not exist, e.g. when the selected entity
         // doesn't contain data for all years in the table.
         // -@danielgavrilov, 2020-10-22
-        return this.tableAfterAuthorTimelineAndActiveChartTransformAndPopulationFilter.getTimesUniqSortedAscForColumns(
+        return this.tableAfterAuthorTimelineAndActiveChartTransform.getTimesUniqSortedAscForColumns(
             columnSlugs
         )
     }
@@ -1175,14 +1137,7 @@ export class Grapher
 
             // StackedBar, StackedArea, and DiscreteBar charts never display a timeline
             case GrapherTabOption.chart:
-                return (
-                    !this.hideTimeline &&
-                    !(
-                        this.isStackedBar ||
-                        this.isStackedArea ||
-                        this.isDiscreteBar
-                    )
-                )
+                return !this.hideTimeline && !this.isDiscreteBar
 
             default:
                 return false
@@ -1466,7 +1421,7 @@ export class Grapher
     @computed get idealBounds(): Bounds {
         return this.isMediaCard
             ? new Bounds(0, 0, 1200, 630)
-            : new Bounds(0, 0, 850, 600)
+            : new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
     }
 
     @computed get hasYDimension(): boolean {
@@ -1530,6 +1485,7 @@ export class Grapher
         )
             return false
 
+        if (this.isMarimekko && this.xColumnSlug === undefined) return false
         return !this.hideRelativeToggle
     }
 
@@ -1604,7 +1560,10 @@ export class Grapher
     }
 
     @computed private get isPortrait(): boolean {
-        return this.bounds.width < this.bounds.height && this.bounds.width < 850
+        return (
+            this.bounds.width < this.bounds.height &&
+            this.bounds.width < DEFAULT_GRAPHER_WIDTH
+        )
     }
 
     @computed private get widthForDeviceOrientation(): number {
@@ -1751,7 +1710,7 @@ export class Grapher
     }
 
     formatTimeFn(time: Time): string {
-        return this.inputTable.timeColumnFormatFunction(time)
+        return this.inputTable.timeColumn.formatTime(time)
     }
 
     @action.bound private toggleTabCommand(): void {
@@ -1803,12 +1762,6 @@ export class Grapher
                 title: this.selection.hasSelection
                     ? `Select None`
                     : `Select All`,
-                category: "Selection",
-            },
-            {
-                combo: "f",
-                fn: (): void => this.toggleFilterAllCommand(),
-                title: "Hide unselected",
                 category: "Selection",
             },
             {
@@ -1873,11 +1826,6 @@ export class Grapher
         this.setTimeFromTimeQueryParam(
             next(["latest", "earliest", ".."], this.timeParam!)
         )
-    }
-
-    @action.bound private toggleFilterAllCommand(): void {
-        this.minPopulationFilter =
-            this.minPopulationFilter === 2e9 ? undefined : 2e9
     }
 
     @action.bound private toggleYScaleTypeCommand(): void {
@@ -2127,9 +2075,9 @@ export class Grapher
                 <FooterControls manager={this} />
                 {this.renderOverlayTab()}
                 {this.popups}
-                <TooltipView
-                    width={this.renderWidth}
-                    height={this.renderHeight}
+                <TooltipContainer
+                    containerWidth={this.renderWidth}
+                    containerHeight={this.renderHeight}
                     tooltipProvider={this}
                 />
                 {this.isSelectingData && (
@@ -2254,7 +2202,6 @@ export class Grapher
         this.yAxis.scaleType = authorsVersion.yAxis.scaleType
         this.stackMode = authorsVersion.stackMode
         this.zoomToSelection = authorsVersion.zoomToSelection
-        this.minPopulationFilter = authorsVersion.minPopulationFilter
         this.compareEndPointsOnly = authorsVersion.compareEndPointsOnly
         this.minTime = authorsVersion.minTime
         this.maxTime = authorsVersion.maxTime
@@ -2303,7 +2250,6 @@ export class Grapher
         params.yScale = this.yAxis.scaleType
         params.stackMode = this.stackMode
         params.zoomToSelection = this.zoomToSelection ? "true" : undefined
-        params.minPopulationFilter = this.minPopulationFilter?.toString()
         params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
         params.time = this.timeParam
         params.region = this.map.projection
@@ -2449,15 +2395,9 @@ export class Grapher
 
     formatTime(value: Time): string {
         const timeColumn = this.table.timeColumn
-        if (timeColumn.isMissing)
-            return this.table.timeColumnFormatFunction(value)
         return isMobile()
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)
-    }
-
-    @computed get showSmallCountriesFilterToggle(): boolean {
-        return this.isScatter && this.hasCountriesSmallerThanFilterOption
     }
 
     @computed get showYScaleToggle(): boolean | undefined {
@@ -2489,7 +2429,7 @@ export class Grapher
     }
 
     @computed get showNoDataAreaToggle(): boolean {
-        return this.isMarimekko
+        return this.isMarimekko && this.xColumnSlug !== undefined
     }
 
     @computed get showChangeEntityButton(): boolean {

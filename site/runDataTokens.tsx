@@ -2,13 +2,30 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { DataToken_name } from "../site/DataToken.js"
 import { LastUpdated } from "./covid/LastUpdated.js"
+import { FullWidthRawHtml } from "./covid/FullWidthRawHtml.js"
 
 interface ComponentDictionary {
-    [key: string]: any
+    [key: string]: {
+        component: any
+        wrapper: DataTokenWrapper
+    }
 }
 
-const dictionary: ComponentDictionary = {
-    LastUpdated,
+type DataTokenWrapper = (children: React.ReactElement) => React.ReactElement
+
+export const dictionary: ComponentDictionary = {
+    LastUpdated: {
+        component: LastUpdated,
+        wrapper: (children) => <span>{children}</span>,
+    },
+
+    FullWidthRawHtml: {
+        component: FullWidthRawHtml,
+        // todo: replace by BlockType.FullContentWidth when merged
+        wrapper: (children) => (
+            <div className="wp-block-full-content-width">{children}</div>
+        ),
+    },
 }
 
 export const runDataTokens = () => {
@@ -21,7 +38,7 @@ export const runDataTokens = () => {
 
         const componentProps = JSON.parse(dataToken.innerHTML)
 
-        const Component = dictionary[token]
+        const Component = dictionary[token]?.component
         if (!Component) return
 
         ReactDOM.render(

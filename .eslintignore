@@ -1,5 +1,6 @@
+**/*.js
 bakedSite/**
-.eslintrc.js
+coverage/**
 itsJustJavascript/**
 devtools/**
 jest.config.js

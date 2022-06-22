@@ -1,6 +1,6 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt.js"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 
 export const GlossaryExcerpt_name = "GlossaryExcerpt"
 

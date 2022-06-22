@@ -12,7 +12,7 @@ import {
     ReadOnlyColumn,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
 
-const readOnlyBulkGrapherCondigEditorColumnNamesFields: Map<
+const readOnlyBulkGrapherConfigEditorColumnNamesFields: Map<
     string,
     ReadOnlyColumn
 > = new Map(
@@ -125,7 +125,7 @@ const config: GrapherConfigGridEditorConfig = {
             chartBulkUpdateAllowedColumnNamesAndTypes,
     },
     apiEndpoint: "/api/chart-bulk-update",
-    readonlyColumns: readOnlyBulkGrapherCondigEditorColumnNamesFields,
+    readonlyColumns: readOnlyBulkGrapherConfigEditorColumnNamesFields,
     hiddenColumns: BULK_CHART_EDIT_HIDDEN_COLUMNS,
     columnSet: bulkChartEditorColumnSets,
     finalVariableLayerModificationFn: () => ({}),

@@ -2,7 +2,7 @@ import React from "react"
 import { SubNavId } from "../../clientUtils/owidTypes.js"
 import { getSubnavItem, SubnavItem, subnavs } from "../SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight.js"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
 export const getSubnavParent = (
     currentItem: SubnavItem | undefined,

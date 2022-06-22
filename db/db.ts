@@ -2,11 +2,11 @@ import * as mysql from "mysql"
 import * as typeorm from "typeorm"
 import knex, { Knex } from "knex"
 import {
-    DB_HOST,
-    DB_USER,
-    DB_PASS,
-    DB_NAME,
-    DB_PORT,
+    GRAPHER_DB_HOST,
+    GRAPHER_DB_USER,
+    GRAPHER_DB_PASS,
+    GRAPHER_DB_NAME,
+    GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
 let typeormConnection: typeorm.Connection
@@ -87,11 +87,11 @@ export const knexInstance = (): Knex<any, any[]> => {
     _knexInstance = knex({
         client: "mysql",
         connection: {
-            host: DB_HOST,
-            user: DB_USER,
-            password: DB_PASS,
-            database: DB_NAME,
-            port: DB_PORT,
+            host: GRAPHER_DB_HOST,
+            user: GRAPHER_DB_USER,
+            password: GRAPHER_DB_PASS,
+            database: GRAPHER_DB_NAME,
+            port: GRAPHER_DB_PORT,
             typeCast: (field: any, next: any) => {
                 if (field.type === "TINY" && field.length === 1) {
                     return field.string() === "1" // 1 = true, 0 = false

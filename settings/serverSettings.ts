@@ -47,12 +47,14 @@ export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21
 export const BLOG_SLUG: string = serverSettings.BLOG_SLUG ?? "blog"
 
-export const DB_NAME: string = serverSettings.DB_NAME ?? "owid"
-export const DB_USER: string = serverSettings.DB_USER ?? "root"
-export const DB_PASS: string = serverSettings.DB_PASS ?? ""
-export const DB_HOST: string = serverSettings.DB_HOST ?? "localhost"
-export const DB_PORT: number =
-    parseIntOrUndefined(serverSettings.DB_PORT) ?? 3306
+export const GRAPHER_DB_NAME: string = serverSettings.GRAPHER_DB_NAME ?? "owid"
+export const GRAPHER_DB_USER: string = serverSettings.GRAPHER_DB_USER ?? "root"
+export const GRAPHER_DB_PASS: string = serverSettings.GRAPHER_DB_PASS ?? ""
+export const GRAPHER_DB_HOST: string =
+    serverSettings.GRAPHER_DB_HOST ?? "localhost"
+// The OWID stack uses 3307, but incase it's unset, assume user is running a local setup
+export const GRAPHER_DB_PORT: number =
+    parseIntOrUndefined(serverSettings.GRAPHER_DB_PORT) ?? 3306
 
 export const BAKED_SITE_DIR: string =
     serverSettings.BAKED_SITE_DIR ?? path.resolve(BASE_DIR, "bakedSite") // Where the static build output goes
@@ -60,14 +62,12 @@ export const SECRET_KEY: string =
     serverSettings.SECRET_KEY ??
     "fejwiaof jewiafo jeioa fjieowajf isa fjidosajfgj"
 export const WORDPRESS_DB_NAME: string = serverSettings.WORDPRESS_DB_NAME ?? ""
-export const WORDPRESS_DB_USER: string =
-    serverSettings.WORDPRESS_DB_USER ?? DB_USER
-export const WORDPRESS_DB_PASS: string =
-    serverSettings.WORDPRESS_DB_PASS ?? DB_PASS
-export const WORDPRESS_DB_HOST: string =
-    serverSettings.WORDPRESS_DB_HOST ?? DB_HOST
-export const WORDPRESS_DB_PORT: number =
-    parseIntOrUndefined(serverSettings.WORDPRESS_DB_PORT) ?? DB_PORT
+export const WORDPRESS_DB_USER: string = serverSettings.WORDPRESS_DB_USER ?? ""
+export const WORDPRESS_DB_PASS: string = serverSettings.WORDPRESS_DB_PASS ?? ""
+export const WORDPRESS_DB_HOST: string = serverSettings.WORDPRESS_DB_HOST ?? ""
+export const WORDPRESS_DB_PORT: number | undefined = parseIntOrUndefined(
+    serverSettings.WORDPRESS_DB_PORT
+)
 export const WORDPRESS_API_USER: string =
     serverSettings.WORDPRESS_API_USER ?? ""
 export const WORDPRESS_API_PASS: string =

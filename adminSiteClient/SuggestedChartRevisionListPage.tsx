@@ -17,8 +17,8 @@ import {
 } from "./SuggestedChartRevisionList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown.js"
-import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt.js"
+import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
+import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
 
 interface Searchable {
     suggestedChartRevision: SuggestedChartRevisionListItem
@@ -45,10 +45,10 @@ export class SuggestedChartRevisionListPage extends React.Component {
             searchIndex.push({
                 suggestedChartRevision: suggestedChartRevision,
                 term: fuzzysort.prepare(`
-                    ${suggestedChartRevision.status || ""} 
-                    ${originalConfig.title} 
-                    ${originalConfig.variantName || ""} 
-                    ${originalConfig.internalNotes || ""} 
+                    ${suggestedChartRevision.status || ""}
+                    ${originalConfig.title}
+                    ${originalConfig.variantName || ""}
+                    ${originalConfig.internalNotes || ""}
                 `),
             })
         }

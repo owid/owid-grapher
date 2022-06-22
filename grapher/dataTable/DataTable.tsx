@@ -3,7 +3,7 @@ import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { SortOrder, Time } from "../../coreTable/CoreTableConstants.js"
 import {
     EntityName,
@@ -22,6 +22,7 @@ import {
     countBy,
     union,
     exposeInstanceOnWindow,
+    DataValue,
 } from "../../clientUtils/Util.js"
 import { SortIcon } from "../controls/SortIcon.js"
 import { Tippy } from "../chart/Tippy.js"
@@ -68,7 +69,6 @@ export interface DataTableManager {
     entityType: string
     endTime?: Time
     startTime?: Time
-    minPopulationFilter?: number
     dataTableSlugs?: ColumnSlug[]
 }
 
@@ -213,6 +213,8 @@ export class DataTable extends React.Component<{
             const actualColumn = dim.coreTableColumn
             const unit =
                 actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
+            const targetTime =
+                dim.columns.length == 1 ? dim.columns[0].targetTime : undefined
             const columnName =
                 actualColumn.displayName !== ""
                     ? actualColumn.displayName
@@ -220,8 +222,17 @@ export class DataTable extends React.Component<{
 
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <span className="name">{upperFirst(columnName)}</span>
-                    <span className="unit">{unit}</span>
+                    <div className="name">{upperFirst(columnName)}</div>
+                    <div>
+                        <span className="unit">{unit}</span>{" "}
+                        <span className="divider">
+                            {unit && targetTime !== undefined && "•"}
+                        </span>{" "}
+                        <span className="time">
+                            {targetTime !== undefined &&
+                                actualColumn.formatTime(targetTime)}
+                        </span>
+                    </div>
                 </React.Fragment>
             )
 
@@ -251,7 +262,7 @@ export class DataTable extends React.Component<{
             dim.columns.map((column, i) => {
                 const headerText = isDeltaColumn(column.key)
                     ? columnNameByType[column.key]
-                    : dim.coreTableColumn.table.formatTime(column.targetTime!)
+                    : dim.coreTableColumn.formatTime(column.targetTime!)
                 return (
                     <ColumnHeader
                         key={column.key}
@@ -324,8 +335,8 @@ export class DataTable extends React.Component<{
             >
                 {shouldShowClosestTimeNotice &&
                     makeClosestTimeNotice(
-                        actualColumn.table.formatTime(column.targetTime!),
-                        actualColumn.table.formatTime(value.time!) // todo: add back format: "MMM D",
+                        actualColumn.formatTime(column.targetTime!),
+                        actualColumn.formatTime(value.time!) // todo: add back format: "MMM D",
                     )}
                 <span>{value.displayValue}</span>
             </td>
@@ -457,6 +468,7 @@ export class DataTable extends React.Component<{
         return this.table.columnsAsArray.filter(
             (column) =>
                 !skips.has(column.slug) &&
+                !column.slug.endsWith("-originalTime") &&
                 //  dim.property !== "color" &&
                 (column.display?.includeInTable ?? true)
         )
@@ -467,12 +479,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get entityNames(): string[] {
-        let tableForEntities = this.table
-        if (this.manager.minPopulationFilter)
-            tableForEntities = tableForEntities.filterByPopulationExcept(
-                this.manager.minPopulationFilter,
-                this.selectionArray.selectedEntityNames
-            )
+        const tableForEntities = this.table
         return union(
             ...this.columnsToShow.map(
                 (col) => tableForEntities.get(col.slug).uniqEntityNames
@@ -492,8 +499,8 @@ export class DataTable extends React.Component<{
         return value === undefined
             ? value
             : column.formatValueShort(value, {
-                  numberPrefixes: false,
-                  noTrailingZeroes: false,
+                  numberAbbreviation: false,
+                  trailingZeroes: true,
                   ...formattingOverrides,
               })
     }
@@ -506,146 +513,179 @@ export class DataTable extends React.Component<{
         return [endTime]
     }
 
-    // todo: this function should be refactored. It's about 5x-10x too long. I'm currently getting an undefined value but it's very hard to figure out where.
     @computed get columnsWithValues(): Dimension[] {
         return this.columnsToShow.map((sourceColumn) => {
-            const targetTimes = this.targetTimes ?? [sourceColumn.maxTime]
+            let targetTimes: number[]
+            if (sourceColumn.def.targetTime !== undefined)
+                targetTimes = [sourceColumn.def.targetTime]
+            else if (this.targetTimes !== undefined)
+                targetTimes = this.targetTimes
+            else targetTimes = [sourceColumn.maxTime]
 
             const targetTimeMode =
                 targetTimes.length < 2
                     ? TargetTimeMode.point
                     : TargetTimeMode.range
 
-            const prelimValuesByEntity =
-                targetTimeMode === TargetTimeMode.range
-                    ? // In the "range" mode, we receive all data values within the range. But we
-                      // only want to plot the start & end values in the table.
-                      // getStartEndValues() extracts these two values.
-                      es6mapValues(
-                          valuesByEntityWithinTimes(
-                              sourceColumn.valueByEntityNameAndOriginalTime,
-                              targetTimes
-                          ),
-                          getStartEndValues
-                      )
-                    : valuesByEntityAtTimes(
-                          sourceColumn.valueByEntityNameAndOriginalTime,
-                          targetTimes,
-                          sourceColumn.tolerance
-                      )
+            const prelimValuesByEntity = this.preliminaryDimensionValues(
+                targetTimeMode,
+                sourceColumn,
+                targetTimes
+            )
 
-            const isRange = targetTimes.length === 2
+            const valueByEntity = this.dataValuesFromPreliminaryValues(
+                prelimValuesByEntity,
+                targetTimeMode,
+                sourceColumn
+            )
 
-            // Inject delta columns if we have start & end values to compare in the table.
-            // One column for absolute difference, another for % difference.
-            const deltaColumns: DimensionColumn[] = []
-            if (isRange) {
-                const tableDisplay = {} as any
-                if (!tableDisplay?.hideAbsoluteChange)
-                    deltaColumns.push({ key: RangeValueKey.delta })
-                if (!tableDisplay?.hideRelativeChange)
-                    deltaColumns.push({ key: RangeValueKey.deltaRatio })
-            }
-
-            const columns: DimensionColumn[] = [
-                ...targetTimes.map((targetTime, index) => ({
-                    key: isRange
-                        ? index === 0
-                            ? RangeValueKey.start
-                            : RangeValueKey.end
-                        : SingleValueKey.single,
-                    targetTime,
-                    targetTimeMode,
-                })),
-                ...deltaColumns,
-            ]
-
-            const valueByEntity = es6mapValues(prelimValuesByEntity, (dvs) => {
-                // There is always a column, but not always a data value (in the delta column the
-                // value needs to be calculated)
-                if (isRange) {
-                    const [start, end]: (Value | undefined)[] = dvs
-                    const result: RangeValue = {
-                        start: {
-                            ...start,
-                            displayValue: this.formatValue(
-                                sourceColumn,
-                                start?.value
-                            ),
-                        },
-                        end: {
-                            ...end,
-                            displayValue: this.formatValue(
-                                sourceColumn,
-                                end?.value
-                            ),
-                        },
-                        delta: undefined,
-                        deltaRatio: undefined,
-                    }
-
-                    if (
-                        start !== undefined &&
-                        end !== undefined &&
-                        typeof start.value === "number" &&
-                        typeof end.value === "number"
-                    ) {
-                        const deltaValue = end.value - start.value
-                        const deltaRatioValue =
-                            deltaValue / Math.abs(start.value)
-
-                        result.delta = {
-                            value: deltaValue,
-                            displayValue: this.formatValue(
-                                sourceColumn,
-                                deltaValue,
-                                {
-                                    showPlus: true,
-                                    unit:
-                                        sourceColumn.shortUnit === "%"
-                                            ? "pp"
-                                            : sourceColumn.shortUnit,
-                                }
-                            ),
-                        }
-
-                        result.deltaRatio = {
-                            value: deltaRatioValue,
-                            displayValue:
-                                isFinite(deltaRatioValue) &&
-                                !isNaN(deltaRatioValue)
-                                    ? this.formatValue(
-                                          sourceColumn,
-                                          deltaRatioValue * 100,
-                                          {
-                                              unit: "%",
-                                              numDecimalPlaces: 0,
-                                              showPlus: true,
-                                          }
-                                      )
-                                    : undefined,
-                        }
-                    }
-                    return result
-                } else {
-                    // if single time
-                    const dv = dvs[0]
-                    const result: SingleValue = {
-                        single: { ...dv },
-                    }
-                    if (dv !== undefined)
-                        result.single!.displayValue = this.formatValue(
-                            sourceColumn,
-                            dv.value
-                        )
-                    return result
-                }
-            })
+            const columns: DimensionColumn[] = this.dimensionColumns(
+                targetTimes,
+                targetTimeMode
+            )
 
             return {
                 columns,
                 valueByEntity,
                 sourceColumn,
+            }
+        })
+    }
+
+    private dimensionColumns(
+        targetTimes: number[],
+        targetTimeMode: TargetTimeMode
+    ): DimensionColumn[] {
+        // Inject delta columns if we have start & end values to compare in the table.
+        // One column for absolute difference, another for % difference.
+        const deltaColumns: DimensionColumn[] = []
+        if (targetTimeMode === TargetTimeMode.range) {
+            const tableDisplay = {} as any
+            if (!tableDisplay?.hideAbsoluteChange)
+                deltaColumns.push({ key: RangeValueKey.delta })
+            if (!tableDisplay?.hideRelativeChange)
+                deltaColumns.push({ key: RangeValueKey.deltaRatio })
+        }
+
+        const valueColumns = targetTimes.map((targetTime, index) => ({
+            key:
+                targetTimeMode === TargetTimeMode.range
+                    ? index === 0
+                        ? RangeValueKey.start
+                        : RangeValueKey.end
+                    : SingleValueKey.single,
+            targetTime,
+            targetTimeMode,
+        }))
+        return [...valueColumns, ...deltaColumns]
+    }
+
+    private preliminaryDimensionValues(
+        targetTimeMode: TargetTimeMode,
+        sourceColumn: CoreColumn,
+        targetTimes: number[]
+    ): Map<string, (DataValue | undefined)[]> {
+        return targetTimeMode === TargetTimeMode.range
+            ? // In the "range" mode, we receive all data values within the range. But we
+
+              // only want to plot the start & end values in the table.
+              // getStartEndValues() extracts these two values.
+              es6mapValues(
+                  valuesByEntityWithinTimes(
+                      sourceColumn.valueByEntityNameAndOriginalTime,
+                      targetTimes
+                  ),
+                  getStartEndValues
+              )
+            : valuesByEntityAtTimes(
+                  sourceColumn.valueByEntityNameAndOriginalTime,
+                  targetTimes,
+                  sourceColumn.tolerance
+              )
+    }
+
+    private dataValuesFromPreliminaryValues(
+        prelimValuesByEntity: Map<string, (DataValue | undefined)[]>,
+        targetTimeMode: TargetTimeMode,
+        sourceColumn: CoreColumn
+    ): Map<string, DimensionValue> {
+        return es6mapValues(prelimValuesByEntity, (dvs) => {
+            // There is always a column, but not always a data value (in the delta column the
+            // value needs to be calculated)
+            if (targetTimeMode === TargetTimeMode.range) {
+                const [start, end]: (Value | undefined)[] = dvs
+                const result: RangeValue = {
+                    start: {
+                        ...start,
+                        displayValue: this.formatValue(
+                            sourceColumn,
+                            start?.value
+                        ),
+                    },
+                    end: {
+                        ...end,
+                        displayValue: this.formatValue(
+                            sourceColumn,
+                            end?.value
+                        ),
+                    },
+                    delta: undefined,
+                    deltaRatio: undefined,
+                }
+
+                if (
+                    start !== undefined &&
+                    end !== undefined &&
+                    typeof start.value === "number" &&
+                    typeof end.value === "number"
+                ) {
+                    const deltaValue = end.value - start.value
+                    const deltaRatioValue = deltaValue / Math.abs(start.value)
+
+                    result.delta = {
+                        value: deltaValue,
+                        displayValue: this.formatValue(
+                            sourceColumn,
+                            deltaValue,
+                            {
+                                showPlus: true,
+                                unit:
+                                    sourceColumn.shortUnit === "%"
+                                        ? "pp"
+                                        : sourceColumn.shortUnit,
+                            }
+                        ),
+                    }
+
+                    result.deltaRatio = {
+                        value: deltaRatioValue,
+                        displayValue:
+                            isFinite(deltaRatioValue) && !isNaN(deltaRatioValue)
+                                ? this.formatValue(
+                                      sourceColumn,
+                                      deltaRatioValue * 100,
+                                      {
+                                          unit: "%",
+                                          numDecimalPlaces: 0,
+                                          showPlus: true,
+                                      }
+                                  )
+                                : undefined,
+                    }
+                }
+                return result
+            } else {
+                // if single time
+                const dv = dvs[0]
+                const result: SingleValue = {
+                    single: { ...dv },
+                }
+                if (dv !== undefined)
+                    result.single!.displayValue = this.formatValue(
+                        sourceColumn,
+                        dv.value
+                    )
+                return result
             }
         })
     }

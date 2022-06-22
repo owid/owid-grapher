@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 import { isTouchDevice, sortBy } from "../../clientUtils/Util.js"
 import { FuzzySearch } from "./FuzzySearch.js"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes.js"
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 
@@ -112,13 +112,15 @@ export class EntitySelectorModal extends React.Component<{
         document.removeEventListener("click", this.onDocumentClick)
     }
 
-    @action.bound onSearchKeyDown(
-        e: React.KeyboardEvent<HTMLInputElement>
-    ): void {
+    @action.bound onOverlayKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
+        if (e.key === "Escape") this.props.onDismiss()
+    }
+
+    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
         if (e.key === "Enter" && this.searchResults.length > 0) {
             this.onSelect(this.searchResults[0].name)
             this.searchInput = ""
-        } else if (e.key === "Escape") this.props.onDismiss()
+        }
     }
 
     @action.bound onClear(): void {
@@ -172,7 +174,10 @@ export class EntitySelectorModal extends React.Component<{
         const { searchResults, searchInput } = this
 
         return (
-            <div className="entitySelectorOverlay">
+            <div
+                className="entitySelectorOverlay"
+                onKeyDown={this.onOverlayKeyDown}
+            >
                 <div
                     ref={this.base}
                     className={

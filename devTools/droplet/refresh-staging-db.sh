@@ -4,7 +4,7 @@
 # Refresh staging targets from live content (run from staging) #
 ################################################################
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../.. && pwd )"
 
 bail() {
     echo "ERROR: $1" 1>&2
@@ -17,11 +17,11 @@ fi
 
 set -a && source $DIR/.env && set +a
 
-if [ "${WP_ENV}" != "staging" ]; then
+if [ $(hostname) != "owid-staging" ]; then
   bail "Please only run on staging."
 fi
 
-STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
+STAGING_SERVER_NAME=$(basename $DIR)
 
 check_env() {
   eval value='$'$1
@@ -29,11 +29,11 @@ check_env() {
 }
 
 wp_mysql() {
-  mysql -u${DB_USER} -p"${DB_PASSWORD}" -h $DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+  mysql -u${WORDPRESS_DB_USER} -p"${WORDPRESS_DB_PASS}" -h $WORDPRESS_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
 }
 
 gr_mysql() {
-  mysql -u${GRAPHER_DB_USER} -p"${GRAPHER_DB_PASSWORD}" -h $GRAPHER_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
+  mysql -u${GRAPHER_DB_USER} -p"${GRAPHER_DB_PASS}" -h $GRAPHER_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
 }
 
 DL_FOLDER="/tmp"
@@ -84,7 +84,7 @@ while [ "$1" != "" ]; do
 done
 
 purge_wordpress_db(){
-  wp_mysql -e "DROP DATABASE $DB_NAME;CREATE DATABASE $DB_NAME"
+  wp_mysql -e "DROP DATABASE $WORDPRESS_DB_NAME;CREATE DATABASE $WORDPRESS_DB_NAME"
 }
 
 purge_grapher_db(){
@@ -92,12 +92,22 @@ purge_grapher_db(){
 }
 
 import_wordpress_db(){
-  pv $1 | sed s/.\*DEFINER\=\`.\*// | wp_mysql $DB_NAME
+  pv $1 | sed s/.\*DEFINER\=\`.\*// | wp_mysql $WORDPRESS_DB_NAME
 }
 
 import_grapher_db(){
   pv $1 | sed s/.\*DEFINER\=\`.\*// | gr_mysql $GRAPHER_DB_NAME
 }
+
+# Check that required env vars are set
+check_env GRAPHER_DB_NAME
+check_env GRAPHER_DB_HOST
+check_env GRAPHER_DB_USER
+check_env GRAPHER_DB_PASS
+check_env WORDPRESS_DB_NAME
+check_env WORDPRESS_DB_HOST
+check_env WORDPRESS_DB_USER
+check_env WORDPRESS_DB_PASS
 
 # Wordpress DB
 if [ "${SKIP_DB_DL}" = false ]; then
@@ -106,12 +116,8 @@ if [ "${SKIP_DB_DL}" = false ]; then
   rsync -hav --progress owid@live-db.owid.io:/tmp/live_wordpress.sql $DL_FOLDER
 fi
 echo "Importing Wordpress database (live_wordpress)"
-check_env DB_NAME
-check_env DB_HOST
-check_env DB_USER
-check_env DB_PASSWORD
 purge_wordpress_db
-import_wordpress_db $DL_FOLDER/live_wordpress.sql 
+import_wordpress_db $DL_FOLDER/live_wordpress.sql
 
 # Wordpress uploads
 if [ "${WITH_UPLOADS}" = true ]; then
@@ -126,10 +132,6 @@ if [ "${SKIP_DB_DL}" = false ]; then
   rsync -hav --progress owid@live.owid.io:/tmp/owid_metadata_with_passwords.sql $DL_FOLDER
 fi
 echo "Importing live Grapher metadata database (owid_metadata)"
-check_env GRAPHER_DB_NAME
-check_env GRAPHER_DB_HOST
-check_env GRAPHER_DB_USER
-check_env GRAPHER_DB_PASSWORD
 purge_grapher_db
 import_grapher_db $DL_FOLDER/owid_metadata_with_passwords.sql
 

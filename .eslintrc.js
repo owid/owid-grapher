@@ -9,9 +9,8 @@ module.exports = {
         ecmaFeatures: {
             jsx: true,
         },
-        project: "./**/tsconfig.json",
+        project: "./tsconfig.eslint.json",
         ecmaVersion: 2018,
-        sourceType: "module",
     },
     overrides: [
         {
@@ -30,7 +29,10 @@ module.exports = {
         "@typescript-eslint/no-namespace": "warn",
         "@typescript-eslint/no-non-null-assertion": "off", // TODO: enable this rule
         "@typescript-eslint/no-this-alias": "warn",
-        "@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            { varsIgnorePattern: "^_", argsIgnorePattern: "^_" },
+        ],
         "@typescript-eslint/no-use-before-define": "off", // This was useful in the past with var and variable hoisting changing depending on scope but AFAIK typescript deals with this in a sane way and we can leave this off
         "@typescript-eslint/no-var-requires": "warn",
         "@typescript-eslint/restrict-plus-operands": "warn",

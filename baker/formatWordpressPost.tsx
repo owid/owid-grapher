@@ -1,13 +1,11 @@
 import cheerio from "cheerio"
 import urlSlug from "url-slug"
-import * as lodash from "lodash-es"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import { HTTPS_ONLY } from "../settings/serverSettings.js"
+import { BAKED_BASE_URL, HTTPS_ONLY } from "../settings/serverSettings.js"
 import { getTables } from "../db/wpdb.js"
 import Tablepress from "../site/Tablepress.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
-import * as path from "path"
 import { RelatedCharts } from "../site/blocks/RelatedCharts.js"
 import {
     BLOCK_WRAPPER_DATATYPE,
@@ -15,7 +13,6 @@ import {
     FormattedPost,
     FormattingOptions,
     FullPost,
-    JsonError,
     TocHeading,
 } from "../clientUtils/owidTypes.js"
 import { Footnote } from "../site/Footnote.js"
@@ -28,6 +25,7 @@ import {
     DEEP_LINK_CLASS,
     extractDataValuesConfiguration,
     formatDataValue,
+    formatImages,
     parseKeyValueArgs,
 } from "./formatting.js"
 import { mathjax } from "mathjax-full/js/mathjax.js"
@@ -44,13 +42,20 @@ import {
     getOwidVariableDisplayConfig,
 } from "../db/model/Variable.js"
 import { AnnotatingDataValue } from "../site/AnnotatingDataValue.js"
-import { renderBlocks } from "./siteRenderers.js"
+import {
+    ADDITIONAL_INFORMATION_CLASS_NAME,
+    renderAdditionalInformation,
+} from "../site/blocks/AdditionalInformation.js"
+import { renderHelp } from "../site/blocks/Help.js"
 import {
     formatUrls,
     getBodyHtml,
     GRAPHER_PREVIEW_CLASS,
     SUMMARY_CLASSNAME,
 } from "../site/formatting.js"
+import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -124,6 +129,15 @@ export const formatWordpressPost = async (
 ): Promise<FormattedPost> => {
     let html = post.content
 
+    // Inject key insights early so they can be formatted by the embedding
+    // article. Another option would be to format the content independently,
+    // which would allow for inclusion further down the formatting pipeline.
+    // This is however creating issues by running non-idempotent formatting
+    // functions twice on the same content (e.g. table processing double wraps
+    // in "tableContainer" divs). On the other hand, rendering key insights last
+    // would require special care for footnotes.
+    html = await renderKeyInsights(html)
+
     // Standardize urls
     html = formatUrls(html)
 
@@ -133,12 +147,6 @@ export const formatWordpressPost = async (
     // Need to skirt around wordpress formatting to get proper latex rendering
     let latexBlocks
     ;[html, latexBlocks] = extractLatex(html)
-
-    const references: any[] = []
-    html = html.replace(/\[cite\]([\s\S]*?)\[\/cite\]/gm, () => {
-        references.push({}) // Todo
-        return ``
-    })
 
     html = await formatLatex(html, latexBlocks)
 
@@ -173,14 +181,7 @@ export const formatWordpressPost = async (
         const { value, year, unit, entityName } =
             (await getDataValue(queryArgs)) || {}
 
-        if (!value || !year || !entityName)
-            throw new JsonError(
-                `Missing data for query ${dataValueConfigurationString}. Please check the tag for any missing or wrong argument.`
-            )
-        if (!template)
-            throw new JsonError(
-                `Missing template for query ${dataValueConfigurationString}`
-            )
+        if (!value || !year || !entityName || !template) continue
 
         let formattedValue
         if (variableId && chartId) {
@@ -213,10 +214,12 @@ export const formatWordpressPost = async (
         const dataValueProps: DataValueProps | undefined = dataValues.get(
             dataValueConfigurationString
         )
-        if (!dataValueProps)
-            throw new JsonError(
-                `Missing data value for query ${dataValueConfigurationString}`
+        if (!dataValueProps) {
+            logContentErrorAndMaybeSendToSlack(
+                `Missing data value for {{DataValue ${dataValueConfigurationString}}}" in ${BAKED_BASE_URL}/${post.slug}`
             )
+            return "{ ⚠️ Value pending update }"
+        }
         return ReactDOMServer.renderToString(
             <span data-type={BLOCK_WRAPPER_DATATYPE}>
                 <AnnotatingDataValue dataValueProps={dataValueProps} />
@@ -274,9 +277,9 @@ export const formatWordpressPost = async (
         post.relatedCharts.length !== 0
     ) {
         const allCharts = `
-        <block type="additional-information">
+        <block type="additional-information" default-open="false">
             <content>
-                <h3>All our charts on ${post.title}</h3>
+                <h3>All our interactive charts on ${post.title}</h3>
                 ${ReactDOMServer.renderToStaticMarkup(
                     <div>
                         <RelatedCharts charts={post.relatedCharts} />
@@ -307,7 +310,9 @@ export const formatWordpressPost = async (
     //   added by the external ToC post-processing code). So from React's
     //   perspective, the server rendered version is different from the client
     //   one, hence the discrepancy.
-    await renderBlocks(cheerioEl, post.id)
+    renderAdditionalInformation(cheerioEl)
+    renderHelp(cheerioEl)
+    await renderProminentLinks(cheerioEl, post.id)
 
     // Extract inline styling
     let style
@@ -466,70 +471,25 @@ export const formatWordpressPost = async (
         }
     })
 
-    // Image processing
-    // Assumptions:
-    // - original images are not uploaded with a suffix "-[number]x[number]"
-    //   (without the quotes).
-    // - variants are being generated by wordpress when the original is uploaded
-    // - images are never legitimate direct descendants of <a> tags.
-    //   <a><img /></a> is considered deprecated (was used to create direct links to
-    //   the full resolution variant) and wrapping <a> will be removed to prevent
-    //   conflicts with lightboxes. Chosen over preventDefault() in front-end code
-    //   to avoid clicks before javascript executes.
-    for (const el of cheerioEl("img").toArray()) {
-        // Recreate source image path by removing automatically added image
-        // dimensions (e.g. remove 800x600).
-        const src = el.attribs["src"]
-        const parsedPath = path.parse(src)
-        let originalFilename = ""
-        if (parsedPath.ext !== ".svg") {
-            originalFilename = parsedPath.name.replace(/-\d+x\d+$/, "")
-            const originalSrc = path.format({
-                dir: parsedPath.dir,
-                name: originalFilename,
-                ext: parsedPath.ext,
-            })
-            el.attribs["data-high-res-src"] = originalSrc
-        } else {
-            originalFilename = parsedPath.name
-        }
-
-        // Remove wrapping <a> tag, conflicting with lightbox (cf. assumptions above)
-        if (el.parent.tagName === "a") {
-            const $a = cheerioEl(el.parent)
-            $a.replaceWith(cheerioEl(el))
-        }
-
-        // Add alt attribute
-        if (!el.attribs["alt"]) {
-            el.attribs["alt"] = lodash.capitalize(
-                originalFilename.replace(/[-_]/g, " ")
-            )
-        }
-
-        // Lazy load all images, unless they already have a "loading" attribute.
-        if (!el.attribs["loading"]) {
-            el.attribs["loading"] = "lazy"
-        }
-    }
+    formatImages(cheerioEl)
 
     // Table of contents and deep links
     const tocHeadings: TocHeading[] = []
     const existingSlugs: string[] = []
-    let parentHeading: TocHeading | null = null
+    let parentSlug: string | null = null
 
     cheerioEl("h1, h2, h3, h4").each((_, el) => {
         const $heading = cheerioEl(el)
         const headingText = $heading.text()
 
-        let slug = urlSlug(headingText)
+        let slug = $heading.attr("id") ?? urlSlug(headingText)
 
-        // Avoid If the slug already exists, try prepend the parent
-        if (existingSlugs.indexOf(slug) !== -1 && parentHeading) {
-            slug = `${parentHeading.slug}-${slug}`
+        if (existingSlugs.indexOf(slug) !== -1 && parentSlug) {
+            slug = `${parentSlug}-${slug}`
         }
 
         existingSlugs.push(slug)
+        if ($heading.is("h2")) parentSlug = slug
 
         // Table of contents
         if (formattingOptions.toc) {
@@ -546,11 +506,10 @@ export const formatWordpressPost = async (
                     isSubheading: false,
                 }
                 tocHeadings.push(tocHeading)
-                parentHeading = tocHeading
             } else if (
                 $heading.is("h3") &&
                 $heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length === 0 &&
-                $heading.closest(".wp-block-owid-additional-information")
+                $heading.closest(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`)
                     .length === 0
             ) {
                 tocHeadings.push({
@@ -562,18 +521,18 @@ export const formatWordpressPost = async (
             }
         }
 
-        // Add deep link for headings not contained in <a> tags already
-        // (e.g. within a prominent link block)
         if (
-            !$heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length && // already wrapped in <a>
-            !$heading.closest(".wp-block-owid-additional-information").length && // prioritize clean SSR of AdditionalInformation
-            !$heading.closest(".wp-block-help").length
-        ) {
-            $heading.attr("id", slug)
-            $heading.prepend(
-                `<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`
-            )
-        }
+            $heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length || // already wrapped in <a>
+            $heading.closest(`.${ADDITIONAL_INFORMATION_CLASS_NAME}`).length || // prioritize clean SSR of AdditionalInformation
+            $heading.closest(".wp-block-help").length
+        )
+            return
+
+        $heading.attr("id", slug)
+
+        if ($heading.closest(`.${KEY_INSIGHTS_CLASS_NAME}`).length) return
+
+        $heading.append(`<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`)
     })
 
     return {
@@ -584,7 +543,6 @@ export const formatWordpressPost = async (
         info,
         style,
         footnotes: footnotes,
-        references: references,
         tocHeadings: tocHeadings,
         pageDesc: post.excerpt || cheerioEl("p").first().text(),
         html: getBodyHtml(cheerioEl),
@@ -602,7 +560,6 @@ export const formatPost = async (
             ...post,
             html: formatUrls(post.content),
             footnotes: [],
-            references: [],
             tocHeadings: [],
             pageDesc: post.excerpt || "",
         }

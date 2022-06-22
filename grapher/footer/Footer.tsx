@@ -6,7 +6,7 @@ import { TextWrap } from "../text/TextWrap.js"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { getRelativeMouse } from "../../clientUtils/Util.js"
 import { Tooltip } from "../tooltip/Tooltip.js"
-import { BASE_FONT_SIZE, GrapherTabOption } from "../core/GrapherConstants.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { FooterManager } from "./FooterManager.js"
 
 @observer
@@ -141,10 +141,6 @@ export class Footer extends React.Component<{
         )
     }
 
-    @action.bound private onSourcesClick(): void {
-        this.manager.currentTab = GrapherTabOption.sources
-    }
-
     renderStatic(targetX: number, targetY: number): JSX.Element | null {
         if (this.manager.isMediaCard) return null
 
@@ -241,11 +237,7 @@ export class Footer extends React.Component<{
                 style={{ color: "#777" }}
             >
                 {this.isCompact && license}
-                <p
-                    style={this.sources.htmlStyle}
-                    className="clickable"
-                    onClick={this.onSourcesClick}
-                >
+                <p style={this.sources.htmlStyle}>
                     {this.sources.renderHTML()}
                 </p>
                 {this.note && (
@@ -254,6 +246,7 @@ export class Footer extends React.Component<{
                 {!this.isCompact && license}
                 {tooltipTarget && (
                     <Tooltip
+                        id="footer"
                         tooltipManager={this.manager}
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}

@@ -12,7 +12,7 @@ Whenever you want to check your current codebase's svg output you run the verify
 
 ### 1. Generate a reference dataset
 
-`dump-data.js` is used to dump the config and data json files. It needs a running grapher mysql database (in contrast to the other tools). For every public and published grapher (~3200 at the time of writing) it creates one subdirectory with the id of the grapher as the directory name and inside it creates config.json containing the grapher json config and data.json containing the data for this grapher in the form that is also transmitted over the wire when the grapher is embedded.
+`dump-data.js` is used to dump the config and data json files. It needs a running grapher MySQL database (in contrast to the other tools). For every public and published grapher (~3200 at the time of writing) it creates one subdirectory with the id of the grapher as the directory name and inside it creates config.json containing the grapher json config and data.json containing the data for this grapher in the form that is also transmitted over the wire when the grapher is embedded.
 
 We used to have both the grapher json config and the data.json gzipped. The reason we switched to uncompressed for this is that the .gz files that we used before have a legacy header that indicates the os the file was generated on. This led to mass git diffs whenever you would to a data-dump on a different os. I discussed this with Lars and we think it might be useful to have the plaintext version of configs and data available in this way so for now we do no compression at all for grapher configs and data. In the future we might use brotli compression or a similar scheme that doesn't have weird legacy headers
 

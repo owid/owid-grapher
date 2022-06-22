@@ -157,7 +157,7 @@ describe("transpile to expected SQL", () => {
         checkSql("(NOT true)", "(NOT true)")
         checkSql(
             '(CONTAINS /map/projection "Europe")',
-            "(JSON_EXTRACT(grapherConfig, \"$.map.projection\") LIKE '%Europe%')"
+            "(JSON_EXTRACT(grapherConfig, \"$.map.projection\") COLLATE utf8mb4_0900_ai_ci LIKE '%Europe%')"
         )
         checkSql('(= "hello" "hello")', "('hello' = 'hello')")
         checkSql('(= "hello\\\\" "hello")', "('hello\\\\' = 'hello')")

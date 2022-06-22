@@ -30,7 +30,6 @@ import {
 } from "./CoreTableConstants.js"
 import { ColumnTypeNames } from "./CoreColumnDef.js"
 import { CoreTable } from "./CoreTable.js"
-import { populationMap } from "./PopulationMap.js"
 import {
     EntityName,
     OwidColumnDef,
@@ -926,19 +925,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 return rowIndex ? rowIndices[rowIndex] : null
             })
             .filter(isPresent)
-    }
-
-    filterByPopulationExcept(minPop: number, entityNames: string[] = []): this {
-        const set = new Set(entityNames)
-        return this.columnFilter(
-            this.entityNameSlug,
-            (value) => {
-                const name = value as string
-                const pop = populationMap[name]
-                return !pop || set.has(name) || pop >= minPop
-            },
-            `Filter out countries with population less than ${minPop}`
-        )
     }
 
     @imemo get availableEntities() {

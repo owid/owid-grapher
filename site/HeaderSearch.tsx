@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { SearchResults } from "./SearchResults.js"
 import { SiteSearchResults, siteSearch } from "./searchClient.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch.js"
+import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 
 class HeaderSearchResults extends React.Component<{
     results: SiteSearchResults

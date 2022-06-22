@@ -50,7 +50,7 @@ import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { TippyIfInteractive } from "../chart/Tippy.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle.js"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { isDarkColor } from "../color/ColorUtils.js"
 import { HorizontalAxis } from "../axis/Axis.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
@@ -720,7 +720,7 @@ export class StackedDiscreteBarChart
                                         : props.formatColumn.formatValueShort(
                                               bar.point.value,
                                               {
-                                                  noTrailingZeroes: false,
+                                                  trailingZeroes: true,
                                               }
                                           )}
                                 </td>
@@ -770,7 +770,7 @@ export class StackedDiscreteBarChart
                                 {props.formatColumn.formatValueShort(
                                     item.totalValue,
                                     {
-                                        noTrailingZeroes: false,
+                                        trailingZeroes: true,
                                     }
                                 )}
                             </td>

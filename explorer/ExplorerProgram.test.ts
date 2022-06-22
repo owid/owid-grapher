@@ -121,6 +121,18 @@ columns\ttable1\ttable2\ttable3
             expect(program.grapherConfig.yScaleToggle).toEqual(true)
         })
 
+        it("can convert \\n to a newline", () => {
+            const program = new ExplorerProgram(
+                "test",
+                `graphers
+\tsubtitle\tLine Checkbox
+\tThis is a\\ntwo-line subtitle\tLine`
+            )
+            expect(program.grapherConfig.subtitle).toEqual(
+                "This is a\ntwo-line subtitle"
+            )
+        })
+
         it("can cascade default grapher config props", () => {
             const program = new ExplorerProgram(
                 "test",

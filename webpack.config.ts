@@ -11,7 +11,9 @@ import DotenvWebpackPlugin from "dotenv-webpack"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
 
-const __filename = fileURLToPath(import.meta.url)
+// used to be import.meta.url, but apparently that's not valid
+// const __filename = fileURLToPath(import.meta.url)
+const __filename = fileURLToPath(".")
 const __dirname = dirname(__filename)
 
 const config = (env: any, argv: any): webpack.Configuration => {
@@ -75,6 +77,7 @@ const config = (env: any, argv: any): webpack.Configuration => {
             fallback: {
                 // don't polyfill these Node modules
                 fs: false,
+                os: false,
                 path: false,
             },
         },

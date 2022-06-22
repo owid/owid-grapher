@@ -307,6 +307,7 @@ describe(legacyToOwidTableAndDimensions, () => {
                 const column = table.get("3-2022")
                 expect(column.valuesIncludingErrorValues).toEqual([21, 21, 21])
                 expect(column.originalTimes).toEqual([2021, 2021, 2021])
+                expect(column.def.targetTime).toEqual(2022)
             })
         })
     })

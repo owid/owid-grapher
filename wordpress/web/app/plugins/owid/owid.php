@@ -24,6 +24,9 @@ include 'src/LastUpdated/last-updated.php';
 include 'src/Byline/byline.php';
 include 'src/Grid/grid.php';
 include 'src/Card/card.php';
+include 'src/KeyInsightsSlider/key-insights-slider.php';
+include 'src/KeyInsight/key-insight.php';
+include 'src/TechnicalText/technical-text.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
@@ -120,7 +123,7 @@ function register()
     wp_register_script(
         'owid-blocks-script',
         plugins_url('build/blocks.js', __FILE__),
-        ['wp-blocks', 'wp-compose', 'wp-hooks', 'wp-editor'],
+        ['wp-blocks', 'wp-compose', 'wp-hooks', 'wp-editor', 'wp-element'],
         filemtime(plugin_dir_path(__FILE__) . 'build/blocks.js')
     );
 
@@ -163,6 +166,19 @@ function register()
     register_block_type('owid/card', [
         'editor_script' => 'owid-blocks-script',
         'render_callback' => __NAMESPACE__ . '\blocks\card\render',
+    ]);
+
+    register_block_type(__DIR__ . '/src/KeyInsightsSlider', [
+        'render_callback' =>
+            __NAMESPACE__ . '\blocks\key_insights_slider\render',
+    ]);
+
+    register_block_type(__DIR__ . '/src/KeyInsight', [
+        'render_callback' => __NAMESPACE__ . '\blocks\key_insight\render',
+    ]);
+
+    register_block_type(__DIR__ . '/src/TechnicalText', [
+        'render_callback' => __NAMESPACE__ . '\blocks\technical_text\render',
     ]);
 }
 
@@ -279,11 +295,12 @@ function build_static($post_ID, $post_after, $post_before)
         $current_user = wp_get_current_user();
         putenv('PATH=' . getenv('PATH') . ':/bin:/usr/local/bin:/usr/bin');
         // Unsets colliding .env variables between PHP and node apps
-        // The DB password does not collide and hence is not listed here (DB_PASS (node) vs DB_PASSWORD (php))
-        putenv('DB_HOST');
-        putenv('DB_USER');
-        putenv('DB_NAME');
-        putenv('DB_PORT');
+        // The DB password did not collide and hence were not listed here (DB_PASS (node) vs DB_PASSWORD (php))
+        // todo: cleanup, this doesn't make sense anymore since node and php env vars have now different names
+        putenv('GRAPHER_DB_HOST');
+        putenv('GRAPHER_DB_USER');
+        putenv('GRAPHER_DB_NAME');
+        putenv('GRAPHER_DB_PORT');
         $cmd =
             "cd " .
             ABSPATH .

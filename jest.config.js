@@ -7,11 +7,13 @@ export default {
             testEnvironment: "node",
             testPathIgnorePatterns: [".jsdom.test."],
             testMatch: ["**/*.test.(jsx|js)"],
+            modulePathIgnorePatterns: ["<rootDir>/wordpress/"],
         },
         {
             displayName: { name: "jsdom", color: "cyan" },
             testEnvironment: "jsdom",
             testMatch: ["**/*.jsdom.test.(jsx|js)"],
+            // modulePathIgnorePatterns: ["<rootDir>/wordpress/"],
         },
     ],
 }

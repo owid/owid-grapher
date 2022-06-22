@@ -1,7 +1,7 @@
 import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { uniq, makeSafeForCSS } from "../../clientUtils/Util.js"
+import { uniq, makeSafeForCSS, sum } from "../../clientUtils/Util.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import {
     VerticalAxisComponent,
@@ -19,8 +19,8 @@ import { Tooltip } from "../tooltip/Tooltip.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { ColorScaleManager } from "../color/ColorScale.js"
 import {
-    AbstactStackedChart,
-    AbstactStackedChartProps,
+    AbstractStackedChart,
+    AbstractStackedChartProps,
 } from "./AbstractStackedChart.js"
 import { StackedPoint, StackedSeries } from "./StackedConstants.js"
 import { VerticalAxis } from "../axis/Axis.js"
@@ -97,12 +97,12 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
 @observer
 export class StackedBarChart
-    extends AbstactStackedChart
+    extends AbstractStackedChart
     implements VerticalColorLegendManager, ColorScaleManager
 {
     readonly minBarSpacing = 4
 
-    constructor(props: AbstactStackedChartProps) {
+    constructor(props: AbstractStackedChartProps) {
         super(props)
     }
 
@@ -215,6 +215,7 @@ export class StackedBarChart
             yColumns,
             inputTable,
             hoverSeries,
+            series,
         } = this
         if (hoverBar === undefined) return
 
@@ -226,40 +227,89 @@ export class StackedBarChart
         )
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
+        const seriesRows = [...series].reverse().map((series) => ({
+            seriesName: series.seriesName,
+            color: series.color,
+            isHovered: hoverSeries?.seriesName === series.seriesName,
+            point: series.points.find(
+                (bar) => bar.position === hoverBar.position
+            ),
+        }))
+        const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
+        const showTotalValue: boolean = seriesRows.length > 1
         return (
             <Tooltip
+                id={this.renderUid}
                 tooltipManager={this.props.manager}
                 x={xPos + barWidth}
                 y={yPos}
-                style={{ textAlign: "center" }}
+                style={{ padding: "0.3em" }}
+                offsetX={4}
             >
-                <h3
-                    style={{
-                        padding: "0.3em 0.9em",
-                        margin: 0,
-                        backgroundColor: "#fcfcfc",
-                        borderBottom: "1px solid #ebebeb",
-                        fontWeight: "normal",
-                        fontSize: "1em",
-                    }}
-                >
-                    {hoverSeries?.seriesName}
-                </h3>
-                <p
-                    style={{
-                        margin: 0,
-                        padding: "0.3em 0.9em",
-                        fontSize: "0.8em",
-                    }}
-                >
-                    <span>{yColumn.formatValueLong(hoverBar.value)}</span>
-                    <br />
-                    in
-                    <br />
-                    <span>
-                        {inputTable.timeColumnFormatFunction(hoverBar.position)}
-                    </span>
-                </p>
+                <table style={{ fontSize: "0.9em", lineHeight: "1.4em" }}>
+                    <tbody>
+                        <tr>
+                            <td colSpan={3}>
+                                <strong>
+                                    {yColumn.formatTime(hoverBar.position)}
+                                </strong>
+                            </td>
+                        </tr>
+                        {seriesRows.map(
+                            ({ seriesName, color, isHovered, point }) => (
+                                <tr
+                                    key={seriesName}
+                                    style={{
+                                        color: isHovered ? "#000" : "#888",
+                                        fontWeight: isHovered
+                                            ? "bold"
+                                            : undefined,
+                                    }}
+                                >
+                                    <td>
+                                        <div
+                                            style={{
+                                                width: "10px",
+                                                height: "10px",
+                                                display: "inline-block",
+                                                marginRight: "2px",
+                                                backgroundColor: color,
+                                            }}
+                                        />
+                                    </td>
+                                    <td>{seriesName}</td>
+                                    <td
+                                        style={{
+                                            textAlign: "right",
+                                            whiteSpace: "nowrap",
+                                            paddingLeft: "0.8em",
+                                        }}
+                                    >
+                                        {yColumn.formatValueLong(point?.value, {
+                                            trailingZeroes: true,
+                                        })}
+                                    </td>
+                                </tr>
+                            )
+                        )}
+                        {showTotalValue && (
+                            <tr>
+                                <td></td>
+                                <td>Total</td>
+                                <td
+                                    style={{
+                                        textAlign: "right",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {yColumn.formatValueLong(totalValue, {
+                                        trailingZeroes: true,
+                                    })}
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </Tooltip>
         )
     }

@@ -12,10 +12,10 @@ import { observer } from "mobx-react"
 
 import { pick, capitalize } from "../clientUtils/Util.js"
 import { Colorpicker } from "./Colorpicker.js"
-import { faCog } from "@fortawesome/free-solid-svg-icons/faCog.js"
-import { faLink } from "@fortawesome/free-solid-svg-icons/faLink.js"
-import { faPaintBrush } from "@fortawesome/free-solid-svg-icons/faPaintBrush.js"
-import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink.js"
+import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
+import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
+import { faPaintbrush } from "@fortawesome/free-solid-svg-icons/faPaintbrush"
+import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export class FieldsRow extends React.Component {
@@ -61,6 +61,12 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
+    @bind onBlur() {
+        const { value = "" } = this.props
+        const trimmedValue = value.trim()
+        this.props.onValue(trimmedValue)
+    }
+
     componentDidMount() {
         if (this.props.autofocus) {
             const input = this.base.current!.querySelector("input")!
@@ -89,6 +95,7 @@ export class TextField extends React.Component<TextFieldProps> {
                         onChange={(e) =>
                             this.props.onValue(e.currentTarget.value)
                         }
+                        onBlur={this.onBlur}
                         onKeyDown={this.onKeyDown}
                         {...passthroughProps}
                     />
@@ -129,6 +136,12 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         this.props.onValue(value)
     }
 
+    @bind onBlur() {
+        const { value = "" } = this.props
+        const trimmedValue = value.trim()
+        this.props.onValue(trimmedValue)
+    }
+
     render() {
         const { props } = this
         const passthroughProps = pick(props, [
@@ -146,6 +159,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                     className="form-control"
                     value={props.value}
                     onChange={this.onChange}
+                    onBlur={this.onBlur}
                     rows={5}
                     {...passthroughProps}
                 />
@@ -525,7 +539,7 @@ export class ColorBox extends React.Component<{
             >
                 <div className="ColorBox" style={style}>
                     {color === undefined && (
-                        <FontAwesomeIcon icon={faPaintBrush} />
+                        <FontAwesomeIcon icon={faPaintbrush} />
                     )}
                 </div>
             </Tippy>
@@ -636,12 +650,9 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 }
 
 @observer
-export class BindString<
-    T extends { [field: string]: any },
-    K extends keyof T
-> extends React.Component<{
-    field: K
-    store: T
+export class BindString extends React.Component<{
+    field: string
+    store: Record<string, any>
     label?: string
     placeholder?: string
     helpText?: string
@@ -653,8 +664,13 @@ export class BindString<
     buttonText?: string
     onButtonClick?: () => void
 }> {
-    @action.bound onValue(value: string) {
-        this.props.store[this.props.field] = (value || undefined) as any
+    @action.bound onValue(value: string = "") {
+        this.props.store[this.props.field] = value
+    }
+
+    @action.bound onBlur() {
+        const trimmedValue = this.props.store[this.props.field]?.trim()
+        this.props.store[this.props.field] = trimmedValue
     }
 
     render() {
@@ -668,6 +684,7 @@ export class BindString<
                     label={label === undefined ? capitalize(field) : label}
                     value={value || ""}
                     onValue={this.onValue}
+                    onBlur={this.onBlur}
                     {...rest}
                 />
             )
@@ -677,6 +694,7 @@ export class BindString<
                     label={label === undefined ? capitalize(field) : label}
                     value={value || ""}
                     onValue={this.onValue}
+                    onBlur={this.onBlur}
                     {...rest}
                 />
             )
@@ -706,6 +724,11 @@ export class BindAutoString<
         ) as any
     }
 
+    @action.bound onBlur() {
+        const trimmedValue = this.props.store[this.props.field]?.trim()
+        this.props.store[this.props.field] = trimmedValue
+    }
+
     render() {
         const { field, store, label, auto, ...rest } = this.props
 
@@ -717,6 +740,7 @@ export class BindAutoString<
                 value={value === undefined ? auto : value}
                 isAuto={value === undefined}
                 onValue={this.onValue}
+                onBlur={this.onBlur}
                 onToggleAuto={this.onToggleAuto}
                 {...rest}
             />
@@ -908,13 +932,13 @@ import dayjs from "../clientUtils/dayjs.js"
 @observer
 export class Timeago extends React.Component<{
     time: dayjs.ConfigType
-    by?: string | JSX.Element
+    by?: string | JSX.Element | null | undefined
 }> {
     render() {
         return (
             <>
                 {this.props.time && dayjs(this.props.time).fromNow()}
-                {this.props.by !== undefined && <> by {this.props.by}</>}
+                {this.props.by != null && <> by {this.props.by}</>}
             </>
         )
     }
@@ -924,7 +948,7 @@ import { TagBadge, Tag } from "./TagBadge.js"
 
 import ReactTags from "react-tag-autocomplete"
 import { Tippy } from "../grapher/chart/Tippy.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle.js"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer
 class EditTags extends React.Component<{

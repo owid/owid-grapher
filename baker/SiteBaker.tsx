@@ -207,10 +207,6 @@ export class SiteBaker {
             await feedbackPage()
         )
         await this.stageWrite(
-            `${this.bakedSiteDir}/charts.html`,
-            await renderChartsPage()
-        )
-        await this.stageWrite(
             `${this.bakedSiteDir}/search.html`,
             await renderSearchPage()
         )
@@ -232,8 +228,13 @@ export class SiteBaker {
         await bakeAllExplorerRedirects(this.bakedSiteDir, explorerAdminServer)
 
         await bakeAllPublishedExplorers(
-            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}/`,
+            `${this.bakedSiteDir}/${EXPLORERS_ROUTE_FOLDER}`,
             explorerAdminServer
+        )
+
+        await this.stageWrite(
+            `${this.bakedSiteDir}/charts.html`,
+            await renderChartsPage(explorerAdminServer)
         )
         this.progressBar.tick({ name: "✅ baked special pages" })
     }

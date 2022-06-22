@@ -110,6 +110,8 @@ export const legacyToOwidTableAndDimensions = (
                 ...trimObject(dimension.display),
             }
         }
+        if (dimension.targetYear !== undefined)
+            valueColumnDef.targetTime = dimension.targetYear
         columnDefs.set(valueColumnDef.slug, valueColumnDef)
 
         // Annotations column
@@ -256,7 +258,9 @@ const columnDefFromOwidVariable = (
         retrievedDate: source?.retrievedDate,
         additionalInfo: source?.additionalInfo,
         owidVariableId: variable.id,
-        type: isContinent ? ColumnTypeNames.Continent : ColumnTypeNames.Numeric,
+        type: isContinent
+            ? ColumnTypeNames.Continent
+            : ColumnTypeNames.NumberOrString,
     }
 }
 

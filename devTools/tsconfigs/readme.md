@@ -27,7 +27,7 @@ tsc -b --verbose
 
 -   Project References https://www.typescriptlang.org/docs/handbook/project-references.html (especially #overall-structure)
 
--   Look at tsconfigs in the typescript project https://github.com/microsoft/TypeScript/tree/master/src
+-   Look at tsconfigs in the TypeScript project https://github.com/microsoft/TypeScript/tree/master/src
 
 -   config file inheritance https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
 

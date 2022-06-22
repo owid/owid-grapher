@@ -1,7 +1,7 @@
 import jsonpointer from "json8-pointer"
 import { isNil } from "lodash-es"
 import { GrapherConfigPatch } from "./AdminSessionTypes.js"
-import { isArray, isEqual, isPlainObjectWithGuard } from "./Util.js"
+import { isArray, isEqual, checkIsPlainObjectWithGuard } from "./Util.js"
 
 export function setValueRecursiveInplace(
     json: any,
@@ -130,7 +130,7 @@ export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
     if (
         config !== undefined &&
         config !== null &&
-        !(isArray(config) || isPlainObjectWithGuard(config))
+        !(isArray(config) || checkIsPlainObjectWithGuard(config))
     ) {
         throw Error(
             "When given an non-empty pointer, config must be either an object or array but it is " +

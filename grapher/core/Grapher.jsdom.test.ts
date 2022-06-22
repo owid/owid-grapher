@@ -177,14 +177,14 @@ describe("hasTimeline", () => {
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.type = ChartTypeName.SlopeChart
         expect(grapher.hasTimeline).toBeTruthy()
+        grapher.type = ChartTypeName.StackedArea
+        expect(grapher.hasTimeline).toBeTruthy()
+        grapher.type = ChartTypeName.StackedBar
+        expect(grapher.hasTimeline).toBeTruthy()
     })
 
     it("charts without timeline", () => {
         const grapher = new Grapher(legacyConfig)
-        grapher.type = ChartTypeName.StackedBar
-        expect(grapher.hasTimeline).toBeFalsy()
-        grapher.type = ChartTypeName.StackedArea
-        expect(grapher.hasTimeline).toBeFalsy()
         grapher.type = ChartTypeName.DiscreteBar
         expect(grapher.hasTimeline).toBeFalsy()
     })
@@ -202,7 +202,7 @@ describe("hasTimeline", () => {
 
     it("table tab has timeline even if chart doesn't", () => {
         const grapher = new Grapher(legacyConfig)
-        grapher.type = ChartTypeName.StackedBar
+        grapher.type = ChartTypeName.DiscreteBar
         expect(grapher.hasTimeline).toBeFalsy()
         grapher.tab = GrapherTabOption.table
         expect(grapher.hasTimeline).toBeTruthy()

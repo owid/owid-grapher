@@ -47,7 +47,7 @@
 
         position: absolute;
         z-index: 1;
-        margin-left: (-$handle-diameter / 2) - $handleSidePadding;
+        margin-left: (-$handle-diameter * 0.5) - $handleSidePadding;
         cursor: col-resize;
         padding: 10px $handleSidePadding;
 

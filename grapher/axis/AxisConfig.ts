@@ -12,7 +12,7 @@ import {
 } from "../../clientUtils/persistable/Persistable.js"
 import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface.js"
 import { ScaleSelectorManager } from "../controls/ScaleSelector.js"
-import { Position } from "../../clientUtils/owidTypes.js"
+import { AxisAlign, Position } from "../../clientUtils/owidTypes.js"
 
 export interface FontSizeManager {
     fontSize: number
@@ -34,6 +34,7 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref scaleType?: ScaleType = ScaleType.linear
     @observable.ref facetDomain?: FacetAxisDomain = undefined
     @observable.ref ticks?: Tickmark[] = undefined
+    @observable.ref singleValueAxisPointAlign?: AxisAlign = undefined
     @observable.ref label: string = ""
 }
 
@@ -75,6 +76,7 @@ export class AxisConfig
             label: this.label ? this.label : undefined,
             facetDomain: this.facetDomain,
             ticks: this.ticks,
+            singleValueAxisPointAlign: this.singleValueAxisPointAlign,
         })
 
         deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())

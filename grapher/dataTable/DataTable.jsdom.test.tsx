@@ -3,22 +3,21 @@
 import React from "react"
 
 import { DataTable } from "./DataTable.js"
-import { Grapher } from "../core/Grapher.js"
 import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants.js"
 import {
     childMortalityGrapher,
     IncompleteDataTable,
 } from "./DataTable.sample.js"
 
-import enzyme from "enzyme"
+import { shallow, mount, ReactWrapper, configure } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-enzyme.configure({ adapter: new Adapter() })
+configure({ adapter: new Adapter() })
 
 describe("when you render a table", () => {
-    let view: enzyme.ReactWrapper
+    let view: ReactWrapper
     beforeAll(() => {
         const grapher = childMortalityGrapher()
-        view = enzyme.mount(<DataTable manager={grapher} />)
+        view = mount(<DataTable manager={grapher} />)
     })
 
     it("renders a table", () => {
@@ -65,7 +64,7 @@ describe("when you render a table", () => {
 })
 
 describe("when you select a range of years", () => {
-    let view: enzyme.ReactWrapper
+    let view: ReactWrapper
     beforeAll(() => {
         const grapher = childMortalityGrapher({
             type: ChartTypeName.LineChart,
@@ -73,7 +72,7 @@ describe("when you select a range of years", () => {
         })
         grapher.timelineHandleTimeBounds = [1950, 2019]
 
-        view = enzyme.mount(<DataTable manager={grapher} />)
+        view = mount(<DataTable manager={grapher} />)
     })
 
     it("header is split into two rows", () => {
@@ -109,31 +108,29 @@ describe("when you select a range of years", () => {
 describe("when the table doesn't have data for all rows", () => {
     const grapher = IncompleteDataTable()
     grapher.timelineHandleTimeBounds = [2000, 2000]
-    const view = enzyme.shallow(<DataTable manager={grapher} />)
+    const view = mount(<DataTable manager={grapher} />)
 
     it("renders no value when data is not available for years within the tolerance", () => {
         expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
     })
 
     it("renders a tolerance notice when data is not from targetYear", () => {
-        expect(view.find(".closest-time-notice-icon").text()).toContain("2001")
-    })
-})
-
-describe("when you try to hide countries", () => {
-    let grapher: Grapher
-    let view: enzyme.ShallowWrapper
-    beforeAll(() => {
-        grapher = childMortalityGrapher()
-        view = enzyme.shallow(<DataTable manager={grapher} />)
+        const toleranceNotices = view.find(".closest-time-notice-icon")
+        expect(toleranceNotices.length).toBe(2)
+        expect(toleranceNotices.at(0).text()).toContain("2001") // first column
+        expect(toleranceNotices.at(1).text()).toContain("2009") // second column
     })
 
-    it("initially renders small countries", () => {
-        expect(view.find("tbody tr")).toHaveLength(2)
+    it("renders a data value for the column with targetTime 2010", () => {
+        expect(view.find("tbody .dimension").at(1).first().text()).toBe(
+            "20.00%"
+        )
     })
 
-    it("renders no small countries after filter is added", () => {
-        grapher.minPopulationFilter = 1e6
-        expect(view.find("tbody tr")).toHaveLength(1)
+    it("displays correct targetTime for columns", () => {
+        const timeHeaders = view.find("thead .dimension .time")
+        expect(timeHeaders.length).toBe(2)
+        expect(timeHeaders.at(0).text()).toBe("2000")
+        expect(timeHeaders.at(1).text()).toBe("2010")
     })
 })

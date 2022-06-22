@@ -1,92 +1,204 @@
-import { d3Format } from "./Util.js"
+import { FormatSpecifier } from "d3-format"
+import { createFormatter } from "./Util.js"
 
 export interface TickFormattingOptions {
     numDecimalPlaces?: number
     unit?: string
-    noTrailingZeroes?: boolean
-    noSpaceUnit?: boolean
-    numberPrefixes?: boolean
-    shortNumberPrefixes?: boolean
+    trailingZeroes?: boolean
+    spaceBeforeUnit?: boolean
     showPlus?: boolean
+    numberAbbreviation?: "short" | "long" | false
 }
 
 // Used outside this module to figure out if the unit will be joined with the number.
-export function isVeryShortUnit(unit: string): boolean {
+export function checkIsVeryShortUnit(unit: string): unit is "$" | "£" | "%" {
     return ["%", "$", "£"].includes(unit)
 }
 
-// todo: Should this be numberSuffixes instead of Prefixes?
-// todo: we should have unit tests for this one. lot's of great features but hard to see how to use all of them.
-export function formatValue(
-    value: number,
-    options: TickFormattingOptions
-): string {
-    const noTrailingZeroes = options.noTrailingZeroes ?? true
-    const numberPrefixes =
-        (options.numberPrefixes || options.shortNumberPrefixes) ?? true
+function checkIsUnitCurrency(unit: string): unit is "$" | "£" {
+    return ["$", "£"].includes(unit)
+}
 
-    const shortNumberPrefixes = options.shortNumberPrefixes ?? false
-    const showPlus = options.showPlus ?? false
-    const numDecimalPlaces = options.numDecimalPlaces ?? 2
-    const unit = options.unit ?? ""
-    const isNoSpaceUnit = options.noSpaceUnit ?? unit[0] === "%"
+function checkIsUnitPercent(unit: string): unit is "%" {
+    return unit[0] === "%"
+}
 
-    let output: string = value.toString()
+function getTrim({ trailingZeroes }: { trailingZeroes: boolean }): "~" | "" {
+    return trailingZeroes ? "" : "~"
+}
 
-    const absValue = Math.abs(value)
-    if (!isNoSpaceUnit && numberPrefixes && absValue >= 1e6) {
-        if (!isFinite(absValue)) output = "Infinity"
-        else if (absValue >= 1e12)
-            output = formatValue(value / 1e12, {
-                ...options,
-                unit: shortNumberPrefixes ? "T" : "trillion",
-                noSpaceUnit: shortNumberPrefixes,
-                numDecimalPlaces: 2,
-            })
-        else if (absValue >= 1e9)
-            output = formatValue(value / 1e9, {
-                ...options,
-                unit: shortNumberPrefixes ? "B" : "billion",
-                noSpaceUnit: shortNumberPrefixes,
-                numDecimalPlaces: 2,
-            })
-        else if (absValue >= 1e6)
-            output = formatValue(value / 1e6, {
-                ...options,
-                unit: shortNumberPrefixes ? "M" : "million",
-                noSpaceUnit: shortNumberPrefixes,
-                numDecimalPlaces: 2,
-            })
-    } else if (!isNoSpaceUnit && shortNumberPrefixes && absValue >= 1e3) {
-        output = formatValue(value / 1e3, {
-            ...options,
-            unit: "k",
-            noSpaceUnit: true,
-            numDecimalPlaces: 2,
-        })
-    } else {
-        const targetDigits = Math.pow(10, -numDecimalPlaces)
+function getSign({ showPlus }: { showPlus: boolean }): "+" | "" {
+    return showPlus ? "+" : ""
+}
 
-        if (value !== 0 && Math.abs(value) < targetDigits) {
-            if (value < 0) output = `>-${targetDigits}`
-            else output = `<${targetDigits}`
-        } else
-            output = d3Format(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
-                value
-            )
+function getSymbol({ unit }: { unit: string }): "$" | "" {
+    return checkIsUnitCurrency(unit) ? "$" : ""
+}
 
-        if (noTrailingZeroes) {
-            // Convert e.g. 2.200 to 2.2
-            const m = output.match(/(.*?[0-9,-]+.[0-9,]*?)0*$/)
-            if (m) output = m[1]
-            if (output[output.length - 1] === ".")
-                output = output.slice(0, output.length - 1)
-        }
+function getType({
+    numberAbbreviation,
+    value,
+    unit,
+}: {
+    numberAbbreviation: "long" | "short" | false
+    value: number
+    unit: string
+}): "f" | "s" {
+    // f: fixed-point notation (i.e. fixed number of decimal points)
+    // s: decimal notation with an SI prefix, rounded to significant digits
+    if (checkIsUnitPercent(unit)) {
+        return "f"
+    }
+    if (numberAbbreviation === "long") {
+        // do not abbreviate until 1 million
+        return Math.abs(value) < 1e6 ? "f" : "s"
+    }
+    if (numberAbbreviation === "short") {
+        // do not abbreviate until 1 thousand
+        return Math.abs(value) < 1e3 ? "f" : "s"
     }
 
-    if (unit === "$" || unit === "£") output = unit + output
-    else if (isNoSpaceUnit) output = output + unit
-    else if (unit.length > 0) output = output + " " + unit
+    return "f"
+}
+
+function getPrecision({
+    value,
+    numDecimalPlaces,
+    type,
+}: {
+    value: number
+    numDecimalPlaces: number
+    type: "f" | "s"
+}): string {
+    if (type === "f") {
+        return `${numDecimalPlaces}`
+    }
+
+    // when dealing with abbreviated numbers, adjust precision so we get 12.84 million instead of 13 million
+    // the modulo one-liner counts the "place columns" of the number, resetting every 3
+    // 1 -> 1, 48 -> 2, 981 -> 3, 7222 -> 1
+    const numberOfDigits = String(Math.floor(Math.abs(value))).length
+    const precisionPadding = ((numberOfDigits - 1) % 3) + 1
+
+    // hard-coded 2 decimal places for abbreviated numbers
+    return `${precisionPadding + 2}`
+}
+
+function replaceSIPrefixes({
+    string,
+    numberAbbreviation,
+}: {
+    string: string
+    numberAbbreviation: "short" | "long"
+}): string {
+    const prefix = string[string.length - 1]
+
+    const prefixMap: Record<string, Record<string, string>> = {
+        short: {
+            k: "k",
+            M: "M",
+            G: "B",
+            T: "T",
+            P: "quad",
+            E: "quint",
+            Z: "sext",
+            Y: "sept",
+        },
+        long: {
+            k: "k",
+            M: " million",
+            G: " billion",
+            T: " trillion",
+            P: " quadrillion",
+            E: " quintillion",
+            Z: " sextillion",
+            Y: " septillion",
+        },
+    }
+
+    if (prefixMap[numberAbbreviation][prefix]) {
+        return string.replace(prefix, prefixMap[numberAbbreviation][prefix])
+    }
+    return string
+}
+
+function postprocessString({
+    string,
+    numberAbbreviation,
+    spaceBeforeUnit,
+    unit,
+    value,
+    numDecimalPlaces,
+}: {
+    string: string
+    numberAbbreviation: "long" | "short" | false
+    spaceBeforeUnit: boolean
+    unit: string
+    value: number
+    numDecimalPlaces: number
+}): string {
+    let output = string
+
+    // handling infinitesimal values
+    const tooSmallThreshold = Math.pow(10, -numDecimalPlaces).toPrecision(1)
+    if (numberAbbreviation && 0 < value && value < +tooSmallThreshold) {
+        output = "<" + output.replace(/0\.?(\d+)?/, tooSmallThreshold)
+    }
+
+    if (numberAbbreviation) {
+        output = replaceSIPrefixes({
+            string: output,
+            numberAbbreviation,
+        })
+    }
+
+    if (unit && !checkIsUnitCurrency(unit)) {
+        const appendage = spaceBeforeUnit ? ` ${unit}` : unit
+        output += appendage
+    }
 
     return output
+}
+
+export function formatValue(
+    value: number,
+    {
+        trailingZeroes = false,
+        unit = "",
+        spaceBeforeUnit = !checkIsUnitPercent(unit),
+        showPlus = false,
+        numDecimalPlaces = 2,
+        numberAbbreviation = "long",
+    }: TickFormattingOptions
+): string {
+    const formatter = createFormatter(unit)
+
+    // Explore how specifiers work here
+    // https://observablehq.com/@ikesau/d3-format-interactive-demo
+    const specifier = new FormatSpecifier({
+        zero: "0",
+        trim: getTrim({ trailingZeroes }),
+        sign: getSign({ showPlus }),
+        symbol: getSymbol({ unit }),
+        comma: ",",
+        precision: getPrecision({
+            value,
+            numDecimalPlaces,
+            type: getType({ numberAbbreviation, value, unit }),
+        }),
+        type: getType({ numberAbbreviation, value, unit }),
+    }).toString()
+
+    const formattedString = formatter(specifier)(value)
+
+    const postprocessedString = postprocessString({
+        string: formattedString,
+        numberAbbreviation,
+        spaceBeforeUnit,
+        unit,
+        value,
+        numDecimalPlaces,
+    })
+
+    return postprocessedString
 }

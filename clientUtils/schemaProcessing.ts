@@ -1,5 +1,5 @@
 import {
-    isPlainObjectWithGuard,
+    checkIsPlainObjectWithGuard,
     omit,
     keys,
     isArray,
@@ -17,6 +17,7 @@ export enum EditorOption {
     textarea = "textarea",
     dropdown = "dropdown",
     numeric = "numeric",
+    numericWithLatestEarliest = "numericWithLatestEarliest",
     checkbox = "checkbox",
     colorEditor = "colorEditor",
     mappingEditor = "mappingEditor",
@@ -83,9 +84,8 @@ function getEditorOptionForType(
     else if (isArray(type)) {
         // the following line is aspecial case hack for fields that are usually numeric but can have a
         // special string like "latest"
-        console.log("field type is array", type)
         if (type[0] === "number" && type[1] === "string")
-            return EditorOption.numeric
+            return EditorOption.numericWithLatestEarliest
         else return EditorOption.textfield
     } else if (type === "array") return EditorOption.primitiveListEditor
     else return EditorOption.textfield
@@ -124,7 +124,7 @@ function extractSchemaRecursive(
     ) {
         console.error("shouldn't come here?", pointer)
         return
-    } else if (isPlainObjectWithGuard(schema)) {
+    } else if (checkIsPlainObjectWithGuard(schema)) {
         // If the current schema fragment describes a normal object
         // then do not emit anything directly and recurse over the
         // described properties
@@ -132,7 +132,7 @@ function extractSchemaRecursive(
             schema.hasOwnProperty("type") &&
             schema.type === "object" &&
             schema.hasOwnProperty("properties") &&
-            isPlainObjectWithGuard(schema.properties)
+            checkIsPlainObjectWithGuard(schema.properties)
         ) {
             // Color scales are complex objects that are treated as opaque objects with a special
             // rich editor. We identify them by the property they are stored as. If we have a color
@@ -174,7 +174,7 @@ function extractSchemaRecursive(
                 schema.patternProperties as Record<string, any>
             ).every(
                 (item: any) =>
-                    isPlainObjectWithGuard(item) &&
+                    checkIsPlainObjectWithGuard(item) &&
                     item.hasOwnProperty("type") &&
                     isPlainTypeString((item as any).type)
             )
@@ -263,7 +263,7 @@ function recursiveDereference(
     if (
         schema !== null &&
         schema !== undefined &&
-        isPlainObjectWithGuard(schema)
+        checkIsPlainObjectWithGuard(schema)
     ) {
         if (schema.hasOwnProperty("$ref")) {
             const ref = schema["$ref"] as string
@@ -293,7 +293,7 @@ function dereference(schema: Record<string, unknown>): any {
 export function extractFieldDescriptionsFromSchema(
     schema: unknown
 ): FieldDescription[] {
-    if (isPlainObjectWithGuard(schema)) {
+    if (checkIsPlainObjectWithGuard(schema)) {
         const dereferenced = dereference(schema)
         const fieldDescriptions: FieldDescription[] = []
         extractSchemaRecursive(dereferenced, "", fieldDescriptions)
