@@ -3,14 +3,19 @@ import { webpackUrl } from "../site/webpackUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 
-interface SiteFooterProps {
-    hideDonate?: boolean
+export interface SiteFooterProps {
     baseUrl: string
+    hideDonate?: boolean
+    shouldEmbedCharts?: boolean
 }
 
-export const SiteFooter = (props: SiteFooterProps) => (
+export const SiteFooter = ({
+    baseUrl,
+    hideDonate = false,
+    shouldEmbedCharts = true,
+}: SiteFooterProps) => (
     <>
-        {!props.hideDonate && (
+        {!hideDonate && (
             <section className="donate-footer">
                 <div className="wrapper">
                     <div className="owid-row flex-align-center">
@@ -178,7 +183,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 data-track-note="footer-navigation"
                             >
                                 <img
-                                    src={`${props.baseUrl}/oms-logo.svg`}
+                                    src={`${baseUrl}/oms-logo.svg`}
                                     alt="Oxford Martin School logo"
                                     loading="lazy"
                                 />
@@ -189,7 +194,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 data-track-note="footer-navigation"
                             >
                                 <img
-                                    src={`${props.baseUrl}/yc-logo.png`}
+                                    src={`${baseUrl}/yc-logo.png`}
                                     alt="Y Combinator logo"
                                     loading="lazy"
                                 />
@@ -238,7 +243,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     data-track-note="footer-navigation"
                                 >
                                     <img
-                                        src={`${props.baseUrl}/gcdl-logo.svg`}
+                                        src={`${baseUrl}/gcdl-logo.svg`}
                                         alt="Global Change Data Lab logo"
                                         loading="lazy"
                                     />
@@ -257,12 +262,15 @@ export const SiteFooter = (props: SiteFooterProps) => (
             </div>
             <div className="site-tools" />
             <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry" />
-            <script src={webpackUrl("commons.js", props.baseUrl)} />
-            <script src={webpackUrl("vendors.js", props.baseUrl)} />
-            <script src={webpackUrl("owid.js", props.baseUrl)} />
+            <script src={webpackUrl("commons.js", baseUrl)} />
+            <script src={webpackUrl("vendors.js", baseUrl)} />
+            <script src={webpackUrl("owid.js", baseUrl)} />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `window.runSiteFooterScripts()`, // todo: gotta be a better way.
+                    __html: `window.runSiteFooterScripts(${JSON.stringify({
+                        baseUrl,
+                        shouldEmbedCharts,
+                    })})`, // todo: gotta be a better way.
                 }}
             />
         </footer>

@@ -96,7 +96,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     <LoadingIndicator />
                 </main>
                 {wpContent && <ExplorerContent content={wpContent} />}
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter shouldEmbedCharts={false} baseUrl={baseUrl} />
                 <script dangerouslySetInnerHTML={{ __html: inlineJs }} />
             </body>
         </html>

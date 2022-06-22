@@ -119,7 +119,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         </div>
                     )}
                 </main>
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter shouldEmbedCharts={false} baseUrl={baseUrl} />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
         </html>
