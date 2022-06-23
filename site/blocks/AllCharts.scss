@@ -50,11 +50,27 @@
         }
     }
 
+    // Mimic grapher page spacing to align navigation arrows with the chart
     .navigation-wrapper {
-        @include lg-down {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
+        @include content-wrapper;
+        @include lg-up {
+            max-width: $text-max-content-width + $graph-max-content-width + 3 *
+                $padding-x-md;
+        }
+        display: flex;
+        width: 100%;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+
+        .close {
+            flex: 1;
+            button {
+                transform: rotate(45deg);
+            }
+            @include lg-up {
+                @include text-column;
+                margin-right: $padding-x-md * 0.5;
+            }
         }
 
         .navigation {
@@ -62,27 +78,30 @@
             justify-content: center;
             align-items: center;
 
+            @include lg-up {
+                @include media-column;
+                margin-left: $padding-x-md * 0.5;
+            }
+
             .gallery-pagination {
                 margin: 0 $padding-x-md;
             }
         }
 
-        // Mimic grapher page spacing to align navigation arrows with the chart
-        @include lg-up {
-            @include content-wrapper;
-            display: flex;
-            margin: 2rem auto;
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
-
-            .spacer {
-                @include text-column;
-                margin-right: $padding-x-md * 0.5;
-            }
-
-            .navigation {
-                @include media-column;
-                margin-left: $padding-x-md * 0.5;
+        button {
+            width: 2.5rem;
+            height: 2.5rem;
+            font-size: 1.2rem;
+            border: 2px solid $primary-color;
+            border-radius: 50%;
+            outline: none;
+            color: $primary-color;
+            cursor: pointer;
+            background: none;
+            transition: color 0.3s;
+            &:hover {
+                color: white;
+                background-color: $primary-color;
             }
         }
     }
