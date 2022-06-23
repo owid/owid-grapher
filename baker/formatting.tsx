@@ -184,7 +184,7 @@ export const isCanonicalInternalUrl = (url: Url): boolean => {
 export const formatImages = ($: CheerioStatic) => {
     for (const el of $("img").toArray()) {
         const $el = $(el)
-        if ($el.closest("[data-no-img-formatting]")) continue
+        if ($el.closest("[data-no-img-formatting]").length) continue
 
         // Recreate source image path by removing automatically added image
         // dimensions (e.g. remove 800x600).
