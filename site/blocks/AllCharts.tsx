@@ -9,6 +9,8 @@ import {
 } from "../../grapher/core/GrapherConstants.js"
 import { Modal } from "../Modal.js"
 import { GalleryArrow, GalleryArrowDirection } from "../GalleryArrow.js"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export const ALL_CHARTS_CLASS_NAME = "wp-block-all-charts"
 
@@ -60,13 +62,16 @@ export const AllCharts = ({ charts }: { charts: RelatedChart[] }) => {
             {isGalleryOpen && (
                 <Modal onClose={() => setGalleryOpen(false)}>
                     <div className="all-charts-gallery">
-                        <iframe
-                            src={`/grapher/${charts[activeSlide].slug}`}
-                            loading="lazy"
-                            data-possibly-with-context
-                        />
                         <div className="navigation-wrapper">
-                            <div className="spacer"></div>
+                            <div className="close">
+                                <button
+                                    aria-label="Close"
+                                    onClick={() => setGalleryOpen(false)}
+                                    className="close"
+                                >
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </button>
+                            </div>
                             <div className="navigation">
                                 <GalleryArrow
                                     disabled={isFirstSlideActive}
@@ -87,6 +92,11 @@ export const AllCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                 ></GalleryArrow>
                             </div>
                         </div>
+                        <iframe
+                            src={`/grapher/${charts[activeSlide].slug}`}
+                            loading="lazy"
+                            data-possibly-with-context
+                        />
                     </div>
                 </Modal>
             )}

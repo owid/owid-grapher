@@ -8,37 +8,11 @@
 
     .modal-panel {
         $offset-top: 2rem;
-        position: relative; // used for positioning the navigation on mobile
         background-color: $white;
         width: 100vw;
         height: calc(100vh - $offset-top);
         display: flex;
         flex-direction: column;
         margin-top: $offset-top;
-    }
-
-    .tools {
-        align-self: flex-end;
-        margin: 1rem;
-    }
-
-    button {
-        width: 2.5rem;
-        height: 2.5rem;
-        font-size: 1.2rem;
-        border: 2px solid $primary-color;
-        border-radius: 50%;
-        outline: none;
-        color: $primary-color;
-        cursor: pointer;
-        background: none;
-        transition: color 0.3s;
-        &:hover {
-            color: white;
-            background-color: $primary-color;
-        }
-        &.close {
-            transform: rotate(45deg);
-        }
     }
 }
