@@ -98,10 +98,14 @@
             color: $primary-color;
             cursor: pointer;
             background: none;
-            transition: color 0.3s;
             &:hover {
                 color: white;
                 background-color: $primary-color;
+            }
+            &:disabled {
+                color: lightgrey;
+                border-color: lightgrey;
+                pointer-events: none;
             }
         }
     }
