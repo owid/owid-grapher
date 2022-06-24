@@ -44,10 +44,7 @@
     iframe {
         flex: 1;
         border: 0px none;
-
-        @include lg-up {
-            max-height: $grapher-height-in-columns;
-        }
+        margin-bottom: $gallery-vertical-spacing !important;
     }
 
     // Mimic grapher page spacing to align navigation arrows with the chart
@@ -59,8 +56,8 @@
         }
         display: flex;
         width: 100%;
-        margin-top: 2rem;
-        margin-bottom: 2rem;
+        padding-top: $gallery-vertical-spacing;
+        padding-bottom: $gallery-vertical-spacing;
 
         .close {
             flex: 1;
@@ -89,8 +86,8 @@
         }
 
         button {
-            width: 2.5rem;
-            height: 2.5rem;
+            width: $gallery-navigation-button-size;
+            height: $gallery-navigation-button-size;
             font-size: 1.2rem;
             border: 2px solid $primary-color;
             border-radius: 50%;
