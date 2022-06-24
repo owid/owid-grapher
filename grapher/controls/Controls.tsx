@@ -1,8 +1,7 @@
-import React from "react"
+import React, { SyntheticEvent } from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { TimelineComponent } from "../timeline/TimelineComponent.js"
-import { formatValue } from "../../clientUtils/formatValue.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -366,6 +365,19 @@ export class FooterControls extends React.Component<{
                             <a
                                 title="Open chart in new tab"
                                 href={manager.canonicalUrl}
+                                onClick={async (
+                                    e: SyntheticEvent
+                                ): Promise<void> => {
+                                    e.persist() // not necessary from React 17
+                                    const figure =
+                                        document.querySelector("figure")
+                                    try {
+                                        await figure?.requestFullscreen()
+                                        e.stopPropagation()
+                                    } catch {
+                                        // let the href take over naturally
+                                    }
+                                }}
                                 data-track-note="chart-click-newtab"
                                 target="_blank"
                                 rel="noopener"
