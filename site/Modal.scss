@@ -2,17 +2,28 @@
     position: fixed;
     width: 100vw;
     height: 100vh;
+    display: flex;
+    align-items: flex-end;
     z-index: $zindex-lightbox;
     background-color: rgba(0, 0, 0, 0.75);
     top: 0;
 
     .modal-panel {
-        $offset-top: 2rem;
+        width: inherit;
+        height: inherit;
         background-color: $white;
-        width: 100vw;
-        height: calc(100vh - $offset-top);
         display: flex;
         flex-direction: column;
-        margin-top: $offset-top;
+
+        @include lg-up {
+            // $gallery-vertical-spacing: 2 + 1
+            // 2 : gallery navigation wrapper vertical padding
+            // 1 : gallery grapher iframe margin bottom
+            height: calc(
+                $grapher-height-in-columns + 2 * $gallery-vertical-spacing +
+                    $gallery-navigation-button-size + $gallery-vertical-spacing
+            );
+            max-height: 100vh;
+        }
     }
 }
