@@ -1,86 +1,17 @@
 @use "sass:math";
 
-.StandaloneGrapherOrExplorerPage main figure[data-grapher-src],
-#fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    margin: 0 auto;
-    width: 100%;
-
-    // The landscape values)
-    $orientation-width: 680px;
-    $orientation-height: 480px;
-
-    $max-width: 1250px; // The rough max-width across all pages on the site
-    $max-height: math.div($max-width, $ideal-chart-ratio);
-
-    // Charts shouldn't be below this height in any circumstance, whether mobile or not.
-    // Except in iframes, where we override this.
-    min-height: 480px;
-
-    // On small viewports always use the full available height.
-    // We only leave space for the mobile header and fill the rest.
-    height: calc(100vh - #{$mobile-header-height});
-
-    @include md-up {
-        // On larger viewports, we want to leave more space at the bottom to make the entry link
-        // more visible. It doesn't need to be fully visible, just enough to pop out to the user.
-        height: calc(100vh - 175px);
+.StandaloneGrapherOrExplorerPage {
+    .site-subnavigation {
+        padding-left: 1rem;
+        margin: 0 auto;
+        max-width: $max-width-covid-data-explorer;
     }
-
-    // At this point, the ratio-preserving sizing kicks in, so we want to mirror that in the CSS
-    // to avoid using unnecessary space.
-    @media (min-width: $orientation-width) {
-        // We no longer use the full height
-        max-height: #{math.div(1, $ideal-chart-ratio) * 100}vw;
-    }
-
-    @media (min-width: $max-width) {
-        max-width: $max-width;
-        max-height: $max-height;
-    }
-
-    // Needed so the absolutely-positioned <LoadingIndicator> on /grapher pages is centered
-    // inside <figure>
-    position: relative;
-}
-
-#fallback {
-    // Override any sizing rules set by the above code, so the fallback chart never overlaps the
-    // site header or other site elements
-    height: auto !important;
-    max-width: none !important;
-    max-height: none !important;
-
-    margin-top: 25px;
-}
-
-#fallback > img {
-    max-width: 100%;
-    border: 1px solid #ccc;
-}
-
-.StandaloneGrapherOrExplorerPage .site-subnavigation {
-    padding-left: 1rem;
-    margin: 0 auto;
-    max-width: $max-width-covid-data-explorer;
-}
-
-// Attention: these styles affect grapher and explorer pages in ALL contexts:
-// - when viewing in standalone pages (e.g. /grapher/xyz)
-// - in iframes embedded in external sites (without context)
-// - in iframes embedded internally, for the "All charts" gallery (possibly with context)
-//
-// see also <IframeDetector>
-.StandaloneGrapherOrExplorerPage main {
-    @include content-wrapper;
 
     .related-research-data {
         display: block;
         & > :first-child {
-            margin-top: 0;
+            margin-top: $chart-header-padding;
+            line-height: 1;
         }
         .research {
             font-size: 1.1rem;
@@ -99,42 +30,58 @@
         }
     }
 
-    @include lg-up {
-        display: flex;
-        flex-direction: row-reverse;
-        justify-content: flex-end;
-        align-items: flex-start; // maintain columns original height to allow sticky positioning
-        max-width: $text-max-content-width + $graph-max-content-width + 3 *
-            $padding-x-md;
-
-        .related-research-data {
-            @include text-column;
-            margin-right: $padding-x-md * 0.5;
-            margin-top: 0;
-        }
+    // Attention: these styles affect grapher and explorer pages in ALL contexts:
+    // - when viewing in standalone pages (e.g. /grapher/xyz)
+    // - in iframes embedded in external sites (without context)
+    // - in iframes embedded internally, for the "All charts" gallery (possibly with context)
+    //
+    // see also <IframeDetector>
+    main {
+        @include content-wrapper;
 
         figure[data-grapher-src] {
-            @include media-column;
-            margin-left: $padding-x-md * 0.5;
+            display: flex;
+            height: $grapher-height-in-columns;
+            margin: 0; // reset default figure margin
+            align-items: center; // also reveals top box shadow in iframe
+            justify-content: center; // also reveals left box shadow in iframe
+            flex-direction: column; //
+        }
+
+        @include lg-up {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            align-items: flex-start; // maintain columns original height to allow sticky positioning
+            max-width: $text-max-content-width + $graph-max-content-width + 3 *
+                $padding-x-md;
+
+            .related-research-data {
+                @include text-column;
+                margin-right: $padding-x-md * 0.5;
+            }
+
+            figure[data-grapher-src] {
+                @include media-column;
+                margin-left: $padding-x-md * 0.5;
+            }
         }
     }
 }
 
-html.IsInIframe:not(.PossiblyWithContext) .StandaloneGrapherOrExplorerPage {
+html.IsInIframe .StandaloneGrapherOrExplorerPage {
     background-color: inherit;
 
-    > main {
-        min-height: inherit;
-    }
-
-    main figure[data-grapher-src] {
-        height: 100vh;
-        min-height: auto;
-        max-height: none;
-        min-width: auto;
-        max-width: none;
-    }
     @include hide-site-chrome;
+}
+
+html.IsInIframe:not(.PossiblyWithContext) .StandaloneGrapherOrExplorerPage {
+    main {
+        padding: 0;
+        figure[data-grapher-src] {
+            height: 100vh;
+        }
+    }
 
     .related-research-data,
     .explorerContentContainer {
@@ -143,15 +90,16 @@ html.IsInIframe:not(.PossiblyWithContext) .StandaloneGrapherOrExplorerPage {
 }
 
 html.IsInIframe.PossiblyWithContext .StandaloneGrapherOrExplorerPage {
-    background-color: inherit;
     figure[data-grapher-src] {
-        @include lg-up {
-            height: $grapher-height-in-columns;
-        }
         .GrapherComponent {
             box-shadow: none;
         }
     }
+}
 
-    @include hide-site-chrome;
+// With the extra "<p>Unable to load interactive visualization</p>", the
+// fallback figure is taller than the interactive GrapherComponent and
+// overflows. This unbounds the figure and let it flow down naturally.
+#fallback {
+    height: auto;
 }
