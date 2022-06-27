@@ -34,8 +34,11 @@ describe("mdast parsers", () => {
                 type: "bold",
                 children: [
                     { type: "text", value: "I'm" },
+                    { type: "whitespace" },
                     { type: "text", value: "bold" },
+                    { type: "whitespace" },
                     { type: "text", value: "as" },
+                    { type: "whitespace" },
                     { type: "text", value: "brass" },
                 ],
             },
@@ -48,6 +51,7 @@ describe("mdast parsers", () => {
                 type: "italic",
                 children: [
                     { type: "text", value: "Mamma" },
+                    { type: "whitespace" },
                     { type: "text", value: "mia!" },
                 ],
             },
@@ -58,7 +62,7 @@ describe("mdast parsers", () => {
             status: true,
             value: {
                 type: "url",
-                content: "www.google.com",
+                children: [{ type: "text", value: "www.google.com" }],
                 href: "www.google.com",
             },
         })
@@ -107,18 +111,22 @@ describe("mdast parsers", () => {
                         type: "text",
                         value: "a",
                     },
+                    { type: "whitespace" },
                     {
                         type: "text",
                         value: "dod",
                     },
+                    { type: "whitespace" },
                     {
                         type: "text",
                         value: "with",
                     },
+                    { type: "whitespace" },
                     {
                         type: "text",
                         value: "multiple",
                     },
+                    { type: "whitespace" },
                     {
                         type: "text",
                         value: "words",
@@ -132,10 +140,8 @@ describe("mdast parsers", () => {
     it("mdParser.value can parse words and newlines", () => {
         expect(
             mdParser.value.parse(`hello
-        
-        world
-        
-        how **are** you?`)
+
+how **are** you?`)
         ).toEqual({
             status: true,
             value: [
@@ -151,18 +157,9 @@ describe("mdast parsers", () => {
                 },
                 {
                     type: "text",
-                    value: "world",
-                },
-                {
-                    type: "newline",
-                },
-                {
-                    type: "newline",
-                },
-                {
-                    type: "text",
                     value: "how",
                 },
+                { type: "whitespace" },
                 {
                     children: [
                         {
@@ -172,6 +169,7 @@ describe("mdast parsers", () => {
                     ],
                     type: "bold",
                 },
+                { type: "whitespace" },
                 {
                     type: "text",
                     value: "you?",
@@ -192,42 +190,51 @@ describe("mdast parsers", () => {
                     type: "text",
                     value: "Hello",
                 },
+                { type: "whitespace" },
                 {
                     children: [
                         {
                             type: "text",
                             value: "I",
                         },
+                        { type: "whitespace" },
                         {
                             type: "text",
                             value: "am",
                         },
+                        { type: "whitespace" },
                         {
                             type: "text",
                             value: "italicized",
                         },
+                        { type: "whitespace" },
                         {
                             type: "text",
                             value: "and",
                         },
+                        { type: "whitespace" },
                         {
                             children: [
                                 {
                                     type: "text",
                                     value: "I",
                                 },
+                                { type: "whitespace" },
                                 {
                                     type: "text",
                                     value: "am",
                                 },
+                                { type: "whitespace" },
                                 {
                                     type: "text",
                                     value: "bolded",
                                 },
+                                { type: "whitespace" },
                                 {
                                     type: "text",
                                     value: "and",
                                 },
+                                { type: "whitespace" },
                                 {
                                     type: "text",
                                     value: "italicized",
@@ -260,10 +267,12 @@ describe("mdast parsers", () => {
                                             type: "text",
                                             value: "bold",
                                         },
+                                        { type: "whitespace" },
                                         {
                                             type: "text",
                                             value: "and",
                                         },
+                                        { type: "whitespace" },
                                         {
                                             type: "text",
                                             value: "italic",
@@ -282,9 +291,7 @@ describe("mdast parsers", () => {
         })
 
         expect(
-            mdParser.value.parse(
-                "_**[italic and bold](www.ourworldindata.org)**_"
-            )
+            mdParser.value.parse("_**[italic and bold](www.google.com)**_")
         ).toEqual({
             status: true,
             value: [
@@ -299,15 +306,21 @@ describe("mdast parsers", () => {
                                             value: "italic",
                                         },
                                         {
+                                            type: "whitespace",
+                                        },
+                                        {
                                             type: "text",
                                             value: "and",
+                                        },
+                                        {
+                                            type: "whitespace",
                                         },
                                         {
                                             type: "text",
                                             value: "bold",
                                         },
                                     ],
-                                    href: "www.ourworldindata.org",
+                                    href: "www.google.com",
                                     type: "url",
                                 },
                             ],
@@ -316,6 +329,80 @@ describe("mdast parsers", () => {
                     ],
                     type: "italic",
                 },
+            ],
+        })
+    })
+
+    it("mdParser.value can parse details on demand inside bold", () => {
+        expect(
+            mdParser.value.parse(
+                "**[an _italicized_ detail on demand](hover::fp::monad)**"
+            )
+        ).toEqual({
+            status: true,
+            value: [
+                {
+                    children: [
+                        {
+                            category: "fp",
+                            children: [
+                                {
+                                    type: "text",
+                                    value: "an",
+                                },
+                                {
+                                    type: "whitespace",
+                                },
+                                {
+                                    children: [
+                                        {
+                                            type: "text",
+                                            value: "italicized",
+                                        },
+                                    ],
+                                    type: "italic",
+                                },
+                                {
+                                    type: "whitespace",
+                                },
+                                {
+                                    type: "text",
+                                    value: "detail",
+                                },
+                                {
+                                    type: "whitespace",
+                                },
+                                {
+                                    type: "text",
+                                    value: "on",
+                                },
+                                {
+                                    type: "whitespace",
+                                },
+                                {
+                                    type: "text",
+                                    value: "demand",
+                                },
+                            ],
+                            term: "monad",
+                            type: "detailOnDemand",
+                        },
+                    ],
+                    type: "bold",
+                },
+            ],
+        })
+    })
+
+    it("mdParser.value can parse words adjacent to bold", () => {
+        expect(mdParser.value.parse("**bold**-word")).toEqual({
+            status: true,
+            value: [
+                {
+                    type: "bold",
+                    children: [{ type: "text", value: "bold" }],
+                },
+                { type: "text", value: "-word" },
             ],
         })
     })

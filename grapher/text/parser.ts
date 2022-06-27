@@ -1,9 +1,9 @@
 import P, { Language } from "parsimmon"
 
 // An AST inspired by MDAST
-// Deviates because we want to track individual words and newlines to use with TextWrap and our SVG exporter
+// Deviates because we want to track individual words, whitespace, and newlines to use with TextWrap and our SVG exporter
 
-// The root literal
+// The root literal that should be the leaf of every branch that isn't a newline or whitespace
 interface Text {
     type: "text"
     value: string
@@ -12,18 +12,22 @@ interface Text {
 export const textParser = (): P.Parser<Text> =>
     P.regex(/[A-Za-z'\-":!?,.]+/).map((value) => ({ type: "text", value }))
 
-// A special type that we'll use when building lines with TextWrap
+// A special literal that we use when building lines with TextWrap
 interface Newline {
     type: "newline"
 }
 
 const newlineParser = (): P.Parser<Newline> =>
-    P.regex(/\n/).map(() => ({
-        type: "newline",
-    }))
+    P.regex(/\n/).result({ type: "newline" })
+
+// Another literal that's needed to know when to reinsert spaces (e.g. "**one**-two" versus "**one** -two")
+interface Whitespace {
+    type: "whitespace"
+}
 
 // A less greedy version of P.whitespace that doesn't consume newlines
-const whitespaceParser = P.regex(/ */)
+const whitespaceParser = (): P.Parser<Whitespace> =>
+    P.regex(/ +/).result({ type: "whitespace" })
 
 //
 interface MarkdownNode {
@@ -58,7 +62,7 @@ const urlRegex =
 const markdownUrlParser = (r: Language) =>
     P.seqObj<{ children: MarkdownNode[]; href: string }>(
         P.string("["),
-        ["children", r.phrasing.sepBy(whitespaceParser)],
+        ["children", r.phrasing.many()],
         P.string("]("),
         ["href", P.regex(urlRegex)],
         P.string(")")
@@ -68,13 +72,14 @@ const markdownUrlParser = (r: Language) =>
         href,
     }))
 
-const plainURLParser = P.regex(urlRegex).map((result) => ({
-    type: "url",
-    content: result,
-    href: result,
-}))
+const plainURLParser = () =>
+    P.regex(urlRegex).map((result) => ({
+        type: "url",
+        children: [{ type: "text", value: result }],
+        href: result,
+    }))
 
-const urlParser = (r: Language) => P.alt(markdownUrlParser(r), plainURLParser)
+const urlParser = (r: Language) => P.alt(markdownUrlParser(r), plainURLParser())
 
 const detailOnDemandParser = (r: Language) =>
     P.seqObj<{
@@ -83,7 +88,7 @@ const detailOnDemandParser = (r: Language) =>
         children: MarkdownNode[]
     }>(
         P.string("["),
-        ["children", r.phrasing.sepBy(whitespaceParser)],
+        ["children", r.phrasing.many()],
         P.string("](hover::"),
         ["category", P.letters],
         P.string("::"),
@@ -97,14 +102,14 @@ const detailOnDemandParser = (r: Language) =>
     }))
 
 export const mdParser = P.createLanguage({
-    phrasing: (r) => P.alt(r.bold, r.italic, r.text),
+    phrasing: (r) => P.alt(r.whitespace, r.bold, r.italic, r.text),
     wrappers: (r) => P.alt(r.detailOnDemand, r.url),
     newline: newlineParser,
+    whitespace: whitespaceParser,
     text: textParser,
     bold: boldParser,
     italic: italicParser,
     detailOnDemand: detailOnDemandParser,
     url: urlParser,
-    value: (r) =>
-        P.alt(r.newline, r.phrasing, r.wrappers).sepBy(whitespaceParser),
+    value: (r) => P.alt(r.newline, r.wrappers, r.phrasing).many(),
 })
