@@ -604,7 +604,7 @@ apiRouter.post(
     async (req: Request, res: Response) => {
         const chartId = expectInt(req.params.chartId)
 
-        await Chart.setTags(chartId, req.body.tagIds)
+        await Chart.setTags(chartId, req.body.tags)
 
         return { success: true }
     }
