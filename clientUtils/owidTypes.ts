@@ -1,3 +1,5 @@
+import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
+
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
 
@@ -153,6 +155,10 @@ export interface PostRow {
     content: string
     published_at: Date | null
     updated_at: Date
+}
+
+export interface Tag extends TagReactTagAutocomplete {
+    isKey?: boolean
 }
 
 export interface EntryMeta {
