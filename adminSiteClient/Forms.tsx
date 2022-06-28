@@ -1021,6 +1021,11 @@ export class EditableTags extends React.Component<{
         this.ensureUncategorized()
     }
 
+    @action.bound onToggleKey(index: number) {
+        this.tags[index].isKey = !this.tags[index].isKey
+        this.props.onSave(this.tags.filter(filterUncategorizedTag))
+    }
+
     @action.bound ensureUncategorized() {
         if (this.tags.length === 0) {
             const uncategorized = this.props.suggestions.find(
@@ -1061,8 +1066,12 @@ export class EditableTags extends React.Component<{
                     />
                 ) : (
                     <div>
-                        {tags.map((t) => (
-                            <TagBadge key={t.id} tag={t} />
+                        {tags.map((t, i) => (
+                            <TagBadge
+                                onToggleKey={() => this.onToggleKey(i)}
+                                key={t.id}
+                                tag={t}
+                            />
                         ))}
                         {!disabled && (
                             <button
