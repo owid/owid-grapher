@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { Tag } from "react-tag-autocomplete"
+import { Tag } from "../clientUtils/owidTypes.js"
 
 import { Link } from "./Link.js"
 
