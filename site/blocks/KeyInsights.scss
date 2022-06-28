@@ -1,6 +1,6 @@
 @use "sass:math";
 
-$slide-content-height: $grapher-height;
+$slide-content-height: $grapher-height-in-columns;
 
 .wp-block-owid-key-insights {
     @include block-shadow;
