@@ -4,10 +4,6 @@
 /
     Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 
-/grapher/data/variables/*
-  Cache-Control: public, max-age=31556926, s-maxage=31556926
-  Access-Control-Allow-Origin: *
-
 /grapher/*
   Access-Control-Allow-Origin: *
 
