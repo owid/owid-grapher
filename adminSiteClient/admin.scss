@@ -829,6 +829,11 @@ main:not(.ChartEditorPage) {
     &:hover {
         color: #333;
     }
+
+    &.isKey {
+        background-color: #333;
+        color: #eee;
+    }
 }
 
 .EditableTags {
