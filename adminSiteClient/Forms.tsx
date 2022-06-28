@@ -993,6 +993,8 @@ class EditTags extends React.Component<{
     }
 }
 
+const filterUncategorizedTag = (t: Tag) => t.name !== "Uncategorized"
+
 @observer
 export class EditableTags extends React.Component<{
     tags: Tag[]
@@ -1009,7 +1011,7 @@ export class EditableTags extends React.Component<{
         this.tags.push(tag)
         this.tags = lodash
             .uniqBy(this.tags, (t) => t.id)
-            .filter((t) => t.name !== "Uncategorized")
+            .filter(filterUncategorizedTag)
 
         this.ensureUncategorized()
     }
@@ -1030,9 +1032,7 @@ export class EditableTags extends React.Component<{
 
     @action.bound onToggleEdit() {
         if (this.isEditing) {
-            this.props.onSave(
-                this.tags.filter((t) => t.name !== "Uncategorized")
-            )
+            this.props.onSave(this.tags.filter(filterUncategorizedTag))
         }
         this.isEditing = !this.isEditing
     }
