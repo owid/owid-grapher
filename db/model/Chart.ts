@@ -103,7 +103,7 @@ export class Chart extends BaseEntity {
         charts: { id: number; tags: any[] }[]
     ): Promise<void> {
         const chartTags = await db.queryMysql(`
-            SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
+            SELECT ct.chartId, ct.tagId, ct.isKey, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
             JOIN tags t ON t.id=ct.tagId
         `)
@@ -116,7 +116,12 @@ export class Chart extends BaseEntity {
 
         for (const ct of chartTags) {
             const chart = chartsById[ct.chartId]
-            if (chart) chart.tags.push({ id: ct.tagId, name: ct.tagName })
+            if (chart)
+                chart.tags.push({
+                    id: ct.tagId,
+                    name: ct.tagName,
+                    isKey: ct.isKey,
+                })
         }
     }
 
