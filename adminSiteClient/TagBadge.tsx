@@ -9,16 +9,18 @@ export { Tag }
 @observer
 export class TagBadge extends React.Component<{
     tag: Tag
-    onRemove?: () => void
+    onToggleKey?: () => void
     searchHighlight?: (text: string) => string | JSX.Element
 }> {
     render() {
-        const { tag, searchHighlight, onRemove } = this.props
+        const { tag, searchHighlight, onToggleKey } = this.props
+        const classes = ["TagBadge"]
+        if (tag.isKey) classes.push("isKey")
 
-        if (onRemove) {
+        if (onToggleKey) {
             return (
-                <span className="TagBadge" onClick={onRemove}>
-                    {tag.name}
+                <span className={classes.join(" ")} onClick={onToggleKey}>
+                    {searchHighlight ? searchHighlight(tag.name) : tag.name}
                 </span>
             )
         } else {
