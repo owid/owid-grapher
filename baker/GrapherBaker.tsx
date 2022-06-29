@@ -89,8 +89,7 @@ const bakeVariableData = async (
 
     const promises = variableIds.map(async (variableId) => {
         const variableData = await getVariableData(variableId)
-        const data = variableData.data
-        const metadata = omit(variableData, "data")
+        const { data, metadata } = variableData
         const path = `${bakedSiteDir}${getVariableDataPath(variableId)}`
         const metadataPath = `${bakedSiteDir}${getVariableMetadataPath(
             variableId
