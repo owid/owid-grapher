@@ -67,19 +67,25 @@ export const grapherSlugToHtmlPage = async (slug: string) => {
     return grapherConfigToHtmlPage(entity.config)
 }
 
-export const getVariableDirectoryPath = () => "/grapher/data/variables/"
+export const getVariableDirectoryPath = () => "/grapher/data/variables"
+export const getVariableDataDirectoryPath = () =>
+    `${getVariableDirectoryPath()}/data`
+export const getVariableMetadataDirectoryPath = () =>
+    `${getVariableDirectoryPath()}/metadata`
 
 export const getVariableDataPath = (variableId: number) =>
-    `/grapher/data/variables/data/${variableId}.json`
+    `${getVariableDataDirectoryPath()}/${variableId}.json`
 
 export const getVariableMetadataPath = (variableId: number) =>
-    `/grapher/data/variables/metadata/${variableId}.json`
+    `${getVariableMetadataDirectoryPath()}/${variableId}.json`
 
 const bakeVariableData = async (
     bakedSiteDir: string,
     variableIds: number[]
 ): Promise<void> => {
     await fs.mkdirp(`${bakedSiteDir}${getVariableDirectoryPath()}`)
+    await fs.mkdirp(`${bakedSiteDir}${getVariableDataDirectoryPath()}`)
+    await fs.mkdirp(`${bakedSiteDir}${getVariableMetadataDirectoryPath()}`)
 
     const promises = variableIds.map(async (variableId) => {
         const variableData = await getVariableData(variableId)
