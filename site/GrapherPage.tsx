@@ -13,8 +13,12 @@ import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { serializeJSONForHTML } from "../clientUtils/serializers.js"
-import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants.js"
-import { uniq } from "../clientUtils/Util.js"
+import {
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+    GRAPHER_PAGE_BODY_CLASS,
+} from "../grapher/core/GrapherConstants.js"
+import { flatten, uniq } from "../clientUtils/Util.js"
 import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
 
 export const GrapherPage = (props: {
@@ -68,17 +72,22 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     figure { display: none !important; }
                 `}</style>
                 </noscript>
-                {
-                    // TODO grapher model: switch this to downloading multiple data and metadata files
-                }
-                <link
-                    rel="preload"
-                    href={`/grapher/data/variables/${variableIds.join(
-                        "+"
-                    )}.json?v=${grapher.version}`}
-                    as="fetch"
-                    crossOrigin="anonymous"
-                />
+                {flatten(
+                    variableIds.map((variableId) =>
+                        [
+                            getVariableDataRoute(variableId),
+                            getVariableMetadataRoute(variableId),
+                        ].map((href) => (
+                            <link
+                                key={href}
+                                rel="preload"
+                                href={href}
+                                as="fetch"
+                                crossOrigin="anonymous"
+                            />
+                        ))
+                    )
+                )}
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />

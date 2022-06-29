@@ -3,12 +3,7 @@ import { Chart } from "../db/model/Chart.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
-import {
-    excludeUndefined,
-    omit,
-    urlToSlug,
-    without,
-} from "../clientUtils/Util.js"
+import { excludeUndefined, urlToSlug, without } from "../clientUtils/Util.js"
 import {
     getRelatedArticles,
     getRelatedCharts,
@@ -36,6 +31,13 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
 } from "../clientUtils/OwidVariable.js"
+import {
+    GRAPHER_VARIABLES_ROUTE,
+    GRAPHER_VARIABLE_DATA_ROUTE,
+    GRAPHER_VARIABLE_METADATA_ROUTE,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+} from "../grapher/core/GrapherConstants.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -67,31 +69,19 @@ export const grapherSlugToHtmlPage = async (slug: string) => {
     return grapherConfigToHtmlPage(entity.config)
 }
 
-export const getVariableDirectoryPath = () => "/grapher/data/variables"
-export const getVariableDataDirectoryPath = () =>
-    `${getVariableDirectoryPath()}/data`
-export const getVariableMetadataDirectoryPath = () =>
-    `${getVariableDirectoryPath()}/metadata`
-
-export const getVariableDataPath = (variableId: number) =>
-    `${getVariableDataDirectoryPath()}/${variableId}.json`
-
-export const getVariableMetadataPath = (variableId: number) =>
-    `${getVariableMetadataDirectoryPath()}/${variableId}.json`
-
 const bakeVariableData = async (
     bakedSiteDir: string,
     variableIds: number[]
 ): Promise<void> => {
-    await fs.mkdirp(`${bakedSiteDir}${getVariableDirectoryPath()}`)
-    await fs.mkdirp(`${bakedSiteDir}${getVariableDataDirectoryPath()}`)
-    await fs.mkdirp(`${bakedSiteDir}${getVariableMetadataDirectoryPath()}`)
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLES_ROUTE}`)
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_DATA_ROUTE}`)
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`)
 
     const promises = variableIds.map(async (variableId) => {
         const variableData = await getVariableData(variableId)
         const { data, metadata } = variableData
-        const path = `${bakedSiteDir}${getVariableDataPath(variableId)}`
-        const metadataPath = `${bakedSiteDir}${getVariableMetadataPath(
+        const path = `${bakedSiteDir}${getVariableDataRoute(variableId)}`
+        const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
             variableId
         )}`
         await fs.writeFile(path, JSON.stringify(data))
@@ -129,8 +119,8 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
 
     // Make sure we bake the variables successfully before outputing the chart html
     const vardataPaths = variableIds.flatMap((variableId) => [
-        `${bakedSiteDir}${getVariableDataPath(variableId)}`,
-        `${bakedSiteDir}${getVariableMetadataPath(variableId)}`,
+        `${bakedSiteDir}${getVariableDataRoute(variableId)}`,
+        `${bakedSiteDir}${getVariableMetadataRoute(variableId)}`,
     ])
     if (
         !isSameVersion ||
@@ -149,7 +139,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
         ) {
             const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
                 variableIds.map(async (variableId) => {
-                    const metadataPath = `${bakedSiteDir}${getVariableMetadataPath(
+                    const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
                         variableId
                     )}`
                     const metadataString = await fs.readFile(
@@ -159,7 +149,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
                     const metadataJson = JSON.parse(
                         metadataString
                     ) as OwidVariableWithSourceAndDimension
-                    const dataPath = `${bakedSiteDir}${getVariableDataPath(
+                    const dataPath = `${bakedSiteDir}${getVariableDataRoute(
                         variableId
                     )}`
                     const dataString = await fs.readFile(dataPath, "utf8")

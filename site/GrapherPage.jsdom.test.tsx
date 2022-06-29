@@ -14,6 +14,10 @@ import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 import { configure, shallow, ShallowWrapper } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
+import {
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+} from "../grapher/core/GrapherConstants.js"
 configure({ adapter: new Adapter() })
 
 const mockGrapher: GrapherInterface = {
@@ -73,10 +77,16 @@ describe("when the page is rendered", () => {
     )
 
     it("preloads the data", () => {
-        // TODO grapher model: switch this to metadata and data paths
-        const path = "/grapher/data/variables/3512.json?v=5"
-        const selector = `link[rel="preload"][href="${path}"]`
-        expect(view.find(selector)).toHaveLength(1)
+        expect(
+            view.find(
+                `link[rel="preload"][href="${getVariableDataRoute(3512)}"]`
+            )
+        ).toHaveLength(1)
+        expect(
+            view.find(
+                `link[rel="preload"][href="${getVariableMetadataRoute(3512)}"]`
+            )
+        ).toHaveLength(1)
     })
 
     it("renders a site header", () => {
