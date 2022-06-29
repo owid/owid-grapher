@@ -12,7 +12,6 @@ import {
     OwidVariableDataTableConfigInteface,
     OwidVariableDisplayConfigInterface,
 } from "./OwidVariableDisplayConfigInterface.js"
-import { PartialBy } from "./Util.js"
 
 class OwidVariableDisplayConfigDefaults {
     @observable name?: string = undefined
@@ -114,9 +113,9 @@ export interface OwidEntityKey {
     [id: string]: OwidVariableDimensionValuePartial
 }
 
-export interface OwidVariablesAndEntityKey {
-    variables: {
-        [id: string]: OwidVariableWithDataAndSource
-    }
-    entityKey: OwidEntityKey
-}
+// export interface OwidVariablesAndEntityKey {
+//     variables: {
+//         [id: string]: OwidVariableWithDataAndSource
+//     }
+//     entityKey: OwidEntityKey
+// }

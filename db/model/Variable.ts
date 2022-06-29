@@ -60,8 +60,6 @@ export function parseVariableRows(
 export async function getVariableData(
     variableId: number
 ): Promise<OwidVariableDataMetadataDimensions> {
-    //const data: OwidVariablesAndEntityKey = { variables: {}, entityKey: {} }
-
     type VariableQueryRow = Readonly<
         UnparsedVariableRow & {
             display: string

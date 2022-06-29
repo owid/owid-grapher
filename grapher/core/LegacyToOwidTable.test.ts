@@ -8,7 +8,6 @@ import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
-    OwidVariablesAndEntityKey,
 } from "../../clientUtils/OwidVariable.js"
 import {
     OwidColumnDef,

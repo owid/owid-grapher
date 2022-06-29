@@ -11,10 +11,7 @@ import { Country } from "../clientUtils/countries.js"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { DATA_VALUE } from "../site/DataValue.js"
-import {
-    OwidVariableDataMetadataDimensions,
-    OwidVariablesAndEntityKey,
-} from "../clientUtils/OwidVariable.js"
+import { OwidVariableDataMetadataDimensions } from "../clientUtils/OwidVariable.js"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
