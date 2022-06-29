@@ -10,7 +10,7 @@
 
     .wrapper {
         @include wrapper-x-spacing;
-        max-width: $wrapper-max-width;
+        max-width: $content-wrapper-min-width-lg;
     }
 
     a {

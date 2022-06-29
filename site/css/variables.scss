@@ -29,8 +29,10 @@ $text-max-content-width: 40rem;
 $graph-min-content-width: 44rem;
 $graph-max-content-width: 50rem;
 
-$wrapper-max-width: $text-min-content-width + $graph-min-content-width + 3 *
-    $padding-x-md;
+$content-wrapper-min-width-lg: $text-min-content-width +
+    $graph-min-content-width + 3 * $padding-x-md;
+$content-wrapper-max-width-lg: $text-max-content-width +
+    $graph-max-content-width + 3 * $padding-x-md;
 
 $grid-card-min-width: 20rem;
 
@@ -49,14 +51,12 @@ $gallery-vertical-spacing: 2 * $vertical-spacing;
 //md
 $md-min-width: 55rem;
 // lg: graphs and text shown side by side.
-$lg-min-width: $text-min-content-width + $graph-min-content-width + 3 *
-    $padding-x-md + $sidebar-closed-drawer-width;
+$lg-min-width: $content-wrapper-min-width-lg + $sidebar-closed-drawer-width;
 // xlg: md + graphs shown side by side
-$xlg-min-width: $text-max-content-width + $graph-max-content-width + 3 *
-    $padding-x-md + $sidebar-closed-drawer-width;
+$xlg-min-width: $content-wrapper-max-width-lg + $sidebar-closed-drawer-width;
 // xxlg: xlg + permanent sidebar
-$xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
-    $padding-x-md + $sidebar-content-width;
+$xxlg-min-width: $content-wrapper-max-width-lg + 2 * $padding-x-md +
+    $sidebar-content-width;
 
 @mixin sm-only {
     @media (max-width: $md-min-width - 0.0625rem) {

@@ -53,8 +53,7 @@
             flex-direction: row-reverse;
             justify-content: flex-end;
             align-items: flex-start; // maintain columns original height to allow sticky positioning
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
+            max-width: $content-wrapper-max-width-lg;
 
             .related-research-data {
                 @include text-column;
