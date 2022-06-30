@@ -3,6 +3,8 @@ import { observer } from "mobx-react"
 import { Tag } from "../clientUtils/owidTypes.js"
 
 import { Link } from "./Link.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faStar } from "@fortawesome/free-solid-svg-icons/faStar"
 
 export { Tag }
 
@@ -21,6 +23,7 @@ export class TagBadge extends React.Component<{
             return (
                 <span className={classes.join(" ")} onClick={onToggleKey}>
                     {searchHighlight ? searchHighlight(tag.name) : tag.name}
+                    {tag.isKey && <FontAwesomeIcon icon={faStar} />}
                 </span>
             )
         } else {
