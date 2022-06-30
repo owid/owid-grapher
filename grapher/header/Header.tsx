@@ -6,6 +6,7 @@ import { Logo } from "../captionedChart/Logos.js"
 import { HeaderManager } from "./HeaderManager.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
 @observer
 export class Header extends React.Component<{
@@ -91,7 +92,6 @@ export class Header extends React.Component<{
             fontSize: 0.8 * this.fontSize,
             text: this.subtitleText,
             lineHeight: 1.2,
-            linkifyText: true,
         })
     }
 
@@ -149,7 +149,7 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a href={manager.canonicalUrl} target="_blank" rel="noopener">
+                <a href={manager.canonicalUrl} rel="noreferrer" target="_blank">
                     <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
                 </a>
                 <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>

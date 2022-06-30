@@ -1,7 +1,7 @@
 import P from "parsimmon"
 
 // An AST inspired by MDAST
-// Deviates because we want to track individual words, whitespace, and newlines to use with TextWrap and our SVG exporter
+// Deviates because we want to track individual words, whitespace, and newlines to use with MarkdownTextWrap and our SVG exporter
 
 // How this parser works
 
