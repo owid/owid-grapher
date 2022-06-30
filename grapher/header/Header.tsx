@@ -6,6 +6,8 @@ import { Logo } from "../captionedChart/Logos.js"
 import { HeaderManager } from "./HeaderManager.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { splitIntoLines } from "../text/TextTokensUtils.js"
+import { markdownToTextTokens, mdParse } from "../text/markdown.js"
 
 @observer
 export class Header extends React.Component<{
@@ -149,10 +151,30 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a href={manager.canonicalUrl} target="_blank">
+                <a href={manager.canonicalUrl} target="_blank" rel="noopener">
                     <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
                 </a>
-                <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
+                <p style={subtitleStyle}>
+                    {splitIntoLines(
+                        markdownToTextTokens(mdParse(this.subtitleText), {
+                            // same as above
+                            fontSize: 0.8 * this.fontSize,
+                        }),
+                        this.subtitleWidth
+                    ).map((tokens, i) => (
+                        <div key={i}>
+                            {tokens.length ? (
+                                tokens.map((token, i) => (
+                                    <React.Fragment key={i}>
+                                        {token.toHTML()}
+                                    </React.Fragment>
+                                ))
+                            ) : (
+                                <br />
+                            )}
+                        </div>
+                    ))}
+                </p>
             </div>
         )
     }
