@@ -1,0 +1,12 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "../../itsJustJavascript/devTools/dodParserTestGenerator",
+        "rootDir": "."
+    },
+    "references": [
+        { "path": "../../grapher" },
+        { "path": "../../clientUtils" },
+        { "path": "../../settings" }
+    ]
+}

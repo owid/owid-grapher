@@ -1,7 +1,7 @@
 import { mdParser } from "./parser.js"
 
 describe("mdast parsers", () => {
-    it("mdParser.detailOnDemand works for non-link brackets", () => {
+    it("mdParser works for non-link brackets", () => {
         expect(mdParser.markupTokens.parse("[some text]")).toEqual({
             status: true,
             value: {
@@ -22,7 +22,7 @@ describe("mdast parsers", () => {
             },
         })
     })
-    it("mdParser.detailOnDemand works for funky characters in dod texts", () => {
+    it("mdParser works for funky characters in dod texts", () => {
         expect(
             mdParser.markupTokens.parse(
                 "[int.$ *?=😛§&/%ü€](hover::test::term)"
@@ -54,7 +54,7 @@ describe("mdast parsers", () => {
             },
         })
     })
-    it("mdParser.text can parse a word", () => {
+    it("mdParser can parse a word", () => {
         expect(mdParser.markupTokens.parse("word")).toEqual({
             status: true,
             value: {
@@ -68,7 +68,7 @@ describe("mdast parsers", () => {
             },
         })
     })
-    it("mdParser.text can parse words with punctuation", () => {
+    it("mdParser can parse words with punctuation", () => {
         expect(mdParser.markupTokens.parse("can't?")).toEqual({
             status: true,
             value: {
@@ -95,7 +95,7 @@ describe("mdast parsers", () => {
             },
         })
     })
-    it("mdParser.bold can parse a word with bold", () => {
+    it("mdParser can parse a word with bold", () => {
         expect(mdParser.markupTokens.parse("**I'm bold as brass**")).toEqual({
             status: true,
             value: {
@@ -117,7 +117,7 @@ describe("mdast parsers", () => {
             },
         })
     })
-    it("mdParser.italic can parse a phrase with italics", () => {
+    it("mdParser can parse a phrase with italics", () => {
         expect(mdParser.markupTokens.parse("_Mamma mia!_")).toEqual({
             status: true,
             value: {
@@ -135,7 +135,7 @@ describe("mdast parsers", () => {
             },
         })
     })
-    it("mdParser.url can parse URLs", () => {
+    it("mdParser can parse URLs", () => {
         expect(mdParser.markupTokens.parse("www.google.com")).toEqual({
             status: true,
             value: {
@@ -163,7 +163,7 @@ describe("mdast parsers", () => {
         })
     })
 
-    it("mdParser.detailOnDemand can parse detail on demand syntax", () => {
+    it("mdParser can parse detail on demand syntax", () => {
         expect(
             mdParser.markupTokens.parse("[**dod**](hover::general::thing)")
         ).toEqual({
@@ -234,7 +234,7 @@ describe("mdast parsers", () => {
             },
         })
     })
-    it("mdParser.value can parse words and newlines", () => {
+    it("mdParser can parse words and newlines", () => {
         expect(
             mdParser.markupTokens.parse(`hello
 
@@ -352,7 +352,7 @@ how **are** you?`)
         })
     })
 
-    it("mdParser.value can parse links inside bold and italics", () => {
+    it("mdParser can parse links inside bold and italics", () => {
         expect(
             mdParser.markupTokens.parse(
                 "**_[bold and italic](www.ourworldindata.org)_**"
@@ -519,6 +519,175 @@ how **are** you?`)
                         children: [{ type: "text", value: "bold" }],
                     },
                     { type: "text", value: "-word" },
+                ],
+            },
+        })
+    })
+
+    it("Parser can parse bold starting and stopping inside a word", () => {
+        expect(mdParser.markupTokens.parse("test**some**postfix")).toEqual({
+            status: true,
+            value: {
+                type: "DodMarkupRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "test",
+                    },
+                    {
+                        type: "bold",
+                        children: [
+                            {
+                                type: "text",
+                                value: "some",
+                            },
+                        ],
+                    },
+                    {
+                        type: "text",
+                        value: "test**some**postfix",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses unfinished bold correctly as text", () => {
+        expect(mdParser.markupTokens.parse("** unfinished bold")).toEqual({
+            status: true,
+            value: {
+                type: "DodMarkupRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "**",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "unfinished",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "bold",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses unfinished bold with finished italic correctly", () => {
+        expect(
+            mdParser.markupTokens.parse("** unfinished bold _ italic _")
+        ).toEqual({
+            status: true,
+            value: {
+                type: "DodMarkupRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "**",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "unfinished",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "bold",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "italic",
+                        children: [
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "text",
+                                value: "italic",
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                        ],
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses markdown links with just bold or just italic correctly and ignores nested bold/italic", () => {
+        expect(
+            mdParser.markupTokens.parse(
+                "[A **bold** _italic **nonnested**_ link](https://owid.io/test)"
+            )
+        ).toEqual({
+            status: true,
+            value: {
+                type: "DodMarkupRoot",
+                children: [
+                    {
+                        type: "markdownLink",
+                        children: [
+                            {
+                                type: "text",
+                                value: "A",
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "plainBold",
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "bold",
+                                    },
+                                ],
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "plainItalic",
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "italic",
+                                    },
+                                    {
+                                        type: "whitespace",
+                                    },
+                                    {
+                                        type: "text",
+                                        value: "**nonnested**",
+                                    },
+                                ],
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "text",
+                                value: "link",
+                            },
+                        ],
+                        href: "https://owid.io/test",
+                    },
                 ],
             },
         })
