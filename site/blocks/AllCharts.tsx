@@ -2,15 +2,11 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { useState } from "react"
 import { RelatedChart } from "../../clientUtils/owidTypes.js"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
-import {
-    DEFAULT_GRAPHER_HEIGHT,
-    DEFAULT_GRAPHER_WIDTH,
-} from "../../grapher/core/GrapherConstants.js"
 import { Modal } from "../Modal.js"
 import { GalleryArrow, GalleryArrowDirection } from "../GalleryArrow.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { AllChartsListItem } from "./AllChartsListItem.js"
 
 export const ALL_CHARTS_CLASS_NAME = "wp-block-all-charts"
 
@@ -21,42 +17,40 @@ export const AllCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const isFirstSlideActive = activeSlide === 0
     const isLastSlideActive = activeSlide === charts.length - 1
 
+    const onClickItem = (event: React.MouseEvent, idx: number) => {
+        // Allow opening charts in new tab/window with ⌘+CLICK
+        if (!event.metaKey && !event.shiftKey && !event.ctrlKey) {
+            event.preventDefault()
+            setActiveSlide(idx)
+            setGalleryOpen(!isGalleryOpen)
+        }
+    }
+
+    const filterFnIsKeyChart = (isKey: boolean) => (chart: RelatedChart) =>
+        isKey ? chart.isKey : !chart.isKey
+
+    const keyCharts = charts.filter(filterFnIsKeyChart(true))
+
+    const standardCharts = charts.filter(filterFnIsKeyChart(false))
+
     return (
         <div className={ALL_CHARTS_CLASS_NAME}>
+            <ul className="key">
+                {keyCharts.map((chart, idx) => (
+                    <AllChartsListItem
+                        chart={chart}
+                        key={chart.slug}
+                        onClick={(e) => onClickItem(e, idx)}
+                    />
+                ))}
+            </ul>
             <ul>
-                {charts.map((chart, idx) => (
-                    <li key={chart.slug}>
-                        <a
-                            href={`/grapher/${chart.slug}`}
-                            onClick={(event) => {
-                                // Allow opening charts in new tab/window with ⌘+CLICK
-                                if (
-                                    !event.metaKey &&
-                                    !event.shiftKey &&
-                                    !event.ctrlKey
-                                ) {
-                                    event.preventDefault()
-                                    setActiveSlide(idx)
-                                    setGalleryOpen(!isGalleryOpen)
-                                }
-                            }}
-                        >
-                            <img
-                                src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.slug}.svg`}
-                                loading="lazy"
-                                data-no-lightbox
-                                data-no-img-formatting
-                                width={DEFAULT_GRAPHER_WIDTH}
-                                height={DEFAULT_GRAPHER_HEIGHT}
-                            ></img>
-                            <span>{chart.title}</span>
-                        </a>
-                        {chart.variantName ? (
-                            <span className="variantName">
-                                {chart.variantName}
-                            </span>
-                        ) : null}
-                    </li>
+                {standardCharts.map((chart, idx) => (
+                    <AllChartsListItem
+                        chart={chart}
+                        key={chart.slug}
+                        onClick={(e) => onClickItem(e, idx + keyCharts.length)}
+                    />
                 ))}
             </ul>
             {isGalleryOpen && (
@@ -93,7 +87,10 @@ export const AllCharts = ({ charts }: { charts: RelatedChart[] }) => {
                             </div>
                         </div>
                         <iframe
-                            src={`/grapher/${charts[activeSlide].slug}`}
+                            src={`/grapher/${
+                                keyCharts.concat(standardCharts)[activeSlide]
+                                    .slug
+                            }`}
                             loading="lazy"
                             data-possibly-with-context
                         />

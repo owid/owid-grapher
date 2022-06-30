@@ -1,8 +1,8 @@
-.wp-block-all-charts {
+.article-content .wp-block-all-charts {
     ul {
         list-style-type: none;
         padding: 0;
-        margin: 0;
+        margin: 0 0 $vertical-spacing;
 
         @include lg-down {
             display: flex;
@@ -19,6 +19,10 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: $vertical-spacing;
+
+            &.key {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         img {
@@ -51,8 +55,7 @@
     .navigation-wrapper {
         @include content-wrapper;
         @include lg-up {
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
+            max-width: $content-wrapper-max-width-lg;
         }
         display: flex;
         width: 100%;
