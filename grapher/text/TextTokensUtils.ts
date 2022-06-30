@@ -41,7 +41,7 @@ export function splitLineAtBreakpoint(
     // finding the token where the split should be
     // NOTE: the token may not be splittable, which is why we need an exact
     // `breakWidth` provided, not the line width.
-    while (i < tokens.length - 1 && offset + tokens[i].width <= breakWidth) {
+    while (i < tokens.length - 1 && offset + tokens[i].width < breakWidth) {
         offset += tokens[i].width
         i++
     }
