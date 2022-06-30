@@ -1,7 +1,9 @@
 import React from "react"
-import { action, observable } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { markdownToOwidTokens, mdParse } from "./markdown.js"
+import { IRToken } from "./TextTokens.js"
+import { splitIntoLines } from "./TextTokensUtils.js"
 
 export default {
     title: "TextTokens",
@@ -10,12 +12,19 @@ export default {
 
 @observer
 class MarkdownViewer extends React.Component {
-    @observable width: number = 500
+    @observable width: number = 200
+    @observable isLocked: boolean = false
     @observable
-    markdown: string = `_[italic and **bold**](www.ourworldindata.org)_
+    markdown: string = `Hello! I am bold.
 
-also _newlines
-inside italic_`
+Testing this somewhat long line. **I am bold-_ish_. And the bold extends into
+
+newlines too!
+
+[links can contain _formatting_ too](http://ourworldindata.org).**Averylongtokenthatcantbesplitbutshouldbeincludedanyway.**Canhavebold**withoutlinebreak.
+
+_THE END_
+`
 
     @action.bound onChangeMarkdown(
         event: React.ChangeEvent<HTMLTextAreaElement>
@@ -26,9 +35,18 @@ inside italic_`
     @action.bound onMouseMove(
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
     ): void {
+        if (this.isLocked) return
         const elementX = event.currentTarget.offsetLeft
         const clickX = event.clientX
         this.width = clickX - elementX
+    }
+
+    @action.bound onClick(): void {
+        this.isLocked = !this.isLocked
+    }
+
+    @computed get tokens(): IRToken[] {
+        return markdownToOwidTokens(mdParse(this.markdown))
     }
 
     render(): JSX.Element {
@@ -47,6 +65,7 @@ inside italic_`
                 />
                 <div
                     onMouseMove={this.onMouseMove}
+                    onClick={this.onClick}
                     style={{
                         position: "relative",
                         minHeight: "600px",
@@ -64,16 +83,24 @@ inside italic_`
                         }}
                     ></div>
                     <div>
-                        {markdownToOwidTokens(mdParse(this.markdown)).map(
-                            (token, i) => (
-                                <span
-                                    key={i}
-                                    style={{
-                                        outline: "1px solid rgba(0,0,0,.1)",
-                                    }}
-                                >
-                                    {token.toHTML()}
-                                </span>
+                        {splitIntoLines(this.tokens, this.width).map(
+                            (tokens, i) => (
+                                <div key={i}>
+                                    {tokens.length ? (
+                                        <span
+                                            style={{
+                                                outline:
+                                                    "1px solid rgba(0,50,50,.1)",
+                                            }}
+                                        >
+                                            {tokens.map((token) =>
+                                                token.toHTML()
+                                            )}
+                                        </span>
+                                    ) : (
+                                        <br />
+                                    )}
+                                </div>
                             )
                         )}
                     </div>
