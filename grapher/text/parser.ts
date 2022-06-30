@@ -3,45 +3,176 @@ import P, { Language } from "parsimmon"
 // An AST inspired by MDAST
 // Deviates because we want to track individual words, whitespace, and newlines to use with TextWrap and our SVG exporter
 
-// // type infer experiment below
-// type Parser<ParsedType> = ParsedType extends P.Parser<infer ParsedType>
-//     ? ParsedType
-//     : never
+// How this parser works
 
-interface ParsedFragmentBase {
-    type: string
-}
+// This parser uses the parsimmon javascript library that implements a monadic parser combinator.
+// You can think of a parser in this context as a generic class that parses an object of the type
+// that is specified as the type parameter of the class. parser combinators build up more complex
+// parsers by combining smaller parsers, mostly by specifying either sequences or alternatives.
+// Alternatives (P.alt()) try a list of given parsers one at a time, backtracking when parsing with
+// a given parser doesn't work and trying the next one.
 
-// The root literal that should be the leaf of every branch that isn't a newline or whitespace
+// Because of this it is important to consider the order of parsers in alternatives and to make
+// sure that nested parsers fail when they should (e.g. when you have an opening ** for bold it
+// is important that you make sure that you find a matching ** at the end in instead of
+//  accidentally consuming ** with a very generic parser that takes any token and that would
+// then not let you match this end string fragment and close the bold tag).
+
+// By and large this parser tries to define a special type for every individual parser plus a
+// parsing function. We don't really care about some of the differences (e.g. Text and NonBracketWord
+// have to be parsed differently but result in the same shape of data). To make things more
+// consistent though, every parser has it's own type name, even if they rather often just alias
+// to Text. This should make it easy in the future to switch more parsed types to actual concrete
+//  types if we need a richer AST for some reason.
+
+// Parsing bold and italic in markdown is a bit more involved than most parsing jobs for actual
+// programming languages that try harder to be parseable with a context free grammar. Consider
+// that bold and italic can be nested in each other but it doesn't really make sense to nest
+// bold in italic in bold (and this would create annoying ambiguity). For this reason this parser
+// is quite explicit and has 3 different kinds of bold and italic:
+// * one that can contain only contain text, whitespace and newlines
+// * one that can also contain Urls, markdown links and Details on Demand but not other italic or bold
+// * and finally one for the top level that can also contain the other one (bold that can have
+//     italic or italic that can have bold content) but in a non-nestable way
+
+// This might be overkill for our current needs but I wanted to err on the side of making the
+// parser strict and precisise now to avoid weird ambiguities in the future.
+
+//#region Parser types
+
+// The default interface for nodes that for now we don't want to track as a special type
 interface Text {
     type: "text"
     value: string
 }
-
-const fallbackTextParser = (): P.Parser<Text> =>
-    P.regex(/[^\s]+/).map((val) => ({ type: "text", value: val }))
 
 // A special literal that we use when building lines with TextWrap
 interface Newline {
     type: "newline"
 }
 
-const newlineParser = (): P.Parser<Newline> =>
-    P.regex(/\n/).result({ type: "newline" })
-
 // Another literal that's needed to know when to reinsert spaces (e.g. "**one**-two" versus "**one** -two")
 interface Whitespace {
     type: "whitespace"
 }
-
-// A less greedy version of P.whitespace that doesn't consume newlines
-const whitespaceParser = (): P.Parser<Whitespace> =>
-    P.regex(/ +/).result({ type: "whitespace" })
-
 interface PlainUrl {
     type: "plainUrl"
     href: string
 }
+type NonBracketWord = Text
+type NonParensWord = Text
+
+type NonSingleUnderscoreWord = Text
+type NonDoubleColonOrParensWord = Text
+type NonDoubleStarWord = Text
+type MarkdownLinkContent = Whitespace | Newline | NonBracketWord
+type DodCategory = Text
+type DodTerm = Text
+interface MarkdownLink {
+    type: "markdownLink"
+    children: MarkdownLinkContent[]
+    href: string
+}
+type DetailsOnDemandContent =
+    | Whitespace
+    | Newline
+    | PlainItalic
+    | PlainBold
+    | NonBracketWord
+
+interface DetailOnDemand {
+    type: "detailOnDemand"
+    category: string
+    term: string
+    children: DetailsOnDemandContent[]
+}
+
+type BoldWithoutItalicContent =
+    | Whitespace
+    | Newline
+    | PlainUrl
+    | MarkdownLink
+    | DetailOnDemand
+    | NonDoubleStarWord
+interface BoldWithoutItalic {
+    type: "boldWithoutItalic"
+    children: BoldWithoutItalicContent[]
+}
+type BoldContent =
+    | ItalicWithoutBold
+    | Whitespace
+    | Newline
+    | PlainUrl
+    | MarkdownLink
+    | DetailOnDemand
+    | NonDoubleStarWord
+
+interface Bold {
+    type: "bold"
+    children: BoldContent[]
+}
+
+type PlainBoldContent = Whitespace | Newline | NonDoubleStarWord
+interface PlainBold {
+    type: "plainBold"
+    children: PlainBoldContent[]
+}
+
+type ItalicWithoutBoldContent =
+    | Whitespace
+    | Newline
+    | PlainUrl
+    | MarkdownLink
+    | DetailOnDemand
+    | NonSingleUnderscoreWord
+interface ItalicWithoutBold {
+    type: "italicWithoutBold"
+    children: ItalicWithoutBoldContent[]
+}
+type ItalicContent =
+    | BoldWithoutItalic
+    | Whitespace
+    | Newline
+    | PlainUrl
+    | MarkdownLink
+    | DetailOnDemand
+    | NonSingleUnderscoreWord
+
+interface Italic {
+    type: "italic"
+    children: ItalicContent[]
+}
+
+type PlainItalicContent = Whitespace | Newline | NonSingleUnderscoreWord
+interface PlainItalic {
+    type: "plainItalic"
+    children: PlainItalicContent[]
+}
+
+interface DodMarkupRoot {
+    type: "DodMarkupRoot"
+    children: { type: string }[]
+}
+
+type InlineMarkup = PlainItalic | PlainBold
+type languagePartsType = typeof languageParts
+
+type MdParser = {
+    [P in keyof languagePartsType]: ReturnType<languagePartsType[P]>
+}
+
+// #endregion
+
+//#region Terminal parsers
+const fallbackTextParser = (): P.Parser<Text> =>
+    P.regex(/[^\s]+/).map((val) => ({ type: "text", value: val }))
+
+const newlineParser = (): P.Parser<Newline> =>
+    P.regex(/\n/).result({ type: "newline" })
+
+// A less greedy version of P.whitespace that doesn't consume newlines
+const whitespaceParser = (): P.Parser<Whitespace> =>
+    P.regex(/ +/).result({ type: "whitespace" })
 
 const plainUrlParser = () =>
     P.regex(urlRegex).map(
@@ -58,36 +189,23 @@ const urlRegex =
 const nonBracketWordParser: (r: MdParser) => P.Parser<NonBracketWord> = () =>
     P.regex(/[^\[\]\s]+/).map((val) => ({ type: "text", value: val })) //  no brackets, no WS
 
-type NonBracketWord = Text
-
 const nonParensWordParser: (r: MdParser) => P.Parser<NonParensWord> = () =>
     P.regex(/[^\(\)\s]+/).map((val) => ({ type: "text", value: val })) // no parens, no WS
-
-type NonParensWord = Text
 
 const nonDoubleColonOrParensWordParser: (
     r: MdParser
 ) => P.Parser<NonDoubleColonOrParensWord> = () =>
     P.regex(/([^\(\):\s]|:(?!:))+/).map((val) => ({ type: "text", value: val })) // no parens, no WS, no ::
 
-type NonDoubleColonOrParensWord = Text
-
 const nonSingleUnderscoreWordParser: (
     r: MdParser
 ) => P.Parser<NonSingleUnderscoreWord> = () =>
     P.regex(/[^_\s]+/).map((val) => ({ type: "text", value: val })) // no WS, no *
 
-type NonSingleUnderscoreWord = Text
-
 const nonDoubleStarWordParser: (
     r: MdParser
 ) => P.Parser<NonDoubleStarWord> = () =>
     P.regex(/([^*\s]|\*(?!\*))+/).map((val) => ({ type: "text", value: val })) // no WS, no **
-
-type NonDoubleStarWord = Text
-type MarkdownLinkContent = Whitespace | Newline | NonBracketWord
-
-type DodCategory = Text
 
 const dodCategoryParser: (r: MdParser) => P.Parser<DodCategory> = () =>
     P.regex(/([^\(\):\s]|:(?!:))+/).map((val) => ({
@@ -95,24 +213,15 @@ const dodCategoryParser: (r: MdParser) => P.Parser<DodCategory> = () =>
         value: val,
     })) // no WS, no parens, no ::
 
-type DodTerm = Text
-
 const dodTermParser: (r: MdParser) => P.Parser<DodTerm> = () =>
     P.regex(/([^\(\):\s]|:(?!:))+/).map((val) => ({
         type: "text",
         value: val,
     })) // no WS, no parens, no ::
 
-interface MarkdownLink {
-    type: "markdownLink"
-    children: MarkdownLinkContent[]
-    href: string
-}
+//#endregion
 
-// interface MarkdownLinkContent {
-//     type: "markdownLinkContent"
-//     value: Whitespace | Newline | NonBracketWord
-// }
+//#region Higher level parsers
 
 const markdownLinkContentParser: (
     r: MdParser
@@ -138,13 +247,6 @@ const markdownLinkParser: (r: MdParser) => P.Parser<MarkdownLink> = (
         href,
     }))
 
-type DetailsOnDemandContent =
-    | Whitespace
-    | Newline
-    | PlainItalic
-    | PlainBold
-    | NonBracketWord
-
 const detailOnDemandContentParser: (
     r: MdParser
 ) => P.Parser<DetailsOnDemandContent> = (r: MdParser) =>
@@ -156,13 +258,6 @@ const detailOnDemandContentParser: (
         r.plainItalic,
         r.nonBracketWord
     )
-
-interface DetailOnDemand {
-    type: "detailOnDemand"
-    category: string
-    term: string
-    children: DetailsOnDemandContent[]
-}
 
 const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
     r: MdParser
@@ -186,14 +281,6 @@ const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
         children,
     }))
 
-type BoldWithoutItalicContent =
-    | Whitespace
-    | Newline
-    | PlainUrl
-    | MarkdownLink
-    | DetailOnDemand
-    | NonDoubleStarWord
-
 const boldWithoutItalicContentParser: (
     r: MdParser
 ) => P.Parser<BoldWithoutItalicContent> = (r: MdParser) =>
@@ -206,11 +293,6 @@ const boldWithoutItalicContentParser: (
         r.nonDoubleStarWord
     )
 
-interface BoldWithoutItalic {
-    type: "boldWithoutItalic"
-    children: BoldWithoutItalicContent[]
-}
-
 const boldWithoutItalicParser: (r: MdParser) => P.Parser<BoldWithoutItalic> = (
     r: MdParser
 ) =>
@@ -222,15 +304,6 @@ const boldWithoutItalicParser: (r: MdParser) => P.Parser<BoldWithoutItalic> = (
         type: "boldWithoutItalic",
         children,
     }))
-
-type BoldContent =
-    | ItalicWithoutBold
-    | Whitespace
-    | Newline
-    | PlainUrl
-    | MarkdownLink
-    | DetailOnDemand
-    | NonDoubleStarWord
 
 const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
     r: MdParser
@@ -245,11 +318,6 @@ const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
         r.nonDoubleStarWord
     )
 
-interface Bold {
-    type: "bold"
-    children: BoldContent[]
-}
-
 const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
     P.seqObj<{ children: BoldContent[] }>(
         P.string("**"),
@@ -260,16 +328,9 @@ const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
         children,
     }))
 
-type PlainBoldContent = Whitespace | Newline | NonDoubleStarWord
-
 const plainBoldContentParser: (r: MdParser) => P.Parser<PlainBoldContent> = (
     r: MdParser
 ) => P.alt(r.whitespace, r.newline, r.nonDoubleStarWord)
-
-interface PlainBold {
-    type: "plainBold"
-    children: PlainBoldContent[]
-}
 
 const plainBoldParser: (r: MdParser) => P.Parser<PlainBold> = (r: MdParser) =>
     P.seqObj<PlainBold>(
@@ -280,14 +341,6 @@ const plainBoldParser: (r: MdParser) => P.Parser<PlainBold> = (r: MdParser) =>
         type: "plainBold",
         children,
     }))
-
-type ItalicWithoutBoldContent =
-    | Whitespace
-    | Newline
-    | PlainUrl
-    | MarkdownLink
-    | DetailOnDemand
-    | NonSingleUnderscoreWord
 
 const italicWithoutBoldContentParser: (
     r: MdParser
@@ -301,11 +354,6 @@ const italicWithoutBoldContentParser: (
         r.nonSingleUnderscoreWord
     )
 
-interface ItalicWithoutBold {
-    type: "italicWithoutBold"
-    children: ItalicWithoutBoldContent[]
-}
-
 const italicWithoutBoldParser: (r: MdParser) => P.Parser<ItalicWithoutBold> = (
     r: MdParser
 ) =>
@@ -317,15 +365,6 @@ const italicWithoutBoldParser: (r: MdParser) => P.Parser<ItalicWithoutBold> = (
         type: "italicWithoutBold",
         children,
     }))
-type ItalicContent =
-    | BoldWithoutItalic
-    | Whitespace
-    | Newline
-    | PlainUrl
-    | MarkdownLink
-    | DetailOnDemand
-    | NonSingleUnderscoreWord
-
 const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
     r: MdParser
 ) =>
@@ -339,11 +378,6 @@ const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
         r.nonSingleUnderscoreWord
     )
 
-interface Italic {
-    type: "italic"
-    children: ItalicContent[]
-}
-
 const italicParser: (r: MdParser) => P.Parser<Italic> = (r: MdParser) =>
     P.seqObj<Italic>(
         P.string("_"),
@@ -353,12 +387,6 @@ const italicParser: (r: MdParser) => P.Parser<Italic> = (r: MdParser) =>
         type: "italic",
         children,
     }))
-
-type PlainItalicContent = Whitespace | Newline | NonSingleUnderscoreWord
-interface PlainItalic {
-    type: "plainItalic"
-    children: PlainItalicContent[]
-}
 
 const plainItalicContentParser: (
     r: MdParser
@@ -383,19 +411,14 @@ const plainItalicParser: (r: MdParser) => P.Parser<PlainItalic> = (
 // thinking about this
 const anyTextParser = P.regex(/"[^\s]+"/)
 
-type InlineMarkup = PlainItalic | PlainBold
-
 const inlineMarkupParser = (r: MdParser) => P.alt(r.plainBold, r.plainItalic)
 
 const textParserWithInlineMarkup = (r: MdParser) =>
     P.alt(r.nonSingleUnderscoreWord, r.plainBold).atLeast(1)
 
-type ParserConstructor = (r: MdParser) => P.Parser<ParsedFragmentBase>
+//#endregion
 
-interface DodMarkupRoot {
-    type: "DodMarkupRoot"
-    children: { type: string }[]
-}
+//#region Top level language construction
 
 const markupTokensParser: (r: MdParser) => P.Parser<DodMarkupRoot> = (
     r: MdParser
@@ -450,10 +473,6 @@ const languageParts = {
     dodTerm: dodTermParser,
 } as const
 
-type languagePartsType = typeof languageParts
-
-type MdParser = {
-    [P in keyof languagePartsType]: ReturnType<languagePartsType[P]>
-}
-
 export const mdParser: MdParser = P.createLanguage(languageParts) as MdParser
+
+//#endregion
