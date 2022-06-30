@@ -827,12 +827,13 @@ main:not(.ChartEditorPage) {
     cursor: pointer;
 
     &:hover {
-        color: #333;
+        background-color: #c0c0c0;
     }
 
     &.isKey {
-        background-color: #333;
-        color: #eee;
+        svg {
+            margin-left: 5px;
+        }
     }
 }
 
