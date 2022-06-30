@@ -187,7 +187,7 @@
         "s-expression": "^3.1.1",
         "sass": "^1.52.1",
         "sass-loader": "^13.0.0",
-        "sharp": "^0.30.6",
+        "sharp": "^0.30.7",
         "shell-quote": "^1.7.3",
         "shelljs": "^0.8.5",
         "simple-git": "^3.7.1",
