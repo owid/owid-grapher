@@ -120,7 +120,7 @@ export class Chart extends BaseEntity {
                 chart.tags.push({
                     id: ct.tagId,
                     name: ct.tagName,
-                    isKey: ct.isKey,
+                    isKey: !!ct.isKey,
                 })
         }
     }
