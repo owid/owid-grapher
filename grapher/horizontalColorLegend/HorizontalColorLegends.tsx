@@ -259,7 +259,9 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         }))
         // Make sure the legend is big enough to avoid overlapping labels (including `raisedMode`)
         if (this.manager.equalSizeBins) {
-            const minBinWidth = this.fontSize * 3.5
+            // Try to keep the minimum close to the size of the "No data" bin,
+            // so they look visually balanced somewhat.
+            const minBinWidth = this.fontSize * 3.25
             const maxBinWidth =
                 max(
                     spaceRequirements.map(({ labelSpace }) =>
