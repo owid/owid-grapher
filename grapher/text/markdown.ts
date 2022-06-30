@@ -1,5 +1,15 @@
 import SimpleMarkdown, { TextNode, SingleASTNode } from "simple-markdown"
 import { isArray } from "../../clientUtils/Util.js"
+import {
+    IRText,
+    IRWhitespace,
+    IRBold,
+    IRItalic,
+    IRLineBreak,
+    IRLink,
+    IRToken,
+    IRFontParams,
+} from "./TextTokens.js"
 
 const mdInlineParse = SimpleMarkdown.defaultInlineParse
 
@@ -68,4 +78,46 @@ export function mdParse(
     tokens = splitTextTokens(tokens, / +/g, { type: "whitespace" })
     tokens = splitTextTokens(tokens, "\n", { type: "br" })
     return tokens
+}
+
+export function markdownToOwidTokens(
+    nodes: ExtendedNode[],
+    fontParams?: IRFontParams
+): IRToken[] {
+    return nodes.map((node): IRToken => {
+        if (node.type === "text") {
+            return new IRText(node.content, fontParams)
+        } else if (node.type === "br") {
+            return new IRLineBreak()
+        } else if (node.type === "whitespace") {
+            return new IRWhitespace(fontParams)
+        } else if (node.type === "strong") {
+            return new IRBold(
+                markdownToOwidTokens(
+                    // TODO it's always array
+                    isArray(node.content) ? node.content : [node.content],
+                    fontParams
+                )
+            )
+        } else if (node.type === "em") {
+            return new IRItalic(
+                markdownToOwidTokens(
+                    // TODO it's always array
+                    isArray(node.content) ? node.content : [node.content],
+                    fontParams
+                )
+            )
+        } else if (node.type === "link") {
+            return new IRLink(
+                node.target,
+                markdownToOwidTokens(
+                    // TODO it's always array
+                    isArray(node.content) ? node.content : [node.content],
+                    fontParams
+                )
+            )
+        } else {
+            throw new Error(`Unknown node type: ${node.type}`)
+        }
+    })
 }
