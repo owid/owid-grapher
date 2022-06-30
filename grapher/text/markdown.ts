@@ -96,7 +96,7 @@ export function markdownToTextTokens(
                 markdownToTextTokens(
                     // TODO it's always array
                     isArray(node.content) ? node.content : [node.content],
-                    fontParams
+                    { ...fontParams, fontWeight: 700 }
                 )
             )
         } else if (node.type === "em") {
