@@ -115,12 +115,13 @@ interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
     showTickMarks?: boolean
+    miniTooltip?: boolean
 }
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): JSX.Element {
-        const { dualAxis, showTickMarks } = this.props
+        const { dualAxis, showTickMarks, miniTooltip } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
         const verticalGridlines = verticalAxis.hideGridlines ? null : (
@@ -141,6 +142,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             <VerticalAxisComponent
                 bounds={bounds}
                 verticalAxis={verticalAxis}
+                miniTooltip={miniTooltip}
             />
         )
 
@@ -168,9 +170,10 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
+    miniTooltip?: boolean
 }> {
     render(): JSX.Element {
-        const { bounds, verticalAxis } = this.props
+        const { bounds, verticalAxis, miniTooltip } = this.props
         const { tickLabels, labelTextWrap } = verticalAxis
         const textColor = "#666"
 
@@ -200,7 +203,7 @@ export class VerticalAxisComponent extends React.Component<{
                             fill={textColor}
                             fontSize={verticalAxis.tickFontSize}
                         >
-                            {formattedValue}
+                            {miniTooltip ? label.value : formattedValue}
                         </text>
                     )
                 })}

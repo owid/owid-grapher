@@ -254,6 +254,7 @@ export class LineChart
     extends React.Component<{
         bounds?: Bounds
         manager: LineChartManager
+        miniTooltip?: boolean
     }>
     implements
         ChartInterface,
@@ -359,7 +360,9 @@ export class LineChart
     @computed private get manager(): LineChartManager {
         return this.props.manager
     }
-
+    @computed get miniTooltip(): boolean | undefined {
+        return this.props.miniTooltip
+    }
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
@@ -729,8 +732,14 @@ export class LineChart
                 />
             )
 
-        const { manager, tooltip, dualAxis, clipPath, activeXVerticalLine } =
-            this
+        const {
+            manager,
+            tooltip,
+            dualAxis,
+            clipPath,
+            activeXVerticalLine,
+            miniTooltip,
+        } = this
 
         const comparisonLines = manager.comparisonLines || []
 
@@ -757,7 +766,11 @@ export class LineChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                <DualAxisComponent
+                    dualAxis={dualAxis}
+                    showTickMarks={true}
+                    miniTooltip={miniTooltip}
+                />
                 <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (
                         <ComparisonLine

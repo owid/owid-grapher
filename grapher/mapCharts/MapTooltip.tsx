@@ -248,6 +248,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                             left: SPARKLINE_PADDING,
                                             right: SPARKLINE_PADDING,
                                         })}
+                                        miniTooltip={true}
                                     />
                                 </svg>
                             </div>
