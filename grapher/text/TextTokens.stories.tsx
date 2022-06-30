@@ -1,7 +1,7 @@
 import React from "react"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { markdownToOwidTokens, mdParse } from "./markdown.js"
+import { markdownToTextTokens, mdParse } from "./markdown.js"
 import { IRToken } from "./TextTokens.js"
 import { splitIntoLines } from "./TextTokensUtils.js"
 
@@ -46,7 +46,7 @@ _THE END_
     }
 
     @computed get tokens(): IRToken[] {
-        return markdownToOwidTokens(mdParse(this.markdown))
+        return markdownToTextTokens(mdParse(this.markdown))
     }
 
     render(): JSX.Element {

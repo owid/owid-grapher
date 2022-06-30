@@ -80,7 +80,7 @@ export function mdParse(
     return tokens
 }
 
-export function markdownToOwidTokens(
+export function markdownToTextTokens(
     nodes: ExtendedNode[],
     fontParams?: IRFontParams
 ): IRToken[] {
@@ -93,7 +93,7 @@ export function markdownToOwidTokens(
             return new IRWhitespace(fontParams)
         } else if (node.type === "strong") {
             return new IRBold(
-                markdownToOwidTokens(
+                markdownToTextTokens(
                     // TODO it's always array
                     isArray(node.content) ? node.content : [node.content],
                     fontParams
@@ -101,7 +101,7 @@ export function markdownToOwidTokens(
             )
         } else if (node.type === "em") {
             return new IRItalic(
-                markdownToOwidTokens(
+                markdownToTextTokens(
                     // TODO it's always array
                     isArray(node.content) ? node.content : [node.content],
                     fontParams
@@ -110,7 +110,7 @@ export function markdownToOwidTokens(
         } else if (node.type === "link") {
             return new IRLink(
                 node.target,
-                markdownToOwidTokens(
+                markdownToTextTokens(
                     // TODO it's always array
                     isArray(node.content) ? node.content : [node.content],
                     fontParams
