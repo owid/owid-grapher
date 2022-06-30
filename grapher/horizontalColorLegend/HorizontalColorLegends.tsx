@@ -236,7 +236,8 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
     private getNumericLabelMinWidth(bin: NumericBin): number {
         if (bin.text) {
-            return this.getTickLabelWidth(bin.text)
+            const tickLabelWidth = this.getTickLabelWidth(bin.text)
+            return tickLabelWidth + MINIMUM_LABEL_DISTANCE
         } else {
             const combinedLabelWidths = sum(
                 [bin.minText, bin.maxText].map(
@@ -436,9 +437,9 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             for (let j = index + 1; j < labels.length; j++) {
                 const l2 = labels[j]
                 if (
-                    l1.bounds.right + MINIMUM_LABEL_DISTANCE >=
+                    l1.bounds.right + MINIMUM_LABEL_DISTANCE >
                         l2.bounds.centerX ||
-                    (l2.bounds.left - MINIMUM_LABEL_DISTANCE <=
+                    (l2.bounds.left - MINIMUM_LABEL_DISTANCE <
                         l1.bounds.centerX &&
                         !l2.priority)
                 )
@@ -453,7 +454,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         for (let index = 1; index < labels.length; index++) {
             const l1 = labels[index - 1],
                 l2 = labels[index]
-            if (l1.bounds.right + MINIMUM_LABEL_DISTANCE >= l2.bounds.left) {
+            if (l1.bounds.right + MINIMUM_LABEL_DISTANCE > l2.bounds.left) {
                 raisedMode = true
                 break
             }
