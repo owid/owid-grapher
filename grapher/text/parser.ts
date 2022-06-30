@@ -143,16 +143,23 @@ const markdownLinkParser: (r: MdParser) => P.Parser<MarkdownLink> = (
         href,
     }))
 
-type DetailsOnDemandContent = Whitespace | Newline | NonBracketWord
+type DetailsOnDemandContent =
+    | Whitespace
+    | Newline
+    | PlainItalic
+    | PlainBold
+    | NonBracketWord
 
 const detailOnDemandContentParser: (
     r: MdParser
 ) => P.Parser<DetailsOnDemandContent> = (r: MdParser) =>
     P.alt(
         // In TS 4.7 parsimmon could type the parser as Covariant on its type parameter which would remove the need for these casts
-        r.whitespace as unknown as P.Parser<DetailsOnDemandContent>,
-        r.newline as unknown as P.Parser<DetailsOnDemandContent>,
-        r.nonBracketWord as unknown as P.Parser<DetailsOnDemandContent>
+        r.whitespace,
+        r.newline,
+        r.plainBold,
+        r.plainItalic,
+        r.nonBracketWord
     )
 
 interface DetailOnDemand {
@@ -184,8 +191,45 @@ const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
         children,
     }))
 
+type BoldWithoutItalicContent =
+    | Whitespace
+    | Newline
+    | PlainUrl
+    | MarkdownLink
+    | DetailOnDemand
+    | NonDoubleStarWord
+
+const boldWithoutItalicContentParser: (
+    r: MdParser
+) => P.Parser<BoldWithoutItalicContent> = (r: MdParser) =>
+    P.alt(
+        r.whitespace,
+        r.newline,
+        r.detailOnDemand,
+        r.markdownLink,
+        r.plainUrl,
+        r.nonDoubleStarWord
+    )
+
+interface BoldWithoutItalic {
+    type: "boldWithoutItalic"
+    children: BoldWithoutItalicContent[]
+}
+
+const boldWithoutItalicParser: (r: MdParser) => P.Parser<BoldWithoutItalic> = (
+    r: MdParser
+) =>
+    P.seqObj<{ children: BoldWithoutItalicContent[] }>(
+        P.string("**"),
+        ["children", r.boldWithoutItalicContent.atLeast(1)],
+        P.string("**")
+    ).map(({ children }) => ({
+        type: "boldWithoutItalic",
+        children,
+    }))
+
 type BoldContent =
-    | PlainItalic
+    | ItalicWithoutBold
     | Whitespace
     | Newline
     | PlainUrl
@@ -199,10 +243,10 @@ const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
     P.alt(
         r.whitespace,
         r.newline,
-        r.plainItalic,
-        r.plainUrl,
-        r.markdownLink,
+        r.italicWithoutBold,
         r.detailOnDemand,
+        r.markdownLink,
+        r.plainUrl,
         r.nonDoubleStarWord
     )
 
@@ -212,7 +256,7 @@ interface Bold {
 }
 
 const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
-    P.seqObj<Bold>(
+    P.seqObj<{ children: BoldContent[] }>(
         P.string("**"),
         ["children", r.boldContent.atLeast(1)],
         P.string("**")
@@ -242,8 +286,44 @@ const plainBoldParser: (r: MdParser) => P.Parser<PlainBold> = (r: MdParser) =>
         children,
     }))
 
+type ItalicWithoutBoldContent =
+    | Whitespace
+    | Newline
+    | PlainUrl
+    | MarkdownLink
+    | DetailOnDemand
+    | NonSingleUnderscoreWord
+
+const italicWithoutBoldContentParser: (
+    r: MdParser
+) => P.Parser<ItalicWithoutBoldContent> = (r: MdParser) =>
+    P.alt(
+        r.whitespace,
+        r.newline,
+        r.detailOnDemand,
+        r.markdownLink,
+        r.plainUrl,
+        r.nonSingleUnderscoreWord
+    )
+
+interface ItalicWithoutBold {
+    type: "italicWithoutBold"
+    children: ItalicWithoutBoldContent[]
+}
+
+const italicWithoutBoldParser: (r: MdParser) => P.Parser<ItalicWithoutBold> = (
+    r: MdParser
+) =>
+    P.seqObj<{ children: ItalicWithoutBoldContent[] }>(
+        P.string("_"),
+        ["children", r.italicWithoutBoldContent.atLeast(1)],
+        P.string("_")
+    ).map(({ children }) => ({
+        type: "italicWithoutBold",
+        children,
+    }))
 type ItalicContent =
-    | PlainBold
+    | BoldWithoutItalic
     | Whitespace
     | Newline
     | PlainUrl
@@ -257,10 +337,10 @@ const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
     P.alt(
         r.whitespace,
         r.newline,
-        r.plainBold,
-        r.plainUrl,
-        r.markdownLink,
+        r.boldWithoutItalic,
         r.detailOnDemand,
+        r.markdownLink,
+        r.plainUrl,
         r.nonSingleUnderscoreWord
     )
 
@@ -288,7 +368,7 @@ interface PlainItalic {
 const plainItalicContentParser: (
     r: MdParser
 ) => P.Parser<PlainItalicContent> = (r: MdParser) =>
-    P.alt(r.whitespace, r.newline, r.nonDoubleStarWord)
+    P.alt(r.whitespace, r.newline, r.nonSingleUnderscoreWord)
 
 const plainItalicParser: (r: MdParser) => P.Parser<PlainItalic> = (
     r: MdParser
@@ -360,8 +440,12 @@ const languageParts = {
     markdownLinkContent: markdownLinkContentParser,
     boldContent: boldContentParser,
     plainBoldContent: plainBoldContentParser,
+    boldWithoutItalic: boldWithoutItalicParser,
+    boldWithoutItalicContent: boldWithoutItalicContentParser,
     plainItalicContent: plainItalicContentParser,
     italicContent: italicContentParser,
+    italicWithoutBold: italicWithoutBoldParser,
+    italicWithoutBoldContent: italicWithoutBoldContentParser,
     nonBracketWord: nonBracketWordParser,
     nonParensWord: nonParensWordParser,
     nonDoubleColonOrParensWord: nonDoubleColonOrParensWordParser,
