@@ -91,19 +91,7 @@ export class IRLineBreak implements IRToken {
 }
 
 export abstract class IRElement implements IRToken {
-    public ownFontParams: IRFontParams = {}
-
-    constructor(
-        public children: IRToken[],
-        public parentFontParams?: IRFontParams
-    ) {}
-
-    @imemo get fontParams(): IRFontParams {
-        return {
-            ...this.parentFontParams,
-            ...this.ownFontParams,
-        }
-    }
+    constructor(public children: IRToken[], public fontParams?: IRFontParams) {}
 
     @imemo get width(): number {
         return getLineWidth(this.children)
@@ -153,9 +141,8 @@ export abstract class IRElement implements IRToken {
 }
 
 export class IRBold extends IRElement {
-    ownFontParams: IRFontParams = { fontWeight: 700 }
     getClone(children: IRToken[]): IRBold {
-        return new IRBold(children, this.parentFontParams)
+        return new IRBold(children, this.fontParams)
     }
     toHTML(): JSX.Element {
         return <strong>{this.children.map((child) => child.toHTML())}</strong>
@@ -171,7 +158,7 @@ export class IRBold extends IRElement {
 
 export class IRItalic extends IRElement {
     getClone(children: IRToken[]): IRItalic {
-        return new IRItalic(children, this.parentFontParams)
+        return new IRItalic(children, this.fontParams)
     }
     toHTML(): JSX.Element {
         return <em>{this.children.map((child) => child.toHTML())}</em>
@@ -189,12 +176,12 @@ export class IRLink extends IRElement {
     constructor(
         public href: string,
         children: IRToken[],
-        parentFontParams?: IRFontParams
+        fontParams?: IRFontParams
     ) {
-        super(children, parentFontParams)
+        super(children, fontParams)
     }
     getClone(children: IRToken[]): IRLink {
-        return new IRLink(this.href, children, this.parentFontParams)
+        return new IRLink(this.href, children, this.fontParams)
     }
     toHTML(): JSX.Element {
         return (
