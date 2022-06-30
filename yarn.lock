@@ -1493,10 +1493,10 @@
   dependencies:
     prop-types "^15.8.1"
 
-"@handsontable/react@^12.0.1":
-  version "12.0.1"
-  resolved "https://registry.yarnpkg.com/@handsontable/react/-/react-12.0.1.tgz#a3a12753b3b02a220e1717d387cd3b007bf59957"
-  integrity sha512-WmxzC7Gf7Ly7Xh8qJBsxrcCv1mWrnGuxamV6kH4ALomPvcvfn0yhoIez4EipoJABTY7laEpP4wYlO6STVsv9vw==
+"@handsontable/react@^12.1.0":
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/@handsontable/react/-/react-12.1.0.tgz#df6daab1cec46d01380e39c7cb39bb5e99fedc86"
+  integrity sha512-OWSb0fvLDsXjv2/L2BBbWh0mxnBr6g5Bwn070a0Npfuz2g5P6UYmU/4LMtO1K8O2ExlgEcdfFEiWIYE0gqGjUw==
 
 "@humanwhocodes/config-array@^0.9.2":
   version "0.9.5"
@@ -9908,17 +9908,17 @@ handlebars@^4.7.7:
   optionalDependencies:
     uglify-js "^3.1.4"
 
-handsontable@^12.0.1:
-  version "12.0.1"
-  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-12.0.1.tgz#46e3e2f5ca6672edd1075e3aec112d0cd626ea03"
-  integrity sha512-OUQzIrdqk0Ty36OJ0XlV4d3ImW2fn0alxD0AnnjBxRS/oNxteQ9Qa5cdL7JAusfer6Fv0ODmIVsZmJxIZiyvww==
+handsontable@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-12.1.0.tgz#6ce3ba572bc6c46b546320e0c1e7788b4e0b052b"
+  integrity sha512-MdplUt3MNc1Ir6dTIlwHUOjCm0GTvB3RpKvvBgb9Jzp/TYVZ3YbfpS6II6Q5sYpUh40ILgOkDtS9gdZTM/OFsQ==
   dependencies:
     "@types/pikaday" "1.7.4"
     core-js "^3.0.0"
     dompurify "^2.1.1"
     moment "2.29.3"
     numbro "2.1.2"
-    pikaday "1.8.0"
+    pikaday "1.8.2"
   optionalDependencies:
     hyperformula "^2.0.0"
 
@@ -14307,10 +14307,10 @@ pify@^4.0.1:
   resolved "https://registry.yarnpkg.com/pify/-/pify-4.0.1.tgz#4b2cd25c50d598735c50292224fd8c6df41e3231"
   integrity sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==
 
-pikaday@1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/pikaday/-/pikaday-1.8.0.tgz#ce930e257042e852e6aadee1115e01554b2d71c5"
-  integrity sha512-SgGxMYX0NHj9oQnMaSyAipr2gOrbB4Lfs/TJTb6H6hRHs39/5c5VZi73Q8hr53+vWjdn6HzkWcj8Vtl3c9ziaA==
+pikaday@1.8.2:
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/pikaday/-/pikaday-1.8.2.tgz#72cc73fab7ccc068cbdf7dcaa1ce400fcfd894e3"
+  integrity sha512-TNtsE+34BIax3WtkB/qqu5uepV1McKYEgvL3kWzU7aqPCpMEN6rBF3AOwu4WCwAealWlBGobXny/9kJb49C1ew==
 
 pinkie-promise@^2.0.0:
   version "2.0.1"
