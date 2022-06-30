@@ -1,0 +1,99 @@
+Newline
+
+Whitespace
+
+PlainUrl = Regex
+
+MarkdownUrl =
+    [
+        manyOf
+            bold
+            italic
+            whitespace
+            newline
+            nonBrackets
+    ]
+    (
+        PlainUrl
+        NonParentsWord
+    )
+
+DoDCategory = Regex // no ::, no ()
+
+DoDTerm = Regex // no :: no ()
+
+DetailsOnDemand =
+    [
+        manyOf
+            whitespace
+            newline
+            nonBracketsWord
+    ]
+    (
+    hover
+    ::
+        DodCategory
+    ::
+        dodTerm
+    )
+
+PlainBold =
+    **
+        manyOf
+            whitespace
+            newline
+            PlainUrl
+            MarkdownUrl
+            DetailsOnDemanwd
+            NonDoubleStarsWord
+    **
+
+Bold =
+    **
+        manyOf
+            PlainItalic
+            whitespace
+            newline
+            PlainUrl
+            MarkdownUrl
+            DetailsOnDemand
+            NonDoubleStarsWord
+    **
+
+
+PlainItalic =
+    *
+        manyOf
+            whitespace
+            newline
+            PlainUrl
+            MarkdownUrl
+            DetailsOnDemand
+            NonSingleStarWord
+    *
+
+Italic =
+    *
+        manyOf
+            PlainBold
+            whitespace
+            newline
+            PlainUrl
+            MarkdownUrl
+            DetailsOnDemand
+            NonSingleStarWord
+    *
+
+Rest =
+    Any // fallback parser if we want to be lenient and not have incomplete constructs fail parsing
+
+Root =
+    manyOf
+        whitespace
+        newline
+        PlainUrl
+        MarkdownUrl
+        DetailsOnDemand
+        Bold
+        Italic
+    Rest
