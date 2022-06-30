@@ -53,7 +53,9 @@ export class IRWhitespace implements IRToken {
         return Bounds.forText(" ", this.fontParams).width
     }
     getBreakpointBefore(): IRBreakpoint {
-        return { tokenIndex: 0, tokenStartOffset: 0, breakOffset: 0 }
+        // Have to give it some `breakOffset` because we designate locations
+        // to split based on it, and `0` leads to being exactly in between tokens.
+        return { tokenIndex: 0, tokenStartOffset: 0, breakOffset: 0.0001 }
     }
     toHTML(): JSX.Element {
         // TODO change to space
