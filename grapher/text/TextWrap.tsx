@@ -1,6 +1,6 @@
 import { isEmpty, max, stripHTML, linkify } from "../../clientUtils/Util.js"
 import { computed } from "mobx"
-import { Bounds } from "../../clientUtils/Bounds.js"
+import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import React from "react"
 
 declare type FontSize = number
@@ -32,7 +32,7 @@ export const shortenForTargetWidth = (
     fontSettings: {
         fontSize?: number
         fontWeight?: number
-        fontFamily?: string
+        fontFamily?: FontFamily
     } = {}
 ): string => {
     // use binary search to find the largest substring that fits within the target width

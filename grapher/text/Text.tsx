@@ -1,5 +1,5 @@
 import React from "react"
-import { Bounds } from "../../clientUtils/Bounds.js"
+import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { omit } from "../../clientUtils/Util.js"
 
 // The default SVG text behavior is to put the text on *top* of the specified y coordinate
@@ -10,6 +10,7 @@ interface TextProps extends React.SVGProps<SVGTextElement> {
     x: number
     y: number
     fontSize: number
+    fontFamily?: FontFamily
     children: string
 }
 
@@ -17,7 +18,7 @@ export class Text extends React.Component<TextProps> {
     render(): JSX.Element {
         const bounds = Bounds.forText(this.props.children, {
             fontSize: this.props.fontSize,
-            fontFamily: this.props["fontFamily"],
+            fontFamily: this.props.fontFamily,
         })
         const y = this.props.y + bounds.height - bounds.height * 0.2
 
