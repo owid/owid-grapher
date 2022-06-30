@@ -1,7 +1,12 @@
 import React from "react"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
-import { sum } from "../../clientUtils/Util.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
+import {
+    getBreakpointBefore,
+    getLineWidth,
+    lineToPlaintext,
+    splitLineAtBreakpoint,
+} from "./TextTokensUtils.js"
 
 export interface IRFontParams {
     fontSize?: number
@@ -9,29 +14,46 @@ export interface IRFontParams {
     fontFamily?: FontFamily
 }
 
+export interface IRBreakpoint {
+    tokenIndex: number
+    tokenStartOffset: number
+    breakOffset: number
+}
+
 export interface IRToken {
     width: number
+    getBreakpointBefore(targetWidth: number): IRBreakpoint | undefined
     toHTML(): JSX.Element | undefined
     toSVG(): JSX.Element | undefined
+    toPlaintext(): string | undefined
 }
 
 export class IRText implements IRToken {
-    constructor(private text: string, private fontParams?: IRFontParams) {}
+    constructor(public text: string, public fontParams?: IRFontParams) {}
     @imemo get width(): number {
         return Bounds.forText(this.text, this.fontParams).width
+    }
+    getBreakpointBefore(): undefined {
+        return undefined
     }
     toHTML(): JSX.Element {
         return <React.Fragment>{this.text}</React.Fragment>
     }
     toSVG(): JSX.Element {
         return <React.Fragment>{this.text}</React.Fragment>
+    }
+    toPlaintext(): string {
+        return this.text
     }
 }
 
 export class IRWhitespace implements IRToken {
-    constructor(private fontParams?: IRFontParams) {}
-    get width(): number {
+    constructor(public fontParams?: IRFontParams) {}
+    @imemo get width(): number {
         return Bounds.forText(" ", this.fontParams).width
+    }
+    getBreakpointBefore(): IRBreakpoint {
+        return { tokenIndex: 0, tokenStartOffset: 0, breakOffset: 0 }
     }
     toHTML(): JSX.Element {
         // TODO change to space
@@ -40,12 +62,18 @@ export class IRWhitespace implements IRToken {
     toSVG(): JSX.Element {
         // TODO change to space
         return <React.Fragment>&nbsp;</React.Fragment>
+    }
+    toPlaintext(): string {
+        return " "
     }
 }
 
 export class IRLineBreak implements IRToken {
     get width(): number {
         return 0
+    }
+    getBreakpointBefore(): undefined {
+        return undefined
     }
     toHTML(): JSX.Element {
         return <br />
@@ -55,30 +83,71 @@ export class IRLineBreak implements IRToken {
         // whatever procedure does text reflow.
         return undefined
     }
+    toPlaintext(): string {
+        return "\n"
+    }
 }
 
-abstract class IRElement implements IRToken {
+export abstract class IRElement implements IRToken {
     public ownFontParams: IRFontParams = {}
 
     constructor(
-        protected children: IRToken[],
-        protected parentFontParams?: IRFontParams
+        public children: IRToken[],
+        public parentFontParams?: IRFontParams
     ) {}
 
-    get fontParams(): IRFontParams {
+    @imemo get fontParams(): IRFontParams {
         return {
             ...this.parentFontParams,
             ...this.ownFontParams,
         }
     }
 
-    get width(): number {
-        return sum(this.children.map((token) => token.width))
+    @imemo get width(): number {
+        return getLineWidth(this.children)
+    }
+
+    getBreakpointBefore(targetWidth: number): IRBreakpoint | undefined {
+        return getBreakpointBefore(this.children, targetWidth)
+    }
+
+    splitBefore(maxWidth: number): {
+        before: IRToken | undefined
+        after: IRToken | undefined
+    } {
+        const { before, after } = splitLineAtBreakpoint(this.children, maxWidth)
+        return {
+            // do not create tokens without children
+            before: before.length ? this.getClone(before) : undefined,
+            after: after.length ? this.getClone(after) : undefined,
+        }
+    }
+
+    splitOnNextLineBreak(): { before?: IRToken; after?: IRToken } {
+        const index = this.children.findIndex(
+            (token) => token instanceof IRLineBreak
+        )
+        if (index >= 0) {
+            return {
+                before:
+                    // do not create an empty element if the first child
+                    // is a newline
+                    index === 0
+                        ? undefined
+                        : this.getClone(this.children.slice(0, index)),
+                after: this.getClone(this.children.slice(index + 1)),
+            }
+        }
+        return { before: this }
     }
 
     abstract getClone(children: IRToken[]): IRElement
     abstract toHTML(): JSX.Element
     abstract toSVG(): JSX.Element
+
+    toPlaintext(): string {
+        return lineToPlaintext(this.children)
+    }
 }
 
 export class IRBold extends IRElement {
