@@ -117,12 +117,7 @@ interface MarkdownLink {
 const markdownLinkContentParser: (
     r: MdParser
 ) => P.Parser<MarkdownLinkContent> = (r: MdParser) =>
-    P.alt(
-        // In TS 4.7 parsimmon could type the parser as Covariant on its type parameter which would remove the need for these casts
-        r.whitespace as P.Parser<MarkdownLinkContent>,
-        r.newline as P.Parser<MarkdownLinkContent>,
-        r.nonBracketWord as P.Parser<MarkdownLinkContent>
-    )
+    P.alt(r.whitespace, r.newline, r.plainBold, r.plainItalic, r.nonBracketWord)
 
 const markdownLinkParser: (r: MdParser) => P.Parser<MarkdownLink> = (
     r: MdParser
