@@ -1,14 +1,20 @@
-Newline
+Newline =
+    Regex for newline
 
-Whitespace
+Whitespace =
+    Regex for whitespace (excl newline)
 
-PlainUrl = Regex
+PlainUrl =
+    Regex for URL
+
+NonBrackets =
+    Regex for chars other than [ or ]
 
 MarkdownUrl =
     [
-        manyOf
-            bold
-            italic
+        atLeastOneOf
+            plainBold
+            plainItalic
             whitespace
             newline
             nonBrackets
