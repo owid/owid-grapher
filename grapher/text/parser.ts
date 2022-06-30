@@ -3,17 +3,23 @@ import P from "parsimmon"
 // An AST inspired by MDAST
 // Deviates because we want to track individual words, whitespace, and newlines to use with TextWrap and our SVG exporter
 
+// // type infer experiment below
+// type Parser<ParsedType> = ParsedType extends P.Parser<infer ParsedType>
+//     ? ParsedType
+//     : never
+
+interface ParsedFragmentBase {
+    type: string
+}
+
 // The root literal that should be the leaf of every branch that isn't a newline or whitespace
 interface Text {
     type: "text"
     value: string
 }
 
-const characterRegex =
-    /[!"#$%&'+,-.\/0123456789;<=>?\(\)ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz£­°±²³µ¹éü ‑–—‘’“”•⁵₀₁₂₃₄₅−≥ﬁ]+/
-
-export const textParser = (): P.Parser<Text> =>
-    P.regex(characterRegex).map((value) => ({ type: "text", value }))
+const fallbackTextParser = (): P.Parser<Text> =>
+    P.regex(/[^\s]+/).map((val) => ({ type: "text", value: val }))
 
 // A special literal that we use when building lines with TextWrap
 interface Newline {
@@ -32,123 +38,343 @@ interface Whitespace {
 const whitespaceParser = (): P.Parser<Whitespace> =>
     P.regex(/ +/).result({ type: "whitespace" })
 
-interface Node {
-    type: string
-    children: (Text | Node | Whitespace | Newline)[]
+interface PlainUrl {
+    type: "plainUrl"
+    href: string
 }
 
-type NodeType = "bold" | "italic" | "url" | "detailOnDemand"
+const plainUrlParser = () =>
+    P.regex(urlRegex).map(
+        (result): PlainUrl => ({
+            type: "plainUrl",
+            href: result,
+        })
+    )
 
-interface MarkdownNode<T extends NodeType> extends Node {
-    type: T
+// https://urlregex.com
+const urlRegex =
+    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/
+
+const nonBracketWordParser: (r: MdParser) => P.Parser<NonBracketWord> = () =>
+    P.regex(/[^\[\]\s]+/).map((val) => ({ type: "text", value: val })) //  no brackets, no WS
+
+type NonBracketWord = Text
+
+const nonParensWordParser: (r: MdParser) => P.Parser<NonParensWord> = () =>
+    P.regex(/[^\(\)\s]+/).map((val) => ({ type: "text", value: val })) // no parens, no WS
+
+type NonParensWord = Text
+
+const nonDoubleColonOrParensWordParser: (
+    r: MdParser
+) => P.Parser<NonDoubleColonOrParensWord> = () =>
+    P.regex(/([^\(\):\s]|:(?!:))+/).map((val) => ({ type: "text", value: val })) // no parens, no WS, no ::
+
+type NonDoubleColonOrParensWord = Text
+
+const nonSingleUnderscoreWordParser: (
+    r: MdParser
+) => P.Parser<NonSingleUnderscoreWord> = () =>
+    P.regex(/[^_\s]+/).map((val) => ({ type: "text", value: val })) // no WS, no *
+
+type NonSingleUnderscoreWord = Text
+
+const nonDoubleStarWordParser: (
+    r: MdParser
+) => P.Parser<NonDoubleStarWord> = () =>
+    P.regex(/([^*\s]|\*(?!\*))+/).map((val) => ({ type: "text", value: val })) // no WS, no **
+
+type NonDoubleStarWord = Text
+type MarkdownLinkContent = Whitespace | Newline | NonBracketWord
+
+type DodCategory = Text
+
+const dodCategoryParser: (r: MdParser) => P.Parser<DodCategory> = () =>
+    P.regex(/([^\(\):\s]|:(?!:))+/).map((val) => ({
+        type: "text",
+        value: val,
+    })) // no WS, no parens, no ::
+
+type DodTerm = Text
+
+const dodTermParser: (r: MdParser) => P.Parser<DodTerm> = () =>
+    P.regex(/([^\(\):\s]|:(?!:))+/).map((val) => ({
+        type: "text",
+        value: val,
+    })) // no WS, no parens, no ::
+
+interface MarkdownLink {
+    type: "markdownLink"
+    children: MarkdownLinkContent[]
+    href: string
 }
 
-const boldParser = (r: P.Language): P.Parser<MarkdownNode<"bold">> =>
-    P.seqObj<MarkdownNode<"bold">>(
+// interface MarkdownLinkContent {
+//     type: "markdownLinkContent"
+//     value: Whitespace | Newline | NonBracketWord
+// }
+
+const markdownLinkContentParser: (
+    r: MdParser
+) => P.Parser<MarkdownLinkContent> = (r: MdParser) =>
+    P.alt(
+        // In TS 4.7 parsimmon could type the parser as Covariant on its type parameter which would remove the need for these casts
+        r.whitespace as P.Parser<MarkdownLinkContent>,
+        r.newline as P.Parser<MarkdownLinkContent>,
+        r.nonBracketWord as P.Parser<MarkdownLinkContent>
+    )
+
+const markdownLinkParser: (r: MdParser) => P.Parser<MarkdownLink> = (
+    r: MdParser
+) =>
+    P.seqObj<{ children: MarkdownLinkContent[]; href: string }>(
+        P.string("["),
+        [
+            "children",
+            r.markdownLinkContent /* as P.Parser<MarkdownLinkContent> */
+                .atLeast(1),
+        ],
+        P.string("]("),
+        ["href", P.regex(urlRegex)],
+        P.string(")")
+    ).map(({ children, href }) => ({
+        type: "markdownLink",
+        children,
+        href,
+    }))
+
+type DetailsOnDemandContent = Whitespace | Newline | NonBracketWord
+
+const detailOnDemandContentParser: (
+    r: MdParser
+) => P.Parser<DetailsOnDemandContent> = (r: MdParser) =>
+    P.alt(
+        // In TS 4.7 parsimmon could type the parser as Covariant on its type parameter which would remove the need for these casts
+        r.whitespace as unknown as P.Parser<DetailsOnDemandContent>,
+        r.newline as unknown as P.Parser<DetailsOnDemandContent>,
+        r.nonBracketWord as unknown as P.Parser<DetailsOnDemandContent>
+    )
+
+interface DetailOnDemand {
+    type: "detailOnDemand"
+    category: string
+    term: string
+    children: DetailsOnDemandContent[]
+}
+
+const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
+    r: MdParser
+) =>
+    P.seqObj<{
+        category: Text
+        term: Text
+        children: DetailsOnDemandContent[]
+    }>(
+        P.string("["),
+        ["children", r.detailOnDemandContent.atLeast(1)],
+        P.string("](hover::"),
+        ["category", r.dodCategory],
+        P.string("::"),
+        ["term", r.dodTerm],
+        P.string(")")
+    ).map(({ children, category, term }) => ({
+        type: "detailOnDemand",
+        category: category.value,
+        term: term.value,
+        children,
+    }))
+
+type BoldContent =
+    | PlainItalic
+    | Whitespace
+    | Newline
+    | PlainUrl
+    | MarkdownLink
+    | DetailOnDemand
+    | NonDoubleStarWord
+
+const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
+    r: MdParser
+) =>
+    P.alt(
+        r.whitespace,
+        r.newline,
+        r.plainItalic,
+        r.plainUrl,
+        r.markdownLink,
+        r.detailOnDemand,
+        r.nonDoubleStarWord
+    )
+
+interface Bold {
+    type: "bold"
+    children: BoldContent[]
+}
+
+const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
+    P.seqObj<Bold>(
         P.string("**"),
-        ["children", r.value],
+        ["children", r.boldContent.atLeast(1)],
         P.string("**")
     ).map(({ children }) => ({
         type: "bold",
         children,
     }))
 
-const italicParser = (r: P.Language): P.Parser<MarkdownNode<"italic">> =>
-    P.seqObj<Node>(P.string("_"), ["children", r.value], P.string("_")).map(
-        ({ children }) => ({
-            type: "italic",
-            children,
-        })
+type PlainBoldContent = Whitespace | Newline | NonDoubleStarWord
+
+const plainBoldContentParser: (r: MdParser) => P.Parser<PlainBoldContent> = (
+    r: MdParser
+) => P.alt(r.whitespace, r.newline, r.nonDoubleStarWord)
+
+interface PlainBold {
+    type: "plainBold"
+    children: PlainBoldContent[]
+}
+
+const plainBoldParser: (r: MdParser) => P.Parser<PlainBold> = (r: MdParser) =>
+    P.seqObj<PlainBold>(
+        P.string("**"),
+        ["children", r.plainBoldContent.atLeast(1)],
+        P.string("**")
+    ).map(({ children }) => ({
+        type: "plainBold",
+        children,
+    }))
+
+type ItalicContent =
+    | PlainBold
+    | Whitespace
+    | Newline
+    | PlainUrl
+    | MarkdownLink
+    | DetailOnDemand
+    | NonSingleUnderscoreWord
+
+const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
+    r: MdParser
+) =>
+    P.alt(
+        r.whitespace,
+        r.newline,
+        r.plainBold,
+        r.plainUrl,
+        r.markdownLink,
+        r.detailOnDemand,
+        r.nonSingleUnderscoreWord
     )
 
-interface UrlNode extends MarkdownNode<"url"> {
-    href: string
+interface Italic {
+    type: "italic"
+    children: ItalicContent[]
 }
 
-// https://urlregex.com
-const urlRegex =
-    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/
-
-const markdownUrlParser = (r: Language): P.Parser<UrlNode> =>
-    P.seqObj<{ children: LanguageSpec["value"]; href: string }>(
-        P.string("["),
-        ["children", r.phrasing.many()],
-        P.string("]("),
-        ["href", P.regex(urlRegex)],
-        P.string(")")
-    ).map(({ children, href }) => ({
-        type: "url",
-        children,
-        href,
-    }))
-
-const plainURLParser = (): P.Parser<UrlNode> =>
-    P.regex(urlRegex).map((result) => ({
-        type: "url",
-        children: [{ type: "text", value: result }],
-        href: result,
-    }))
-
-const urlParser = (r: Language): P.Parser<UrlNode> =>
-    P.alt(markdownUrlParser(r), plainURLParser())
-
-interface DetailOnDemandNode extends MarkdownNode<"detailOnDemand"> {
-    category: string
-    term: string
-}
-
-const detailOnDemandParser = (r: Language): P.Parser<DetailOnDemandNode> =>
-    P.seqObj<{
-        category: string
-        term: string
-        children: LanguageSpec["value"]
-    }>(
-        P.string("["),
-        ["children", r.phrasing.many()],
-        P.string("](hover::"),
-        ["category", P.letters],
-        P.string("::"),
-        ["term", P.letters],
-        P.string(")")
-    ).map(({ children, category, term }) => ({
-        type: "detailOnDemand",
-        category,
-        term,
+const italicParser: (r: MdParser) => P.Parser<Italic> = (r: MdParser) =>
+    P.seqObj<Italic>(
+        P.string("_"),
+        ["children", r.italicContent.atLeast(1)],
+        P.string("_")
+    ).map(({ children }) => ({
+        type: "italic",
         children,
     }))
 
-interface LanguageSpec {
-    text: Text
-    bold: MarkdownNode<"bold">
-    italic: MarkdownNode<"italic">
-    whitespace: Whitespace
-    newline: Newline
-    url: UrlNode
-    detailOnDemand: DetailOnDemandNode
-    phrasing: Whitespace | MarkdownNode<"bold"> | MarkdownNode<"italic"> | Text
-    wrappers: UrlNode | DetailOnDemandNode
-    value: (
-        | Newline
-        | UrlNode
-        | DetailOnDemandNode
-        | Whitespace
-        | MarkdownNode<"bold">
-        | MarkdownNode<"italic">
-        | Text
-    )[]
+type PlainItalicContent = Whitespace | Newline | NonSingleUnderscoreWord
+interface PlainItalic {
+    type: "plainItalic"
+    children: PlainItalicContent[]
 }
 
-type Language = P.TypedLanguage<LanguageSpec>
+const plainItalicContentParser: (
+    r: MdParser
+) => P.Parser<PlainItalicContent> = (r: MdParser) =>
+    P.alt(r.whitespace, r.newline, r.nonDoubleStarWord)
 
-export const mdParser = P.createLanguage<LanguageSpec>({
-    phrasing: (r) => P.alt(r.whitespace, r.bold, r.italic, r.text),
-    wrappers: (r) => P.alt(r.detailOnDemand, r.url),
+const plainItalicParser: (r: MdParser) => P.Parser<PlainItalic> = (
+    r: MdParser
+) =>
+    P.seqObj<PlainItalic>(
+        P.string("_"),
+        ["children", r.plainItalicContent.atLeast(1)],
+        P.string("_")
+    ).map(({ children }) => ({
+        type: "plainItalic",
+        children,
+    }))
+
+// TODO: for inline bold and italic within a word we will probably need to
+// have a different implementation for fallbackText that allows bold or italic
+// to start in the middle of a word. The unused stuff below is from a sketch of
+// thinking about this
+const anyTextParser = P.regex(/"[^\s]+"/)
+
+type InlineMarkup = PlainItalic | PlainBold
+
+const inlineMarkupParser = (r: MdParser) => P.alt(r.plainBold, r.plainItalic)
+
+const textParserWithInlineMarkup = (r: MdParser) =>
+    P.alt(r.nonSingleUnderscoreWord, r.plainBold).atLeast(1)
+
+type ParserConstructor = (r: MdParser) => P.Parser<ParsedFragmentBase>
+
+interface DodMarkupRoot {
+    type: "DodMarkupRoot"
+    children: { type: string }[]
+}
+
+const markupTokensParser: (r: MdParser) => P.Parser<DodMarkupRoot> = (
+    r: MdParser
+) =>
+    // The order is crucial here!
+
+    P.alt(
+        r.newline,
+        r.whitespace,
+        r.detailOnDemand,
+        r.markdownLink,
+        r.plainUrl,
+        r.bold,
+        r.italic,
+        r.fallbackText
+    )
+        .atLeast(1)
+        .map((tokens) => ({
+            type: "DodMarkupRoot",
+            children: tokens,
+        }))
+
+const languageParts = {
+    markupTokens: markupTokensParser,
     newline: newlineParser,
     whitespace: whitespaceParser,
-    text: textParser,
+    detailOnDemand: detailOnDemandParser,
+    markdownLink: markdownLinkParser,
+    plainUrl: plainUrlParser,
     bold: boldParser,
     italic: italicParser,
-    detailOnDemand: detailOnDemandParser,
-    url: urlParser,
-    value: (r) => P.alt(r.newline, r.wrappers, r.phrasing).many(),
-})
+    plainBold: plainBoldParser,
+    plainItalic: plainItalicParser,
+    fallbackText: fallbackTextParser,
+    // Utility parsers below - these will never be tried on the top level because text covers everything else
+    detailOnDemandContent: detailOnDemandContentParser,
+    markdownLinkContent: markdownLinkContentParser,
+    boldContent: boldContentParser,
+    plainBoldContent: plainBoldContentParser,
+    plainItalicContent: plainItalicContentParser,
+    italicContent: italicContentParser,
+    nonBracketWord: nonBracketWordParser,
+    nonParensWord: nonParensWordParser,
+    nonDoubleColonOrParensWord: nonDoubleColonOrParensWordParser,
+    nonDoubleStarWord: nonDoubleStarWordParser,
+    nonSingleUnderscoreWord: nonSingleUnderscoreWordParser,
+    dodCategory: dodCategoryParser,
+    dodTerm: dodTermParser,
+} as const
+
+type languagePartsType = typeof languageParts
+
+type MdParser = {
+    [P in keyof languagePartsType]: ReturnType<languagePartsType[P]>
+}
+
+export const mdParser: MdParser = P.createLanguage(languageParts) as MdParser
