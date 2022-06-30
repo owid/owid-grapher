@@ -5,6 +5,7 @@ import { Tag } from "../clientUtils/owidTypes.js"
 import { Link } from "./Link.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar"
+import Tippy from "@tippyjs/react"
 
 export { Tag }
 
@@ -21,10 +22,16 @@ export class TagBadge extends React.Component<{
 
         if (onToggleKey) {
             return (
-                <span className={classes.join(" ")} onClick={onToggleKey}>
-                    {searchHighlight ? searchHighlight(tag.name) : tag.name}
-                    {tag.isKey && <FontAwesomeIcon icon={faStar} />}
-                </span>
+                <Tippy
+                    content={`${
+                        tag.isKey ? "⬇️ Demote from" : "⬆️ Promote to"
+                    } key charts on topic "${tag.name}"`}
+                >
+                    <span className={classes.join(" ")} onClick={onToggleKey}>
+                        {searchHighlight ? searchHighlight(tag.name) : tag.name}
+                        {tag.isKey && <FontAwesomeIcon icon={faStar} />}
+                    </span>
+                </Tippy>
             )
         } else {
             return (
