@@ -284,7 +284,7 @@ export enum WP_ColumnStyle {
     SideBySide = "side-by-side",
 }
 
-export enum WP_BlockType {
+export enum WP_BlockClass {
     FullContentWidth = "wp-block-full-content-width", // not an actual WP block yet
 }
 
