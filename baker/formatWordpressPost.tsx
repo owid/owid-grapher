@@ -13,6 +13,7 @@ import {
     FormattedPost,
     FormattingOptions,
     FullPost,
+    JsonError,
     TocHeading,
 } from "../clientUtils/owidTypes.js"
 import { Footnote } from "../site/Footnote.js"
@@ -136,7 +137,7 @@ export const formatWordpressPost = async (
     // functions twice on the same content (e.g. table processing double wraps
     // in "tableContainer" divs). On the other hand, rendering key insights last
     // would require special care for footnotes.
-    html = await renderKeyInsights(html)
+    html = await renderKeyInsights(html, post.id)
 
     // Standardize urls
     html = formatUrls(html)
@@ -216,7 +217,9 @@ export const formatWordpressPost = async (
         )
         if (!dataValueProps) {
             logContentErrorAndMaybeSendToSlack(
-                `Missing data value for {{DataValue ${dataValueConfigurationString}}}" in ${BAKED_BASE_URL}/${post.slug}`
+                new JsonError(
+                    `Missing data value for {{DataValue ${dataValueConfigurationString}}}" in ${BAKED_BASE_URL}/${post.slug}`
+                )
             )
             return "{ ⚠️ Value pending update }"
         }

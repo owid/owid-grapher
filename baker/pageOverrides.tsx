@@ -1,7 +1,11 @@
 import { PageOverrides } from "../site/LongFormPage.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { stringifyUnkownError, urlToSlug } from "../clientUtils/Util.js"
-import { FormattingOptions, FullPost } from "../clientUtils/owidTypes.js"
+import {
+    FormattingOptions,
+    FullPost,
+    JsonError,
+} from "../clientUtils/owidTypes.js"
 import { getPostBySlug, isPostCitable } from "../db/wpdb.js"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
 import {
@@ -43,7 +47,7 @@ export const getLandingOnlyIfParent = async (
         // generic function. Logging this message should be the responsibility
         // of the caller function.
         logContentErrorAndMaybeSendToSlack(
-            new Error(
+            new JsonError(
                 `Citation overrides not applied for ${post.slug}. Please check the href of the "subnavs[${formattingOptions.subnavId}]" landing page (the first item in the array): it is likely out-of-date and is being redirected.`
             )
         )

@@ -488,7 +488,7 @@ export const renderProminentLinks = async (
             } finally {
                 if (!title) {
                     logContentErrorAndMaybeSendToSlack(
-                        new Error(
+                        new JsonError(
                             `No fallback title found for prominent link ${resolvedUrlString} in ${formatWordpressEditLink(
                                 containerPostId
                             )}. Block removed.`
@@ -617,7 +617,10 @@ const renderExplorerDefaultThumbnail = (): string => {
     )
 }
 
-export const renderKeyInsights = async (html: string): Promise<string> => {
+export const renderKeyInsights = async (
+    html: string,
+    containerPostId: number
+): Promise<string> => {
     const $ = cheerio.load(html)
 
     for (const block of Array.from($("block[type='key-insights']"))) {
@@ -628,16 +631,24 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
         const slug = $block.find("> slug").text()
         if (!title || !slug) {
             logContentErrorAndMaybeSendToSlack(
-                "Title or anchor missing for key insights block, content removed."
+                new JsonError(
+                    `Title or anchor missing for key insights block, content removed in ${formatWordpressEditLink(
+                        containerPostId
+                    )}.`
+                )
             )
             $block.remove()
             continue
         }
 
-        const keyInsights = extractKeyInsights($, $block)
+        const keyInsights = extractKeyInsights($, $block, containerPostId)
         if (!keyInsights.length) {
             logContentErrorAndMaybeSendToSlack(
-                "No valid key insights found within block, content removed."
+                new JsonError(
+                    `No valid key insights found within block, content removed in ${formatWordpressEditLink(
+                        containerPostId
+                    )}`
+                )
             )
             $block.remove()
             continue
@@ -663,7 +674,8 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
 
 export const extractKeyInsights = (
     $: CheerioStatic,
-    $wrapper: Cheerio
+    $wrapper: Cheerio,
+    containerPostId: number
 ): KeyInsight[] => {
     const keyInsights: KeyInsight[] = []
 
@@ -680,11 +692,19 @@ export const extractKeyInsights = (
         const slug = $block.find("> slug").text()
         const content = $block.find("> content").html()
 
+        // "!content" is taken literally here. An empty paragraph will return
+        // "\n\n<p></p>\n\n" and will not trigger an error. This can be seen
+        // both as an unexpected behaviour or a feature, depending on the stage
+        // of work (published or WIP).
         if (!title || !slug || !content) {
             logContentErrorAndMaybeSendToSlack(
-                `Missing title, slug or content for key insight "${
-                    title || slug
-                }"`
+                new JsonError(
+                    `Missing title, slug or content for key insight ${
+                        title || slug
+                    }, content removed in ${formatWordpressEditLink(
+                        containerPostId
+                    )}.`
+                )
             )
             continue
         }
