@@ -6,7 +6,7 @@ import { BAKED_BASE_URL, HTTPS_ONLY } from "../settings/serverSettings.js"
 import { getTables } from "../db/wpdb.js"
 import Tablepress from "../site/Tablepress.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
-import { RelatedCharts } from "../site/blocks/RelatedCharts.js"
+import { AllCharts, renderAllCharts } from "../site/blocks/AllCharts.js"
 import {
     BLOCK_WRAPPER_DATATYPE,
     DataValueProps,
@@ -15,6 +15,7 @@ import {
     FullPost,
     JsonError,
     TocHeading,
+    WP_BlockType,
 } from "../clientUtils/owidTypes.js"
 import { Footnote } from "../site/Footnote.js"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
@@ -271,23 +272,23 @@ export const formatWordpressPost = async (
     const cheerioEl = cheerio.load(html)
 
     // Related charts
-    // Mimicking SSR output of additional information block from PHP
     if (
         !countryProfileSpecs.some(
             (spec) => post.slug === spec.landingPageSlug
         ) &&
-        post.relatedCharts &&
-        post.relatedCharts.length !== 0
+        post.relatedCharts?.length &&
+        // Render fallback "All charts" block at the top of entries only if
+        // manual "All charts" block not present in the rest of the document.
+        // This is to help transitioning towards topic pages, where this block
+        // is manually added in the content. In that case, we don't want to
+        // inject it at the top too.
+        !cheerioEl(`block[type='${WP_BlockType.AllCharts}']`).length
     ) {
+        // Mimicking SSR output of additional information block from PHP
         const allCharts = `
         <block type="additional-information" default-open="false">
             <content>
-                <h3>All our interactive charts on ${post.title}</h3>
-                ${ReactDOMServer.renderToStaticMarkup(
-                    <div>
-                        <RelatedCharts charts={post.relatedCharts} />
-                    </div>
-                )}
+            ${ReactDOMServer.renderToStaticMarkup(<AllCharts post={post} />)}
             </content>
         </block>
         `
@@ -315,6 +316,7 @@ export const formatWordpressPost = async (
     //   one, hence the discrepancy.
     renderAdditionalInformation(cheerioEl)
     renderHelp(cheerioEl)
+    renderAllCharts(cheerioEl, post)
     await renderProminentLinks(cheerioEl, post.id)
 
     // Extract inline styling
