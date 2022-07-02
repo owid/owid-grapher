@@ -258,10 +258,10 @@ export class FacetChart
         // Use compact labels, e.g. 50k instead of 50,000.
         const compactLabels = facetCount > 2
         const globalXAxisConfig: AxisConfigInterface = {
-            compactLabels,
+            // compactLabels,
         }
         const globalYAxisConfig: AxisConfigInterface = {
-            compactLabels,
+            // compactLabels,
         }
 
         // We infer that the user cares about the trend if the axis is not uniform

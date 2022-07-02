@@ -85,11 +85,11 @@ describe("uniform axes", () => {
         ).toBeTruthy()
     })
 
-    it("y axes have compact labels", () => {
-        expect(
-            yAxisConfigs.every((config) => config?.compactLabels === true)
-        ).toBeTruthy()
-    })
+    // it("y axes have compact labels", () => {
+    //     expect(
+    //         yAxisConfigs.every((config) => config?.compactLabels === true)
+    //     ).toBeTruthy()
+    // })
 
     it("y axis domains are identical", () => {
         expect(yAxisConfigs[0]?.min).toBeDefined()
@@ -154,7 +154,7 @@ describe("config overrides", () => {
         selection: table.availableEntityNames,
         facetStrategy: FacetStrategy.entity,
         yAxisConfig: {
-            compactLabels: false,
+            //compactLabels: false,
             facetDomain: FacetAxisDomain.shared,
             min: -1e15,
             max: 1e15,
@@ -167,7 +167,7 @@ describe("config overrides", () => {
 
     it("preserves config passed from manager", () => {
         const yAxisConfig = chart.placedSeries[0].manager.yAxisConfig
-        expect(yAxisConfig?.compactLabels).toEqual(false)
+        //expect(yAxisConfig?.compactLabels).toEqual(false)
         expect(yAxisConfig?.min).toEqual(-1e15)
         expect(yAxisConfig?.max).toEqual(1e15)
     })

@@ -13,6 +13,7 @@ import {
 import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface.js"
 import { ScaleSelectorManager } from "../controls/ScaleSelector.js"
 import { AxisAlign, Position } from "../../clientUtils/owidTypes.js"
+import { TickFormattingOptions } from "../../clientUtils/formatValue.js"
 
 export interface FontSizeManager {
     fontSize: number
@@ -30,7 +31,8 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref labelPadding?: number = undefined
     @observable.ref nice?: boolean = undefined
     @observable.ref maxTicks?: number = undefined
-    @observable.ref compactLabels?: boolean = undefined
+    // @observable.ref compactLabels?: boolean = undefined
+    @observable.ref tickFormattingOptions?: TickFormattingOptions = undefined
     @observable.ref scaleType?: ScaleType = ScaleType.linear
     @observable.ref facetDomain?: FacetAxisDomain = undefined
     @observable.ref ticks?: Tickmark[] = undefined
@@ -71,7 +73,8 @@ export class AxisConfig
             labelPadding: this.labelPadding,
             nice: this.nice,
             maxTicks: this.maxTicks,
-            compactLabels: this.compactLabels,
+            // compactLabels: this.compactLabels,
+            tickFormattingOptions: this.tickFormattingOptions,
             scaleType: this.scaleType,
             label: this.label ? this.label : undefined,
             facetDomain: this.facetDomain,
