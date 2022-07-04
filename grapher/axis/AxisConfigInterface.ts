@@ -58,13 +58,18 @@ export interface AxisConfigInterface {
      */
     maxTicks?: number
 
-    tickFormattingOptions?: TickFormattingOptions
     /**
      * Custom ticks to use. Any automatic ticks are omitted.
      * Note that the ticks will be omitted if they are outside the axis domain.
      * To control the domain, use `min` and `max`.
      */
     ticks?: Tickmark[]
+
+    /**
+     * Tick formatting overrides. Allows things like omitting the unit and using
+     * short number abbreviations.
+     */
+    tickFormattingOptions?: TickFormattingOptions
 
     /**
      * What to do when .place() is called on an axis that only contains a single
