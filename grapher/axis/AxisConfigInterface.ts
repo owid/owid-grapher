@@ -1,3 +1,4 @@
+import { TickFormattingOptions } from "../../clientUtils/formatValue.js"
 import { AxisAlign, Position } from "../../clientUtils/owidTypes.js"
 import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants.js"
 
@@ -58,16 +59,17 @@ export interface AxisConfigInterface {
     maxTicks?: number
 
     /**
-     * Whether to use short labels, e.g. "5k" instead of "5,000".
-     */
-    compactLabels?: boolean
-
-    /**
      * Custom ticks to use. Any automatic ticks are omitted.
      * Note that the ticks will be omitted if they are outside the axis domain.
      * To control the domain, use `min` and `max`.
      */
     ticks?: Tickmark[]
+
+    /**
+     * Tick formatting overrides. Allows things like omitting the unit and using
+     * short number abbreviations.
+     */
+    tickFormattingOptions?: TickFormattingOptions
 
     /**
      * What to do when .place() is called on an axis that only contains a single
