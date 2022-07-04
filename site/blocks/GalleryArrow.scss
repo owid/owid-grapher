@@ -1,0 +1,22 @@
+$gallery-navigation-button-size: 2.5rem;
+
+button.gallery-arrow {
+    width: $gallery-navigation-button-size;
+    height: $gallery-navigation-button-size;
+    font-size: 1.2rem;
+    border: 2px solid $primary-color;
+    border-radius: 50%;
+    outline: none;
+    color: $primary-color;
+    cursor: pointer;
+    background: none;
+    &:hover {
+        color: white;
+        background-color: $primary-color;
+    }
+    &:disabled {
+        color: lightgrey;
+        border-color: lightgrey;
+        pointer-events: none;
+    }
+}

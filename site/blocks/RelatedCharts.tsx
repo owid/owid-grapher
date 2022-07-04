@@ -3,6 +3,7 @@ import ReactDOM from "react-dom"
 import { useState, useRef } from "react"
 import { RelatedChart } from "../../clientUtils/owidTypes.js"
 import { useEmbedChart } from "../hooks.js"
+import { GalleryArrow, GalleryArrowDirection } from "./GalleryArrow.js"
 import { AllChartsListItem } from "./AllChartsListItem.js"
 
 export const RELATED_CHARTS_CLASS_NAME = "related-charts"
@@ -10,6 +11,9 @@ export const RELATED_CHARTS_CLASS_NAME = "related-charts"
 export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const refChartContainer = useRef<HTMLDivElement>(null)
     const [activeChartIdx, setActiveChartIdx] = useState(0)
+
+    const isFirstSlideActive = activeChartIdx === 0
+    const isLastSlideActive = activeChartIdx === charts.length - 1
 
     const sortedCharts = [...charts].sort(
         (a, b) => Number(!!b.isKey) - Number(!!a.isKey)
@@ -49,6 +53,25 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                         key={activeChartIdx}
                         data-grapher-src={`/grapher/${sortedCharts[activeChartIdx].slug}`}
                     />
+                    <div className="gallery-navigation">
+                        <GalleryArrow
+                            disabled={isFirstSlideActive}
+                            onClick={() =>
+                                setActiveChartIdx(activeChartIdx - 1)
+                            }
+                            direction={GalleryArrowDirection.prev}
+                        ></GalleryArrow>
+                        <div className="gallery-pagination">
+                            Chart {activeChartIdx + 1} of {charts.length}
+                        </div>
+                        <GalleryArrow
+                            disabled={isLastSlideActive}
+                            onClick={() =>
+                                setActiveChartIdx(activeChartIdx + 1)
+                            }
+                            direction={GalleryArrowDirection.next}
+                        ></GalleryArrow>
+                    </div>
                 </div>
             </div>
         </div>

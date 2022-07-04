@@ -72,6 +72,16 @@
             > *:last-child {
                 margin-bottom: 0;
             }
+
+            .gallery-navigation {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                .gallery-pagination {
+                    margin: 0 $padding-x-md;
+                }
+            }
         }
     }
 }
