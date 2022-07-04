@@ -55,6 +55,7 @@ export interface RelatedChart {
     title: string
     slug: string
     variantName?: string | null
+    isKey?: boolean
 }
 
 export type OwidVariableId = Integer // remove.

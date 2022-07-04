@@ -58,7 +58,7 @@ export const useScrollDirection = () => {
 }
 
 export const useEmbedChart = (
-    currentChart: RelatedChart | string,
+    activeChartIdx: number,
     refChartContainer: React.RefObject<HTMLDivElement>
 ) => {
     useEffect(() => {
@@ -66,5 +66,5 @@ export const useEmbedChart = (
             // Track newly injected <figure> elements in embedder
             MultiEmbedderSingleton.observeFigures(refChartContainer.current)
         }
-    }, [currentChart])
+    }, [activeChartIdx])
 }
