@@ -39,6 +39,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                 chart={chart}
                                 key={chart.slug}
                                 onClick={(e) => onClickItem(e, idx)}
+                                isActive={idx === activeChartIdx}
                             />
                         ))}
                     </ul>
@@ -62,7 +63,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                             direction={GalleryArrowDirection.prev}
                         ></GalleryArrow>
                         <div className="gallery-pagination">
-                            Chart {activeChartIdx + 1} of {charts.length}
+                            {`Chart ${activeChartIdx + 1} of ${charts.length}`}
                         </div>
                         <GalleryArrow
                             disabled={isLastSlideActive}
