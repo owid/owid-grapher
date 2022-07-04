@@ -300,9 +300,6 @@ abstract class AbstractAxis {
         const options: TickFormattingOptions = {
             ...this.config.tickFormattingOptions,
         }
-        // if (this.config.compactLabels) {
-        // options.numberAbbreviation = "short"
-        // }
 
         // The chart's tick formatting function is used by default to format axis ticks. This means
         // that the chart's `numDecimalPlaces` is also used by default to format the axis ticks.

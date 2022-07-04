@@ -58,10 +58,6 @@ export interface AxisConfigInterface {
      */
     maxTicks?: number
 
-    /**
-     * Whether to use short labels, e.g. "5k" instead of "5,000".
-     */
-    // compactLabels?: boolean
     tickFormattingOptions?: TickFormattingOptions
     /**
      * Custom ticks to use. Any automatic ticks are omitted.

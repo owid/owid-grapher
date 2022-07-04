@@ -31,7 +31,6 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref labelPadding?: number = undefined
     @observable.ref nice?: boolean = undefined
     @observable.ref maxTicks?: number = undefined
-    // @observable.ref compactLabels?: boolean = undefined
     @observable.ref tickFormattingOptions?: TickFormattingOptions = undefined
     @observable.ref scaleType?: ScaleType = ScaleType.linear
     @observable.ref facetDomain?: FacetAxisDomain = undefined
@@ -73,7 +72,6 @@ export class AxisConfig
             labelPadding: this.labelPadding,
             nice: this.nice,
             maxTicks: this.maxTicks,
-            // compactLabels: this.compactLabels,
             tickFormattingOptions: this.tickFormattingOptions,
             scaleType: this.scaleType,
             label: this.label ? this.label : undefined,
