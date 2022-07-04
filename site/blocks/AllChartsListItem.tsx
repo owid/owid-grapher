@@ -9,12 +9,14 @@ import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js
 export const AllChartsListItem = ({
     chart,
     onClick,
+    isActive,
 }: {
     chart: RelatedChart
     onClick: (e: React.MouseEvent) => void
+    isActive: boolean
 }) => {
     return (
-        <li key={chart.slug}>
+        <li key={chart.slug} className={isActive ? "active" : ""}>
             <a href={`/grapher/${chart.slug}`} onClick={onClick}>
                 <img
                     src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.slug}.svg`}
