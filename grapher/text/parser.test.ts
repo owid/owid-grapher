@@ -524,28 +524,33 @@ how **are** you?`)
         })
     })
 
-    it("Parser can parse bold starting and stopping inside a word", () => {
+    it.only("Parser can parse bold starting and stopping inside a word", () => {
         expect(mdParser.markupTokens.parse("test**some**postfix")).toEqual({
             status: true,
             value: {
                 type: "DodMarkupRoot",
                 children: [
                     {
-                        type: "text",
-                        value: "test",
-                    },
-                    {
-                        type: "bold",
+                        type: "words",
                         children: [
                             {
                                 type: "text",
-                                value: "some",
+                                value: "test",
+                            },
+                            {
+                                type: "plainBold",
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "some",
+                                    },
+                                ],
+                            },
+                            {
+                                type: "text",
+                                value: "postfix",
                             },
                         ],
-                    },
-                    {
-                        type: "text",
-                        value: "test**some**postfix",
                     },
                 ],
             },

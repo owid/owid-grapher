@@ -149,7 +149,7 @@ interface PlainItalic {
     children: PlainItalicContent[]
 }
 
-interface DodMarkupRoot {
+export interface DodMarkupRoot {
     type: "DodMarkupRoot"
     children: { type: string }[]
 }
@@ -200,7 +200,7 @@ const nonDoubleColonOrParensWordParser: (
 const nonSingleUnderscoreWordParser: (
     r: MdParser
 ) => P.Parser<NonSingleUnderscoreWord> = () =>
-    P.regex(/[^_\s]+/).map((val) => ({ type: "text", value: val })) // no WS, no *
+    P.regex(/[^_\s]+/).map((val) => ({ type: "text", value: val })) // no WS, no _
 
 const nonDoubleStarWordParser: (
     r: MdParser
@@ -405,17 +405,24 @@ const plainItalicParser: (r: MdParser) => P.Parser<PlainItalic> = (
         children,
     }))
 
-// TODO: for inline bold and italic within a word we will probably need to
-// have a different implementation for fallbackText that allows bold or italic
-// to start in the middle of a word. The unused stuff below is from a sketch of
-// thinking about this
-const anyTextParser = P.regex(/"[^\s]+"/)
+// We're actually trying to stop at **, but this should still work because of the fallback
+const nonFormattingCharactersParser: (r: MdParser) => P.Parser<Text> = () =>
+    P.regex(/[^\s*_]+/).map((value) => ({ type: "text", value }))
 
-const inlineMarkupParser = (r: MdParser) => P.alt(r.plainBold, r.plainItalic)
+type Word = Bold | Italic | Text
 
-const textParserWithInlineMarkup = (r: MdParser) =>
-    P.alt(r.nonSingleUnderscoreWord, r.plainBold).atLeast(1)
+interface Words {
+    children: Word[]
+    type: "words"
+}
 
+const wordsParser: (r: MdParser) => P.Parser<Words> = (r: MdParser) =>
+    P.alt(r.plainBold, r.plainItalic, r.nonFormattingCharacters)
+        .atLeast(1)
+        .map((result: Word[]) => ({
+            children: result,
+            type: "words",
+        }))
 //#endregion
 
 //#region Top level language construction
@@ -433,6 +440,7 @@ const markupTokensParser: (r: MdParser) => P.Parser<DodMarkupRoot> = (
         r.plainUrl,
         r.bold,
         r.italic,
+        r.words,
         r.fallbackText
     )
         .atLeast(1)
@@ -452,6 +460,7 @@ const languageParts = {
     italic: italicParser,
     plainBold: plainBoldParser,
     plainItalic: plainItalicParser,
+    words: wordsParser,
     fallbackText: fallbackTextParser,
     // Utility parsers below - these will never be tried on the top level because text covers everything else
     detailOnDemandContent: detailOnDemandContentParser,
@@ -468,11 +477,12 @@ const languageParts = {
     nonParensWord: nonParensWordParser,
     nonDoubleColonOrParensWord: nonDoubleColonOrParensWordParser,
     nonDoubleStarWord: nonDoubleStarWordParser,
+    nonFormattingCharacters: nonFormattingCharactersParser,
     nonSingleUnderscoreWord: nonSingleUnderscoreWordParser,
     dodCategory: dodCategoryParser,
     dodTerm: dodTermParser,
 } as const
 
-export const mdParser: MdParser = P.createLanguage(languageParts) as MdParser
+export const mdParser: MdParser = P.createLanguage(languageParts)
 
 //#endregion
