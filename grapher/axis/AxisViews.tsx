@@ -20,7 +20,7 @@ const dasharrayFromFontSize = (fontSize: number): string => {
 
 const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
-const DOMAIN_TICK_COLOR = "#999"
+const SOLID_TICK_COLOR = "#999"
 
 @observer
 export class VerticalAxisGridLines extends React.Component<{
@@ -37,8 +37,8 @@ export class VerticalAxisGridLines extends React.Component<{
                 {axis.getTickValues().map((t, i) => {
                     const color = t.faint
                         ? FAINT_TICK_COLOR
-                        : t.value === 0
-                        ? DOMAIN_TICK_COLOR
+                        : t.solid
+                        ? SOLID_TICK_COLOR
                         : TICK_COLOR
 
                     return (
@@ -50,11 +50,11 @@ export class VerticalAxisGridLines extends React.Component<{
                             y2={axis.place(t.value)}
                             stroke={color}
                             strokeDasharray={
-                                t.value !== 0
-                                    ? dasharrayFromFontSize(
+                                t.solid
+                                    ? undefined
+                                    : dasharrayFromFontSize(
                                           verticalAxis.tickFontSize
                                       )
-                                    : undefined
                             }
                         />
                     )
@@ -84,8 +84,8 @@ export class HorizontalAxisGridLines extends React.Component<{
                 {axis.getTickValues().map((t, i) => {
                     const color = t.faint
                         ? FAINT_TICK_COLOR
-                        : t.value === 0
-                        ? DOMAIN_TICK_COLOR
+                        : t.solid
+                        ? SOLID_TICK_COLOR
                         : TICK_COLOR
 
                     return (
@@ -97,11 +97,11 @@ export class HorizontalAxisGridLines extends React.Component<{
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
                             strokeDasharray={
-                                t.value !== 0
-                                    ? dasharrayFromFontSize(
+                                t.solid
+                                    ? undefined
+                                    : dasharrayFromFontSize(
                                           horizontalAxis.tickFontSize
                                       )
-                                    : undefined
                             }
                         />
                     )
@@ -251,7 +251,7 @@ export class HorizontalAxisComponent extends React.Component<{
                 tickMarkXPositions={tickLabels.map((label): number =>
                     axis.place(label.value)
                 )}
-                color={DOMAIN_TICK_COLOR}
+                color={SOLID_TICK_COLOR}
             />
         ) : undefined
 

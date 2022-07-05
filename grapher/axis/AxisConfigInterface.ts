@@ -7,6 +7,7 @@ export interface Tickmark {
     priority: number
     faint?: boolean
     gridLineOnly?: boolean
+    solid?: boolean // mostly for labelling domain start (e.g. 0)
 }
 
 // Represents the actual entered configuration state in the editor
