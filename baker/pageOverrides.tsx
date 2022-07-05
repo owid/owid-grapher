@@ -1,6 +1,6 @@
 import { PageOverrides } from "../site/LongFormPage.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { stringifyUnkownError, urlToSlug } from "../clientUtils/Util.js"
+import { urlToSlug } from "../clientUtils/Util.js"
 import {
     FormattingOptions,
     FullPost,
@@ -8,17 +8,14 @@ import {
 } from "../clientUtils/owidTypes.js"
 import { getPostBySlug, isPostCitable } from "../db/wpdb.js"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
-import {
-    logContentErrorAndMaybeSendToSlack,
-    logErrorAndMaybeSendToSlack,
-} from "../serverUtils/slackLog.js"
+import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 export const getPostBySlugLogToSlackNoThrow = async (slug: string) => {
     let post
     try {
         post = await getPostBySlug(slug)
     } catch (err) {
-        logErrorAndMaybeSendToSlack(stringifyUnkownError(err))
+        logContentErrorAndMaybeSendToSlack(err)
     } finally {
         return post
     }
@@ -48,7 +45,12 @@ export const getLandingOnlyIfParent = async (
         // of the caller function.
         logContentErrorAndMaybeSendToSlack(
             new JsonError(
-                `Citation overrides not applied for ${post.slug}. Please check the href of the "subnavs[${formattingOptions.subnavId}]" landing page (the first item in the array): it is likely out-of-date and is being redirected.`
+                // This error often shows up intermittently as a false-positive (DB unavailable when calling getPostBySlug()?)
+                // If it happens systematically, please check
+                // the href of the "subnavs[${formattingOptions.subnavId}]"
+                // landing page (the first item in the array): it might be
+                // out-of-date and redirected.
+                `Citation overrides not applied for ${post.slug}. This might be an intermittent issue.`
             )
         )
     }

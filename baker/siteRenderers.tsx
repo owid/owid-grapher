@@ -73,7 +73,7 @@ import {
     KeyInsightsSlides,
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
-import { formatUrls, getBodyHtml } from "../site/formatting.js"
+import { formatUrls } from "../site/formatting.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
