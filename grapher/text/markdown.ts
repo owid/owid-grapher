@@ -1,4 +1,4 @@
-import { MarkdownRoot } from "./parser.js"
+import { EveryMarkdownNode } from "./parser.js"
 import {
     IRText,
     IRWhitespace,
@@ -12,7 +12,7 @@ import {
 } from "./TextTokens.js"
 
 export function parsimmonToTextTokens(
-    nodes: MarkdownRoot["children"],
+    nodes: EveryMarkdownNode[],
     fontParams?: IRFontParams
 ): IRToken[] {
     return nodes.map((node): IRToken => {
@@ -22,22 +22,30 @@ export function parsimmonToTextTokens(
             return new IRLineBreak()
         } else if (node.type === "whitespace") {
             return new IRWhitespace(fontParams)
-        } else if (node.type === "bold" || node.type === "plainBold") {
+        } else if (
+            node.type === "bold" ||
+            node.type === "plainBold" ||
+            node.type === "boldWithoutItalic"
+        ) {
             return new IRBold(
-                parsimmonToTextTokens((node as any).children, {
+                parsimmonToTextTokens(node.children, {
                     ...fontParams,
                     fontWeight: 700,
                 })
             )
-        } else if (node.type === "italic" || node.type === "plainItalic") {
+        } else if (
+            node.type === "italic" ||
+            node.type === "plainItalic" ||
+            node.type === "italicWithoutBold"
+        ) {
             return new IRItalic(
-                parsimmonToTextTokens((node as any).children, {
+                parsimmonToTextTokens(node.children, {
                     ...fontParams,
                 })
             )
         } else if (node.type === "textSegments") {
             return new IRSpan(
-                parsimmonToTextTokens((node as any).children, {
+                parsimmonToTextTokens(node.children, {
                     ...fontParams,
                 })
             )

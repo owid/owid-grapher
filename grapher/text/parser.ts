@@ -190,11 +190,23 @@ export interface MarkdownRoot {
         | Text
     >
 }
+
 type languagePartsType = typeof languageParts
 
 type MdParser = {
     [P in keyof languagePartsType]: ReturnType<languagePartsType[P]>
 }
+
+// Every possible child of a MarkdownRoot node
+export type EveryMarkdownNode =
+    | TextSegments
+    | NonSingleUnderscoreWord
+    | Bold
+    | BoldContent
+    | PlainBold
+    | Italic
+    | ItalicContent
+    | PlainItalic
 
 // #endregion
 
