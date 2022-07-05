@@ -494,8 +494,14 @@ export class MapChart
         return DEFAULT_STROKE_COLOR
     }
 
-    @computed get legendWidth(): number {
-        return this.bounds.width * 0.8
+    @computed get legendMaxWidth(): number {
+        // it seems nice to have just a little bit of
+        // extra padding left and right
+        return this.bounds.width * 0.95
+    }
+
+    @computed get legendX(): number {
+        return this.bounds.x + (this.bounds.width - this.legendMaxWidth) / 2
     }
 
     @computed get legendHeight(): number {
@@ -522,10 +528,6 @@ export class MapChart
         return this.numericLegendData.length > 1
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
-    }
-
-    @computed get legendX(): number {
-        return this.bounds.centerX - this.legendWidth / 2
     }
 
     @computed get categoryLegendY(): number {
