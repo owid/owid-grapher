@@ -7,7 +7,8 @@ import { HeaderManager } from "./HeaderManager.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { splitIntoLines } from "../text/TextTokensUtils.js"
-import { markdownToTextTokens, mdParse } from "../text/markdown.js"
+import { parsimmonToTextTokens } from "../text/markdown.js"
+import { mdParser } from "../text/parser.js"
 
 @observer
 export class Header extends React.Component<{
@@ -148,6 +149,17 @@ export class Header extends React.Component<{
             overflowY: "hidden",
         }
 
+        const result = mdParser.markdown.parse(this.subtitleText)
+        const lines = result.status
+            ? splitIntoLines(
+                  parsimmonToTextTokens(result.value.children, {
+                      // same as above
+                      fontSize: 0.8 * this.fontSize,
+                  }),
+                  this.subtitleWidth
+              )
+            : []
+
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
@@ -155,20 +167,10 @@ export class Header extends React.Component<{
                     <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
                 </a>
                 <p style={subtitleStyle}>
-                    {splitIntoLines(
-                        markdownToTextTokens(mdParse(this.subtitleText), {
-                            // same as above
-                            fontSize: 0.8 * this.fontSize,
-                        }),
-                        this.subtitleWidth
-                    ).map((tokens, i) => (
+                    {lines.map((line, i) => (
                         <div key={i}>
-                            {tokens.length ? (
-                                tokens.map((token, i) => (
-                                    <React.Fragment key={i}>
-                                        {token.toHTML()}
-                                    </React.Fragment>
-                                ))
+                            {line.length ? (
+                                line.map((token, i) => token.toHTML(i))
                             ) : (
                                 <br />
                             )}

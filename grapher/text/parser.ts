@@ -1,4 +1,4 @@
-import P, { Language } from "parsimmon"
+import P from "parsimmon"
 
 // An AST inspired by MDAST
 // Deviates because we want to track individual words, whitespace, and newlines to use with TextWrap and our SVG exporter
@@ -40,7 +40,7 @@ import P, { Language } from "parsimmon"
 
 //#region Parser types
 
-// The default interface for nodes that for now we don't want to track as a special type
+// The default interface for nodes that (for now) we don't want to track as a special type
 interface Text {
     type: "text"
     value: string
@@ -55,24 +55,34 @@ interface Newline {
 interface Whitespace {
     type: "whitespace"
 }
+
 interface PlainUrl {
     type: "plainUrl"
     href: string
 }
+
 type NonBracketWord = Text
+
 type NonParensWord = Text
 
 type NonSingleUnderscoreWord = Text
+
 type NonDoubleColonOrParensWord = Text
+
 type NonDoubleStarWord = Text
+
 type MarkdownLinkContent = Whitespace | Newline | NonBracketWord
+
 type DodCategory = Text
+
 type DodTerm = Text
+
 interface MarkdownLink {
     type: "markdownLink"
     children: MarkdownLinkContent[]
     href: string
 }
+
 type DetailsOnDemandContent =
     | Whitespace
     | Newline
@@ -94,10 +104,12 @@ type BoldWithoutItalicContent =
     | MarkdownLink
     | DetailOnDemand
     | NonDoubleStarWord
+
 interface BoldWithoutItalic {
     type: "boldWithoutItalic"
     children: BoldWithoutItalicContent[]
 }
+
 type BoldContent =
     | ItalicWithoutBold
     | Whitespace
@@ -113,6 +125,7 @@ interface Bold {
 }
 
 type PlainBoldContent = Whitespace | Newline | NonDoubleStarWord
+
 interface PlainBold {
     type: "plainBold"
     children: PlainBoldContent[]
@@ -125,6 +138,7 @@ type ItalicWithoutBoldContent =
     | MarkdownLink
     | DetailOnDemand
     | NonSingleUnderscoreWord
+
 interface ItalicWithoutBold {
     type: "italicWithoutBold"
     children: ItalicWithoutBoldContent[]
@@ -144,17 +158,38 @@ interface Italic {
 }
 
 type PlainItalicContent = Whitespace | Newline | NonSingleUnderscoreWord
+
 interface PlainItalic {
     type: "plainItalic"
     children: PlainItalicContent[]
 }
 
-export interface DodMarkupRoot {
-    type: "DodMarkupRoot"
-    children: { type: string }[]
+// TextSegment is used when we need to break up a string of non-whitespace characters
+// into multiple segments because it may have "formatting tmesis"
+// e.g. abso_freaking_lutely
+type TextSegment = Bold | Italic | Text
+
+interface TextSegments {
+    type: "textSegments"
+    children: TextSegment[]
 }
 
-type InlineMarkup = PlainItalic | PlainBold
+export interface MarkdownRoot {
+    type: "MarkdownRoot"
+    children: Array<
+        | Newline
+        | Whitespace
+        | DetailOnDemand
+        | MarkdownLink
+        | PlainUrl
+        | Bold
+        | PlainBold
+        | Italic
+        | PlainItalic
+        | TextSegments
+        | Text
+    >
+}
 type languagePartsType = typeof languageParts
 
 type MdParser = {
@@ -174,13 +209,11 @@ const newlineParser = (): P.Parser<Newline> =>
 const whitespaceParser = (): P.Parser<Whitespace> =>
     P.regex(/ +/).result({ type: "whitespace" })
 
-const plainUrlParser = () =>
-    P.regex(urlRegex).map(
-        (result): PlainUrl => ({
-            type: "plainUrl",
-            href: result,
-        })
-    )
+const plainUrlParser = (): P.Parser<PlainUrl> =>
+    P.regex(urlRegex).map((result) => ({
+        type: "plainUrl",
+        href: result,
+    }))
 
 // https://urlregex.com
 const urlRegex =
@@ -405,33 +438,26 @@ const plainItalicParser: (r: MdParser) => P.Parser<PlainItalic> = (
         children,
     }))
 
-// We're actually trying to stop at **, but this should still work because of the fallback
-const nonFormattingCharactersParser: (r: MdParser) => P.Parser<Text> = () =>
+// Consume up to "**"" or "_"
+const nonStylingCharactersParser: (r: MdParser) => P.Parser<Text> = () =>
     P.regex(/[^\s*_]+/).map((value) => ({ type: "text", value }))
 
-type Word = Bold | Italic | Text
-
-interface Words {
-    children: Word[]
-    type: "words"
-}
-
-const wordsParser: (r: MdParser) => P.Parser<Words> = (r: MdParser) =>
-    P.alt(r.plainBold, r.plainItalic, r.nonFormattingCharacters)
+const textSegmentsParser: (r: MdParser) => P.Parser<TextSegments> = (
+    r: MdParser
+) =>
+    P.alt(r.plainBold, r.plainItalic, r.nonStylingCharacters)
         .atLeast(1)
-        .map((result: Word[]) => ({
+        .map((result: TextSegment[]) => ({
             children: result,
-            type: "words",
+            type: "textSegments",
         }))
+
 //#endregion
 
 //#region Top level language construction
 
-const markupTokensParser: (r: MdParser) => P.Parser<DodMarkupRoot> = (
-    r: MdParser
-) =>
+const markdownParser: (r: MdParser) => P.Parser<MarkdownRoot> = (r) =>
     // The order is crucial here!
-
     P.alt(
         r.newline,
         r.whitespace,
@@ -440,17 +466,19 @@ const markupTokensParser: (r: MdParser) => P.Parser<DodMarkupRoot> = (
         r.plainUrl,
         r.bold,
         r.italic,
-        r.words,
+        r.textSegments,
         r.fallbackText
     )
         .atLeast(1)
-        .map((tokens) => ({
-            type: "DodMarkupRoot",
-            children: tokens,
-        }))
+        .map(
+            (tokens): MarkdownRoot => ({
+                type: "MarkdownRoot",
+                children: tokens,
+            })
+        )
 
 const languageParts = {
-    markupTokens: markupTokensParser,
+    markdown: markdownParser,
     newline: newlineParser,
     whitespace: whitespaceParser,
     detailOnDemand: detailOnDemandParser,
@@ -460,7 +488,7 @@ const languageParts = {
     italic: italicParser,
     plainBold: plainBoldParser,
     plainItalic: plainItalicParser,
-    words: wordsParser,
+    textSegments: textSegmentsParser,
     fallbackText: fallbackTextParser,
     // Utility parsers below - these will never be tried on the top level because text covers everything else
     detailOnDemandContent: detailOnDemandContentParser,
@@ -477,7 +505,7 @@ const languageParts = {
     nonParensWord: nonParensWordParser,
     nonDoubleColonOrParensWord: nonDoubleColonOrParensWordParser,
     nonDoubleStarWord: nonDoubleStarWordParser,
-    nonFormattingCharacters: nonFormattingCharactersParser,
+    nonStylingCharacters: nonStylingCharactersParser,
     nonSingleUnderscoreWord: nonSingleUnderscoreWordParser,
     dodCategory: dodCategoryParser,
     dodTerm: dodTermParser,

@@ -23,8 +23,8 @@ export interface IRBreakpoint {
 export interface IRToken {
     width: number
     getBreakpointBefore(targetWidth: number): IRBreakpoint | undefined
-    toHTML(): JSX.Element | undefined
-    toSVG(): JSX.Element | undefined
+    toHTML(key: number | string): JSX.Element | undefined
+    toSVG(key: number | string): JSX.Element | undefined
     toPlaintext(): string | undefined
 }
 
@@ -36,11 +36,11 @@ export class IRText implements IRToken {
     getBreakpointBefore(): undefined {
         return undefined
     }
-    toHTML(): JSX.Element {
-        return <React.Fragment>{this.text}</React.Fragment>
+    toHTML(key: number | string): JSX.Element {
+        return <React.Fragment key={key}>{this.text}</React.Fragment>
     }
-    toSVG(): JSX.Element {
-        return <React.Fragment>{this.text}</React.Fragment>
+    toSVG(key: number | string): JSX.Element {
+        return <React.Fragment key={key}>{this.text}</React.Fragment>
     }
     toPlaintext(): string {
         return this.text
@@ -57,13 +57,13 @@ export class IRWhitespace implements IRToken {
         // to split based on it, and `0` leads to being exactly in between tokens.
         return { tokenIndex: 0, tokenStartOffset: 0, breakOffset: 0.0001 }
     }
-    toHTML(): JSX.Element {
+    toHTML(key: number | string): JSX.Element {
         // TODO change to space
-        return <React.Fragment>&nbsp;</React.Fragment>
+        return <React.Fragment key={key}> </React.Fragment>
     }
-    toSVG(): JSX.Element {
+    toSVG(key: number | string): JSX.Element {
         // TODO change to space
-        return <React.Fragment>&nbsp;</React.Fragment>
+        return <React.Fragment key={key}> </React.Fragment>
     }
     toPlaintext(): string {
         return " "
@@ -77,8 +77,8 @@ export class IRLineBreak implements IRToken {
     getBreakpointBefore(): undefined {
         return undefined
     }
-    toHTML(): JSX.Element {
-        return <br />
+    toHTML(key: number | string): JSX.Element {
+        return <br key={key} />
     }
     toSVG(): undefined {
         // We have to deal with this special case in
@@ -132,8 +132,8 @@ export abstract class IRElement implements IRToken {
     }
 
     abstract getClone(children: IRToken[]): IRElement
-    abstract toHTML(): JSX.Element
-    abstract toSVG(): JSX.Element
+    abstract toHTML(key: number | string): JSX.Element
+    abstract toSVG(key: number | string): JSX.Element
 
     toPlaintext(): string {
         return lineToPlaintext(this.children)
@@ -144,13 +144,37 @@ export class IRBold extends IRElement {
     getClone(children: IRToken[]): IRBold {
         return new IRBold(children, this.fontParams)
     }
-    toHTML(): JSX.Element {
-        return <strong>{this.children.map((child) => child.toHTML())}</strong>
-    }
-    toSVG(): JSX.Element {
+    toHTML(key: number | string): JSX.Element {
         return (
-            <tspan style={{ fontWeight: 700 }}>
-                {this.children.map((child) => child.toSVG())}
+            <strong key={key}>
+                {this.children.map((child, i) => child.toHTML(i))}
+            </strong>
+        )
+    }
+    toSVG(key: number | string): JSX.Element {
+        return (
+            <tspan key={key} style={{ fontWeight: 700 }}>
+                {this.children.map((child, i) => child.toSVG(i))}
+            </tspan>
+        )
+    }
+}
+
+export class IRSpan extends IRElement {
+    getClone(children: IRToken[]): IRSpan {
+        return new IRSpan(children, this.fontParams)
+    }
+    toHTML(key: number | string): JSX.Element {
+        return (
+            <span key={key}>
+                {this.children.map((child, i) => child.toHTML(i))}
+            </span>
+        )
+    }
+    toSVG(key: number | string): JSX.Element {
+        return (
+            <tspan key={key} style={{ fontWeight: 700 }}>
+                {this.children.map((child, i) => child.toSVG(i))}
             </tspan>
         )
     }
@@ -160,13 +184,17 @@ export class IRItalic extends IRElement {
     getClone(children: IRToken[]): IRItalic {
         return new IRItalic(children, this.fontParams)
     }
-    toHTML(): JSX.Element {
-        return <em>{this.children.map((child) => child.toHTML())}</em>
-    }
-    toSVG(): JSX.Element {
+    toHTML(key: number | string): JSX.Element {
         return (
-            <tspan style={{ fontStyle: "italic" }}>
-                {this.children.map((child) => child.toSVG())}
+            <em key={key}>
+                {this.children.map((child, i) => child.toHTML(i))}
+            </em>
+        )
+    }
+    toSVG(key: number | string): JSX.Element {
+        return (
+            <tspan key={key} style={{ fontStyle: "italic" }}>
+                {this.children.map((child, i) => child.toSVG(i))}
             </tspan>
         )
     }
@@ -183,17 +211,17 @@ export class IRLink extends IRElement {
     getClone(children: IRToken[]): IRLink {
         return new IRLink(this.href, children, this.fontParams)
     }
-    toHTML(): JSX.Element {
+    toHTML(key: number | string): JSX.Element {
         return (
-            <a href={this.href}>
-                {this.children.map((child) => child.toHTML())}
+            <a key={key} href={this.href}>
+                {this.children.map((child, i) => child.toHTML(i))}
             </a>
         )
     }
-    toSVG(): JSX.Element {
+    toSVG(key: number | string): JSX.Element {
         return (
-            <a href={this.href}>
-                {this.children.map((child) => child.toSVG())}
+            <a key={key} href={this.href}>
+                {this.children.map((child, i) => child.toSVG(i))}
             </a>
         )
     }

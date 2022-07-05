@@ -3,13 +3,13 @@ import { mdParser } from "../../grapher/text/parser.js"
 import parseArgs from "minimist"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     const parseString = parsedArgs._[0]
-    const result = mdParser.markupTokens.parse(parseString)
+    const result = mdParser.markdown.parse(parseString)
     const description = parsedArgs["-d"]
     if (parsedArgs["result-only"]) console.log(result)
     else
         console.log(`
  it("PARSER TEST DESCRIPTION TEXT", () => {
-        expect(mdParser.markupTokens.parse("${parseString}")).toEqual(
+        expect(mdParser.markdown.parse("${parseString}")).toEqual(
             ${JSON.stringify(result, undefined, 2)}
         )
     })
