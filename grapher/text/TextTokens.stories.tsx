@@ -16,7 +16,7 @@ class MarkdownViewer extends React.Component {
     @observable width: number = 200
     @observable isLocked: boolean = false
     @observable
-    markdown: string = `Hello! I am bold.
+    markdown: string = `Hello! **I am bold.**
 
 Testing this somewhat long line. **I am bold-_ish_. And the bold extends into
 
