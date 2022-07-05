@@ -16,8 +16,10 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const isLastSlideActive = activeChartIdx === charts.length - 1
 
     const sortedCharts = [...charts].sort(
+        // isKey is returned from MySQL as 0, 1 or NULL
         (a, b) => Number(!!b.isKey) - Number(!!a.isKey)
     )
+    const activeChartSlug = sortedCharts[activeChartIdx].slug
 
     const onClickItem = (event: React.MouseEvent, idx: number) => {
         // Allow opening charts in new tab/window with ⌘+CLICK
@@ -51,8 +53,8 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                 >
                     <figure
                         // Use unique `key` to force React to re-render tree
-                        key={activeChartIdx}
-                        data-grapher-src={`/grapher/${sortedCharts[activeChartIdx].slug}`}
+                        key={activeChartSlug}
+                        data-grapher-src={`/grapher/${activeChartSlug}`}
                     />
                     <div className="gallery-navigation">
                         <GalleryArrow
