@@ -1,9 +1,10 @@
 import React from "react"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { markdownToTextTokens, mdParse } from "./markdown.js"
+import { parsimmonToTextTokens } from "./markdown.js"
 import { IRToken } from "./TextTokens.js"
 import { splitIntoLines } from "./TextTokensUtils.js"
+import { mdParser } from "./parser.js"
 
 export default {
     title: "TextTokens",
@@ -46,7 +47,11 @@ _THE END_
     }
 
     @computed get tokens(): IRToken[] {
-        return markdownToTextTokens(mdParse(this.markdown))
+        const result = mdParser.markdown.parse(this.markdown)
+        if (result.status) {
+            return parsimmonToTextTokens(result.value.children)
+        }
+        return []
     }
 
     render(): JSX.Element {
@@ -93,8 +98,8 @@ _THE END_
                                                     "1px solid rgba(0,50,50,.1)",
                                             }}
                                         >
-                                            {tokens.map((token) =>
-                                                token.toHTML()
+                                            {tokens.map((token, i) =>
+                                                token.toHTML(i)
                                             )}
                                         </span>
                                     ) : (
