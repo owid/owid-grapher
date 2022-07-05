@@ -256,12 +256,12 @@ export class FacetChart
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
-        const compactLabels = facetCount > 2
+        const numberAbbreviation = facetCount > 2 ? "short" : "long"
         const globalXAxisConfig: AxisConfigInterface = {
-            compactLabels,
+            tickFormattingOptions: { numberAbbreviation },
         }
         const globalYAxisConfig: AxisConfigInterface = {
-            compactLabels,
+            tickFormattingOptions: { numberAbbreviation },
         }
 
         // We infer that the user cares about the trend if the axis is not uniform

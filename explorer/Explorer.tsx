@@ -673,9 +673,9 @@ export class Explorer
 
     private tableSlugHasColumnSlug(
         tableSlug: TableSlug | undefined,
-        columnSlug: ColumnSlug
+        columnSlug: ColumnSlug,
+        columnDefsByTableSlug: Map<TableSlug | undefined, CoreColumnDef[]>
     ) {
-        const columnDefsByTableSlug = this.explorerProgram.columnDefsByTableSlug
         return !!columnDefsByTableSlug
             .get(tableSlug)
             ?.find((def) => def.slug === columnSlug)
@@ -684,15 +684,27 @@ export class Explorer
     private getTableSlugOfColumnSlug(
         columnSlug: ColumnSlug
     ): TableSlug | undefined {
+        const columnDefsByTableSlug = this.explorerProgram.columnDefsByTableSlug
+
         // In most cases, column slugs will be duplicated in the tables, e.g. entityName.
         // Prefer the current Grapher table if it contains the column slug.
         const grapherTableSlug = this.explorerProgram.grapherConfig.tableSlug
-        if (this.tableSlugHasColumnSlug(grapherTableSlug, columnSlug)) {
+        if (
+            this.tableSlugHasColumnSlug(
+                grapherTableSlug,
+                columnSlug,
+                columnDefsByTableSlug
+            )
+        ) {
             return grapherTableSlug
         }
         // ...otherwise, search all tables for the column slug
         return this.explorerProgram.tableSlugs.find((tableSlug) =>
-            this.tableSlugHasColumnSlug(tableSlug, columnSlug)
+            this.tableSlugHasColumnSlug(
+                tableSlug,
+                columnSlug,
+                columnDefsByTableSlug
+            )
         )
     }
 

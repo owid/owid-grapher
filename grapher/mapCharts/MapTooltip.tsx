@@ -141,7 +141,10 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             yAxisConfig: {
                 hideAxis: false,
                 hideGridlines: false,
-                compactLabels: true,
+                tickFormattingOptions: {
+                    unit: "",
+                    numberAbbreviation: "short",
+                },
                 // Copy min/max from top-level Grapher config if Y column == Map column
                 min: this.mapAndYColumnAreTheSame
                     ? this.props.manager.yAxisConfig?.min
@@ -150,7 +153,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     ? this.props.manager.yAxisConfig?.max
                     : undefined,
                 ticks: [
-                    { value: 0, priority: 1 },
+                    { value: 0, priority: 1, solid: true },
                     // Show minimum and maximum
                     { value: -Infinity, priority: 2 },
                     { value: Infinity, priority: 2 },
@@ -159,7 +162,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             xAxisConfig: {
                 hideAxis: false,
                 hideGridlines: true,
-                compactLabels: true,
+                tickFormattingOptions: {},
                 // Always show up to the target time on the X axis,
                 // even if there is no data for it.
                 min: this.props.targetTime,

@@ -6,6 +6,7 @@ import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import { JsonError } from "../clientUtils/owidTypes.js"
 
 export const getRedirects = async () => {
     const redirects = [
@@ -130,7 +131,9 @@ export const resolveGrapherAndWordpressRedirect = async (
         ++recursionDepth
         if (recursionDepth > MAX_RECURSION_DEPTH) {
             logContentErrorAndMaybeSendToSlack(
-                `A circular redirect (/a -> /b -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
+                new JsonError(
+                    `A circular redirect (/a -> /b -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
+                )
             )
             return originalUrl
         }
@@ -145,7 +148,9 @@ export const resolveGrapherAndWordpressRedirect = async (
 
         if (targetUrl.pathname === url.pathname) {
             logContentErrorAndMaybeSendToSlack(
-                `A self redirect (/a -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
+                new JsonError(
+                    `A self redirect (/a -> /a) has been detected for ${originalUrl.pathname} and is ignored.`
+                )
             )
             return originalUrl
         }

@@ -418,8 +418,8 @@ apiRouter.get(
                 namespace AS name,
                 namespaces.description AS description,
                 namespaces.isArchived AS isArchived
-            FROM datasets
-            JOIN namespaces ON namespaces.name = datasets.namespace`
+            FROM active_datasets
+            JOIN namespaces ON namespaces.name = active_datasets.namespace`
         )) as { name: string; description?: string; isArchived: boolean }[]
 
         return {
@@ -541,7 +541,7 @@ apiRouter.get(
                 d.namespace,
                 d.isPrivate,
                 d.nonRedistributable
-            FROM variables as v JOIN datasets as d ON v.datasetId = d.id
+            FROM variables as v JOIN active_datasets as d ON v.datasetId = d.id
             WHERE namespace=?
             ORDER BY d.updatedAt DESC
             `,
@@ -1343,7 +1343,7 @@ apiRouter.get("/variables.json", async (req) => {
             d.dataEditedAt AS uploadedAt,
             u.fullName AS uploadedBy
         FROM variables AS v
-        JOIN datasets d ON d.id=v.datasetId
+        JOIN active_datasets d ON d.id=v.datasetId
         JOIN users u ON u.id=d.dataEditedByUserId
         ${searchStr ? "WHERE v.name LIKE ?" : ""}
         ORDER BY d.dataEditedAt DESC
@@ -1475,14 +1475,14 @@ apiRouter.get(
             await db.queryMysql(`SELECT variables.id as id,
             variables.name as name,
             variables.grapherConfig as config,
-            datasets.name as datasetname,
+            d.name as datasetname,
             namespaces.name as namespacename,
             variables.createdAt as createdAt,
             variables.updatedAt as updatedAt,
             variables.description as description
 FROM variables
-LEFT JOIN datasets on variables.datasetId = datasets.id
-LEFT JOIN namespaces on datasets.namespace = namespaces.name
+LEFT JOIN active_datasets as d on variables.datasetId = d.id
+LEFT JOIN namespaces on d.namespace = namespaces.name
 WHERE ${whereClause}
 ORDER BY variables.id DESC
 LIMIT 50
@@ -1494,8 +1494,8 @@ OFFSET ${offset.toString()}`)
         }))
         const resultCount = await db.queryMysql(`SELECT count(*) as count
 FROM variables
-LEFT JOIN datasets on variables.datasetId = datasets.id
-LEFT JOIN namespaces on datasets.namespace = namespaces.name
+LEFT JOIN active_datasets as d on variables.datasetId = d.id
+LEFT JOIN namespaces on d.namespace = namespaces.name
 WHERE ${whereClause}`)
         return { rows: results, numTotalRows: resultCount[0].count }
     }
@@ -1664,7 +1664,7 @@ apiRouter.get("/datasets.json", async (req) => {
             mu.fullName AS metadataEditedByUserName,
             d.isPrivate,
             d.nonRedistributable
-        FROM datasets d
+        FROM active_datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
         ORDER BY d.dataEditedAt DESC
@@ -1703,6 +1703,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
             d.metadataEditedByUserId,
             mu.fullName AS metadataEditedByUserName,
             d.isPrivate,
+            d.isArchived,
             d.nonRedistributable
         FROM datasets AS d
         JOIN users du ON du.id=d.dataEditedByUserId
@@ -2003,7 +2004,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
             du.fullName AS dataEditedByUserName,
             d.isPrivate,
             d.nonRedistributable
-        FROM datasets d
+        FROM active_datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         LEFT JOIN dataset_tags dt ON dt.datasetId = d.id
         WHERE dt.tagId ${uncategorized ? "IS NULL" : "= ?"}
@@ -2237,7 +2238,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
 apiRouter.get("/importData.json", async (req) => {
     // Get all datasets from the importable namespace to match against
     const datasets = await db.queryMysql(
-        `SELECT id, name FROM datasets WHERE namespace='owid' ORDER BY name ASC`
+        `SELECT id, name FROM active_datasets WHERE namespace='owid' ORDER BY name ASC`
     )
 
     // Get a unique list of all entities in the database (probably this won't scale indefinitely)
@@ -2465,7 +2466,7 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
         `
         SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
         FROM sources AS s
-        JOIN datasets AS d ON d.id=s.datasetId
+        JOIN active_datasets AS d ON d.id=s.datasetId
         WHERE s.id=?`,
         [sourceId]
     )
