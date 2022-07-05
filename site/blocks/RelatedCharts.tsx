@@ -5,6 +5,7 @@ import { RelatedChart } from "../../clientUtils/owidTypes.js"
 import { useEmbedChart } from "../hooks.js"
 import { GalleryArrow, GalleryArrowDirection } from "./GalleryArrow.js"
 import { AllChartsListItem } from "./AllChartsListItem.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export const RELATED_CHARTS_CLASS_NAME = "related-charts"
 
@@ -54,7 +55,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                     <figure
                         // Use unique `key` to force React to re-render tree
                         key={activeChartSlug}
-                        data-grapher-src={`/grapher/${activeChartSlug}`}
+                        data-grapher-src={`${BAKED_BASE_URL}/grapher/${activeChartSlug}`}
                     />
                     <div className="gallery-navigation">
                         <GalleryArrow
