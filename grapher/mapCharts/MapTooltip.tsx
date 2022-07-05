@@ -153,7 +153,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     ? this.props.manager.yAxisConfig?.max
                     : undefined,
                 ticks: [
-                    { value: 0, priority: 1 },
+                    { value: 0, priority: 1, solid: true },
                     // Show minimum and maximum
                     { value: -Infinity, priority: 2 },
                     { value: Infinity, priority: 2 },
