@@ -4,19 +4,34 @@ $explorer-grid-gap: 10px;
 $explorer-min-width-first-col: 200px;
 $explorer-padding: 0.5rem;
 
-#ExplorerContainer {
+// #ExplorerContainer is only seen on explorer pages (iframe-embedded or not)
+// The div hierarchy is: #ExplorerContainer > .Explorer
+
+// .Explorer.is-embed is only seen on OWID iframe-less embeds
+// The div hierarchy is: figure[data-explorer-src] > .Explorer.is-embed
+
+// Said otherwise, using a ternary operator:
+// .Explorer.is-embed
+// ? "iframe-less embed on an OWID page"
+// : html.isInIframe
+// ? "explorer page embedded in an iframe"
+// : "explorer page on OWID"
+
+// "explorer page on OWID"
+html:not(.IsInIframe) #ExplorerContainer {
     @include content-wrapper;
     @include lg-up {
         max-width: $text-max-content-width + $graph-max-content-width + 3 *
             $padding-x-md;
     }
     min-height: $placeholder-height;
-    width: 100%;
     position: relative;
     padding: $explorer-padding;
 }
 
+// "explorer page embedded in an iframe"
 html.IsInIframe #ExplorerContainer {
+    position: relative;
     height: 100vh;
     min-height: auto !important;
     max-height: none;
