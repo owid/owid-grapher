@@ -6,9 +6,6 @@ import { Logo } from "../captionedChart/Logos.js"
 import { HeaderManager } from "./HeaderManager.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
-import { splitIntoLines } from "../text/TextTokensUtils.js"
-import { parsimmonToTextTokens } from "../text/markdown.js"
-import { mdParser } from "../text/parser.js"
 
 @observer
 export class Header extends React.Component<{
@@ -149,34 +146,13 @@ export class Header extends React.Component<{
             overflowY: "hidden",
         }
 
-        const result = mdParser.markdown.parse(this.subtitleText)
-        const lines = result.status
-            ? splitIntoLines(
-                  parsimmonToTextTokens(result.value.children, {
-                      // same as above
-                      fontSize: 0.8 * this.fontSize,
-                  }),
-                  this.subtitleWidth
-              )
-            : []
-
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
                 <a href={manager.canonicalUrl} target="_blank" rel="noopener">
                     <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
                 </a>
-                <p style={subtitleStyle}>
-                    {lines.map((line, i) => (
-                        <div key={i}>
-                            {line.length ? (
-                                line.map((token, i) => token.toHTML(i))
-                            ) : (
-                                <br />
-                            )}
-                        </div>
-                    ))}
-                </p>
+                <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
             </div>
         )
     }
