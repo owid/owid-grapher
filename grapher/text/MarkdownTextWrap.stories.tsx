@@ -1,18 +1,17 @@
-import React from "react"
+import React, { createRef } from "react"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { parsimmonToTextTokens } from "./markdown.js"
-import { IRToken } from "./TextTokens.js"
-import { splitIntoLines } from "./TextTokensUtils.js"
+import { MarkdownTextWrap, parsimmonToTextTokens } from "./MarkdownTextWrap.js"
+import { IRToken } from "./MarkdownTextWrap.js"
 import { mdParser } from "./parser.js"
 
 export default {
-    title: "TextTokens",
-    // component: Header,
+    title: "MarkdownTextWrap",
 }
 
 @observer
 class MarkdownViewer extends React.Component {
+    ref = createRef<HTMLDivElement>()
     @observable width: number = 200
     @observable isLocked: boolean = false
     @observable
@@ -55,8 +54,12 @@ _THE END_
     }
 
     render(): JSX.Element {
+        const containerWidth =
+            this.ref.current?.getBoundingClientRect().width || 1
+        const svgContainerWidth = 800
+        const svgMaxWidth = (this.width / containerWidth) * svgContainerWidth
         return (
-            <div>
+            <div ref={this.ref}>
                 <textarea
                     onChange={this.onChangeMarkdown}
                     style={{
@@ -87,28 +90,28 @@ _THE END_
                             pointerEvents: "none",
                         }}
                     ></div>
-                    <div>
-                        {splitIntoLines(this.tokens, this.width).map(
-                            (tokens, i) => (
-                                <div key={i}>
-                                    {tokens.length ? (
-                                        <span
-                                            style={{
-                                                outline:
-                                                    "1px solid rgba(0,50,50,.1)",
-                                            }}
-                                        >
-                                            {tokens.map((token, i) =>
-                                                token.toHTML(i)
-                                            )}
-                                        </span>
-                                    ) : (
-                                        <br />
-                                    )}
-                                </div>
-                            )
-                        )}
+                    <pre>HTML Example</pre>
+                    <div style={{ outline: "1px solid black" }}>
+                        <MarkdownTextWrap
+                            text={this.markdown}
+                            fontSize={14}
+                            maxWidth={this.width}
+                        />
                     </div>
+                    <pre>isSVG Example</pre>
+                    <svg
+                        viewBox={`0,0,800,200`}
+                        style={{ outline: "1px solid black" }}
+                    >
+                        <MarkdownTextWrap
+                            text={this.markdown}
+                            fontSize={14}
+                            maxWidth={svgMaxWidth}
+                            isSVG
+                            x={0}
+                            y={0}
+                        />
+                    </svg>
                 </div>
             </div>
         )
