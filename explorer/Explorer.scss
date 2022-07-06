@@ -2,7 +2,6 @@ $placeholder-height: 800px;
 $chart-border-radius: 2px;
 $explorer-grid-gap: 10px;
 $explorer-min-width-first-col: 200px;
-$explorer-padding: 0.5rem;
 
 // #ExplorerContainer is only seen on explorer pages (iframe-embedded or not)
 // The div hierarchy is: #ExplorerContainer > .Explorer
@@ -26,7 +25,6 @@ html:not(.IsInIframe) #ExplorerContainer {
     }
     min-height: $placeholder-height;
     position: relative;
-    padding: $explorer-padding;
 }
 
 // "explorer page embedded in an iframe"
@@ -63,18 +61,13 @@ html.IsInIframe #ExplorerContainer {
 }
 
 .explorerContentContainer {
-    // liberale approximation of ExplorerShell._isMobile()
-    @media (max-width: 849px) {
-        @include wrapper-x-spacing;
-    }
-
-    @media (min-width: 850px) {
-        max-width: $max-width-covid-data-explorer;
-        margin: 0 auto;
+    @include content-wrapper;
+    @include lg-up {
+        max-width: $text-max-content-width + $graph-max-content-width + 3 *
+            $padding-x-md;
         display: grid;
         grid-template-columns: 1fr 4fr;
         column-gap: $explorer-grid-gap;
-        padding: $explorer-padding;
 
         .sidebar {
             min-width: $explorer-min-width-first-col;
