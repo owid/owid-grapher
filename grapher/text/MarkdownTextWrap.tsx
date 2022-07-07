@@ -1,4 +1,4 @@
-import React from "react"
+import React, { StyleHTMLAttributes } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
@@ -29,6 +29,9 @@ export class IRText implements IRToken {
     constructor(public text: string, public fontParams?: IRFontParams) {}
     @imemo get width(): number {
         return Bounds.forText(this.text, this.fontParams).width
+    }
+    @imemo get height(): number {
+        return this.fontParams?.fontSize || 16
     }
     getBreakpointBefore(): undefined {
         return undefined
@@ -136,6 +139,16 @@ export abstract class IRElement implements IRToken {
 }
 
 export class IRBold extends IRElement {
+    @imemo get width(): number {
+        const plaintext = this.children
+            .map((token) => token.toPlaintext())
+            .join("")
+        return Bounds.forText(plaintext, {
+            ...this.fontParams,
+            fontWeight: 700,
+        }).width
+    }
+
     getClone(children: IRToken[]): IRBold {
         return new IRBold(children, this.fontParams)
     }
@@ -176,6 +189,15 @@ export class IRSpan extends IRElement {
 }
 
 export class IRItalic extends IRElement {
+    @imemo get width(): number {
+        const plaintext = this.children
+            .map((token) => token.toPlaintext())
+            .join("")
+        return Bounds.forText(plaintext, {
+            ...this.fontParams,
+            isItalic: true,
+        }).width
+    }
     getClone(children: IRToken[]): IRItalic {
         return new IRItalic(children, this.fontParams)
     }
@@ -377,12 +399,6 @@ export function parsimmonToTextTokens(
                     ...fontParams,
                 })
             )
-        } else if (node.type === "textSegments") {
-            return new IRSpan(
-                parsimmonToTextTokens(node.children, {
-                    ...fontParams,
-                })
-            )
         } else if (node.type === "plainUrl") {
             return new IRLink(
                 node.href,
@@ -413,6 +429,7 @@ interface MarkdownTextWrapHTMLProps {
     x?: number
     y?: number
     svgOptions?: React.SVGProps<SVGTextElement>
+    style?: StyleHTMLAttributes<HTMLSpanElement>
 }
 
 interface MarkdownTextWrapSVGProps {
@@ -420,6 +437,7 @@ interface MarkdownTextWrapSVGProps {
     x: number
     y: number
     svgOptions?: React.SVGProps<SVGTextElement>
+    style?: StyleHTMLAttributes<SVGTextElement>
 }
 
 type MarkdownTextWrapProps = {
@@ -428,6 +446,7 @@ type MarkdownTextWrapProps = {
     lineHeight?: number
     fontSize: number
     fontWeight?: number
+    fontFamily?: FontFamily
 } & (MarkdownTextWrapHTMLProps | MarkdownTextWrapSVGProps)
 
 export class MarkdownTextWrap extends React.Component {
@@ -444,10 +463,14 @@ export class MarkdownTextWrap extends React.Component {
         return this.props.lineHeight ?? 1.1
     }
     @computed get fontSize(): number {
-        return this.props.fontSize ?? 1
+        return this.props.fontSize
     }
-    @computed get fontWeight(): number | undefined {
-        return this.props.fontWeight
+    @computed get fontParams(): IRFontParams {
+        return {
+            fontFamily: this.props.fontFamily,
+            fontSize: this.props.fontSize,
+            fontWeight: this.props.fontWeight,
+        }
     }
     @computed get text(): string {
         return this.props.text
@@ -461,39 +484,45 @@ export class MarkdownTextWrap extends React.Component {
     }
 
     @computed get lines(): IRToken[][] {
-        const tokens = parsimmonToTextTokens(this.ast)
+        const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
         return splitIntoLines(tokens, this.maxWidth)
     }
 
-    @computed get htmlStyle(): any {
-        const { fontSize, fontWeight, lineHeight } = this
+    @computed get svgStyle(): any {
         return {
-            fontSize: fontSize.toFixed(2) + "px",
-            fontWeight: fontWeight,
-            lineHeight: lineHeight,
+            ...this.props.style,
+            ...this.fontParams,
+            lineHeight: this.lineHeight,
+        }
+    }
+
+    @computed get htmlStyle(): any {
+        return {
+            ...this.props.style,
+            ...this.fontParams,
+            lineHeight: this.lineHeight,
             overflowY: "visible",
         }
     }
 
     render(): JSX.Element | null {
-        const { props, lines, fontSize, fontWeight, lineHeight } = this
+        const { props, lines } = this
 
         if (lines.length === 0) return null
 
         if (props.isSVG) {
             return (
                 <text
-                    fontSize={fontSize.toFixed(2)}
-                    fontWeight={fontWeight}
                     x={props.x.toFixed(1)}
                     y={props.y.toFixed(1)}
                     {...props.svgOptions}
+                    style={this.svgStyle}
                 >
                     {lines.map((line, i) => (
                         <tspan
                             key={i}
                             x={props.x}
-                            y={lineHeight * fontSize * (i + 1)}
+                            y={this.lineHeight * this.props.fontSize * (i + 1)}
                         >
                             {line.map((token, i) => token.toSVG(i))}
                         </tspan>
