@@ -252,6 +252,9 @@ const nonDoubleStarWordParser: (
 ) => P.Parser<NonDoubleStarWord> = () =>
     P.regex(/([^*\s]|\*(?!\*))+/).map((val) => ({ type: "text", value: val })) // no WS, no **
 
+const nonStylingCharactersParser: (r: MdParser) => P.Parser<Text> = () =>
+    P.regex(/[^\s*_]+/).map((value) => ({ type: "text", value })) // Consume up to * or _
+
 const dodCategoryParser: (r: MdParser) => P.Parser<DodCategory> = () =>
     P.regex(/([^\(\):\s]|:(?!:))+/).map((val) => ({
         type: "text",
@@ -360,7 +363,7 @@ const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonDoubleStarWord
+        r.nonStylingCharacters
     )
 
 const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
@@ -396,7 +399,7 @@ const italicWithoutBoldContentParser: (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonSingleUnderscoreWord
+        r.nonStylingCharacters
     )
 
 const italicWithoutBoldParser: (r: MdParser) => P.Parser<ItalicWithoutBold> = (
@@ -420,7 +423,7 @@ const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
-        r.nonSingleUnderscoreWord
+        r.nonStylingCharacters
     )
 
 const italicParser: (r: MdParser) => P.Parser<Italic> = (r: MdParser) =>
@@ -450,20 +453,6 @@ const plainItalicParser: (r: MdParser) => P.Parser<PlainItalic> = (
         children,
     }))
 
-// Consume up to "**"" or "_"
-const nonStylingCharactersParser: (r: MdParser) => P.Parser<Text> = () =>
-    P.regex(/[^\s*_]+/).map((value) => ({ type: "text", value }))
-
-const textSegmentsParser: (r: MdParser) => P.Parser<TextSegments> = (
-    r: MdParser
-) =>
-    P.alt(r.plainBold, r.plainItalic, r.nonStylingCharacters)
-        .atLeast(1)
-        .map((result: TextSegment[]) => ({
-            children: result,
-            type: "textSegments",
-        }))
-
 //#endregion
 
 //#region Top level language construction
@@ -478,7 +467,9 @@ const markdownParser: (r: MdParser) => P.Parser<MarkdownRoot> = (r) =>
         r.plainUrl,
         r.bold,
         r.italic,
-        r.textSegments,
+        // Consume up to ** or _, if possible
+        r.nonStylingCharacters,
+        // Otherwise consume everything
         r.fallbackText
     )
         .atLeast(1)
@@ -500,7 +491,6 @@ const languageParts = {
     italic: italicParser,
     plainBold: plainBoldParser,
     plainItalic: plainItalicParser,
-    textSegments: textSegmentsParser,
     fallbackText: fallbackTextParser,
     // Utility parsers below - these will never be tried on the top level because text covers everything else
     detailOnDemandContent: detailOnDemandContentParser,

@@ -5,7 +5,7 @@ describe("mdast parsers", () => {
         expect(mdParser.markdown.parse("[some text]")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "text",
@@ -14,6 +14,7 @@ describe("mdast parsers", () => {
                     {
                         type: "whitespace",
                     },
+
                     {
                         type: "text",
                         value: "text]",
@@ -28,7 +29,7 @@ describe("mdast parsers", () => {
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "detailOnDemand",
@@ -56,7 +57,7 @@ describe("mdast parsers", () => {
         expect(mdParser.markdown.parse("word")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "text",
@@ -70,7 +71,7 @@ describe("mdast parsers", () => {
         expect(mdParser.markdown.parse("can't?")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "text",
@@ -83,7 +84,7 @@ describe("mdast parsers", () => {
         expect(mdParser.markdown.parse("'mid-west'")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "text",
@@ -97,7 +98,7 @@ describe("mdast parsers", () => {
         expect(mdParser.markdown.parse("**I'm bold as brass**")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "bold",
@@ -119,7 +120,7 @@ describe("mdast parsers", () => {
         expect(mdParser.markdown.parse("_Mamma mia!_")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "italic",
@@ -137,7 +138,7 @@ describe("mdast parsers", () => {
         expect(mdParser.markdown.parse("www.google.com")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "plainUrl",
@@ -149,7 +150,7 @@ describe("mdast parsers", () => {
         expect(mdParser.markdown.parse("[test](www.google.com)")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "markdownLink",
@@ -167,7 +168,7 @@ describe("mdast parsers", () => {
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "detailOnDemand",
@@ -195,7 +196,7 @@ describe("mdast parsers", () => {
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "detailOnDemand",
@@ -240,7 +241,7 @@ how **are** you?`)
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "text",
@@ -252,6 +253,7 @@ how **are** you?`)
                     {
                         type: "newline",
                     },
+
                     {
                         type: "text",
                         value: "how",
@@ -267,6 +269,7 @@ how **are** you?`)
                         type: "bold",
                     },
                     { type: "whitespace" },
+
                     {
                         type: "text",
                         value: "you?",
@@ -284,7 +287,7 @@ how **are** you?`)
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "text",
@@ -358,7 +361,7 @@ how **are** you?`)
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         children: [
@@ -399,7 +402,7 @@ how **are** you?`)
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         children: [
@@ -448,7 +451,7 @@ how **are** you?`)
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         children: [
@@ -508,7 +511,7 @@ how **are** you?`)
         expect(mdParser.markdown.parse("**bold**-word")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "bold",
@@ -520,33 +523,28 @@ how **are** you?`)
         })
     })
 
-    it.only("Parser can parse bold starting and stopping inside a word", () => {
+    it("Parser can parse bold starting and stopping inside a word", () => {
         expect(mdParser.markdown.parse("test**some**postfix")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
-                        type: "words",
+                        type: "text",
+                        value: "test",
+                    },
+                    {
+                        type: "bold",
                         children: [
                             {
                                 type: "text",
-                                value: "test",
-                            },
-                            {
-                                type: "plainBold",
-                                children: [
-                                    {
-                                        type: "text",
-                                        value: "some",
-                                    },
-                                ],
-                            },
-                            {
-                                type: "text",
-                                value: "postfix",
+                                value: "some",
                             },
                         ],
+                    },
+                    {
+                        type: "text",
+                        value: "postfix",
                     },
                 ],
             },
@@ -557,22 +555,26 @@ how **are** you?`)
         expect(mdParser.markdown.parse("** unfinished bold")).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "text",
                         value: "**",
                     },
+
                     {
                         type: "whitespace",
                     },
+
                     {
                         type: "text",
                         value: "unfinished",
                     },
+
                     {
                         type: "whitespace",
                     },
+
                     {
                         type: "text",
                         value: "bold",
@@ -588,7 +590,7 @@ how **are** you?`)
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "text",
@@ -597,17 +599,21 @@ how **are** you?`)
                     {
                         type: "whitespace",
                     },
+
                     {
                         type: "text",
                         value: "unfinished",
                     },
+
                     {
                         type: "whitespace",
                     },
+
                     {
                         type: "text",
                         value: "bold",
                     },
+
                     {
                         type: "whitespace",
                     },
@@ -631,6 +637,72 @@ how **are** you?`)
         })
     })
 
+    it("parses nested-in-bold, non-spaced italics", () => {
+        expect(mdParser.markdown.parse("**one-_two_-three**")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                type: "text",
+                                value: "one-",
+                            },
+                            {
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "two",
+                                    },
+                                ],
+                                type: "italicWithoutBold",
+                            },
+                            {
+                                type: "text",
+                                value: "-three",
+                            },
+                        ],
+                        type: "bold",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses nested-in-italic, non-spaced bold", () => {
+        expect(mdParser.markdown.parse("_one-**two**-three_")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                type: "text",
+                                value: "one-",
+                            },
+                            {
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "two",
+                                    },
+                                ],
+                                type: "boldWithoutItalic",
+                            },
+                            {
+                                type: "text",
+                                value: "-three",
+                            },
+                        ],
+                        type: "italic",
+                    },
+                ],
+            },
+        })
+    })
+
     it("parses markdown links with just bold or just italic correctly and ignores nested bold/italic", () => {
         expect(
             mdParser.markdown.parse(
@@ -639,7 +711,7 @@ how **are** you?`)
         ).toEqual({
             status: true,
             value: {
-                type: "DodMarkupRoot",
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "markdownLink",
