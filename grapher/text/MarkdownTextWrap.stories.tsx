@@ -15,16 +15,18 @@ class MarkdownViewer extends React.Component {
     @observable width: number = 200
     @observable isLocked: boolean = false
     @observable
-    markdown: string = `Hello! **I am bold.**
+    markdown: string = `**I _am_-bold_am_.**
+    _I **am**-bold**am**._
+    `
 
-Testing this somewhat long line. **I am bold-_ish_. And the bold extends into
+    // Testing this somewhat long line. **I am bold-_ish_. And the bold extends into
 
-newlines too!
+    // newlines too!
 
-[links can contain _formatting_ too](http://ourworldindata.org).**Averylongtokenthatcantbesplitbutshouldbeincludedanyway.**Canhavebold**withoutlinebreak.
+    // [links can contain _formatting_ too](http://ourworldindata.org).**Averylongtokenthatcantbesplitbutshouldbeincludedanyway.**Canhavebold**withoutlinebreak.
 
-_THE END_
-`
+    // _THE END_
+    // `
 
     @action.bound onChangeMarkdown(
         event: React.ChangeEvent<HTMLTextAreaElement>
