@@ -93,12 +93,14 @@ export class Bounds {
             fontSize = 16,
             fontWeight = 400,
             fontFamily = FontFamily.arial,
+            isItalic = false,
         }: {
             x?: number
             y?: number
             fontSize?: number
             fontWeight?: number
             fontFamily?: FontFamily
+            isItalic?: boolean
         } = {}
     ): Bounds {
         // Collapse contiguous spaces into one
@@ -116,6 +118,7 @@ export class Bounds {
                 font: fontFamily,
                 size: fontSize,
                 bold: isBold,
+                italic: isItalic,
             })
             bounds = bounds.set({ width })
         }
