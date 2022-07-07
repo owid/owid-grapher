@@ -2,7 +2,6 @@ import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { TimelineComponent } from "../timeline/TimelineComponent.js"
-import { formatValue } from "../../clientUtils/formatValue.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -22,6 +21,7 @@ import { AxisConfig } from "../axis/AxisConfig.js"
 import { Tippy } from "../chart/Tippy.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import classnames from "classnames"
+import { getWindowUrl, Url } from "../../clientUtils/urls/Url.js"
 
 export interface NoDataAreaToggleManager {
     showNoDataArea?: boolean
@@ -390,9 +390,21 @@ export class FooterControls extends React.Component<{
         const shareMenuElement = isShareMenuActive && (
             <ShareMenu manager={manager} onDismiss={this.onShareMenu} />
         )
+        const windowPath = getWindowUrl().pathname
+        const relatedQuestionPath = Url.fromURL(
+            relatedQuestions[0]?.url
+        ).pathname
 
         const relatedQuestionElement = relatedQuestions &&
-            hasRelatedQuestion && (
+            hasRelatedQuestion &&
+            // comparing paths rather than full URLs for this to work as
+            // expected on local and staging where the origin (e.g.
+            // hans.owid.cloud) doesn't match the production origin that has
+            // been entered in the related question URL field:
+            // "ourworldindata.org" and yet should still yield a match.
+            // - Note that this won't work on production previews (where the
+            //   path is /admin/posts/preview/ID)
+            windowPath !== relatedQuestionPath && (
                 <div className="relatedQuestion">
                     Related:&nbsp;
                     <a
