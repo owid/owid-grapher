@@ -85,4 +85,14 @@ describe("MarkdownTextWrap", () => {
             fontSize: 14,
         })
     })
+
+    it("MarkdownTextWrap should calculate height correctly", () => {
+        const element = new MarkdownTextWrap({
+            text: "a\nb\nc",
+            fontSize: 10,
+            lineHeight: 1,
+        })
+
+        expect(element.height).toEqual(30)
+    })
 })
