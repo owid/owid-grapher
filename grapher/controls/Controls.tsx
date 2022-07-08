@@ -21,7 +21,6 @@ import { AxisConfig } from "../axis/AxisConfig.js"
 import { Tippy } from "../chart/Tippy.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import classnames from "classnames"
-import { getWindowUrl, Url } from "../../clientUtils/urls/Url.js"
 
 export interface NoDataAreaToggleManager {
     showNoDataArea?: boolean
@@ -286,6 +285,7 @@ export interface FooterControlsManager extends ShareMenuManager {
     canonicalUrl?: string
     showTimeline?: boolean
     hasRelatedQuestion?: boolean
+    isRelatedQuestionTargetDifferentFromCurrentPage?: boolean
     relatedQuestions: RelatedQuestionsConfig[]
     footerControlsHeight?: number
     timelineController?: TimelineController
@@ -381,8 +381,12 @@ export class FooterControls extends React.Component<{
 
     render(): JSX.Element {
         const { manager } = this
-        const { isShareMenuActive, hasRelatedQuestion, relatedQuestions } =
-            manager
+        const {
+            isShareMenuActive,
+            hasRelatedQuestion,
+            isRelatedQuestionTargetDifferentFromCurrentPage,
+            relatedQuestions,
+        } = manager
         const tabsElement = (
             <div className="footerRowSingle">{this._getTabsElement()}</div>
         )
@@ -390,21 +394,10 @@ export class FooterControls extends React.Component<{
         const shareMenuElement = isShareMenuActive && (
             <ShareMenu manager={manager} onDismiss={this.onShareMenu} />
         )
-        const windowPath = getWindowUrl().pathname
-        const relatedQuestionPath = Url.fromURL(
-            relatedQuestions[0]?.url
-        ).pathname
 
         const relatedQuestionElement = relatedQuestions &&
             hasRelatedQuestion &&
-            // comparing paths rather than full URLs for this to work as
-            // expected on local and staging where the origin (e.g.
-            // hans.owid.cloud) doesn't match the production origin that has
-            // been entered in the related question URL field:
-            // "ourworldindata.org" and yet should still yield a match.
-            // - Note that this won't work on production previews (where the
-            //   path is /admin/posts/preview/ID)
-            windowPath !== relatedQuestionPath && (
+            isRelatedQuestionTargetDifferentFromCurrentPage && (
                 <div className="relatedQuestion">
                     Related:&nbsp;
                     <a
