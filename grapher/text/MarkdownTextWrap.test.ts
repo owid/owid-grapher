@@ -39,7 +39,7 @@ describe("MarkdownTextWrap", () => {
     })
 
     it("MarkdownTextWrap should apply style props to HTML output", () => {
-        const HTMLElement = new MarkdownTextWrap({
+        const element = new MarkdownTextWrap({
             text: "abcdefghijklmnopqrstuvwxyz",
             fontSize: 14,
             maxWidth: 200,
@@ -48,25 +48,22 @@ describe("MarkdownTextWrap", () => {
             },
         })
 
-        const output = HTMLElement.render()
+        const output = element.renderHTML()
 
         expect(output?.props.style.color).toEqual("red")
     })
 
     it("MarkdownTextWrap should apply style props to SVG output", () => {
-        const SVGElement = new MarkdownTextWrap({
+        const element = new MarkdownTextWrap({
             text: "abcdefghijklmnopqrstuvwxyz",
             fontSize: 14,
             maxWidth: 200,
-            isSVG: true,
-            x: 0,
-            y: 0,
             style: {
                 color: "red",
             },
         })
 
-        const output = SVGElement.render()
+        const output = element.renderSVG(0, 0)
 
         expect(output?.props.style.color).toEqual("red")
     })
@@ -80,7 +77,7 @@ describe("MarkdownTextWrap", () => {
             fontWeight: 800,
         })
 
-        const output = element.render()
+        const output = element.renderHTML()
 
         expect(output?.props.style).toMatchObject({
             fontFamily: FontFamily["comic sans ms"],

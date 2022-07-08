@@ -1,4 +1,4 @@
-import React, { StyleHTMLAttributes } from "react"
+import React, { CSSProperties, StyleHTMLAttributes } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
@@ -424,30 +424,15 @@ export function parsimmonToTextTokens(
     })
 }
 
-interface MarkdownTextWrapHTMLProps {
-    isSVG?: false
-    x?: number
-    y?: number
-    svgOptions?: React.SVGProps<SVGTextElement>
-    style?: StyleHTMLAttributes<HTMLSpanElement>
-}
-
-interface MarkdownTextWrapSVGProps {
-    isSVG: true
-    x: number
-    y: number
-    svgOptions?: React.SVGProps<SVGTextElement>
-    style?: StyleHTMLAttributes<SVGTextElement>
-}
-
 type MarkdownTextWrapProps = {
     text: string
-    maxWidth: number
-    lineHeight?: number
     fontSize: number
-    fontWeight?: number
     fontFamily?: FontFamily
-} & (MarkdownTextWrapHTMLProps | MarkdownTextWrapSVGProps)
+    fontWeight?: number
+    lineHeight?: number
+    maxWidth?: number
+    style?: CSSProperties
+}
 
 export class MarkdownTextWrap extends React.Component {
     props: MarkdownTextWrapProps
@@ -488,6 +473,10 @@ export class MarkdownTextWrap extends React.Component {
         return splitIntoLines(tokens, this.maxWidth)
     }
 
+    @computed get height(): number {
+        return this.lines.length * this.lineHeight * this.fontSize
+    }
+
     @computed get svgStyle(): any {
         return {
             ...this.props.style,
@@ -505,31 +494,9 @@ export class MarkdownTextWrap extends React.Component {
         }
     }
 
-    render(): JSX.Element | null {
-        const { props, lines } = this
-
+    renderHTML(): JSX.Element | null {
+        const { lines } = this
         if (lines.length === 0) return null
-
-        if (props.isSVG) {
-            return (
-                <text
-                    x={props.x.toFixed(1)}
-                    y={props.y.toFixed(1)}
-                    {...props.svgOptions}
-                    style={this.svgStyle}
-                >
-                    {lines.map((line, i) => (
-                        <tspan
-                            key={i}
-                            x={props.x}
-                            y={this.lineHeight * this.props.fontSize * (i + 1)}
-                        >
-                            {line.map((token, i) => token.toSVG(i))}
-                        </tspan>
-                    ))}
-                </text>
-            )
-        }
         return (
             <span style={this.htmlStyle} className="markdown-text-wrap">
                 {lines.map((line, i) => (
@@ -543,5 +510,40 @@ export class MarkdownTextWrap extends React.Component {
                 ))}
             </span>
         )
+    }
+
+    renderSVG(
+        x: number,
+        y: number,
+        options?: React.SVGProps<SVGTextElement>
+    ): JSX.Element | null {
+        const { lines } = this
+        if (lines.length === 0) return null
+
+        return (
+            <text
+                x={x.toFixed(1)}
+                y={y.toFixed(1)}
+                style={this.svgStyle}
+                {...options}
+            >
+                {lines.map((line, i) => (
+                    <tspan
+                        key={i}
+                        x={x}
+                        y={this.lineHeight * this.props.fontSize * (i + 1)}
+                    >
+                        {line.map((token, i) => token.toSVG(i))}
+                    </tspan>
+                ))}
+            </text>
+        )
+    }
+
+    // An alias method that allows MarkdownTextWrap to be
+    // instantiated via JSX for HTML rendering
+    // <MarkdownTextWrap ... />
+    render(): JSX.Element | null {
+        return this.renderHTML()
     }
 }
