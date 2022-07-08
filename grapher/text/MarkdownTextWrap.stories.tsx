@@ -103,14 +103,11 @@ _THE END_
                         viewBox={`0,0,800,200`}
                         style={{ outline: "1px solid black" }}
                     >
-                        <MarkdownTextWrap
-                            text={this.markdown}
-                            fontSize={14}
-                            maxWidth={svgMaxWidth}
-                            isSVG
-                            x={0}
-                            y={0}
-                        />
+                        {new MarkdownTextWrap({
+                            text: this.markdown,
+                            fontSize: 14,
+                            maxWidth: svgMaxWidth,
+                        }).renderSVG(0, 0)}
                     </svg>
                 </div>
             </div>
