@@ -4,11 +4,12 @@ import parseArgs from "minimist"
 async function main(parsedArgs: parseArgs.ParsedArgs) {
     const parseString = parsedArgs._[0]
     const result = mdParser.markdown.parse(parseString)
-    const description = parsedArgs["-d"]
-    if (parsedArgs["result-only"]) console.log(result)
+    const description = parsedArgs["d"]
+    if (parsedArgs["result-only"])
+        console.log(JSON.stringify(result, undefined, 2))
     else
         console.log(`
- it("PARSER TEST DESCRIPTION TEXT", () => {
+ it(${description || "parses markdown correctly"}, () => {
         expect(mdParser.markdown.parse("${parseString}")).toEqual(
             ${JSON.stringify(result, undefined, 2)}
         )
@@ -16,13 +17,15 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         `)
 }
 
-const parsedArgs = parseArgs(process.argv.slice(2))
+const parsedArgs = parseArgs(process.argv.slice(2), {
+    boolean: true,
+})
 
 if (parsedArgs["h"] || parsedArgs["help"]) {
     console.log(`generate-tests.js - utility to generate tests for the DoD parser from an input text
 
 Usage:
-    dump-data.js (-d "Test description") '[test](hover::cat::term)'
+    dump-data.js (--result-only) (-d "Test description") '[test](hover::cat::term)'
 
 Options:
     --result-only   Only output the parse result, not the test case chrome around it
