@@ -826,7 +826,7 @@ main:not(.ChartEditorPage) {
     margin-bottom: 5px;
     cursor: pointer;
 
-    &:hover {
+    &.hasKeyChartSupport:hover {
         background-color: #c0c0c0;
     }
 

@@ -123,6 +123,7 @@ class ChartRow extends React.Component<{
                         tags={chart.tags}
                         suggestions={availableTags}
                         onSave={this.onSaveTags}
+                        hasKeyChartSupport={true}
                     />
                 </td>
                 <td>

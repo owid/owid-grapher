@@ -18,9 +18,10 @@ export class TagBadge extends React.Component<{
     render() {
         const { tag, searchHighlight, onToggleKey } = this.props
         const classes = ["TagBadge"]
-        if (tag.isKey) classes.push("isKey")
 
         if (onToggleKey) {
+            classes.push("hasKeyChartSupport")
+            if (tag.isKey) classes.push("isKey")
             return (
                 <Tippy
                     content={`${
