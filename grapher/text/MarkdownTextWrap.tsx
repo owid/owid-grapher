@@ -4,7 +4,7 @@ import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
 import { excludeUndefined, sum } from "../../clientUtils/Util.js"
-import { DetailOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
+import { DoDWrapper } from "../detailsOnDemand/detailsOnDemand.js"
 
 export interface IRFontParams {
     fontSize?: number
@@ -231,14 +231,24 @@ export class IRLink extends IRElement {
     }
     toHTML(key: number | string): JSX.Element {
         return (
-            <a key={key} href={this.href}>
+            <a
+                key={key}
+                href={this.href}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 {this.children.map((child, i) => child.toHTML(i))}
             </a>
         )
     }
     toSVG(key: number | string): JSX.Element {
         return (
-            <a key={key} href={this.href}>
+            <a
+                key={key}
+                href={this.href}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 {this.children.map((child, i) => child.toSVG(i))}
             </a>
         )
@@ -264,9 +274,9 @@ export class IRDetailOnDemand extends IRElement {
     }
     toHTML(key: number | string): JSX.Element {
         return (
-            <DetailOnDemand key={key} term={this.term} category={this.category}>
+            <DoDWrapper key={key} term={this.term} category={this.category}>
                 {this.children.map((child, i) => child.toHTML(i))}
-            </DetailOnDemand>
+            </DoDWrapper>
         )
     }
     toSVG(key: number | string): JSX.Element {
@@ -565,7 +575,7 @@ export class MarkdownTextWrap extends React.Component {
                     <tspan
                         key={i}
                         x={x}
-                        y={this.lineHeight * this.props.fontSize * (i + 1)}
+                        y={this.lineHeight * this.props.fontSize * (i + 1) + y}
                     >
                         {line.map((token, i) => token.toSVG(i))}
                     </tspan>

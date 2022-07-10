@@ -35,7 +35,7 @@ class DetailsOnDemand {
 export const detailsOnDemand = new DetailsOnDemand()
 
 @observer
-export class DetailOnDemand extends React.Component<{
+export class DoDWrapper extends React.Component<{
     category: string
     term: string
 }> {
@@ -61,7 +61,7 @@ export class DetailOnDemand extends React.Component<{
         return this.term
     }
     render() {
-        if (!this.content) return <>{this.props.children}</>
+        if (!this.content) return this.props.children
         return (
             <Tippy
                 content={
