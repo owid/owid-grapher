@@ -1,66 +1,86 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import { Markdown } from "../markdown/Markdown.js"
-import { observer } from "mobx-react"
-import { GrapherInterface } from "../core/GrapherInterface.js"
-import { TooltipManager } from "../tooltip/TooltipProps.js"
-// import { checkIsChildOfClass, isTouchDevice } from "../../clientUtils/Util.js"
 import { Tippy } from "../chart/Tippy.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
+import { computed, observable, ObservableMap } from "mobx"
+import { Detail } from "../../clientUtils/owidTypes.js"
+import { observer } from "mobx-react"
 
-interface DetailsOnDemandContainerProps {
-    containerElement?: React.RefObject<HTMLDivElement>["current"]
-    tooltipManager: TooltipManager
-    details: GrapherInterface["details"]
+class DetailsOnDemand {
+    @observable details = new ObservableMap<
+        string,
+        ObservableMap<string, Detail>
+    >()
+
+    @observable getDetail(category: string, term: string): Detail | void {
+        const terms = this.details.get(category)
+        if (terms) {
+            const detail = terms.get(term)
+            return detail
+        }
+    }
+
+    @observable addDetails(details: Record<string, Record<string, Detail>>) {
+        const observableDetails = Object.entries(details).reduce(
+            (acc, [category, terms]) => {
+                acc.set(category, new ObservableMap(terms))
+                return acc
+            },
+            new ObservableMap()
+        )
+        this.details = this.details.merge(observableDetails)
+    }
 }
 
+// An object that can be shared throughout the codebase to make details globally accessible
+export const detailsOnDemand = new DetailsOnDemand()
+
 @observer
-export default class DetailsOnDemandContainer extends React.Component<DetailsOnDemandContainerProps> {
-    constructor(props: DetailsOnDemandContainerProps) {
-        super(props)
+export class DetailOnDemand extends React.Component<{
+    category: string
+    term: string
+}> {
+    @computed get category() {
+        return this.props.category
     }
-
-    componentDidMount() {
-        // TODO: do this via a tippy singleton, try to add them in the TextWrap step
-        // instead of this DOM manipulation which doesn't even work when
-        // changing grapher tabs
-        this.addTippysToDodSpans()
+    @computed get term() {
+        return this.props.term
     }
-
-    addTippysToDodSpans() {
-        document.body.querySelectorAll(".dod-term").forEach((element) => {
-            const term = element.getAttribute("data-term")
-            const category = element.getAttribute("data-category")
-            const { details, containerElement, tooltipManager } = this.props
-            if (
-                !term ||
-                !category ||
-                !details ||
-                !containerElement ||
-                !tooltipManager.tooltips
-            ) {
-                return
-            }
-            ReactDOM.render(
-                <Tippy
-                    content={
-                        <div className="dod-tooltip">
-                            <h3>{details[category][term]?.title}</h3>
-                            <Markdown>
-                                {details[category][term]?.content}
-                            </Markdown>
-                        </div>
-                    }
-                    interactive
-                    arrow={false}
-                >
-                    <span>{element.textContent}</span>
-                </Tippy>,
-                element
-            )
-        })
+    @computed get detail() {
+        return detailsOnDemand.getDetail(this.category, this.term)
     }
-
+    @computed get content() {
+        if (this.detail) {
+            return this.detail.content
+        }
+        return ""
+    }
+    @computed get title() {
+        if (this.detail) {
+            return this.detail.title
+        }
+        return this.term
+    }
     render() {
-        return null
+        if (!this.content) return <>{this.props.children}</>
+        return (
+            <Tippy
+                content={
+                    <div className="dod-tooltip">
+                        <h3>{this.title}</h3>
+                        <MarkdownTextWrap text={this.content} fontSize={14} />
+                    </div>
+                }
+                interactive
+                arrow={false}
+            >
+                <span
+                    aria-label={`A definition of the term ${this.title}`}
+                    tabIndex={0}
+                    className="dod-term"
+                >
+                    {this.props.children}
+                </span>
+            </Tippy>
+        )
     }
 }

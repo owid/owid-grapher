@@ -1,9 +1,10 @@
-import React, { CSSProperties, StyleHTMLAttributes } from "react"
+import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
 import { excludeUndefined, sum } from "../../clientUtils/Util.js"
+import { DetailOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
 
 export interface IRFontParams {
     fontSize?: number
@@ -244,6 +245,39 @@ export class IRLink extends IRElement {
     }
 }
 
+export class IRDetailOnDemand extends IRElement {
+    constructor(
+        public category: string,
+        public term: string,
+        children: IRToken[],
+        fontParams?: IRFontParams
+    ) {
+        super(children, fontParams)
+    }
+    getClone(children: IRToken[]): IRDetailOnDemand {
+        return new IRDetailOnDemand(
+            this.category,
+            this.term,
+            children,
+            this.fontParams
+        )
+    }
+    toHTML(key: number | string): JSX.Element {
+        return (
+            <DetailOnDemand key={key} term={this.term} category={this.category}>
+                {this.children.map((child, i) => child.toHTML(i))}
+            </DetailOnDemand>
+        )
+    }
+    toSVG(key: number | string): JSX.Element {
+        return (
+            <tspan key={key}>
+                {this.children.map((child, i) => child.toSVG(i))}
+            </tspan>
+        )
+    }
+}
+
 function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
     let currentLine: IRToken[] = []
     const lines: IRToken[][] = [currentLine]
@@ -413,8 +447,8 @@ export function parsimmonToTextTokens(
                 parsimmonToTextTokens(node.children, fontParams)
             )
         } else if (node.type === "detailOnDemand") {
-            // TODO: create a IR for this
-            return new IRLink(
+            return new IRDetailOnDemand(
+                node.category,
                 node.term,
                 parsimmonToTextTokens(node.children, fontParams)
             )
@@ -487,10 +521,10 @@ export class MarkdownTextWrap extends React.Component {
 
     @computed get htmlStyle(): any {
         return {
+            overflowY: "visible",
             ...this.props.style,
             ...this.fontParams,
             lineHeight: this.lineHeight,
-            overflowY: "visible",
         }
     }
 

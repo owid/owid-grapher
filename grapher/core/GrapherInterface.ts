@@ -19,7 +19,12 @@ import { EntityId, EntityName } from "../../coreTable/OwidTableConstants.js"
 import { ColorSchemeName } from "../color/ColorConstants.js"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
 import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
-import { ColumnSlug, SortConfig, TopicId } from "../../clientUtils/owidTypes.js"
+import {
+    ColumnSlug,
+    Detail,
+    SortConfig,
+    TopicId,
+} from "../../clientUtils/owidTypes.js"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -77,13 +82,7 @@ export interface GrapherInterface extends SortConfig {
     selectedEntityColors?: { [entityName: string]: string | undefined }
     selectedEntityIds?: EntityId[]
     facet?: FacetStrategy
-    details?: Record<
-        string,
-        Record<
-            string,
-            { title: string; content: string; term: string; category: string }
-        >
-    >
+    details?: Record<string, Record<string, Detail>>
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>

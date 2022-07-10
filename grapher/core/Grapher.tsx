@@ -168,7 +168,7 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
-import DetailsOnDemandContainer from "../detailsOnDemand/detailsOnDemand.js"
+import { detailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
 
 declare const window: any
 
@@ -2092,13 +2092,6 @@ export class Grapher
                         onDismiss={action(() => (this.isSelectingData = false))}
                     />
                 )}
-                {this.base.current && (
-                    <DetailsOnDemandContainer
-                        containerElement={this.base.current}
-                        details={this.details}
-                        tooltipManager={this}
-                    />
-                )}
             </>
         )
     }
@@ -2140,6 +2133,7 @@ export class Grapher
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+        if (this.props.details) detailsOnDemand.addDetails(this.props.details)
     }
 
     private _shortcutsBound = false

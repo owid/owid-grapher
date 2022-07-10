@@ -86,8 +86,8 @@ export class Header extends React.Component<{
             : this.maxWidth - this.logoWidth - 10
     }
 
-    @computed get subtitle(): TextWrap {
-        return new TextWrap({
+    @computed get subtitle(): MarkdownTextWrap {
+        return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
             fontSize: 0.8 * this.fontSize,
             text: this.subtitleText,
@@ -125,9 +125,13 @@ export class Header extends React.Component<{
                 >
                     {title.render(x, y, { fill: "#555" })}
                 </a>
-                {subtitle.render(x, y + title.height + this.titleMarginBottom, {
-                    fill: "#666",
-                })}
+                {subtitle.renderSVG(
+                    x,
+                    y + title.height + this.titleMarginBottom,
+                    {
+                        fill: "#666",
+                    }
+                )}
             </g>
         )
     }

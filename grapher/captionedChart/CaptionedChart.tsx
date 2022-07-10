@@ -70,7 +70,6 @@ export interface CaptionedChartManager
     showChangeEntityButton?: boolean
     showAddEntityButton?: boolean
     showSelectEntitiesButton?: boolean
-    details?: any
 }
 
 interface CaptionedChartProps {
