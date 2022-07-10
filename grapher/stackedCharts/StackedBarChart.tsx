@@ -106,6 +106,8 @@ export class StackedBarChart
         super(props)
     }
 
+    // currently hovered legend series name
+    @observable hoverSeriesName?: string
     // currently hovered legend color
     @observable hoverColor?: string
     // current hovered individual bar
@@ -143,14 +145,14 @@ export class StackedBarChart
 
     // All currently hovered group keys, combining the legend and the main UI
     @computed get hoverKeys(): string[] {
-        const { hoverColor } = this
+        const { hoverSeriesName } = this
 
         const hoverKeys =
-            hoverColor === undefined
+            hoverSeriesName === undefined
                 ? []
                 : uniq(
                       this.series
-                          .filter((g) => g.color === hoverColor)
+                          .filter((g) => g.seriesName === hoverSeriesName)
                           .map((g) => g.seriesName)
                   )
 
@@ -163,12 +165,12 @@ export class StackedBarChart
 
         if (!activeKeys.length)
             // No hover means they're all active by default
-            return uniq(this.series.map((g) => g.color))
+            return uniq(this.series.map((g) => g.seriesName))
 
         return uniq(
             this.series
                 .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
-                .map((g) => g.color)
+                .map((g) => g.seriesName)
         )
     }
 
@@ -370,12 +372,12 @@ export class StackedBarChart
         return tickPlacements.filter((t) => !t.isHidden)
     }
 
-    @action.bound onLegendMouseOver(color: string): void {
-        this.hoverColor = color
+    @action.bound onLegendMouseOver(seriesName: string): void {
+        this.hoverSeriesName = seriesName
     }
 
     @action.bound onLegendMouseLeave(): void {
-        this.hoverColor = undefined
+        this.hoverSeriesName = undefined
     }
 
     @action.bound onLegendClick(): void {}

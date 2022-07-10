@@ -11,7 +11,7 @@ export interface VerticalColorLegendManager {
     fontSize?: number
     legendItems: LegendItem[]
     legendTitle?: string
-    onLegendMouseOver?: (color: string) => void
+    onLegendMouseOver?: (seriesName: string) => void
     onLegendClick?: (color: string) => void
     onLegendMouseLeave?: () => void
     legendX?: number
@@ -141,11 +141,14 @@ export class VerticalColorLegend extends React.Component<{
                     style={{ cursor: "pointer" }}
                 >
                     {series.map((series, index) => {
-                        const isActive = activeColors.includes(series.color)
+                        const isActive = activeColors.includes(
+                            series.textWrap.text
+                        )
                         const isFocus =
                             focusColors?.includes(series.color) ?? false
                         const mouseOver = onLegendMouseOver
-                            ? (): void => onLegendMouseOver(series.color)
+                            ? (): void =>
+                                  onLegendMouseOver(series.textWrap.text)
                             : undefined
                         const mouseLeave = onLegendMouseLeave || undefined
                         const click = onLegendClick
