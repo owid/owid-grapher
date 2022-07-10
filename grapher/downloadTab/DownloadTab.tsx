@@ -8,11 +8,13 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import {
+    isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "../../clientUtils/Util.js"
 import { OwidColumnDef } from "../../coreTable/OwidTableConstants.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { GrapherInterface } from "../core/GrapherInterface.js"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds
@@ -23,6 +25,7 @@ export interface DownloadTabManager {
     table?: OwidTable
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
+    details?: GrapherInterface["details"]
 }
 
 interface DownloadTabProps {
@@ -284,26 +287,29 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                             </div>
                         </button>
                     </div>
-                    <div className="static-exports-options">
-                        <input
-                            type="checkbox"
-                            id="shouldIncludeDetailsInStaticExport"
-                            name="shouldIncludeDetailsInStaticExport"
-                            onChange={(): void => {
-                                this.manager.shouldIncludeDetailsInStaticExport =
-                                    !this.manager
+                    {!isEmpty(this.manager.details) && (
+                        <div className="static-exports-options">
+                            <input
+                                type="checkbox"
+                                id="shouldIncludeDetailsInStaticExport"
+                                name="shouldIncludeDetailsInStaticExport"
+                                onChange={(): void => {
+                                    this.manager.shouldIncludeDetailsInStaticExport =
+                                        !this.manager
+                                            .shouldIncludeDetailsInStaticExport
+                                    this.export()
+                                }}
+                                checked={
+                                    this.manager
                                         .shouldIncludeDetailsInStaticExport
-                                this.export()
-                            }}
-                            checked={
-                                this.manager.shouldIncludeDetailsInStaticExport
-                            }
-                        />
-                        <label htmlFor="shouldIncludeDetailsInStaticExport">
-                            Include terminology definitions at bottom of SVG
-                            chart
-                        </label>
-                    </div>
+                                }
+                            />
+                            <label htmlFor="shouldIncludeDetailsInStaticExport">
+                                Include terminology definitions at bottom of SVG
+                                chart
+                            </label>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grouped-menu-section">
