@@ -168,7 +168,7 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
-import { detailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
+import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
 
 declare const window: any
 
@@ -1073,6 +1073,9 @@ export class Grapher
     }
 
     @computed get details(): GrapherInterface["details"] {
+        // These are the details from the config for this specific Grapher,
+        // whereas globalDetailsOnDemand can have details
+        // from multiple sources
         return this.props.details ?? {}
     }
 
@@ -2133,7 +2136,8 @@ export class Grapher
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
-        if (this.props.details) detailsOnDemand.addDetails(this.props.details)
+        if (this.props.details)
+            globalDetailsOnDemand.addDetails(this.props.details)
     }
 
     private _shortcutsBound = false

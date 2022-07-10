@@ -36,10 +36,12 @@ import { AddEntityButton } from "../controls/AddEntityButton.js"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "../footer/FooterManager.js"
 import { HeaderManager } from "../header/HeaderManager.js"
-import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
+import { exposeInstanceOnWindow, sum } from "../../clientUtils/Util.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import { Detail } from "../../clientUtils/owidTypes.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -306,6 +308,47 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
+    @computed get flattenedDetails(): MarkdownTextWrap[] {
+        if (!this.manager.details) return []
+
+        return Object.values(this.manager.details)
+            .flatMap(Object.values)
+            .map(
+                (detail: Detail) =>
+                    new MarkdownTextWrap({
+                        text: `**${detail.title}**\n${detail.content}`,
+                        fontSize: 12,
+                        maxWidth: this.bounds.width,
+                        style: {
+                            fill: "#666",
+                        },
+                    })
+            )
+    }
+
+    @computed get detailHeights(): number[] {
+        // "10" is to give a bit of spacing between each detail
+        return this.flattenedDetails.map((detail) => detail.height + 10)
+    }
+
+    renderSVGDetails(): JSX.Element | null {
+        if (!this.manager.details) return null
+
+        return (
+            <g
+                style={{
+                    transform: `translate(15px, ${this.bounds.height}px)`,
+                }}
+            >
+                {this.flattenedDetails.map((detail, i) => {
+                    // sum of detail heights prior to this one
+                    const yOffset = sum(this.detailHeights.slice(0, i))
+                    return detail.renderSVG(0, yOffset, { key: i })
+                })}
+            </g>
+        )
+    }
+
     render(): JSX.Element {
         const { bounds, chartHeight, maxWidth } = this
         const { width } = bounds
@@ -378,8 +421,8 @@ export class StaticCaptionedChart extends CaptionedChart {
             <svg
                 {...this.svgProps}
                 width={width}
-                height={height}
-                viewBox={`0 0 ${width} ${height}`}
+                height={height + sum(this.detailHeights)}
+                viewBox={`0 0 ${width} ${height + sum(this.detailHeights)}`}
             >
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
@@ -387,6 +430,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     paddedBounds.x,
                     paddedBounds.bottom - this.footer.height
                 )}
+                {this.renderSVGDetails()}
             </svg>
         )
     }

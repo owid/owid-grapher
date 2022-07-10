@@ -32,7 +32,7 @@ class DetailsOnDemand {
 }
 
 // An object that can be shared throughout the codebase to make details globally accessible
-export const detailsOnDemand = new DetailsOnDemand()
+export const globalDetailsOnDemand = new DetailsOnDemand()
 
 @observer
 export class DoDWrapper extends React.Component<{
@@ -46,7 +46,7 @@ export class DoDWrapper extends React.Component<{
         return this.props.term
     }
     @computed get detail() {
-        return detailsOnDemand.getDetail(this.category, this.term)
+        return globalDetailsOnDemand.getDetail(this.category, this.term)
     }
     @computed get content() {
         if (this.detail) {
