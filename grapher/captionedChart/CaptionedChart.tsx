@@ -72,6 +72,7 @@ export interface CaptionedChartManager
     showChangeEntityButton?: boolean
     showAddEntityButton?: boolean
     showSelectEntitiesButton?: boolean
+    shouldIncludeDetailsInStaticExport?: boolean
 }
 
 interface CaptionedChartProps {
@@ -316,7 +317,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             .map(
                 (detail: Detail) =>
                     new MarkdownTextWrap({
-                        text: `**${detail.title}**\n${detail.content}`,
+                        text: `**${detail.title}**: ${detail.content}`,
                         fontSize: 12,
                         maxWidth: this.bounds.width,
                         style: {
@@ -415,14 +416,19 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     render(): JSX.Element {
         const { bounds, paddedBounds } = this
-        const { width, height } = bounds
+        let { width, height } = bounds
+
+        if (this.manager.shouldIncludeDetailsInStaticExport) {
+            height += sum(this.detailHeights)
+        }
+        console.log("height")
 
         return (
             <svg
                 {...this.svgProps}
                 width={width}
-                height={height + sum(this.detailHeights)}
-                viewBox={`0 0 ${width} ${height + sum(this.detailHeights)}`}
+                height={height}
+                viewBox={`0 0 ${width} ${height}`}
             >
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}

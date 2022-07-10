@@ -22,6 +22,7 @@ export interface DownloadTabManager {
     queryStr?: string
     table?: OwidTable
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
+    shouldIncludeDetailsInStaticExport?: boolean
 }
 
 interface DownloadTabProps {
@@ -282,6 +283,26 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                                 </span>
                             </div>
                         </button>
+                    </div>
+                    <div className="static-exports-options">
+                        <input
+                            type="checkbox"
+                            id="shouldIncludeDetailsInStaticExport"
+                            name="shouldIncludeDetailsInStaticExport"
+                            onChange={(): void => {
+                                this.manager.shouldIncludeDetailsInStaticExport =
+                                    !this.manager
+                                        .shouldIncludeDetailsInStaticExport
+                                this.export()
+                            }}
+                            checked={
+                                this.manager.shouldIncludeDetailsInStaticExport
+                            }
+                        />
+                        <label htmlFor="shouldIncludeDetailsInStaticExport">
+                            Include terminology definitions at bottom of SVG
+                            chart
+                        </label>
                     </div>
                 </div>
 

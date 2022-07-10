@@ -1072,6 +1072,8 @@ export class Grapher
         return this.slug ?? slugify(this.displayTitle)
     }
 
+    @observable shouldIncludeDetailsInStaticExport = true
+
     @computed get details(): GrapherInterface["details"] {
         // These are the details from the config for this specific Grapher,
         // whereas globalDetailsOnDemand can have details
