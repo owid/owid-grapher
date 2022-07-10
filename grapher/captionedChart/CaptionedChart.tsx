@@ -421,7 +421,6 @@ export class StaticCaptionedChart extends CaptionedChart {
         if (this.manager.shouldIncludeDetailsInStaticExport) {
             height += sum(this.detailHeights)
         }
-        console.log("height")
 
         return (
             <svg
