@@ -112,6 +112,11 @@ export abstract class IRElement implements IRToken {
     }
 
     splitOnNextLineBreak(): { before?: IRToken; after?: IRToken } {
+        // const processed: IRToken[] = []
+        // const unprocessed: IRToken[] = [...this.children]
+        // while (unprocessed.length) {
+
+        // }
         const index = this.children.findIndex(
             (token) => token instanceof IRLineBreak
         )
