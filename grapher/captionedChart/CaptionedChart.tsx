@@ -37,7 +37,7 @@ import { AddEntityButton } from "../controls/AddEntityButton.js"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "../footer/FooterManager.js"
 import { HeaderManager } from "../header/HeaderManager.js"
-import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
+import { exposeInstanceOnWindow, isEmpty } from "../../clientUtils/Util.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
@@ -314,7 +314,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     renderSVGDetails(): JSX.Element | null {
-        if (!this.manager.details) return null
+        if (isEmpty(this.manager.details)) return null
 
         let yOffset = 0
         let previousOffset = 0
