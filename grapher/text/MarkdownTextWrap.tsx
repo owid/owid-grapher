@@ -5,6 +5,7 @@ import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
 import { excludeUndefined, sum } from "../../clientUtils/Util.js"
 import { DoDWrapper } from "../detailsOnDemand/detailsOnDemand.js"
+import { TextWrap } from "./TextWrap.js"
 
 export interface IRFontParams {
     fontSize?: number
@@ -410,6 +411,11 @@ export function splitIntoLines(
     }
     return processedLines
 }
+
+export const sumTextWrapHeights = (
+    elements: MarkdownTextWrap[] | TextWrap[],
+    spacer: number = 0
+): number => sum(elements.map((element) => element.height + spacer))
 
 export function parsimmonToTextTokens(
     nodes: EveryMarkdownNode[],

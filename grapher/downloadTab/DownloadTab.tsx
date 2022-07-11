@@ -14,7 +14,11 @@ import {
 } from "../../clientUtils/Util.js"
 import { OwidColumnDef } from "../../coreTable/OwidTableConstants.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
-import { GrapherInterface } from "../core/GrapherInterface.js"
+import {
+    MarkdownTextWrap,
+    sumTextWrapHeights,
+} from "../text/MarkdownTextWrap.js"
+import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants.js"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds
@@ -25,7 +29,7 @@ export interface DownloadTabManager {
     table?: OwidTable
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
-    details?: GrapherInterface["details"]
+    detailRenderers: MarkdownTextWrap[]
 }
 
 interface DownloadTabProps {
@@ -72,6 +76,15 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return this.idealBounds.width
     }
     @computed private get targetHeight(): number {
+        if (this.manager.shouldIncludeDetailsInStaticExport) {
+            return (
+                this.idealBounds.height +
+                sumTextWrapHeights(
+                    this.manager.detailRenderers,
+                    STATIC_EXPORT_DETAIL_SPACING
+                )
+            )
+        }
         return this.idealBounds.height
     }
 
@@ -233,6 +246,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             minHeight: previewHeight,
             maxWidth: previewWidth,
             maxHeight: previewHeight,
+            opacity: this.isReady ? 1 : 0,
         }
 
         return (
@@ -287,13 +301,14 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                             </div>
                         </button>
                     </div>
-                    {!isEmpty(this.manager.details) && (
+                    {!isEmpty(this.manager.detailRenderers) && (
                         <div className="static-exports-options">
                             <input
                                 type="checkbox"
                                 id="shouldIncludeDetailsInStaticExport"
                                 name="shouldIncludeDetailsInStaticExport"
                                 onChange={(): void => {
+                                    this.isReady = false
                                     this.manager.shouldIncludeDetailsInStaticExport =
                                         !this.manager
                                             .shouldIncludeDetailsInStaticExport
@@ -305,7 +320,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                                 }
                             />
                             <label htmlFor="shouldIncludeDetailsInStaticExport">
-                                Include terminology definitions at bottom of SVG
+                                Include terminology definitions at bottom of
                                 chart
                             </label>
                         </div>

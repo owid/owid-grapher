@@ -155,6 +155,7 @@ import { Url } from "../../clientUtils/urls/Url.js"
 import {
     Annotation,
     ColumnSlug,
+    Detail,
     DimensionProperty,
     SortBy,
     SortConfig,
@@ -169,6 +170,7 @@ import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
 import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
 declare const window: any
 
@@ -1079,6 +1081,26 @@ export class Grapher
         // whereas globalDetailsOnDemand can have details
         // from multiple sources
         return this.props.details ?? {}
+    }
+
+    // Used for static exports. Defined at this level because they need to
+    // be accessed by the CaptionedChart and also the DownloadTab
+    @computed get detailRenderers(): MarkdownTextWrap[] {
+        if (!this.details) return []
+
+        return Object.values(this.details)
+            .flatMap(Object.values)
+            .map(
+                (detail: Detail) =>
+                    new MarkdownTextWrap({
+                        text: `**${detail.title}**\n${detail.content}`,
+                        fontSize: 12,
+                        maxWidth: this.bounds.width,
+                        style: {
+                            fill: "#666",
+                        },
+                    })
+            )
     }
 
     @computed get availableTabs(): GrapherTabOption[] {

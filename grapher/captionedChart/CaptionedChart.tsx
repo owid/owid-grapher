@@ -13,6 +13,7 @@ import {
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
+    STATIC_EXPORT_DETAIL_SPACING,
 } from "../core/GrapherConstants.js"
 import { MapChartManager } from "../mapCharts/MapChartConstants.js"
 import { ChartManager } from "../chart/ChartManager.js"
@@ -36,12 +37,14 @@ import { AddEntityButton } from "../controls/AddEntityButton.js"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "../footer/FooterManager.js"
 import { HeaderManager } from "../header/HeaderManager.js"
-import { exposeInstanceOnWindow, sum } from "../../clientUtils/Util.js"
+import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
-import { Detail } from "../../clientUtils/owidTypes.js"
-import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
+import {
+    MarkdownTextWrap,
+    sumTextWrapHeights,
+} from "../text/MarkdownTextWrap.js"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -73,6 +76,7 @@ export interface CaptionedChartManager
     showAddEntityButton?: boolean
     showSelectEntitiesButton?: boolean
     shouldIncludeDetailsInStaticExport?: boolean
+    detailRenderers: MarkdownTextWrap[]
 }
 
 interface CaptionedChartProps {
@@ -309,42 +313,21 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed get flattenedDetails(): MarkdownTextWrap[] {
-        if (!this.manager.details) return []
-
-        return Object.values(this.manager.details)
-            .flatMap(Object.values)
-            .map(
-                (detail: Detail) =>
-                    new MarkdownTextWrap({
-                        text: `**${detail.title}**: ${detail.content}`,
-                        fontSize: 12,
-                        maxWidth: this.bounds.width,
-                        style: {
-                            fill: "#666",
-                        },
-                    })
-            )
-    }
-
-    @computed get detailHeights(): number[] {
-        // "10" is to give a bit of spacing between each detail
-        return this.flattenedDetails.map((detail) => detail.height + 10)
-    }
-
     renderSVGDetails(): JSX.Element | null {
         if (!this.manager.details) return null
 
+        let yOffset = 0
+        let previousOffset = 0
         return (
             <g
                 style={{
                     transform: `translate(15px, ${this.bounds.height}px)`,
                 }}
             >
-                {this.flattenedDetails.map((detail, i) => {
-                    // sum of detail heights prior to this one
-                    const yOffset = sum(this.detailHeights.slice(0, i))
-                    return detail.renderSVG(0, yOffset, { key: i })
+                {this.manager.detailRenderers.map((detail, i) => {
+                    previousOffset = yOffset
+                    yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
+                    return detail.renderSVG(0, previousOffset, { key: i })
                 })}
             </g>
         )
@@ -419,7 +402,10 @@ export class StaticCaptionedChart extends CaptionedChart {
         let { width, height } = bounds
 
         if (this.manager.shouldIncludeDetailsInStaticExport) {
-            height += sum(this.detailHeights)
+            height += sumTextWrapHeights(
+                this.manager.detailRenderers,
+                STATIC_EXPORT_DETAIL_SPACING
+            )
         }
 
         return (
