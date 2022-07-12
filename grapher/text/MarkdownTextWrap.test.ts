@@ -9,11 +9,11 @@ import {
 } from "./MarkdownTextWrap.js"
 
 describe("MarkdownTextWrap", () => {
-    it("IRBold should be wider than IRText", () => {
+    it("IRText with a heavier fontWeight should be wider than plain IRText", () => {
         const string = "abcdefghijklmnopqrstuvwxyz"
 
         const text = new IRText(string)
-        const bold = new IRBold([new IRText(string)])
+        const bold = new IRText(string, { fontWeight: 700 })
 
         expect(text.width).toBeLessThan(bold.width)
     })

@@ -6,6 +6,7 @@ import P from "parsimmon"
 // How this parser works
 
 // This parser uses the parsimmon javascript library that implements a monadic parser combinator.
+// We considered forking simple-markdown, but went with combinators for easier maintenance.
 // You can think of a parser in this context as a generic class that parses an object of the type
 // that is specified as the type parameter of the class. parser combinators build up more complex
 // parsers by combining smaller parsers, mostly by specifying either sequences or alternatives.
