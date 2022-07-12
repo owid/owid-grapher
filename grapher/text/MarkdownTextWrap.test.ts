@@ -38,36 +38,6 @@ describe("MarkdownTextWrap", () => {
         expect(plainWidth).toBeLessThan(boldWidth)
     })
 
-    it("MarkdownTextWrap should apply style props to HTML output", () => {
-        const element = new MarkdownTextWrap({
-            text: "abcdefghijklmnopqrstuvwxyz",
-            fontSize: 14,
-            maxWidth: 200,
-            style: {
-                color: "red",
-            },
-        })
-
-        const output = element.renderHTML()
-
-        expect(output?.props.style.color).toEqual("red")
-    })
-
-    it("MarkdownTextWrap should apply style props to SVG output", () => {
-        const element = new MarkdownTextWrap({
-            text: "abcdefghijklmnopqrstuvwxyz",
-            fontSize: 14,
-            maxWidth: 200,
-            style: {
-                color: "red",
-            },
-        })
-
-        const output = element.renderSVG(0, 0)
-
-        expect(output?.props.style.color).toEqual("red")
-    })
-
     it("MarkdownTextWrap should accept and apply fontParams", () => {
         const element = new MarkdownTextWrap({
             text: "abcdefghijklmnopqrstuvwxyz",

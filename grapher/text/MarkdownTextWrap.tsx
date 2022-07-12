@@ -9,6 +9,7 @@ export interface IRFontParams {
     fontSize?: number
     fontWeight?: number
     fontFamily?: FontFamily
+    isItalic?: boolean
 }
 
 export interface IRBreakpoint {
@@ -20,8 +21,8 @@ export interface IRBreakpoint {
 export interface IRToken {
     width: number
     getBreakpointBefore(targetWidth: number): IRBreakpoint | undefined
-    toHTML(key: number | string): JSX.Element | undefined
-    toSVG(key: number | string): JSX.Element | undefined
+    toHTML(key?: React.Key): JSX.Element | undefined
+    toSVG(key?: React.Key): JSX.Element | undefined
     toPlaintext(): string | undefined
 }
 
@@ -36,10 +37,10 @@ export class IRText implements IRToken {
     getBreakpointBefore(): undefined {
         return undefined
     }
-    toHTML(key: number | string): JSX.Element {
+    toHTML(key?: React.Key): JSX.Element {
         return <React.Fragment key={key}>{this.text}</React.Fragment>
     }
-    toSVG(key: number | string): JSX.Element {
+    toSVG(key?: React.Key): JSX.Element {
         return <React.Fragment key={key}>{this.text}</React.Fragment>
     }
     toPlaintext(): string {
@@ -57,10 +58,10 @@ export class IRWhitespace implements IRToken {
         // to split based on it, and `0` leads to being exactly in between tokens.
         return { tokenIndex: 0, tokenStartOffset: 0, breakOffset: 0.0001 }
     }
-    toHTML(key: number | string): JSX.Element {
+    toHTML(key?: React.Key): JSX.Element {
         return <React.Fragment key={key}> </React.Fragment>
     }
-    toSVG(key: number | string): JSX.Element {
+    toSVG(key?: React.Key): JSX.Element {
         return <React.Fragment key={key}> </React.Fragment>
     }
     toPlaintext(): string {
@@ -75,7 +76,7 @@ export class IRLineBreak implements IRToken {
     getBreakpointBefore(): undefined {
         return undefined
     }
-    toHTML(key: number | string): JSX.Element {
+    toHTML(key?: React.Key): JSX.Element {
         return <br key={key} />
     }
     toSVG(): undefined {
@@ -127,8 +128,8 @@ export abstract class IRElement implements IRToken {
     }
 
     abstract getClone(children: IRToken[]): IRElement
-    abstract toHTML(key: number | string): JSX.Element
-    abstract toSVG(key: number | string): JSX.Element
+    abstract toHTML(key?: React.Key): JSX.Element
+    abstract toSVG(key?: React.Key): JSX.Element
 
     toPlaintext(): string {
         return lineToPlaintext(this.children)
@@ -136,27 +137,17 @@ export abstract class IRElement implements IRToken {
 }
 
 export class IRBold extends IRElement {
-    @imemo get width(): number {
-        const plaintext = this.children
-            .map((token) => token.toPlaintext())
-            .join("")
-        return Bounds.forText(plaintext, {
-            ...this.fontParams,
-            fontWeight: 700,
-        }).width
-    }
-
     getClone(children: IRToken[]): IRBold {
         return new IRBold(children, this.fontParams)
     }
-    toHTML(key: number | string): JSX.Element {
+    toHTML(key?: React.Key): JSX.Element {
         return (
             <strong key={key}>
                 {this.children.map((child, i) => child.toHTML(i))}
             </strong>
         )
     }
-    toSVG(key: number | string): JSX.Element {
+    toSVG(key?: React.Key): JSX.Element {
         return (
             <tspan key={key} style={{ fontWeight: 700 }}>
                 {this.children.map((child, i) => child.toSVG(i))}
@@ -169,14 +160,14 @@ export class IRSpan extends IRElement {
     getClone(children: IRToken[]): IRSpan {
         return new IRSpan(children, this.fontParams)
     }
-    toHTML(key: number | string): JSX.Element {
+    toHTML(key?: React.Key): JSX.Element {
         return (
             <span key={key}>
                 {this.children.map((child, i) => child.toHTML(i))}
             </span>
         )
     }
-    toSVG(key: number | string): JSX.Element {
+    toSVG(key?: React.Key): JSX.Element {
         return (
             <tspan key={key}>
                 {this.children.map((child, i) => child.toSVG(i))}
@@ -186,26 +177,17 @@ export class IRSpan extends IRElement {
 }
 
 export class IRItalic extends IRElement {
-    @imemo get width(): number {
-        const plaintext = this.children
-            .map((token) => token.toPlaintext())
-            .join("")
-        return Bounds.forText(plaintext, {
-            ...this.fontParams,
-            isItalic: true,
-        }).width
-    }
     getClone(children: IRToken[]): IRItalic {
         return new IRItalic(children, this.fontParams)
     }
-    toHTML(key: number | string): JSX.Element {
+    toHTML(key?: React.Key): JSX.Element {
         return (
             <em key={key}>
                 {this.children.map((child, i) => child.toHTML(i))}
             </em>
         )
     }
-    toSVG(key: number | string): JSX.Element {
+    toSVG(key?: React.Key): JSX.Element {
         return (
             <tspan key={key} style={{ fontStyle: "italic" }}>
                 {this.children.map((child, i) => child.toSVG(i))}
@@ -225,14 +207,14 @@ export class IRLink extends IRElement {
     getClone(children: IRToken[]): IRLink {
         return new IRLink(this.href, children, this.fontParams)
     }
-    toHTML(key: number | string): JSX.Element {
+    toHTML(key?: React.Key): JSX.Element {
         return (
             <a key={key} href={this.href}>
                 {this.children.map((child, i) => child.toHTML(i))}
             </a>
         )
     }
-    toSVG(key: number | string): JSX.Element {
+    toSVG(key?: React.Key): JSX.Element {
         return (
             <a key={key} href={this.href}>
                 {this.children.map((child, i) => child.toSVG(i))}
@@ -392,6 +374,7 @@ export function parsimmonToTextTokens(
             return new IRItalic(
                 parsimmonToTextTokens(node.children, {
                     ...fontParams,
+                    isItalic: true,
                 })
             )
         } else if (node.type === "plainUrl") {
@@ -426,16 +409,9 @@ type MarkdownTextWrapProps = {
     fontWeight?: number
     lineHeight?: number
     maxWidth?: number
-    style?: CSSProperties
 }
 
-export class MarkdownTextWrap extends React.Component {
-    props: MarkdownTextWrapProps
-    constructor(props: MarkdownTextWrapProps) {
-        super(props)
-        this.props = props
-    }
-
+export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get maxWidth(): number {
         return this.props.maxWidth ?? Infinity
     }
@@ -472,20 +448,10 @@ export class MarkdownTextWrap extends React.Component {
         return this.lines.length * this.lineHeight * this.fontSize
     }
 
-    @computed get svgStyle(): any {
+    @computed get style(): any {
         return {
-            ...this.props.style,
             ...this.fontParams,
             lineHeight: this.lineHeight,
-        }
-    }
-
-    @computed get htmlStyle(): any {
-        return {
-            ...this.props.style,
-            ...this.fontParams,
-            lineHeight: this.lineHeight,
-            overflowY: "visible",
         }
     }
 
@@ -493,7 +459,7 @@ export class MarkdownTextWrap extends React.Component {
         const { lines } = this
         if (lines.length === 0) return null
         return (
-            <span style={this.htmlStyle} className="markdown-text-wrap">
+            <span style={this.style} className="markdown-text-wrap">
                 {lines.map((line, i) => (
                     <span className="markdown-text-wrap__line" key={i}>
                         {line.length ? (
@@ -519,7 +485,7 @@ export class MarkdownTextWrap extends React.Component {
             <text
                 x={x.toFixed(1)}
                 y={y.toFixed(1)}
-                style={this.svgStyle}
+                style={this.style}
                 {...options}
             >
                 {lines.map((line, i) => (

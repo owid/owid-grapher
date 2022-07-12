@@ -100,7 +100,7 @@ _THE END_
                     </div>
                     <pre>isSVG Example</pre>
                     <svg
-                        viewBox={`0,0,800,200`}
+                        viewBox={`0,0,${svgContainerWidth},200`}
                         style={{ outline: "1px solid black" }}
                     >
                         {new MarkdownTextWrap({
