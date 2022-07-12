@@ -1,9 +1,9 @@
-import React, { CSSProperties, StyleHTMLAttributes } from "react"
+import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
-import { excludeUndefined, sum } from "../../clientUtils/Util.js"
+import { excludeUndefined, last, sum } from "../../clientUtils/Util.js"
 
 export interface IRFontParams {
     fontSize?: number
@@ -111,22 +111,19 @@ export abstract class IRElement implements IRToken {
         }
     }
 
-    splitOnNextLineBreak(): { before?: IRToken; after?: IRToken } {
-        const index = this.children.findIndex(
-            (token) => token instanceof IRLineBreak
-        )
-        if (index >= 0) {
-            return {
-                before:
-                    // do not create an empty element if the first child
-                    // is a newline
-                    index === 0
-                        ? undefined
-                        : this.getClone(this.children.slice(0, index)),
-                after: this.getClone(this.children.slice(index + 1)),
-            }
+    splitOnLineBreaks(): IRToken[][] {
+        const lines = splitAllOnNewline(this.children)
+        if (lines.length > 1) {
+            return lines.map((tokens) =>
+                // Do not create a clone without children.
+                // There aren't any children in a line when the first or last
+                // token is a newline.
+                tokens.length ? [this.getClone(tokens)] : []
+            )
         }
-        return { before: this }
+        // Do not create copies of element
+        // if there are no newlines inside.
+        return [[this]]
     }
 
     abstract getClone(children: IRToken[]): IRElement
@@ -251,13 +248,11 @@ function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
     while (unproccessed.length > 0) {
         const token = unproccessed.shift()!
         if (token instanceof IRElement) {
-            const { before, after } = token.splitOnNextLineBreak()
-            if (before) currentLine.push(before)
-            if (after) {
-                currentLine = []
-                lines.push(currentLine)
-                // move to unprocessed stack, it might contain futher newlines
-                unproccessed.unshift(after)
+            const [firstLine, ...otherLines] = token.splitOnLineBreaks()
+            if (firstLine) currentLine.push(...firstLine)
+            if (otherLines.length) {
+                lines.push(...otherLines)
+                currentLine = last(lines)!
             }
         } else if (token instanceof IRLineBreak) {
             currentLine = []

@@ -95,4 +95,14 @@ describe("MarkdownTextWrap", () => {
 
         expect(element.height).toEqual(30)
     })
+
+    it("MarkdownTextWrap should split on newline", () => {
+        const element = new MarkdownTextWrap({
+            text: "_test\n**\nnewline\n**_test",
+            fontSize: 10,
+            lineHeight: 1,
+        })
+
+        expect(element.height).toEqual(40)
+    })
 })
