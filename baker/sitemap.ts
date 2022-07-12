@@ -1,4 +1,3 @@
-import { Post } from "../db/model/Post.js"
 import { Chart } from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
@@ -9,6 +8,7 @@ import * as db from "../db/db.js"
 import { countries } from "../clientUtils/countries.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
+import { postsTable } from "../db/model/Post.js"
 
 interface SitemapUrl {
     loc: string
@@ -29,7 +29,7 @@ const xmlify = (url: SitemapUrl) => {
 
 export const makeSitemap = async () => {
     const posts = (await db
-        .knexTable(Post.table)
+        .knexTable(postsTable)
         .where({ status: "publish" })
         .select("slug", "updated_at")) as { slug: string; updated_at: Date }[]
     const charts = (await db
