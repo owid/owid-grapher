@@ -448,7 +448,7 @@
                 "required": ["property", "variableId"],
                 "properties": {
                     "targetYear": {
-                        "type": ["integer", "null"],
+                        "type": "integer",
                         "description": "Charts that can display more than one primary dimensions (i.e. scatter and marimekko)\nsometimes need to \"hardcode\" one dimension to a specific year. This happens e.g. when\nmixing a daily X variable in a scatter plot with a yearly one, e.g. population.\n"
                     },
                     "property": {
