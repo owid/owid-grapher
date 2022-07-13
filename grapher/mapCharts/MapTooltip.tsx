@@ -20,6 +20,7 @@ import {
     darkenColorForLine,
 } from "../color/ColorUtils.js"
 import { isNumber, AllKeysRequired } from "../../clientUtils/Util.js"
+import { checkIsVeryShortUnit } from "../../clientUtils/formatValue.js"
 
 interface MapTooltipProps {
     entityName: EntityName
@@ -122,6 +123,15 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.timeSeriesTable ?? new OwidTable()
     }
     @computed private get sparklineManager(): LineChartManager {
+        // Pass down short units, while omitting long or undefined ones.
+        const unit = this.sparklineTable.get(this.mapColumnSlug).shortUnit
+        const yAxisUnit =
+            typeof unit === "string"
+                ? checkIsVeryShortUnit(unit)
+                    ? unit
+                    : ""
+                : ""
+
         return {
             table: this.sparklineTable,
             transformedTable: this.sparklineTable,
@@ -142,7 +152,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 hideAxis: false,
                 hideGridlines: false,
                 tickFormattingOptions: {
-                    unit: "",
+                    unit: yAxisUnit,
                     numberAbbreviation: "short",
                 },
                 // Copy min/max from top-level Grapher config if Y column == Map column

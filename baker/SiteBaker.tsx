@@ -34,7 +34,6 @@ import {
     GrapherExports,
 } from "../baker/GrapherBakingUtils.js"
 import { makeSitemap } from "../baker/sitemap.js"
-import { Post } from "../db/model/Post.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
 import { countries } from "../clientUtils/countries.js"
 import { execWrapper } from "../db/execWrapper.js"
@@ -51,6 +50,7 @@ import {
     bakeAllPublishedExplorers,
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { postsTable } from "../db/model/Post.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -247,7 +247,7 @@ export class SiteBaker {
         )
 
         const rows = (await db
-            .knexTable(Post.table)
+            .knexTable(postsTable)
             .where({ status: "publish" })
             .join("post_tags", { "post_tags.post_id": "posts.id" })
             .join("tags", { "tags.id": "post_tags.tag_id" })

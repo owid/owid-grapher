@@ -8,7 +8,12 @@ import {
 import { createGunzip, createGzip } from "zlib"
 import * as fs from "fs-extra"
 import getStream from "get-stream"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableMixedData,
+    OwidVariableWithSourceAndDimension,
+} from "../../clientUtils/OwidVariable.js"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 import md5 from "md5"
 
@@ -19,7 +24,6 @@ import _ from "lodash"
 
 const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
-const DATA_FILENAME = "data.json"
 export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
 
 export const finished = util.promisify(stream.finished) // (A)
@@ -77,6 +81,11 @@ export interface SvgDifference {
 export interface JobDirectory {
     chartId: number
     pathToProcess: string
+}
+
+export interface JobConfigAndData {
+    config: GrapherInterface
+    variableData: MultipleOwidVariableDataDimensionsMap
 }
 
 export function logIfVerbose(verbose: boolean, message: string, param?: any) {
@@ -233,39 +242,42 @@ export async function saveGrapherSchemaAndData(
     const configPath = path.join(dataDir, CONFIG_FILENAME)
     const promise1 = writeToFile(config, configPath)
 
-    const dataPath = path.join(dataDir, DATA_FILENAME)
     const grapher = initGrapherForSvgExport(config)
     const variableIds = grapher.dimensions.map((d) => d.variableId)
 
-    const promise2 = getVariableData(variableIds).then((vardata) =>
-        writeToFile(vardata, dataPath)
-    )
+    const writeVariablePromises = variableIds.map(async (variableId) => {
+        const dataPath = path.join(dataDir, `${variableId}.data.json`)
+        const metadataPath = path.join(dataDir, `${variableId}.metadata.json`)
+        const variableData = await getVariableData(variableId)
+        await writeToFile(variableData.data, dataPath)
+        await writeToFile(variableData.metadata, metadataPath)
+    })
 
-    await Promise.allSettled([promise1, promise2])
+    await Promise.allSettled([promise1, ...writeVariablePromises])
 }
 
 export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
-    const [config, data] = await loadGrapherConfigAndData(dir)
+    const configAndData = await loadGrapherConfigAndData(dir)
 
     // Graphers sometimes need to generate ids (incrementing numbers). For this
     // they keep a stateful variable in clientutils. To minimize differences
     // between consecutive runs we reset this id here before every export
     TESTING_ONLY_reset_guid()
-    const grapher = initGrapherForSvgExport(config)
+    const grapher = initGrapherForSvgExport(configAndData.config)
     const { width, height } = grapher.idealBounds
     const outFilename = buildSvgOutFilename(
-        config.slug!,
-        config.version,
+        configAndData.config.slug!,
+        configAndData.config.version,
         width,
         height
     )
 
-    grapher.receiveOwidData(data as OwidVariablesAndEntityKey)
+    grapher.receiveOwidData(configAndData.variableData)
     const svg = grapher.staticSVG
     const svgRecord = {
-        chartId: config.id!,
-        slug: config.slug!,
-        chartType: config.type,
+        chartId: configAndData.config.id!,
+        slug: configAndData.config.slug!,
+        chartType: configAndData.config.type,
         md5: processSvgAndCalculateHash(svg),
         svgFilename: outFilename,
     }
@@ -339,17 +351,33 @@ export async function loadReferenceSvg(
 
 export async function loadGrapherConfigAndData(
     inputDir: string
-): Promise<[GrapherInterface, unknown]> {
+): Promise<JobConfigAndData> {
     if (!fs.existsSync(inputDir))
         throw `Input directory does not exist ${inputDir}`
 
     const configPath = path.join(inputDir, CONFIG_FILENAME)
     const config = (await readJsonFile(configPath)) as GrapherInterface
 
-    const dataPath = path.join(inputDir, DATA_FILENAME)
-    const data = await readJsonFile(dataPath)
+    // TODO: this bakes the same commonly used variables over and over again - deduplicate
+    // this on the variable level and bake those separately into a different directory
+    const variableIds = config.dimensions?.map((d) => d.variableId) ?? []
+    const loadDataPromises = variableIds.map(async (variableId) => {
+        const dataPath = path.join(inputDir, `${variableId}.data.json`)
+        const metadataPath = path.join(inputDir, `${variableId}.metadata.json`)
+        const data = (await readJsonFile(dataPath)) as OwidVariableMixedData
+        const metadata = (await readJsonFile(
+            metadataPath
+        )) as OwidVariableWithSourceAndDimension
+        return { data, metadata }
+    })
 
-    return Promise.resolve([config, data])
+    const data: OwidVariableDataMetadataDimensions[] = await Promise.all(
+        loadDataPromises
+    )
+
+    const variableData = new Map(data.map((d) => [d.metadata.id, d]))
+
+    return { config, variableData }
 }
 
 export function logDifferencesToConsole(

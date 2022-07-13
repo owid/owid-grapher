@@ -5,9 +5,9 @@ import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { exit } from "../db/cleanup.js"
 import { PostRow } from "../clientUtils/owidTypes.js"
-import { Post } from "../db/model/Post.js"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
+import { postsTable, selectPosts } from "../db/model/Post.js"
 const argv = parseArgs(process.argv.slice(2))
 
 const zeroDateString = "0000-00-00 00:00:00"
@@ -21,7 +21,7 @@ const syncPostToGrapher = async (
         [postId]
     )
 
-    const matchingRows = await db.knexTable(Post.table).where({ id: postId })
+    const matchingRows = await db.knexTable(postsTable).where({ id: postId })
     const existsInGrapher = !!matchingRows.length
 
     const wpPost = rows[0]
@@ -47,19 +47,19 @@ const syncPostToGrapher = async (
     await db.knexInstance().transaction(async (transaction) => {
         if (!postRow && existsInGrapher)
             // Delete from grapher
-            await transaction.table(Post.table).where({ id: postId }).delete()
+            await transaction.table(postsTable).where({ id: postId }).delete()
         else if (postRow && !existsInGrapher)
-            await transaction.table(Post.table).insert(postRow)
+            await transaction.table(postsTable).insert(postRow)
         else if (postRow && existsInGrapher)
             await transaction
-                .table(Post.table)
+                .table(postsTable)
                 .where("id", "=", postRow.id)
                 .update(postRow)
     })
 
     const newPost = (
-        await Post.select("slug").from(
-            db.knexTable(Post.table).where({ id: postId })
+        await selectPosts("slug").from(
+            db.knexTable(postsTable).where({ id: postId })
         )
     )[0]
     return newPost ? newPost.slug : undefined

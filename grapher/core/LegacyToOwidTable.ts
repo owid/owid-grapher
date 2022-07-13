@@ -9,15 +9,18 @@ import {
 import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
 import {
     diffDateISOStringInDays,
+    flatten,
     isNumber,
     makeAnnotationsSlug,
     trimObject,
     uniqBy,
 } from "../../clientUtils/Util.js"
 import {
-    OwidVariablesAndEntityKey,
-    OwidVariableWithDataAndSource,
     OwidEntityKey,
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableWithSource,
+    OwidVariableMixedData,
+    OwidVariableWithSourceAndDimension,
 } from "../../clientUtils/OwidVariable.js"
 import {
     StandardOwidColumnDefs,
@@ -30,12 +33,19 @@ import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes.js"
 import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
 
 export const legacyToOwidTableAndDimensions = (
-    json: OwidVariablesAndEntityKey,
+    json: MultipleOwidVariableDataDimensionsMap,
     grapherConfig: Partial<LegacyGrapherInterface>
 ): { dimensions: OwidChartDimensionInterface[]; table: OwidTable } => {
     // Entity meta map
 
-    const entityMetaById: OwidEntityKey = json.entityKey
+    const entityMeta = flatten(
+        [...json.values()].map(
+            (value) => value.metadata.dimensions.entities.values
+        )
+    )
+    const entityMetaById: OwidEntityKey = Object.fromEntries(
+        entityMeta.map((entity) => [entity.id.toString(), entity])
+    )
 
     // Color maps
 
@@ -81,17 +91,17 @@ export const legacyToOwidTableAndDimensions = (
     }))
     const dimensionColumns = uniqBy(newDimensions, (dim) => dim.slug)
     const variableTables = dimensionColumns.map((dimension) => {
-        const variable = json.variables[dimension.variableId]
+        const variable = json.get(dimension.variableId)!
 
         // Copy the base columnDef
         const columnDefs = new Map(baseColumnDefs)
 
         // Time column
-        const timeColumnDef = timeColumnDefFromOwidVariable(variable)
+        const timeColumnDef = timeColumnDefFromOwidVariable(variable.metadata)
         columnDefs.set(timeColumnDef.slug, timeColumnDef)
 
         // Value column
-        const valueColumnDef = columnDefFromOwidVariable(variable)
+        const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
         const valueColumnColor =
             dimension.display?.color ??
             columnColorMap.get(dimension.variableId.toString())
@@ -116,17 +126,22 @@ export const legacyToOwidTableAndDimensions = (
 
         // Annotations column
         const [annotationMap, annotationColumnDef] =
-            annotationMapAndDefFromOwidVariable(variable)
+            annotationMapAndDefFromOwidVariable(variable.metadata)
 
         // Column values
 
-        const times = timeColumnValuesFromOwidVariable(variable)
-        const entityIds = variable.entities ?? []
-        const entityNames = entityIds.map((id) => entityMetaById[id].name)
+        const times = timeColumnValuesFromOwidVariable(
+            variable.metadata,
+            variable.data
+        )
+        const entityIds = variable.data.entities ?? []
+        const entityNames = entityIds.map(
+            (id) => entityMetaById[id].name ?? id.toString()
+        )
         const entityCodes = entityIds.map((id) => entityMetaById[id].code)
 
         // If there is a conversionFactor, apply it.
-        let values = variable.values || []
+        let values = variable.data.values || []
         const conversionFactor = valueColumnDef.display?.conversionFactor
         if (conversionFactor !== undefined) {
             values = values.map((value) =>
@@ -149,12 +164,13 @@ export const legacyToOwidTableAndDimensions = (
         }
 
         if (entityColorColumnSlug) {
-            columnStore[entityColorColumnSlug] = entityIds.map(
-                (entityId) =>
-                    grapherConfig.selectedEntityColors?.[
-                        entityMetaById[entityId].name
-                    ] ?? entityColorMap.get(entityId)
-            )
+            columnStore[entityColorColumnSlug] = entityIds.map((entityId) => {
+                const entityName = entityMetaById[entityId].name
+                const selectedEntityColors = grapherConfig.selectedEntityColors
+                return entityName && selectedEntityColors
+                    ? selectedEntityColors[entityName]
+                    : entityColorMap.get(entityId)
+            })
         }
 
         // Build the tables
@@ -220,7 +236,7 @@ const fullJoinTables = (tables: OwidTable[]): OwidTable =>
     tables.reduce((joinedTable, table) => joinedTable.fullJoin(table))
 
 const columnDefFromOwidVariable = (
-    variable: OwidVariableWithDataAndSource
+    variable: OwidVariableWithSourceAndDimension
 ): OwidColumnDef => {
     const slug = variable.id.toString() // For now, the variableId will be the column slug
     const {
@@ -265,9 +281,9 @@ const columnDefFromOwidVariable = (
 }
 
 const timeColumnDefFromOwidVariable = (
-    variable: OwidVariableWithDataAndSource
+    variableMetadata: OwidVariableWithSource
 ): OwidColumnDef => {
-    return variable.display?.yearIsDay
+    return variableMetadata.display?.yearIsDay
         ? {
               slug: OwidTableSlugs.day,
               type: ColumnTypeNames.Day,
@@ -281,9 +297,11 @@ const timeColumnDefFromOwidVariable = (
 }
 
 const timeColumnValuesFromOwidVariable = (
-    variable: OwidVariableWithDataAndSource
+    variableMetadata: OwidVariableWithSource,
+    variableData: OwidVariableMixedData
 ): number[] => {
-    const { display, years } = variable
+    const { display } = variableMetadata
+    const { years } = variableData
     const yearsNeedTransform =
         display &&
         display.yearIsDay &&
@@ -306,7 +324,7 @@ const convertLegacyYears = (years: number[], zeroDay: string): number[] => {
 }
 
 const annotationMapAndDefFromOwidVariable = (
-    variable: OwidVariableWithDataAndSource
+    variable: OwidVariableWithSourceAndDimension
 ): [Map<string, string>, OwidColumnDef] | [] => {
     if (variable.display?.entityAnnotationsMap) {
         const slug = makeAnnotationsSlug(variable.id.toString())

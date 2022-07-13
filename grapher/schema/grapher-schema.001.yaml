@@ -397,9 +397,7 @@ properties:
                 - variableId
             properties:
                 targetYear:
-                    type:
-                        - integer
-                        - "null"
+                    type: integer
                     description: |
                         Charts that can display more than one primary dimensions (i.e. scatter and marimekko)
                         sometimes need to "hardcode" one dimension to a specific year. This happens e.g. when

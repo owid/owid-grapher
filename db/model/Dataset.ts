@@ -11,10 +11,11 @@ import { Writable } from "stream"
 
 import { User } from "./User.js"
 import { Source } from "./Source.js"
-import { Variable } from "./Variable.js"
+
 import * as db from "../db.js"
 import { arrToCsvRow, slugify } from "../../clientUtils/Util.js"
 import filenamify from "filenamify"
+import { VariableRow, variableTable } from "./Variable.js"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
@@ -124,8 +125,8 @@ export class Dataset extends BaseEntity {
         // XXX
         const sources = await Source.find({ datasetId: this.id })
         const variables = (await db
-            .knexTable(Variable.table)
-            .where({ datasetId: this.id })) as Variable.Row[]
+            .knexTable(variableTable)
+            .where({ datasetId: this.id })) as VariableRow[]
         const tags = await db.queryMysql(
             `SELECT t.id, t.name FROM dataset_tags dt JOIN tags t ON t.id=dt.tagId WHERE dt.datasetId=?`,
             [this.id]
