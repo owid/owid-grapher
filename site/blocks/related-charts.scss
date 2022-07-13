@@ -1,4 +1,5 @@
 .related-charts {
+    margin-bottom: $vertical-spacing;
     .wp-block-columns .wp-block-column {
         &:first-child {
             // refactor: merge with KeyInsights.css
@@ -71,6 +72,16 @@
         &:last-child {
             > *:last-child {
                 margin-bottom: 0;
+            }
+
+            .gallery-navigation {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                .gallery-pagination {
+                    margin: 0 $padding-x-md;
+                }
             }
         }
     }

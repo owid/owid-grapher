@@ -12,6 +12,7 @@ import * as db from "../db.js"
 import { getVariableData } from "./Variable.js"
 import { User } from "./User.js"
 import { ChartRevision } from "./ChartRevision.js"
+import { Tag } from "../../clientUtils/owidTypes.js"
 
 // XXX hardcoded filtering to public parent tags
 const PUBLIC_TAG_PARENT_IDS = [
@@ -72,22 +73,22 @@ export class Chart extends BaseEntity {
         return await Chart.findOne({ id })
     }
 
-    static async setTags(chartId: number, tagIds: number[]): Promise<void> {
+    static async setTags(chartId: number, tags: Tag[]): Promise<void> {
         await db.transaction(async (t) => {
-            const tagRows = tagIds.map((tagId) => [tagId, chartId])
+            const tagRows = tags.map((tag) => [tag.id, chartId, tag.isKey])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(
-                    `INSERT INTO chart_tags (tagId, chartId) VALUES ?`,
+                    `INSERT INTO chart_tags (tagId, chartId, isKey) VALUES ?`,
                     [tagRows]
                 )
 
-            const tags = tagIds.length
+            const parentIds = tags.length
                 ? ((await t.query("select parentId from tags where id in (?)", [
-                      tagIds,
+                      tags.map((t) => t.id),
                   ])) as { parentId: number }[])
                 : []
-            const isIndexable = tags.some((t) =>
+            const isIndexable = parentIds.some((t) =>
                 PUBLIC_TAG_PARENT_IDS.includes(t.parentId)
             )
 
@@ -102,7 +103,7 @@ export class Chart extends BaseEntity {
         charts: { id: number; tags: any[] }[]
     ): Promise<void> {
         const chartTags = await db.queryMysql(`
-            SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
+            SELECT ct.chartId, ct.tagId, ct.isKey, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
             JOIN tags t ON t.id=ct.tagId
         `)
@@ -115,7 +116,12 @@ export class Chart extends BaseEntity {
 
         for (const ct of chartTags) {
             const chart = chartsById[ct.chartId]
-            if (chart) chart.tags.push({ id: ct.tagId, name: ct.tagName })
+            if (chart)
+                chart.tags.push({
+                    id: ct.tagId,
+                    name: ct.tagName,
+                    isKey: !!ct.isKey,
+                })
         }
     }
 

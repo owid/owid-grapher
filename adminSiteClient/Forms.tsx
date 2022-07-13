@@ -993,6 +993,8 @@ class EditTags extends React.Component<{
     }
 }
 
+const filterUncategorizedTag = (t: Tag) => t.name !== "Uncategorized"
+
 @observer
 export class EditableTags extends React.Component<{
     tags: Tag[]
@@ -1009,7 +1011,7 @@ export class EditableTags extends React.Component<{
         this.tags.push(tag)
         this.tags = lodash
             .uniqBy(this.tags, (t) => t.id)
-            .filter((t) => t.name !== "Uncategorized")
+            .filter(filterUncategorizedTag)
 
         this.ensureUncategorized()
     }
@@ -1017,6 +1019,11 @@ export class EditableTags extends React.Component<{
     @action.bound onRemoveTag(index: number) {
         this.tags.splice(index, 1)
         this.ensureUncategorized()
+    }
+
+    @action.bound onToggleKey(index: number) {
+        this.tags[index].isKey = !this.tags[index].isKey
+        this.props.onSave(this.tags.filter(filterUncategorizedTag))
     }
 
     @action.bound ensureUncategorized() {
@@ -1030,9 +1037,7 @@ export class EditableTags extends React.Component<{
 
     @action.bound onToggleEdit() {
         if (this.isEditing) {
-            this.props.onSave(
-                this.tags.filter((t) => t.name !== "Uncategorized")
-            )
+            this.props.onSave(this.tags.filter(filterUncategorizedTag))
         }
         this.isEditing = !this.isEditing
     }
@@ -1061,8 +1066,12 @@ export class EditableTags extends React.Component<{
                     />
                 ) : (
                     <div>
-                        {tags.map((t) => (
-                            <TagBadge key={t.id} tag={t} />
+                        {tags.map((t, i) => (
+                            <TagBadge
+                                onToggleKey={() => this.onToggleKey(i)}
+                                key={t.id}
+                                tag={t}
+                            />
                         ))}
                         {!disabled && (
                             <button

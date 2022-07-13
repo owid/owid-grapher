@@ -151,7 +151,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
-import { Url } from "../../clientUtils/urls/Url.js"
+import { getWindowUrl, Url } from "../../clientUtils/urls/Url.js"
 import {
     Annotation,
     ColumnSlug,
@@ -1096,9 +1096,6 @@ export class Grapher
                         text: `**${detail.title}**\n${detail.content}`,
                         fontSize: 12,
                         maxWidth: this.bounds.width,
-                        style: {
-                            fill: "#666",
-                        },
                     })
             )
     }
@@ -2210,6 +2207,20 @@ export class Grapher
         if (!this.relatedQuestions.length) return false
         const question = this.relatedQuestions[0]
         return !!question && !!question.text && !!question.url
+    }
+
+    @computed get isRelatedQuestionTargetDifferentFromCurrentPage(): boolean {
+        // comparing paths rather than full URLs for this to work as
+        // expected on local and staging where the origin (e.g.
+        // hans.owid.cloud) doesn't match the production origin that has
+        // been entered in the related question URL field:
+        // "ourworldindata.org" and yet should still yield a match.
+        // - Note that this won't work on production previews (where the
+        //   path is /admin/posts/preview/ID)
+        return (
+            getWindowUrl().pathname !==
+            Url.fromURL(this.relatedQuestions[0]?.url).pathname
+        )
     }
 
     @computed private get footerControlsLines(): number {

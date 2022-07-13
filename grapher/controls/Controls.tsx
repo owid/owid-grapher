@@ -2,7 +2,6 @@ import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { TimelineComponent } from "../timeline/TimelineComponent.js"
-import { formatValue } from "../../clientUtils/formatValue.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -286,6 +285,7 @@ export interface FooterControlsManager extends ShareMenuManager {
     canonicalUrl?: string
     showTimeline?: boolean
     hasRelatedQuestion?: boolean
+    isRelatedQuestionTargetDifferentFromCurrentPage?: boolean
     relatedQuestions: RelatedQuestionsConfig[]
     footerControlsHeight?: number
     timelineController?: TimelineController
@@ -381,8 +381,12 @@ export class FooterControls extends React.Component<{
 
     render(): JSX.Element {
         const { manager } = this
-        const { isShareMenuActive, hasRelatedQuestion, relatedQuestions } =
-            manager
+        const {
+            isShareMenuActive,
+            hasRelatedQuestion,
+            isRelatedQuestionTargetDifferentFromCurrentPage,
+            relatedQuestions,
+        } = manager
         const tabsElement = (
             <div className="footerRowSingle">{this._getTabsElement()}</div>
         )
@@ -392,7 +396,8 @@ export class FooterControls extends React.Component<{
         )
 
         const relatedQuestionElement = relatedQuestions &&
-            hasRelatedQuestion && (
+            hasRelatedQuestion &&
+            isRelatedQuestionTargetDifferentFromCurrentPage && (
                 <div className="relatedQuestion">
                     Related:&nbsp;
                     <a

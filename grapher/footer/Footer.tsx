@@ -241,7 +241,7 @@ export class Footer extends React.Component<{
                     {this.sources.renderHTML()}
                 </p>
                 {this.note && (
-                    <p style={this.note.htmlStyle}>{this.note.renderHTML()}</p>
+                    <p style={this.note.style}>{this.note.renderHTML()}</p>
                 )}
                 {!this.isCompact && license}
                 {tooltipTarget && (

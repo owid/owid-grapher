@@ -9,11 +9,11 @@ import {
 } from "./MarkdownTextWrap.js"
 
 describe("MarkdownTextWrap", () => {
-    it("IRBold should be wider than IRText", () => {
+    it("IRText with a heavier fontWeight should be wider than plain IRText", () => {
         const string = "abcdefghijklmnopqrstuvwxyz"
 
         const text = new IRText(string)
-        const bold = new IRBold([new IRText(string)])
+        const bold = new IRText(string, { fontWeight: 700 })
 
         expect(text.width).toBeLessThan(bold.width)
     })
@@ -36,36 +36,6 @@ describe("MarkdownTextWrap", () => {
         const plainWidth = getLineWidth(plainMarkdownTextWrap.lines[0])
         const boldWidth = getLineWidth(boldMarkdownTextWrap.lines[0])
         expect(plainWidth).toBeLessThan(boldWidth)
-    })
-
-    it("MarkdownTextWrap should apply style props to HTML output", () => {
-        const element = new MarkdownTextWrap({
-            text: "abcdefghijklmnopqrstuvwxyz",
-            fontSize: 14,
-            maxWidth: 200,
-            style: {
-                color: "red",
-            },
-        })
-
-        const output = element.renderHTML()
-
-        expect(output?.props.style.color).toEqual("red")
-    })
-
-    it("MarkdownTextWrap should apply style props to SVG output", () => {
-        const element = new MarkdownTextWrap({
-            text: "abcdefghijklmnopqrstuvwxyz",
-            fontSize: 14,
-            maxWidth: 200,
-            style: {
-                color: "red",
-            },
-        })
-
-        const output = element.renderSVG(0, 0)
-
-        expect(output?.props.style.color).toEqual("red")
     })
 
     it("MarkdownTextWrap should accept and apply fontParams", () => {
@@ -94,5 +64,15 @@ describe("MarkdownTextWrap", () => {
         })
 
         expect(element.height).toEqual(30)
+    })
+
+    it("MarkdownTextWrap should split on newline", () => {
+        const element = new MarkdownTextWrap({
+            text: "_test\n**\nnewline\n**_test",
+            fontSize: 10,
+            lineHeight: 1,
+        })
+
+        expect(element.height).toEqual(40)
     })
 })
