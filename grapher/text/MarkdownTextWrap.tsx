@@ -222,15 +222,38 @@ export class IRLink extends IRElement {
         )
     }
     toSVG(key?: React.Key): JSX.Element {
+        // When we have a plainUrl just render the link as an <a> tag
+        if (
+            this.children.length === 1 &&
+            this.children[0].constructor.name === "IRText" &&
+            this.children[0].toPlaintext() === this.href
+        ) {
+            return (
+                <a
+                    key={key}
+                    href={this.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {this.href}
+                </a>
+            )
+        }
+
+        // Otherwise add the <a> tag in brackets after the text
         return (
-            <a
-                key={key}
-                href={this.href}
-                target="_blank"
-                rel="noopener noreferrer"
-            >
+            <>
                 {this.children.map((child, i) => child.toSVG(i))}
-            </a>
+                <a
+                    key={key}
+                    href={this.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {" "}
+                    ({this.href})
+                </a>
+            </>
         )
     }
 }
