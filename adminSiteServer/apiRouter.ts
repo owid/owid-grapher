@@ -1585,57 +1585,57 @@ interface VariableSingleMeta {
     display: any
 }
 
-// // TODO where is this used? can we get rid of VariableSingleMeta type?
-// apiRouter.get(
-//     "/variables/:variableId.json",
-//     async (req: Request, res: Response) => {
-//         const variableId = expectInt(req.params.variableId)
+// Used in VariableEditPage
+apiRouter.get(
+    "/variables/:variableId.json",
+    async (req: Request, res: Response) => {
+        const variableId = expectInt(req.params.variableId)
 
-//         const variable = await db.mysqlFirst(
-//             `
-//         SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
-//                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
-//         FROM variables v
-//         JOIN datasets d ON d.id=v.datasetId
-//         JOIN users u ON u.id=d.dataEditedByUserId
-//         WHERE v.id = ?
-//     `,
-//             [variableId]
-//         )
+        const variable = await db.mysqlFirst(
+            `
+            SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
+                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
+            FROM variables v
+            JOIN datasets d ON d.id=v.datasetId
+            JOIN users u ON u.id=d.dataEditedByUserId
+            WHERE v.id = ?
+            `,
+            [variableId]
+        )
 
-//         if (!variable) {
-//             throw new JsonError(`No variable by id '${variableId}'`, 404)
-//         }
+        if (!variable) {
+            throw new JsonError(`No variable by id '${variableId}'`, 404)
+        }
 
-//         variable.display = JSON.parse(variable.display)
+        variable.display = JSON.parse(variable.display)
 
-//         variable.source = await db.mysqlFirst(
-//             `SELECT id, name FROM sources AS s WHERE id = ?`,
-//             variable.sourceId
-//         )
+        variable.source = await db.mysqlFirst(
+            `SELECT id, name FROM sources AS s WHERE id = ?`,
+            variable.sourceId
+        )
 
-//         const charts = await db.queryMysql(
-//             `
-//         SELECT ${OldChart.listFields}
-//         FROM charts
-//         JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-//         LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-//         JOIN chart_dimensions cd ON cd.chartId = charts.id
-//         WHERE cd.variableId = ?
-//         GROUP BY charts.id
-//     `,
-//             [variableId]
-//         )
+        const charts = await db.queryMysql(
+            `
+            SELECT ${OldChart.listFields}
+            FROM charts
+            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            JOIN chart_dimensions cd ON cd.chartId = charts.id
+            WHERE cd.variableId = ?
+            GROUP BY charts.id
+            `,
+            [variableId]
+        )
 
-//         await Chart.assignTagsForCharts(charts)
+        await Chart.assignTagsForCharts(charts)
 
-//         variable.charts = charts
+        variable.charts = charts
 
-//         return {
-//             variable: variable as VariableSingleMeta,
-//         } /*, vardata: await getVariableData([variableId]) }*/
-//     }
-// )
+        return {
+            variable: variable as VariableSingleMeta,
+        } /*, vardata: await getVariableData([variableId]) }*/
+    }
+)
 
 apiRouter.put("/variables/:variableId", async (req: Request) => {
     const variableId = expectInt(req.params.variableId)
