@@ -16,26 +16,54 @@ export const childMortalityGrapher = (
             },
         ],
         ...props,
-        owidDataset: {
-            variables: {
-                "104402": {
-                    years: [1950, 1950, 2005, 2005, 2019, 2019],
-                    entities: [15, 207, 15, 207, 15, 207],
-                    values: [224.45, 333.68, 295.59, 246.12, 215.59, 226.12],
-                    id: 104402,
-                    display: {
-                        name: "Child mortality",
-                        unit: "%",
-                        shortUnit: "%",
-                        conversionFactor: 0.1,
+        owidDataset: new Map([
+            [
+                104402,
+                {
+                    data: {
+                        years: [1950, 1950, 2005, 2005, 2019, 2019],
+                        entities: [15, 207, 15, 207, 15, 207],
+                        values: [
+                            224.45, 333.68, 295.59, 246.12, 215.59, 226.12,
+                        ],
+                    },
+                    metadata: {
+                        id: 104402,
+                        display: {
+                            name: "Child mortality",
+                            unit: "%",
+                            shortUnit: "%",
+                            conversionFactor: 0.1,
+                        },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "Afghanistan",
+                                        id: 15,
+                                        code: "AFG",
+                                    },
+                                    { name: "Iceland", id: 207, code: "ICE" },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 1950,
+                                    },
+                                    {
+                                        id: 2005,
+                                    },
+                                    {
+                                        id: 2019,
+                                    },
+                                ],
+                            },
+                        },
                     },
                 },
-            },
-            entityKey: {
-                "15": { name: "Afghanistan", id: 15, code: "AFG" },
-                "207": { name: "Iceland", id: 207, code: "ICE" },
-            },
-        },
+            ],
+        ]),
     })
 
 export const IncompleteDataTable = (
@@ -67,20 +95,49 @@ export const IncompleteDataTable = (
             },
         ],
         ...props,
-        owidDataset: {
-            variables: {
-                "3512": {
-                    years: [2000, 2001, 2010, 2009],
-                    entities: [207, 33, 15, 207],
-                    values: [4, 22, 20, 34],
-                    id: 3512,
-                    shortUnit: "%",
+        owidDataset: new Map([
+            [
+                3512,
+                {
+                    data: {
+                        years: [2000, 2001, 2010, 2009],
+                        entities: [207, 33, 15, 207],
+                        values: [4, 22, 20, 34],
+                    },
+                    metadata: {
+                        id: 3512,
+                        shortUnit: "%",
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "Afghanistan",
+                                        id: 15,
+                                        code: "AFG",
+                                    },
+                                    { name: "Iceland", id: 207, code: "ISL" },
+                                    { name: "France", id: 33, code: "FRA" },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 2000,
+                                    },
+                                    {
+                                        id: 2001,
+                                    },
+                                    {
+                                        id: 2010,
+                                    },
+                                    {
+                                        id: 2009,
+                                    },
+                                ],
+                            },
+                        },
+                    },
                 },
-            },
-            entityKey: {
-                "15": { name: "Afghanistan", id: 15, code: "AFG" },
-                "207": { name: "Iceland", id: 207, code: "ISL" },
-                "33": { name: "France", id: 33, code: "FRA" },
-            },
-        },
+            ],
+        ]),
     })

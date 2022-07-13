@@ -45,7 +45,7 @@ graphers
 
 export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
     const title = "AlphaBeta"
-    const first = {
+    const first: GrapherProgrammaticInterface = {
         id: 488,
         title,
         dimensions: [
@@ -55,21 +55,50 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
             },
         ],
         tab: GrapherTabOption.chart,
-        owidDataset: {
-            variables: {
-                "142609": {
-                    years: [-1, 0, 1, 2],
-                    entities: [1, 2, 1, 2],
-                    values: [51, 52, 53, 54],
-                    id: 142609,
-                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+        owidDataset: new Map([
+            [
+                142609,
+                {
+                    data: {
+                        years: [-1, 0, 1, 2],
+                        entities: [1, 2, 1, 2],
+                        values: [51, 52, 53, 54],
+                    },
+                    metadata: {
+                        id: 142609,
+                        display: { zeroDay: "2020-01-21", yearIsDay: true },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "United Kingdom",
+                                        code: "GBR",
+                                        id: 1,
+                                    },
+                                    { name: "Ireland", code: "IRL", id: 2 },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: -1,
+                                    },
+                                    {
+                                        id: 0,
+                                    },
+                                    {
+                                        id: 1,
+                                    },
+                                    {
+                                        id: 2,
+                                    },
+                                ],
+                            },
+                        },
+                    },
                 },
-            },
-            entityKey: {
-                "1": { name: "United Kingdom", code: "GBR", id: 1 },
-                "2": { name: "Ireland", code: "IRL", id: 2 },
-            },
-        },
+            ],
+        ]),
     }
     const grapherConfigs: GrapherProgrammaticInterface[] = [
         first,

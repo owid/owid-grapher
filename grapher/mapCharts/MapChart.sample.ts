@@ -20,20 +20,39 @@ export const legacyMapGrapher: GrapherProgrammaticInterface = {
             },
         },
     ],
-    owidDataset: {
-        variables: {
-            "3512": {
-                years: [2000, 2010, 2010],
-                entities: [207, 15, 207],
-                values: [4, 20, 34],
-                id: 3512,
-                shortUnit: "%",
+    owidDataset: new Map([
+        [
+            3512,
+            {
+                data: {
+                    years: [2000, 2010, 2010],
+                    entities: [207, 15, 207],
+                    values: [4, 20, 34],
+                },
+                metadata: {
+                    id: 3512,
+                    display: { shortUnit: "%" },
+                    dimensions: {
+                        entities: {
+                            values: [
+                                { name: "Afghanistan", id: 15, code: "AFG" },
+                                { name: "Iceland", id: 207, code: "ISL" },
+                            ],
+                        },
+                        years: {
+                            values: [
+                                {
+                                    id: 2000,
+                                },
+                                {
+                                    id: 2010,
+                                },
+                            ],
+                        },
+                    },
+                },
             },
-        },
-        entityKey: {
-            "15": { name: "Afghanistan", id: 15, code: "AFG" },
-            "207": { name: "Iceland", id: 207, code: "ISL" },
-        },
-    },
+        ],
+    ]),
     queryStr: "?time=2002",
 }
