@@ -62,12 +62,10 @@ import {
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
-    getTagsByPostId,
     postsTable,
-    selectPosts,
+    Post,
     setTagsForPost,
 } from "../db/model/Post.js"
-//import parse = require("s-expression")
 import { parseIntOrUndefined, trimObject } from "../clientUtils/Util.js"
 import { omit, set } from "lodash"
 import { Detail } from "../grapher/core/GrapherConstants.js"
@@ -2176,7 +2174,7 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await selectPosts(
+    const rows = await Post.select(
         "id",
         "title",
         "type",
@@ -2184,7 +2182,7 @@ apiRouter.get("/posts.json", async (req) => {
         "updated_at"
     ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
 
-    const tagsByPostId = await getTagsByPostId()
+    const tagsByPostId = await Post.tagsByPostId()
 
     const authorship = await wpdb.getAuthorship()
 
