@@ -216,7 +216,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         if (!unit) return undefined
 
         if (unit.length < 3) return unit
-        if (new Set(["$", "£", "€", "%"]).has(unit[0])) return unit[0]
+        if (checkIsVeryShortUnit(unit[0])) return unit[0]
 
         return undefined
     }
