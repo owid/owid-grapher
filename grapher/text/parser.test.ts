@@ -765,4 +765,40 @@ how **are** you?`)
             },
         })
     })
+    it("Parses nonbreaking spaces as text", () => {
+        expect(mdParser.markdown.parse("text with nonbreaking space")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "text",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "with",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "nonbreaking",
+                    },
+                    {
+                        type: "text",
+                        value: " ",
+                    },
+                    {
+                        type: "text",
+                        value: "space",
+                    },
+                ],
+            },
+        })
+    })
 })

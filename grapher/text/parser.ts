@@ -62,6 +62,10 @@ interface PlainUrl {
     href: string
 }
 
+// Nonbreaking spaces should be treated as text because whitespace will be collapsed and lines will
+// break at these points.
+type NonbreakingWhitespace = Text
+
 type NonBracketWord = Text
 
 type NonParensWord = Text
@@ -218,9 +222,15 @@ const fallbackTextParser = (): P.Parser<Text> =>
 const newlineParser = (): P.Parser<Newline> =>
     P.regex(/\n/).result({ type: "newline" })
 
-// A less greedy version of P.whitespace that doesn't consume newlines
-const whitespaceParser = (): P.Parser<Whitespace> =>
-    P.regex(/ +/).result({ type: "whitespace" })
+const nonbreakingSpaceParser = (): P.Parser<Text> =>
+    // According to https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Character_Classes
+    // the \s character class includes the following codepoints: [ \f\n\r\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]
+    // We want to treat newlines and nonbreaking spaces specially. Out of the list above, the codepoints u+00a0 and u+202f look like
+    // they should be treated as non-breaking whitespace
+    P.regex(/[\u00a0\ufeff]+/).map((val) => ({ type: "text", value: val }))
+
+const anyWhitespaceParser = (): P.Parser<Whitespace> =>
+    P.regex(/\s+/).result({ type: "whitespace" })
 
 const plainUrlParser = (): P.Parser<PlainUrl> =>
     P.regex(urlRegex).map((result) => ({
@@ -275,7 +285,14 @@ const dodTermParser: (r: MdParser) => P.Parser<DodTerm> = () =>
 const markdownLinkContentParser: (
     r: MdParser
 ) => P.Parser<MarkdownLinkContent> = (r: MdParser) =>
-    P.alt(r.whitespace, r.newline, r.plainBold, r.plainItalic, r.nonBracketWord)
+    P.alt(
+        r.newline,
+        r.nonbreakingSpace,
+        r.anyWhitespace,
+        r.plainBold,
+        r.plainItalic,
+        r.nonBracketWord
+    )
 
 const markdownLinkParser: (r: MdParser) => P.Parser<MarkdownLink> = (
     r: MdParser
@@ -301,8 +318,9 @@ const detailOnDemandContentParser: (
 ) => P.Parser<DetailsOnDemandContent> = (r: MdParser) =>
     P.alt(
         // In TS 4.7 parsimmon could type the parser as Covariant on its type parameter which would remove the need for these casts
-        r.whitespace,
         r.newline,
+        r.nonbreakingSpace,
+        r.anyWhitespace,
         r.plainBold,
         r.plainItalic,
         r.nonBracketWord
@@ -334,8 +352,9 @@ const boldWithoutItalicContentParser: (
     r: MdParser
 ) => P.Parser<BoldWithoutItalicContent> = (r: MdParser) =>
     P.alt(
-        r.whitespace,
         r.newline,
+        r.nonbreakingSpace,
+        r.anyWhitespace,
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
@@ -358,8 +377,9 @@ const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
     r: MdParser
 ) =>
     P.alt(
-        r.whitespace,
         r.newline,
+        r.nonbreakingSpace,
+        r.anyWhitespace,
         r.italicWithoutBold,
         r.detailOnDemand,
         r.markdownLink,
@@ -379,7 +399,7 @@ const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
 
 const plainBoldContentParser: (r: MdParser) => P.Parser<PlainBoldContent> = (
     r: MdParser
-) => P.alt(r.whitespace, r.newline, r.nonDoubleStarWord)
+) => P.alt(r.newline, r.nonbreakingSpace, r.anyWhitespace, r.nonDoubleStarWord)
 
 const plainBoldParser: (r: MdParser) => P.Parser<PlainBold> = (r: MdParser) =>
     P.seqObj<PlainBold>(
@@ -395,7 +415,9 @@ const italicWithoutBoldContentParser: (
     r: MdParser
 ) => P.Parser<ItalicWithoutBoldContent> = (r: MdParser) =>
     P.alt(
-        r.whitespace,
+        r.newline,
+        r.nonbreakingSpace,
+        r.anyWhitespace,
         r.newline,
         r.detailOnDemand,
         r.markdownLink,
@@ -418,8 +440,9 @@ const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
     r: MdParser
 ) =>
     P.alt(
-        r.whitespace,
         r.newline,
+        r.nonbreakingSpace,
+        r.anyWhitespace,
         r.boldWithoutItalic,
         r.detailOnDemand,
         r.markdownLink,
@@ -440,7 +463,12 @@ const italicParser: (r: MdParser) => P.Parser<Italic> = (r: MdParser) =>
 const plainItalicContentParser: (
     r: MdParser
 ) => P.Parser<PlainItalicContent> = (r: MdParser) =>
-    P.alt(r.whitespace, r.newline, r.nonSingleUnderscoreWord)
+    P.alt(
+        r.newline,
+        r.nonbreakingSpace,
+        r.anyWhitespace,
+        r.nonSingleUnderscoreWord
+    )
 
 const plainItalicParser: (r: MdParser) => P.Parser<PlainItalic> = (
     r: MdParser
@@ -462,7 +490,8 @@ const markdownParser: (r: MdParser) => P.Parser<MarkdownRoot> = (r) =>
     // The order is crucial here!
     P.alt(
         r.newline,
-        r.whitespace,
+        r.nonbreakingSpace,
+        r.anyWhitespace,
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
@@ -484,7 +513,8 @@ const markdownParser: (r: MdParser) => P.Parser<MarkdownRoot> = (r) =>
 const languageParts = {
     markdown: markdownParser,
     newline: newlineParser,
-    whitespace: whitespaceParser,
+    nonbreakingSpace: nonbreakingSpaceParser,
+    anyWhitespace: anyWhitespaceParser,
     detailOnDemand: detailOnDemandParser,
     markdownLink: markdownLinkParser,
     plainUrl: plainUrlParser,
