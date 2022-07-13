@@ -47,7 +47,6 @@ import {
 } from "./gitDataExport.js"
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
-import { Post } from "../db/model/Post.js"
 import { camelCaseProperties } from "../clientUtils/string.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
@@ -72,6 +71,12 @@ import {
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import { parseIntOrUndefined } from "../clientUtils/Util.js"
+import {
+    getTagsByPostId,
+    postsTable,
+    selectPosts,
+    setTagsForPost,
+} from "../db/model/Post.js"
 //import parse = require("s-expression")
 const apiRouter = new FunctionalRouter()
 
@@ -583,12 +588,33 @@ apiRouter.get(
 )
 
 apiRouter.get(
-    "/data/variables/:variableStr.json",
+    "/data/variables/data/:variableStr.json",
     async (req: Request, res: Response) => {
-        const variableIds: number[] = req.params.variableStr
-            .split("+")
-            .map((v: string) => parseInt(v))
-        return getVariableData(variableIds)
+        const variableStr = req.params.variableStr as string
+        if (!variableStr) throw new JsonError("No variable id given")
+        if (variableStr.includes("+"))
+            throw new JsonError(
+                "Requesting multiple variables at the same time is no longer supported"
+            )
+        const variableId = parseInt(variableStr)
+        if (isNaN(variableId)) throw new JsonError("Invalid variable id")
+        return (await getVariableData(variableId)).data
+    }
+)
+
+apiRouter.get(
+    "/data/variables/metadata/:variableStr.json",
+    async (req: Request, res: Response) => {
+        const variableStr = req.params.variableStr as string
+        if (!variableStr) throw new JsonError("No variable id given")
+        if (variableStr.includes("+"))
+            throw new JsonError(
+                "Requesting multiple variables at the same time is no longer supported"
+            )
+        const variableId = parseInt(variableStr)
+        if (isNaN(variableId)) throw new JsonError("Invalid variable id")
+        const variableData = await getVariableData(variableId)
+        return variableData.metadata
     }
 )
 
@@ -1559,7 +1585,7 @@ interface VariableSingleMeta {
     display: any
 }
 
-// TODO where is this used? can we get rid of VariableSingleMeta type?
+// Used in VariableEditPage
 apiRouter.get(
     "/variables/:variableId.json",
     async (req: Request, res: Response) => {
@@ -1567,13 +1593,13 @@ apiRouter.get(
 
         const variable = await db.mysqlFirst(
             `
-        SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
-               v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
-        FROM variables v
-        JOIN datasets d ON d.id=v.datasetId
-        JOIN users u ON u.id=d.dataEditedByUserId
-        WHERE v.id = ?
-    `,
+            SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
+                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
+            FROM variables v
+            JOIN datasets d ON d.id=v.datasetId
+            JOIN users u ON u.id=d.dataEditedByUserId
+            WHERE v.id = ?
+            `,
             [variableId]
         )
 
@@ -1590,14 +1616,14 @@ apiRouter.get(
 
         const charts = await db.queryMysql(
             `
-        SELECT ${OldChart.listFields}
-        FROM charts
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        JOIN chart_dimensions cd ON cd.chartId = charts.id
-        WHERE cd.variableId = ?
-        GROUP BY charts.id
-    `,
+            SELECT ${OldChart.listFields}
+            FROM charts
+            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            JOIN chart_dimensions cd ON cd.chartId = charts.id
+            WHERE cd.variableId = ?
+            GROUP BY charts.id
+            `,
             [variableId]
         )
 
@@ -2156,15 +2182,15 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await Post.select(
+    const rows = await selectPosts(
         "id",
         "title",
         "type",
         "status",
         "updated_at"
-    ).from(db.knexInstance().from(Post.table).orderBy("updated_at", "desc"))
+    ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
 
-    const tagsByPostId = await Post.tagsByPostId()
+    const tagsByPostId = await getTagsByPostId()
 
     const authorship = await wpdb.getAuthorship()
 
@@ -2219,7 +2245,7 @@ apiRouter.post(
     async (req: Request, res: Response) => {
         const postId = expectInt(req.params.postId)
 
-        await Post.setTags(postId, req.body.tagIds)
+        await setTagsForPost(postId, req.body.tagIds)
 
         return { success: true }
     }
@@ -2228,7 +2254,7 @@ apiRouter.post(
 apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
     const postId = expectInt(req.params.postId)
     const post = (await db
-        .knexTable(Post.table)
+        .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
         .first()) as PostRow | undefined

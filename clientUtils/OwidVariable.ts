@@ -12,7 +12,6 @@ import {
     OwidVariableDataTableConfigInteface,
     OwidVariableDisplayConfigInterface,
 } from "./OwidVariableDisplayConfigInterface.js"
-import { PartialBy } from "./Util.js"
 
 class OwidVariableDisplayConfigDefaults {
     @observable name?: string = undefined
@@ -51,7 +50,9 @@ export class OwidVariableDisplayConfig
     }
 }
 
-export interface OwidVariableWithDataAndSource {
+export type OwidVariableTypeOptions = "string" | "float" | "int" | "mixed"
+
+export interface OwidVariableWithSource {
     id: number
     name?: string
     description?: string
@@ -63,24 +64,58 @@ export interface OwidVariableWithDataAndSource {
     coverage?: string
     nonRedistributable?: boolean
     source?: OwidSource
+}
+
+export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
+    dimensions: OwidVariableDimensions
+}
+
+export interface OwidVariableMixedData {
     years: number[]
     entities: number[]
     values: (string | number)[]
 }
 
-export interface OwidEntityMeta {
-    id: number
-    name: string
-    code: string
+export type OwidVariableWithDataAndSource = OwidVariableWithSource &
+    OwidVariableMixedData
+
+export type OwidVariableWithSourceAndType = OwidVariableWithSource & {
+    type: OwidVariableTypeOptions
 }
+
+export interface OwidVariableDimension {
+    values: OwidVariableDimensionValuePartial[]
+}
+
+export interface OwidVariableDimensions {
+    years: OwidVariableDimension
+    entities: OwidVariableDimension
+}
+
+export type OwidVariableDataMetadataDimensions = {
+    data: OwidVariableMixedData
+    metadata: OwidVariableWithSourceAndDimension
+}
+export type MultipleOwidVariableDataDimensionsMap = Map<
+    number,
+    OwidVariableDataMetadataDimensions
+>
+
+export interface OwidVariableDimensionValuePartial {
+    id: number
+    name?: string
+    code?: string
+}
+export type OwidVariableDimensionValueFull =
+    Required<OwidVariableDimensionValuePartial>
 
 export interface OwidEntityKey {
-    [id: string]: PartialBy<OwidEntityMeta, "id">
+    [id: string]: OwidVariableDimensionValuePartial
 }
 
-export interface OwidVariablesAndEntityKey {
-    variables: {
-        [id: string]: OwidVariableWithDataAndSource
-    }
-    entityKey: OwidEntityKey
-}
+// export interface OwidVariablesAndEntityKey {
+//     variables: {
+//         [id: string]: OwidVariableWithDataAndSource
+//     }
+//     entityKey: OwidEntityKey
+// }

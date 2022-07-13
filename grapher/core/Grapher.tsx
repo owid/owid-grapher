@@ -49,7 +49,12 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
 } from "../core/GrapherConstants.js"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableMixedData,
+    OwidVariableWithSourceAndDimension,
+} from "../../clientUtils/OwidVariable.js"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,
@@ -184,11 +189,60 @@ const legacyConfigToConfig = (
     return newConfig
 }
 
+async function loadVariablesDataAdmin(
+    variableIds: number[]
+): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const loadVariableDataPromises = variableIds.map(async (variableId) => {
+        const dataPromise = window.admin.getJSON(
+            `/api/data/variables/data/${variableId}.json`
+        ) as Promise<OwidVariableMixedData>
+        const metadataPromise = window.admin.getJSON(
+            `/api/data/variables/metadata/${variableId}.json`
+        ) as Promise<OwidVariableWithSourceAndDimension>
+        const [data, metadata] = await Promise.all([
+            dataPromise,
+            metadataPromise,
+        ])
+        return { data, metadata }
+    })
+    const variablesData: OwidVariableDataMetadataDimensions[] =
+        await Promise.all(loadVariableDataPromises)
+    const variablesDataMap = new Map(
+        variablesData.map((data) => [data.metadata.id, data])
+    )
+    return variablesDataMap
+}
+
+async function loadVariablesDataSite(
+    variableIds: number[],
+    baseUrl: string
+): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const loadVariableDataPromises = variableIds.map(async (variableId) => {
+        const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
+        const metadataPromise = fetch(`${baseUrl}metadata/${variableId}.json`)
+        const [dataResponse, metadataResponse] = await Promise.all([
+            dataPromise,
+            metadataPromise,
+        ])
+        if (!dataResponse.ok) throw new Error(dataResponse.statusText)
+        if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
+        const data = await dataResponse.json()
+        const metadata = await metadataResponse.json()
+        return { data, metadata }
+    })
+    const variablesData: OwidVariableDataMetadataDimensions[] =
+        await Promise.all(loadVariableDataPromises)
+    const variablesDataMap = new Map(
+        variablesData.map((data) => [data.metadata.id, data])
+    )
+    return variablesDataMap
+}
+
 const DEFAULT_MS_PER_TICK = 100
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
-    owidDataset?: OwidVariablesAndEntityKey // This is temporarily used for testing. Will be removed
+    owidDataset?: MultipleOwidVariableDataDimensionsMap // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean // This will be removed.
     hideEntityControls?: boolean
     queryStr?: string
@@ -321,7 +375,8 @@ export class Grapher
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
 
-    owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
+    owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
+
     manuallyProvideData? = false // This will be removed.
 
     // TODO: Pass these 5 in as options, don't get them as globals.
@@ -416,9 +471,9 @@ export class Grapher
 
     @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
-        } else if (this.owidDataset)
+        } else if (this.owidDataset) {
             this._receiveOwidDataAndApplySelection(this.owidDataset)
-        else this.downloadLegacyDataFromOwidVariableIds()
+        } else this.downloadLegacyDataFromOwidVariableIds()
     }
 
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
@@ -679,30 +734,36 @@ export class Grapher
 
         try {
             if (this.useAdminAPI) {
-                const json = await window.admin.getJSON(
-                    `/api/data/variables/${this.dataFileName}`
+                // TODO grapher model: switch this to downloading multiple data and metadata files
+                const variablesDataMap = await loadVariablesDataAdmin(
+                    this.variableIds
                 )
-                this._receiveOwidDataAndApplySelection(json)
+                this._receiveOwidDataAndApplySelection(variablesDataMap)
             } else {
-                const response = await fetch(this.dataUrl)
-                if (!response.ok) throw new Error(response.statusText)
-                const json = await response.json()
-                this._receiveOwidDataAndApplySelection(json)
+                const variablesDataMap = await loadVariablesDataSite(
+                    this.variableIds,
+                    this.dataBaseUrl
+                )
+                this._receiveOwidDataAndApplySelection(variablesDataMap)
             }
         } catch (err) {
-            console.log(`Error fetching '${this.dataUrl}'`)
+            console.log(`Error fetching '${err}'`)
             console.error(err)
         }
     }
 
-    @action.bound receiveOwidData(json: OwidVariablesAndEntityKey): void {
+    @action.bound receiveOwidData(
+        json: MultipleOwidVariableDataDimensionsMap
+    ): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         this._receiveOwidDataAndApplySelection(json)
     }
 
     @action.bound private _setInputTable(
-        json: OwidVariablesAndEntityKey,
+        json: MultipleOwidVariableDataDimensionsMap,
         legacyConfig: Partial<LegacyGrapherInterface>
     ): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         const { dimensions, table } = legacyToOwidTableAndDimensions(
             json,
             legacyConfig
@@ -723,6 +784,7 @@ export class Grapher
     }
 
     @action rebuildInputOwidTable(): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         if (!this.legacyVariableDataJson) return
         this._setInputTable(
             this.legacyVariableDataJson,
@@ -730,10 +792,11 @@ export class Grapher
         )
     }
 
-    @observable private legacyVariableDataJson?: OwidVariablesAndEntityKey
+    @observable
+    private legacyVariableDataJson?: MultipleOwidVariableDataDimensionsMap
 
     @action.bound private _receiveOwidDataAndApplySelection(
-        json: OwidVariablesAndEntityKey
+        json: MultipleOwidVariableDataDimensionsMap
     ): void {
         this.legacyVariableDataJson = json
 
@@ -885,16 +948,8 @@ export class Grapher
         return uniq(this.dimensions.map((d) => d.variableId))
     }
 
-    @computed private get dataFileName(): string {
-        return `${this.variableIds.join("+")}.json?v=${
-            this.isEditor ? undefined : this.cacheTag
-        }`
-    }
-
-    @computed get dataUrl(): string {
-        return `${this.bakedGrapherURL ?? ""}/data/variables/${
-            this.dataFileName
-        }`
+    @computed get dataBaseUrl(): string {
+        return `${this.bakedGrapherURL ?? ""}/data/variables/`
     }
 
     externalCsvLink = ""

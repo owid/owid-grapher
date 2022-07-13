@@ -24,7 +24,6 @@ import {
     GrapherExports,
 } from "../baker/GrapherBakingUtils.js"
 import * as cheerio from "cheerio"
-import { Post } from "../db/model/Post.js"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
@@ -88,6 +87,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
+import { postsTable } from "../db/model/Post.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -294,7 +294,7 @@ ${posts
 
 // These pages exist largely just for Google Scholar
 export const entriesByYearPage = async (year?: number) => {
-    const entries = (await knexTable(Post.table)
+    const entries = (await knexTable(postsTable)
         .where({ status: "publish" })
         .join("post_tags", { "post_tags.post_id": "posts.id" })
         .join("tags", { "tags.id": "post_tags.tag_id" })

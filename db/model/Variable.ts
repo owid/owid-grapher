@@ -5,7 +5,14 @@ import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
 } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableDimensionValueFull,
+    OwidVariableDimensionValuePartial,
+    OwidVariableMixedData,
+    OwidVariableWithSourceAndType,
+} from "../../clientUtils/OwidVariable.js"
 import { arrToCsvRow, omitNullableValues } from "../../clientUtils/Util.js"
 import {
     DataValueQueryArgs,
@@ -14,44 +21,47 @@ import {
 } from "../../clientUtils/owidTypes.js"
 import { OwidSource } from "../../clientUtils/OwidSource.js"
 
-export namespace Variable {
-    export interface Row {
-        id: number
-        name: string
-        code: string | null
-        unit: string
-        shortUnit: string | null
-        description: string | null
-        createdAt: Date
-        updatedAt: Date
-        datasetId: number
-        sourceId: number
-        display: OwidVariableDisplayConfigInterface
-        coverage?: string
-        timespan?: string
-        columnOrder?: number
-    }
-
-    export type UnparsedRow = Row & { display: string }
-
-    export type Field = keyof Row
-
-    export const table = "variables"
-
-    export function rows(plainRows: UnparsedRow[]): Row[] {
-        for (const row of plainRows) {
-            row.display = row.display ? JSON.parse(row.display) : undefined
-        }
-        return plainRows
-    }
+export interface VariableRow {
+    id: number
+    name: string
+    code: string | null
+    unit: string
+    shortUnit: string | null
+    description: string | null
+    createdAt: Date
+    updatedAt: Date
+    datasetId: number
+    sourceId: number
+    display: OwidVariableDisplayConfigInterface
+    coverage?: string
+    timespan?: string
+    columnOrder?: number
 }
 
-export async function getVariableData(variableIds: number[]): Promise<any> {
-    variableIds = lodash.uniq(variableIds)
-    const data: OwidVariablesAndEntityKey = { variables: {}, entityKey: {} }
+export type UnparsedVariableRow = VariableRow & { display: string }
 
+export type Field = keyof VariableRow
+
+export const variableTable = "variables"
+
+export function parseVariableRows(
+    plainRows: UnparsedVariableRow[]
+): VariableRow[] {
+    for (const row of plainRows) {
+        row.display = row.display ? JSON.parse(row.display) : undefined
+    }
+    return plainRows
+}
+
+// TODO: we'll want to split this into getVariableData and getVariableMetadata once
+// the data API can provide us with the type and distinct dimension values for a
+// variable. Before that we need to fetch and iterate the data before we can return
+// the metadata so it doesn't make much sense to split this into two functions yet.
+export async function getVariableData(
+    variableId: number
+): Promise<OwidVariableDataMetadataDimensions> {
     type VariableQueryRow = Readonly<
-        Variable.UnparsedRow & {
+        UnparsedVariableRow & {
             display: string
             datasetName: string
             nonRedistributable: number
@@ -60,7 +70,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         }
     >
 
-    const variableQuery: Promise<VariableQueryRow[]> = db.queryMysql(
+    const variableQuery: Promise<VariableQueryRow> = db.mysqlFirst(
         `
         SELECT
             variables.*,
@@ -71,9 +81,9 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         FROM variables
         JOIN datasets ON variables.datasetId = datasets.id
         JOIN sources ON variables.sourceId = sources.id
-        WHERE variables.id IN (?)
+        WHERE variables.id = ?
         `,
-        [variableIds]
+        [variableId]
     )
 
     const dataQuery = db.queryMysql(
@@ -81,72 +91,119 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         SELECT
             value,
             year,
-            variableId,
             entities.id AS entityId,
             entities.name AS entityName,
             entities.code AS entityCode
         FROM data_values
         LEFT JOIN entities ON data_values.entityId = entities.id
-        WHERE data_values.variableId IN (?)
+        WHERE data_values.variableId = ?
         ORDER BY
-            variableId ASC,
             year ASC
         `,
-        [variableIds]
+        [variableId]
     )
 
-    const variables = await variableQuery
+    const row = await variableQuery
 
-    for (const row of variables) {
-        const {
-            sourceId,
-            sourceName,
-            sourceDescription,
-            nonRedistributable,
-            display: displayJson,
-            ...variable
-        } = row
-        const display = JSON.parse(displayJson)
-        const partialSource: OwidSource = JSON.parse(sourceDescription)
-        data.variables[variable.id] = {
-            ...omitNullableValues(variable),
-            nonRedistributable: Boolean(nonRedistributable),
-            display,
-            source: {
-                id: sourceId,
-                name: sourceName,
-                dataPublishedBy: partialSource.dataPublishedBy || "",
-                dataPublisherSource: partialSource.dataPublisherSource || "",
-                link: partialSource.link || "",
-                retrievedDate: partialSource.retrievedDate || "",
-                additionalInfo: partialSource.additionalInfo || "",
-            },
-            years: [],
-            entities: [],
-            values: [],
-        }
+    const {
+        sourceId,
+        sourceName,
+        sourceDescription,
+        nonRedistributable,
+        display: displayJson,
+        ...variable
+    } = row
+    const display = JSON.parse(displayJson)
+    const partialSource: OwidSource = JSON.parse(sourceDescription)
+    const variableMetadata: OwidVariableWithSourceAndType = {
+        ...omitNullableValues(variable),
+        type: "mixed", // precise type will be updated further down
+        nonRedistributable: Boolean(nonRedistributable),
+        display,
+        source: {
+            id: sourceId,
+            name: sourceName,
+            dataPublishedBy: partialSource.dataPublishedBy || "",
+            dataPublisherSource: partialSource.dataPublisherSource || "",
+            link: partialSource.link || "",
+            retrievedDate: partialSource.retrievedDate || "",
+            additionalInfo: partialSource.additionalInfo || "",
+        },
     }
+    const variableData: OwidVariableMixedData = {
+        years: [],
+        entities: [],
+        values: [],
+    }
+
+    const entityMap = new Map<number, OwidVariableDimensionValueFull>()
+    const yearMap = new Map<number, OwidVariableDimensionValuePartial>()
 
     const results = await dataQuery
+    let encounteredFloatDataValues = false
+    let encounteredIntDataValues = false
+    let encounteredStringDataValues = false
 
     for (const row of results) {
-        const variable = data.variables[row.variableId]
-        variable.years.push(row.year)
-        variable.entities.push(row.entityId)
-
+        variableData.years.push(row.year)
+        variableData.entities.push(row.entityId)
         const asNumber = parseFloat(row.value)
-        if (!isNaN(asNumber)) variable.values.push(asNumber)
-        else variable.values.push(row.value)
+        const asInt = parseInt(row.value)
+        if (!isNaN(asNumber)) {
+            if (!isNaN(asInt)) encounteredIntDataValues = true
+            else encounteredFloatDataValues = true
+            variableData.values.push(asNumber)
+        } else {
+            encounteredStringDataValues = true
+            variableData.values.push(row.value)
+        }
 
-        if (data.entityKey[row.entityId] === undefined) {
-            data.entityKey[row.entityId] = {
+        if (!entityMap.has(row.entityId)) {
+            entityMap.set(row.entityId, {
+                id: row.entityId,
                 name: row.entityName,
                 code: row.entityCode,
-            }
+            })
+        }
+
+        if (!yearMap.has(row.year)) {
+            yearMap.set(row.year, { id: row.year })
         }
     }
 
-    return data
+    if (encounteredFloatDataValues && encounteredStringDataValues) {
+        variableMetadata.type = "mixed"
+    } else if (encounteredFloatDataValues) {
+        variableMetadata.type = "float"
+    } else if (encounteredIntDataValues) {
+        variableMetadata.type = "int"
+    } else if (encounteredStringDataValues) {
+        variableMetadata.type = "string"
+    }
+
+    return {
+        data: variableData,
+        metadata: {
+            ...variableMetadata,
+            dimensions: {
+                years: { values: Array.from(yearMap.values()) },
+                entities: { values: Array.from(entityMap.values()) },
+            },
+        },
+    }
+}
+
+export async function getDataForMultipleVariables(
+    variableIds: number[]
+): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const promises = variableIds.map(
+        async (id) => await getVariableData(id as number)
+    )
+    const allVariablesDataAndMetadata = await Promise.all(promises)
+    const allVariablesDataAndMetadataMap = new Map(
+        allVariablesDataAndMetadata.map((item) => [item.metadata.id, item])
+    )
+    return allVariablesDataAndMetadataMap
 }
 
 // TODO use this in Dataset.writeCSV() maybe?

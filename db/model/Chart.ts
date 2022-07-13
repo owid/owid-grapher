@@ -9,9 +9,10 @@ import {
 } from "typeorm"
 import * as lodash from "lodash"
 import * as db from "../db.js"
-import { getVariableData } from "./Variable.js"
+import { getDataForMultipleVariables, getVariableData } from "./Variable.js"
 import { User } from "./User.js"
 import { ChartRevision } from "./ChartRevision.js"
+import { MultipleOwidVariableDataDimensionsMap } from "../../clientUtils/OwidVariable.js"
 import { Tag } from "../../clientUtils/owidTypes.js"
 
 // XXX hardcoded filtering to public parent tags
@@ -182,11 +183,13 @@ export class OldChart {
         this.config.id = id
     }
 
-    async getVariableData(): Promise<any> {
+    async getVariableData(): Promise<MultipleOwidVariableDataDimensionsMap> {
         const variableIds = lodash.uniq(
             this.config.dimensions!.map((d: any) => d.variableId)
         )
-        return getVariableData(variableIds as number[])
+        const allVariablesDataAndMetadataMap =
+            await getDataForMultipleVariables(variableIds as number[])
+        return allVariablesDataAndMetadataMap
     }
 }
 

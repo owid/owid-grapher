@@ -3,7 +3,6 @@ import { Chart } from "../db/model/Chart.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
-import { Post } from "../db/model/Post.js"
 import { excludeUndefined, urlToSlug, without } from "../clientUtils/Util.js"
 import {
     getRelatedArticles,
@@ -26,10 +25,23 @@ import * as db from "../db/db.js"
 import * as glob from "glob"
 import { JsonError } from "../clientUtils/owidTypes.js"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
+import { getPostBySlug } from "../db/model/Post.js"
+import {
+    OwidVariableDataMetadataDimensions,
+    OwidVariableMixedData,
+    OwidVariableWithSourceAndDimension,
+} from "../clientUtils/OwidVariable.js"
+import {
+    GRAPHER_VARIABLES_ROUTE,
+    GRAPHER_VARIABLE_DATA_ROUTE,
+    GRAPHER_VARIABLE_METADATA_ROUTE,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+} from "../grapher/core/GrapherConstants.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug ? await Post.bySlug(postSlug) : undefined
+    const post = postSlug ? await getPostBySlug(postSlug) : undefined
     const relatedCharts =
         post && isWordpressDBEnabled
             ? await getRelatedCharts(post.id)
@@ -59,14 +71,25 @@ export const grapherSlugToHtmlPage = async (slug: string) => {
 
 const bakeVariableData = async (
     bakedSiteDir: string,
-    variableIds: number[],
-    outPath: string
-): Promise<string> => {
-    await fs.mkdirp(`${bakedSiteDir}/grapher/data/variables/`)
-    const vardata = await getVariableData(variableIds)
-    await fs.writeFile(outPath, JSON.stringify(vardata))
-    console.log(outPath)
-    return vardata
+    variableIds: number[]
+): Promise<void> => {
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLES_ROUTE}`)
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_DATA_ROUTE}`)
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`)
+
+    const promises = variableIds.map(async (variableId) => {
+        const variableData = await getVariableData(variableId)
+        const { data, metadata } = variableData
+        const path = `${bakedSiteDir}${getVariableDataRoute(variableId)}`
+        const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
+            variableId
+        )}`
+        await fs.writeFile(path, JSON.stringify(data))
+        await fs.writeFile(metadataPath, JSON.stringify(metadata))
+        console.log(path)
+        console.log(metadataPath)
+    })
+    await Promise.all(promises)
 }
 
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
@@ -95,11 +118,15 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
     if (!variableIds.length) return
 
     // Make sure we bake the variables successfully before outputing the chart html
-    const vardataPath = `${bakedSiteDir}/grapher/data/variables/${variableIds.join(
-        "+"
-    )}.json`
-    if (!isSameVersion || !fs.existsSync(vardataPath))
-        await bakeVariableData(bakedSiteDir, variableIds, vardataPath)
+    const vardataPaths = variableIds.flatMap((variableId) => [
+        `${bakedSiteDir}${getVariableDataRoute(variableId)}`,
+        `${bakedSiteDir}${getVariableMetadataRoute(variableId)}`,
+    ])
+    if (
+        !isSameVersion ||
+        !vardataPaths.every((vardataPath) => fs.existsSync(vardataPath))
+    )
+        await bakeVariableData(bakedSiteDir, variableIds)
 
     try {
         await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)
@@ -110,11 +137,40 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
             !fs.existsSync(svgPath) ||
             !fs.existsSync(pngPath)
         ) {
-            const vardata = JSON.parse(await fs.readFile(vardataPath, "utf8"))
+            const loadDataMetadataPromises: Promise<OwidVariableDataMetadataDimensions>[] =
+                variableIds.map(async (variableId) => {
+                    const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
+                        variableId
+                    )}`
+                    const metadataString = await fs.readFile(
+                        metadataPath,
+                        "utf8"
+                    )
+                    const metadataJson = JSON.parse(
+                        metadataString
+                    ) as OwidVariableWithSourceAndDimension
+                    const dataPath = `${bakedSiteDir}${getVariableDataRoute(
+                        variableId
+                    )}`
+                    const dataString = await fs.readFile(dataPath, "utf8")
+                    const dataJson = JSON.parse(
+                        dataString
+                    ) as OwidVariableMixedData
+                    return {
+                        data: dataJson,
+                        metadata: metadataJson,
+                    }
+                })
+            const variableDataMetadata = await Promise.all(
+                loadDataMetadataPromises
+            )
+            const variableDataMedadataMap = new Map(
+                variableDataMetadata.map((item) => [item.metadata.id, item])
+            )
             await bakeGraphersToPngs(
                 `${bakedSiteDir}/grapher/exports`,
                 grapher,
-                vardata,
+                variableDataMedadataMap,
                 OPTIMIZE_SVG_EXPORTS
             )
             console.log(svgPath)
