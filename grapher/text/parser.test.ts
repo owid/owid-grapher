@@ -1,409 +1,804 @@
 import { mdParser } from "./parser.js"
 
 describe("mdast parsers", () => {
-    it("mdParser.text can parse a word", () => {
-        expect(mdParser.text.parse("word")).toEqual({
+    it("mdParser works for non-link brackets", () => {
+        expect(mdParser.markdown.parse("[some text]")).toEqual({
             status: true,
             value: {
-                type: "text",
-                value: "word",
-            },
-        })
-    })
-    it("mdParser.text can parse words with punctuation", () => {
-        expect(mdParser.text.parse("can't?")).toEqual({
-            status: true,
-            value: {
-                type: "text",
-                value: "can't?",
-            },
-        })
-
-        expect(mdParser.text.parse("'mid-west'")).toEqual({
-            status: true,
-            value: {
-                type: "text",
-                value: "'mid-west'",
-            },
-        })
-    })
-    it("mdParser.bold can parse a word with bold", () => {
-        expect(mdParser.bold.parse("**I'm bold as brass**")).toEqual({
-            status: true,
-            value: {
-                type: "bold",
+                type: "MarkdownRoot",
                 children: [
-                    { type: "text", value: "I'm" },
-                    { type: "whitespace" },
-                    { type: "text", value: "bold" },
-                    { type: "whitespace" },
-                    { type: "text", value: "as" },
-                    { type: "whitespace" },
-                    { type: "text", value: "brass" },
+                    {
+                        type: "text",
+                        value: "[some",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+
+                    {
+                        type: "text",
+                        value: "text]",
+                    },
                 ],
             },
         })
     })
-    it("mdParser.italic can parse a phrase with italics", () => {
-        expect(mdParser.italic.parse("_Mamma mia!_")).toEqual({
-            status: true,
-            value: {
-                type: "italic",
-                children: [
-                    { type: "text", value: "Mamma" },
-                    { type: "whitespace" },
-                    { type: "text", value: "mia!" },
-                ],
-            },
-        })
-    })
-    it("mdParser.url can parse URLs", () => {
-        expect(mdParser.url.parse("www.google.com")).toEqual({
-            status: true,
-            value: {
-                type: "url",
-                children: [{ type: "text", value: "www.google.com" }],
-                href: "www.google.com",
-            },
-        })
-        expect(mdParser.url.parse("[test](www.google.com)")).toEqual({
-            status: true,
-            value: {
-                type: "url",
-                children: [{ type: "text", value: "test" }],
-                href: "www.google.com",
-            },
-        })
-    })
-
-    it("mdParser.detailOnDemand can parse detail on demand syntax", () => {
+    it("mdParser works for funky characters in dod texts", () => {
         expect(
-            mdParser.detailOnDemand.parse("[**dod**](hover::general::thing)")
+            mdParser.markdown.parse("[int.$ *?=😛§&/%ü€](hover::test::term)")
         ).toEqual({
             status: true,
             value: {
-                type: "detailOnDemand",
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "detailOnDemand",
+                        children: [
+                            {
+                                type: "text",
+                                value: "int.$",
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "text",
+                                value: "*?=😛§&/%ü€",
+                            },
+                        ],
+                        category: "test",
+                        term: "term",
+                    },
+                ],
+            },
+        })
+    })
+    it("mdParser can parse a word", () => {
+        expect(mdParser.markdown.parse("word")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "word",
+                    },
+                ],
+            },
+        })
+    })
+    it("mdParser can parse words with punctuation", () => {
+        expect(mdParser.markdown.parse("can't?")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "can't?",
+                    },
+                ],
+            },
+        })
+
+        expect(mdParser.markdown.parse("'mid-west'")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "'mid-west'",
+                    },
+                ],
+            },
+        })
+    })
+    it("mdParser can parse a word with bold", () => {
+        expect(mdParser.markdown.parse("**I'm bold as brass**")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
                 children: [
                     {
                         type: "bold",
                         children: [
-                            {
-                                type: "text",
-                                value: "dod",
-                            },
+                            { type: "text", value: "I'm" },
+                            { type: "whitespace" },
+                            { type: "text", value: "bold" },
+                            { type: "whitespace" },
+                            { type: "text", value: "as" },
+                            { type: "whitespace" },
+                            { type: "text", value: "brass" },
                         ],
                     },
                 ],
-                category: "general",
-                term: "thing",
+            },
+        })
+    })
+    it("mdParser can parse a phrase with italics", () => {
+        expect(mdParser.markdown.parse("_Mamma mia!_")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "italic",
+                        children: [
+                            { type: "text", value: "Mamma" },
+                            { type: "whitespace" },
+                            { type: "text", value: "mia!" },
+                        ],
+                    },
+                ],
+            },
+        })
+    })
+    it("mdParser can parse URLs", () => {
+        expect(mdParser.markdown.parse("www.google.com")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "plainUrl",
+                        href: "www.google.com",
+                    },
+                ],
+            },
+        })
+        expect(mdParser.markdown.parse("[test](www.google.com)")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "markdownLink",
+                        children: [{ type: "text", value: "test" }],
+                        href: "www.google.com",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("mdParser can parse detail on demand syntax", () => {
+        expect(
+            mdParser.markdown.parse("[**dod**](hover::general::thing)")
+        ).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "detailOnDemand",
+                        children: [
+                            {
+                                type: "plainBold",
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "dod",
+                                    },
+                                ],
+                            },
+                        ],
+                        category: "general",
+                        term: "thing",
+                    },
+                ],
             },
         })
         expect(
-            mdParser.detailOnDemand.parse(
+            mdParser.markdown.parse(
                 "[a dod with multiple words](hover::general::thing)"
             )
         ).toEqual({
             status: true,
             value: {
-                type: "detailOnDemand",
+                type: "MarkdownRoot",
                 children: [
                     {
-                        type: "text",
-                        value: "a",
-                    },
-                    { type: "whitespace" },
-                    {
-                        type: "text",
-                        value: "dod",
-                    },
-                    { type: "whitespace" },
-                    {
-                        type: "text",
-                        value: "with",
-                    },
-                    { type: "whitespace" },
-                    {
-                        type: "text",
-                        value: "multiple",
-                    },
-                    { type: "whitespace" },
-                    {
-                        type: "text",
-                        value: "words",
+                        type: "detailOnDemand",
+                        children: [
+                            {
+                                type: "text",
+                                value: "a",
+                            },
+                            { type: "whitespace" },
+                            {
+                                type: "text",
+                                value: "dod",
+                            },
+                            { type: "whitespace" },
+                            {
+                                type: "text",
+                                value: "with",
+                            },
+                            { type: "whitespace" },
+                            {
+                                type: "text",
+                                value: "multiple",
+                            },
+                            { type: "whitespace" },
+                            {
+                                type: "text",
+                                value: "words",
+                            },
+                        ],
+                        category: "general",
+                        term: "thing",
                     },
                 ],
-                category: "general",
-                term: "thing",
             },
         })
     })
-    it("mdParser.value can parse words and newlines", () => {
+    it("mdParser can parse words and newlines", () => {
         expect(
-            mdParser.value.parse(`hello
+            mdParser.markdown.parse(`hello
 
 how **are** you?`)
         ).toEqual({
             status: true,
-            value: [
-                {
-                    type: "text",
-                    value: "hello",
-                },
-                {
-                    type: "newline",
-                },
-                {
-                    type: "newline",
-                },
-                {
-                    type: "text",
-                    value: "how",
-                },
-                { type: "whitespace" },
-                {
-                    children: [
-                        {
-                            type: "text",
-                            value: "are",
-                        },
-                    ],
-                    type: "bold",
-                },
-                { type: "whitespace" },
-                {
-                    type: "text",
-                    value: "you?",
-                },
-            ],
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "hello",
+                    },
+                    {
+                        type: "newline",
+                    },
+                    {
+                        type: "newline",
+                    },
+
+                    {
+                        type: "text",
+                        value: "how",
+                    },
+                    { type: "whitespace" },
+                    {
+                        children: [
+                            {
+                                type: "text",
+                                value: "are",
+                            },
+                        ],
+                        type: "bold",
+                    },
+                    { type: "whitespace" },
+
+                    {
+                        type: "text",
+                        value: "you?",
+                    },
+                ],
+            },
         })
     })
 
     it("mdParser can parse nested bold and italics", () => {
         expect(
-            mdParser.value.parse(
+            mdParser.markdown.parse(
                 "Hello _I am italicized and **I am bolded and italicized**_"
             )
         ).toEqual({
             status: true,
-            value: [
-                {
-                    type: "text",
-                    value: "Hello",
-                },
-                { type: "whitespace" },
-                {
-                    children: [
-                        {
-                            type: "text",
-                            value: "I",
-                        },
-                        { type: "whitespace" },
-                        {
-                            type: "text",
-                            value: "am",
-                        },
-                        { type: "whitespace" },
-                        {
-                            type: "text",
-                            value: "italicized",
-                        },
-                        { type: "whitespace" },
-                        {
-                            type: "text",
-                            value: "and",
-                        },
-                        { type: "whitespace" },
-                        {
-                            children: [
-                                {
-                                    type: "text",
-                                    value: "I",
-                                },
-                                { type: "whitespace" },
-                                {
-                                    type: "text",
-                                    value: "am",
-                                },
-                                { type: "whitespace" },
-                                {
-                                    type: "text",
-                                    value: "bolded",
-                                },
-                                { type: "whitespace" },
-                                {
-                                    type: "text",
-                                    value: "and",
-                                },
-                                { type: "whitespace" },
-                                {
-                                    type: "text",
-                                    value: "italicized",
-                                },
-                            ],
-                            type: "bold",
-                        },
-                    ],
-                    type: "italic",
-                },
-            ],
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "Hello",
+                    },
+                    { type: "whitespace" },
+                    {
+                        children: [
+                            {
+                                type: "text",
+                                value: "I",
+                            },
+                            { type: "whitespace" },
+                            {
+                                type: "text",
+                                value: "am",
+                            },
+                            { type: "whitespace" },
+                            {
+                                type: "text",
+                                value: "italicized",
+                            },
+                            { type: "whitespace" },
+                            {
+                                type: "text",
+                                value: "and",
+                            },
+                            { type: "whitespace" },
+                            {
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "I",
+                                    },
+                                    { type: "whitespace" },
+                                    {
+                                        type: "text",
+                                        value: "am",
+                                    },
+                                    { type: "whitespace" },
+                                    {
+                                        type: "text",
+                                        value: "bolded",
+                                    },
+                                    { type: "whitespace" },
+                                    {
+                                        type: "text",
+                                        value: "and",
+                                    },
+                                    { type: "whitespace" },
+                                    {
+                                        type: "text",
+                                        value: "italicized",
+                                    },
+                                ],
+                                type: "boldWithoutItalic",
+                            },
+                        ],
+                        type: "italic",
+                    },
+                ],
+            },
         })
     })
 
-    it("mdParser.value can parse links inside bold and italics", () => {
+    it("mdParser can parse links inside bold and italics", () => {
         expect(
-            mdParser.value.parse(
+            mdParser.markdown.parse(
                 "**_[bold and italic](www.ourworldindata.org)_**"
             )
         ).toEqual({
             status: true,
-            value: [
-                {
-                    children: [
-                        {
-                            children: [
-                                {
-                                    children: [
-                                        {
-                                            type: "text",
-                                            value: "bold",
-                                        },
-                                        { type: "whitespace" },
-                                        {
-                                            type: "text",
-                                            value: "and",
-                                        },
-                                        { type: "whitespace" },
-                                        {
-                                            type: "text",
-                                            value: "italic",
-                                        },
-                                    ],
-                                    href: "www.ourworldindata.org",
-                                    type: "url",
-                                },
-                            ],
-                            type: "italic",
-                        },
-                    ],
-                    type: "bold",
-                },
-            ],
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                children: [
+                                    {
+                                        children: [
+                                            {
+                                                type: "text",
+                                                value: "bold",
+                                            },
+                                            { type: "whitespace" },
+                                            {
+                                                type: "text",
+                                                value: "and",
+                                            },
+                                            { type: "whitespace" },
+                                            {
+                                                type: "text",
+                                                value: "italic",
+                                            },
+                                        ],
+                                        href: "www.ourworldindata.org",
+                                        type: "markdownLink",
+                                    },
+                                ],
+                                type: "italicWithoutBold",
+                            },
+                        ],
+                        type: "bold",
+                    },
+                ],
+            },
         })
 
         expect(
-            mdParser.value.parse("_**[italic and bold](www.google.com)**_")
+            mdParser.markdown.parse("_**[italic and bold](www.google.com)**_")
         ).toEqual({
             status: true,
-            value: [
-                {
-                    children: [
-                        {
-                            children: [
-                                {
-                                    children: [
-                                        {
-                                            type: "text",
-                                            value: "italic",
-                                        },
-                                        {
-                                            type: "whitespace",
-                                        },
-                                        {
-                                            type: "text",
-                                            value: "and",
-                                        },
-                                        {
-                                            type: "whitespace",
-                                        },
-                                        {
-                                            type: "text",
-                                            value: "bold",
-                                        },
-                                    ],
-                                    href: "www.google.com",
-                                    type: "url",
-                                },
-                            ],
-                            type: "bold",
-                        },
-                    ],
-                    type: "italic",
-                },
-            ],
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                children: [
+                                    {
+                                        children: [
+                                            {
+                                                type: "text",
+                                                value: "italic",
+                                            },
+                                            {
+                                                type: "whitespace",
+                                            },
+                                            {
+                                                type: "text",
+                                                value: "and",
+                                            },
+                                            {
+                                                type: "whitespace",
+                                            },
+                                            {
+                                                type: "text",
+                                                value: "bold",
+                                            },
+                                        ],
+                                        href: "www.google.com",
+                                        type: "markdownLink",
+                                    },
+                                ],
+                                type: "boldWithoutItalic",
+                            },
+                        ],
+                        type: "italic",
+                    },
+                ],
+            },
         })
     })
 
-    it("mdParser.value can parse details on demand inside bold", () => {
+    it("mdParser can parse details on demand inside bold", () => {
         expect(
-            mdParser.value.parse(
+            mdParser.markdown.parse(
                 "**[an _italicized_ detail on demand](hover::fp::monad)**"
             )
         ).toEqual({
             status: true,
-            value: [
-                {
-                    children: [
-                        {
-                            category: "fp",
-                            children: [
-                                {
-                                    type: "text",
-                                    value: "an",
-                                },
-                                {
-                                    type: "whitespace",
-                                },
-                                {
-                                    children: [
-                                        {
-                                            type: "text",
-                                            value: "italicized",
-                                        },
-                                    ],
-                                    type: "italic",
-                                },
-                                {
-                                    type: "whitespace",
-                                },
-                                {
-                                    type: "text",
-                                    value: "detail",
-                                },
-                                {
-                                    type: "whitespace",
-                                },
-                                {
-                                    type: "text",
-                                    value: "on",
-                                },
-                                {
-                                    type: "whitespace",
-                                },
-                                {
-                                    type: "text",
-                                    value: "demand",
-                                },
-                            ],
-                            term: "monad",
-                            type: "detailOnDemand",
-                        },
-                    ],
-                    type: "bold",
-                },
-            ],
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                category: "fp",
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "an",
+                                    },
+                                    {
+                                        type: "whitespace",
+                                    },
+                                    {
+                                        children: [
+                                            {
+                                                type: "text",
+                                                value: "italicized",
+                                            },
+                                        ],
+                                        type: "plainItalic",
+                                    },
+                                    {
+                                        type: "whitespace",
+                                    },
+                                    {
+                                        type: "text",
+                                        value: "detail",
+                                    },
+                                    {
+                                        type: "whitespace",
+                                    },
+                                    {
+                                        type: "text",
+                                        value: "on",
+                                    },
+                                    {
+                                        type: "whitespace",
+                                    },
+                                    {
+                                        type: "text",
+                                        value: "demand",
+                                    },
+                                ],
+                                term: "monad",
+                                type: "detailOnDemand",
+                            },
+                        ],
+                        type: "bold",
+                    },
+                ],
+            },
         })
     })
 
-    it("mdParser.value can parse words adjacent to bold", () => {
-        expect(mdParser.value.parse("**bold**-word")).toEqual({
+    it("mdParser can parse words adjacent to bold", () => {
+        expect(mdParser.markdown.parse("**bold**-word")).toEqual({
             status: true,
-            value: [
-                {
-                    type: "bold",
-                    children: [{ type: "text", value: "bold" }],
-                },
-                { type: "text", value: "-word" },
-            ],
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "bold",
+                        children: [{ type: "text", value: "bold" }],
+                    },
+                    { type: "text", value: "-word" },
+                ],
+            },
+        })
+    })
+
+    it("Parser can parse bold starting and stopping inside a word", () => {
+        expect(mdParser.markdown.parse("test**some**postfix")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "test",
+                    },
+                    {
+                        type: "bold",
+                        children: [
+                            {
+                                type: "text",
+                                value: "some",
+                            },
+                        ],
+                    },
+                    {
+                        type: "text",
+                        value: "postfix",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses unfinished bold correctly as text", () => {
+        expect(mdParser.markdown.parse("** unfinished bold")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "**",
+                    },
+
+                    {
+                        type: "whitespace",
+                    },
+
+                    {
+                        type: "text",
+                        value: "unfinished",
+                    },
+
+                    {
+                        type: "whitespace",
+                    },
+
+                    {
+                        type: "text",
+                        value: "bold",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses unfinished bold with finished italic correctly", () => {
+        expect(
+            mdParser.markdown.parse("** unfinished bold _ italic _")
+        ).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "**",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+
+                    {
+                        type: "text",
+                        value: "unfinished",
+                    },
+
+                    {
+                        type: "whitespace",
+                    },
+
+                    {
+                        type: "text",
+                        value: "bold",
+                    },
+
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "italic",
+                        children: [
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "text",
+                                value: "italic",
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                        ],
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses nested-in-bold, non-spaced italics", () => {
+        expect(mdParser.markdown.parse("**one-_two_-three**")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                type: "text",
+                                value: "one-",
+                            },
+                            {
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "two",
+                                    },
+                                ],
+                                type: "italicWithoutBold",
+                            },
+                            {
+                                type: "text",
+                                value: "-three",
+                            },
+                        ],
+                        type: "bold",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses nested-in-italic, non-spaced bold", () => {
+        expect(mdParser.markdown.parse("_one-**two**-three_")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                type: "text",
+                                value: "one-",
+                            },
+                            {
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "two",
+                                    },
+                                ],
+                                type: "boldWithoutItalic",
+                            },
+                            {
+                                type: "text",
+                                value: "-three",
+                            },
+                        ],
+                        type: "italic",
+                    },
+                ],
+            },
+        })
+    })
+
+    it("parses markdown links with just bold or just italic correctly and ignores nested bold/italic", () => {
+        expect(
+            mdParser.markdown.parse(
+                "[A **bold** _italic **nonnested**_ link](https://owid.io/test)"
+            )
+        ).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "markdownLink",
+                        children: [
+                            {
+                                type: "text",
+                                value: "A",
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "plainBold",
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "bold",
+                                    },
+                                ],
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "plainItalic",
+                                children: [
+                                    {
+                                        type: "text",
+                                        value: "italic",
+                                    },
+                                    {
+                                        type: "whitespace",
+                                    },
+                                    {
+                                        type: "text",
+                                        value: "**nonnested**",
+                                    },
+                                ],
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "text",
+                                value: "link",
+                            },
+                        ],
+                        href: "https://owid.io/test",
+                    },
+                ],
+            },
+        })
+    })
+    it("Parses nonbreaking spaces as text", () => {
+        expect(mdParser.markdown.parse("text with nonbreaking space")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "text",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "with",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "nonbreaking",
+                    },
+                    {
+                        type: "text",
+                        value: " ",
+                    },
+                    {
+                        type: "text",
+                        value: "space",
+                    },
+                ],
+            },
         })
     })
 })

@@ -149,7 +149,7 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a href={manager.canonicalUrl} target="_blank">
+                <a href={manager.canonicalUrl} target="_blank" rel="noopener">
                     <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
                 </a>
                 <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>
