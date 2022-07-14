@@ -127,7 +127,7 @@ export class Footer extends React.Component<{
     }
 
     @computed private get paraMargin(): number {
-        return 4
+        return 2
     }
 
     @computed get height(): number {

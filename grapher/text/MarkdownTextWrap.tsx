@@ -292,6 +292,7 @@ export class IRDetailOnDemand extends IRElement {
 }
 
 function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
+    if (!tokens.length) return []
     let currentLine: IRToken[] = []
     const lines: IRToken[][] = [currentLine]
     const unproccessed: IRToken[] = [...tokens]
@@ -505,6 +506,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return this.props.text
     }
     @computed get ast(): MarkdownRoot["children"] {
+        if (!this.text) return []
         const result = mdParser.markdown.parse(this.props.text)
         if (result.status) {
             return result.value.children
