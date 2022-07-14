@@ -1493,10 +1493,10 @@
   dependencies:
     prop-types "^15.8.1"
 
-"@handsontable/react@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@handsontable/react/-/react-12.1.0.tgz#df6daab1cec46d01380e39c7cb39bb5e99fedc86"
-  integrity sha512-OWSb0fvLDsXjv2/L2BBbWh0mxnBr6g5Bwn070a0Npfuz2g5P6UYmU/4LMtO1K8O2ExlgEcdfFEiWIYE0gqGjUw==
+"@handsontable/react@^12.1.2":
+  version "12.1.2"
+  resolved "https://registry.yarnpkg.com/@handsontable/react/-/react-12.1.2.tgz#44b525d563191d5e3d4b0f64e38d60ba10b83088"
+  integrity sha512-brXQJjTDVWDshyn6qHezRJlfFLH35x6/61slzQq+FhKoYvymDxI/Vt9hNvIOjFtrl+2Gb9tXkp/sih1zvlvqBg==
 
 "@humanwhocodes/config-array@^0.9.2":
   version "0.9.5"
@@ -9910,15 +9910,15 @@ handlebars@^4.7.7:
   optionalDependencies:
     uglify-js "^3.1.4"
 
-handsontable@^12.1.0:
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-12.1.0.tgz#6ce3ba572bc6c46b546320e0c1e7788b4e0b052b"
-  integrity sha512-MdplUt3MNc1Ir6dTIlwHUOjCm0GTvB3RpKvvBgb9Jzp/TYVZ3YbfpS6II6Q5sYpUh40ILgOkDtS9gdZTM/OFsQ==
+handsontable@^12.1.2:
+  version "12.1.2"
+  resolved "https://registry.yarnpkg.com/handsontable/-/handsontable-12.1.2.tgz#98cbc84cdcd9a378ac5a48fa5bad204e6aa1fd1a"
+  integrity sha512-dZZBR9DDk+37wzBwccVe7e6NIieThAZQ4F3RDVgMmNlLa/sFlnTDgAvExwwKBy1dl/89RznSlAD7AV2zPwW6WQ==
   dependencies:
     "@types/pikaday" "1.7.4"
     core-js "^3.0.0"
     dompurify "^2.1.1"
-    moment "2.29.3"
+    moment "2.29.4"
     numbro "2.1.2"
     pikaday "1.8.2"
   optionalDependencies:
@@ -12992,10 +12992,10 @@ moize@^6.0.0, moize@^6.1.0:
     fast-equals "^2.0.1"
     micro-memoize "^4.0.9"
 
-moment@2.29.3, moment@>=2.14.0, moment@^2.24.0, moment@^2.25.3, moment@^2.29.1:
-  version "2.29.3"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.3.tgz#edd47411c322413999f7a5940d526de183c031f3"
-  integrity sha512-c6YRvhEo//6T2Jz/vVtYzqBzwvPT95JBQ+smCytzf7c50oMZRsR/a4w88aD34I+/QVSfnoAnSBFPJHItlOMJVw==
+moment@2.29.4, moment@>=2.14.0, moment@^2.24.0, moment@^2.25.3, moment@^2.29.1:
+  version "2.29.4"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
+  integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
 
 moo@^0.5.0, moo@^0.5.1:
   version "0.5.1"
