@@ -127,7 +127,7 @@ export class Footer extends React.Component<{
     }
 
     @computed private get paraMargin(): number {
-        return 2
+        return 4
     }
 
     @computed get height(): number {
@@ -151,7 +151,7 @@ export class Footer extends React.Component<{
                 <g style={{ fill: "#777" }}>
                     {sources.render(targetX, targetY)}
                 </g>
-                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
+                {note.renderSVG(targetX, targetY + sources.height - 2)}
                 {isCompact
                     ? license.render(
                           targetX + maxWidth - license.width,

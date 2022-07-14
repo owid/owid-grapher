@@ -125,13 +125,9 @@ export class Header extends React.Component<{
                 >
                     {title.render(x, y, { fill: "#555" })}
                 </a>
-                {subtitle.renderSVG(
-                    x,
-                    y + title.height + this.titleMarginBottom,
-                    {
-                        fill: "#666",
-                    }
-                )}
+                {subtitle.renderSVG(x, y + title.height - 2, {
+                    fill: "#666",
+                })}
             </g>
         )
     }

@@ -518,7 +518,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 
     @computed get height(): number {
-        return this.lines.length * this.lineHeight * this.fontSize
+        return (
+            this.lines.length * this.lineHeight * this.fontSize -
+            this.lines.length * 2
+        )
     }
 
     @computed get style(): any {
@@ -565,7 +568,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                     <tspan
                         key={i}
                         x={x}
-                        y={this.lineHeight * this.props.fontSize * (i + 1) + y}
+                        y={(
+                            this.lineHeight * this.props.fontSize * (i + 1) +
+                            y
+                        ).toFixed(1)}
                     >
                         {line.map((token, i) => token.toSVG(i))}
                     </tspan>
