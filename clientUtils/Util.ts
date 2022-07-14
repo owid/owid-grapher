@@ -848,16 +848,6 @@ export function scrollIntoViewIfNeeded(
     }
 }
 
-export function checkIsChildOfClass(
-    element: HTMLElement | null,
-    className: string
-): boolean {
-    if (!element) return false
-    if (element.nodeName === "body") return false
-    if (element.classList.contains(className)) return true
-    return checkIsChildOfClass(element.parentElement, className)
-}
-
 export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U): U[] {
     const result: U[] = []
     if (array.length <= 1) return result
