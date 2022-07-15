@@ -40,7 +40,6 @@ export const VerticalScrollContainer = React.forwardRef(
     ) {
         let {
             scrollingShadows,
-            scrollLock,
             className,
             children,
             contentsId,
@@ -49,7 +48,6 @@ export const VerticalScrollContainer = React.forwardRef(
         } = props
 
         scrollingShadows = scrollingShadows ?? true
-        scrollLock = scrollLock ?? true
 
         const scrollContainerRef = useCombinedRefs<HTMLDivElement>(ref)
         const [scrollTop, scrollBottom] = useScrollBounds(
@@ -57,9 +55,7 @@ export const VerticalScrollContainer = React.forwardRef(
             contentsId
         )
 
-        if (scrollLock) {
-            useScrollLock(scrollContainerRef, { doNotLockIfNoScroll: true })
-        }
+        useScrollLock(scrollContainerRef, { doNotLockIfNoScroll: true })
 
         return (
             <div

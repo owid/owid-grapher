@@ -279,7 +279,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // todo: this needs tests (and/or drop in favor of someone else's package)
     // Shows how much each entity contributed to the given column for each time period
-    toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug) {
+    toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug): this {
         if (!this.has(columnSlug)) return this
         const timeColumn = this.timeColumn!
         const col = this.get(columnSlug)
@@ -307,7 +307,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // If you want to see how much each column contributed to the entity for that year, use this.
     // NB: Uses absolute value. So if one entity added 100, and another -100, they both would have contributed "50%" to that year.
     // Otherwise we'd have NaN.
-    toPercentageFromEachColumnForEachEntityAndTime(columnSlugs: ColumnSlug[]) {
+    toPercentageFromEachColumnForEachEntityAndTime(
+        columnSlugs: ColumnSlug[]
+    ): this {
         columnSlugs = columnSlugs.filter((slug) => this.has(slug))
         if (!columnSlugs.length) return this
 
@@ -573,7 +575,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    getColorForColumnByDisplayName(displayName: string) {
+    getColorForColumnByDisplayName(displayName: string): string | undefined {
         return this.columnDisplayNameToColorMap.get(displayName)
     }
 
@@ -928,7 +930,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .filter(isPresent)
     }
 
-    @imemo get availableEntities() {
+    @imemo get availableEntities(): {
+        entityName: string
+        entityId?: number
+        entityCode?: string
+    }[] {
         const { entityNameToCodeMap, entityNameToIdMap } = this
         return this.availableEntityNames.map((entityName) => {
             return {

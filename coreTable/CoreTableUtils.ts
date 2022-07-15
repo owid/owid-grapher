@@ -605,9 +605,13 @@ export const matrixToDelimited = (
 export const parseDelimited = (
     str: string,
     delimiter?: string,
-    parseFn?: any
+    parseFn?: (
+        rawRow: Record<string, string | undefined> | undefined,
+        index: number,
+        columns: unknown[]
+    ) => Record<string, unknown> | undefined | null
 ): DSVParsedArray<Record<string, unknown>> =>
-    dsvFormat(delimiter ?? detectDelimiter(str)).parse(str, parseFn)
+    dsvFormat(delimiter ?? detectDelimiter(str)).parse(str, parseFn as any)
 
 export const detectDelimiter = (str: string): "\t" | "," | " " =>
     str.includes("\t") ? "\t" : str.includes(",") ? "," : " "

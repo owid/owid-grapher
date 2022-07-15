@@ -246,7 +246,7 @@ const isStorybook = (): boolean =>
 
 // Just a quick and dirty way to expose window.chart/explorer/etc for debugging. Last caller wins.
 export const exposeInstanceOnWindow = (
-    component: any,
+    component: unknown,
     name = "chart",
     alsoOnTopWindow?: boolean
 ): void => {

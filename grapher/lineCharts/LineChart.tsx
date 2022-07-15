@@ -448,8 +448,7 @@ export class LineChart
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        const { activeX, dualAxis, inputTable, formatColumn, hasColorScale } =
-            this
+        const { activeX, dualAxis, formatColumn, hasColorScale } = this
 
         if (activeX === undefined) return undefined
 

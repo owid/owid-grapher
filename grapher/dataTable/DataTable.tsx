@@ -459,6 +459,7 @@ export class DataTable extends React.Component<{
             return slugs
                 .map((slug: string) => {
                     const col = this.table.get(slug)
+                    // eslint-disable-next-line no-console
                     if (!col) console.log(`Warning: column '${slug}' not found`)
                     return col
                 })

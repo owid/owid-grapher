@@ -771,6 +771,7 @@ export class Grapher
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
             }
         } catch (err) {
+            // eslint-disable-next-line no-console
             console.log(`Error fetching '${err}'`)
             console.error(err)
         }
@@ -2300,7 +2301,7 @@ export class Grapher
         this.checkVisibility()
     }
 
-    componentDidCatch(error: Error, info: any): void {
+    componentDidCatch(error: Error, info: unknown): void {
         this.setError(error)
         this.analytics.logGrapherViewError(error, info)
     }

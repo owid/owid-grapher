@@ -219,7 +219,6 @@ export class StackedBarChart
             barWidth,
             dualAxis,
             yColumns,
-            inputTable,
             hoverSeries,
             series,
         } = this

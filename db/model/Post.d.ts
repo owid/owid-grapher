@@ -51,7 +51,10 @@ declare namespace Post {
         (await db.knexTable("posts").where({ slug: slug }))[0]
 }
 
-export const setTagsForPost = async (postId: number, tagIds: number[]) =>
+export const setTagsForPost = async (
+    postId: number,
+    tagIds: number[]
+): Promise<void> =>
     await db.transaction(async (t) => {
         const tagRows = tagIds.map((tagId) => [tagId, postId])
         await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
