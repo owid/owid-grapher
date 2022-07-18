@@ -79,7 +79,7 @@ interface CaptionedChartProps {
 }
 
 const OUTSIDE_PADDING = 15
-const PADDING_BELOW_HEADER = 18
+const PADDING_BELOW_HEADER = 16
 const CONTROLS_ROW_HEIGHT = 36
 const PADDING_ABOVE_FOOTER = 25
 

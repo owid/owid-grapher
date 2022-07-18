@@ -370,6 +370,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                   fontSize: this.legendTitleFontSize,
                   fontWeight: 700,
                   maxWidth: this.maxWidth / 3,
+                  lineHeight: 1,
               })
             : undefined
     }

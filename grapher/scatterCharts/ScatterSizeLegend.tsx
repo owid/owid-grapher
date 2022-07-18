@@ -100,6 +100,7 @@ export class ScatterSizeLegend {
             // actually visibly overflow.
             maxWidth: this.maxWidth + 12,
             fontSize,
+            lineHeight: 1,
         })
     }
 
@@ -113,6 +114,7 @@ export class ScatterSizeLegend {
             maxWidth: this.maxWidth + 10,
             fontSize,
             fontWeight: 700,
+            lineHeight: 1,
         })
     }
 
