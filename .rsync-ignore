@@ -19,5 +19,6 @@ serverSettings.json
 coverage
 /grapherData
 /grapherSvgs
+/differentGrapherSvgs
 /localBake
 tmp-downloads
