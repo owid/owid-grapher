@@ -130,12 +130,9 @@ export class TextWrap {
     }
 
     @computed get height(): number {
-        if (this.lines.length === 0) return 0
-
-        return (
-            this.lines.reduce((total, line) => total + line.height, 0) +
-            this.lineHeight * (this.lines.length - 1)
-        )
+        const { lines, lineHeight, fontSize } = this
+        if (lines.length === 0) return 0
+        return fontSize + lineHeight * fontSize * (lines.length - 1)
     }
 
     @computed get width(): number {

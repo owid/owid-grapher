@@ -69,6 +69,18 @@ describe("height()", () => {
             renderedHeight("test\ntest") + lineHeight
         )
     })
+
+    it("calculates correct height with custom lineHeight", () => {
+        const textwrap = new TextWrap({
+            maxWidth: Infinity,
+            fontSize: 10,
+            lineHeight: 1.5,
+            text: "line\nline\nline",
+        })
+        // line (10) + space (5) + line (10) + space (5) + line (10)
+        // NOTE: no specing after the bottom line
+        expect(textwrap.height).toEqual(40)
+    })
 })
 
 describe(shortenForTargetWidth, () => {
