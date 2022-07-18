@@ -34,6 +34,7 @@ export class ConnectedScatterLegend {
             text: manager.displayStartTime,
             fontSize,
             maxWidth: maxLabelWidth,
+            lineHeight: 1,
         })
     }
 
@@ -43,6 +44,7 @@ export class ConnectedScatterLegend {
             text: manager.displayEndTime,
             fontSize,
             maxWidth: maxLabelWidth,
+            lineHeight: 1,
         })
     }
 

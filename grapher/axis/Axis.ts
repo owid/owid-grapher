@@ -438,6 +438,7 @@ abstract class AbstractAxis {
                   maxWidth: this.labelWidth,
                   fontSize: this.labelFontSize,
                   text,
+                  lineHeight: 1,
               })
             : undefined
     }
