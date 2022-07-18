@@ -240,7 +240,7 @@ const plainUrlParser = (): P.Parser<PlainUrl> =>
 
 // https://urlregex.com
 const urlRegex =
-    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/
+    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w\-]*))?)/
 
 const nonBracketWordParser: (r: MdParser) => P.Parser<NonBracketWord> = () =>
     P.regex(/[^\[\]\s]+/).map((val) => ({ type: "text", value: val })) //  no brackets, no WS
