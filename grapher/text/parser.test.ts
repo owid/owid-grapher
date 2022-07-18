@@ -801,4 +801,69 @@ how **are** you?`)
             },
         })
     })
+    it("Parses whitespace preceding a newline", () => {
+        const input =
+            "this-line-ends-with-a-space" +
+            " " +
+            "\n" +
+            "but-the-newline-should-be-tracked-separately"
+        expect(mdParser.markdown.parse(input)).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "this-line-ends-with-a-space",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "newline",
+                    },
+                    {
+                        type: "text",
+                        value: "but-the-newline-should-be-tracked-separately",
+                    },
+                ],
+            },
+        })
+    })
+    it("Parses newlines surrounded by whitespace", () => {
+        const input =
+            "this-line-ends-with-a-space" +
+            " " +
+            "\n\n" +
+            " " +
+            "but-the-newline-should-be-tracked-separately"
+        expect(mdParser.markdown.parse(input)).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "this-line-ends-with-a-space",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "newline",
+                    },
+                    {
+                        type: "newline",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "but-the-newline-should-be-tracked-separately",
+                    },
+                ],
+            },
+        })
+    })
 })
