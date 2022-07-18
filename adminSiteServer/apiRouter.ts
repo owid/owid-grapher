@@ -2523,6 +2523,7 @@ apiRouter.post("/details", async (req) => {
     )
 
     return {
+        success: true,
         id: result.insertId,
     }
 })
