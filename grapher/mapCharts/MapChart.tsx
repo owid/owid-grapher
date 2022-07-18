@@ -71,6 +71,7 @@ import {
     HorizontalAlign,
     PrimitiveType,
 } from "../../clientUtils/owidTypes.js"
+import { generateAnnotations } from "./AnnotationGenerator.js"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -864,9 +865,15 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const selectedStrokeWidth = 1
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
+        const annotationSize = 12 / viewportScale
+        const annotationWeight = 600
 
         const clipPath = makeClipPath(uid, bounds)
-
+        const internalAnnotations = generateAnnotations(
+            featuresWithData,
+            choroplethData,
+            annotationSize
+        )
         return (
             <g
                 ref={this.base}
@@ -998,6 +1005,31 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                         }),
                         (p) => p.props["strokeWidth"]
                     )}
+                    {internalAnnotations.map((label) => {
+                        return (
+                            //Rectangle only for visualization during testing. To be removed during release
+                            <>
+                                <rect
+                                    x={label.rectPos.x}
+                                    y={label.rectPos.y}
+                                    width={label.width}
+                                    height={label.height}
+                                    stroke="black"
+                                    fill="none"
+                                    style={{ pointerEvents: "none" }}
+                                />
+                                <text
+                                    x={label.textPos.x}
+                                    y={label.textPos.y}
+                                    fontSize={annotationSize}
+                                    fill="white"
+                                    fontWeight={annotationWeight}
+                                >
+                                    {label.value}
+                                </text>
+                            </>
+                        )
+                    })}
                 </g>
             </g>
         )
