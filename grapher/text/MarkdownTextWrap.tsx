@@ -1,9 +1,11 @@
-import React, { CSSProperties } from "react"
+import React from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
 import { excludeUndefined, last, sum } from "../../clientUtils/Util.js"
+import { DoDWrapper } from "../detailsOnDemand/detailsOnDemand.js"
+import { TextWrap } from "./TextWrap.js"
 
 export interface IRFontParams {
     fontSize?: number
@@ -209,21 +211,88 @@ export class IRLink extends IRElement {
     }
     toHTML(key?: React.Key): JSX.Element {
         return (
-            <a key={key} href={this.href}>
+            <a
+                key={key}
+                href={this.href}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 {this.children.map((child, i) => child.toHTML(i))}
             </a>
         )
     }
     toSVG(key?: React.Key): JSX.Element {
+        // When we have a plainUrl just render the link as an <a> tag
+        if (
+            this.children.length === 1 &&
+            this.children[0].constructor.name === "IRText" &&
+            this.children[0].toPlaintext() === this.href
+        ) {
+            return (
+                <a
+                    key={key}
+                    href={this.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {this.href}
+                </a>
+            )
+        }
+
+        // Otherwise add the <a> tag in brackets after the text
         return (
-            <a key={key} href={this.href}>
+            <>
                 {this.children.map((child, i) => child.toSVG(i))}
-            </a>
+                <a
+                    key={key}
+                    href={this.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {" "}
+                    ({this.href})
+                </a>
+            </>
+        )
+    }
+}
+
+export class IRDetailOnDemand extends IRElement {
+    constructor(
+        public category: string,
+        public term: string,
+        children: IRToken[],
+        fontParams?: IRFontParams
+    ) {
+        super(children, fontParams)
+    }
+    getClone(children: IRToken[]): IRDetailOnDemand {
+        return new IRDetailOnDemand(
+            this.category,
+            this.term,
+            children,
+            this.fontParams
+        )
+    }
+    toHTML(key?: React.Key): JSX.Element {
+        return (
+            <DoDWrapper key={key} term={this.term} category={this.category}>
+                {this.children.map((child, i) => child.toHTML(i))}
+            </DoDWrapper>
+        )
+    }
+    toSVG(key?: React.Key): JSX.Element {
+        return (
+            <tspan key={key}>
+                {this.children.map((child, i) => child.toSVG(i))}
+            </tspan>
         )
     }
 }
 
 function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
+    if (!tokens.length) return []
     let currentLine: IRToken[] = []
     const lines: IRToken[][] = [currentLine]
     const unproccessed: IRToken[] = [...tokens]
@@ -344,6 +413,11 @@ export function splitIntoLines(
     return processedLines
 }
 
+export const sumTextWrapHeights = (
+    elements: MarkdownTextWrap[] | TextWrap[],
+    spacer: number = 0
+): number => sum(elements.map((element) => element.height + spacer))
+
 export function parsimmonToTextTokens(
     nodes: EveryMarkdownNode[],
     fontParams?: IRFontParams
@@ -391,8 +465,8 @@ export function parsimmonToTextTokens(
                 parsimmonToTextTokens(node.children, fontParams)
             )
         } else if (node.type === "detailOnDemand") {
-            // TODO: create a IR for this
-            return new IRLink(
+            return new IRDetailOnDemand(
+                node.category,
                 node.term,
                 parsimmonToTextTokens(node.children, fontParams)
             )
@@ -432,6 +506,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return this.props.text
     }
     @computed get ast(): MarkdownRoot["children"] {
+        if (!this.text) return []
         const result = mdParser.markdown.parse(this.props.text)
         if (result.status) {
             return result.value.children
@@ -445,7 +520,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 
     @computed get height(): number {
-        return this.lines.length * this.lineHeight * this.fontSize
+        return (
+            this.lines.length * this.lineHeight * this.fontSize -
+            this.lines.length * 2
+        )
     }
 
     @computed get style(): any {
@@ -492,7 +570,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                     <tspan
                         key={i}
                         x={x}
-                        y={this.lineHeight * this.props.fontSize * (i + 1)}
+                        y={(
+                            this.lineHeight * this.props.fontSize * (i + 1) +
+                            y
+                        ).toFixed(1)}
                     >
                         {line.map((token, i) => token.toSVG(i))}
                     </tspan>

@@ -77,8 +77,8 @@ export class TextWrap {
 
         const words = isEmpty(text)
             ? []
-            : // We prepend spaces to newlines in order to be able to do a "starts with"
-              // check to trigger a new line.
+            : // Prepend spaces so that the string is also split before newline characters
+              // See startsWithNewline
               text.replace(/\n/g, " \n").split(" ")
 
         const lines: WrapLine[] = []
@@ -157,15 +157,10 @@ export class TextWrap {
 
         if (lines.length === 0) return null
 
-        // if (props.raw)
-        //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options} dangerouslySetInnerHTML={{__html: text}}/>
-        // else
-        //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options}>{strip(text)}</p>
-
         return (
             <span>
                 {lines.map((line, index) => {
-                    const content = props.rawHtml ? (
+                    const content = this.props.rawHtml ? (
                         <span
                             dangerouslySetInnerHTML={{
                                 __html: line.text,

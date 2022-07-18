@@ -160,6 +160,7 @@ import { getWindowUrl, Url } from "../../clientUtils/urls/Url.js"
 import {
     Annotation,
     ColumnSlug,
+    Detail,
     DimensionProperty,
     SortBy,
     SortConfig,
@@ -173,6 +174,8 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
+import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
 declare const window: any
 
@@ -1124,6 +1127,32 @@ export class Grapher
 
     @computed get displaySlug(): string {
         return this.slug ?? slugify(this.displayTitle)
+    }
+
+    @observable shouldIncludeDetailsInStaticExport = true
+
+    @computed get details(): GrapherInterface["details"] {
+        // These are the details from the config for this specific Grapher,
+        // whereas globalDetailsOnDemand can have details
+        // from multiple sources
+        return this.props.details ?? {}
+    }
+
+    // Used for static exports. Defined at this level because they need to
+    // be accessed by the CaptionedChart and also the DownloadTab
+    @computed get detailRenderers(): MarkdownTextWrap[] {
+        if (!this.details) return []
+
+        return Object.values(this.details)
+            .flatMap(Object.values)
+            .map(
+                (detail: Detail) =>
+                    new MarkdownTextWrap({
+                        text: `**${detail.title}**\n${detail.content}`,
+                        fontSize: 12,
+                        maxWidth: this.bounds.width,
+                    })
+            )
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
@@ -2183,6 +2212,8 @@ export class Grapher
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+        if (this.props.details)
+            globalDetailsOnDemand.addDetails(this.props.details)
     }
 
     private _shortcutsBound = false

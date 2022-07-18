@@ -72,7 +72,7 @@ import {
 } from "../db/model/Post.js"
 //import parse = require("s-expression")
 import { parseIntOrUndefined, trimObject } from "../clientUtils/Util.js"
-import { omit, set, update } from "lodash"
+import { omit, set } from "lodash"
 
 const apiRouter = new FunctionalRouter()
 
