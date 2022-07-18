@@ -279,14 +279,6 @@ export interface FullPost {
     glossary: boolean
 }
 
-export interface Detail {
-    id: number
-    category: string
-    content: string
-    term: string
-    title: string
-}
-
 export enum WP_ColumnStyle {
     StickyRight = "sticky-right",
     StickyLeft = "sticky-left",

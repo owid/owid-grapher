@@ -26,10 +26,7 @@ import {
     GrapherInterface,
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface.js"
-import {
-    Detail,
-    SuggestedChartRevisionStatus,
-} from "../clientUtils/owidTypes.js"
+import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
 import {
     GrapherConfigPatch,
     BulkGrapherConfigResponse,
@@ -73,6 +70,7 @@ import {
 //import parse = require("s-expression")
 import { parseIntOrUndefined, trimObject } from "../clientUtils/Util.js"
 import { omit, set } from "lodash"
+import { Detail } from "../grapher/core/GrapherConstants.js"
 
 const apiRouter = new FunctionalRouter()
 

@@ -7,6 +7,7 @@ import {
     EntitySelection,
     ChartTypeName,
     FacetStrategy,
+    Detail,
 } from "./GrapherConstants.js"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import { TimeBound } from "../../clientUtils/TimeBounds.js"
@@ -19,12 +20,7 @@ import { EntityId, EntityName } from "../../coreTable/OwidTableConstants.js"
 import { ColorSchemeName } from "../color/ColorConstants.js"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
 import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
-import {
-    ColumnSlug,
-    Detail,
-    SortConfig,
-    TopicId,
-} from "../../clientUtils/owidTypes.js"
+import { ColumnSlug, SortConfig, TopicId } from "../../clientUtils/owidTypes.js"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -63,6 +59,7 @@ export interface GrapherInterface extends SortConfig {
     tab?: GrapherTabOption
     overlay?: GrapherTabOption
     relatedQuestions?: RelatedQuestionsConfig[]
+    details?: Record<string, Record<string, Detail>>
     internalNotes?: string
     variantName?: string
     originUrl?: string
@@ -82,7 +79,6 @@ export interface GrapherInterface extends SortConfig {
     selectedEntityColors?: { [entityName: string]: string | undefined }
     selectedEntityIds?: EntityId[]
     facet?: FacetStrategy
-    details?: Record<string, Record<string, Detail>>
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>

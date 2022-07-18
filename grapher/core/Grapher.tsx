@@ -48,6 +48,7 @@ import {
     FacetAxisDomain,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
+    Detail,
 } from "../core/GrapherConstants.js"
 import {
     MultipleOwidVariableDataDimensionsMap,
@@ -160,7 +161,6 @@ import { getWindowUrl, Url } from "../../clientUtils/urls/Url.js"
 import {
     Annotation,
     ColumnSlug,
-    Detail,
     DimensionProperty,
     SortBy,
     SortConfig,
@@ -367,6 +367,19 @@ export class Grapher
     @observable includedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
+    // These are the details from the config for this specific Grapher,
+    // whereas globalDetailsOnDemand can have details
+    // from multiple sources
+    @observable details: Record<string, Record<string, Detail>> = {}
+    // @action.bound
+    @action.bound private updateGlobalDetailsOnDemand(): void {
+        this.disposers.push(
+            autorun(() => {
+                globalDetailsOnDemand.addDetails(this.details)
+            })
+        )
+    }
+
     @observable.ref annotation?: Annotation = undefined
 
     @observable hideFacetControl?: boolean = true
@@ -440,7 +453,10 @@ export class Grapher
             legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
         )
 
-        if (this.isEditor) this.ensureValidConfigWhenEditing()
+        if (this.isEditor) {
+            this.ensureValidConfigWhenEditing()
+            this.updateGlobalDetailsOnDemand()
+        }
 
         if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
 
@@ -1130,13 +1146,6 @@ export class Grapher
     }
 
     @observable shouldIncludeDetailsInStaticExport = true
-
-    @computed get details(): GrapherInterface["details"] {
-        // These are the details from the config for this specific Grapher,
-        // whereas globalDetailsOnDemand can have details
-        // from multiple sources
-        return this.props.details ?? {}
-    }
 
     // Used for static exports. Defined at this level because they need to
     // be accessed by the CaptionedChart and also the DownloadTab
@@ -2339,6 +2348,7 @@ export class Grapher
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions
+        this.details = grapher.details
     }
 
     debounceMode = false

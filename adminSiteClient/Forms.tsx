@@ -174,6 +174,9 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                         limit={props.softCharacterLimit}
                     />
                 )}
+                {props.errorMessage && (
+                    <ErrorMessage message={props.errorMessage} />
+                )}
             </div>
         )
     }
@@ -674,9 +677,7 @@ export class BindString extends React.Component<{
     }
 
     render() {
-        const { props } = this
-
-        const { field, store, label, textarea, ...rest } = props
+        const { field, store, label, textarea, ...rest } = this.props
         const value = store[field] as string | undefined
         if (textarea)
             return (
