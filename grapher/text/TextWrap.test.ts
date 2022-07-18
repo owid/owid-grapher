@@ -77,9 +77,7 @@ describe("height()", () => {
             lineHeight: 1.5,
             text: "line\nline\nline",
         })
-        // line (10) + space (5) + line (10) + space (5) + line (10)
-        // NOTE: no specing after the bottom line
-        expect(textwrap.height).toEqual(40)
+        expect(textwrap.height).toEqual(45)
     })
 })
 

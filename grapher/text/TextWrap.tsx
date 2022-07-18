@@ -132,7 +132,7 @@ export class TextWrap {
     @computed get height(): number {
         const { lines, lineHeight, fontSize } = this
         if (lines.length === 0) return 0
-        return fontSize + lineHeight * fontSize * (lines.length - 1)
+        return lines.length * lineHeight * fontSize
     }
 
     @computed get width(): number {
@@ -198,7 +198,16 @@ export class TextWrap {
 
         if (lines.length === 0) return null
 
-        const yOffset = y + lines[0].height - lines[0].height * 0.2
+        // Magic number set through experimentation.
+        // The HTML and SVG renderers need to position lines identically.
+        // This number was tweaked until the overlaid HTML and SVG outputs
+        // overlap (see storybook of this component).
+        const HEIGHT_CORRECTION_FACTOR = 0.74
+
+        const textHeight = lines[0].height * HEIGHT_CORRECTION_FACTOR
+        const containerHeight = lineHeight * fontSize
+        const yOffset =
+            y + (containerHeight - (containerHeight - textHeight) / 2)
         return (
             <text
                 fontSize={fontSize.toFixed(2)}
@@ -213,10 +222,7 @@ export class TextWrap {
                             <tspan
                                 key={i}
                                 x={x}
-                                y={
-                                    yOffset +
-                                    (i === 0 ? 0 : lineHeight * fontSize * i)
-                                }
+                                y={yOffset + lineHeight * fontSize * i}
                                 dangerouslySetInnerHTML={{ __html: line.text }}
                             />
                         )
