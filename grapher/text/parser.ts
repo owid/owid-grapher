@@ -62,10 +62,6 @@ interface PlainUrl {
     href: string
 }
 
-// Nonbreaking spaces should be treated as text because whitespace will be collapsed and lines will
-// break at these points.
-type NonbreakingWhitespace = Text
-
 type NonBracketWord = Text
 
 type NonParensWord = Text
@@ -229,8 +225,12 @@ const nonbreakingSpaceParser = (): P.Parser<Text> =>
     // they should be treated as non-breaking whitespace
     P.regex(/[\u00a0\ufeff]+/).map((val) => ({ type: "text", value: val }))
 
-const anyWhitespaceParser = (): P.Parser<Whitespace> =>
-    P.regex(/\s+/).result({ type: "whitespace" })
+// Also based on that MDN article, we don't want to consume newlines when we're looking for spaces and tabs
+// "  \n" should turn into [{ type: "whitespace" }, { type: "newline" }]
+const nonNewlineWhitespaceParser = (): P.Parser<Whitespace> =>
+    P.regex(
+        /[\r\t\f\v \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+/
+    ).result({ type: "whitespace" })
 
 const plainUrlParser = (): P.Parser<PlainUrl> =>
     P.regex(urlRegex).map((result) => ({
@@ -240,7 +240,7 @@ const plainUrlParser = (): P.Parser<PlainUrl> =>
 
 // https://urlregex.com
 const urlRegex =
-    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/
+    /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w\-]*))?)/
 
 const nonBracketWordParser: (r: MdParser) => P.Parser<NonBracketWord> = () =>
     P.regex(/[^\[\]\s]+/).map((val) => ({ type: "text", value: val })) //  no brackets, no WS
@@ -288,7 +288,7 @@ const markdownLinkContentParser: (
     P.alt(
         r.newline,
         r.nonbreakingSpace,
-        r.anyWhitespace,
+        r.nonNewlineWhitespace,
         r.plainBold,
         r.plainItalic,
         r.nonBracketWord
@@ -320,7 +320,7 @@ const detailOnDemandContentParser: (
         // In TS 4.7 parsimmon could type the parser as Covariant on its type parameter which would remove the need for these casts
         r.newline,
         r.nonbreakingSpace,
-        r.anyWhitespace,
+        r.nonNewlineWhitespace,
         r.plainBold,
         r.plainItalic,
         r.nonBracketWord
@@ -354,7 +354,7 @@ const boldWithoutItalicContentParser: (
     P.alt(
         r.newline,
         r.nonbreakingSpace,
-        r.anyWhitespace,
+        r.nonNewlineWhitespace,
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
@@ -379,7 +379,7 @@ const boldContentParser: (r: MdParser) => P.Parser<BoldContent> = (
     P.alt(
         r.newline,
         r.nonbreakingSpace,
-        r.anyWhitespace,
+        r.nonNewlineWhitespace,
         r.italicWithoutBold,
         r.detailOnDemand,
         r.markdownLink,
@@ -399,7 +399,13 @@ const boldParser: (r: MdParser) => P.Parser<Bold> = (r: MdParser) =>
 
 const plainBoldContentParser: (r: MdParser) => P.Parser<PlainBoldContent> = (
     r: MdParser
-) => P.alt(r.newline, r.nonbreakingSpace, r.anyWhitespace, r.nonDoubleStarWord)
+) =>
+    P.alt(
+        r.newline,
+        r.nonbreakingSpace,
+        r.nonNewlineWhitespace,
+        r.nonDoubleStarWord
+    )
 
 const plainBoldParser: (r: MdParser) => P.Parser<PlainBold> = (r: MdParser) =>
     P.seqObj<PlainBold>(
@@ -417,7 +423,7 @@ const italicWithoutBoldContentParser: (
     P.alt(
         r.newline,
         r.nonbreakingSpace,
-        r.anyWhitespace,
+        r.nonNewlineWhitespace,
         r.newline,
         r.detailOnDemand,
         r.markdownLink,
@@ -442,7 +448,7 @@ const italicContentParser: (r: MdParser) => P.Parser<ItalicContent> = (
     P.alt(
         r.newline,
         r.nonbreakingSpace,
-        r.anyWhitespace,
+        r.nonNewlineWhitespace,
         r.boldWithoutItalic,
         r.detailOnDemand,
         r.markdownLink,
@@ -466,7 +472,7 @@ const plainItalicContentParser: (
     P.alt(
         r.newline,
         r.nonbreakingSpace,
-        r.anyWhitespace,
+        r.nonNewlineWhitespace,
         r.nonSingleUnderscoreWord
     )
 
@@ -491,7 +497,7 @@ const markdownParser: (r: MdParser) => P.Parser<MarkdownRoot> = (r) =>
     P.alt(
         r.newline,
         r.nonbreakingSpace,
-        r.anyWhitespace,
+        r.nonNewlineWhitespace,
         r.detailOnDemand,
         r.markdownLink,
         r.plainUrl,
@@ -514,7 +520,7 @@ const languageParts = {
     markdown: markdownParser,
     newline: newlineParser,
     nonbreakingSpace: nonbreakingSpaceParser,
-    anyWhitespace: anyWhitespaceParser,
+    nonNewlineWhitespace: nonNewlineWhitespaceParser,
     detailOnDemand: detailOnDemandParser,
     markdownLink: markdownLinkParser,
     plainUrl: plainUrlParser,

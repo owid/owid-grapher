@@ -498,10 +498,9 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 
     @computed get height(): number {
-        return (
-            this.lines.length * this.lineHeight * this.fontSize -
-            this.lines.length * 2
-        )
+        const { lines, lineHeight, fontSize } = this
+        if (lines.length === 0) return 0
+        return lines.length * lineHeight * fontSize
     }
 
     @computed get style(): any {
@@ -534,13 +533,23 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         y: number,
         options?: React.SVGProps<SVGTextElement>
     ): JSX.Element | null {
-        const { lines } = this
+        const { lines, fontSize, lineHeight } = this
         if (lines.length === 0) return null
 
+        // Magic number set through experimentation.
+        // The HTML and SVG renderers need to position lines identically.
+        // This number was tweaked until the overlaid HTML and SVG outputs
+        // overlap.
+        const HEIGHT_CORRECTION_FACTOR = 0.74
+
+        const textHeight = fontSize * HEIGHT_CORRECTION_FACTOR
+        const containerHeight = lineHeight * fontSize
+        const yOffset =
+            y + (containerHeight - (containerHeight - textHeight) / 2)
         return (
             <text
                 x={x.toFixed(1)}
-                y={y.toFixed(1)}
+                y={yOffset.toFixed(1)}
                 style={this.style}
                 {...options}
             >
@@ -549,8 +558,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                         key={i}
                         x={x}
                         y={(
-                            this.lineHeight * this.props.fontSize * (i + 1) +
-                            y
+                            yOffset +
+                            lineHeight * this.props.fontSize * i
                         ).toFixed(1)}
                     >
                         {line.map((token, i) => token.toSVG(i))}
