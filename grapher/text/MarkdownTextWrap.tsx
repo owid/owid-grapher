@@ -229,7 +229,6 @@ export class IRLink extends IRElement {
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                {" "}
                 {this.children.map((child, i) => child.toSVG(i))}
             </a>
         )
