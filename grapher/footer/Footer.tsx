@@ -151,7 +151,7 @@ export class Footer extends React.Component<{
                 <g style={{ fill: "#777" }}>
                     {sources.render(targetX, targetY)}
                 </g>
-                {note.renderSVG(targetX, targetY + sources.height - 2)}
+                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
                 {isCompact
                     ? license.render(
                           targetX + maxWidth - license.width,
