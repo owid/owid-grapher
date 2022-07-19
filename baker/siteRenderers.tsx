@@ -36,7 +36,6 @@ import {
     EntriesByYearPage,
     EntriesForYearPage,
 } from "../site/EntriesByYearPage.js"
-import { VariableCountryPage } from "../site/VariableCountryPage.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import { getCountry, Country } from "../clientUtils/countries.js"
 import { memoize } from "../clientUtils/Util.js"
@@ -315,44 +314,6 @@ export const entriesByYearPage = async (year?: number) => {
 
     return renderToHtmlPage(
         <EntriesByYearPage entries={entries} baseUrl={BAKED_BASE_URL} />
-    )
-}
-
-export const pagePerVariable = async (
-    variableId: number,
-    countryName: string
-) => {
-    const variable = await mysqlFirst(
-        `
-        SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
-               v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
-        FROM variables v
-        JOIN datasets d ON d.id=v.datasetId
-        JOIN users u ON u.id=d.dataEditedByUserId
-        WHERE v.id = ?
-    `,
-        [variableId]
-    )
-
-    if (!variable) throw new JsonError(`No variable by id '${variableId}'`, 404)
-
-    variable.display = JSON.parse(variable.display)
-    variable.source = await mysqlFirst(
-        `SELECT id, name FROM sources AS s WHERE id = ?`,
-        variable.sourceId
-    )
-
-    const country = await knexTable("entities")
-        .select("id", "name")
-        .whereRaw("lower(name) = ?", [countryName])
-        .first()
-
-    return renderToHtmlPage(
-        <VariableCountryPage
-            variable={variable}
-            country={country}
-            baseUrl={BAKED_BASE_URL}
-        />
     )
 }
 

@@ -12,7 +12,6 @@ import { runSearchPage } from "./SearchPageMain.js"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./stripe/DonateForm.js"
-import { runVariableCountryPage } from "./runVariableCountryPage.js"
 import { runCountryProfilePage } from "./runCountryProfilePage.js"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { runBlocks } from "./blocks/index.js"
@@ -50,7 +49,6 @@ window.runSearchPage = runSearchPage
 window.runNotFoundPage = runNotFoundPage
 window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
-window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
 window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts

@@ -9,7 +9,6 @@ import {
     renderDonatePage,
     entriesByYearPage,
     makeAtomFeed,
-    pagePerVariable,
     feedbackPage,
     renderNotFoundPage,
     renderBlogByPageNum,
@@ -26,7 +25,6 @@ import {
     BAKED_SITE_DIR,
 } from "../settings/serverSettings.js"
 
-import * as db from "../db/db.js"
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import {
     countryProfilePage,
@@ -199,11 +197,6 @@ mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
 })
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
-
-mockSiteRouter.get("/indicator/:variableId/:country", async (req, res) => {
-    const variableId = expectInt(req.params.variableId)
-    res.send(await pagePerVariable(variableId, req.params.country))
-})
 
 mockSiteRouter.get("/countries", async (req, res) =>
     res.send(await countriesIndexPage(BAKED_BASE_URL))
