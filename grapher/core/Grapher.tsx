@@ -30,6 +30,7 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
+    isEmpty,
 } from "../../clientUtils/Util.js"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
 import {
@@ -1150,7 +1151,7 @@ export class Grapher
     // Used for static exports. Defined at this level because they need to
     // be accessed by the CaptionedChart and also the DownloadTab
     @computed get detailRenderers(): MarkdownTextWrap[] {
-        if (!this.details) return []
+        if (isEmpty(this.details)) return []
 
         return Object.values(this.details)
             .flatMap(Object.values)

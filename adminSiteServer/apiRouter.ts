@@ -2527,6 +2527,7 @@ apiRouter.post("/details", async (req) => {
 })
 
 apiRouter.delete("/details/:id", async (req) => {
+    console.log("delete")
     const { id } = req.params
     const matches = await db.queryMysql(
         `SELECT id, category, term, title, content FROM details WHERE id = ?`,
@@ -2540,8 +2541,7 @@ apiRouter.delete("/details/:id", async (req) => {
     const match = matches[0]
 
     const references: { id: number; config: string }[] = await db.queryMysql(
-        `SELECT id, config FROM charts WHERE config LIKE '%(hover::${match.category}::${match.term})%'`,
-        [id]
+        `SELECT id, config FROM charts WHERE config LIKE '%(hover::${match.category}::${match.term})%'`
     )
 
     if (references.length) {
@@ -2552,6 +2552,7 @@ apiRouter.delete("/details/:id", async (req) => {
     }
 
     await db.execute(`DELETE FROM details WHERE id=?`, [id])
+    return { success: true }
 })
 
 apiRouter.put("/details/:id", async (req, res) => {

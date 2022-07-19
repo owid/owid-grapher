@@ -71,6 +71,7 @@ export class DoDWrapper extends React.Component<{
                     </div>
                 }
                 interactive
+                hideOnClick={false}
                 arrow={false}
             >
                 <span
