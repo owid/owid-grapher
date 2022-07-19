@@ -305,7 +305,7 @@ const markdownLinkParser: (r: MdParser) => P.Parser<MarkdownLink> = (
                 .atLeast(1),
         ],
         P.string("]("),
-        ["href", P.regex(urlRegex)],
+        ["href", P.alt(P.regex(/\/[\w\-]+/), P.regex(urlRegex))],
         P.string(")")
     ).map(({ children, href }) => ({
         type: "markdownLink",

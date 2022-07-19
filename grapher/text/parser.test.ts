@@ -161,6 +161,46 @@ describe("mdast parsers", () => {
             },
         })
     })
+    it("can parse markdown links with relative URLs", () => {
+        expect(mdParser.markdown.parse("[about us](/about-us)")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                type: "text",
+                                value: "about",
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "text",
+                                value: "us",
+                            },
+                        ],
+                        href: "/about-us",
+                        type: "markdownLink",
+                    },
+                ],
+            },
+        })
+        expect(mdParser.markdown.parse("[test](www.google.com)")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "markdownLink",
+                        children: [{ type: "text", value: "test" }],
+                        href: "www.google.com",
+                    },
+                ],
+            },
+        })
+    })
 
     it("mdParser can parse detail on demand syntax", () => {
         expect(
