@@ -18,7 +18,15 @@ interface Detail {
 
 type DraftDetail = Omit<Detail, "id">
 
+const removeSpaces = (value: string) => value.replaceAll(/ /g, "")
+
 const detailKeys = ["category", "term", "title", "content"] as const
+const validation: Record<typeof detailKeys[number], (x: string) => string> = {
+    category: removeSpaces,
+    term: removeSpaces,
+    title: (x: string) => x,
+    content: (x: string) => x,
+}
 
 interface DetailRowProps {
     detail: Detail
@@ -108,7 +116,8 @@ class DetailRow extends React.Component<DetailRowProps> {
                                     }}
                                     className="details__codemirror"
                                     onBeforeChange={(_, __, value) => {
-                                        this.props.detail[key] = value
+                                        this.props.detail[key] =
+                                            validation[key](value)
                                     }}
                                     value={this.props.detail[key]}
                                 />
@@ -216,7 +225,7 @@ class NewDetail extends React.Component<{
                             }}
                             className="details__codemirror"
                             onBeforeChange={(_, __, value) => {
-                                this.detail[key] = value
+                                this.detail[key] = validation[key](value)
                             }}
                             value={this.detail[key]}
                         />
