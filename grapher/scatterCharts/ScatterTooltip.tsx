@@ -37,6 +37,7 @@ export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
             wrap: new TextWrap({
                 maxWidth: maxWidth,
                 fontSize: 0.75 * fontSize,
+                lineHeight: 1,
                 text: series.label,
             }),
         }
@@ -52,6 +53,7 @@ export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                 wrap: new TextWrap({
                     maxWidth: maxWidth,
                     fontSize: 0.65 * fontSize,
+                    lineHeight: 1,
                     text: v.time.span
                         ? `${yColumn.formatTime(
                               v.time.span[0]
@@ -66,6 +68,7 @@ export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                 wrap: new TextWrap({
                     maxWidth: maxWidth,
                     fontSize: 0.55 * fontSize,
+                    lineHeight: 1,
                     text: this.formatValueY(v),
                 }),
             }
@@ -76,6 +79,7 @@ export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                 wrap: new TextWrap({
                     maxWidth: maxWidth,
                     fontSize: 0.55 * fontSize,
+                    lineHeight: 1,
                     text: this.formatValueX(v),
                 }),
             }
