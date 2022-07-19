@@ -99,6 +99,13 @@ class DetailRow extends React.Component<DetailRowProps> {
         )
     }
 
+    @computed get isDetailValid(): boolean {
+        if (!this.isEditing) return true
+
+        const { category, term, title, content } = this.props.detail
+        return Boolean(category && term && title && content)
+    }
+
     render() {
         return (
             <tr>
@@ -134,7 +141,9 @@ class DetailRow extends React.Component<DetailRowProps> {
                     <div className="d-flex justify-content-between">
                         <button
                             disabled={
-                                this.isDeleting || this.doesDetailConflict
+                                this.isDeleting ||
+                                this.doesDetailConflict ||
+                                !this.isDetailValid
                             }
                             title={
                                 this.doesDetailConflict
@@ -213,6 +222,11 @@ class NewDetail extends React.Component<{
         }
     }
 
+    @computed get isDetailValid(): boolean {
+        const { category, term, title, content } = this.detail
+        return Boolean(category && term && title && content)
+    }
+
     render() {
         return (
             <tr>
@@ -236,7 +250,9 @@ class NewDetail extends React.Component<{
                         className="btn btn-primary"
                         onClick={() => this.handleSubmit()}
                         disabled={
-                            !every(this.detail) || this.doesDetailConflict
+                            !every(this.detail) ||
+                            this.doesDetailConflict ||
+                            !this.isDetailValid
                         }
                         title={
                             this.doesDetailConflict
