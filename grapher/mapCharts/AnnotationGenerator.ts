@@ -1,10 +1,7 @@
 import { PointVector } from "../../clientUtils/PointVector.js"
 import { select } from "d3-selection"
 import pixelWidth from "string-pixel-width"
-import {
-    ChoroplethSeries,
-    RenderFeature,
-} from "./MapChartConstants.js"
+import { ChoroplethSeries, RenderFeature } from "./MapChartConstants.js"
 
 interface internalLabel {
     center: PointVector
@@ -22,42 +19,131 @@ export function generateAnnotations(
 ): internalLabel[] {
     var retVal = featureData.map(function (country) {
         let countryPath = country.path
+        let countrySaviour
         let regionsvg
         let temp: PointVector
+        let value = choroplethData.get(country.id)?.value
+        let textWidth
+        var svgw3 = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg"
+        )
+        if (typeof value === "number") value = Math.round(value * 10) / 10
+        if (value) {
+            textWidth = pixelWidth(value.toString(), {
+                size: fontSize,
+                font: "arial",
+            })
+        }
         if (country.geo.geometry.type == "Polygon") {
             temp = country.center
             regionsvg = select("svg")
                 .append("path")
                 .attr("d", country.path)
                 .node()
+            countrySaviour = country.path
         } else {
             let tempPath
             let maxPath
             maxPath = countryPath.substring(0, countryPath.indexOf("Z") + 1)
             countryPath = countryPath.substring(countryPath.indexOf("Z") + 1)
             while (countryPath.length > 0) {
-                tempPath = countryPath.substring(0, countryPath.indexOf("Z") + 1)
+                tempPath = countryPath.substring(
+                    0,
+                    countryPath.indexOf("Z") + 1
+                )
                 if (tempPath.length > maxPath.length) {
                     maxPath = tempPath
                 }
-                countryPath = countryPath.substring(countryPath.indexOf("Z") + 1)
+                countryPath = countryPath.substring(
+                    countryPath.indexOf("Z") + 1
+                )
             }
             let svg = select("svg").append("path").attr("d", maxPath)
             let bBox = svg.node()?.getBBox()
             regionsvg = select("svg").append("path").attr("d", maxPath).node()
+            countrySaviour = maxPath
             if (bBox)
                 temp = new PointVector(
                     bBox.x + bBox.width / 2,
                     bBox.y + bBox.height / 2
                 )
-                else {
-                    temp = new PointVector(1,1)
-                }
+            else {
+                temp = new PointVector(1, 1)
+            }
         }
-        var svgw3 = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "svg"
-        )
+        let pointsArray = countrySaviour.slice(1, -1).split("L")
+        let savePoint = svgw3.createSVGPoint()
+        let check1 = false
+        let py = 0
+     /*=   if (textWidth)
+            for (let i = 0; i < pointsArray.length; i++) {
+                savePoint.y = Number(
+                    pointsArray[i].substring(pointsArray[i].indexOf(",") + 1)
+                )
+                savePoint.x =
+                    Number(
+                        pointsArray[i].substring(0, pointsArray[i].indexOf(","))
+                    ) + textWidth
+                if (regionsvg?.isPointInFill(savePoint)) {
+                    py = savePoint.y
+                    while (i < pointsArray.length - 1) {
+                        i++
+                        savePoint.y = Number(
+                            pointsArray[i].substring(
+                                pointsArray[i].indexOf(",") + 1
+                            )
+                        )
+                        savePoint.x =
+                            Number(
+                                pointsArray[i].substring(
+                                    0,
+                                    pointsArray[i].indexOf(",")
+                                )
+                            ) + textWidth
+                        if (!regionsvg?.isPointInFill(savePoint)) {
+                            break
+                        }
+                        if (fontSize <= savePoint.y - py) {
+                            temp = new PointVector(savePoint.x, savePoint.y)
+                            check1 = true
+                            break
+                        }
+                    }
+                }
+                if (check1) break
+                savePoint.x =
+                    Number(
+                        pointsArray[i].substring(0, pointsArray[i].indexOf(","))
+                    ) - textWidth
+                if (regionsvg?.isPointInFill(savePoint)) {
+                    py = savePoint.y
+                    while (i < pointsArray.length - 1) {
+                        i++
+                        savePoint.y = Number(
+                            pointsArray[i].substring(
+                                pointsArray[i].indexOf(",") + 1
+                            )
+                        )
+                        savePoint.x =
+                            Number(
+                                pointsArray[i].substring(
+                                    0,
+                                    pointsArray[i].indexOf(",")
+                                )
+                            ) - textWidth
+                        if (!regionsvg?.isPointInFill(savePoint)) {
+                            break
+                        }
+                        if (fontSize <= savePoint.y - py) {
+                            temp = new PointVector(savePoint.x, savePoint.y)
+                            check1 = true
+                            break
+                        }
+                    }
+                }
+                if (check1) break
+            }*/
         if (regionsvg) {
             let centerPoint = svgw3.createSVGPoint()
             centerPoint.x = temp.x
@@ -190,21 +276,11 @@ export function generateAnnotations(
                         }
                     }
                 }
-                let value = choroplethData.get(country.id)?.value
-                if(typeof value === 'number')
-                value = Math.round(value * 10)/10
                 let check = true
                 let textPosx
-                if (value) {
-                    let textWidth = pixelWidth(value.toString(), {
-                        size: fontSize,
-                        font: "arial",
-                    })
-                    if (textWidth) {
-                        check = textWidth < rect4.x - rect1.x
-                        textPosx =
-                            rect1.x + (rect4.x - rect1.x) / 2 - textWidth / 2
-                    }
+                if (textWidth) {
+                    check = textWidth < rect4.x - rect1.x
+                    textPosx = rect1.x + (rect4.x - rect1.x) / 2 - textWidth / 2
                 }
                 if (fontSize < rect2.y - rect1.y && check) {
                     let textPosy =
