@@ -6,6 +6,7 @@ import { Logo } from "../captionedChart/Logos.js"
 import { HeaderManager } from "./HeaderManager.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
 @observer
 export class Header extends React.Component<{
@@ -85,13 +86,12 @@ export class Header extends React.Component<{
             : this.maxWidth - this.logoWidth - 10
     }
 
-    @computed get subtitle(): TextWrap {
-        return new TextWrap({
+    @computed get subtitle(): MarkdownTextWrap {
+        return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
             fontSize: 0.8 * this.fontSize,
             text: this.subtitleText,
             lineHeight: 1.2,
-            linkifyText: true,
         })
     }
 
@@ -125,9 +125,13 @@ export class Header extends React.Component<{
                 >
                     {title.render(x, y, { fill: "#555" })}
                 </a>
-                {subtitle.render(x, y + title.height + this.titleMarginBottom, {
-                    fill: "#666",
-                })}
+                {subtitle.renderSVG(
+                    x,
+                    y + title.height + this.titleMarginBottom,
+                    {
+                        fill: "#666",
+                    }
+                )}
             </g>
         )
     }
@@ -141,7 +145,7 @@ export class Header extends React.Component<{
         }
 
         const subtitleStyle = {
-            ...this.subtitle.htmlStyle,
+            ...this.subtitle.style,
             // make sure there are no scrollbars on subtitle
             overflowY: "hidden",
         }
@@ -149,7 +153,11 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a href={manager.canonicalUrl} target="_blank" rel="noopener">
+                <a
+                    href={manager.canonicalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
                 </a>
                 <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>

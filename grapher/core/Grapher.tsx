@@ -30,6 +30,7 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
+    isEmpty,
 } from "../../clientUtils/Util.js"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
 import {
@@ -48,6 +49,7 @@ import {
     FacetAxisDomain,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
+    Detail,
 } from "../core/GrapherConstants.js"
 import {
     MultipleOwidVariableDataDimensionsMap,
@@ -173,6 +175,8 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
+import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
 declare const window: any
 
@@ -364,6 +368,19 @@ export class Grapher
     @observable includedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
+    // These are the details from the config for this specific Grapher,
+    // whereas globalDetailsOnDemand can have details
+    // from multiple sources
+    @observable details: Record<string, Record<string, Detail>> = {}
+    // @action.bound
+    @action.bound private updateGlobalDetailsOnDemand(): void {
+        this.disposers.push(
+            autorun(() => {
+                globalDetailsOnDemand.addDetails(this.details)
+            })
+        )
+    }
+
     @observable.ref annotation?: Annotation = undefined
 
     @observable hideFacetControl?: boolean = true
@@ -437,7 +454,10 @@ export class Grapher
             legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
         )
 
-        if (this.isEditor) this.ensureValidConfigWhenEditing()
+        if (this.isEditor) {
+            this.ensureValidConfigWhenEditing()
+            this.updateGlobalDetailsOnDemand()
+        }
 
         if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
 
@@ -1124,6 +1144,25 @@ export class Grapher
 
     @computed get displaySlug(): string {
         return this.slug ?? slugify(this.displayTitle)
+    }
+
+    @observable shouldIncludeDetailsInStaticExport = true
+
+    // Used for static exports. Defined at this level because they need to
+    // be accessed by the CaptionedChart and also the DownloadTab
+    @computed get detailRenderers(): MarkdownTextWrap[] {
+        if (isEmpty(this.details)) return []
+
+        return Object.values(this.details)
+            .flatMap(Object.values)
+            .map(
+                (detail: Detail) =>
+                    new MarkdownTextWrap({
+                        text: `**${detail.title}**\n${detail.content}`,
+                        fontSize: 12,
+                        maxWidth: this.bounds.width,
+                    })
+            )
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
@@ -2183,6 +2222,8 @@ export class Grapher
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+        if (this.props.details)
+            globalDetailsOnDemand.addDetails(this.props.details)
     }
 
     private _shortcutsBound = false
@@ -2308,6 +2349,7 @@ export class Grapher
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions
+        this.details = grapher.details
     }
 
     debounceMode = false

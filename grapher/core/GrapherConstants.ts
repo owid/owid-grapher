@@ -23,6 +23,8 @@ export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
+export const STATIC_EXPORT_DETAIL_SPACING = 24
+
 export enum CookieKey {
     isAdmin = "isAdmin",
 }
@@ -86,6 +88,14 @@ export interface RelatedQuestionsConfig {
 export interface Topic {
     id: TopicId
     name: string
+}
+
+export interface Detail {
+    category: string
+    term: string
+    title: string
+    content: string
+    id: number
 }
 
 export const WorldEntityName = "World"

@@ -2,3 +2,16 @@
     display: block;
     white-space: pre-wrap;
 }
+
+.markdown-text-wrap {
+    a,
+    a:visited {
+        color: $link-color;
+    }
+
+    svg {
+        a {
+            fill: $link-color;
+        }
+    }
+}

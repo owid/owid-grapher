@@ -18,6 +18,7 @@ export const Default = (): JSX.Element => {
                 staticSVG: `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="${DEFAULT_GRAPHER_WIDTH}" height="${DEFAULT_GRAPHER_HEIGHT}" viewBox="0 0 ${DEFAULT_GRAPHER_WIDTH} ${DEFAULT_GRAPHER_HEIGHT}">
 <rect x="10" y="10" width="30" height="30" fill="blue"/>
 </svg>`,
+                detailRenderers: [],
             }}
         />
     )

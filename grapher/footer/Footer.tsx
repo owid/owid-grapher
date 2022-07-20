@@ -8,6 +8,7 @@ import { getRelativeMouse } from "../../clientUtils/Util.js"
 import { Tooltip } from "../tooltip/Tooltip.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { FooterManager } from "./FooterManager.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
 @observer
 export class Footer extends React.Component<{
@@ -101,13 +102,12 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get note(): TextWrap {
+    @computed private get note(): MarkdownTextWrap {
         const { maxWidth, fontSize, noteText } = this
-        return new TextWrap({
+        return new MarkdownTextWrap({
             maxWidth,
             fontSize,
             text: noteText,
-            linkifyText: true,
         })
     }
 
@@ -151,7 +151,7 @@ export class Footer extends React.Component<{
                 <g style={{ fill: "#777" }}>
                     {sources.render(targetX, targetY)}
                 </g>
-                {note.render(targetX, targetY + sources.height + paraMargin)}
+                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
                 {isCompact
                     ? license.render(
                           targetX + maxWidth - license.width,
@@ -241,7 +241,7 @@ export class Footer extends React.Component<{
                     {this.sources.renderHTML()}
                 </p>
                 {this.note && (
-                    <p style={this.note.htmlStyle}>{this.note.renderHTML()}</p>
+                    <p style={this.note.style}>{this.note.renderHTML()}</p>
                 )}
                 {!this.isCompact && license}
                 {tooltipTarget && (

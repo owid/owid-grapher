@@ -41,6 +41,7 @@ import { ExplorersIndexPage } from "../explorerAdminClient/ExplorersListPage.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
+import { DetailsOnDemandPage } from "./DetailsOnDemand.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -170,7 +171,7 @@ export class AdminApp extends React.Component<{
                             <Route
                                 exact
                                 path={`/${EXPLORERS_ROUTE_FOLDER}`}
-                                render={({ match }) => (
+                                render={() => (
                                     <AdminLayout title="Explorers">
                                         <ExplorersIndexPage />
                                     </AdminLayout>
@@ -179,16 +180,12 @@ export class AdminApp extends React.Component<{
                             <Route
                                 exact
                                 path={`/bulk-grapher-config-editor`}
-                                render={({ match }) => (
-                                    <BulkGrapherConfigEditorPage />
-                                )}
+                                render={() => <BulkGrapherConfigEditorPage />}
                             />
                             <Route
                                 exact
                                 path={`/variable-annotations`}
-                                render={({ match }) => (
-                                    <VariablesAnnotationPage />
-                                )}
+                                render={() => <VariablesAnnotationPage />}
                             />
                             <Route
                                 exact
@@ -235,6 +232,11 @@ export class AdminApp extends React.Component<{
                                         )}
                                     />
                                 )}
+                            />
+                            <Route
+                                exact
+                                path="/details"
+                                component={DetailsOnDemandPage}
                             />
                             <Route
                                 exact
