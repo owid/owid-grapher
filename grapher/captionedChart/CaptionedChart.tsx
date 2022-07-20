@@ -40,6 +40,7 @@ import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import { FONTS_CSS_IMPORT_URL } from "../../clientUtils/Fonts"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -370,6 +371,10 @@ export class StaticCaptionedChart extends CaptionedChart {
             .padTop(this.isMapTab ? 0 : PADDING_BELOW_HEADER)
     }
 
+    @computed private get webfontImports(): JSX.Element {
+        return <style>@import url({FONTS_CSS_IMPORT_URL})</style>
+    }
+
     render(): JSX.Element {
         const { bounds, paddedBounds } = this
         const { width, height } = bounds
@@ -381,6 +386,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                 height={height}
                 viewBox={`0 0 ${width} ${height}`}
             >
+                {this.webfontImports}
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
                 {this.footer.renderStatic(

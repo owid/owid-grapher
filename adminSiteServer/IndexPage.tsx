@@ -1,4 +1,5 @@
 import React from "react"
+import { FONTS_CSS_IMPORT_URL } from "../clientUtils/Fonts.js"
 import { ENV, GITHUB_USERNAME } from "../settings/serverSettings.js"
 import { webpackUrl } from "../site/webpackUtils.js"
 
@@ -22,10 +23,7 @@ export const IndexPage = (props: {
             <head>
                 <title>owid-admin</title>
                 <meta name="description" content="" />
-                <link
-                    href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&display=swap"
-                    rel="stylesheet"
-                />
+                <link href={FONTS_CSS_IMPORT_URL} rel="stylesheet" />
                 <link
                     href={webpackUrl("commons.css", "/admin")}
                     rel="stylesheet"
