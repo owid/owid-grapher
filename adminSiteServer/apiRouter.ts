@@ -63,8 +63,9 @@ import {
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
     postsTable,
-    Post,
     setTagsForPost,
+    select,
+    getTagsByPostId,
 } from "../db/model/Post.js"
 import { parseIntOrUndefined, trimObject } from "../clientUtils/Util.js"
 import { omit, set } from "lodash"
@@ -2174,7 +2175,7 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await Post.select(
+    const rows = await select(
         "id",
         "title",
         "type",
@@ -2182,7 +2183,7 @@ apiRouter.get("/posts.json", async (req) => {
         "updated_at"
     ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
 
-    const tagsByPostId = await Post.tagsByPostId()
+    const tagsByPostId = await getTagsByPostId()
 
     const authorship = await wpdb.getAuthorship()
 

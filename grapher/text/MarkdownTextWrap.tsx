@@ -1,4 +1,4 @@
-import React from "react"
+import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
@@ -203,9 +203,9 @@ export class IRSuperscript implements IRToken {
                 >
                     {this.text}
                 </tspan>
-                {/* 
+                {/*
                     can't use transform translations on tspans
-                    but dy translations apply to all subsequent elements 
+                    but dy translations apply to all subsequent elements
                     so we need a "reset" element to counteract each time
                     \u2028 is an invisible space, because empty tspans don't work
                  */}
