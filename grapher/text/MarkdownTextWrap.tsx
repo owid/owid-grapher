@@ -178,6 +178,44 @@ export class IRSpan extends IRElement {
     }
 }
 
+export class IRSuperscript implements IRToken {
+    constructor(public text: string, public fontParams?: IRFontParams) {}
+    @imemo get width(): number {
+        return Bounds.forText(this.text, { fontSize: this.height / 2 }).width
+    }
+    @imemo get height(): number {
+        return this.fontParams?.fontSize || 16
+    }
+    getBreakpointBefore(): undefined {
+        return undefined
+    }
+    toHTML(key?: React.Key): JSX.Element {
+        return <sup key={key}>{this.text}</sup>
+    }
+    toSVG(key?: React.Key): JSX.Element {
+        return (
+            <React.Fragment key={key}>
+                <tspan
+                    style={{
+                        fontSize: this.height / 2,
+                    }}
+                    dy={-this.height / 3}
+                >
+                    {this.text}
+                </tspan>
+                {/* 
+                    dy translations apply to all subsequent elements 
+                    so we need a "reset" element to counteract each time
+                 */}
+                <tspan dy={this.height / 3}> </tspan>
+            </React.Fragment>
+        )
+    }
+    toPlaintext(): string {
+        return this.text
+    }
+}
+
 export class IRItalic extends IRElement {
     getClone(children: IRToken[]): IRItalic {
         return new IRItalic(children, this.fontParams)
@@ -491,15 +529,83 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return []
     }
 
-    @computed get lines(): IRToken[][] {
+    @computed get htmlLines(): IRToken[][] {
         const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
         return splitIntoLines(tokens, this.maxWidth)
     }
 
+    // We render DoDs differently for SVG (superscript reference  numbers) so we need to calculate
+    // their width differently. Height should remain the same.
+    @computed get svgLines(): IRToken[][] {
+        function appendReferenceNumbers(tokens: IRToken[]): IRToken[] {
+            const references: { category: string; term: string }[] = []
+
+            const checkIsIRElement = (token: IRToken): token is IRElement => {
+                return [
+                    "IRBold",
+                    "IRSpan",
+                    "IRItalic",
+                    "IRLink",
+                    "IRDetailOnDemand",
+                ].includes(token.constructor.name)
+            }
+
+            const checkIsIRDetailOnDemand = (
+                token: IRToken
+            ): token is IRDetailOnDemand => {
+                return "IRDetailOnDemand" === token.constructor.name
+            }
+
+            function traverse(
+                token: IRToken,
+                callback: (token: IRToken) => any
+            ): any {
+                if (checkIsIRElement(token)) {
+                    token.children.flatMap((child) => traverse(child, callback))
+                }
+                return callback(token)
+            }
+
+            const appendedTokens: IRToken[] = tokens.flatMap((token) =>
+                traverse(token, (token: IRToken) => {
+                    if (checkIsIRDetailOnDemand(token)) {
+                        let referenceIndex =
+                            references.findIndex(
+                                ({ category, term }) =>
+                                    category === token.category &&
+                                    term === token.term
+                            ) + 1
+                        // -1 (not found) + 1 = 0
+                        if (referenceIndex === 0) {
+                            references.push({
+                                term: token.term,
+                                category: token.category,
+                            })
+                            referenceIndex = references.length
+                        }
+                        token.children.push(
+                            new IRSuperscript(
+                                String(referenceIndex),
+                                token.fontParams
+                            )
+                        )
+                    }
+                    return token
+                })
+            )
+
+            return appendedTokens
+        }
+
+        const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
+        const tokensWithReferenceNumbers = appendReferenceNumbers(tokens)
+        return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
+    }
+
     @computed get height(): number {
-        const { lines, lineHeight, fontSize } = this
-        if (lines.length === 0) return 0
-        return lines.length * lineHeight * fontSize
+        const { htmlLines, lineHeight, fontSize } = this
+        if (htmlLines.length === 0) return 0
+        return htmlLines.length * lineHeight * fontSize
     }
 
     @computed get style(): any {
@@ -510,11 +616,11 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 
     renderHTML(): JSX.Element | null {
-        const { lines } = this
-        if (lines.length === 0) return null
+        const { htmlLines } = this
+        if (htmlLines.length === 0) return null
         return (
             <span style={this.style} className="markdown-text-wrap">
-                {lines.map((line, i) => (
+                {htmlLines.map((line, i) => (
                     <span className="markdown-text-wrap__line" key={i}>
                         {line.length ? (
                             line.map((token, i) => token.toHTML(i))
@@ -532,8 +638,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         y: number,
         options?: React.SVGProps<SVGTextElement>
     ): JSX.Element | null {
-        const { lines, fontSize, lineHeight } = this
-        if (lines.length === 0) return null
+        const { svgLines, fontSize, lineHeight } = this
+        if (svgLines.length === 0) return null
 
         // Magic number set through experimentation.
         // The HTML and SVG renderers need to position lines identically.
@@ -552,7 +658,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                 style={this.style}
                 {...options}
             >
-                {lines.map((line, i) => (
+                {svgLines.map((line, i) => (
                     <tspan
                         key={i}
                         x={x}
