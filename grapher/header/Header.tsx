@@ -92,6 +92,8 @@ export class Header extends React.Component<{
             fontSize: 0.8 * this.fontSize,
             text: this.subtitleText,
             lineHeight: 1.2,
+            detailOnDemandReferenceOrder:
+                this.manager.detailsOrderedByReference,
         })
     }
 

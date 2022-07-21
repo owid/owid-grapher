@@ -177,6 +177,7 @@ import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
 import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
+import { detailOnDemandRegex } from "../text/parser.js"
 
 declare const window: any
 
@@ -372,7 +373,7 @@ export class Grapher
     // whereas globalDetailsOnDemand can have details
     // from multiple sources
     @observable details: Record<string, Record<string, Detail>> = {}
-    // @action.bound
+
     @action.bound private updateGlobalDetailsOnDemand(): void {
         this.disposers.push(
             autorun(() => {
@@ -1148,21 +1149,45 @@ export class Grapher
 
     @observable shouldIncludeDetailsInStaticExport = true
 
+    // Used for superscript numbers in static exports
+    @computed get detailsOrderedByReference(): {
+        category: string
+        term: string
+    }[] {
+        const textInOrderOfAppearance = this.subtitle + this.note
+        const allDetailsIterator = textInOrderOfAppearance.matchAll(
+            new RegExp(detailOnDemandRegex, "g")
+        )
+        const allDetailsArray = [...allDetailsIterator].map(
+            ([_, category, term]) => ({ category, term })
+        )
+        const uniqueDetails = uniq(allDetailsArray)
+        return uniqueDetails
+    }
+
     // Used for static exports. Defined at this level because they need to
-    // be accessed by the CaptionedChart and also the DownloadTab
+    // be accessed by CaptionedChart and DownloadTab
     @computed get detailRenderers(): MarkdownTextWrap[] {
         if (isEmpty(this.details)) return []
 
-        return Object.values(this.details)
-            .flatMap(Object.values)
-            .map(
-                (detail: Detail) =>
-                    new MarkdownTextWrap({
-                        text: `**${detail.title}**\n${detail.content}`,
-                        fontSize: 12,
-                        maxWidth: this.bounds.width,
-                    })
-            )
+        return this.detailsOrderedByReference.map(
+            ({ category, term }: { category: string; term: string }, i) => {
+                let text = `**${i + 1}.** `
+                const detail = this.details[category][term]
+                if (detail) {
+                    text += `**${detail.title}**\n\n${detail.content}`
+                }
+                return new MarkdownTextWrap({
+                    text,
+                    fontSize: 12,
+                    maxWidth: this.bounds.width,
+                    lineHeight: 0.75,
+                    style: {
+                        fill: "#555",
+                    },
+                })
+            }
+        )
     }
 
     @computed get availableTabs(): GrapherTabOption[] {

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
@@ -204,10 +204,12 @@ export class IRSuperscript implements IRToken {
                     {this.text}
                 </tspan>
                 {/* 
-                    dy translations apply to all subsequent elements 
+                    can't use transform translations on tspans
+                    but dy translations apply to all subsequent elements 
                     so we need a "reset" element to counteract each time
+                    \u2028 is an invisible space, because empty tspans don't work
                  */}
-                <tspan dy={this.height / 3}> </tspan>
+                <tspan dy={this.height / 3}>{"\u2028"}</tspan>
             </React.Fragment>
         )
     }
@@ -304,6 +306,20 @@ export class IRDetailOnDemand extends IRElement {
             </tspan>
         )
     }
+}
+
+function checkIsIRElement(token: IRToken): token is IRElement {
+    return [
+        "IRBold",
+        "IRSpan",
+        "IRItalic",
+        "IRLink",
+        "IRDetailOnDemand",
+    ].includes(token.constructor.name)
+}
+
+function checkIsIRDetailOnDemand(token: IRToken): token is IRDetailOnDemand {
+    return "IRDetailOnDemand" === token.constructor.name
 }
 
 function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
@@ -498,6 +514,8 @@ type MarkdownTextWrapProps = {
     fontWeight?: number
     lineHeight?: number
     maxWidth?: number
+    style?: CSSProperties
+    detailOnDemandReferenceOrder?: { category: string; term: string }[]
 }
 
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
@@ -520,6 +538,12 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get text(): string {
         return this.props.text
     }
+    @computed get detailOnDemandReferenceOrder(): {
+        category: string
+        term: string
+    }[] {
+        return this.props.detailOnDemandReferenceOrder || []
+    }
     @computed get ast(): MarkdownRoot["children"] {
         if (!this.text) return []
         const result = mdParser.markdown.parse(this.props.text)
@@ -537,25 +561,9 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     // We render DoDs differently for SVG (superscript reference  numbers) so we need to calculate
     // their width differently. Height should remain the same.
     @computed get svgLines(): IRToken[][] {
+        const references: { category: string; term: string }[] =
+            this.detailOnDemandReferenceOrder
         function appendReferenceNumbers(tokens: IRToken[]): IRToken[] {
-            const references: { category: string; term: string }[] = []
-
-            const checkIsIRElement = (token: IRToken): token is IRElement => {
-                return [
-                    "IRBold",
-                    "IRSpan",
-                    "IRItalic",
-                    "IRLink",
-                    "IRDetailOnDemand",
-                ].includes(token.constructor.name)
-            }
-
-            const checkIsIRDetailOnDemand = (
-                token: IRToken
-            ): token is IRDetailOnDemand => {
-                return "IRDetailOnDemand" === token.constructor.name
-            }
-
             function traverse(
                 token: IRToken,
                 callback: (token: IRToken) => any
@@ -569,20 +577,13 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             const appendedTokens: IRToken[] = tokens.flatMap((token) =>
                 traverse(token, (token: IRToken) => {
                     if (checkIsIRDetailOnDemand(token)) {
-                        let referenceIndex =
+                        const referenceIndex =
                             references.findIndex(
                                 ({ category, term }) =>
                                     category === token.category &&
                                     term === token.term
                             ) + 1
-                        // -1 (not found) + 1 = 0
-                        if (referenceIndex === 0) {
-                            references.push({
-                                term: token.term,
-                                category: token.category,
-                            })
-                            referenceIndex = references.length
-                        }
+                        if (referenceIndex === 0) return
                         token.children.push(
                             new IRSuperscript(
                                 String(referenceIndex),
@@ -611,6 +612,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get style(): any {
         return {
             ...this.fontParams,
+            ...this.props.style,
             lineHeight: this.lineHeight,
         }
     }
