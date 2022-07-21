@@ -1,7 +1,12 @@
 import jsonpointer from "json8-pointer"
 import { isNil } from "lodash"
 import { GrapherConfigPatch } from "./AdminSessionTypes.js"
-import { isArray, isEqual, checkIsPlainObjectWithGuard } from "./Util.js"
+import {
+    isArray,
+    isEqual,
+    checkIsPlainObjectWithGuard,
+    checkIsStringIndexable,
+} from "./Util.js"
 
 export function setValueRecursiveInplace(
     json: unknown,
@@ -25,14 +30,12 @@ export function setValueRecursiveInplace(
             if (json.length > currentPartAsNumber)
                 json[currentPartAsNumber] = newValue
             else json.push(newValue)
-        } else if (checkIsPlainObjectWithGuard(json)) {
-            json[key] = newValue
-        }
+        } else (json as Record<string, unknown>)[key] = newValue
 
         return json
     }
 
-    if (checkIsPlainObjectWithGuard(json)) {
+    if (checkIsStringIndexable(json)) {
         if (json[key] === undefined) {
             // because we work in-place, we need to create the missing child element before recursing
             const nextPartAsNumber = Number.parseInt(pointer[0])
@@ -41,10 +44,14 @@ export function setValueRecursiveInplace(
             } else {
                 json[key] = {}
             }
-        } else {
-            return setValueRecursiveInplace(json[key], pointer, newValue)
         }
     }
+
+    return setValueRecursiveInplace(
+        (json as Record<string, unknown>)[key],
+        pointer,
+        newValue
+    )
 }
 
 export function setValueRecursive(

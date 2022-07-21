@@ -1236,6 +1236,12 @@ export function checkIsPlainObjectWithGuard(
     return isPlainObject(x)
 }
 
+export function checkIsStringIndexable(
+    x: unknown
+): x is Record<string, unknown> {
+    return isPlainObject(x) || isArray(x)
+}
+
 function checkIsTouchEvent(
     event: unknown
 ): event is React.TouchEvent | TouchEvent {
