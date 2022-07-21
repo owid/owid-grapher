@@ -9,7 +9,9 @@ import {
 import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
 import {
     diffDateISOStringInDays,
+    difference,
     flatten,
+    intersection,
     isNumber,
     makeAnnotationsSlug,
     trimObject,
@@ -31,6 +33,8 @@ import {
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes.js"
 import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
+import { zip } from "lodash"
+import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -232,8 +236,98 @@ export const legacyToOwidTableAndDimensions = (
     return { dimensions: newDimensions, table: joinedVariablesTable }
 }
 
-const fullJoinTables = (tables: OwidTable[]): OwidTable =>
-    tables.reduce((joinedTable, table) => joinedTable.fullJoin(table))
+const fullJoinTables = (tables: OwidTable[]): OwidTable => {
+    if (tables.length === 0) return new OwidTable()
+    else {
+        // Figure out the names of the columns that are shared and are thus the index columns
+        // TODO: we might want to mandate explicitly specifying this or get this from a different understanding of the data model
+        const indexColumnNames = intersection(
+            ...tables.map((table) => table.columnSlugs)
+        )
+        // Get all the index values per table and then figure out the full set of all stringified index values
+        const indexValuesPerTable = tables.map((table) =>
+            table.rowIndex(indexColumnNames)
+        )
+        const allIndexValuesArray = indexValuesPerTable.flatMap((index) => [
+            ...index.keys(),
+        ])
+        const allIndexValues = new Set(allIndexValuesArray)
+
+        // Now identify for each table which columns should be copied (i.e. all non-index columns)
+        const columnsToAddPerTable = tables.map((table) =>
+            difference(table.columnSlugs, indexColumnNames)
+        )
+        // Prepare a special entry for the Table + column names tuple that we will zip and
+        // map in the next step. This special entry is the first one and contains only the
+        // index columns from the first table and only once
+        const firstTableDuplicateForIndices: [
+            OwidTable | undefined,
+            string[] | undefined
+        ] = [tables[0], indexColumnNames]
+        const defsToAddPerTable = [firstTableDuplicateForIndices]
+            .concat(zip(tables, columnsToAddPerTable))
+            .map(
+                (tableAndColumns) =>
+                    tableAndColumns[0]!
+                        .getColumns(tableAndColumns[1]!)
+                        .map((col) => {
+                            const def = { ...col.def }
+                            def.values = []
+                            return def
+                        }) as OwidColumnDef[]
+            )
+        for (const index of allIndexValues.values()) {
+            // First we handle the index columns (defsToAddPerTable[0])
+            for (const def of defsToAddPerTable[0]) {
+                // The index columns are special - the first table might not have a value for each of the index columns
+                // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
+                // looking in the other tables until we find a table that has the values. Because the index values were
+                // generated from the combined set of all index values we are guaranteed to find a value eventually before
+                // we exceed the length of the tables array
+                let tableIndex = 0
+                let indexHits = indexValuesPerTable[tableIndex].get(index)
+                while (indexHits === undefined) {
+                    tableIndex++
+                    indexHits = indexValuesPerTable[tableIndex].get(index)
+                }
+                def.values?.push(
+                    tables[tableIndex].columnStore[def.slug][indexHits[0]]
+                )
+            }
+            // now add all the nonindex value columns
+            // note that defsToAddPerTable has one more element than tables (the one duplicate of the
+            // first table that we added in the beginning)
+            for (let i = 0; i < tables.length; i++) {
+                const indexHits = indexValuesPerTable[i].get(index)
+
+                if (indexHits !== undefined && indexHits.length > 1)
+                    console.error(
+                        `Found more than one matching row in table ${tables[i].tableSlug}`
+                    )
+                for (const def of defsToAddPerTable[i + 1]) {
+                    // There is a special case for the first table that contains the index columns
+                    // If for a given row this first table doesn't have values for the index row then
+                    // we need to check the other tables until we find one that has a value for this index
+                    // for the key column
+
+                    if (indexHits !== undefined)
+                        def.values?.push(
+                            tables[i].columnStore[def.slug][indexHits[0]]
+                        )
+                    // todo: use first or last match?
+                    else
+                        def.values?.push(
+                            ErrorValueTypes.NoMatchingValueAfterJoin as any
+                        )
+                }
+            }
+        }
+        return new OwidTable(
+            [],
+            defsToAddPerTable.flatMap((defs) => defs)
+        )
+    }
+}
 
 const columnDefFromOwidVariable = (
     variable: OwidVariableWithSourceAndDimension
