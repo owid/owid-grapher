@@ -178,6 +178,7 @@ import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
 import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 import { detailOnDemandRegex } from "../text/parser.js"
+import { get, set } from "lodash"
 
 declare const window: any
 
@@ -1154,22 +1155,29 @@ export class Grapher
         category: string
         term: string
     }[] {
+        if (isEmpty(this.details)) return []
         const textInOrderOfAppearance = this.subtitle + this.note
-        const allDetailsIterator = textInOrderOfAppearance.matchAll(
+        const allDetails = textInOrderOfAppearance.matchAll(
             new RegExp(detailOnDemandRegex, "g")
         )
-        const allDetailsArray = [...allDetailsIterator].map(
-            ([_, category, term]) => ({ category, term })
-        )
-        const uniqueDetails = uniq(allDetailsArray)
+        const uniqueDetails: {
+            category: string
+            term: string
+        }[] = []
+        const seen: Record<string, Record<string, boolean>> = {}
+        for (const detail of allDetails) {
+            const [_, category, term] = detail
+            if (!get(seen, [category, term])) {
+                uniqueDetails.push({ category, term })
+                set(seen, [category, term], true)
+            }
+        }
         return uniqueDetails
     }
 
     // Used for static exports. Defined at this level because they need to
     // be accessed by CaptionedChart and DownloadTab
     @computed get detailRenderers(): MarkdownTextWrap[] {
-        if (isEmpty(this.details)) return []
-
         return this.detailsOrderedByReference.map(
             ({ category, term }: { category: string; term: string }, i) => {
                 let text = `**${i + 1}.** `
