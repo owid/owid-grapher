@@ -515,7 +515,7 @@ type MarkdownTextWrapProps = {
     lineHeight?: number
     maxWidth?: number
     style?: CSSProperties
-    detailOnDemandReferenceOrder?: { category: string; term: string }[]
+    detailsOrderedByReference?: { category: string; term: string }[]
 }
 
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
@@ -538,11 +538,11 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get text(): string {
         return this.props.text
     }
-    @computed get detailOnDemandReferenceOrder(): {
+    @computed get detailsOrderedByReference(): {
         category: string
         term: string
     }[] {
-        return this.props.detailOnDemandReferenceOrder || []
+        return this.props.detailsOrderedByReference || []
     }
     @computed get ast(): MarkdownRoot["children"] {
         if (!this.text) return []
@@ -562,7 +562,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     // their width differently. Height should remain the same.
     @computed get svgLines(): IRToken[][] {
         const references: { category: string; term: string }[] =
-            this.detailOnDemandReferenceOrder
+            this.detailsOrderedByReference
         function appendReferenceNumbers(tokens: IRToken[]): IRToken[] {
             function traverse(
                 token: IRToken,
