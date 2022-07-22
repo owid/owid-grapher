@@ -1,10 +1,12 @@
 span.dod-term {
-    border-bottom: 1px dotted $controls-color;
-    color: $controls-color;
+    border-bottom: 1px dotted #666;
+    color: #666;
+}
 
-    &:hover {
-        color: darken($controls-color, 10%);
-    }
+.dod-tippy-container {
+    overflow-y: auto;
+    // should only result in scrollbars when viewport height is very small
+    max-height: 80vh;
 }
 
 .dod-tooltip {

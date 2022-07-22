@@ -1180,8 +1180,9 @@ export class Grapher
                 return new MarkdownTextWrap({
                     text,
                     fontSize: 12,
-                    maxWidth: this.bounds.width,
-                    lineHeight: 0.75,
+                    // 30 is 15 margin on both sides
+                    maxWidth: this.idealBounds.width - 30,
+                    lineHeight: 1.2,
                     style: {
                         fill: "#555",
                     },

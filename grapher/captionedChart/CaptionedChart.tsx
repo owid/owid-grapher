@@ -323,7 +323,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 <line
                     x1={15}
                     y1={this.bounds.height}
-                    x2={this.bounds.width - 15}
+                    x2={this.boundsForChart.width - 15}
                     y2={this.bounds.height}
                     stroke="#777"
                 ></line>
