@@ -321,16 +321,17 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return (
             <>
                 <line
-                    x1={15}
+                    x1={OUTSIDE_PADDING}
                     y1={this.bounds.height}
-                    x2={this.boundsForChart.width - 15}
+                    x2={this.boundsForChart.width - OUTSIDE_PADDING}
                     y2={this.bounds.height}
                     stroke="#777"
                 ></line>
                 <g
                     style={{
                         transform: `translate(15px, ${
-                            this.bounds.height + 15
+                            // + padding below the grey line
+                            this.bounds.height + OUTSIDE_PADDING
                         }px)`,
                     }}
                 >

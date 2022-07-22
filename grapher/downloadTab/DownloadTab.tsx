@@ -82,8 +82,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 sumTextWrapHeights(
                     this.manager.detailRenderers,
                     STATIC_EXPORT_DETAIL_SPACING
-                ) +
-                15 // padding for grey bar
+                )
             )
         }
         return this.idealBounds.height
