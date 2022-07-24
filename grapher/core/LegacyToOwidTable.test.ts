@@ -184,6 +184,8 @@ describe(legacyToOwidTableAndDimensions, () => {
             const worldRows = table.rows.filter(
                 (row) => row.entityName === "World"
             )
+            expect(table.rows.length).toEqual(5)
+            expect(worldRows.length).toEqual(4)
             expect(worldRows[0]["3"]).toEqual(
                 ErrorValueTypes.NoMatchingValueAfterJoin
             )

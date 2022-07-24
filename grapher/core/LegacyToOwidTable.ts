@@ -10,14 +10,11 @@ import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
 import {
     diffDateISOStringInDays,
     difference,
-    differenceOfSets,
     flatten,
     intersection,
-    intersectionOfSets,
     isNumber,
     makeAnnotationsSlug,
     trimObject,
-    unionOfSets,
     uniqBy,
 } from "../../clientUtils/Util.js"
 import {
@@ -97,6 +94,9 @@ export const legacyToOwidTableAndDimensions = (
             : `${dimension.variableId}`,
     }))
     const dimensionColumns = uniqBy(newDimensions, (dim) => dim.slug)
+
+    const variableTablesToJoinByYear: OwidTable[] = []
+    const variableTablesToJoinByDay: OwidTable[] = []
     const variableTables = dimensionColumns.map((dimension) => {
         const variable = json.get(dimension.variableId)!
 
@@ -213,13 +213,31 @@ export const legacyToOwidTableAndDimensions = (
                 .dropColumns([timeColumnDef.slug])
         }
 
+        if (variable.metadata.display?.yearIsDay)
+            variableTablesToJoinByDay.push(variableTable)
+        else variableTablesToJoinByYear.push(variableTable)
         return variableTable
     })
-    console.warn("test")
 
-    let joinedVariablesTable = variableTables.length
-        ? fullJoinTables(variableTables)
-        : new OwidTable()
+    const variablesJoinedByYear = fullJoinTables(variableTablesToJoinByYear, [
+        OwidTableSlugs.year,
+        OwidTableSlugs.entityId,
+    ])
+    const variablesJoinedByDay = fullJoinTables(variableTablesToJoinByDay, [
+        OwidTableSlugs.day,
+        OwidTableSlugs.entityId,
+    ])
+
+    let joinedVariablesTable =
+        variableTablesToJoinByYear.length > 0 &&
+        variableTablesToJoinByDay.length > 0
+            ? fullJoinTables(
+                  [variablesJoinedByDay, variablesJoinedByYear],
+                  [OwidTableSlugs.entityId]
+              )
+            : variableTablesToJoinByYear.length > 0
+            ? variablesJoinedByYear
+            : variablesJoinedByDay
 
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
@@ -240,13 +258,18 @@ export const legacyToOwidTableAndDimensions = (
     return { dimensions: newDimensions, table: joinedVariablesTable }
 }
 
-const fullJoinTablesWithIndexColumns = (
+const fullJoinTables = (
     tables: OwidTable[],
     indexColumnNames: string[]
 ): OwidTable => {
+    if (tables.length === 0) return new OwidTable()
+    else if (tables.length === 1) return tables[0]
     // Get all the index values per table and then figure out the full set of all stringified index values
     const indexValuesPerTable = tables.map((table) =>
         table.rowIndex(indexColumnNames)
+    )
+    const sharedColumnNames = intersection(
+        ...tables.map((table) => table.columnSlugs)
     )
     const allIndexValuesArray = indexValuesPerTable.flatMap((index) => [
         ...index.keys(),
@@ -255,7 +278,7 @@ const fullJoinTablesWithIndexColumns = (
 
     // Now identify for each table which columns should be copied (i.e. all non-index columns)
     const columnsToAddPerTable = tables.map((table) =>
-        difference(table.columnSlugs, indexColumnNames)
+        difference(table.columnSlugs, sharedColumnNames)
     )
     // Prepare a special entry for the Table + column names tuple that we will zip and
     // map in the next step. This special entry is the first one and contains only the
@@ -263,7 +286,7 @@ const fullJoinTablesWithIndexColumns = (
     const firstTableDuplicateForIndices: [
         OwidTable | undefined,
         string[] | undefined
-    ] = [tables[0], indexColumnNames]
+    ] = [tables[0], sharedColumnNames]
     const defsToAddPerTable = [firstTableDuplicateForIndices]
         .concat(zip(tables, columnsToAddPerTable))
         .map(
@@ -328,90 +351,90 @@ const fullJoinTablesWithIndexColumns = (
     )
 }
 
-const fullJoinTables = (tables: OwidTable[]): OwidTable => {
-    if (tables.length === 0) return new OwidTable()
-    else {
-        // Figure out the names of the columns that are shared and are thus the index columns
-        // TODO: we might want to mandate explicitly specifying this or get this from a different understanding of the data model
+// const fullJoinTables = (tables: OwidTable[]): OwidTable => {
+//     if (tables.length === 0) return new OwidTable()
+//     else {
+//         // Figure out the names of the columns that are shared and are thus the index columns
+//         // TODO: we might want to mandate explicitly specifying this or get this from a different understanding of the data model
 
-        const tableColumnMembership: Map<string, Set<number>> = new Map()
-        // Create a map of column names to sets of table indices. If a column name occurs only once
-        // then the set of this column name will only have one member. If it occurs in all columns the length
-        // of the set will be the number of tables. For columns shared only between some tables (e.g. if
-        // there are two differen time columns and so only entity is shared between some) then the size of the
-        // set will be > 1 and < numtables
-        tables.forEach((table, index) => {
-            for (const columnSlug of table.columnSlugs) {
-                const columnMembership =
-                    tableColumnMembership.get(columnSlug) ?? new Set()
-                columnMembership.add(index)
-                tableColumnMembership.set(columnSlug, columnMembership)
-            }
-        })
-        console.warn("Num tables", tables.length)
-        console.warn("Size of map", tableColumnMembership.size)
-        // Get an array of tuples of tablename, index set; and drop all columns that occur only once
-        const tableColumnMembershipArray = [
-            ...tableColumnMembership.entries(),
-        ].filter((item) => item[1].size > 1)
-        // Now sort it by number of tables sharing the column.
-        // NOTE: this algorithm does not work for a fully arbitrary number of columsn sharing arbitrary index columns
-        // it is instead built with the assumption in mind that tables may share a larger set of index columns or a
-        // smaller one (i.e year+entity or entity only)
-        // TODO: it would be better to have a time aware multi-table join here that can deal with years and days
-        tableColumnMembershipArray.sort((a, b) => b[1].size - a[1].size)
-        // const mergeBatches : [string[], Set<number>][] = []
-        let mergedTables: Set<number> = new Set()
-        let mergeResult: OwidTable | undefined = undefined
-        console.warn(
-            "We have the following table column membership",
-            tableColumnMembershipArray
-        )
-        for (let i = 0; i < tableColumnMembershipArray.length; i++) {
-            const columnSlug = tableColumnMembershipArray[i][0]
-            const initialTableIndicesSet = tableColumnMembershipArray[i][1]
-            const indexColumnsForCurrentJoin = [columnSlug]
-            let currentTableJoinSet = new Set(initialTableIndicesSet)
-            for (let j = i + 1; j < tableColumnMembershipArray.length; j++) {
-                indexColumnsForCurrentJoin.push(
-                    tableColumnMembershipArray[j][0]
-                )
-                currentTableJoinSet = intersectionOfSets([
-                    currentTableJoinSet,
-                    tableColumnMembershipArray[j][1],
-                ])
-            }
-            const tableJoinSetForCurrentBatch = differenceOfSets([
-                currentTableJoinSet,
-                mergedTables,
-            ])
-            console.warn(
-                "About to try and do a merge",
-                tableJoinSetForCurrentBatch
-            )
-            if (tableJoinSetForCurrentBatch.size > 0) {
-                const mergeResultsArray = mergeResult ? [mergeResult] : []
-                mergeResult = fullJoinTablesWithIndexColumns(
-                    mergeResultsArray.concat(
-                        tables.filter((table, index) =>
-                            tableJoinSetForCurrentBatch.has(index)
-                        )
-                    ),
-                    indexColumnsForCurrentJoin
-                )
-                console.warn(
-                    "full join on batch completed - columns",
-                    mergeResult.columnNames
-                )
-                mergedTables = unionOfSets([
-                    mergedTables,
-                    tableJoinSetForCurrentBatch,
-                ])
-            }
-        }
-        return mergeResult!
-    }
-}
+//         const tableColumnMembership: Map<string, Set<number>> = new Map()
+//         // Create a map of column names to sets of table indices. If a column name occurs only once
+//         // then the set of this column name will only have one member. If it occurs in all columns the length
+//         // of the set will be the number of tables. For columns shared only between some tables (e.g. if
+//         // there are two differen time columns and so only entity is shared between some) then the size of the
+//         // set will be > 1 and < numtables
+//         tables.forEach((table, index) => {
+//             for (const columnSlug of table.columnSlugs) {
+//                 const columnMembership =
+//                     tableColumnMembership.get(columnSlug) ?? new Set()
+//                 columnMembership.add(index)
+//                 tableColumnMembership.set(columnSlug, columnMembership)
+//             }
+//         })
+//         console.warn("Num tables", tables.length)
+//         console.warn("Size of map", tableColumnMembership.size)
+//         // Get an array of tuples of tablename, index set; and drop all columns that occur only once
+//         const tableColumnMembershipArray = [
+//             ...tableColumnMembership.entries(),
+//         ].filter((item) => item[1].size > 1)
+//         // Now sort it by number of tables sharing the column.
+//         // NOTE: this algorithm does not work for a fully arbitrary number of columsn sharing arbitrary index columns
+//         // it is instead built with the assumption in mind that tables may share a larger set of index columns or a
+//         // smaller one (i.e year+entity or entity only)
+//         // TODO: it would be better to have a time aware multi-table join here that can deal with years and days
+//         tableColumnMembershipArray.sort((a, b) => b[1].size - a[1].size)
+//         // const mergeBatches : [string[], Set<number>][] = []
+//         let mergedTables: Set<number> = new Set()
+//         let mergeResult: OwidTable | undefined = undefined
+//         console.warn(
+//             "We have the following table column membership",
+//             tableColumnMembershipArray
+//         )
+//         for (let i = 0; i < tableColumnMembershipArray.length; i++) {
+//             const columnSlug = tableColumnMembershipArray[i][0]
+//             const initialTableIndicesSet = tableColumnMembershipArray[i][1]
+//             const indexColumnsForCurrentJoin = [columnSlug]
+//             let currentTableJoinSet = new Set(initialTableIndicesSet)
+//             for (let j = i + 1; j < tableColumnMembershipArray.length; j++) {
+//                 indexColumnsForCurrentJoin.push(
+//                     tableColumnMembershipArray[j][0]
+//                 )
+//                 currentTableJoinSet = intersectionOfSets([
+//                     currentTableJoinSet,
+//                     tableColumnMembershipArray[j][1],
+//                 ])
+//             }
+//             const tableJoinSetForCurrentBatch = differenceOfSets([
+//                 currentTableJoinSet,
+//                 mergedTables,
+//             ])
+//             console.warn(
+//                 "About to try and do a merge",
+//                 tableJoinSetForCurrentBatch
+//             )
+//             if (tableJoinSetForCurrentBatch.size > 0) {
+//                 const mergeResultsArray = mergeResult ? [mergeResult] : []
+//                 mergeResult = fullJoinTablesWithIndexColumns(
+//                     mergeResultsArray.concat(
+//                         tables.filter((table, index) =>
+//                             tableJoinSetForCurrentBatch.has(index)
+//                         )
+//                     ),
+//                     indexColumnsForCurrentJoin
+//                 )
+//                 console.warn(
+//                     "full join on batch completed - columns",
+//                     mergeResult.columnNames
+//                 )
+//                 mergedTables = unionOfSets([
+//                     mergedTables,
+//                     tableJoinSetForCurrentBatch,
+//                 ])
+//             }
+//         }
+//         return mergeResult!
+//     }
+// }
 
 const columnDefFromOwidVariable = (
     variable: OwidVariableWithSourceAndDimension
