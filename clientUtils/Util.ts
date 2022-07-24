@@ -911,6 +911,12 @@ export const intersectionOfSets = <T>(sets: Set<T>[]): Set<T> => {
     return intersection
 }
 
+export const unionOfSets = <T>(sets: Set<T>[]): Set<T> => {
+    if (!sets.length) return new Set<T>()
+    const unionSet = new Set<T>(...sets)
+    return unionSet
+}
+
 export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
     if (!sets.length) return new Set<T>()
     const diff = new Set<T>(sets[0])
