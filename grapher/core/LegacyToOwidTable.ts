@@ -10,11 +10,14 @@ import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
 import {
     diffDateISOStringInDays,
     difference,
+    differenceOfSets,
     flatten,
     intersection,
+    intersectionOfSets,
     isNumber,
     makeAnnotationsSlug,
     trimObject,
+    unionOfSets,
     uniqBy,
 } from "../../clientUtils/Util.js"
 import {
@@ -33,7 +36,7 @@ import {
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes.js"
 import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
-import { zip } from "lodash"
+import { sortBy, zip } from "lodash"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
 
 export const legacyToOwidTableAndDimensions = (
@@ -212,6 +215,7 @@ export const legacyToOwidTableAndDimensions = (
 
         return variableTable
     })
+    console.warn("test")
 
     let joinedVariablesTable = variableTables.length
         ? fullJoinTables(variableTables)
@@ -236,96 +240,176 @@ export const legacyToOwidTableAndDimensions = (
     return { dimensions: newDimensions, table: joinedVariablesTable }
 }
 
+const fullJoinTablesWithIndexColumns = (
+    tables: OwidTable[],
+    indexColumnNames: string[]
+): OwidTable => {
+    // Get all the index values per table and then figure out the full set of all stringified index values
+    const indexValuesPerTable = tables.map((table) =>
+        table.rowIndex(indexColumnNames)
+    )
+    const allIndexValuesArray = indexValuesPerTable.flatMap((index) => [
+        ...index.keys(),
+    ])
+    const allIndexValues = new Set(allIndexValuesArray)
+
+    // Now identify for each table which columns should be copied (i.e. all non-index columns)
+    const columnsToAddPerTable = tables.map((table) =>
+        difference(table.columnSlugs, indexColumnNames)
+    )
+    // Prepare a special entry for the Table + column names tuple that we will zip and
+    // map in the next step. This special entry is the first one and contains only the
+    // index columns from the first table and only once
+    const firstTableDuplicateForIndices: [
+        OwidTable | undefined,
+        string[] | undefined
+    ] = [tables[0], indexColumnNames]
+    const defsToAddPerTable = [firstTableDuplicateForIndices]
+        .concat(zip(tables, columnsToAddPerTable))
+        .map(
+            (tableAndColumns) =>
+                tableAndColumns[0]!
+                    .getColumns(tableAndColumns[1]!)
+                    .map((col) => {
+                        const def = { ...col.def }
+                        def.values = []
+                        return def
+                    }) as OwidColumnDef[]
+        )
+    for (const index of allIndexValues.values()) {
+        // First we handle the index columns (defsToAddPerTable[0])
+        for (const def of defsToAddPerTable[0]) {
+            // The index columns are special - the first table might not have a value for each of the index columns
+            // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
+            // looking in the other tables until we find a table that has the values. Because the index values were
+            // generated from the combined set of all index values we are guaranteed to find a value eventually before
+            // we exceed the length of the tables array
+            let tableIndex = 0
+            let indexHits = indexValuesPerTable[tableIndex].get(index)
+            while (indexHits === undefined) {
+                tableIndex++
+                indexHits = indexValuesPerTable[tableIndex].get(index)
+            }
+            def.values?.push(
+                tables[tableIndex].columnStore[def.slug][indexHits[0]]
+            )
+        }
+        // now add all the nonindex value columns
+        // note that defsToAddPerTable has one more element than tables (the one duplicate of the
+        // first table that we added in the beginning)
+        for (let i = 0; i < tables.length; i++) {
+            const indexHits = indexValuesPerTable[i].get(index)
+
+            // if (indexHits !== undefined && indexHits.length > 1)
+            //     console.error(
+            //         `Found more than one matching row in table ${tables[i].tableSlug}`
+            //     )
+            for (const def of defsToAddPerTable[i + 1]) {
+                // There is a special case for the first table that contains the index columns
+                // If for a given row this first table doesn't have values for the index row then
+                // we need to check the other tables until we find one that has a value for this index
+                // for the key column
+
+                if (indexHits !== undefined)
+                    def.values?.push(
+                        tables[i].columnStore[def.slug][indexHits[0]]
+                    )
+                // todo: use first or last match?
+                else
+                    def.values?.push(
+                        ErrorValueTypes.NoMatchingValueAfterJoin as any
+                    )
+            }
+        }
+    }
+    return new OwidTable(
+        [],
+        defsToAddPerTable.flatMap((defs) => defs)
+    )
+}
+
 const fullJoinTables = (tables: OwidTable[]): OwidTable => {
     if (tables.length === 0) return new OwidTable()
     else {
         // Figure out the names of the columns that are shared and are thus the index columns
         // TODO: we might want to mandate explicitly specifying this or get this from a different understanding of the data model
-        const indexColumnNames = intersection(
-            ...tables.map((table) => table.columnSlugs)
-        )
-        // Get all the index values per table and then figure out the full set of all stringified index values
-        const indexValuesPerTable = tables.map((table) =>
-            table.rowIndex(indexColumnNames)
-        )
-        const allIndexValuesArray = indexValuesPerTable.flatMap((index) => [
-            ...index.keys(),
-        ])
-        const allIndexValues = new Set(allIndexValuesArray)
 
-        // Now identify for each table which columns should be copied (i.e. all non-index columns)
-        const columnsToAddPerTable = tables.map((table) =>
-            difference(table.columnSlugs, indexColumnNames)
-        )
-        // Prepare a special entry for the Table + column names tuple that we will zip and
-        // map in the next step. This special entry is the first one and contains only the
-        // index columns from the first table and only once
-        const firstTableDuplicateForIndices: [
-            OwidTable | undefined,
-            string[] | undefined
-        ] = [tables[0], indexColumnNames]
-        const defsToAddPerTable = [firstTableDuplicateForIndices]
-            .concat(zip(tables, columnsToAddPerTable))
-            .map(
-                (tableAndColumns) =>
-                    tableAndColumns[0]!
-                        .getColumns(tableAndColumns[1]!)
-                        .map((col) => {
-                            const def = { ...col.def }
-                            def.values = []
-                            return def
-                        }) as OwidColumnDef[]
-            )
-        for (const index of allIndexValues.values()) {
-            // First we handle the index columns (defsToAddPerTable[0])
-            for (const def of defsToAddPerTable[0]) {
-                // The index columns are special - the first table might not have a value for each of the index columns
-                // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
-                // looking in the other tables until we find a table that has the values. Because the index values were
-                // generated from the combined set of all index values we are guaranteed to find a value eventually before
-                // we exceed the length of the tables array
-                let tableIndex = 0
-                let indexHits = indexValuesPerTable[tableIndex].get(index)
-                while (indexHits === undefined) {
-                    tableIndex++
-                    indexHits = indexValuesPerTable[tableIndex].get(index)
-                }
-                def.values?.push(
-                    tables[tableIndex].columnStore[def.slug][indexHits[0]]
-                )
+        const tableColumnMembership: Map<string, Set<number>> = new Map()
+        // Create a map of column names to sets of table indices. If a column name occurs only once
+        // then the set of this column name will only have one member. If it occurs in all columns the length
+        // of the set will be the number of tables. For columns shared only between some tables (e.g. if
+        // there are two differen time columns and so only entity is shared between some) then the size of the
+        // set will be > 1 and < numtables
+        tables.forEach((table, index) => {
+            for (const columnSlug of table.columnSlugs) {
+                const columnMembership =
+                    tableColumnMembership.get(columnSlug) ?? new Set()
+                columnMembership.add(index)
+                tableColumnMembership.set(columnSlug, columnMembership)
             }
-            // now add all the nonindex value columns
-            // note that defsToAddPerTable has one more element than tables (the one duplicate of the
-            // first table that we added in the beginning)
-            for (let i = 0; i < tables.length; i++) {
-                const indexHits = indexValuesPerTable[i].get(index)
-
-                if (indexHits !== undefined && indexHits.length > 1)
-                    console.error(
-                        `Found more than one matching row in table ${tables[i].tableSlug}`
-                    )
-                for (const def of defsToAddPerTable[i + 1]) {
-                    // There is a special case for the first table that contains the index columns
-                    // If for a given row this first table doesn't have values for the index row then
-                    // we need to check the other tables until we find one that has a value for this index
-                    // for the key column
-
-                    if (indexHits !== undefined)
-                        def.values?.push(
-                            tables[i].columnStore[def.slug][indexHits[0]]
+        })
+        console.warn("Num tables", tables.length)
+        console.warn("Size of map", tableColumnMembership.size)
+        // Get an array of tuples of tablename, index set; and drop all columns that occur only once
+        const tableColumnMembershipArray = [
+            ...tableColumnMembership.entries(),
+        ].filter((item) => item[1].size > 1)
+        // Now sort it by number of tables sharing the column.
+        // NOTE: this algorithm does not work for a fully arbitrary number of columsn sharing arbitrary index columns
+        // it is instead built with the assumption in mind that tables may share a larger set of index columns or a
+        // smaller one (i.e year+entity or entity only)
+        // TODO: it would be better to have a time aware multi-table join here that can deal with years and days
+        tableColumnMembershipArray.sort((a, b) => b[1].size - a[1].size)
+        // const mergeBatches : [string[], Set<number>][] = []
+        let mergedTables: Set<number> = new Set()
+        let mergeResult: OwidTable | undefined = undefined
+        console.warn(
+            "We have the following table column membership",
+            tableColumnMembershipArray
+        )
+        for (let i = 0; i < tableColumnMembershipArray.length; i++) {
+            const columnSlug = tableColumnMembershipArray[i][0]
+            const initialTableIndicesSet = tableColumnMembershipArray[i][1]
+            const indexColumnsForCurrentJoin = [columnSlug]
+            let currentTableJoinSet = new Set(initialTableIndicesSet)
+            for (let j = i + 1; j < tableColumnMembershipArray.length; j++) {
+                indexColumnsForCurrentJoin.push(
+                    tableColumnMembershipArray[j][0]
+                )
+                currentTableJoinSet = intersectionOfSets([
+                    currentTableJoinSet,
+                    tableColumnMembershipArray[j][1],
+                ])
+            }
+            const tableJoinSetForCurrentBatch = differenceOfSets([
+                currentTableJoinSet,
+                mergedTables,
+            ])
+            console.warn(
+                "About to try and do a merge",
+                tableJoinSetForCurrentBatch
+            )
+            if (tableJoinSetForCurrentBatch.size > 0) {
+                const mergeResultsArray = mergeResult ? [mergeResult] : []
+                mergeResult = fullJoinTablesWithIndexColumns(
+                    mergeResultsArray.concat(
+                        tables.filter((table, index) =>
+                            tableJoinSetForCurrentBatch.has(index)
                         )
-                    // todo: use first or last match?
-                    else
-                        def.values?.push(
-                            ErrorValueTypes.NoMatchingValueAfterJoin as any
-                        )
-                }
+                    ),
+                    indexColumnsForCurrentJoin
+                )
+                console.warn(
+                    "full join on batch completed - columns",
+                    mergeResult.columnNames
+                )
+                mergedTables = unionOfSets([
+                    mergedTables,
+                    tableJoinSetForCurrentBatch,
+                ])
             }
         }
-        return new OwidTable(
-            [],
-            defsToAddPerTable.flatMap((defs) => defs)
-        )
+        return mergeResult!
     }
 }
 
