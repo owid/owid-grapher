@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "args": [],
+            "internalConsoleOptions": "openOnSessionStart",
+            "name": "Jest Tests",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "request": "launch",
+            "skipFiles": ["<node_internals>/**"],
+            "type": "node"
+        },
+        {
             "name": "Launch site dev",
             "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
             "request": "launch",
