@@ -1184,7 +1184,10 @@ export class Grapher
                 let text = `**${i + 1}.** `
                 const detail = this.details[category][term]
                 if (detail) {
-                    text += `**${detail.title}**\n\n${detail.content}`
+                    text += `**${detail.title}**: ${detail.content.replaceAll(
+                        /\n\n/g,
+                        " "
+                    )}`
                 }
                 return new MarkdownTextWrap({
                     text,
@@ -1193,7 +1196,7 @@ export class Grapher
                     maxWidth: this.idealBounds.width - 30,
                     lineHeight: 1.2,
                     style: {
-                        fill: "#555",
+                        fill: "#777",
                     },
                 })
             }

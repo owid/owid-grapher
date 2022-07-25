@@ -314,7 +314,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     renderSVGDetails(): JSX.Element | null {
-        if (isEmpty(this.manager.details)) return null
+        if (
+            isEmpty(this.manager.details) ||
+            !this.manager.shouldIncludeDetailsInStaticExport
+        ) {
+            return null
+        }
 
         let yOffset = 0
         let previousOffset = 0
@@ -323,7 +328,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 <line
                     x1={OUTSIDE_PADDING}
                     y1={this.bounds.height}
-                    x2={this.boundsForChart.width - OUTSIDE_PADDING}
+                    x2={this.boundsForChart.width + OUTSIDE_PADDING}
                     y2={this.bounds.height}
                     stroke="#777"
                 ></line>

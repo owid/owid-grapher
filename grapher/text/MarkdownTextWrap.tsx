@@ -267,6 +267,7 @@ export class IRLink extends IRElement {
                 key={key}
                 href={this.href}
                 target="_blank"
+                style={{ textDecoration: "underline" }}
                 rel="noopener noreferrer"
             >
                 {this.children.map((child, i) => child.toSVG(i))}
