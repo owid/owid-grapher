@@ -34,11 +34,17 @@ class DetailsOnDemand {
 // An object that can be shared throughout the codebase to make details globally accessible
 export const globalDetailsOnDemand = new DetailsOnDemand()
 
-@observer
-export class DoDWrapper extends React.Component<{
+interface DoDWrapperProps {
     category: string
     term: string
-}> {
+    children?: React.ReactNode
+}
+
+@observer
+export class DoDWrapper extends React.Component<DoDWrapperProps> {
+    constructor(props: DoDWrapperProps) {
+        super(props)
+    }
     @computed get category() {
         return this.props.category
     }
@@ -54,6 +60,7 @@ export class DoDWrapper extends React.Component<{
         }
         return ""
     }
+
     @computed get title() {
         if (this.detail) {
             return this.detail.title
@@ -63,25 +70,32 @@ export class DoDWrapper extends React.Component<{
     render() {
         if (!this.content) return this.props.children
         return (
-            <Tippy
-                content={
-                    <div className="dod-tooltip">
-                        <h3>{this.title}</h3>
-                        <MarkdownTextWrap text={this.content} fontSize={14} />
-                    </div>
-                }
-                interactive
-                hideOnClick={false}
-                arrow={false}
-            >
-                <span
-                    aria-label={`A definition of the term ${this.title}`}
-                    tabIndex={0}
-                    className="dod-term"
+            <span className="interactive-tippy-wrapper">
+                <Tippy
+                    placement="auto"
+                    className="dod-tippy-container"
+                    content={
+                        <div className="dod-tooltip">
+                            <h3>{this.title}</h3>
+                            <MarkdownTextWrap
+                                text={this.content}
+                                fontSize={14}
+                            />
+                        </div>
+                    }
+                    interactive
+                    hideOnClick={false}
+                    arrow={false}
                 >
-                    {this.props.children}
-                </span>
-            </Tippy>
+                    <span
+                        aria-label={`A definition of the term ${this.title}`}
+                        tabIndex={0}
+                        className="dod-term"
+                    >
+                        {this.props.children}
+                    </span>
+                </Tippy>
+            </span>
         )
     }
 }

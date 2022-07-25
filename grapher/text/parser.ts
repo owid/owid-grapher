@@ -326,6 +326,8 @@ const detailOnDemandContentParser: (
         r.nonBracketWord
     )
 
+export const detailOnDemandRegex = /\(hover::(\w+)::(\w+)\)/
+
 const detailOnDemandParser: (r: MdParser) => P.Parser<DetailOnDemand> = (
     r: MdParser
 ) =>

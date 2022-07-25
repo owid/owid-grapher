@@ -22,6 +22,10 @@ Testing this somewhat long line. **I am bold-_and-italic_. And the formatting ex
 
 newlines!**
 
+These DoDs won't render on hover because there's no data for them, but they'll demonstrate the superscript on SVG:
+
+[A dod](hover::general::term1) [another dod.](hover::general::term2) [The other dod](hover::general::term1)
+
 [links can contain _formatting_ too](http://ourworldindata.org). Averylongtokenthatcantbesplitbutshouldbeincludedanyway.**Canhavebold**withoutlinebreak.
 
 _THE END_
@@ -101,7 +105,7 @@ _THE END_
                     </div>
                     <pre>isSVG Example</pre>
                     <svg
-                        viewBox={`0,0,${svgContainerWidth},200`}
+                        viewBox={`0,0,${svgContainerWidth},400`}
                         style={{ outline: "1px solid black" }}
                     >
                         {new MarkdownTextWrap({

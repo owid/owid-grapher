@@ -28,8 +28,8 @@ describe("MarkdownTextWrap", () => {
             maxWidth: 200,
         })
 
-        const plainWidth = getLineWidth(plainMarkdownTextWrap.lines[0])
-        const boldWidth = getLineWidth(boldMarkdownTextWrap.lines[0])
+        const plainWidth = getLineWidth(plainMarkdownTextWrap.htmlLines[0])
+        const boldWidth = getLineWidth(boldMarkdownTextWrap.htmlLines[0])
         expect(plainWidth).toBeLessThan(boldWidth)
     })
 

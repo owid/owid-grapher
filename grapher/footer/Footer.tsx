@@ -108,6 +108,7 @@ export class Footer extends React.Component<{
             maxWidth,
             fontSize,
             text: noteText,
+            detailsOrderedByReference: this.manager.detailsOrderedByReference,
         })
     }
 

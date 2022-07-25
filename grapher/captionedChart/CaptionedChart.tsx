@@ -314,22 +314,39 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     renderSVGDetails(): JSX.Element | null {
-        if (isEmpty(this.manager.details)) return null
+        if (
+            isEmpty(this.manager.details) ||
+            !this.manager.shouldIncludeDetailsInStaticExport
+        ) {
+            return null
+        }
 
         let yOffset = 0
         let previousOffset = 0
         return (
-            <g
-                style={{
-                    transform: `translate(15px, ${this.bounds.height}px)`,
-                }}
-            >
-                {this.manager.detailRenderers.map((detail, i) => {
-                    previousOffset = yOffset
-                    yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
-                    return detail.renderSVG(0, previousOffset, { key: i })
-                })}
-            </g>
+            <>
+                <line
+                    x1={OUTSIDE_PADDING}
+                    y1={this.bounds.height}
+                    x2={this.boundsForChart.width + OUTSIDE_PADDING}
+                    y2={this.bounds.height}
+                    stroke="#777"
+                ></line>
+                <g
+                    style={{
+                        transform: `translate(15px, ${
+                            // + padding below the grey line
+                            this.bounds.height + OUTSIDE_PADDING
+                        }px)`,
+                    }}
+                >
+                    {this.manager.detailRenderers.map((detail, i) => {
+                        previousOffset = yOffset
+                        yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
+                        return detail.renderSVG(0, previousOffset, { key: i })
+                    })}
+                </g>
+            </>
         )
     }
 
