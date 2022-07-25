@@ -99,7 +99,8 @@ export const legacyToOwidTableAndDimensions = (
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
-    const variableTables = dimensionColumns.map((dimension) => {
+    const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
+    dimensionColumns.forEach((dimension) => {
         const variable = json.get(dimension.variableId)!
 
         // Copy the base columnDef
@@ -211,12 +212,11 @@ export const legacyToOwidTableAndDimensions = (
                 )
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, 0)
-        }
-
-        if (variable.metadata.display?.yearIsDay)
+                .dropColumns([timeColumnDef.slug])
+            variableTablesWithYearToJoinByEntityOnly.push(variableTable)
+        } else if (variable.metadata.display?.yearIsDay)
             variableTablesToJoinByDay.push(variableTable)
         else variableTablesToJoinByYear.push(variableTable)
-        return variableTable
     })
 
     const variablesJoinedByYear = fullJoinTables(variableTablesToJoinByYear, [
@@ -230,10 +230,12 @@ export const legacyToOwidTableAndDimensions = (
     // TODO: add year column to day table
 
     let joinedVariablesTable: OwidTable
+    let mainIndexColumns = [OwidTableSlugs.year, OwidTableSlugs.entityId]
     if (
         variableTablesToJoinByYear.length > 0 &&
         variableTablesToJoinByDay.length > 0
     ) {
+        mainIndexColumns = [OwidTableSlugs.day, OwidTableSlugs.entityId]
         const daysColumn = variablesJoinedByDay.getColumns([
             OwidTableSlugs.day,
         ])[0]
@@ -264,7 +266,17 @@ export const legacyToOwidTableAndDimensions = (
         )
     } else if (variableTablesToJoinByYear.length > 0)
         joinedVariablesTable = variablesJoinedByYear
-    else joinedVariablesTable = variablesJoinedByDay
+    else {
+        mainIndexColumns = [OwidTableSlugs.day, OwidTableSlugs.entityId]
+        joinedVariablesTable = variablesJoinedByDay
+    }
+
+    if (variableTablesWithYearToJoinByEntityOnly.length > 0)
+        joinedVariablesTable = fullJoinTables(
+            [joinedVariablesTable, ...variableTablesWithYearToJoinByEntityOnly],
+            mainIndexColumns,
+            [OwidTableSlugs.entityId]
+        )
 
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
