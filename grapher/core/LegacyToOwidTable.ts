@@ -11,6 +11,7 @@ import {
     diffDateISOStringInDays,
     difference,
     flatten,
+    getYearFromISOStringAndDayOffset,
     intersection,
     isNumber,
     makeAnnotationsSlug,
@@ -35,6 +36,7 @@ import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes.js"
 import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
 import { sortBy, zip } from "lodash"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
+import { makeKeyFn } from "../../coreTable/CoreTableUtils.js"
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -209,8 +211,6 @@ export const legacyToOwidTableAndDimensions = (
                 )
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, 0)
-                // Drop the time column to join table only on entity
-                .dropColumns([timeColumnDef.slug])
         }
 
         if (variable.metadata.display?.yearIsDay)
@@ -227,17 +227,44 @@ export const legacyToOwidTableAndDimensions = (
         OwidTableSlugs.day,
         OwidTableSlugs.entityId,
     ])
+    // TODO: add year column to day table
 
-    let joinedVariablesTable =
+    let joinedVariablesTable: OwidTable
+    if (
         variableTablesToJoinByYear.length > 0 &&
         variableTablesToJoinByDay.length > 0
-            ? fullJoinTables(
-                  [variablesJoinedByDay, variablesJoinedByYear],
-                  [OwidTableSlugs.entityId]
-              )
-            : variableTablesToJoinByYear.length > 0
-            ? variablesJoinedByYear
-            : variablesJoinedByDay
+    ) {
+        const daysColumn = variablesJoinedByDay.getColumns([
+            OwidTableSlugs.day,
+        ])[0]
+        const yearsForDaysValues = []
+        for (let i = 0; i < daysColumn.values.length; i++) {
+            yearsForDaysValues.push(
+                getYearFromISOStringAndDayOffset(
+                    EPOCH_DATE,
+                    daysColumn.values[i] as number
+                )
+            )
+        }
+        const newYearColumn = {
+            ...daysColumn,
+            slug: OwidTableSlugs.year,
+            name: OwidTableSlugs.year,
+            values: yearsForDaysValues,
+        } as unknown as OwidColumnDef
+        const variablesJoinedByDayWithYearFilled =
+            variablesJoinedByDay.appendColumns([newYearColumn])
+
+        joinedVariablesTable = fullJoinTables(
+            [variablesJoinedByDayWithYearFilled, variablesJoinedByYear],
+            [OwidTableSlugs.day, OwidTableSlugs.entityId],
+            // [OwidTableSlugs.year, OwidTableSlugs.entityId]
+            [OwidTableSlugs.entityId] // Id' rather join with year here but the legacy behaviour
+            // is to join with entityId only and filter year based variables to single years beforehand
+        )
+    } else if (variableTablesToJoinByYear.length > 0)
+        joinedVariablesTable = variablesJoinedByYear
+    else joinedVariablesTable = variablesJoinedByDay
 
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
@@ -260,14 +287,26 @@ export const legacyToOwidTableAndDimensions = (
 
 const fullJoinTables = (
     tables: OwidTable[],
-    indexColumnNames: string[]
+    indexColumnNames: string[],
+    mergeFallbackLookupColumns?: string[]
 ): OwidTable => {
     if (tables.length === 0) return new OwidTable()
     else if (tables.length === 1) return tables[0]
+
     // Get all the index values per table and then figure out the full set of all stringified index values
     const indexValuesPerTable = tables.map((table) =>
-        table.rowIndex(indexColumnNames)
+        // When we get a mergeFallbackLookupColumn then it can happen that a table does not have all the
+        // columns of the main index. In this case, just return an empty map because that will lead all
+        // lookups by main index to fail and we'll try the fallback index
+        mergeFallbackLookupColumns &&
+        difference(indexColumnNames, table.columnSlugs).length === 0
+            ? table.rowIndex(indexColumnNames)
+            : new Map()
     )
+    const mergeFallbackLookupValuesPerTable = mergeFallbackLookupColumns
+        ? tables.map((table) => table.rowIndex(mergeFallbackLookupColumns))
+        : undefined
+
     const sharedColumnNames = intersection(
         ...tables.map((table) => table.columnSlugs)
     )
@@ -317,11 +356,25 @@ const fullJoinTables = (
                 tables[tableIndex].columnStore[def.slug][indexHits[0]]
             )
         }
+        // Now figure out the fallback merge lookup index value from the first table.
+        // This is the fallback index we use when looking up values and we don't find a value in the normal index.
+        // This is the case when we join year and day variables and then use day+entityid as the key but the year
+        // variables don't have those - so for the year variables we then check if there is a match using year+entityId
+        // where the year to use comes from the first table that by convention has to contain a year column with the
+        // value to merge years on.
+        const indexHits = indexValuesPerTable[0].get(index)
+        const fallbackMergeIndex =
+            mergeFallbackLookupColumns && indexHits
+                ? makeKeyFn(
+                      tables[0].columnStore,
+                      mergeFallbackLookupColumns
+                  )(indexHits![0])
+                : undefined
         // now add all the nonindex value columns
         // note that defsToAddPerTable has one more element than tables (the one duplicate of the
         // first table that we added in the beginning)
         for (let i = 0; i < tables.length; i++) {
-            const indexHits = indexValuesPerTable[i].get(index)
+            let indexHits = indexValuesPerTable[i].get(index)
 
             // if (indexHits !== undefined && indexHits.length > 1)
             //     console.error(
@@ -338,10 +391,23 @@ const fullJoinTables = (
                         tables[i].columnStore[def.slug][indexHits[0]]
                     )
                 // todo: use first or last match?
-                else
-                    def.values?.push(
-                        ErrorValueTypes.NoMatchingValueAfterJoin as any
-                    )
+                else {
+                    indexHits =
+                        fallbackMergeIndex && mergeFallbackLookupValuesPerTable
+                            ? mergeFallbackLookupValuesPerTable[i].get(
+                                  fallbackMergeIndex
+                              )
+                            : undefined
+                    if (indexHits !== undefined)
+                        def.values?.push(
+                            tables[i].columnStore[def.slug][indexHits[0]]
+                        )
+                    // todo: use first or last match?
+                    else
+                        def.values?.push(
+                            ErrorValueTypes.NoMatchingValueAfterJoin as any
+                        )
+                }
             }
         }
     }
@@ -350,91 +416,6 @@ const fullJoinTables = (
         defsToAddPerTable.flatMap((defs) => defs)
     )
 }
-
-// const fullJoinTables = (tables: OwidTable[]): OwidTable => {
-//     if (tables.length === 0) return new OwidTable()
-//     else {
-//         // Figure out the names of the columns that are shared and are thus the index columns
-//         // TODO: we might want to mandate explicitly specifying this or get this from a different understanding of the data model
-
-//         const tableColumnMembership: Map<string, Set<number>> = new Map()
-//         // Create a map of column names to sets of table indices. If a column name occurs only once
-//         // then the set of this column name will only have one member. If it occurs in all columns the length
-//         // of the set will be the number of tables. For columns shared only between some tables (e.g. if
-//         // there are two differen time columns and so only entity is shared between some) then the size of the
-//         // set will be > 1 and < numtables
-//         tables.forEach((table, index) => {
-//             for (const columnSlug of table.columnSlugs) {
-//                 const columnMembership =
-//                     tableColumnMembership.get(columnSlug) ?? new Set()
-//                 columnMembership.add(index)
-//                 tableColumnMembership.set(columnSlug, columnMembership)
-//             }
-//         })
-//         console.warn("Num tables", tables.length)
-//         console.warn("Size of map", tableColumnMembership.size)
-//         // Get an array of tuples of tablename, index set; and drop all columns that occur only once
-//         const tableColumnMembershipArray = [
-//             ...tableColumnMembership.entries(),
-//         ].filter((item) => item[1].size > 1)
-//         // Now sort it by number of tables sharing the column.
-//         // NOTE: this algorithm does not work for a fully arbitrary number of columsn sharing arbitrary index columns
-//         // it is instead built with the assumption in mind that tables may share a larger set of index columns or a
-//         // smaller one (i.e year+entity or entity only)
-//         // TODO: it would be better to have a time aware multi-table join here that can deal with years and days
-//         tableColumnMembershipArray.sort((a, b) => b[1].size - a[1].size)
-//         // const mergeBatches : [string[], Set<number>][] = []
-//         let mergedTables: Set<number> = new Set()
-//         let mergeResult: OwidTable | undefined = undefined
-//         console.warn(
-//             "We have the following table column membership",
-//             tableColumnMembershipArray
-//         )
-//         for (let i = 0; i < tableColumnMembershipArray.length; i++) {
-//             const columnSlug = tableColumnMembershipArray[i][0]
-//             const initialTableIndicesSet = tableColumnMembershipArray[i][1]
-//             const indexColumnsForCurrentJoin = [columnSlug]
-//             let currentTableJoinSet = new Set(initialTableIndicesSet)
-//             for (let j = i + 1; j < tableColumnMembershipArray.length; j++) {
-//                 indexColumnsForCurrentJoin.push(
-//                     tableColumnMembershipArray[j][0]
-//                 )
-//                 currentTableJoinSet = intersectionOfSets([
-//                     currentTableJoinSet,
-//                     tableColumnMembershipArray[j][1],
-//                 ])
-//             }
-//             const tableJoinSetForCurrentBatch = differenceOfSets([
-//                 currentTableJoinSet,
-//                 mergedTables,
-//             ])
-//             console.warn(
-//                 "About to try and do a merge",
-//                 tableJoinSetForCurrentBatch
-//             )
-//             if (tableJoinSetForCurrentBatch.size > 0) {
-//                 const mergeResultsArray = mergeResult ? [mergeResult] : []
-//                 mergeResult = fullJoinTablesWithIndexColumns(
-//                     mergeResultsArray.concat(
-//                         tables.filter((table, index) =>
-//                             tableJoinSetForCurrentBatch.has(index)
-//                         )
-//                     ),
-//                     indexColumnsForCurrentJoin
-//                 )
-//                 console.warn(
-//                     "full join on batch completed - columns",
-//                     mergeResult.columnNames
-//                 )
-//                 mergedTables = unionOfSets([
-//                     mergedTables,
-//                     tableJoinSetForCurrentBatch,
-//                 ])
-//             }
-//         }
-//         return mergeResult!
-//     }
-// }
 
 const columnDefFromOwidVariable = (
     variable: OwidVariableWithSourceAndDimension

@@ -780,6 +780,14 @@ export function dateDiffInDays(a: Date, b: Date): number {
 export const diffDateISOStringInDays = (a: string, b: string): number =>
     dayjs.utc(a).diff(dayjs.utc(b), "day")
 
+export const getYearFromISOStringAndDayOffset = (
+    epoch: string,
+    daysOffset: number
+): number => {
+    const date = dayjs.utc(epoch).add(daysOffset, "day")
+    return date.year()
+}
+
 export const addDays = (date: Date, days: number): Date => {
     const newDate = new Date(date.getTime())
     newDate.setDate(newDate.getDate() + days)
