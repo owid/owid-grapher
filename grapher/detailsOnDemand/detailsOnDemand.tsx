@@ -4,7 +4,6 @@ import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 import { computed, observable, ObservableMap } from "mobx"
 import { observer } from "mobx-react"
 import { Detail } from "../core/GrapherConstants.js"
-import { throttle } from "lodash"
 
 class DetailsOnDemand {
     @observable details = new ObservableMap<
@@ -42,15 +41,9 @@ interface DoDWrapperProps {
 }
 
 @observer
-export class DoDWrapper extends React.Component<
-    DoDWrapperProps,
-    { innerHeight: number }
-> {
+export class DoDWrapper extends React.Component<DoDWrapperProps> {
     constructor(props: DoDWrapperProps) {
         super(props)
-        this.state = {
-            innerHeight: window.innerHeight,
-        }
     }
     @computed get category() {
         return this.props.category
@@ -68,20 +61,6 @@ export class DoDWrapper extends React.Component<
         return ""
     }
 
-    handleResize = throttle(() => {
-        this.setState({
-            innerHeight: window.innerHeight,
-        })
-    }, 200)
-
-    componentDidMount() {
-        window.addEventListener("resize", this.handleResize)
-    }
-
-    componentWillUnmount() {
-        window.removeEventListener("resize", this.handleResize)
-    }
-
     @computed get title() {
         if (this.detail) {
             return this.detail.title
@@ -91,12 +70,9 @@ export class DoDWrapper extends React.Component<
     render() {
         if (!this.content) return this.props.children
         return (
-            <span>
+            <span className="interactive-tippy-wrapper">
                 <Tippy
-                    // Tippy gets it wrong when viewport height is very low
-                    // because it doesn't realize that the .GrapherComponent
-                    // container is overflow: hidden
-                    placement={this.state.innerHeight < 300 ? "right" : "auto"}
+                    placement="auto"
                     className="dod-tippy-container"
                     content={
                         <div className="dod-tooltip">

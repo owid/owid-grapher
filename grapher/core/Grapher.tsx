@@ -31,6 +31,8 @@ import {
     isInIFrame,
     differenceObj,
     isEmpty,
+    get,
+    set,
 } from "../../clientUtils/Util.js"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
 import {
@@ -178,7 +180,6 @@ import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
 import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 import { detailOnDemandRegex } from "../text/parser.js"
-import { get, set } from "lodash"
 
 declare const window: any
 
