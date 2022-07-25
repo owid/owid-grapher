@@ -298,7 +298,7 @@ const fullJoinTables = (
         // When we get a mergeFallbackLookupColumn then it can happen that a table does not have all the
         // columns of the main index. In this case, just return an empty map because that will lead all
         // lookups by main index to fail and we'll try the fallback index
-        mergeFallbackLookupColumns &&
+        !mergeFallbackLookupColumns ||
         difference(indexColumnNames, table.columnSlugs).length === 0
             ? table.rowIndex(indexColumnNames)
             : new Map()
