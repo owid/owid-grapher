@@ -461,7 +461,7 @@ describe(legacyToOwidTableAndDimensions, () => {
 
         describe("scatter-specific behavior", () => {
             it("only joins targetTime on Scatters", () => {
-                expect(table.rows.length).toEqual(3)
+                expect(table.rows.length).toEqual(3) // used to be 4 but IMHO that was wrong legacy behaviour (from combining left and right join and then dropping duplicates)
             })
 
             it("joins targetTime", () => {
