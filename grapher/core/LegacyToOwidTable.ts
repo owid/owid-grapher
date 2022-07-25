@@ -256,9 +256,10 @@ export const legacyToOwidTableAndDimensions = (
         joinedVariablesTable = fullJoinTables(
             [variablesJoinedByDayWithYearFilled, ...variableTablesToJoinByYear],
             [OwidTableSlugs.day, OwidTableSlugs.entityId],
-            // [OwidTableSlugs.year, OwidTableSlugs.entityId]
-            [OwidTableSlugs.entityId] // Id' rather join with year here but the legacy behaviour
-            // is to join with entityId only and filter year based variables to single years beforehand
+            [
+                [OwidTableSlugs.year, OwidTableSlugs.entityId],
+                [OwidTableSlugs.entityId],
+            ]
         )
     } else if (variableTablesToJoinByYear.length > 0)
         joinedVariablesTable = fullJoinTables(variableTablesToJoinByYear, [
@@ -310,7 +311,7 @@ export const legacyToOwidTableAndDimensions = (
 const fullJoinTables = (
     tables: OwidTable[],
     indexColumnNames: string[],
-    mergeFallbackLookupColumns?: string[]
+    mergeFallbackLookupColumns?: string[][]
 ): OwidTable => {
     if (tables.length === 0) return new OwidTable()
     else if (tables.length === 1) return tables[0]
@@ -326,7 +327,9 @@ const fullJoinTables = (
             : new Map()
     )
     const mergeFallbackLookupValuesPerTable = mergeFallbackLookupColumns
-        ? tables.map((table) => table.rowIndex(mergeFallbackLookupColumns))
+        ? mergeFallbackLookupColumns.map((fallbackColumns) =>
+              tables.map((table) => table.rowIndex(fallbackColumns))
+          )
         : undefined
 
     const sharedColumnNames = intersection(
@@ -385,12 +388,11 @@ const fullJoinTables = (
         // where the year to use comes from the first table that by convention has to contain a year column with the
         // value to merge years on.
         const indexHits = indexValuesPerTable[0].get(index)
-        const fallbackMergeIndex =
+        const fallbackMergeIndeces =
             mergeFallbackLookupColumns && indexHits
-                ? makeKeyFn(
-                      tables[0].columnStore,
-                      mergeFallbackLookupColumns
-                  )(indexHits![0])
+                ? mergeFallbackLookupColumns.map((columnSet) =>
+                      makeKeyFn(tables[0].columnStore, columnSet)(indexHits![0])
+                  )
                 : undefined
         // now add all the nonindex value columns
         // note that defsToAddPerTable has one more element than tables (the one duplicate of the
@@ -398,10 +400,10 @@ const fullJoinTables = (
         for (let i = 0; i < tables.length; i++) {
             let indexHits = indexValuesPerTable[i].get(index)
 
-            // if (indexHits !== undefined && indexHits.length > 1)
-            //     console.error(
-            //         `Found more than one matching row in table ${tables[i].tableSlug}`
-            //     )
+            if (indexHits !== undefined && indexHits.length > 1)
+                console.error(
+                    `Found more than one matching row in table ${tables[i].tableSlug}`
+                )
             for (const def of defsToAddPerTable[i + 1]) {
                 // There is a special case for the first table that contains the index columns
                 // If for a given row this first table doesn't have values for the index row then
@@ -414,12 +416,19 @@ const fullJoinTables = (
                     )
                 // todo: use first or last match?
                 else {
-                    indexHits =
-                        fallbackMergeIndex && mergeFallbackLookupValuesPerTable
-                            ? mergeFallbackLookupValuesPerTable[i].get(
-                                  fallbackMergeIndex
-                              )
-                            : undefined
+                    indexHits = undefined
+                    for (
+                        let fallbackIndex = 0;
+                        fallbackMergeIndeces &&
+                        mergeFallbackLookupValuesPerTable &&
+                        indexHits === undefined &&
+                        fallbackIndex < fallbackMergeIndeces!.length;
+                        fallbackIndex++
+                    ) {
+                        indexHits = mergeFallbackLookupValuesPerTable[
+                            fallbackIndex
+                        ][i].get(fallbackMergeIndeces[fallbackIndex])
+                    }
                     if (indexHits !== undefined)
                         def.values?.push(
                             tables[i].columnStore[def.slug][indexHits[0]]
