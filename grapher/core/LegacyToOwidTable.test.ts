@@ -461,7 +461,7 @@ describe(legacyToOwidTableAndDimensions, () => {
 
         describe("scatter-specific behavior", () => {
             it("only joins targetTime on Scatters", () => {
-                expect(table.rows.length).toEqual(4)
+                expect(table.rows.length).toEqual(3)
             })
 
             it("joins targetTime", () => {
