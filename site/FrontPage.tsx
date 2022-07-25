@@ -271,7 +271,7 @@ export const FrontPage = (props: {
                                                 </div>
                                             </a>
                                             <a
-                                                href="https://instagram.com/ourworldindata_official"
+                                                href="https://www.instagram.com/ourworldindata/"
                                                 className="list-item"
                                                 title="Instagram"
                                                 target="_blank"

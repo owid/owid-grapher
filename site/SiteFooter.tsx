@@ -146,7 +146,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </li>
                             <li>
                                 <a
-                                    href="https://instagram.com/ourworldindata_official"
+                                    href="https://www.instagram.com/ourworldindata/"
                                     data-track-note="footer-navigation"
                                 >
                                     Instagram
