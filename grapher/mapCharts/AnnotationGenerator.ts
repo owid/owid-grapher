@@ -1,316 +1,209 @@
 import { PointVector } from "../../clientUtils/PointVector.js"
-import { select } from "d3-selection"
 import pixelWidth from "string-pixel-width"
-import { ChoroplethSeries, RenderFeature } from "./MapChartConstants.js"
+import {
+    ChoroplethSeries,
+    GeoFeature,
+    RenderFeature,
+} from "./MapChartConstants.js"
+import { MapProjectionName, MapProjectionGeos } from "./MapProjections.js"
+import { geoPath } from "d3-geo"
+import polylabel from "polylabel"
+import { Position } from "geojson"
 
 interface internalLabel {
-    center: PointVector
-    rectPos: PointVector
-    height: number
-    width: number
+    id: string
+    position: PointVector
     value?: any
-    textPos: PointVector
+    size: number
 }
 
 export function generateAnnotations(
     featureData: RenderFeature[],
     choroplethData: Map<string, ChoroplethSeries>,
-    fontSize: number
+    viewportScale: number,
+    projection: MapProjectionName
 ): internalLabel[] {
+    const minSize = 8
+    const maxSize = 16
+    const projectionGeo = MapProjectionGeos[projection]
     var retVal = featureData.map(function (country) {
-        let countryPath = country.path
-        let countrySaviour
-        let regionsvg
-        let temp: PointVector
+        let fontSize = minSize
         let value = choroplethData.get(country.id)?.value
         let textWidth
-        var svgw3 = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "svg"
-        )
+        let regionPoints: Position[] = []
         if (typeof value === "number") value = Math.round(value * 10) / 10
         if (value) {
             textWidth = pixelWidth(value.toString(), {
-                size: fontSize,
+                size: fontSize / viewportScale,
                 font: "arial",
             })
         }
-        if (country.geo.geometry.type == "Polygon") {
-            temp = country.center
-            regionsvg = select("svg")
-                .append("path")
-                .attr("d", country.path)
-                .node()
-            countrySaviour = country.path
+        const labelDetails = getLabelInfo(country.geo.geometry)
+        const projectionPath = projectionGeo({
+            type: "Point",
+            coordinates: [labelDetails.pos[0], labelDetails.pos[1]],
+        })
+        const p1 = Number(
+            projectionPath?.substring(1, projectionPath.indexOf(","))
+        )
+        const p2 = Number(
+            projectionPath?.substring(
+                projectionPath.indexOf(",") + 1,
+                projectionPath.indexOf(",", projectionPath.indexOf(",") + 1) - 2
+            )
+        )
+        const centerpoint = new PointVector(p1, p2)
+        if (country.geo.geometry.type === "Polygon") {
+            let regionPath = country.path.slice(1, -1).split("L")
+            regionPoints = regionPath.map((temp) => [
+                Number(temp.substring(0, temp.indexOf(","))),
+                Number(temp.substring(temp.indexOf(",") + 1)),
+            ])
         } else {
-            let tempPath
-            let maxPath
-            maxPath = countryPath.substring(0, countryPath.indexOf("Z") + 1)
-            countryPath = countryPath.substring(countryPath.indexOf("Z") + 1)
-            while (countryPath.length > 0) {
-                tempPath = countryPath.substring(
-                    0,
-                    countryPath.indexOf("Z") + 1
-                )
-                if (tempPath.length > maxPath.length) {
-                    maxPath = tempPath
-                }
-                countryPath = countryPath.substring(
-                    countryPath.indexOf("Z") + 1
-                )
-            }
-            let svg = select("svg").append("path").attr("d", maxPath)
-            let bBox = svg.node()?.getBBox()
-            regionsvg = select("svg").append("path").attr("d", maxPath).node()
-            countrySaviour = maxPath
-            if (bBox)
-                temp = new PointVector(
-                    bBox.x + bBox.width / 2,
-                    bBox.y + bBox.height / 2
-                )
-            else {
-                temp = new PointVector(1, 1)
+            let countryPaths = country.path.slice(1, -1).split("ZM")
+            for (const region of countryPaths) {
+                regionPoints = []
+                let regionPath = region.split("L")
+                regionPoints = regionPath.map((temp) => [
+                    Number(temp.substring(0, temp.indexOf(","))),
+                    Number(temp.substring(temp.indexOf(",") + 1)),
+                ])
+                if (insideCheck([p1, p2], regionPoints)) break
             }
         }
-        let pointsArray = countrySaviour.slice(1, -1).split("L")
-        let savePoint = svgw3.createSVGPoint()
-        let check1 = false
-        let py = 0
-     /*=   if (textWidth)
-            for (let i = 0; i < pointsArray.length; i++) {
-                savePoint.y = Number(
-                    pointsArray[i].substring(pointsArray[i].indexOf(",") + 1)
-                )
-                savePoint.x =
-                    Number(
-                        pointsArray[i].substring(0, pointsArray[i].indexOf(","))
-                    ) + textWidth
-                if (regionsvg?.isPointInFill(savePoint)) {
-                    py = savePoint.y
-                    while (i < pointsArray.length - 1) {
-                        i++
-                        savePoint.y = Number(
-                            pointsArray[i].substring(
-                                pointsArray[i].indexOf(",") + 1
-                            )
-                        )
-                        savePoint.x =
-                            Number(
-                                pointsArray[i].substring(
-                                    0,
-                                    pointsArray[i].indexOf(",")
-                                )
-                            ) + textWidth
-                        if (!regionsvg?.isPointInFill(savePoint)) {
-                            break
-                        }
-                        if (fontSize <= savePoint.y - py) {
-                            temp = new PointVector(savePoint.x, savePoint.y)
-                            check1 = true
-                            break
-                        }
-                    }
-                }
-                if (check1) break
-                savePoint.x =
-                    Number(
-                        pointsArray[i].substring(0, pointsArray[i].indexOf(","))
-                    ) - textWidth
-                if (regionsvg?.isPointInFill(savePoint)) {
-                    py = savePoint.y
-                    while (i < pointsArray.length - 1) {
-                        i++
-                        savePoint.y = Number(
-                            pointsArray[i].substring(
-                                pointsArray[i].indexOf(",") + 1
-                            )
-                        )
-                        savePoint.x =
-                            Number(
-                                pointsArray[i].substring(
-                                    0,
-                                    pointsArray[i].indexOf(",")
-                                )
-                            ) - textWidth
-                        if (!regionsvg?.isPointInFill(savePoint)) {
-                            break
-                        }
-                        if (fontSize <= savePoint.y - py) {
-                            temp = new PointVector(savePoint.x, savePoint.y)
-                            check1 = true
-                            break
-                        }
-                    }
-                }
-                if (check1) break
-            }*/
-        if (regionsvg) {
-            let centerPoint = svgw3.createSVGPoint()
-            centerPoint.x = temp.x
-            centerPoint.y = temp.y
-            let rect1 = svgw3.createSVGPoint()
-            rect1.x = temp.x - 0.5
-            rect1.y = temp.y - 0.5
-            let rect2 = svgw3.createSVGPoint()
-            rect2.x = temp.x - 0.5
-            rect2.y = temp.y + 0.5
-            let rect3 = svgw3.createSVGPoint()
-            rect3.x = temp.x + 0.5
-            rect3.y = temp.y + 0.5
-            let rect4 = svgw3.createSVGPoint()
-            rect4.x = temp.x + 0.5
-            rect4.y = temp.y - 0.5
+        if (p1 && p2 && textWidth) {
             if (
-                regionsvg?.isPointInFill(rect1) &&
-                regionsvg?.isPointInFill(rect2) &&
-                regionsvg?.isPointInFill(rect3) &&
-                regionsvg?.isPointInFill(rect4)
+                rectCheck(
+                    centerpoint,
+                    fontSize / viewportScale,
+                    textWidth,
+                    regionPoints
+                )
             ) {
-                let temp1 = svgw3.createSVGPoint()
-                let temp2 = svgw3.createSVGPoint()
-                let s1 = svgw3.createSVGPoint()
-                let s2 = svgw3.createSVGPoint()
-                let s3 = svgw3.createSVGPoint()
-                let increment = null
-                let expand = true
-                while (expand) {
-                    expand = false
-                    if (
-                        regionsvg?.isPointInFill(rect1) &&
-                        regionsvg?.isPointInFill(rect2)
-                    ) {
-                        temp1.x = rect1.x - 1
-                        temp1.y = rect1.y
-                        temp2.x = rect2.x - 1
-                        temp2.y = rect2.y
-                        ;(s1.x = rect1.x), (s2.x = rect1.x), (s3.x = rect1.x)
-                        increment = (temp2.y - temp1.y) / 4
-                        s1.y = rect1.y + increment
-                        s2.y = s1.y + increment
-                        s3.y = s2.y + increment
-                        if (
-                            regionsvg?.isPointInFill(temp1) &&
-                            regionsvg?.isPointInFill(temp2) &&
-                            regionsvg?.isPointInFill(s1) &&
-                            regionsvg?.isPointInFill(s2) &&
-                            regionsvg?.isPointInFill(s3)
-                        ) {
-                            rect1.x -= 1
-                            rect2.x -= 1
-                            expand = true
-                        }
+                while (fontSize < maxSize) {
+                    if (value) {
+                        textWidth = pixelWidth(value.toString(), {
+                            size: (fontSize + 1) / viewportScale,
+                            font: "arial",
+                        })
                     }
                     if (
-                        regionsvg?.isPointInFill(rect2) &&
-                        regionsvg?.isPointInFill(rect3)
-                    ) {
-                        temp1.x = rect2.x
-                        temp1.y = rect2.y + 1
-                        temp2.x = rect3.x
-                        temp2.y = rect3.y + 1
-                        ;(s1.y = temp2.y), (s2.y = temp2.y), (s3.y = temp2.y)
-                        increment = (temp2.x - temp1.x) / 4
-                        s1.x = rect2.x + increment
-                        s2.x = s1.x + increment
-                        s3.x = s2.x + increment
-                        if (
-                            regionsvg?.isPointInFill(temp1) &&
-                            regionsvg?.isPointInFill(temp2) &&
-                            regionsvg?.isPointInFill(s1) &&
-                            regionsvg?.isPointInFill(s2) &&
-                            regionsvg?.isPointInFill(s3)
-                        ) {
-                            rect2.y += 1
-                            rect3.y += 1
-                            expand = true
-                        }
-                    }
-                    if (
-                        regionsvg?.isPointInFill(rect3) &&
-                        regionsvg?.isPointInFill(rect4)
-                    ) {
-                        temp1.x = rect3.x + 1
-                        temp1.y = rect3.y
-                        temp2.x = rect4.x + 1
-                        temp2.y = rect4.y
-                        ;(s1.x = rect3.x), (s2.x = rect3.x), (s3.x = rect3.x)
-                        increment = (temp1.y - temp2.y) / 4
-                        s1.y = rect4.y + increment
-                        s2.y = s1.y + increment
-                        s3.y = s2.y + increment
-                        if (
-                            regionsvg?.isPointInFill(temp1) &&
-                            regionsvg?.isPointInFill(temp2) &&
-                            regionsvg?.isPointInFill(s1) &&
-                            regionsvg?.isPointInFill(s2) &&
-                            regionsvg?.isPointInFill(s3)
-                        ) {
-                            rect3.x += 1
-                            rect4.x += 1
-                            expand = true
-                        }
-                    }
-                    if (
-                        regionsvg?.isPointInFill(rect4) &&
-                        regionsvg?.isPointInFill(rect1)
-                    ) {
-                        temp1.x = rect4.x
-                        temp1.y = rect4.y - 1
-                        temp2.x = rect1.x
-                        temp2.y = rect1.y - 1
-                        ;(s1.y = temp1.y), (s2.y = temp1.y), (s3.y = temp1.y)
-                        increment = (temp1.x - temp2.x) / 4
-                        s1.x = rect1.x + increment
-                        s2.x = s1.x + increment
-                        s3.x = s2.x + increment
-                        if (
-                            regionsvg?.isPointInFill(temp1) &&
-                            regionsvg?.isPointInFill(temp2) &&
-                            regionsvg?.isPointInFill(s1) &&
-                            regionsvg?.isPointInFill(s2) &&
-                            regionsvg?.isPointInFill(s3)
-                        ) {
-                            rect4.y -= 1
-                            rect1.y -= 1
-                            expand = true
-                        }
-                    }
+                        rectCheck(
+                            centerpoint,
+                            (fontSize + 1) / viewportScale,
+                            textWidth,
+                            regionPoints
+                        )
+                    )
+                        fontSize++
+                    else break
                 }
-                let check = true
-                let textPosx
-                if (textWidth) {
-                    check = textWidth < rect4.x - rect1.x
-                    textPosx = rect1.x + (rect4.x - rect1.x) / 2 - textWidth / 2
-                }
-                if (fontSize < rect2.y - rect1.y && check) {
-                    let textPosy =
-                        rect1.y + (rect2.y - rect1.y) / 2 + fontSize / 2
-                    return {
-                        center: temp,
-                        rectPos: new PointVector(rect1.x, rect1.y),
-                        height: rect2.y - rect1.y,
-                        width: rect4.x - rect1.x,
-                        value: value,
-                        textPos: new PointVector(
-                            textPosx ? textPosx : rect1.x,
-                            textPosy
-                        ),
-                    }
+                return {
+                    id: country.id,
+                    position: new PointVector(
+                        p1 - textWidth / 2,
+                        p2 + fontSize / viewportScale / 2
+                    ),
+                    value: value,
+                    size: fontSize / viewportScale,
                 }
             }
         }
-
         return {
-            center: temp,
-            rectPos: temp,
-            height: -76,
-            width: 1,
-            value: "4.0",
-            textPos: temp,
+            id: country.id,
+            position: new PointVector(labelDetails.pos[0], labelDetails.pos[1]),
+            size: minSize / viewportScale,
         }
-    })
-    retVal = retVal.filter(function (x) {
-        return x.height > 0
     })
     return retVal
+}
+
+function insideCheck(point: number[], vs: Position[]): boolean {
+    var x = point[0],
+        y = point[1]
+    var inside = false
+    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        var xi = vs[i][0],
+            yi = vs[i][1]
+        var xj = vs[j][0],
+            yj = vs[j][1]
+
+        var intersect =
+            yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+        if (intersect) inside = !inside
+    }
+
+    return inside
+}
+
+function rectCheck(
+    center: PointVector,
+    fontSize: number,
+    textWidth: number,
+    regionPoints: Position[]
+): boolean {
+    let t1 = [center.x - textWidth / 2, center.y]
+    let t2 = [center.x - textWidth / 2, center.y + fontSize / 2]
+    let t3 = [center.x - textWidth / 2, center.y - fontSize / 2]
+    let t4 = [center.x, center.y - fontSize / 2]
+    let t5 = [center.x, center.y - fontSize / 2]
+    let t6 = [center.x + textWidth / 2, center.y]
+    let t7 = [center.x + textWidth / 2, center.y + fontSize / 2]
+    let t8 = [center.x + textWidth / 2, center.y - fontSize / 2]
+    if (
+        insideCheck(t1, regionPoints) &&
+        insideCheck(t2, regionPoints) &&
+        insideCheck(t3, regionPoints) &&
+        insideCheck(t4, regionPoints) &&
+        insideCheck(t5, regionPoints) &&
+        insideCheck(t6, regionPoints) &&
+        insideCheck(t7, regionPoints) &&
+        insideCheck(t8, regionPoints)
+    )
+        return true
+    return false
+}
+
+function getRatio(coordinates: any): number {
+    const bounds = geoPath().bounds({ type: "Polygon", coordinates })
+    const dx = bounds[1][0] - bounds[0][0]
+    const dy = bounds[1][1] - bounds[0][1]
+    const ratio = dx / (dy || 1)
+    const A = 12
+    return Math.min(Math.max(ratio, 1 / A), A)
+}
+
+function getLabelInfo(geometry: GeoFeature["geometry"]) {
+    let pos, ratio
+    if (geometry.type === "MultiPolygon") {
+        let maxDist = 0 // for multipolygons, pick the polygon with most available space
+        for (const polygon of geometry.coordinates) {
+            const r = getRatio(polygon)
+            const p = polylabelStretched(polygon, r)
+            if (p.distance > maxDist) {
+                pos = p
+                maxDist = p.distance
+                ratio = r
+            }
+        }
+    } else if (geometry.type === "Polygon") {
+        ratio = getRatio(geometry.coordinates)
+        pos = polylabelStretched(geometry.coordinates, ratio)
+    }
+    return { pos, ratio }
+}
+
+function polylabelStretched(rings: Position[][], ratio: number) {
+    const polygon = []
+    for (const ring of rings) {
+        // stretch the input
+        const newRing = []
+        for (const [x, y] of ring) newRing.push([x / ratio, y])
+        polygon.push(newRing)
+    }
+    //Type is marked as any because of incorrect type declaration in the polylabel library
+    const result: any = polylabel(polygon, 0.5)
+    result[0] *= ratio // stretch the result back
+    result.distance *= ratio
+    return result
 }

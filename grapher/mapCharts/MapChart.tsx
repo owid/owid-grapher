@@ -72,6 +72,7 @@ import {
     PrimitiveType,
 } from "../../clientUtils/owidTypes.js"
 import { generateAnnotations } from "./AnnotationGenerator.js"
+import { isDarkColor } from "../color/ColorUtils.js"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -865,14 +866,14 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const selectedStrokeWidth = 1
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
-        const annotationSize = 12 / viewportScale
-        const annotationWeight = 600
+        const annotationWeight = 500
 
         const clipPath = makeClipPath(uid, bounds)
         const internalAnnotations = generateAnnotations(
             featuresWithData,
             choroplethData,
-            annotationSize
+            viewportScale,
+            this.props.projection
         )
         return (
             <g
@@ -1006,23 +1007,16 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                         (p) => p.props["strokeWidth"]
                     )}
                     {internalAnnotations.map((label) => {
+                        const series = choroplethData.get(label.id as string)
+                        const fill = series ? series.color : defaultFill
+                        const textFill = isDarkColor(fill) ? "white" : "black"
                         return (
-                            //Rectangle only for visualization during testing. To be removed during release
                             <>
-                                <rect
-                                    x={label.rectPos.x}
-                                    y={label.rectPos.y}
-                                    width={label.width}
-                                    height={label.height}
-                                    stroke="black"
-                                    fill="none"
-                                    style={{ pointerEvents: "none" }}
-                                />
                                 <text
-                                    x={label.textPos.x}
-                                    y={label.textPos.y}
-                                    fontSize={annotationSize}
-                                    fill="white"
+                                    x={label.position.x}
+                                    y={label.position.y}
+                                    fontSize={label.size}
+                                    fill={textFill}
                                     fontWeight={annotationWeight}
                                 >
                                     {label.value}
