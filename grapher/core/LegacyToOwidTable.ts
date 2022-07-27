@@ -212,7 +212,7 @@ export const legacyToOwidTableAndDimensions = (
                 )
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, 0)
-                .dropColumns([timeColumnDef.slug])
+            //.dropColumns([timeColumnDef.slug])
             variableTablesWithYearToJoinByEntityOnly.push(variableTable)
         } else if (variable.metadata.display?.yearIsDay)
             variableTablesToJoinByDay.push(variableTable)
@@ -229,7 +229,7 @@ export const legacyToOwidTableAndDimensions = (
     ])
     // TODO: add year column to day table
 
-    let joinedVariablesTable: OwidTable
+    let joinedVariablesTable: OwidTable | undefined
     let mainIndexColumns = [OwidTableSlugs.year, OwidTableSlugs.entityId]
     if (
         variableTablesToJoinByYear.length > 0 &&
@@ -266,23 +266,34 @@ export const legacyToOwidTableAndDimensions = (
         )
     } else if (variableTablesToJoinByYear.length > 0)
         joinedVariablesTable = variablesJoinedByYear
-    else {
+    else if (variableTablesToJoinByDay.length > 0) {
         mainIndexColumns = [OwidTableSlugs.day, OwidTableSlugs.entityId]
         joinedVariablesTable = variablesJoinedByDay
     }
 
     if (variableTablesWithYearToJoinByEntityOnly.length > 0)
-        joinedVariablesTable = fullJoinTables(
-            [joinedVariablesTable, ...variableTablesWithYearToJoinByEntityOnly],
-            mainIndexColumns,
-            [OwidTableSlugs.entityId]
-        )
+        if (joinedVariablesTable) {
+            joinedVariablesTable = fullJoinTables(
+                [
+                    joinedVariablesTable,
+                    ...variableTablesWithYearToJoinByEntityOnly,
+                ],
+                mainIndexColumns,
+                [OwidTableSlugs.entityId]
+            )
+        } else {
+            joinedVariablesTable = fullJoinTables(
+                variableTablesWithYearToJoinByEntityOnly,
+                mainIndexColumns,
+                [OwidTableSlugs.entityId]
+            )
+        }
 
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
     for (const dayOrYearSlug of [OwidTableSlugs.day, OwidTableSlugs.year]) {
-        if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
-            joinedVariablesTable = joinedVariablesTable.duplicateColumn(
+        if (joinedVariablesTable!.columnSlugs.includes(dayOrYearSlug)) {
+            joinedVariablesTable = joinedVariablesTable!.duplicateColumn(
                 dayOrYearSlug,
                 {
                     slug: OwidTableSlugs.time,
@@ -294,7 +305,7 @@ export const legacyToOwidTableAndDimensions = (
         }
     }
 
-    return { dimensions: newDimensions, table: joinedVariablesTable }
+    return { dimensions: newDimensions, table: joinedVariablesTable! }
 }
 
 const fullJoinTables = (
