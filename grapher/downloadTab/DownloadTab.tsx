@@ -8,11 +8,17 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import {
+    isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "../../clientUtils/Util.js"
 import { OwidColumnDef } from "../../coreTable/OwidTableConstants.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import {
+    MarkdownTextWrap,
+    sumTextWrapHeights,
+} from "../text/MarkdownTextWrap.js"
+import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants.js"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds
@@ -22,6 +28,8 @@ export interface DownloadTabManager {
     queryStr?: string
     table?: OwidTable
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
+    shouldIncludeDetailsInStaticExport?: boolean
+    detailRenderers: MarkdownTextWrap[]
 }
 
 interface DownloadTabProps {
@@ -68,6 +76,15 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return this.idealBounds.width
     }
     @computed private get targetHeight(): number {
+        if (this.manager.shouldIncludeDetailsInStaticExport) {
+            return (
+                this.idealBounds.height +
+                sumTextWrapHeights(
+                    this.manager.detailRenderers,
+                    STATIC_EXPORT_DETAIL_SPACING
+                )
+            )
+        }
         return this.idealBounds.height
     }
 
@@ -229,6 +246,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             minHeight: previewHeight,
             maxWidth: previewWidth,
             maxHeight: previewHeight,
+            opacity: this.isReady ? 1 : 0,
         }
 
         return (
@@ -283,6 +301,30 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                             </div>
                         </button>
                     </div>
+                    {!isEmpty(this.manager.detailRenderers) && (
+                        <div className="static-exports-options">
+                            <input
+                                type="checkbox"
+                                id="shouldIncludeDetailsInStaticExport"
+                                name="shouldIncludeDetailsInStaticExport"
+                                onChange={(): void => {
+                                    this.isReady = false
+                                    this.manager.shouldIncludeDetailsInStaticExport =
+                                        !this.manager
+                                            .shouldIncludeDetailsInStaticExport
+                                    this.export()
+                                }}
+                                checked={
+                                    this.manager
+                                        .shouldIncludeDetailsInStaticExport
+                                }
+                            />
+                            <label htmlFor="shouldIncludeDetailsInStaticExport">
+                                Include terminology definitions at bottom of
+                                chart
+                            </label>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grouped-menu-section">

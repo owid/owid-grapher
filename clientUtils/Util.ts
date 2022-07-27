@@ -12,6 +12,7 @@ import extend from "lodash/extend.js"
 import findIndex from "lodash/findIndex.js"
 import findLastIndex from "lodash/findLastIndex.js"
 import flatten from "lodash/flatten.js"
+import get from "lodash/get.js"
 import groupBy from "lodash/groupBy.js"
 import identity from "lodash/identity.js"
 import invert from "lodash/invert.js"
@@ -19,8 +20,8 @@ import isArray from "lodash/isArray.js"
 import isBoolean from "lodash/isBoolean.js"
 import isEmpty from "lodash/isEmpty.js"
 import isEqual from "lodash/isEqual.js"
-import isNumber from "lodash/isNumber.js"
 import isNull from "lodash/isNull.js"
+import isNumber from "lodash/isNumber.js"
 import isObject from "lodash/isObject.js"
 import isPlainObject from "lodash/isPlainObject.js"
 import isString from "lodash/isString.js"
@@ -44,6 +45,7 @@ import reverse from "lodash/reverse.js"
 import round from "lodash/round.js"
 import sample from "lodash/sample.js"
 import sampleSize from "lodash/sampleSize.js"
+import set from "lodash/set.js"
 import sortBy from "lodash/sortBy.js"
 import sortedUniqBy from "lodash/sortedUniqBy.js"
 import startCase from "lodash/startCase.js"
@@ -72,6 +74,7 @@ export {
     findIndex,
     findLastIndex,
     flatten,
+    get,
     groupBy,
     identity,
     invert,
@@ -102,6 +105,7 @@ export {
     round,
     sample,
     sampleSize,
+    set,
     sortBy,
     sortedUniqBy,
     startCase,
@@ -1265,3 +1269,7 @@ export function moveArrayItemToIndex<Item>(
     newArray.splice(toIndex, 0, removed)
     return newArray
 }
+
+export const getIndexableKeys = Object.keys as <T extends object>(
+    obj: T
+) => Array<keyof T>

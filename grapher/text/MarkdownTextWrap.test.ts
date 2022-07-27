@@ -1,15 +1,10 @@
 #! /usr/bin/env jest
 
 import { FontFamily } from "../../clientUtils/Bounds.js"
-import {
-    IRText,
-    IRBold,
-    MarkdownTextWrap,
-    getLineWidth,
-} from "./MarkdownTextWrap.js"
+import { IRText, MarkdownTextWrap, getLineWidth } from "./MarkdownTextWrap.js"
 
 describe("MarkdownTextWrap", () => {
-    it("IRText with a heavier fontWeight should be wider than plain IRText", () => {
+    it("heavier fontWeight should be wider than plain IRText", () => {
         const string = "abcdefghijklmnopqrstuvwxyz"
 
         const text = new IRText(string)
@@ -18,7 +13,7 @@ describe("MarkdownTextWrap", () => {
         expect(text.width).toBeLessThan(bold.width)
     })
 
-    it("MarkdownTextWrap should render bold and calculate that it is wider", () => {
+    it("should render bold and calculate that it is wider", () => {
         const plainString = "abcdefghijklmnopqrstuvwxyz"
         const boldString = "**abcdefghijklmnopqrstuvwxyz**"
 
@@ -33,12 +28,12 @@ describe("MarkdownTextWrap", () => {
             maxWidth: 200,
         })
 
-        const plainWidth = getLineWidth(plainMarkdownTextWrap.lines[0])
-        const boldWidth = getLineWidth(boldMarkdownTextWrap.lines[0])
+        const plainWidth = getLineWidth(plainMarkdownTextWrap.htmlLines[0])
+        const boldWidth = getLineWidth(boldMarkdownTextWrap.htmlLines[0])
         expect(plainWidth).toBeLessThan(boldWidth)
     })
 
-    it("MarkdownTextWrap should accept and apply fontParams", () => {
+    it("should accept and apply fontParams", () => {
         const element = new MarkdownTextWrap({
             text: "abcdefghijklmnopqrstuvwxyz",
             fontSize: 14,
@@ -56,17 +51,27 @@ describe("MarkdownTextWrap", () => {
         })
     })
 
-    it("MarkdownTextWrap should calculate height correctly", () => {
+    it("should calculate height correctly", () => {
         const element = new MarkdownTextWrap({
             text: "a\nb\nc",
             fontSize: 10,
-            lineHeight: 1,
+            lineHeight: 1.5,
         })
 
-        expect(element.height).toEqual(30)
+        // 10 fontSize * 1.5 lineHeight * 3 lines = 45px
+        expect(element.height).toEqual(45)
     })
 
-    it("MarkdownTextWrap should split on newline", () => {
+    it("should return zero height for empty string", () => {
+        const element = new MarkdownTextWrap({
+            text: "",
+            fontSize: 16,
+        })
+
+        expect(element.height).toEqual(0)
+    })
+
+    it("should split on newline", () => {
         const element = new MarkdownTextWrap({
             text: "_test\n**\nnewline\n**_test",
             fontSize: 10,

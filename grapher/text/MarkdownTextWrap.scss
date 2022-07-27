@@ -2,3 +2,19 @@
     display: block;
     white-space: pre-wrap;
 }
+
+.GrapherComponent .markdown-text-wrap {
+    a,
+    a:visited {
+        color: #666;
+        text-decoration: underline;
+    }
+    a:hover {
+        color: darken(#666, 10%);
+    }
+
+    // needed so DoD border-bottom doesn't clip
+    .markdown-text-wrap__line:last-child {
+        margin-bottom: 2px;
+    }
+}

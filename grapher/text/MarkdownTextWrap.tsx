@@ -4,6 +4,8 @@ import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
 import { excludeUndefined, last, sum } from "../../clientUtils/Util.js"
+import { DoDWrapper } from "../detailsOnDemand/detailsOnDemand.js"
+import { TextWrap } from "./TextWrap.js"
 
 export interface IRFontParams {
     fontSize?: number
@@ -176,6 +178,46 @@ export class IRSpan extends IRElement {
     }
 }
 
+export class IRSuperscript implements IRToken {
+    constructor(public text: string, public fontParams?: IRFontParams) {}
+    @imemo get width(): number {
+        return Bounds.forText(this.text, { fontSize: this.height / 2 }).width
+    }
+    @imemo get height(): number {
+        return this.fontParams?.fontSize || 16
+    }
+    getBreakpointBefore(): undefined {
+        return undefined
+    }
+    toHTML(key?: React.Key): JSX.Element {
+        return <sup key={key}>{this.text}</sup>
+    }
+    toSVG(key?: React.Key): JSX.Element {
+        return (
+            <React.Fragment key={key}>
+                <tspan
+                    style={{
+                        fontSize: this.height / 2,
+                    }}
+                    dy={-this.height / 3}
+                >
+                    {this.text}
+                </tspan>
+                {/* 
+                    can't use transform translations on tspans
+                    but dy translations apply to all subsequent elements 
+                    so we need a "reset" element to counteract each time
+                    \u2028 is an invisible space, because empty tspans don't work
+                 */}
+                <tspan dy={this.height / 3}>{"\u2028"}</tspan>
+            </React.Fragment>
+        )
+    }
+    toPlaintext(): string {
+        return this.text
+    }
+}
+
 export class IRItalic extends IRElement {
     getClone(children: IRToken[]): IRItalic {
         return new IRItalic(children, this.fontParams)
@@ -209,21 +251,80 @@ export class IRLink extends IRElement {
     }
     toHTML(key?: React.Key): JSX.Element {
         return (
-            <a key={key} href={this.href}>
+            <a
+                key={key}
+                href={this.href}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 {this.children.map((child, i) => child.toHTML(i))}
             </a>
         )
     }
     toSVG(key?: React.Key): JSX.Element {
         return (
-            <a key={key} href={this.href}>
+            <a
+                key={key}
+                href={this.href}
+                target="_blank"
+                style={{ textDecoration: "underline" }}
+                rel="noopener noreferrer"
+            >
                 {this.children.map((child, i) => child.toSVG(i))}
             </a>
         )
     }
 }
 
+export class IRDetailOnDemand extends IRElement {
+    constructor(
+        public category: string,
+        public term: string,
+        children: IRToken[],
+        fontParams?: IRFontParams
+    ) {
+        super(children, fontParams)
+    }
+    getClone(children: IRToken[]): IRDetailOnDemand {
+        return new IRDetailOnDemand(
+            this.category,
+            this.term,
+            children,
+            this.fontParams
+        )
+    }
+    toHTML(key?: React.Key): JSX.Element {
+        return (
+            <DoDWrapper key={key} term={this.term} category={this.category}>
+                {this.children.map((child, i) => child.toHTML(i))}
+            </DoDWrapper>
+        )
+    }
+    toSVG(key?: React.Key): JSX.Element {
+        return (
+            <tspan key={key}>
+                {this.children.map((child, i) => child.toSVG(i))}
+            </tspan>
+        )
+    }
+}
+
+function checkIsIRElement(token: IRToken): token is IRElement {
+    return [
+        "IRBold",
+        "IRSpan",
+        "IRItalic",
+        "IRLink",
+        "IRDetailOnDemand",
+    ].includes(token.constructor.name)
+}
+
+function checkIsIRDetailOnDemand(token: IRToken): token is IRDetailOnDemand {
+    return "IRDetailOnDemand" === token.constructor.name
+}
+
 function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
+    if (!tokens.length) return []
     let currentLine: IRToken[] = []
     const lines: IRToken[][] = [currentLine]
     const unproccessed: IRToken[] = [...tokens]
@@ -344,6 +445,11 @@ export function splitIntoLines(
     return processedLines
 }
 
+export const sumTextWrapHeights = (
+    elements: MarkdownTextWrap[] | TextWrap[],
+    spacer: number = 0
+): number => sum(elements.map((element) => element.height + spacer))
+
 export function parsimmonToTextTokens(
     nodes: EveryMarkdownNode[],
     fontParams?: IRFontParams
@@ -391,8 +497,8 @@ export function parsimmonToTextTokens(
                 parsimmonToTextTokens(node.children, fontParams)
             )
         } else if (node.type === "detailOnDemand") {
-            // TODO: create a IR for this
-            return new IRLink(
+            return new IRDetailOnDemand(
+                node.category,
                 node.term,
                 parsimmonToTextTokens(node.children, fontParams)
             )
@@ -409,6 +515,8 @@ type MarkdownTextWrapProps = {
     fontWeight?: number
     lineHeight?: number
     maxWidth?: number
+    style?: CSSProperties
+    detailsOrderedByReference?: { category: string; term: string }[]
 }
 
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
@@ -431,7 +539,14 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get text(): string {
         return this.props.text
     }
+    @computed get detailsOrderedByReference(): {
+        category: string
+        term: string
+    }[] {
+        return this.props.detailsOrderedByReference || []
+    }
     @computed get ast(): MarkdownRoot["children"] {
+        if (!this.text) return []
         const result = mdParser.markdown.parse(this.props.text)
         if (result.status) {
             return result.value.children
@@ -439,28 +554,76 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return []
     }
 
-    @computed get lines(): IRToken[][] {
+    @computed get htmlLines(): IRToken[][] {
         const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
         return splitIntoLines(tokens, this.maxWidth)
     }
 
+    // We render DoDs differently for SVG (superscript reference  numbers) so we need to calculate
+    // their width differently. Height should remain the same.
+    @computed get svgLines(): IRToken[][] {
+        const references: { category: string; term: string }[] =
+            this.detailsOrderedByReference
+        function appendReferenceNumbers(tokens: IRToken[]): IRToken[] {
+            function traverse(
+                token: IRToken,
+                callback: (token: IRToken) => any
+            ): any {
+                if (checkIsIRElement(token)) {
+                    token.children.flatMap((child) => traverse(child, callback))
+                }
+                return callback(token)
+            }
+
+            const appendedTokens: IRToken[] = tokens.flatMap((token) =>
+                traverse(token, (token: IRToken) => {
+                    if (checkIsIRDetailOnDemand(token)) {
+                        const referenceIndex =
+                            references.findIndex(
+                                ({ category, term }) =>
+                                    category === token.category &&
+                                    term === token.term
+                            ) + 1
+                        if (referenceIndex === 0) return
+                        token.children.push(
+                            new IRSuperscript(
+                                String(referenceIndex),
+                                token.fontParams
+                            )
+                        )
+                    }
+                    return token
+                })
+            )
+
+            return appendedTokens
+        }
+
+        const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
+        const tokensWithReferenceNumbers = appendReferenceNumbers(tokens)
+        return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
+    }
+
     @computed get height(): number {
-        return this.lines.length * this.lineHeight * this.fontSize
+        const { htmlLines, lineHeight, fontSize } = this
+        if (htmlLines.length === 0) return 0
+        return htmlLines.length * lineHeight * fontSize
     }
 
     @computed get style(): any {
         return {
             ...this.fontParams,
+            ...this.props.style,
             lineHeight: this.lineHeight,
         }
     }
 
     renderHTML(): JSX.Element | null {
-        const { lines } = this
-        if (lines.length === 0) return null
+        const { htmlLines } = this
+        if (htmlLines.length === 0) return null
         return (
             <span style={this.style} className="markdown-text-wrap">
-                {lines.map((line, i) => (
+                {htmlLines.map((line, i) => (
                     <span className="markdown-text-wrap__line" key={i}>
                         {line.length ? (
                             line.map((token, i) => token.toHTML(i))
@@ -478,21 +641,31 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         y: number,
         options?: React.SVGProps<SVGTextElement>
     ): JSX.Element | null {
-        const { lines } = this
-        if (lines.length === 0) return null
+        const { svgLines, fontSize, lineHeight } = this
+        if (svgLines.length === 0) return null
 
+        // Magic number set through experimentation.
+        // The HTML and SVG renderers need to position lines identically.
+        // This number was tweaked until the overlaid HTML and SVG outputs
+        // overlap.
+        const HEIGHT_CORRECTION_FACTOR = 0.74
+
+        const textHeight = fontSize * HEIGHT_CORRECTION_FACTOR
+        const containerHeight = lineHeight * fontSize
+        const yOffset =
+            y + (containerHeight - (containerHeight - textHeight) / 2)
         return (
             <text
                 x={x.toFixed(1)}
-                y={y.toFixed(1)}
+                y={yOffset.toFixed(1)}
                 style={this.style}
                 {...options}
             >
-                {lines.map((line, i) => (
+                {svgLines.map((line, i) => (
                     <tspan
                         key={i}
                         x={x}
-                        y={this.lineHeight * this.props.fontSize * (i + 1)}
+                        y={(yOffset + lineHeight * fontSize * i).toFixed(1)}
                     >
                         {line.map((token, i) => token.toSVG(i))}
                     </tspan>

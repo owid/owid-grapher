@@ -11,6 +11,7 @@ import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { Topic } from "../grapher/core/GrapherConstants.js"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 type EditorTab = string
 
@@ -78,6 +79,8 @@ export interface ChartEditorManager {
     references: PostReference[]
     redirects: ChartRedirect[]
     allTopics: Topic[]
+    details: GrapherInterface["details"]
+    invalidDetailReferences: Record<"subtitle" | "note", [string, string][]>
 }
 
 interface VariableIdUsageRecord {
@@ -136,6 +139,10 @@ export class ChartEditor {
 
     @computed get allTopics() {
         return this.manager.allTopics
+    }
+
+    @computed get details() {
+        return this.manager.details
     }
 
     @computed get availableTabs(): EditorTab[] {

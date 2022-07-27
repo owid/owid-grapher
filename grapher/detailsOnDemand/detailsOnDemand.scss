@@ -1,0 +1,31 @@
+.interactive-tippy-wrapper {
+    display: inline-block;
+}
+
+span.dod-term {
+    border-bottom: 1px dotted #666;
+    color: #666;
+}
+
+.dod-tippy-container {
+    overflow-y: auto;
+    // should only result in scrollbars when viewport height is very small
+    max-height: 80vh;
+}
+
+.dod-tooltip {
+    margin: 16px;
+
+    h3 {
+        margin: 0;
+        margin-bottom: 8px;
+    }
+
+    a {
+        color: $controls-color;
+    }
+
+    p {
+        margin-bottom: 8px;
+    }
+}

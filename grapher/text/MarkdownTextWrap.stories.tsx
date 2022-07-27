@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import { MarkdownTextWrap, parsimmonToTextTokens } from "./MarkdownTextWrap.js"
 import { IRToken } from "./MarkdownTextWrap.js"
 import { mdParser } from "./parser.js"
+import { TextWrap } from "./TextWrap.js"
 
 export default {
     title: "MarkdownTextWrap",
@@ -15,11 +16,15 @@ class MarkdownViewer extends React.Component {
     @observable width: number = 200
     @observable isLocked: boolean = false
     @observable
-    markdown: string = `Hello _**world!**_   
+    markdown: string = `Hello _**world!**_
 
 Testing this somewhat long line. **I am bold-_and-italic_. And the formatting extends into
 
 newlines!**
+
+These DoDs won't render on hover because there's no data for them, but they'll demonstrate the superscript on SVG:
+
+[A dod](hover::general::term1) [another dod.](hover::general::term2) [The other dod](hover::general::term1)
 
 [links can contain _formatting_ too](http://ourworldindata.org). Averylongtokenthatcantbesplitbutshouldbeincludedanyway.**Canhavebold**withoutlinebreak.
 
@@ -100,7 +105,7 @@ _THE END_
                     </div>
                     <pre>isSVG Example</pre>
                     <svg
-                        viewBox={`0,0,${svgContainerWidth},200`}
+                        viewBox={`0,0,${svgContainerWidth},400`}
                         style={{ outline: "1px solid black" }}
                     >
                         {new MarkdownTextWrap({
@@ -115,4 +120,112 @@ _THE END_
     }
 }
 
-export const Default = (): JSX.Element => <MarkdownViewer />
+export const MarkdownPreview = (): JSX.Element => <MarkdownViewer />
+
+const RED = "#f97272"
+const GREEN = "#008400"
+
+const RenderCurrentAndLegacy = ({
+    text = "The quick brown fox jumped over the lazy dog.",
+    fontSize = 16,
+    maxWidth = 400,
+    lineHeight = 1.1,
+    svg = false,
+}: {
+    text?: string
+    fontSize?: number
+    maxWidth?: number
+    lineHeight?: number
+    svg?: boolean
+}): JSX.Element => {
+    const props = {
+        maxWidth,
+        fontSize,
+        lineHeight,
+        text,
+    }
+    const legacy = new TextWrap(props)
+    const current = new MarkdownTextWrap(props)
+    const width = maxWidth
+    const height = Math.max(current.height, legacy.height)
+    return svg ? (
+        <svg width={width + 2} height={height + 2} style={{ display: "block" }}>
+            {/* add offset so 1px stroke is visible */}
+            <g transform="translate(1,1)">
+                <rect
+                    x={0}
+                    y={0}
+                    width={width}
+                    height={legacy.height}
+                    style={{
+                        fill: "none",
+                        stroke: RED,
+                        strokeWidth: "1px",
+                        strokeOpacity: 0.5,
+                        strokeDasharray: "4,2",
+                    }}
+                />
+                <rect
+                    x={0}
+                    y={0}
+                    width={width}
+                    height={current.height}
+                    style={{
+                        fill: "none",
+                        stroke: GREEN,
+                        strokeWidth: "1px",
+                        strokeOpacity: 0.5,
+                        strokeDasharray: "4,2",
+                    }}
+                />
+                <g style={{ fill: RED, opacity: 0.75 }}>
+                    {legacy.render(0, 0)}
+                </g>
+                <g style={{ fill: GREEN, opacity: 0.75 }}>
+                    {current.renderSVG(0, 0)}
+                </g>
+            </g>
+        </svg>
+    ) : (
+        <div>
+            <div
+                style={{
+                    position: "absolute",
+                    color: RED,
+                    opacity: 0.75,
+                    ...legacy.htmlStyle,
+                }}
+            >
+                {legacy.renderHTML()}
+            </div>
+            <div style={{ color: GREEN, opacity: 0.75 }}>
+                {current.renderHTML()}
+            </div>
+        </div>
+    )
+}
+
+export const CompareWithTextWrap = (): JSX.Element => (
+    <div>
+        <h2>HTML</h2>
+        <RenderCurrentAndLegacy fontSize={12.4} maxWidth={170} />
+        <br />
+        <RenderCurrentAndLegacy fontSize={16} maxWidth={220} />
+        <br />
+        <RenderCurrentAndLegacy fontSize={32} maxWidth={440} />
+        <br />
+        <h2>SVG</h2>
+        <RenderCurrentAndLegacy fontSize={12.4} maxWidth={170} svg={true} />
+        <br />
+        <RenderCurrentAndLegacy fontSize={16} maxWidth={220} svg={true} />
+        <br />
+        <RenderCurrentAndLegacy fontSize={32} maxWidth={440} svg={true} />
+        <br />
+        <RenderCurrentAndLegacy
+            fontSize={32}
+            maxWidth={440}
+            lineHeight={2}
+            svg={true}
+        />
+    </div>
+)

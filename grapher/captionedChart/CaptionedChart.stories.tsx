@@ -29,6 +29,7 @@ const manager: CaptionedChartManager = {
     note: "Here are some footer notes",
     isReady: true,
     availableFacetStrategies: [FacetStrategy.none],
+    detailRenderers: [],
 }
 
 export const LineChart = (): JSX.Element => <CaptionedChart manager={manager} />

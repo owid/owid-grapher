@@ -161,6 +161,46 @@ describe("mdast parsers", () => {
             },
         })
     })
+    it("can parse markdown links with relative URLs", () => {
+        expect(mdParser.markdown.parse("[about us](/about-us)")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        children: [
+                            {
+                                type: "text",
+                                value: "about",
+                            },
+                            {
+                                type: "whitespace",
+                            },
+                            {
+                                type: "text",
+                                value: "us",
+                            },
+                        ],
+                        href: "/about-us",
+                        type: "markdownLink",
+                    },
+                ],
+            },
+        })
+        expect(mdParser.markdown.parse("[test](www.google.com)")).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "markdownLink",
+                        children: [{ type: "text", value: "test" }],
+                        href: "www.google.com",
+                    },
+                ],
+            },
+        })
+    })
 
     it("mdParser can parse detail on demand syntax", () => {
         expect(
@@ -796,6 +836,71 @@ how **are** you?`)
                     {
                         type: "text",
                         value: "space",
+                    },
+                ],
+            },
+        })
+    })
+    it("Parses whitespace preceding a newline", () => {
+        const input =
+            "this-line-ends-with-a-space" +
+            " " +
+            "\n" +
+            "but-the-newline-should-be-tracked-separately"
+        expect(mdParser.markdown.parse(input)).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "this-line-ends-with-a-space",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "newline",
+                    },
+                    {
+                        type: "text",
+                        value: "but-the-newline-should-be-tracked-separately",
+                    },
+                ],
+            },
+        })
+    })
+    it("Parses newlines surrounded by whitespace", () => {
+        const input =
+            "this-line-ends-with-a-space" +
+            " " +
+            "\n\n" +
+            " " +
+            "but-the-newline-should-be-tracked-separately"
+        expect(mdParser.markdown.parse(input)).toEqual({
+            status: true,
+            value: {
+                type: "MarkdownRoot",
+                children: [
+                    {
+                        type: "text",
+                        value: "this-line-ends-with-a-space",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "newline",
+                    },
+                    {
+                        type: "newline",
+                    },
+                    {
+                        type: "whitespace",
+                    },
+                    {
+                        type: "text",
+                        value: "but-the-newline-should-be-tracked-separately",
                     },
                 ],
             },

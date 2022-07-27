@@ -3,6 +3,7 @@ import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
 import { faFile } from "@fortawesome/free-solid-svg-icons/faFile"
+import { faArrowPointer } from "@fortawesome/free-solid-svg-icons/faArrowPointer"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
 import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCrossbones"
@@ -48,6 +49,11 @@ export const AdminSidebar = (): JSX.Element => (
             <li>
                 <Link to="/datasets">
                     <FontAwesomeIcon icon={faTable} /> Datasets
+                </Link>
+            </li>
+            <li>
+                <Link to="/details">
+                    <FontAwesomeIcon icon={faArrowPointer} /> Details
                 </Link>
             </li>
             <li>
