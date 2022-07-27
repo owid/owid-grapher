@@ -38,10 +38,10 @@ export function generateAnnotations(
                 font: "arial",
             })
         }
-        const labelDetails = getLabelInfo(country.geo.geometry)
+        const labelPos = getLabelInfo(country.geo.geometry)
         const projectionPath = projectionGeo({
             type: "Point",
-            coordinates: [labelDetails.pos[0], labelDetails.pos[1]],
+            coordinates: [labelPos[0], labelPos[1]],
         })
         const p1 = Number(
             projectionPath?.substring(1, projectionPath.indexOf(","))
@@ -111,7 +111,7 @@ export function generateAnnotations(
         }
         return {
             id: country.id,
-            position: new PointVector(labelDetails.pos[0], labelDetails.pos[1]),
+            position: new PointVector(labelPos[0], labelPos[1]),
             size: minSize / viewportScale,
         }
     })
@@ -173,7 +173,7 @@ function getRatio(coordinates: any): number {
     return Math.min(Math.max(ratio, 1 / A), A)
 }
 
-function getLabelInfo(geometry: GeoFeature["geometry"]) {
+function getLabelInfo(geometry: GeoFeature["geometry"]): number[] {
     let pos, ratio
     if (geometry.type === "MultiPolygon") {
         let maxDist = 0 // for multipolygons, pick the polygon with most available space
@@ -190,7 +190,7 @@ function getLabelInfo(geometry: GeoFeature["geometry"]) {
         ratio = getRatio(geometry.coordinates)
         pos = polylabelStretched(geometry.coordinates, ratio)
     }
-    return { pos, ratio }
+    return pos.slice(0, 2)
 }
 
 function polylabelStretched(rings: Position[][], ratio: number) {

@@ -875,6 +875,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             viewportScale,
             this.props.projection
         )
+
         return (
             <g
                 ref={this.base}
@@ -1011,17 +1012,16 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                         const fill = series ? series.color : defaultFill
                         const textFill = isDarkColor(fill) ? "white" : "black"
                         return (
-                            <>
-                                <text
-                                    x={label.position.x}
-                                    y={label.position.y}
-                                    fontSize={label.size}
-                                    fill={textFill}
-                                    fontWeight={annotationWeight}
-                                >
-                                    {label.value}
-                                </text>
-                            </>
+                            <text
+                                key={label.id}
+                                x={label.position.x}
+                                y={label.position.y}
+                                fontSize={label.size}
+                                fill={textFill}
+                                fontWeight={annotationWeight}
+                            >
+                                {label.value}
+                            </text>
                         )
                     })}
                 </g>
