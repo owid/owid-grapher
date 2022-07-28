@@ -660,7 +660,25 @@ export const getBlockContent = async (
 }
 
 export const getFullPost = async (
-    postApi: any,
+    postApi: {
+        id: number
+        type: WP_PostType
+        slug: string
+        title: {
+            rendered: string
+        }
+        date_gmt: string
+        modified_gmt: string
+        authors_name?: string[]
+        content: { rendered: string }
+        excerpt: { rendered: string }
+        featured_media_paths: {
+            medium_large: string
+            thumbnail: string
+        }
+        featured_media: number
+        meta: { owid_glossary_meta_field: boolean }
+    },
     excludeContent?: boolean
 ): Promise<FullPost> => ({
     id: postApi.id,

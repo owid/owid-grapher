@@ -1,6 +1,11 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-const Mappable = <T>(value: T) => ({
+interface MappableType<T> {
+    map: (f: (x: T) => T) => MappableType<T>
+    fold: () => T
+}
+
+const Mappable = <T>(value: T): MappableType<T> => ({
     map: (f: (x: T) => T) => Mappable(f(value)),
     fold: (): T => value,
 })

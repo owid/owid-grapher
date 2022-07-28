@@ -134,7 +134,7 @@ const archiveDatasets = async (
     queryRunner: QueryRunner,
     datasetIds: number[],
     revert: boolean = false
-) => {
+): Promise<void> => {
     // label datasets as archived in DB
     await queryRunner.query(
         `UPDATE datasets SET isArchived = ${revert ? 0 : 1}
@@ -143,10 +143,11 @@ const archiveDatasets = async (
     )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deleteDatasets = async (
     queryRunner: QueryRunner,
     datasetIds: number[]
-) => {
+): Promise<void> => {
     // delete datasets from DB, not used at the moment
     await queryRunner.query(
         `

@@ -25,7 +25,10 @@ export const getDefaultFailMessage = (manager: ChartManager): string => {
     return ""
 }
 
-export const getSeriesKey = (series: LineChartSeries, suffix?: string) => {
+export const getSeriesKey = (
+    series: LineChartSeries,
+    suffix?: string
+): string => {
     return `${series.seriesName}-${series.color}-${
         series.isProjection ? "projection" : ""
     }${suffix ? "-" + suffix : ""}`

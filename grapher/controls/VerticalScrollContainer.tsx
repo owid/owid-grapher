@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from "react"
 import classnames from "classnames"
 
@@ -33,10 +34,12 @@ function useCombinedRefs<T>(...refs: ReactRef<T>[]): React.RefObject<T> {
 }
 
 export const VerticalScrollContainer = React.forwardRef(
-    (props: VerticalScrollContainerProps, ref: ReactRef<HTMLDivElement>) => {
+    function VerticalScrollContainer(
+        props: VerticalScrollContainerProps,
+        ref: ReactRef<HTMLDivElement>
+    ) {
         let {
             scrollingShadows,
-            scrollLock,
             className,
             children,
             contentsId,
@@ -45,7 +48,6 @@ export const VerticalScrollContainer = React.forwardRef(
         } = props
 
         scrollingShadows = scrollingShadows ?? true
-        scrollLock = scrollLock ?? true
 
         const scrollContainerRef = useCombinedRefs<HTMLDivElement>(ref)
         const [scrollTop, scrollBottom] = useScrollBounds(
@@ -53,9 +55,7 @@ export const VerticalScrollContainer = React.forwardRef(
             contentsId
         )
 
-        if (scrollLock) {
-            useScrollLock(scrollContainerRef, { doNotLockIfNoScroll: true })
-        }
+        useScrollLock(scrollContainerRef, { doNotLockIfNoScroll: true })
 
         return (
             <div
@@ -183,7 +183,7 @@ function useScrollBounds<ElementType extends HTMLElement>(
             }
         }
         return
-    }, [contentsId])
+    }, [contentsId, ref])
 
     return [scrollTop, scrollBottom]
 }
@@ -251,5 +251,5 @@ function useScrollLock<ElementType extends HTMLElement>(
             }
         }
         return
-    }, [])
+    }, [opts, ref])
 }

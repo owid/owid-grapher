@@ -5,7 +5,7 @@ import {
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "./OwidTableSynthesizers.js"
-import { BlankOwidTable, OwidTable } from "./OwidTable.js"
+import { OwidTable } from "./OwidTable.js"
 import { ColumnTypeNames } from "./CoreColumnDef.js"
 import { ErrorValueTypes } from "./ErrorValues.js"
 import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants.js"
@@ -366,7 +366,9 @@ describe("relative mode", () => {
         SampleColumnSlugs.Vegetables,
     ])
     table.rows.forEach((row) => {
-        expect(Math.round(row.Fruit + row.Vegetables)).toEqual(100)
+        expect(Math.round(Number(row.Fruit) + Number(row.Vegetables))).toEqual(
+            100
+        )
     })
 
     it("works with missing values", () => {

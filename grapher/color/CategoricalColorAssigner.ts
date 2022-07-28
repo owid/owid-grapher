@@ -68,6 +68,7 @@ export class CategoricalColorAssigner {
         )
         // TODO handle this better?
         if (leastUsedColor === undefined) {
+            // eslint-disable-next-line no-console
             console.trace("Least used color is undefined, using black.", {
                 availableColors: this.availableColors,
                 usedColors: this.usedColors,

@@ -62,14 +62,18 @@ import {
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
 import {
-    getTagsByPostId,
     postsTable,
-    selectPosts,
     setTagsForPost,
+    select,
+    getTagsByPostId,
 } from "../db/model/Post.js"
-//import parse = require("s-expression")
-import { parseIntOrUndefined, trimObject } from "../clientUtils/Util.js"
-import { omit, set } from "lodash"
+import {
+    omit,
+    parseIntOrUndefined,
+    set,
+    trimObject,
+} from "../clientUtils/Util.js"
+
 import { Detail } from "../grapher/core/GrapherConstants.js"
 
 const apiRouter = new FunctionalRouter()
@@ -2176,7 +2180,7 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await selectPosts(
+    const rows = await select(
         "id",
         "title",
         "type",
@@ -2252,7 +2256,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .where({ id: postId })
         .select("*")
         .first()) as PostRow | undefined
-    return camelCaseProperties(post)
+    return camelCaseProperties({ ...post })
 })
 
 apiRouter.get("/importData.json", async (req) => {

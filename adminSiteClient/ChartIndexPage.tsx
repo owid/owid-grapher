@@ -4,8 +4,6 @@ import { observable, computed, action, runInAction } from "mobx"
 
 import { TextField } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { uniq } from "../clientUtils/Util.js"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {

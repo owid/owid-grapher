@@ -20,8 +20,6 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-declare const window: any
-
 class EditableVariable {
     @observable name: string = ""
     @observable unit: string = ""

@@ -7,7 +7,7 @@ import { exit } from "../db/cleanup.js"
 import { PostRow } from "../clientUtils/owidTypes.js"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
-import { postsTable, selectPosts } from "../db/model/Post.js"
+import { postsTable, select } from "../db/model/Post.js"
 const argv = parseArgs(process.argv.slice(2))
 
 const zeroDateString = "0000-00-00 00:00:00"
@@ -58,7 +58,7 @@ const syncPostToGrapher = async (
     })
 
     const newPost = (
-        await selectPosts("slug").from(
+        await select("slug").from(
             db.knexTable(postsTable).where({ id: postId })
         )
     )[0]

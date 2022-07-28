@@ -101,17 +101,9 @@ export class AmazonMenu extends React.Component<{
             x: submenuRect.left,
             y: submenuRect.top - TOLERANCE_PX,
         }
-        const upperRight = {
-            x: submenuRect.right,
-            y: upperLeft.y,
-        }
         const lowerLeft = {
             x: submenuRect.left,
             y: submenuRect.bottom + TOLERANCE_PX,
-        }
-        const lowerRight = {
-            x: submenuRect.right,
-            y: lowerLeft.y,
         }
         const loc = this.mouseLocs[this.mouseLocs.length - 1]
         let prevLoc = this.mouseLocs[0]

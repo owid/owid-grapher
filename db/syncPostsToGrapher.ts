@@ -5,7 +5,7 @@ import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
 import { keyBy } from "../clientUtils/Util.js"
 import { PostRow } from "../clientUtils/owidTypes.js"
-import { selectPosts, postsTable } from "./model/Post.js"
+import { postsTable, select } from "./model/Post.js"
 
 const zeroDateString = "0000-00-00 00:00:00"
 
@@ -15,7 +15,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
     )
 
     const doesExistInWordpress = keyBy(rows, "ID")
-    const existsInGrapher = await selectPosts("id").from(
+    const existsInGrapher = await select("id").from(
         db.knexInstance().from(postsTable)
     )
     const doesExistInGrapher = keyBy(existsInGrapher, "id")

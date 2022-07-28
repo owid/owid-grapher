@@ -2,7 +2,6 @@
 
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"
-import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 import { DownloadTab } from "./DownloadTab.js"
 
 const getTable = (options: { nonRedistributable: boolean }): OwidTable => {

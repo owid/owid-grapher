@@ -54,7 +54,7 @@ class EntityItem extends React.Component<EntityItemProps> {
 
     render() {
         const { props, color } = this
-        const { entityName, onRemove, ...rest } = props
+        const { entityName, ...rest } = props
 
         return (
             <EditableListItem

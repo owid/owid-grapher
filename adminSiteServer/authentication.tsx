@@ -108,11 +108,7 @@ export async function authCloudflareSSOMiddleware(
     return res.redirect(redirectTo)
 }
 
-export async function logOut(
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) {
+export async function logOut(req: express.Request, res: express.Response) {
     if (res.locals.user)
         await db.queryMysql(`DELETE FROM sessions WHERE session_key = ?`, [
             res.locals.session.id,

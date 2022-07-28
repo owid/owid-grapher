@@ -28,7 +28,9 @@ import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 
-const expressErrorSlack = require("express-error-slack") // todo: why the require?
+// library does not provide type definitions
+// eslint-disable-next-line
+const expressErrorSlack = require("express-error-slack")
 
 interface OwidAdminAppOptions {
     slackErrorsWebHookUrl?: string
