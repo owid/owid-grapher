@@ -213,6 +213,9 @@ export const legacyToOwidTableAndDimensions = (
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, 0)
                 .dropColumns([timeColumnDef.slug])
+            // We keep variables that have a targetTime set in a special bucket and will join them
+            // on entity only (disregarding the year since we already filtered all other years out for
+            // those variables)
             variableTablesWithYearToJoinByEntityOnly.push(variableTable)
         } else if (variable.metadata.display?.yearIsDay)
             variableTablesToJoinByDay.push(variableTable)
@@ -291,6 +294,8 @@ export const legacyToOwidTableAndDimensions = (
                 [OwidTableSlugs.entityId],
             ]
         )
+        // If we have scatter/marimekko varables that had a targetTime set
+        // then these are now joined in by matching entity only
         if (variableTablesWithYearToJoinByEntityOnly.length > 0)
             joinedVariablesTable = fullJoinTables(
                 [
@@ -307,6 +312,9 @@ export const legacyToOwidTableAndDimensions = (
             OwidTableSlugs.year,
             OwidTableSlugs.entityId,
         ])
+
+        // If we have scatter/marimekko varables that had a targetTime set
+        // then these are now joined in by matching entity only
         if (variableTablesWithYearToJoinByEntityOnly.length > 0)
             joinedVariablesTable = fullJoinTables(
                 [
@@ -319,6 +327,9 @@ export const legacyToOwidTableAndDimensions = (
     } else {
         // If we only have day variables life is also easy but this case is rare
         joinedVariablesTable = variablesJoinedByDay
+
+        // If we have scatter/marimekko varables that had a targetTime set
+        // then these are now joined in by matching entity only
         if (variableTablesWithYearToJoinByEntityOnly.length > 0)
             joinedVariablesTable = fullJoinTables(
                 [
@@ -410,7 +421,7 @@ const fullJoinTables = (
     ])
     const allIndexValues = new Set(allIndexValuesArray)
 
-    // Now identify for each table which columns should be copied (i.e. all non-index columns)
+    // Now identify for each table which columns should be copied (i.e. all non-index columns).
     const columnsToAddPerTable = tables.map((table) =>
         difference(table.columnSlugs, sharedColumnNames)
     )
@@ -437,8 +448,10 @@ const fullJoinTables = (
                         return def
                     }) as OwidColumnDef[]
         )
+    // Now loop over all unique index values and for each assemble as full a row as we can manage by looking
+    // up the values in the different source tables
     for (const index of allIndexValues.values()) {
-        // First we handle the index columns (defsToAddPerTable[0])
+        // First we handle the unique/index columns (defsToAddPerTable[0])
         for (const def of defsToAddPerTable[0]) {
             // The index columns are special - the first table might not have a value for each of the index columns
             // at the current index (e.g. a year that does not exist in the first table). We therefore have to keep
@@ -459,54 +472,64 @@ const fullJoinTables = (
         // This is the fallback index we use when looking up values and we don't find a value in the normal index.
         // This is the case when we join year and day variables and then use day+entityid as the key but the year
         // variables don't have those - so for the year variables we then check if there is a match using year+entityId
-        // where the year to use comes from the first table that by convention has to contain a year column with the
+        // where the year to use comes from the first table that by convention HAS TO contain a year column with the
         // value to merge years on.
         const indexHits = indexValuesPerTable[0].get(index)
-        const fallbackMergeIndeces =
+        const fallbackMergeIndices =
             mergeFallbackLookupColumns && indexHits
                 ? mergeFallbackLookupColumns.map((columnSet) =>
                       makeKeyFn(tables[0].columnStore, columnSet)(indexHits![0])
                   )
                 : undefined
-        // now add all the nonindex value columns
+        // now add all the nonindex value columns. We now loop over all tables and for each non-shared column
+        // we look up the value for the current row. We find the value for the current row by first trying to
+        // look up a match based on the shared index values, indexValuesPerTable[i]. If we don't have a hit
+        // for this row in this table then we try the fallbackMergeIndices in turn to see if we can merge
+        // based on these fallback indexes. If no option leads to a match we store ErrorValueTypes.NoMatchingValueAfterJoin
+        // in the cell.
+
         // note that defsToAddPerTable has one more element than tables (the one duplicate of the
-        // first table that we added in the beginning)
+        // first table that we added in the beginning that we use as the primary source for the shared columns)
         for (let i = 0; i < tables.length; i++) {
             let indexHits = indexValuesPerTable[i].get(index)
 
             if (indexHits !== undefined && indexHits.length > 1)
+                // This case should be rare but it can come up. The old algorithm ran into this often because it
+                // joined a lot more stuff on entity only and then when you look up by entity into a table that has
+                // several years you end up with multiple matches. The old algorithm used to just pick one value.
+                // We still do this utlimately but because we try to match even day and year variables by year+entity
+                // first we should usually be able to find a unique match. The error output is here so that when
+                // something is weird in an edge case then this shows up as a debugging hint in the console.
                 console.error(
                     `Found more than one matching row in table ${tables[i].tableSlug}`
                 )
             for (const def of defsToAddPerTable[i + 1]) {
-                // There is a special case for the first table that contains the index columns
-                // If for a given row this first table doesn't have values for the index row then
-                // we need to check the other tables until we find one that has a value for this index
-                // for the key column
-
+                // If the main index led to a hit then we just copy the value into the new row from the source table
                 if (indexHits !== undefined)
                     def.values?.push(
                         tables[i].columnStore[def.slug][indexHits[0]]
                     )
                 else {
+                    // If the main index did not lead to a hit then we try the fallback indices in turn
                     indexHits = undefined
                     for (
                         let fallbackIndex = 0;
-                        fallbackMergeIndeces &&
+                        fallbackMergeIndices &&
                         mergeFallbackLookupValuesPerTable &&
                         indexHits === undefined &&
-                        fallbackIndex < fallbackMergeIndeces!.length;
+                        fallbackIndex < fallbackMergeIndices!.length;
                         fallbackIndex++
                     ) {
                         indexHits = mergeFallbackLookupValuesPerTable[
                             fallbackIndex
-                        ][i].get(fallbackMergeIndeces[fallbackIndex])
+                        ][i].get(fallbackMergeIndices[fallbackIndex])
                     }
                     if (indexHits !== undefined)
+                        // If any of the fallbacks led to a hit then we use this hit
                         def.values?.push(
                             tables[i].columnStore[def.slug][indexHits[0]]
                         )
-                    // todo: use first or last match?
+                    // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cell
                     else
                         def.values?.push(
                             ErrorValueTypes.NoMatchingValueAfterJoin as any
