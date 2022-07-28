@@ -14,7 +14,7 @@ jobs:
               with:
                   access_key: ${{ secrets.DO_ACCESS_KEY}}
                   secret_key: ${{ secrets.DO_SECRET_KEY }}
-                  space_name: ${{ secrets.DO_SPACE_NAME }}
-                  space_region: ${{ secrets.DO_SPACE_REGION }}
+                  space_name: owid-public
+                  space_region: nyc3
                   source: grapher/schema
                   out_dir: schemas
