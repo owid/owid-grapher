@@ -17,6 +17,7 @@ import {
     makeAnnotationsSlug,
     trimObject,
     uniqBy,
+    zip,
 } from "../../clientUtils/Util.js"
 import {
     OwidEntityKey,
@@ -34,7 +35,6 @@ import {
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes.js"
 import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
-import { sortBy, zip } from "lodash"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
 import { makeKeyFn } from "../../coreTable/CoreTableUtils.js"
 

@@ -60,6 +60,7 @@ import uniqBy from "lodash/uniqBy.js"
 import uniqWith from "lodash/uniqWith.js"
 import upperFirst from "lodash/upperFirst.js"
 import without from "lodash/without.js"
+import zip from "lodash/zip.js"
 export {
     capitalize,
     chunk,
@@ -120,6 +121,7 @@ export {
     uniqWith,
     upperFirst,
     without,
+    zip,
 }
 import { extent, pairs } from "d3-array"
 export { pairs }
