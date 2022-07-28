@@ -10,7 +10,6 @@ import {
 import {
     flatten,
     getRelativeMouse,
-    isString,
     identity,
     sortBy,
     guid,

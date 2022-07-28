@@ -61,7 +61,7 @@ import {
     isPostCitable,
     getBlockContent,
 } from "../db/wpdb.js"
-import { mysqlFirst, queryMysql, knexTable } from "../db/db.js"
+import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"

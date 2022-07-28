@@ -524,7 +524,7 @@ describe("filtering", () => {
             const table = new CoreTable(`country,pop
     usa,123
     can,333`)
-            const allFiltered = table.rowFilter((row) => false, "filter all")
+            const allFiltered = table.rowFilter(() => false, "filter all")
             expect(allFiltered.get("pop").values).toEqual([])
         })
 

@@ -65,5 +65,6 @@ export class RenameCountries1607505305417 implements MigrationInterface {
         }
     }
 
-    public async down(queryRunner: QueryRunner): Promise<any> {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public async down(): Promise<any> {}
 }

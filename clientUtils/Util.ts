@@ -246,7 +246,7 @@ const isStorybook = (): boolean =>
 
 // Just a quick and dirty way to expose window.chart/explorer/etc for debugging. Last caller wins.
 export const exposeInstanceOnWindow = (
-    component: any,
+    component: unknown,
     name = "chart",
     alsoOnTopWindow?: boolean
 ): void => {
@@ -466,7 +466,7 @@ export const slugifySameCase = (str: string): string =>
 // Useful for coordinating between embeds to avoid conflicts in their ids
 let _guid = 0
 export const guid = (): number => ++_guid
-export const TESTING_ONLY_reset_guid = () => (_guid = 0)
+export const TESTING_ONLY_reset_guid = (): number => (_guid = 0)
 
 // Take an array of points and make it into an SVG path specification string
 export const pointsToPath = (points: Array<[number, number]>): string => {
@@ -808,8 +808,10 @@ export function parseIntOrUndefined(s: string | undefined): number | undefined {
     return isNaN(value) ? undefined : value
 }
 
-export const anyToString = (value: any): string =>
-    value?.toString ? value.toString() : ""
+export const anyToString = (value: unknown): string => {
+    if (typeof value === "undefined" || value === null) return ""
+    return String(value)
+}
 
 // Scroll Helpers
 // Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
@@ -1003,12 +1005,13 @@ export const findIndexFast = (
 }
 
 export const logMe = (
-    target: any,
+    target: unknown,
     propertyName: string,
     descriptor: TypedPropertyDescriptor<any>
 ): TypedPropertyDescriptor<any> => {
     const originalMethod = descriptor.value
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: any[]): any {
+        // eslint-disable-next-line no-console
         console.log(`Running ${propertyName} with '${args}'`)
         return originalMethod.apply(this, args)
     }
@@ -1231,6 +1234,12 @@ export function checkIsPlainObjectWithGuard(
     x: unknown
 ): x is Record<string, unknown> {
     return isPlainObject(x)
+}
+
+export function checkIsStringIndexable(
+    x: unknown
+): x is Record<string, unknown> {
+    return isPlainObject(x) || isArray(x)
 }
 
 function checkIsTouchEvent(

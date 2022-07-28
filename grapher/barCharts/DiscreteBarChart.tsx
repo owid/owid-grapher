@@ -60,12 +60,9 @@ import { ColorSchemeName } from "../color/ColorConstants.js"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
-import {
-    CategoricalBin,
-    ColorScaleBin,
-    NumericBin,
-} from "../color/ColorScaleBin.js"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
 import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends.js"
+import { BaseType, Selection } from "d3"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -330,7 +327,12 @@ export class DiscreteBarChart
         return this.barPlacements.map((b) => b.width)
     }
 
-    private d3Bars() {
+    private d3Bars(): Selection<
+        BaseType,
+        unknown,
+        SVGGElement | null,
+        unknown
+    > {
         return select(this.base.current).selectAll("g.bar > rect")
     }
 
@@ -597,15 +599,15 @@ export class DiscreteBarChart
         let sortByFunc: (item: DiscreteBarItem) => number | string | undefined
         switch (this.sortConfig.sortBy) {
             case SortBy.custom:
-                sortByFunc = () => undefined
+                sortByFunc = (): undefined => undefined
                 break
             case SortBy.entityName:
-                sortByFunc = (item: DiscreteBarItem) => item.seriesName
+                sortByFunc = (item: DiscreteBarItem): string => item.seriesName
                 break
             default:
             case SortBy.total:
             case SortBy.column: // we only have one yColumn, so total and column are the same
-                sortByFunc = (item: DiscreteBarItem) => item.value
+                sortByFunc = (item: DiscreteBarItem): number => item.value
                 break
         }
         const sortedSeries = sortBy(raw, sortByFunc)

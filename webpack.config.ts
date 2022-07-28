@@ -2,11 +2,12 @@ import webpack from "webpack"
 import "webpack-dev-server" // just imported for type magic
 import path from "path"
 
+/* eslint-disable @typescript-eslint/no-var-requires */
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const { WebpackManifestPlugin } = require("webpack-manifest-plugin")
-
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const DotenvWebpackPlugin = require("dotenv-webpack")
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 const config = (env: any, argv: any): webpack.Configuration => {
     const isProduction = argv.mode === "production"

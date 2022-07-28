@@ -19,5 +19,6 @@ export class RemoveMinPopulationFilter1652693645426
         }
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public async down(): Promise<void> {}
 }

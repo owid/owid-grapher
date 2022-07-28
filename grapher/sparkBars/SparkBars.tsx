@@ -82,13 +82,15 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         return (
             <div
                 className={this.props.className}
-                onMouseLeave={() => this.props.onHover?.(undefined, undefined)}
+                onMouseLeave={(): void =>
+                    this.props.onHover?.(undefined, undefined)
+                }
             >
                 {this.bars.map((d, i) => (
                     <div
                         key={i}
                         className="bar-wrapper"
-                        onMouseEnter={() => this.props.onHover?.(d, i)}
+                        onMouseEnter={(): void => this.props.onHover?.(d, i)}
                     >
                         {this.props.highlightedX === i &&
                             d !== undefined &&

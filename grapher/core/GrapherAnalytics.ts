@@ -47,7 +47,7 @@ export class GrapherAnalytics {
     private version: string // Ideally the Git hash commit
     private isDev: boolean
 
-    logGrapherViewError(error: any, info: any): void {
+    logGrapherViewError(error: Error, info: unknown): void {
         this.logToAmplitude(EventNames.grapherViewError, { error, info })
         this.logToGA(Categories.GrapherError, EventNames.grapherViewError)
     }
@@ -108,7 +108,10 @@ export class GrapherAnalytics {
         })
     }
 
-    protected logToAmplitude(name: string, props?: any): void {
+    protected logToAmplitude(
+        name: string,
+        props?: Record<string, unknown>
+    ): void {
         const allProps = {
             context: {
                 siteVersion: this.version,

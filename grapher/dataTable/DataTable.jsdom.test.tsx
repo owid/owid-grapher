@@ -9,7 +9,7 @@ import {
     IncompleteDataTable,
 } from "./DataTable.sample.js"
 
-import { shallow, mount, ReactWrapper, configure } from "enzyme"
+import { mount, ReactWrapper, configure } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
 configure({ adapter: new Adapter() })
 

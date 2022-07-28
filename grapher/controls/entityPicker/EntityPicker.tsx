@@ -25,7 +25,6 @@ import { getStylesForTargetHeight } from "../../../clientUtils/react-select.js"
 import {
     ColumnTypeMap,
     CoreColumn,
-    MissingColumn,
 } from "../../../coreTable/CoreTableColumns.js"
 import {
     EntityName,

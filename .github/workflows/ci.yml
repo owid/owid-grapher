@@ -21,6 +21,18 @@ jobs:
             - name: Run jest
               run: yarn testJest
 
+    eslint:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Clone repository
+              uses: actions/checkout@v3
+
+            - uses: ./.github/actions/setup-node-yarn-deps
+
+            - name: Run eslint
+              run: yarn testLint
+
     # Runs `bundlewatch` on the code to see if our Webpack build assets exceed a given file size.
     bundlewatch:
         runs-on: ubuntu-latest

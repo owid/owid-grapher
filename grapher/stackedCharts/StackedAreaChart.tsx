@@ -482,7 +482,7 @@ export class StackedAreaChart
         )
     }
     /** Whether we want to display series with only zeroes (inherited). False for this class, true for others */
-    get showAllZeroSeries() {
+    get showAllZeroSeries(): boolean {
         return false
     }
 

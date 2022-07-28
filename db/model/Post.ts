@@ -4,7 +4,9 @@ import { PostRow } from "../../clientUtils/owidTypes.js"
 
 export const postsTable = "posts"
 
-export const selectPosts = <K extends keyof PostRow>(
+export const table = "posts"
+
+export const select = <K extends keyof PostRow>(
     ...args: K[]
 ): { from: (query: Knex.QueryBuilder) => Promise<Pick<PostRow, K>[]> } => ({
     from: (query) => query.select(...args) as any,
@@ -29,8 +31,27 @@ export const getTagsByPostId = async (): Promise<
 
     return tagsByPostId
 }
+export const setTags = async (
+    postId: number,
+    tagIds: number[]
+): Promise<void> =>
+    await db.transaction(async (t) => {
+        const tagRows = tagIds.map((tagId) => [tagId, postId])
+        await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
+        if (tagRows.length)
+            await t.execute(
+                `INSERT INTO post_tags (tag_id, post_id) VALUES ?`,
+                [tagRows]
+            )
+    })
 
-export const setTagsForPost = async (postId: number, tagIds: number[]) =>
+export const bySlug = async (slug: string): Promise<PostRow | undefined> =>
+    (await db.knexTable("posts").where({ slug: slug }))[0]
+
+export const setTagsForPost = async (
+    postId: number,
+    tagIds: number[]
+): Promise<void> =>
     await db.transaction(async (t) => {
         const tagRows = tagIds.map((tagId) => [tagId, postId])
         await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
