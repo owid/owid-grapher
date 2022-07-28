@@ -219,10 +219,6 @@ export const legacyToOwidTableAndDimensions = (
         else variableTablesToJoinByYear.push(variableTable)
     })
 
-    const variablesJoinedByYear = fullJoinTables(variableTablesToJoinByYear, [
-        OwidTableSlugs.year,
-        OwidTableSlugs.entityId,
-    ])
     const variablesJoinedByDay = fullJoinTables(variableTablesToJoinByDay, [
         OwidTableSlugs.day,
         OwidTableSlugs.entityId,
@@ -258,14 +254,17 @@ export const legacyToOwidTableAndDimensions = (
             variablesJoinedByDay.appendColumns([newYearColumn])
 
         joinedVariablesTable = fullJoinTables(
-            [variablesJoinedByDayWithYearFilled, variablesJoinedByYear],
+            [variablesJoinedByDayWithYearFilled, ...variableTablesToJoinByYear],
             [OwidTableSlugs.day, OwidTableSlugs.entityId],
             // [OwidTableSlugs.year, OwidTableSlugs.entityId]
             [OwidTableSlugs.entityId] // Id' rather join with year here but the legacy behaviour
             // is to join with entityId only and filter year based variables to single years beforehand
         )
     } else if (variableTablesToJoinByYear.length > 0)
-        joinedVariablesTable = variablesJoinedByYear
+        joinedVariablesTable = fullJoinTables(variableTablesToJoinByYear, [
+            OwidTableSlugs.year,
+            OwidTableSlugs.entityId,
+        ])
     else if (variableTablesToJoinByDay.length > 0) {
         mainIndexColumns = [OwidTableSlugs.day, OwidTableSlugs.entityId]
         joinedVariablesTable = variablesJoinedByDay
