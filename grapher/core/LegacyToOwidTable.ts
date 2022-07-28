@@ -99,7 +99,6 @@ export const legacyToOwidTableAndDimensions = (
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
-    const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
     dimensionColumns.forEach((dimension) => {
         const variable = json.get(dimension.variableId)!
 
@@ -212,26 +211,51 @@ export const legacyToOwidTableAndDimensions = (
                 )
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, 0)
-            //.dropColumns([timeColumnDef.slug])
-            variableTablesWithYearToJoinByEntityOnly.push(variableTable)
+            // We used to drop the time column now but we track variables to join by year separately now so we don't need to anymore
+            variableTablesToJoinByYear.push(variableTable)
         } else if (variable.metadata.display?.yearIsDay)
             variableTablesToJoinByDay.push(variableTable)
         else variableTablesToJoinByYear.push(variableTable)
     })
 
+    // If we only had years then all we would need to do is a single fullJoinTables call and
+    // we'd be done with it. But since we also have days this is a bit trickier. The
+    // basic approach is to say that if we have day variables then we should join those internally
+    // on day+entity first and day+entity becomes the primary index for our final table.
+    // We then join this merged days table with all the year based variables.
+    // The multi table join iterates over all the unique index values (day+entity).
+    // To join this with years we derive the year from the day. The fullJoinTables then uses a number
+    // of fallbacks when trying to find matching rows in the various tables: we first try to join by day+entity,
+    // then by year+entity and finally entity only.
+    // This last join by entity only is important so that variables that don't have values for years
+    // that come up in the day+entity index we still retain the values. E.g. our continents table
+    // has values for all countries but only for the year 2015. If we join that with covid era days
+    // we still want to retain the continents so we have the fallback to entity only (this was also
+    // the only behaviour prior to July 2022). Remember that tolerance will only be applied much later -
+    // here we are only concerned with merging mutliple variables into an inputTable that retains information.
+    // Another approach would be to convert years into days when we have days - then we could simplify the fallback
+    // join key logic described above.
+    // Another caveat is that by switching to day+entity as the primary index that we use to join we can drop some entities.
+    // This happens e.g. with Antarctica if the continents table is used. Continents contains an entry for the entity Antarctica for 2015
+    // that maps it (and 3 other territories) to the Antarctica continent. If the days variables don't have values for any of the
+    // Antarctica entities then they will not be enumerated for the final join table and thus they will be dropped from the final table.
+    // This is maybe counter to what you would expect from a full join but is simply an artifact of making days+entities the primary
+    // index and not backporting years to days. We might want to revisit this in the future and/or also apply tolerance already
+    // at this level here.
+
+    // Merge all day based variables together (returns an empty table if there are none)
     const variablesJoinedByDay = fullJoinTables(variableTablesToJoinByDay, [
         OwidTableSlugs.day,
         OwidTableSlugs.entityId,
     ])
-    // TODO: add year column to day table
 
-    let joinedVariablesTable: OwidTable | undefined
-    let mainIndexColumns = [OwidTableSlugs.year, OwidTableSlugs.entityId]
+    let joinedVariablesTable: OwidTable
+    // If we have both day and year based variables we need to do some special logic as described above
     if (
         variableTablesToJoinByYear.length > 0 &&
         variableTablesToJoinByDay.length > 0
     ) {
-        mainIndexColumns = [OwidTableSlugs.day, OwidTableSlugs.entityId]
+        // Derive the year from the day column and add it to the joined days table
         const daysColumn = variablesJoinedByDay.getColumns([
             OwidTableSlugs.day,
         ])[0]
@@ -253,6 +277,11 @@ export const legacyToOwidTableAndDimensions = (
         const variablesJoinedByDayWithYearFilled =
             variablesJoinedByDay.appendColumns([newYearColumn])
 
+        // Now join the already merged days table with all the years. It is imporant
+        // to not join the years together into one table already before so that each
+        // table lookup for fallback values is looked at individually.
+        // See the longer comment above for the idea behind the fallback cascade here of
+        // trying to merge first by day+entity, then year+entity and finally entity only
         joinedVariablesTable = fullJoinTables(
             [variablesJoinedByDayWithYearFilled, ...variableTablesToJoinByYear],
             [OwidTableSlugs.day, OwidTableSlugs.entityId],
@@ -262,38 +291,22 @@ export const legacyToOwidTableAndDimensions = (
             ]
         )
     } else if (variableTablesToJoinByYear.length > 0)
+        // If we only have year based variables then life is easy and we just join
+        // those together without any special cases
         joinedVariablesTable = fullJoinTables(variableTablesToJoinByYear, [
             OwidTableSlugs.year,
             OwidTableSlugs.entityId,
         ])
-    else if (variableTablesToJoinByDay.length > 0) {
-        mainIndexColumns = [OwidTableSlugs.day, OwidTableSlugs.entityId]
+    else {
+        // If we only have day variables life is also easy but this case is rare
         joinedVariablesTable = variablesJoinedByDay
     }
-
-    if (variableTablesWithYearToJoinByEntityOnly.length > 0)
-        if (joinedVariablesTable) {
-            joinedVariablesTable = fullJoinTables(
-                [
-                    joinedVariablesTable,
-                    ...variableTablesWithYearToJoinByEntityOnly,
-                ],
-                mainIndexColumns,
-                [OwidTableSlugs.entityId]
-            )
-        } else {
-            joinedVariablesTable = fullJoinTables(
-                variableTablesWithYearToJoinByEntityOnly,
-                mainIndexColumns,
-                [OwidTableSlugs.entityId]
-            )
-        }
 
     // Inject a common "time" column that is used as the main time column for the table
     // e.g. for the timeline.
     for (const dayOrYearSlug of [OwidTableSlugs.day, OwidTableSlugs.year]) {
-        if (joinedVariablesTable!.columnSlugs.includes(dayOrYearSlug)) {
-            joinedVariablesTable = joinedVariablesTable!.duplicateColumn(
+        if (joinedVariablesTable.columnSlugs.includes(dayOrYearSlug)) {
+            joinedVariablesTable = joinedVariablesTable.duplicateColumn(
                 dayOrYearSlug,
                 {
                     slug: OwidTableSlugs.time,
@@ -305,7 +318,7 @@ export const legacyToOwidTableAndDimensions = (
         }
     }
 
-    return { dimensions: newDimensions, table: joinedVariablesTable! }
+    return { dimensions: newDimensions, table: joinedVariablesTable }
 }
 
 const fullJoinTables = (
@@ -313,6 +326,17 @@ const fullJoinTables = (
     indexColumnNames: string[],
     mergeFallbackLookupColumns?: string[][]
 ): OwidTable => {
+    // This function merges a number of OwidTables together using a given list of columns
+    // to be used as the merge key. The merge key columns are used to construct a full set
+    // of index values from the various tables - all tables are enumerated, we create
+    // a merged string value from the index column values for each row and then we create
+    // a set from all these string values.
+    // Note that not every table has to have values for all columns - not even all the index
+    // columns have to exist on all tables! The reason for this and how this can possibly work
+    // is that we also have a list of fallback merge columns. This is required so we can handle
+    // not just the easy case where we have year+entity for every table to be merged (which in our
+    // data model is by far the most common default), but also handle cases where we merge year and
+    // day based variables together
     if (tables.length === 0) return new OwidTable()
     else if (tables.length === 1) return tables[0]
 
