@@ -1,0 +1,20 @@
+name: Upload to DO Spaces
+on:
+    push:
+        branches:
+            - master
+            - schema-do-sync-github-action
+jobs:
+    upload:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@master
+            - uses: BetaHuhn/do-spaces-action@v2
+              with:
+                  access_key: ${{ secrets.DO_ACCESS_KEY}}
+                  secret_key: ${{ secrets.DO_SECRET_KEY }}
+                  space_name: owid-public
+                  space_region: nyc3
+                  source: grapher/schema
+                  out_dir: schemas
