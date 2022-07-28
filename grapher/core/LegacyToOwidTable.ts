@@ -99,6 +99,7 @@ export const legacyToOwidTableAndDimensions = (
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
+    const variableTablesWithYearToJoinByEntityOnly: OwidTable[] = []
     dimensionColumns.forEach((dimension) => {
         const variable = json.get(dimension.variableId)!
 
@@ -211,8 +212,8 @@ export const legacyToOwidTableAndDimensions = (
                 )
                 // Interpolate with 0 to add originalTimes column
                 .interpolateColumnWithTolerance(valueColumnDef.slug, 0)
-            // We used to drop the time column now but we track variables to join by year separately now so we don't need to anymore
-            variableTablesToJoinByYear.push(variableTable)
+                .dropColumns([timeColumnDef.slug])
+            variableTablesWithYearToJoinByEntityOnly.push(variableTable)
         } else if (variable.metadata.display?.yearIsDay)
             variableTablesToJoinByDay.push(variableTable)
         else variableTablesToJoinByYear.push(variableTable)
@@ -290,16 +291,43 @@ export const legacyToOwidTableAndDimensions = (
                 [OwidTableSlugs.entityId],
             ]
         )
-    } else if (variableTablesToJoinByYear.length > 0)
+        if (variableTablesWithYearToJoinByEntityOnly.length > 0)
+            joinedVariablesTable = fullJoinTables(
+                [
+                    joinedVariablesTable,
+                    ...variableTablesWithYearToJoinByEntityOnly,
+                ],
+                [OwidTableSlugs.day, OwidTableSlugs.entityId],
+                [[OwidTableSlugs.entityId]]
+            )
+    } else if (variableTablesToJoinByYear.length > 0) {
         // If we only have year based variables then life is easy and we just join
         // those together without any special cases
         joinedVariablesTable = fullJoinTables(variableTablesToJoinByYear, [
             OwidTableSlugs.year,
             OwidTableSlugs.entityId,
         ])
-    else {
+        if (variableTablesWithYearToJoinByEntityOnly.length > 0)
+            joinedVariablesTable = fullJoinTables(
+                [
+                    joinedVariablesTable,
+                    ...variableTablesWithYearToJoinByEntityOnly,
+                ],
+                [OwidTableSlugs.year, OwidTableSlugs.entityId],
+                [[OwidTableSlugs.entityId]]
+            )
+    } else {
         // If we only have day variables life is also easy but this case is rare
         joinedVariablesTable = variablesJoinedByDay
+        if (variableTablesWithYearToJoinByEntityOnly.length > 0)
+            joinedVariablesTable = fullJoinTables(
+                [
+                    joinedVariablesTable,
+                    ...variableTablesWithYearToJoinByEntityOnly,
+                ],
+                [OwidTableSlugs.day, OwidTableSlugs.entityId],
+                [[OwidTableSlugs.entityId]]
+            )
     }
 
     // Inject a common "time" column that is used as the main time column for the table
@@ -323,8 +351,8 @@ export const legacyToOwidTableAndDimensions = (
 
 const fullJoinTables = (
     tables: OwidTable[],
-    indexColumnNames: string[],
-    mergeFallbackLookupColumns?: string[][]
+    indexColumnNames: OwidTableSlugs[],
+    mergeFallbackLookupColumns?: OwidTableSlugs[][]
 ): OwidTable => {
     // This function merges a number of OwidTables together using a given list of columns
     // to be used as the merge key. The merge key columns are used to construct a full set
@@ -332,11 +360,20 @@ const fullJoinTables = (
     // a merged string value from the index column values for each row and then we create
     // a set from all these string values.
     // Note that not every table has to have values for all columns - not even all the index
-    // columns have to exist on all tables! The reason for this and how this can possibly work
+    // columns have to exist on all tables (the index columns have to exist on the first table though)!
+    // The reason for this and how this can possibly work
     // is that we also have a list of fallback merge columns. This is required so we can handle
     // not just the easy case where we have year+entity for every table to be merged (which in our
     // data model is by far the most common default), but also handle cases where we merge year and
-    // day based variables together
+    // day based variables together. For this latter case we need to still contstruct the set of index
+    // values for the final table, but then when we try to look up values in the various tables to
+    // merge together we will not find values by day+entity for the year based tables. So for this
+    // case we get a series of fallback column tuples that we try in turn if the main index lookup
+    // fails. These fallback tuples are year+entity first and then entity only. The reasoning here is
+    // that e.g. when merging population to a day variable we want to merge the values from the year
+    // matching the day from the population variable (year+entity lookup) but for variables that don't
+    // have overlapping years (e.g. continents that only has 2015 as the single year) we want to fall back
+    // to merging by entity alone as a last resort
     if (tables.length === 0) return new OwidTable()
     else if (tables.length === 1) return tables[0]
 
@@ -350,12 +387,21 @@ const fullJoinTables = (
             ? table.rowIndex(indexColumnNames)
             : new Map()
     )
+
+    // Construct all the fallback index lookup values for all tables. mergeFallbackLookupColumns is an
+    // array of array that is supposed to be treated as a sequence of tuples of column names
     const mergeFallbackLookupValuesPerTable = mergeFallbackLookupColumns
         ? mergeFallbackLookupColumns.map((fallbackColumns) =>
               tables.map((table) => table.rowIndex(fallbackColumns))
           )
         : undefined
 
+    // Figure out which column names are shared. Shared columns (the index columns but also in our
+    // data model stuff like entityCode and entityName that we usually have in addition to entityId)
+    // will end up only once in the final table. This is a bit of a footgun for arbitrary data models
+    // as we don't make sure that the values are equal for the same index values (we only assume that
+    // this is true) - but this is how we have handled it in the past and it works with the setup we
+    // have.
     const sharedColumnNames = intersection(
         ...tables.map((table) => table.columnSlugs)
     )
@@ -369,8 +415,12 @@ const fullJoinTables = (
         difference(table.columnSlugs, sharedColumnNames)
     )
     // Prepare a special entry for the Table + column names tuple that we will zip and
-    // map in the next step. This special entry is the first one and contains only the
-    // index columns from the first table and only once
+    // map in the next step. This special entry is the first table and contains only the
+    // unique columns (index + other tables that are shared among all tables).
+    // We will preferentially get the unique values from the first table but because
+    // the first table is not guaranteed to contain all index values we'll later on
+    // try other tables for these shared columns if the given row index does
+    // not exist in the first table
     const firstTableDuplicateForIndices: [
         OwidTable | undefined,
         string[] | undefined
@@ -438,7 +488,6 @@ const fullJoinTables = (
                     def.values?.push(
                         tables[i].columnStore[def.slug][indexHits[0]]
                     )
-                // todo: use first or last match?
                 else {
                     indexHits = undefined
                     for (
