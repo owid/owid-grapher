@@ -15,11 +15,14 @@ export class AddShortNameAndVersionToDatasets1659011799966
             DEFAULT NULL;
         `)
         await queryRunner.query(`
-            ALTER TABLE datasets ADD UNIQUE (shortName);
+            ALTER TABLE datasets ADD CONSTRAINT unique_short_name_version_namespace UNIQUE (shortName, version, namespace);
         `)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`
+            ALTER TABLE datasets DROP INDEX unique_short_name_version_namespace;
+        `)
         await queryRunner.query(`
             ALTER TABLE datasets
             DROP COLUMN shortName;
