@@ -64,6 +64,7 @@ export const BLOCK_WRAPPER_DATATYPE = "block-wrapper"
 
 export interface FormattedPost extends FullPost {
     supertitle?: string
+    stickyNavLinks?: { text: string; target: string }[]
     lastUpdated?: string
     byline?: string
     info?: string

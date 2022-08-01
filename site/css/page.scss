@@ -6,7 +6,8 @@
 
     .content-and-footnotes,
     .article-header,
-    .site-subnavigation {
+    .site-subnavigation,
+    .sticky-nav-container {
         @include content-wrapper;
         @include lg-up {
             max-width: $text-max-content-width + $graph-max-content-width + 3 *
@@ -203,5 +204,38 @@
 
     @include sm-only {
         display: block;
+    }
+}
+
+.sticky-nav {
+    position: sticky;
+    top: 0;
+    background-color: #ebeef2;
+    z-index: 10;
+    > ul {
+        display: flex;
+        flex-direction: row;
+    }
+
+    li {
+        list-style: none;
+        font-size: 14px;
+        margin: 0 8px;
+        padding: 16px;
+
+        a {
+            color: $blue-40;
+
+            &:visited {
+                color: $blue-40;
+            }
+
+            &:active,
+            &.active,
+            &:hover {
+                color: $blue-90;
+                text-decoration: none;
+            }
+        }
     }
 }

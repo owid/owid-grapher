@@ -10,6 +10,7 @@ import { registerKeyInsightsSlider } from "./KeyInsightsSlider/KeyInsightsSlider
 import { registerKeyInsight } from "./KeyInsight/KeyInsight.js"
 import { registerTechnicalText } from "./TechnicalText/TechnicalText.js"
 import { registerAllCharts } from "./AllCharts/AllCharts.js"
+import { registerStickyNav } from "./StickyNav/StickyNav.js"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
 const { addFilter } = wp.hooks
@@ -26,6 +27,7 @@ registerKeyInsightsSlider()
 registerKeyInsight()
 registerTechnicalText()
 registerAllCharts()
+registerStickyNav()
 
 registerBlockStyle("core/columns", {
     name: "sticky-right",
