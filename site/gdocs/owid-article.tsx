@@ -75,8 +75,9 @@ export default function OwidArticle({ content }: any) {
                         <div>
                             <details className={"summary"} open={true}>
                                 <summary>Summary</summary>
-                                {content.summary.reduce((memo: any, d: any) => {
-                                    return memo + " " + (d.value as any)
+                                {content.summary.reduce((memo: string, d: any) => {
+                                    const text: string = d.value;
+                                    return memo + " " + text;
                                 }, "")}
                             </details>
                         </div>
@@ -95,7 +96,7 @@ export default function OwidArticle({ content }: any) {
                             <h3>Please cite this article as:</h3>
                             <pre>
                                 <code>
-                                    {content.citation.map((d: any, i: any) => {
+                                    {content.citation.map((d: any) => {
                                         if (d.type === "text") {
                                             return d.value
                                         } else {

@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import VisibilitySensor from "react-visibility-sensor"
 // import styles from '../styles/Home.module.css'
 
-export default function Scroller({ d, styles }: any) {
+export default function Scroller({ d }: any) {
     let lastUrl: any
     const figureURLs = d.value.reduce((memo: any, { type, value }: any) => {
         if (type === "url") {

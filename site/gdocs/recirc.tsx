@@ -1,6 +1,6 @@
 import React from "react"
 
-export default function Recirc({ d, styles }: any) {
+export default function Recirc({ d }: any) {
     return (
         <div className={"recirc"}>
             <div className={"recircContent"}>
