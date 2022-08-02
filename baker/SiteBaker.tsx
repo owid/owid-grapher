@@ -136,8 +136,6 @@ export class SiteBaker {
 
     // Bake an individual post/page
     private async bakePost(post: FullPost) {
-
-        console.log('bake post', post);
         const html = await renderPost(post, this.baseUrl, this.grapherExports)
 
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)

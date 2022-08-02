@@ -19,9 +19,6 @@ const THEMES = {
 export default function OwidArticle ({ content }: any) {
 //   const styles = { ...BaseStyles, ...THEMES[content.template] }
 
-    console.log(content)
-    console.log(content.body)
-
   const coverStyle = content['cover-image'] ? { background: `url(${content['cover-image'][0].value.src})`, backgroundSize: 'cover' } : {}
 
   return <html>
@@ -32,11 +29,13 @@ export default function OwidArticle ({ content }: any) {
         </Head>) : null
         } */}
     <head>
+        {/* TODO(gdocs) - add all metadata */}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>The world is awful. The world is much better. The world can be much better. - Our World in Data</title>
         <meta name="description" content="It is wrong to think that these three statements contradict each other. We need to see that they are all true to see that a better world is possible." />
         <link href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&amp;display=swap" rel="stylesheet" />             
-        <link rel="stylesheet" href="http://localhost:8090/commons.css"></link>    
+        {/* TODO(gdocs) - replace with correct URLs */}
+        <link rel="stylesheet" href="http://localhost:8090/commons.css"></link>
         <link rel="stylesheet" href="http://localhost:8090/owid.css"></link>
     </head>
     <body>

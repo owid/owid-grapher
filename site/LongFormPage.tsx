@@ -42,7 +42,6 @@ export const LongFormPage = (props: {
 }) => {
     const { withCitation, post, overrides, formattingOptions, baseUrl } = props
 
-    console.log('rendering longform page');
     const isPost = post.type === "post"
 
     const pageTitle = overrides?.pageTitle ?? post.title

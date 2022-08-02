@@ -109,12 +109,10 @@ mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
 })
 mockSiteRouter.get("/*", async (req, res, next) => {
 
-    console.log('in the mock site rouder redirector');
     const explorerRedirect = getExplorerRedirectForPath(req.path)
     // If no explorer redirect exists, continue to next express handler
     if (!explorerRedirect) return next()
 
-    console.log('there is an explorer redirector')
     const { migrationId, baseQueryStr } = explorerRedirect
     const { explorerSlug } = explorerUrlMigrationsById[migrationId]
     const program = await explorerAdminServer.getExplorerFromSlug(explorerSlug)
@@ -133,7 +131,6 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
 })
 
 mockSiteRouter.get("/", async (req, res) => {
-    console.log('in the mock site router');
     res.send(await renderFrontPage())
 })
 
@@ -226,24 +223,16 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
 
 mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")
-    console.log('try rendering page by slug', slug);
 
-    // TODO(gdocs) - 
-    //     decide if this is a google docs post
     try {
         res.send(await renderGDocsPageBySlug(slug));
-    } catch(e) {
-        console.warn(e);
-        console.log('no gdocs page');
-    }
+    } catch(e) { }
 
     try {
         res.send(await renderPageBySlug(slug))
-        console.log('success');
     } catch (e) {
         console.error(e)
         res.status(404).send(await renderNotFoundPage())
-        console.log('no page');
     }
 })
 

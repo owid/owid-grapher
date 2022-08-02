@@ -153,7 +153,6 @@ export const renderGDocsPageBySlug = async (slug: string) => {
 }
 
 export const renderGDocsPost = (post: any) => {
-    console.log('post', post);
     return renderToHtmlPage(<OwidArticle content={JSON.parse(post.content)} />);
 }
 
