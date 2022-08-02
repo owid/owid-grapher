@@ -101,7 +101,7 @@ export const UNCATEGORIZED_TAG_ID: number =
 
 // Should the static site output be baked when relevant database items change
 export const BAKE_ON_CHANGE: boolean =
-    serverSettings.BAKE_ON_CHANGE === "true" ?? false
+    serverSettings.BAKE_ON_CHANGE === "true" ?? true
 export const DEPLOY_QUEUE_FILE_PATH: string =
     serverSettings.DEPLOY_QUEUE_FILE_PATH ?? `${BASE_DIR}/.queue`
 export const DEPLOY_PENDING_FILE_PATH: string =

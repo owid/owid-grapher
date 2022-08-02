@@ -27,6 +27,7 @@ import {
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
+    renderGDocsPost
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -51,6 +52,7 @@ import {
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
+import { queryMysql } from "../db/db.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -125,7 +127,17 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
+    private async bakeGDocPost(post: any) {
+        const html = await renderGDocsPost(post);
+        const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`);
+        await fs.mkdirp(path.dirname(outPath));
+        await this.stageWrite(outPath, html);
+    }
+
+    // Bake an individual post/page
     private async bakePost(post: FullPost) {
+
+        console.log('bake post', post);
         const html = await renderPost(post, this.baseUrl, this.grapherExports)
 
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
@@ -137,6 +149,7 @@ export class SiteBaker {
     // This happens when posts have been saved in previous bakes but have been since then deleted, unpublished or renamed.
     // Among all existing slugs on the filesystem, some are not coming from WP. They are baked independently and should not
     // be deleted if WP does not list them (e.g. grapher/*).
+    // TODO(gdocs) - make sure this doesn't accidentally remove google docs posts
     private getPostSlugsToRemove(postSlugsFromDb: string[]) {
         const existingSlugs = glob
             .sync(`${this.bakedSiteDir}/**/*.html`)
@@ -190,6 +203,20 @@ export class SiteBaker {
             this.stage(outPath, `DELETING ${outPath}`)
         }
         this.progressBar.tick({ name: "✅ baked posts" })
+    }
+
+    // Bake all GDoc posts
+    private async bakeGDocPosts() {
+        const posts = (await queryMysql(`SELECT * FROM posts_gdocs`));  
+
+        const postSlugs = []
+        for (const post of posts) {
+            postSlugs.push(post.slug)
+            await this.bakeGDocPost(post)
+        }
+
+        // TODO - Delete any previously rendered posts that aren't in the database
+        this.progressBar.tick({ name: "✅ baked google doc posts" })        
     }
 
     // Bake unique individual pages
@@ -356,6 +383,7 @@ export class SiteBaker {
         this.flushCache()
         await this.bakeWordpressPages()
         await this._bakeNonWordpressPages()
+        await this.bakeGDocPosts();
         this.flushCache()
     }
 
