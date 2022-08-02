@@ -108,7 +108,6 @@ mockSiteRouter.get(`/${EXPLORERS_ROUTE_FOLDER}/:slug`, async (req, res) => {
         )
 })
 mockSiteRouter.get("/*", async (req, res, next) => {
-
     const explorerRedirect = getExplorerRedirectForPath(req.path)
     // If no explorer redirect exists, continue to next express handler
     if (!explorerRedirect) return next()
@@ -225,8 +224,8 @@ mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")
 
     try {
-        res.send(await renderGDocsPageBySlug(slug));
-    } catch(e) { }
+        res.send(await renderGDocsPageBySlug(slug))
+    } catch (e) {}
 
     try {
         res.send(await renderPageBySlug(slug))

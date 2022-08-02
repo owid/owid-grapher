@@ -27,7 +27,7 @@ import {
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
-    renderGDocsPost
+    renderGDocsPost,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -128,10 +128,10 @@ export class SiteBaker {
 
     // Bake an individual post/page
     private async bakeGDocPost(post: any) {
-        const html = await renderGDocsPost(post);
-        const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`);
-        await fs.mkdirp(path.dirname(outPath));
-        await this.stageWrite(outPath, html);
+        const html = await renderGDocsPost(post)
+        const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
+        await fs.mkdirp(path.dirname(outPath))
+        await this.stageWrite(outPath, html)
     }
 
     // Bake an individual post/page
@@ -205,7 +205,7 @@ export class SiteBaker {
 
     // Bake all GDoc posts
     private async bakeGDocPosts() {
-        const posts = (await queryMysql(`SELECT * FROM posts_gdocs`));  
+        const posts = await queryMysql(`SELECT * FROM posts_gdocs`)
 
         const postSlugs = []
         for (const post of posts) {
@@ -214,7 +214,7 @@ export class SiteBaker {
         }
 
         // TODO - Delete any previously rendered posts that aren't in the database
-        this.progressBar.tick({ name: "✅ baked google doc posts" })        
+        this.progressBar.tick({ name: "✅ baked google doc posts" })
     }
 
     // Bake unique individual pages
@@ -381,7 +381,7 @@ export class SiteBaker {
         this.flushCache()
         await this.bakeWordpressPages()
         await this._bakeNonWordpressPages()
-        await this.bakeGDocPosts();
+        await this.bakeGDocPosts()
         this.flushCache()
     }
 

@@ -10,8 +10,8 @@ import { CovidPage } from "../site/CovidPage.js"
 import { SearchPage } from "../site/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
-import OwidArticle from '../site/gdocs/owid-article.js';
-import exampleArticle from '../site/gdocs/example-article.js';
+import OwidArticle from "../site/gdocs/owid-article.js"
+import exampleArticle from "../site/gdocs/example-article.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
@@ -141,19 +141,22 @@ export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderGDocsPageBySlug = async (slug: string) => {
-    const [post] = (await queryMysql(`
+    const [post] = await queryMysql(
+        `
         SELECT
             *
         FROM posts_gdocs
         WHERE
             slug = ?
-    `, [slug]));
+    `,
+        [slug]
+    )
 
-    return renderGDocsPost(post);
+    return renderGDocsPost(post)
 }
 
 export const renderGDocsPost = (post: any) => {
-    return renderToHtmlPage(<OwidArticle content={JSON.parse(post.content)} />);
+    return renderToHtmlPage(<OwidArticle content={JSON.parse(post.content)} />)
 }
 
 export const renderPageBySlug = async (slug: string) => {
@@ -211,7 +214,6 @@ export const renderPost = async (
 }
 
 export const renderFrontPage = async () => {
-    console.log('render front page');
     const entries = await getEntriesByCategory()
     const posts = await getBlogIndex()
     const totalCharts = (
