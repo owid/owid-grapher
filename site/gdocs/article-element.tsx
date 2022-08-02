@@ -31,7 +31,7 @@ export default function ArticleElement({ d, styles }: any) {
         } else if (_type === "scroller") {
             content = <Scroller key={key} d={d} styles={styles} />
         } else if (_type === "chart-grid") {
-            const rows = +d.value.find((_d: any) => _d.type === "rows").value
+            // const rows = +d.value.find((_d: any) => _d.type === "rows").value
             const columns = +d.value.find((_d: any) => _d.type === "columns")
                 .value
 
@@ -59,7 +59,6 @@ export default function ArticleElement({ d, styles }: any) {
         } else if (_type === "fixed-graphic") {
             content = <FixedGraphic d={d} key={key} styles={styles} />
         } else if (_type === "recirc") {
-            console.log("rendering recirc")
             content = <Recirc d={d} key={key} styles={styles} />
         } else if (_type === "list") {
             content = <List d={d} key={key} styles={styles} />

@@ -11,11 +11,6 @@ import { SiteFooter } from "../SiteFooter.js"
 
 const styles: any = {}
 
-const THEMES = {
-    centered: {},
-    basic: {},
-}
-
 export default function OwidArticle({ content }: any) {
     //   const styles = { ...BaseStyles, ...THEMES[content.template] }
 
@@ -81,7 +76,7 @@ export default function OwidArticle({ content }: any) {
                             <details className={"summary"} open={true}>
                                 <summary>Summary</summary>
                                 {content.summary.reduce((memo: any, d: any) => {
-                                    return memo + " " + d.value
+                                    return memo + " " + (d.value as any)
                                 }, "")}
                             </details>
                         </div>

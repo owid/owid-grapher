@@ -4,7 +4,7 @@ import {
     IoArrowForwardCircleOutline,
 } from "react-icons/io5"
 
-export default function ChartStory({ slides, styles }: any) {
+export default function ChartStory({ slides }: any) {
     // const [showDetails, setShowDetails] = useState(false);
     const [slide, setSlide] = useState(0)
     const showDetails = true

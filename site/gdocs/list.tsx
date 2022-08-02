@@ -1,6 +1,6 @@
 import React from "react"
 
-export default function List({ d, styles }: any) {
+export default function List({ d }: any) {
     return (
         <ul className={"list"}>
             {d.value.map((_d: any, i: any) => {

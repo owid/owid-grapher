@@ -1,6 +1,6 @@
 import React from "react"
 
-export default function Footnotes({ d, styles }: any) {
+export default function Footnotes({ d }: any) {
     return (
         <section className={"footnoteContainer"}>
             <h2>Endnotes</h2>
