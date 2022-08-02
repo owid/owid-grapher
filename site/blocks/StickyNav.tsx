@@ -30,13 +30,13 @@ class StickyNav extends React.Component<
     StickyNavProps,
     {
         headingPositions: { id: string; position: number }[]
-        currentHeadingIndex: number
+        currentHeadingIndex?: number
     }
 > {
     ulRef = createRef<HTMLUListElement>()
 
     state = {
-        currentHeadingIndex: 0,
+        currentHeadingIndex: undefined,
         headingPositions: [] as { id: string; position: number }[],
     }
 
@@ -114,7 +114,11 @@ class StickyNav extends React.Component<
     }
 
     componentDidMount() {
-        this.setHeadingPositions()
+        // Web fonts change the position of elements
+        // so we set the active heading only once we know where everything is.
+        // The alternative is to call setHeadingPositions as soon as the component mounts,
+        // but this can make currentHeadingIndex jump around.
+        window.addEventListener("load", this.handleResize)
         window.addEventListener("scroll", this.handleScroll)
         window.addEventListener("resize", this.handleResize)
     }
@@ -122,6 +126,7 @@ class StickyNav extends React.Component<
     componentWillUnmount() {
         window.removeEventListener("scroll", this.handleScroll)
         window.removeEventListener("resize", this.handleResize)
+        window.removeEventListener("load", this.handleResize)
     }
 
     render() {
