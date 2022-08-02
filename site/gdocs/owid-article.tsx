@@ -75,10 +75,13 @@ export default function OwidArticle({ content }: any) {
                         <div>
                             <details className={"summary"} open={true}>
                                 <summary>Summary</summary>
-                                {content.summary.reduce((memo: string, d: any) => {
-                                    const text: string = d.value;
-                                    return memo + " " + text;
-                                }, "")}
+                                {content.summary.reduce(
+                                    (memo: string, d: any) => {
+                                        const text: string = d.value
+                                        return memo + " " + text
+                                    },
+                                    ""
+                                )}
                             </details>
                         </div>
                     ) : null}
