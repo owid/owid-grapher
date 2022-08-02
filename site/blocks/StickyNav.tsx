@@ -1,22 +1,27 @@
-import React from "react"
+import React, { createRef } from "react"
 import ReactDOM from "react-dom"
 import classnames from "classnames"
 import { debounce, get } from "../../clientUtils/Util.js"
 
-function getPositionFromTopOfPage(element: HTMLElement): number {
+function getTotalOffset(element: HTMLElement): {
+    x: number
+    y: number
+} {
     let y = 0
+    let x = 0
     while (true) {
+        x += element.offsetLeft
         y += element.offsetTop
-        if (element.offsetParent === null) {
+        if (!element.offsetParent) {
             break
         }
         element = element.offsetParent as HTMLElement
     }
-    return y
+    return { x, y }
 }
 
-// Actual height is 54px but this gives it some top margin
-const STICKY_NAV_HEIGHT = 80
+const STICKY_NAV_HEIGHT = 54
+const HEADING_SCROLL_MARGIN = 16
 
 interface StickyNavProps {
     links: { text: string; target: string }[]
@@ -28,6 +33,8 @@ class StickyNav extends React.Component<
         currentHeadingIndex: number
     }
 > {
+    ulRef = createRef<HTMLUListElement>()
+
     state = {
         currentHeadingIndex: 0,
         headingPositions: [] as { id: string; position: number }[],
@@ -50,12 +57,37 @@ class StickyNav extends React.Component<
         let currentHeadingIndex = 0
         for (let i = 0; i < this.state.headingPositions.length; i++) {
             const heading = this.state.headingPositions[i]
-            if (scrollY < heading.position - STICKY_NAV_HEIGHT - 1) {
+            const target =
+                heading.position -
+                STICKY_NAV_HEIGHT -
+                HEADING_SCROLL_MARGIN -
+                // Additional clearance for height of actual element
+                32
+            if (scrollY <= target) {
                 break
             } else {
                 currentHeadingIndex = i
             }
         }
+
+        const current = this.ulRef.current
+        if (current) {
+            const parent = current.parentElement
+            if (parent) {
+                const hasScrollbar = parent.scrollWidth < current.scrollWidth
+                if (hasScrollbar) {
+                    const listItem = current.children[
+                        currentHeadingIndex
+                    ] as HTMLElement
+                    const containerPadding = 32
+                    current.scrollTo({
+                        behavior: "smooth",
+                        left: listItem.offsetLeft - containerPadding,
+                    })
+                }
+            }
+        }
+
         this.setState({
             currentHeadingIndex,
         })
@@ -66,7 +98,7 @@ class StickyNav extends React.Component<
         this.links.forEach((link) => {
             const element = document.querySelector<HTMLElement>(link.target)
             if (element) {
-                const y = getPositionFromTopOfPage(element)
+                const { y } = getTotalOffset(element)
                 headingPositions.push({ id: link.target, position: y })
             }
         })
@@ -99,10 +131,12 @@ class StickyNav extends React.Component<
                 <style>
                     {`
                     [id] {
-                         scroll-margin-top:${STICKY_NAV_HEIGHT}px;
+                         scroll-margin-top:${
+                             STICKY_NAV_HEIGHT + HEADING_SCROLL_MARGIN
+                         }px;
                     }`}
                 </style>
-                <ul className="sticky-nav-container">
+                <ul className="sticky-nav-container" ref={this.ulRef}>
                     {this.links.map((link, i) => (
                         <li key={link.target}>
                             <a

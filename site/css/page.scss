@@ -215,6 +215,8 @@
     > ul {
         display: flex;
         flex-direction: row;
+        overflow: scroll;
+        scrollbar-width: none;
     }
 
     li {
@@ -224,7 +226,9 @@
         padding: 16px;
 
         a {
+            transition: color 500ms ease-in-out;
             color: $blue-40;
+            white-space: nowrap;
 
             &:visited {
                 color: $blue-40;
