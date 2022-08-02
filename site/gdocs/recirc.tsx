@@ -1,7 +1,6 @@
 import React from "react"
 
 export default function Recirc ({ d, styles }: any) {
-  console.log('recirc', d);
   return <div className={'recirc'}>
     <div className={'recircContent'}>
       <div className={'blackCaps'}>{d?.value[0]?.title}</div>
