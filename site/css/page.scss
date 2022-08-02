@@ -224,9 +224,12 @@
         font-size: 14px;
         margin: 0 8px;
         padding: 16px;
+        @media (max-width: 768px) {
+            padding: 12px;
+        }
 
         a {
-            transition: color 500ms ease-in-out;
+            transition: color 0.25s ease-in-out;
             color: $blue-40;
             white-space: nowrap;
 
@@ -240,6 +243,14 @@
                 color: $blue-90;
                 text-decoration: none;
             }
+        }
+    }
+
+    li:first-child {
+        margin-left: 0;
+        @media (max-width: 768px) {
+            // completely flush with text for mobile
+            padding-left: 0;
         }
     }
 }
