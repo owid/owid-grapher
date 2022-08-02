@@ -2,16 +2,23 @@
 // import Head from 'next/head'
 import React from "react"
 
-// import CenteredArticle from '../styles/CenteredArticle.module.css';
 import ArticleElement from "./article-element.js"
 import Footnotes from "./footnotes.js"
 
+import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
+import { CitationMeta } from "../CitationMeta.js"
 
 const styles: any = {}
 
-export default function OwidArticle({ content }: any) {
+export default function OwidArticle({
+    content,
+    baseUrl,
+    slug,
+    created_at,
+    updated_at,
+}: any) {
     //   const styles = { ...BaseStyles, ...THEMES[content.template] }
 
     const coverStyle = content["cover-image"]
@@ -21,28 +28,33 @@ export default function OwidArticle({ content }: any) {
           }
         : {}
 
+    const canonicalUrl = `${baseUrl}/${slug}`
+
     return (
         <html>
-            {/* {
-        content['featured-image'] ? 
-        (<Head>
-            <meta property="og:image" content={content['featured-image'][0].value.src} />
-        </Head>) : null
-        } */}
-            <head>
-                {/* TODO(gdocs) - add all metadata */}
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1"
+            <Head
+                pageTitle={content.title}
+                pageDesc={content.subtitle}
+                canonicalUrl={canonicalUrl}
+                imageUrl={
+                    content["featured-image"]
+                        ? content["featured-image"][0].value.src
+                        : ""
+                }
+                baseUrl={baseUrl}
+            >
+                <CitationMeta
+                    title={content.title}
+                    authors={
+                        Array.isArray(content.byline)
+                            ? content.byline
+                            : [content.byline]
+                    }
+                    date={updated_at || created_at}
+                    canonicalUrl={canonicalUrl}
                 />
-                <title>
-                    The world is awful. The world is much better. The world can
-                    be much better. - Our World in Data
-                </title>
-                <meta
-                    name="description"
-                    content="It is wrong to think that these three statements contradict each other. We need to see that they are all true to see that a better world is possible."
-                />
+
+                {/* {post.style && <style>{post.style}</style>} */}
                 <link
                     href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&amp;display=swap"
                     rel="stylesheet"
@@ -56,7 +68,7 @@ export default function OwidArticle({ content }: any) {
                     rel="stylesheet"
                     href="http://localhost:8090/owid.css"
                 ></link>
-            </head>
+            </Head>
             <body>
                 <SiteHeader baseUrl={"https://ourworldindata.org"} />
                 <article className={"owidArticle"}>

@@ -225,7 +225,9 @@ mockSiteRouter.get("/*", async (req, res) => {
 
     try {
         res.send(await renderGDocsPageBySlug(slug))
-    } catch (e) {}
+    } catch (e) {
+        console.warn(e)
+    }
 
     try {
         res.send(await renderPageBySlug(slug))

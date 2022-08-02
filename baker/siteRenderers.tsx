@@ -155,7 +155,11 @@ export const renderGDocsPageBySlug = async (slug: string) => {
 }
 
 export const renderGDocsPost = (post: any) => {
-    return renderToHtmlPage(<OwidArticle content={JSON.parse(post.content)} />)
+    // TODO(gdocs) - why doesn't this get serialized by SQL?
+    if (typeof post.content === "string") {
+        post.content = JSON.parse(post.content)
+    }
+    return renderToHtmlPage(<OwidArticle baseUrl={BAKED_BASE_URL} {...post} />)
 }
 
 export const renderPageBySlug = async (slug: string) => {
