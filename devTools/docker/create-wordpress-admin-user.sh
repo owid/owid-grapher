@@ -20,7 +20,7 @@ createWordpressAdminUser() {
     _mysql 'INSERT INTO wp_users (user_login, user_email, user_pass, user_registered, user_nicename) VALUES ("admin", "admin@example.com", "$2y$10$2ilzpLslIA29cZezVXJTDOqLlkGyXK6YcNvr2QPvn95WdmVdnxl2S", NOW(), "Admin");'
 
     echo "Giving the admin user administrator privileges"
-    _mysql `INSERT INTO wp_usermeta (user_id, meta_key, meta_value) VALUES ((SELECT id FROM wp_users WHERE user_email = "admin@example.com"), "wp_capabilities", "a:1:{s:13:"administrator";s:1:"1";}");`
+    _mysql `INSERT INTO wp_usermeta (user_id, meta_key, meta_value) VALUES ((SELECT id FROM wp_users WHERE user_email = "admin@example.com"), "wp_capabilities", "a:1:{s:13:\"administrator\";s:1:\"1\";}");`
     _mysql 'INSERT INTO wp_usermeta (user_id, meta_key, meta_value) VALUES ((SELECT id FROM wp_users WHERE user_email = "admin@example.com"), "rich_editing", "true");'
 
     return 0

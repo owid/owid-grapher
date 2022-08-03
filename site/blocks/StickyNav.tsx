@@ -29,19 +29,17 @@ interface StickyNavProps {
 class StickyNav extends React.Component<
     StickyNavProps,
     {
-        headingPositions: { id: string; position: number }[]
+        headingPositions: { id: string; yPosition: number }[]
         currentHeadingIndex?: number
+        links: { text: string; target: string }[]
     }
 > {
     ulRef = createRef<HTMLUListElement>()
 
     state = {
         currentHeadingIndex: undefined,
-        headingPositions: [] as { id: string; position: number }[],
-    }
-
-    get links() {
-        return this.props.links
+        headingPositions: [] as { id: string; yPosition: number }[],
+        links: this.props.links,
     }
 
     handleResize = debounce(() => {
@@ -52,13 +50,26 @@ class StickyNav extends React.Component<
         this.setCurrentHeading()
     }, 100)
 
+    // Make sure that each item in the nav actually points to a heading in the page
+    filterValidLinks() {
+        const validLinks = this.state.links.filter(
+            (link) =>
+                link.target.startsWith("#") &&
+                document.querySelector(link.target)
+        )
+
+        this.setState({
+            links: validLinks,
+        })
+    }
+
     setCurrentHeading() {
         const { scrollY } = window
         let currentHeadingIndex = 0
         for (let i = 0; i < this.state.headingPositions.length; i++) {
             const heading = this.state.headingPositions[i]
             const target =
-                heading.position -
+                heading.yPosition -
                 STICKY_NAV_HEIGHT -
                 HEADING_SCROLL_MARGIN -
                 // Additional clearance for height of actual element
@@ -94,12 +105,21 @@ class StickyNav extends React.Component<
     }
 
     setHeadingPositions() {
-        const headingPositions: any[] = []
-        this.links.forEach((link) => {
-            const element = document.querySelector<HTMLElement>(link.target)
+        const headingPositions: { id: string; yPosition: number }[] = []
+
+        this.state.links.forEach(({ target }, i) => {
+            const element = document.querySelector<HTMLElement>(target)
             if (element) {
                 const { y } = getTotalOffset(element)
-                headingPositions.push({ id: link.target, position: y })
+                headingPositions.push({ id: target, yPosition: y })
+            } else {
+                // Because of filterValidLinks, this should never happen
+                // But if it does, pretend the heading exists
+                // 1 pixel after the preceding heading
+                headingPositions.push({
+                    id: target,
+                    yPosition: headingPositions[i - 1].yPosition + 1,
+                })
             }
         })
 
@@ -114,6 +134,7 @@ class StickyNav extends React.Component<
     }
 
     componentDidMount() {
+        this.filterValidLinks()
         // Web fonts change the position of elements
         // so we set the active heading only once we know where everything is.
         // The alternative is to call setHeadingPositions as soon as the component mounts,
@@ -130,10 +151,11 @@ class StickyNav extends React.Component<
     }
 
     render() {
-        if (!this.links) return null
+        if (!this.state.links) return null
         return (
             <>
                 <style>
+                    {/* add scroll-margin-top to all elements with an ID */}
                     {`
                     [id] {
                          scroll-margin-top:${
@@ -142,7 +164,7 @@ class StickyNav extends React.Component<
                     }`}
                 </style>
                 <ul className="sticky-nav-container" ref={this.ulRef}>
-                    {this.links.map((link, i) => (
+                    {this.state.links.map((link, i) => (
                         <li key={link.target}>
                             <a
                                 tabIndex={0}
@@ -166,7 +188,7 @@ export default StickyNav
 
 export const hydrateStickyNav = () => {
     const wrapper = document.querySelector(".sticky-nav")
-    const anchorTags = document.querySelectorAll(".sticky-nav a")
+    const anchorTags = document.querySelectorAll<HTMLElement>(".sticky-nav a")
     const links: { target: string; text: string }[] = []
 
     for (const anchorTag of anchorTags) {
