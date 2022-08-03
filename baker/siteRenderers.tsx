@@ -10,7 +10,7 @@ import { CovidPage } from "../site/CovidPage.js"
 import { SearchPage } from "../site/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
-import OwidArticle from "../site/gdocs/owid-article.js"
+import OwidArticlePage from "../site/gdocs/owid-article-page.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
@@ -159,7 +159,9 @@ export const renderGDocsPost = (post: any) => {
     if (typeof post.content === "string") {
         post.content = JSON.parse(post.content)
     }
-    return renderToHtmlPage(<OwidArticle baseUrl={BAKED_BASE_URL} {...post} />)
+    return renderToHtmlPage(
+        <OwidArticlePage baseUrl={BAKED_BASE_URL} {...post} />
+    )
 }
 
 export const renderPageBySlug = async (slug: string) => {

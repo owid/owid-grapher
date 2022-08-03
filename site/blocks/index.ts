@@ -4,6 +4,7 @@ import { runExpandableInlineBlock } from "../../site/ExpandableInlineBlock.js"
 import { runDataTokens } from "../../site/runDataTokens.js"
 import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder.js"
 import { hydrateKeyInsights } from "./KeyInsights.js"
+import { hydrateOwidArticle } from "../gdocs/owid-article.js"
 
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {
@@ -18,4 +19,5 @@ export const runBlocks = () => {
     runSearchCountry()
     hydrateAdditionalInformation()
     hydrateKeyInsights()
+    hydrateOwidArticle()
 }

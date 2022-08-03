@@ -6,6 +6,7 @@ import {
 
 export default function ChartStory({ slides }: any) {
     // const [showDetails, setShowDetails] = useState(false);
+
     const [slide, setSlide] = useState(0)
     const showDetails = true
 
