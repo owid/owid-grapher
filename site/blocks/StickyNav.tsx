@@ -1,7 +1,7 @@
 import React, { createRef } from "react"
 import ReactDOM from "react-dom"
 import classnames from "classnames"
-import { debounce, get } from "../../clientUtils/Util.js"
+import { debounce } from "../../clientUtils/Util.js"
 
 function getTotalOffset(element: HTMLElement): {
     x: number
@@ -188,12 +188,13 @@ export default StickyNav
 
 export const hydrateStickyNav = () => {
     const wrapper = document.querySelector(".sticky-nav")
-    const anchorTags = document.querySelectorAll<HTMLElement>(".sticky-nav a")
+    const anchorTags =
+        document.querySelectorAll<HTMLAnchorElement>(".sticky-nav a")
     const links: { target: string; text: string }[] = []
 
     for (const anchorTag of anchorTags) {
-        const text = get(anchorTag, ["text"])
-        const target = get(anchorTag, ["hash"])
+        const text = anchorTag.innerText
+        const target = anchorTag.hash
         links.push({ text, target })
     }
 
