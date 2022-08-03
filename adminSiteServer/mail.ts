@@ -18,6 +18,7 @@ const transporter = nodemailer.createTransport({
     },
 })
 
+// get rid of this?
 export async function sendMail(
     options: nodemailer.SendMailOptions
 ): Promise<any> {

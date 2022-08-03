@@ -163,11 +163,7 @@ export async function authMiddleware(
         res.locals.session = session
         res.locals.user = user
         return next()
-    } else if (
-        !req.path.startsWith("/admin") ||
-        req.path === "/admin/login" ||
-        req.path === "/admin/register"
-    )
+    } else if (!req.path.startsWith("/admin") || req.path === "/admin/login")
         return next()
 
     return res.redirect(`/admin/login?next=${encodeURIComponent(req.url)}`)
