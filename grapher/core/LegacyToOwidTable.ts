@@ -236,7 +236,7 @@ export const legacyToOwidTableAndDimensions = (
     // has values for all countries but only for the year 2015. If we join that with covid era days
     // we still want to retain the continents so we have the fallback to entity only (this was also
     // the only behaviour prior to July 2022). Remember that tolerance will only be applied much later -
-    // here we are only concerned with merging mutliple variables into an inputTable that retains information.
+    // here we are only concerned with merging multiple variables into an inputTable that retains information.
     // Another approach would be to convert years into days when we have days - then we could simplify the fallback
     // join key logic described above.
     // Another caveat is that by switching to day+entity as the primary index that we use to join we can drop some entities.
@@ -281,7 +281,7 @@ export const legacyToOwidTableAndDimensions = (
         const variablesJoinedByDayWithYearFilled =
             variablesJoinedByDay.appendColumns([newYearColumn])
 
-        // Now join the already merged days table with all the years. It is imporant
+        // Now join the already merged days table with all the years. It is important
         // to not join the years together into one table already before so that each
         // table lookup for fallback values is looked at individually.
         // See the longer comment above for the idea behind the fallback cascade here of
@@ -294,7 +294,7 @@ export const legacyToOwidTableAndDimensions = (
                 [OwidTableSlugs.entityId],
             ]
         )
-        // If we have scatter/marimekko varables that had a targetTime set
+        // If we have scatter/marimekko variables that had a targetTime set
         // then these are now joined in by matching entity only
         if (variableTablesWithYearToJoinByEntityOnly.length > 0)
             joinedVariablesTable = fullJoinTables(
@@ -313,7 +313,7 @@ export const legacyToOwidTableAndDimensions = (
             OwidTableSlugs.entityId,
         ])
 
-        // If we have scatter/marimekko varables that had a targetTime set
+        // If we have scatter/marimekko variables that had a targetTime set
         // then these are now joined in by matching entity only
         if (variableTablesWithYearToJoinByEntityOnly.length > 0)
             joinedVariablesTable = fullJoinTables(
@@ -328,7 +328,7 @@ export const legacyToOwidTableAndDimensions = (
         // If we only have day variables life is also easy but this case is rare
         joinedVariablesTable = variablesJoinedByDay
 
-        // If we have scatter/marimekko varables that had a targetTime set
+        // If we have scatter/marimekko variables that had a targetTime set
         // then these are now joined in by matching entity only
         if (variableTablesWithYearToJoinByEntityOnly.length > 0)
             joinedVariablesTable = fullJoinTables(
@@ -376,7 +376,7 @@ const fullJoinTables = (
     // is that we also have a list of fallback merge columns. This is required so we can handle
     // not just the easy case where we have year+entity for every table to be merged (which in our
     // data model is by far the most common default), but also handle cases where we merge year and
-    // day based variables together. For this latter case we need to still contstruct the set of index
+    // day based variables together. For this latter case we need to still construct the set of index
     // values for the final table, but then when we try to look up values in the various tables to
     // merge together we will not find values by day+entity for the year based tables. So for this
     // case we get a series of fallback column tuples that we try in turn if the main index lookup
@@ -497,7 +497,7 @@ const fullJoinTables = (
                 // This case should be rare but it can come up. The old algorithm ran into this often because it
                 // joined a lot more stuff on entity only and then when you look up by entity into a table that has
                 // several years you end up with multiple matches. The old algorithm used to just pick one value.
-                // We still do this utlimately but because we try to match even day and year variables by year+entity
+                // We still do this ultimately but because we try to match even day and year variables by year+entity
                 // first we should usually be able to find a unique match. The error output is here so that when
                 // something is weird in an edge case then this shows up as a debugging hint in the console.
                 console.error(
