@@ -1,7 +1,7 @@
 import React, { createRef } from "react"
 import ReactDOM from "react-dom"
 import classnames from "classnames"
-import { debounce } from "../../clientUtils/Util.js"
+import { throttle } from "../../clientUtils/Util.js"
 
 function getTotalOffset(element: HTMLElement): {
     x: number
@@ -42,13 +42,13 @@ class StickyNav extends React.Component<
         links: this.props.links,
     }
 
-    handleResize = debounce(() => {
+    handleResize = throttle(() => {
         this.setHeadingPositions()
-    }, 100)
+    }, 50)
 
-    handleScroll = debounce(() => {
+    handleScroll = throttle(() => {
         this.setCurrentHeading()
-    }, 100)
+    }, 50)
 
     // Make sure that each item in the nav actually points to a heading in the page
     filterValidLinks() {
