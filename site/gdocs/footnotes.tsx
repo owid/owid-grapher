@@ -1,5 +1,4 @@
 import React from "react"
-import { OwidArticleBlock } from "./gdoc-types.js"
 
 export default function Footnotes({ d }: any) {
     return (
