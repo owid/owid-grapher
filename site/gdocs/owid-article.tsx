@@ -14,8 +14,6 @@ export function OwidArticle(props: any) {
           }
         : {}
 
-    const canonicalUrl = `${baseUrl}/${slug}`
-
     return (
         <article className={"owidArticle"}>
             <div className={"articleCover"} style={coverStyle}></div>
@@ -71,6 +69,5 @@ export function OwidArticle(props: any) {
 export const hydrateOwidArticle = () => {
     const wrapper = document.querySelector("#owid-article-root")
     const props = window._OWID_ARTICLE_PROPS
-    console.log("props", props)
     ReactDOM.hydrate(<OwidArticle {...props} />, wrapper)
 }
