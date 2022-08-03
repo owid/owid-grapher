@@ -10,7 +10,7 @@ export class AddShortNameToVariables1659011791860
             DEFAULT NULL;
         `)
         await queryRunner.query(`
-            ALTER TABLE variables ADD CONSTRAINT unique_short_name_per_dataset (shortName, datasetId);
+            ALTER TABLE variables ADD CONSTRAINT unique_short_name_per_dataset UNIQUE (shortName, datasetId);
         `)
     }
 
