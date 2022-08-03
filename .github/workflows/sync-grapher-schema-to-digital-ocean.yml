@@ -3,7 +3,8 @@ on:
     push:
         branches:
             - master
-            - schema-do-sync-github-action
+        paths:
+            - "grapher/schema/**"
 jobs:
     upload:
         runs-on: ubuntu-latest
