@@ -1,9 +1,10 @@
 import React from "react"
+import { OwidArticleBlock } from "./gdoc-types.js"
 
-export default function List({ d }: any) {
+export default function List({ d }: { d: OwidArticleBlock }) {
     return (
         <ul className={"list"}>
-            {d.value.map((_d: any, i: any) => {
+            {d.value.map((_d: string, i: number) => {
                 return <li key={i}>{_d}</li>
             })}
         </ul>

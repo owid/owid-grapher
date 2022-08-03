@@ -160,7 +160,7 @@ export const renderGDocsPost = (post: any) => {
         post.content = JSON.parse(post.content)
     }
     return renderToHtmlPage(
-        <OwidArticlePage baseUrl={BAKED_BASE_URL} {...post} />
+        <OwidArticlePage baseUrl={BAKED_BASE_URL} article={post} />
     )
 }
 

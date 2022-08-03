@@ -1,5 +1,7 @@
 import React from "react"
 
+import { OwidArticleBlock } from "./gdoc-types.js"
+
 import ChartStory from "./chart-story"
 import Scroller from "./scroller"
 import Chart from "./chart"
@@ -9,8 +11,8 @@ import Recirc from "./recirc"
 import List from "./list"
 import Image from "./image"
 
-export default function ArticleElement({ d, styles }: any) {
-    const handleArchie = (d: any, key: any) => {
+export default function ArticleElement({ d }: { d: OwidArticleBlock }) {
+    const handleArchie = (d: OwidArticleBlock, key: string) => {
         const _type = d.type.toLowerCase()
         let content: any = JSON.stringify(d)
         if (_type === "chart") {
@@ -29,11 +31,12 @@ export default function ArticleElement({ d, styles }: any) {
                 </figure>
             )
         } else if (_type === "scroller") {
-            content = <Scroller key={key} d={d} styles={styles} />
+            content = <Scroller key={key} d={d} />
         } else if (_type === "chart-grid") {
             // const rows = +d.value.find((_d: any) => _d.type === "rows").value
-            const columns = +d.value.find((_d: any) => _d.type === "columns")
-                .value
+            const columns = +d.value.find(
+                (_d: OwidArticleBlock) => _d.type === "columns"
+            ).value
 
             return (
                 <div
@@ -46,24 +49,24 @@ export default function ArticleElement({ d, styles }: any) {
                     }}
                 >
                     {d.value
-                        .filter((_d: any) => _d.type === "chart")
-                        .map((_d: any, i: any) => {
+                        .filter((_d: OwidArticleBlock) => _d.type === "chart")
+                        .map((_d: OwidArticleBlock, i: number) => {
                             return <Chart d={_d} key={i} />
                         })}
                 </div>
             )
         } else if (_type === "chart-story") {
-            return <ChartStory key={key} slides={d.value} styles={styles} />
+            return <ChartStory key={key} slides={d.value} />
         } else if (_type === "pull-quote") {
-            content = <PullQuote d={d} key={key} styles={styles} />
+            content = <PullQuote d={d} key={key} />
         } else if (_type === "fixed-graphic") {
-            content = <FixedGraphic d={d} key={key} styles={styles} />
+            content = <FixedGraphic d={d} key={key} />
         } else if (_type === "recirc") {
-            content = <Recirc d={d} key={key} styles={styles} />
+            content = <Recirc d={d} key={key} />
         } else if (_type === "list") {
-            content = <List d={d} key={key} styles={styles} />
+            content = <List d={d} key={key} />
         } else if (_type === "image") {
-            content = <Image d={d} key={key} styles={styles} />
+            content = <Image d={d} key={key} />
         }
 
         return content

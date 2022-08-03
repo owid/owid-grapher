@@ -4,8 +4,10 @@ import ReactDOM from "react-dom"
 import ArticleElement from "./article-element.js"
 import Footnotes from "./footnotes.js"
 
-export function OwidArticle(props: any) {
-    const { content, baseUrl, slug, createdAt, updatedAt } = props
+import { OwidArticleType, OwidArticleBlock } from "./gdoc-types.js"
+
+export function OwidArticle(props: OwidArticleType) {
+    const { content } = props
 
     const coverStyle = content["cover-image"]
         ? {
@@ -31,15 +33,18 @@ export function OwidArticle(props: any) {
                 <div>
                     <details className={"summary"} open={true}>
                         <summary>Summary</summary>
-                        {content.summary.reduce((memo: string, d: any) => {
-                            const text: string = d.value
-                            return memo + " " + text
-                        }, "")}
+                        {content.summary.reduce(
+                            (memo: string, d: OwidArticleBlock) => {
+                                const text: string = d.value
+                                return memo + " " + text
+                            },
+                            ""
+                        )}
                     </details>
                 </div>
             ) : null}
 
-            {content.body.map((d: any, i: any) => {
+            {content.body.map((d: OwidArticleBlock, i: number) => {
                 return <ArticleElement key={i} d={d} />
             })}
 
@@ -50,7 +55,7 @@ export function OwidArticle(props: any) {
                     <h3>Please cite this article as:</h3>
                     <pre>
                         <code>
-                            {content.citation.map((d: any) => {
+                            {content.citation.map((d: OwidArticleBlock) => {
                                 if (d.type === "text") {
                                     return d.value
                                 } else {

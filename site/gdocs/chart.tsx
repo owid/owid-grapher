@@ -1,6 +1,7 @@
 import React from "react"
+import { OwidArticleBlock } from "./gdoc-types.js"
 
-export default function Chart({ d }: any) {
+export default function Chart({ d }: { d: OwidArticleBlock }) {
     let content
 
     if (typeof d.value === "string")

@@ -1,18 +1,22 @@
 import React, { useState } from "react"
 import VisibilitySensor from "react-visibility-sensor"
 // import styles from '../styles/Home.module.css'
+import { OwidArticleBlock } from "./gdoc-types.js"
 
 export default function Scroller({ d }: any) {
-    let lastUrl: any
-    const figureURLs = d.value.reduce((memo: any, { type, value }: any) => {
-        if (type === "url") {
-            lastUrl = value
-        }
-        if (type === "text") {
-            memo = [...memo, lastUrl]
-        }
-        return memo
-    }, [])
+    let lastUrl: string
+    const figureURLs = d.value.reduce(
+        (memo: string[], { type, value }: OwidArticleBlock) => {
+            if (type === "url") {
+                lastUrl = value
+            }
+            if (type === "text") {
+                memo = [...memo, lastUrl]
+            }
+            return memo
+        },
+        []
+    )
 
     const [figureSrc, setFigureSrc] = useState(d.value[0].value)
 
@@ -33,12 +37,12 @@ export default function Scroller({ d }: any) {
             ) : null}
             <div className={"stickyContent"}>
                 {d.value
-                    .filter((_d: any) => _d.type === "text")
-                    .map(({ value }: any, i: any) => {
+                    .filter((_d: OwidArticleBlock) => _d.type === "text")
+                    .map(({ value }: OwidArticleBlock, i: number) => {
                         return (
                             <VisibilitySensor
                                 key={i}
-                                onChange={(isVisible: any) => {
+                                onChange={(isVisible: boolean) => {
                                     if (isVisible) {
                                         setFigureSrc(figureURLs[i])
                                     }

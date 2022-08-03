@@ -1,10 +1,8 @@
 // import BaseStyles from '../styles/Home.module.css'
 // import Head from 'next/head'
 import React from "react"
-import ReactDOM from "react-dom"
 
-import ArticleElement from "./article-element.js"
-import Footnotes from "./footnotes.js"
+import { OwidArticleType } from "./gdoc-types.js"
 
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
@@ -12,23 +10,20 @@ import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
 import { OwidArticle } from "./owid-article.js"
 
-const styles: any = {}
 declare global {
     interface Window {
         _OWID_ARTICLE_PROPS: any
     }
 }
 
-export default function OwidArticlePage(props: any) {
-    //   const styles = { ...BaseStyles, ...THEMES[content.template] }
-    const { content, baseUrl, slug, createdAt, updatedAt } = props
-
-    const coverStyle = content["cover-image"]
-        ? {
-              background: `url(${content["cover-image"][0].value.src})`,
-              backgroundSize: "cover",
-          }
-        : {}
+export default function OwidArticlePage({
+    baseUrl,
+    article,
+}: {
+    baseUrl: string
+    article: OwidArticleType
+}) {
+    const { content, slug, createdAt, updatedAt } = article
 
     const canonicalUrl = `${baseUrl}/${slug}`
 
@@ -73,7 +68,7 @@ export default function OwidArticlePage(props: any) {
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_ARTICLE_PROPS = ${JSON.stringify(
-                            props
+                            article
                         )}`,
                     }}
                 ></script>
@@ -81,7 +76,7 @@ export default function OwidArticlePage(props: any) {
             <body>
                 <SiteHeader baseUrl={"https://ourworldindata.org"} />
                 <div id="owid-article-root">
-                    <OwidArticle {...props} />
+                    <OwidArticle {...article} />
                 </div>
                 <SiteFooter baseUrl={"https://ourworldindata.org"} />
             </body>
