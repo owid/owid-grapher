@@ -309,20 +309,6 @@ export class IRDetailOnDemand extends IRElement {
     }
 }
 
-function checkIsIRElement(token: IRToken): token is IRElement {
-    return (
-        token instanceof IRDetailOnDemand ||
-        token instanceof IRBold ||
-        token instanceof IRSpan ||
-        token instanceof IRItalic ||
-        token instanceof IRLink
-    )
-}
-
-function checkIsIRDetailOnDemand(token: IRToken): token is IRDetailOnDemand {
-    return token instanceof IRDetailOnDemand
-}
-
 function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
     if (!tokens.length) return []
     let currentLine: IRToken[] = []
@@ -569,7 +555,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                 token: IRToken,
                 callback: (token: IRToken) => any
             ): any {
-                if (checkIsIRElement(token)) {
+                if (token instanceof IRElement) {
                     token.children.flatMap((child) => traverse(child, callback))
                 }
                 return callback(token)
@@ -577,7 +563,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
 
             const appendedTokens: IRToken[] = tokens.flatMap((token) =>
                 traverse(token, (token: IRToken) => {
-                    if (checkIsIRDetailOnDemand(token)) {
+                    if (token instanceof IRDetailOnDemand) {
                         const referenceIndex =
                             references.findIndex(
                                 ({ category, term }) =>
