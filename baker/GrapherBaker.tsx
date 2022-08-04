@@ -10,7 +10,6 @@ import {
     isWordpressAPIEnabled,
     isWordpressDBEnabled,
 } from "../db/wpdb.js"
-import { getVariableData } from "../db/model/Variable.js"
 import * as fs from "fs-extra"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
 import * as lodash from "lodash"
@@ -20,6 +19,8 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
+    DATA_API_FOR_BAKING,
+    DATA_FILES_CHECKSUMS_DIRECTORY,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import * as glob from "glob"
@@ -30,6 +31,7 @@ import {
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
+    OwidVariableWithSourceAndDimensionWithoutId,
 } from "../clientUtils/OwidVariable.js"
 import {
     GRAPHER_VARIABLES_ROUTE,
@@ -40,6 +42,8 @@ import {
 } from "../grapher/core/GrapherConstants.js"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
+import fetch from "node-fetch"
+import { getVariableData } from "../db/model/Variable.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -73,22 +77,171 @@ export const grapherSlugToHtmlPage = async (slug: string) => {
 
 interface BakeVariableDataArguments {
     bakedSiteDir: string
+    checksumsDir: string
     variableId: number
+}
+
+interface FetchResultFetched<T> {
+    kind: "fetched"
+    data: T
+    checksum: string | null
+}
+
+interface FetchResultStillFresh {
+    kind: "stillFresh"
+}
+
+interface FetchError {
+    kind: "error"
+    error: Error
+}
+
+type FetchResult<T> = FetchResultFetched<T> | FetchError | FetchResultStillFresh
+
+async function getVariableDataFromDataAPI(
+    variableId: number,
+    existingChecksum: string
+): Promise<FetchResult<OwidVariableMixedData>> {
+    const headers: { "If-None-Match"?: string } = {}
+    if (existingChecksum) headers["If-None-Match"] = existingChecksum
+    const response = await fetch(
+        `${DATA_API_FOR_BAKING}/v1/variableById/data/${variableId}`,
+        { headers }
+    )
+    try {
+        if (response.status === 304) {
+            return { kind: "stillFresh" }
+        }
+        const json = (await response.json()) as OwidVariableMixedData
+        const responseChecksum = response.headers.get("etag")
+        return { kind: "fetched", data: json, checksum: responseChecksum }
+    } catch (err) {
+        console.error(err)
+        console.error(`code for ${variableId} was ${response.status}`)
+        return { kind: "error", error: err as Error }
+    }
+}
+
+async function getVariableMetadataFromDataAPI(
+    variableId: number,
+    existingChecksum: string
+): Promise<FetchResult<OwidVariableWithSourceAndDimension>> {
+    const headers: { "If-None-Match"?: string } = {}
+    if (existingChecksum) headers["If-None-Match"] = existingChecksum
+    const response = await fetch(
+        `${DATA_API_FOR_BAKING}/v1/variableById/metadata/${variableId}`,
+        { headers }
+    )
+    try {
+        if (response.status === 304) {
+            return { kind: "stillFresh" }
+        }
+        const json =
+            await (response.json() as Promise<OwidVariableWithSourceAndDimensionWithoutId>)
+        const withId = { ...json, id: variableId }
+        const responseChecksum = response.headers.get("etag")
+        return {
+            kind: "fetched",
+            data: withId,
+            checksum: responseChecksum,
+        }
+    } catch (err) {
+        console.error(err)
+        console.error(`code for ${variableId} was  ${response.status}`)
+        return { kind: "error", error: err as Error }
+    }
+}
+
+async function getDataMetadataFromDataAPI(
+    variableId: number,
+    dataChecksum: string,
+    metadataChecksum: string
+): Promise<
+    [
+        FetchResult<OwidVariableMixedData>,
+        FetchResult<OwidVariableWithSourceAndDimension>
+    ]
+> {
+    const variableDataPromise = getVariableDataFromDataAPI(
+        variableId,
+        dataChecksum
+    )
+    const variableMetadataPromise = getVariableMetadataFromDataAPI(
+        variableId,
+        metadataChecksum
+    )
+    const [data, metadata] = await Promise.all([
+        variableDataPromise,
+        variableMetadataPromise,
+    ])
+    return [data, metadata]
+}
+
+async function getDataMetadataFromMysql(
+    variableId: number
+): Promise<
+    [
+        FetchResult<OwidVariableMixedData>,
+        FetchResult<OwidVariableWithSourceAndDimension>
+    ]
+> {
+    const variableData = await getVariableData(variableId)
+    return [
+        { kind: "fetched", data: variableData.data, checksum: null },
+        { kind: "fetched", data: variableData.metadata, checksum: null },
+    ]
 }
 
 export const bakeVariableData = async (
     bakeArgs: BakeVariableDataArguments
 ): Promise<BakeVariableDataArguments> => {
-    const variableData = await getVariableData(bakeArgs.variableId)
-    const { data, metadata } = variableData
+    const dataChecksumPath = `${bakeArgs.checksumsDir}/${bakeArgs.variableId}.data.checksum`
+    const metadataChecksumPath = `${bakeArgs.checksumsDir}/${bakeArgs.variableId}.metadata.checksum`
+
+    let dataChecksum = undefined
+    let metadataChecksum = undefined
+
+    try {
+        dataChecksum = await fs.readFile(dataChecksumPath, "utf8")
+    } catch (err) {
+        if ((err as any).code !== "ENOENT") throw err
+    }
+
+    try {
+        metadataChecksum = await fs.readFile(metadataChecksumPath, "utf8")
+    } catch (err) {
+        if ((err as any).code !== "ENOENT") throw err
+    }
+
+    const [data, metadata] = DATA_API_FOR_BAKING
+        ? await getDataMetadataFromDataAPI(
+              bakeArgs.variableId,
+              dataChecksum ?? "",
+              metadataChecksum ?? ""
+          )
+        : await getDataMetadataFromMysql(bakeArgs.variableId)
+
     const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
         bakeArgs.variableId
     )}`
+    if (data.kind === "fetched") {
+        await fs.writeFile(path, JSON.stringify(data))
+        if (data.checksum) {
+            await fs.writeFile(dataChecksumPath, data.checksum)
+        }
+    }
+
     const metadataPath = `${bakeArgs.bakedSiteDir}${getVariableMetadataRoute(
         bakeArgs.variableId
     )}`
-    await fs.writeFile(path, JSON.stringify(data))
-    await fs.writeFile(metadataPath, JSON.stringify(metadata))
+    if (metadata.kind === "fetched") {
+        await fs.writeFile(metadataPath, JSON.stringify(metadata))
+
+        if (metadata.checksum) {
+            await fs.writeFile(metadataChecksumPath, metadata.checksum)
+        }
+    }
+
     return bakeArgs
 }
 
@@ -197,11 +350,13 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
 
 const bakeAllPublishedChartsVariableDataAndMetadata = async (
     bakedSiteDir: string,
-    variableIds: number[]
+    variableIds: number[],
+    checksumsDir: string
 ) => {
     await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLES_ROUTE}`)
     await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_DATA_ROUTE}`)
     await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`)
+    await fs.mkdirp(checksumsDir)
 
     const progressBar = new ProgressBar(
         "bake variable data/metadata json [:bar] :current/:total :elapseds :rate/s :etas :name\n",
@@ -212,14 +367,14 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
     )
 
     const maxWorkers = MAX_NUM_BAKE_PROCESSES
-    // TODO: figure out if rebake is necessary by checking the version of the data/metadata
     const pool = workerpool.pool(__dirname + "/worker.js", {
         minWorkers: 2,
         maxWorkers: maxWorkers,
     })
     const jobs: BakeVariableDataArguments[] = variableIds.map((variableId) => ({
-        bakedSiteDir: bakedSiteDir,
-        variableId: variableId,
+        bakedSiteDir,
+        variableId,
+        checksumsDir,
     }))
 
     await Promise.all(
@@ -271,7 +426,8 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
 
         await bakeAllPublishedChartsVariableDataAndMetadata(
             bakedSiteDir,
-            variablesToBake.map((v) => v.varId)
+            variablesToBake.map((v) => v.varId),
+            DATA_FILES_CHECKSUMS_DIRECTORY
         )
 
         const rows: { id: number; config: string; slug: string }[] =

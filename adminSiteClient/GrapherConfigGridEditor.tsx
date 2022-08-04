@@ -313,6 +313,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             getGrapherInstance: (grapher: Grapher) => {
                 this.grapher = grapher
             },
+            dataApiUrlForAdmin:
+                this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
         }
         if (this.grapherElement) {
             this.grapher.setAuthoredVersion(newConfig)

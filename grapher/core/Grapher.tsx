@@ -198,20 +198,30 @@ const legacyConfigToConfig = (
 }
 
 async function loadVariablesDataAdmin(
+    variableFetchBaseUrl: string | undefined,
     variableIds: number[]
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const dataFetchPath = (variableId: number): string =>
+        variableFetchBaseUrl
+            ? `${variableFetchBaseUrl}/v1/variableById/data/${variableId}`
+            : `/api/data/variables/data/${variableId}.json`
+    const metadataFetchPath = (variableId: number): string =>
+        variableFetchBaseUrl
+            ? `${variableFetchBaseUrl}/v1/variableById/metadata/${variableId}`
+            : `/api/data/variables/metadata/${variableId}.json`
+
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
         const dataPromise = window.admin.getJSON(
-            `/api/data/variables/data/${variableId}.json`
+            dataFetchPath(variableId)
         ) as Promise<OwidVariableMixedData>
         const metadataPromise = window.admin.getJSON(
-            `/api/data/variables/metadata/${variableId}.json`
+            metadataFetchPath(variableId)
         ) as Promise<OwidVariableWithSourceAndDimension>
         const [data, metadata] = await Promise.all([
             dataPromise,
             metadataPromise,
         ])
-        return { data, metadata }
+        return { data, metadata: { ...metadata, id: variableId } }
     })
     const variablesData: OwidVariableDataMetadataDimensions[] =
         await Promise.all(loadVariableDataPromises)
@@ -260,6 +270,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
+    dataApiUrlForAdmin?: string
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -411,6 +422,10 @@ export class Grapher
     @observable.ref inputTable: OwidTable
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
+
+    @computed get dataApiUrlForAdmin(): string | undefined {
+        return this.props.dataApiUrlForAdmin
+    }
 
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
@@ -760,6 +775,7 @@ export class Grapher
             if (this.useAdminAPI) {
                 // TODO grapher model: switch this to downloading multiple data and metadata files
                 const variablesDataMap = await loadVariablesDataAdmin(
+                    this.dataApiUrlForAdmin,
                     this.variableIds
                 )
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
