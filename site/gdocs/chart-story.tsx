@@ -1,8 +1,7 @@
 import React, { useState } from "react"
-// import {
-//     IoArrowBackCircleOutline,
-//     IoArrowForwardCircleOutline,
-// } from "react-icons/io5"
+import { faCircleArrowRight } from "@fortawesome/free-solid-svg-icons/faCircleArrowRight"
+import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons/faCircleArrowLeft"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export default function ChartStory({ slides }: any) {
     // const [showDetails, setShowDetails] = useState(false);
@@ -11,7 +10,9 @@ export default function ChartStory({ slides }: any) {
     const showDetails = true
 
     const currentSlide = slides[slide]
-    const maxSlide = slides.length - 1
+    const maxSlide = slides.length - 1;
+
+    console.log(slides, slide, `Chart ${slide + 1} of ${slides.length}`);
 
     return (
         <div className={"chartStory"}>
@@ -20,8 +21,8 @@ export default function ChartStory({ slides }: any) {
                 onClick={() => {
                     setSlide(Math.max(0, slide - 1))
                 }}
-            >
-                {/* <IoArrowBackCircleOutline color={"#577291"} size={40} /> */}
+            >                
+                <FontAwesomeIcon icon={faCircleArrowLeft} style={{fontSize: 18}} />
             </div>
             <div className={"chart-story--narrative-text"}>
                 {currentSlide.narrative}
@@ -34,29 +35,22 @@ export default function ChartStory({ slides }: any) {
                 />
             </div>
             <div className={"chart-story--technical-text"}>
-                {/* {currentSlide.technical ? (<div className={'chart-story--about-data'} onClick={() => setShowDetails(!showDetails)}>About this data</div>) : null} */}
             </div>
             <div className={"chart-story--nav-hud"}>
-                Chart {slide + 1} of {slides.length}
-                {/* {[...new Array(slides.length)].map((_, i) => {
-                const isSelected = i === slide;
-                const radius = isSelected ? 13 : 10; 
-                return <div key={i} onClick={() => setSlide(i)} style={{ cursor: 'pointer', margin: '0 5px', borderRadius: '50%', width: radius, height: radius, background: isSelected ? '#fff' : '#ccc' }} />
-            })} */}
-            </div>
-            {/* <div className={'chart-story--share'}>Share</div> */}
+                {`Chart ${slide + 1} of ${slides.length}`}
+            </div>            
             <div
                 className={"chart-story--nav-next"}
                 onClick={() => {
                     setSlide(Math.min(maxSlide, slide + 1))
                 }}
             >
-                {/* <IoArrowForwardCircleOutline color={"#577291"} size={40} /> */}
+                <FontAwesomeIcon icon={faCircleArrowRight} style={{fontSize: 18}} />
             </div>
             {currentSlide.technical && showDetails ? (
                 <div className={"chart-story--technical-details"}>
                     <ul>
-                        {currentSlide.technical.map((d: any, i: any) => {
+                        {currentSlide.technical.map((d: any, i: number) => {
                             return <li key={i}>{d}</li>
                         })}
                     </ul>

@@ -15612,11 +15612,6 @@ react-horizontal-scrolling-menu@^2.7.1:
   dependencies:
     smooth-scroll-into-view-if-needed "^1.1.32"
 
-react-icons@^4.4.0:
-  version "4.4.0"
-  resolved "https://registry.npmjs.org/react-icons/-/react-icons-4.4.0.tgz"
-  integrity sha512-fSbvHeVYo/B5/L4VhB7sBA1i2tS8MkT0Hb9t2H1AVPkwGfVHLJCqyr2Py9dKMxsyM63Eng1GkdZfbWj+Fmv8Rg==
-
 react-image-lightbox@^5.1.4:
   version "5.1.4"
   resolved "https://registry.npmjs.org/react-image-lightbox/-/react-image-lightbox-5.1.4.tgz"
