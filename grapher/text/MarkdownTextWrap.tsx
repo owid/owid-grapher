@@ -310,17 +310,17 @@ export class IRDetailOnDemand extends IRElement {
 }
 
 function checkIsIRElement(token: IRToken): token is IRElement {
-    return [
-        "IRBold",
-        "IRSpan",
-        "IRItalic",
-        "IRLink",
-        "IRDetailOnDemand",
-    ].includes(token.constructor.name)
+    return (
+        token instanceof IRDetailOnDemand ||
+        token instanceof IRBold ||
+        token instanceof IRSpan ||
+        token instanceof IRItalic ||
+        token instanceof IRLink
+    )
 }
 
 function checkIsIRDetailOnDemand(token: IRToken): token is IRDetailOnDemand {
-    return "IRDetailOnDemand" === token.constructor.name
+    return token instanceof IRDetailOnDemand
 }
 
 function splitAllOnNewline(tokens: IRToken[]): IRToken[][] {
