@@ -34,7 +34,7 @@ export default function ChartStory({ slides }: any) {
                 />
             </div>
             <div className={"chart-story--technical-text"}>
-                {currentSlide.technical ? (<div className={'chart-story--about-data'} onClick={() => setShowDetails(!showDetails)}>About this data</div>) : null}
+                {/* {currentSlide.technical ? (<div className={'chart-story--about-data'} onClick={() => setShowDetails(!showDetails)}>About this data</div>) : null} */}
             </div>
             <div className={"chart-story--nav-hud"}>
                 Chart {slide + 1} of {slides.length}
