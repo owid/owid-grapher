@@ -1,8 +1,8 @@
 import React, { useState } from "react"
-// import {
-//     IoArrowBackCircleOutline,
-//     IoArrowForwardCircleOutline,
-// } from "react-icons/io5"
+import {
+    IoArrowBackCircleOutline,
+    IoArrowForwardCircleOutline,
+} from "react-icons/io5"
 
 export default function ChartStory({ slides }: any) {
     // const [showDetails, setShowDetails] = useState(false);
@@ -21,7 +21,7 @@ export default function ChartStory({ slides }: any) {
                     setSlide(Math.max(0, slide - 1))
                 }}
             >
-                {/* <IoArrowBackCircleOutline color={"#577291"} size={40} /> */}
+                <IoArrowBackCircleOutline color={"#577291"} size={40} />
             </div>
             <div className={"chart-story--narrative-text"}>
                 {currentSlide.narrative}
@@ -34,7 +34,7 @@ export default function ChartStory({ slides }: any) {
                 />
             </div>
             <div className={"chart-story--technical-text"}>
-                {/* {currentSlide.technical ? (<div className={'chart-story--about-data'} onClick={() => setShowDetails(!showDetails)}>About this data</div>) : null} */}
+                {currentSlide.technical ? (<div className={'chart-story--about-data'} onClick={() => setShowDetails(!showDetails)}>About this data</div>) : null}
             </div>
             <div className={"chart-story--nav-hud"}>
                 Chart {slide + 1} of {slides.length}
@@ -51,7 +51,7 @@ export default function ChartStory({ slides }: any) {
                     setSlide(Math.min(maxSlide, slide + 1))
                 }}
             >
-                {/* <IoArrowForwardCircleOutline color={"#577291"} size={40} /> */}
+                <IoArrowForwardCircleOutline color={"#577291"} size={40} />
             </div>
             {currentSlide.technical && showDetails ? (
                 <div className={"chart-story--technical-details"}>
