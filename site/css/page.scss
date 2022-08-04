@@ -216,7 +216,12 @@
         display: flex;
         flex-direction: row;
         overflow: scroll;
+        // firefox
         scrollbar-width: none;
+        &::-webkit-scrollbar {
+            // chrome
+            display: none;
+        }
     }
 
     li {
