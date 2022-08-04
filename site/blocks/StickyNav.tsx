@@ -23,22 +23,32 @@ function getTotalOffset(element: HTMLElement): {
 const STICKY_NAV_HEIGHT = 54
 const HEADING_SCROLL_MARGIN = 16
 
+interface HeadingPosition {
+    id: string
+    yPosition: number
+}
+
+interface StickyNavLink {
+    text: string
+    target: string
+}
+
 interface StickyNavProps {
-    links: { text: string; target: string }[]
+    links: StickyNavLink[]
 }
 class StickyNav extends React.Component<
     StickyNavProps,
     {
-        headingPositions: { id: string; yPosition: number }[]
+        headingPositions: HeadingPosition[]
         currentHeadingIndex?: number
-        links: { text: string; target: string }[]
+        links: StickyNavLink[]
     }
 > {
     ulRef = createRef<HTMLUListElement>()
 
     state = {
         currentHeadingIndex: undefined,
-        headingPositions: [] as { id: string; yPosition: number }[],
+        headingPositions: [] as HeadingPosition[],
         links: this.props.links,
     }
 
@@ -105,7 +115,7 @@ class StickyNav extends React.Component<
     }
 
     setHeadingPositions() {
-        const headingPositions: { id: string; yPosition: number }[] = []
+        const headingPositions: HeadingPosition[] = []
 
         this.state.links.forEach(({ target }, i) => {
             const element = document.querySelector<HTMLElement>(target)
@@ -116,9 +126,11 @@ class StickyNav extends React.Component<
                 // Because of filterValidLinks, this should never happen
                 // But if it does, pretend the heading exists
                 // 1 pixel after the preceding heading
+                const previousHeadingYPosition =
+                    i === 0 ? 0 : headingPositions[i - 1].yPosition
                 headingPositions.push({
                     id: target,
-                    yPosition: headingPositions[i - 1].yPosition + 1,
+                    yPosition: previousHeadingYPosition + 1,
                 })
             }
         })
@@ -188,15 +200,17 @@ export default StickyNav
 
 export const hydrateStickyNav = () => {
     const wrapper = document.querySelector(".sticky-nav")
-    const anchorTags =
-        document.querySelectorAll<HTMLAnchorElement>(".sticky-nav a")
-    const links: { target: string; text: string }[] = []
+    if (wrapper) {
+        const anchorTags =
+            document.querySelectorAll<HTMLAnchorElement>(".sticky-nav a")
+        const links: { target: string; text: string }[] = []
 
-    for (const anchorTag of anchorTags) {
-        const text = anchorTag.innerText
-        const target = anchorTag.hash
-        links.push({ text, target })
+        for (const anchorTag of anchorTags) {
+            const text = anchorTag.innerText
+            const target = anchorTag.hash
+            links.push({ text, target })
+        }
+
+        ReactDOM.hydrate(<StickyNav links={links} />, wrapper)
     }
-
-    ReactDOM.hydrate(<StickyNav links={links} />, wrapper)
 }
