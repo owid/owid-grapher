@@ -4,7 +4,11 @@ import { Head } from "./Head.js"
 import { CitationMeta } from "./CitationMeta.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { addContentFeatures, formatAuthors } from "../site/formatting.js"
+import {
+    addContentFeatures,
+    formatAuthors,
+    formatUrls,
+} from "../site/formatting.js"
 import { SiteSubnavigation } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
@@ -113,7 +117,7 @@ export const LongFormPage = (props: {
                 pageTitle={pageTitleSEO}
                 pageDesc={pageDesc}
                 canonicalUrl={canonicalUrl}
-                imageUrl={post.imageUrl}
+                imageUrl={post.imageUrl ? formatUrls(post.imageUrl) : undefined}
                 baseUrl={baseUrl}
             >
                 {withCitation && (
