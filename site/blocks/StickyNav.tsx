@@ -203,7 +203,7 @@ export const hydrateStickyNav = () => {
     if (wrapper) {
         const anchorTags =
             document.querySelectorAll<HTMLAnchorElement>(".sticky-nav a")
-        const links: { target: string; text: string }[] = []
+        const links: StickyNavLink[] = []
 
         for (const anchorTag of anchorTags) {
             const text = anchorTag.innerText

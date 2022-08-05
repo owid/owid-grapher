@@ -58,7 +58,6 @@ import {
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
-import { get } from "lodash"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -546,8 +545,9 @@ export const formatWordpressPost = async (
     const $stickyNavContents = cheerioEl(".sticky-nav-contents")
     const $stickyNavLinks = $stickyNavContents.children().children()
     $stickyNavLinks.each((_, element) => {
-        const text = get(element, ["children", 0, "children", 0, "data"])
-        const target = get(element, ["attribs", "href"])
+        const $elem = cheerioEl(element)
+        const text = $elem.text()
+        const target = $elem.attr("href")
         if (text && target) stickyNavLinks.push({ text, target })
     })
     $stickyNavContents.remove()
