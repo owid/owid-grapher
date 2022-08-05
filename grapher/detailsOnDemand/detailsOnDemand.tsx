@@ -79,6 +79,7 @@ export class DoDWrapper extends React.Component<DoDWrapperProps> {
                             <h3>{this.title}</h3>
                             <MarkdownTextWrap
                                 text={this.content}
+                                lineHeight={1.4}
                                 fontSize={14}
                             />
                         </div>
