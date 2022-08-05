@@ -45,6 +45,7 @@ class StickyNav extends React.Component<
     }
 > {
     ulRef = createRef<HTMLUListElement>()
+    resizeObserver: ResizeObserver | null = null
 
     state = {
         currentHeadingIndex: undefined,
@@ -147,19 +148,21 @@ class StickyNav extends React.Component<
 
     componentDidMount() {
         this.filterValidLinks()
-        // Web fonts change the position of elements
-        // so we set the active heading only once we know where everything is.
-        // The alternative is to call setHeadingPositions as soon as the component mounts,
-        // but this can make currentHeadingIndex jump around.
-        window.addEventListener("load", this.handleResize)
         window.addEventListener("scroll", this.handleScroll)
-        window.addEventListener("resize", this.handleResize)
+        // Web fonts and grapher hydration make the page height change
+        // So we recalculate the heading positions whenever the document body changes size
+        this.resizeObserver = new ResizeObserver(this.handleResize)
+        if (this.resizeObserver) {
+            this.resizeObserver.observe(document.body)
+        }
     }
 
     componentWillUnmount() {
         window.removeEventListener("scroll", this.handleScroll)
-        window.removeEventListener("resize", this.handleResize)
-        window.removeEventListener("load", this.handleResize)
+
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect()
+        }
     }
 
     render() {
