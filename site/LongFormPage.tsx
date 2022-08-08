@@ -25,6 +25,7 @@ import { Byline } from "./Byline.js"
 import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
 import { omit } from "../clientUtils/Util.js"
+import StickyNav from "./blocks/StickyNav.js"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -215,6 +216,11 @@ export const LongFormPage = (props: {
                                 )}
                             </header>
                         </div>
+                        {post.stickyNavLinks && (
+                            <nav className="sticky-nav">
+                                <StickyNav links={post.stickyNavLinks} />
+                            </nav>
+                        )}
                         {!isPost && formattingOptions.subnavId && (
                             <SiteSubnavigation
                                 subnavId={formattingOptions.subnavId}
