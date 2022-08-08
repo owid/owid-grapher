@@ -465,9 +465,7 @@ const fullJoinTables = (
                 indexHits = indexValuesPerTable[tableIndex].get(index)
             }
             def.values?.push(
-                tables[tableIndex].columnStore[def.slug][
-                    indexHits[indexHits.length - 1]
-                ]
+                tables[tableIndex].columnStore[def.slug][indexHits[0]]
             )
         }
         // Now figure out the fallback merge lookup index value from the first table.
@@ -480,10 +478,7 @@ const fullJoinTables = (
         const fallbackMergeIndices =
             mergeFallbackLookupColumns && indexHits
                 ? mergeFallbackLookupColumns.map((columnSet) =>
-                      makeKeyFn(
-                          tables[0].columnStore,
-                          columnSet
-                      )(indexHits![indexHits.length - 1])
+                      makeKeyFn(tables[0].columnStore, columnSet)(indexHits![0])
                   )
                 : undefined
         // now add all the nonindex value columns. We now loop over all tables and for each non-shared column
@@ -535,7 +530,7 @@ const fullJoinTables = (
                         // If any of the fallbacks led to a hit then we use this hit
                         def.values?.push(
                             tables[i].columnStore[def.slug][
-                                indexHits.length - 1
+                                indexHits[indexHits.length - 1]
                             ]
                         )
                     // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cell
