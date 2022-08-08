@@ -507,9 +507,7 @@ const fullJoinTables = (
                 // If the main index led to a hit then we just copy the value into the new row from the source table
                 if (indexHits !== undefined)
                     def.values?.push(
-                        tables[i].columnStore[def.slug][
-                            indexHits[indexHits.length - 1]
-                        ]
+                        tables[i].columnStore[def.slug][indexHits[0]]
                     )
                 else {
                     // If the main index did not lead to a hit then we try the fallback indices in turn
@@ -528,6 +526,20 @@ const fullJoinTables = (
                     }
                     if (indexHits !== undefined)
                         // If any of the fallbacks led to a hit then we use this hit
+                        // Note that we choose the last of the indexHits entries to look up the row in the columnstore here.
+                        // In the usual case the fallback index should still have enough information to match just one row (e.g.
+                        // year+entity). But for cases when we join day and year variables we have as the ultimate fallback a match
+                        // by entity only and this can then of course result in many indexHits when looking up an entity like Germany
+                        // in e.g. the population variable. If this join here were properly time and tolerance aware then we could
+                        // avoid matching on entity alone as the ultimate fallback but for  now this function is not that clever.
+                        // For the cases when we do get multiple hits for an index we could thus choose any data point. Pre July 2022
+                        // the old code always chose the first datapoint, which is often the first year that the variable has data for
+                        // for the given entity. This is not great, e.g. when using a covid date based variable and joining it to
+                        // population or similar. What we do here now is to use indexHits.length - 1 as the index, i.e. the last
+                        // row that this variable has data for for this entity. This could in theory be pretty wrong as well but in
+                        // practice it often means a very close match.
+                        // The proper solution as mentioned above would be to never fall back to entity matches only and move
+                        // the tolerance matching into this function as well instead.
                         def.values?.push(
                             tables[i].columnStore[def.slug][
                                 indexHits[indexHits.length - 1]
