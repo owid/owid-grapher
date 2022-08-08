@@ -1,6 +1,6 @@
 import React from "react"
 import { FullPost } from "../../clientUtils/owidTypes.js"
-import { formatAuthors, formatDate } from "../formatting.js"
+import { formatAuthors, formatDate, formatUrls } from "../formatting.js"
 
 const PostCard = ({ post }: { post: FullPost }) => {
     return (
@@ -10,7 +10,9 @@ const PostCard = ({ post }: { post: FullPost }) => {
                     <div
                         className="cover-image"
                         style={{
-                            backgroundImage: `url(${post.imageUrl})`,
+                            backgroundImage: `url(${formatUrls(
+                                post.imageUrl
+                            )})`,
                         }}
                     />
                 )}
