@@ -395,8 +395,8 @@ const fullJoinTables = (
         // lookups by main index to fail and we'll try the fallback index
         mergeFallbackLookupColumns &&
         difference(indexColumnNames, table.columnSlugs).length > 0
-            ? table.rowIndex(indexColumnNames)
-            : new Map()
+            ? new Map()
+            : table.rowIndex(indexColumnNames)
     )
 
     // Construct all the fallback index lookup values for all tables. mergeFallbackLookupColumns is an
