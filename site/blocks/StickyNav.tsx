@@ -148,21 +148,16 @@ class StickyNav extends React.Component<
 
     componentDidMount() {
         this.filterValidLinks()
-        window.addEventListener("scroll", this.handleScroll)
+        window.addEventListener("scroll", this.handleScroll, { passive: true })
         // Web fonts and grapher hydration make the page height change
         // So we recalculate the heading positions whenever the document body changes size
         this.resizeObserver = new ResizeObserver(this.handleResize)
-        if (this.resizeObserver) {
-            this.resizeObserver.observe(document.body)
-        }
+        this.resizeObserver.observe(document.body)
     }
 
     componentWillUnmount() {
         window.removeEventListener("scroll", this.handleScroll)
-
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect()
-        }
+        this.resizeObserver?.disconnect()
     }
 
     render() {
