@@ -1,10 +1,18 @@
 .expandable-paragraph {
-    max-height: 250px;
     overflow-y: hidden;
     position: relative;
 
+    & p:nth-child(2) {
+        max-height: 32px;
+    }
+
+    & p:nth-child(n + 3) {
+        display: none;
+    }
+
     &::after {
         content: "";
+        pointer-events: none;
         width: 100%;
         height: 120px;
         position: absolute;
@@ -15,7 +23,14 @@
 }
 
 .expandable-paragraph--is-expanded {
-    max-height: unset;
+    & p:nth-child(2) {
+        max-height: unset;
+    }
+
+    & p:nth-child(n + 3) {
+        display: block;
+    }
+
     &::after {
         content: none;
     }

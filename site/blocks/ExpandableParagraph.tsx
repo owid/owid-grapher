@@ -5,7 +5,6 @@ import ReactDOM from "react-dom"
 export class ExpandableParagraph extends React.Component<
     {
         children?: React.ReactNode
-        text?: string
     },
     {
         isExpanded: boolean
@@ -15,11 +14,6 @@ export class ExpandableParagraph extends React.Component<
         isExpanded: false,
     }
 
-    expand() {
-        this.setState({
-            isExpanded: true,
-        })
-    }
     render() {
         const { isExpanded } = this.state
         return (
@@ -34,7 +28,11 @@ export class ExpandableParagraph extends React.Component<
                 {!isExpanded && (
                     <button
                         className="expandable-paragraph__expand-button"
-                        onClick={() => this.expand()}
+                        onClick={() =>
+                            this.setState({
+                                isExpanded: true,
+                            })
+                        }
                     >
                         Continue reading
                     </button>
@@ -55,7 +53,7 @@ export const hydrateExpandableParagraphs = () => {
         ))
 
         ReactDOM.hydrate(
-            <ExpandableParagraph>{[...lines]}</ExpandableParagraph>,
+            <ExpandableParagraph>{lines}</ExpandableParagraph>,
             eP.parentElement
         )
     })
