@@ -2531,7 +2531,6 @@ apiRouter.post("/details", async (req) => {
 })
 
 apiRouter.delete("/details/:id", async (req) => {
-    console.log("delete")
     const { id } = req.params
     const matches = await db.queryMysql(
         `SELECT id, category, term, title, content FROM details WHERE id = ?`,

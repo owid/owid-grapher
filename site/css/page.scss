@@ -6,7 +6,8 @@
 
     .content-and-footnotes,
     .article-header,
-    .site-subnavigation {
+    .site-subnavigation,
+    .sticky-nav-container {
         @include content-wrapper;
         @include lg-up {
             max-width: $text-max-content-width + $graph-max-content-width + 3 *
@@ -203,5 +204,57 @@
 
     @include sm-only {
         display: block;
+    }
+}
+
+.sticky-nav {
+    position: sticky;
+    top: 0;
+    background-color: #ebeef2;
+    z-index: 10;
+    > ul {
+        display: flex;
+        flex-direction: row;
+        overflow: scroll;
+        // firefox
+        scrollbar-width: none;
+        &::-webkit-scrollbar {
+            // chrome
+            display: none;
+        }
+    }
+
+    li {
+        list-style: none;
+        margin: 0 8px;
+        padding: 16px;
+        @media (max-width: 768px) {
+            padding: 12px;
+        }
+
+        a {
+            transition: color 0.25s ease-in-out;
+            color: $blue-40;
+            white-space: nowrap;
+
+            &:visited {
+                color: $blue-40;
+            }
+
+            &:active,
+            &.active,
+            &:hover {
+                color: $blue-90;
+                text-decoration: none;
+            }
+        }
+    }
+
+    li:first-child {
+        margin-left: 0;
+        @media (max-width: 768px) {
+            // completely flush with text for mobile
+            padding-left: 0;
+        }
     }
 }
