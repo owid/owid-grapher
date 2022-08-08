@@ -389,7 +389,7 @@ const fullJoinTables = (
     else if (tables.length === 1) return tables[0]
 
     // Get all the index values per table and then figure out the full set of all stringified index values
-    const indexValuesPerTable = tables.map((table) =>
+    const indexValuesPerTable: Map<string, number[]>[] = tables.map((table) =>
         // When we get a mergeFallbackLookupColumn then it can happen that a table does not have all the
         // columns of the main index. In this case, just return an empty map because that will lead all
         // lookups by main index to fail and we'll try the fallback index
@@ -465,7 +465,9 @@ const fullJoinTables = (
                 indexHits = indexValuesPerTable[tableIndex].get(index)
             }
             def.values?.push(
-                tables[tableIndex].columnStore[def.slug][indexHits[0]]
+                tables[tableIndex].columnStore[def.slug][
+                    indexHits[indexHits.length - 1]
+                ]
             )
         }
         // Now figure out the fallback merge lookup index value from the first table.
@@ -478,7 +480,10 @@ const fullJoinTables = (
         const fallbackMergeIndices =
             mergeFallbackLookupColumns && indexHits
                 ? mergeFallbackLookupColumns.map((columnSet) =>
-                      makeKeyFn(tables[0].columnStore, columnSet)(indexHits![0])
+                      makeKeyFn(
+                          tables[0].columnStore,
+                          columnSet
+                      )(indexHits![indexHits.length - 1])
                   )
                 : undefined
         // now add all the nonindex value columns. We now loop over all tables and for each non-shared column
@@ -507,7 +512,9 @@ const fullJoinTables = (
                 // If the main index led to a hit then we just copy the value into the new row from the source table
                 if (indexHits !== undefined)
                     def.values?.push(
-                        tables[i].columnStore[def.slug][indexHits[0]]
+                        tables[i].columnStore[def.slug][
+                            indexHits[indexHits.length - 1]
+                        ]
                     )
                 else {
                     // If the main index did not lead to a hit then we try the fallback indices in turn
@@ -527,7 +534,9 @@ const fullJoinTables = (
                     if (indexHits !== undefined)
                         // If any of the fallbacks led to a hit then we use this hit
                         def.values?.push(
-                            tables[i].columnStore[def.slug][indexHits[0]]
+                            tables[i].columnStore[def.slug][
+                                indexHits.length - 1
+                            ]
                         )
                     // If none of the fallback values worked either we write ErrorValueTypes.NoMatchingValueAfterJoin into the cell
                     else
