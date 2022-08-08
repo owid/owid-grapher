@@ -561,9 +561,22 @@ export const formatWordpressPost = async (
         $heading.append(`<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`)
     })
 
+    // Extracting the useful information from the HTML
+    const stickyNavLinks: { text: string; target: string }[] = []
+    const $stickyNavContents = cheerioEl(".sticky-nav-contents")
+    const $stickyNavLinks = $stickyNavContents.children().children()
+    $stickyNavLinks.each((_, element) => {
+        const $elem = cheerioEl(element)
+        const text = $elem.text()
+        const target = $elem.attr("href")
+        if (text && target) stickyNavLinks.push({ text, target })
+    })
+    $stickyNavContents.remove()
+
     return {
         ...post,
         supertitle,
+        stickyNavLinks,
         lastUpdated,
         byline,
         info,

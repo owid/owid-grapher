@@ -4,6 +4,7 @@ import { runExpandableInlineBlock } from "../../site/ExpandableInlineBlock.js"
 import { runDataTokens } from "../../site/runDataTokens.js"
 import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder.js"
 import { hydrateKeyInsights } from "./KeyInsights.js"
+import { hydrateStickyNav } from "./StickyNav.js"
 import { hydrateExpandableParagraphs } from "./ExpandableParagraph.js"
 
 export const runBlocks = () => {
@@ -20,4 +21,5 @@ export const runBlocks = () => {
     hydrateAdditionalInformation()
     hydrateKeyInsights()
     hydrateExpandableParagraphs()
+    hydrateStickyNav()
 }

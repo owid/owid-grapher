@@ -41,7 +41,6 @@
     background: none;
     border: none;
     cursor: pointer;
-    // TODO: switch with variable once sticky nav PR is merged
-    color: #1d3d63;
+    color: $blue-90;
     text-decoration: underline;
 }
