@@ -28,6 +28,7 @@ include 'src/KeyInsightsSlider/key-insights-slider.php';
 include 'src/KeyInsight/key-insight.php';
 include 'src/TechnicalText/technical-text.php';
 include 'src/AllCharts/all-charts.php';
+include 'src/ExpandableParagraph/expandable-paragraph.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
@@ -184,6 +185,11 @@ function register()
 
     register_block_type(__DIR__ . '/src/AllCharts', [
         'render_callback' => __NAMESPACE__ . '\blocks\all_charts\render',
+    ]);
+
+    register_block_type(__DIR__ . '/src/ExpandableParagraph', [
+        'render_callback' =>
+            __NAMESPACE__ . '\blocks\expandable_paragraph\render',
     ]);
 }
 

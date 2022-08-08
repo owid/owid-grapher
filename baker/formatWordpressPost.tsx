@@ -7,6 +7,7 @@ import { getTables } from "../db/wpdb.js"
 import Tablepress from "../site/Tablepress.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import { AllCharts, renderAllCharts } from "../site/blocks/AllCharts.js"
+import { ExpandableParagraph } from "../site/blocks/ExpandableParagraph.js"
 import {
     BLOCK_WRAPPER_DATATYPE,
     DataValueProps,
@@ -474,6 +475,26 @@ export const formatWordpressPost = async (
         if (columns.attribs.class === "wp-block-columns") {
             $columns.addClass("is-style-sticky-right")
         }
+    })
+
+    const expandableParagraphs = cheerioEl('block[type="expandable-paragraph"]')
+    expandableParagraphs.each((_, eP) => {
+        const $el = cheerioEl(eP)
+        const text = $el.text() || ""
+        const lines = text.split("\n").filter((x) => x)
+        const $dry = cheerioEl(
+            ReactDOMServer.renderToStaticMarkup(
+                <div>
+                    <ExpandableParagraph>
+                        {lines.map((line, i) => (
+                            <p key={i}>{line}</p>
+                        ))}
+                    </ExpandableParagraph>
+                </div>
+            )
+        )
+        $el.after($dry)
+        $el.remove()
     })
 
     formatImages(cheerioEl)
