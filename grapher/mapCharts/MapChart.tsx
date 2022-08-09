@@ -656,13 +656,6 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         return this.props.bounds
     }
 
-    @computed.struct private get choroplethData(): Map<
-        string,
-        ChoroplethSeries
-    > {
-        return this.props.choroplethData
-    }
-
     @computed.struct private get defaultFill(): string {
         return this.props.defaultFill
     }
@@ -682,7 +675,8 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Check if a geo entity is currently focused, either directly or via the bracket
     private hasFocus(id: string): boolean {
-        const { choroplethData, focusBracket, focusEntity } = this
+        const { focusBracket, focusEntity } = this
+        const { choroplethData } = this.props
         if (focusEntity && focusEntity.id === id) return true
         else if (!focusBracket) return false
 
@@ -692,7 +686,8 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     private isSelected(id: string): boolean | undefined {
-        return this.choroplethData.get(id)!.isSelected
+        const { choroplethData } = this.props
+        return choroplethData.get(id)!.isSelected
     }
 
     // Viewport for each projection, defined by center and width+height in fractional coordinates
@@ -777,8 +772,9 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     @computed private get featuresWithData(): RenderFeature[] {
+        const { choroplethData } = this.props
         return this.featuresInProjection.filter((feature) =>
-            this.choroplethData.has(feature.id)
+            choroplethData.has(feature.id)
         )
     }
 
@@ -850,7 +846,6 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const {
             uid,
             bounds,
-            choroplethData,
             defaultFill,
             matrixTransform,
             viewportScale,
@@ -863,6 +858,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const selectedStrokeWidth = 1
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
+        const { choroplethData } = this.props
 
         const clipPath = makeClipPath(uid, bounds)
 
