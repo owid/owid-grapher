@@ -1,0 +1,96 @@
+.front-matter {
+    margin-top: 48px;
+    display: grid !important;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: 24px;
+
+    .wp-block-column:nth-child(1) {
+        grid-column: 1 / 13;
+
+        @media (min-width: 960px) {
+            grid-column: 1 / 9;
+        }
+        @media (min-width: 1280px) {
+            grid-column: 1 / 6;
+        }
+    }
+
+    .wp-block-column:nth-child(2) {
+        grid-column: 1 / 13;
+
+        @media (min-width: 960px) {
+            grid-column: 9 / 13;
+        }
+        @media (min-width: 1280px) {
+            grid-column: 9 / 13;
+        }
+    }
+}
+
+.btn-secondary {
+    padding: 8px 24px;
+    border: 1px solid $accent-vermillion;
+    display: inline-block;
+    cursor: pointer;
+    margin: 16px 0;
+
+    &:hover {
+        border-color: darken($accent-vermillion, 10);
+
+        a {
+            color: darken($accent-vermillion, 10);
+            text-decoration: none;
+        }
+    }
+
+    a {
+        color: $accent-vermillion;
+    }
+}
+
+.article-content .related-topics {
+    border-left: 1px solid $blue-10;
+    padding-left: 24px;
+    margin-top: 48px;
+    display: none;
+
+    @media (min-width: 960px) {
+        display: block;
+    }
+
+    p {
+        text-transform: uppercase;
+        color: $blue-40;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+    }
+
+    li {
+        margin-bottom: 16px;
+        list-style: none;
+        position: relative;
+        text-underline-offset: 4px;
+
+        &:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        &:after {
+            content: "";
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M438.6 278.6l-160 160C272.4 444.9 264.2 448 256 448s-16.38-3.125-22.62-9.375c-12.5-12.5-12.5-32.75 0-45.25L338.8 288H32C14.33 288 .0016 273.7 .0016 256S14.33 224 32 224h306.8l-105.4-105.4c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0l160 160C451.1 245.9 451.1 266.1 438.6 278.6z"/></svg>');
+            position: absolute;
+            top: 0;
+            width: 9px;
+            height: 12px;
+            background-repeat: no-repeat;
+            margin-top: 6px;
+            margin-left: 6px;
+        }
+    }
+}
