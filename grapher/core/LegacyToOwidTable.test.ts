@@ -483,6 +483,242 @@ describe(legacyToOwidTableAndDimensions, () => {
         })
     })
 })
+describe("variables with mixed days & years with missing overlap and multiple potential join targets", () => {
+    const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap = new Map(
+        [
+            [
+                2,
+                {
+                    data: {
+                        entities: [1, 1, 1, 1, 1],
+                        values: [10, 11, 12, 410, 810],
+                        years: [1, 2, 3, 400, 800], // use days that fall into 2021 and 2022
+                    },
+                    metadata: {
+                        id: 2,
+                        display: {
+                            yearIsDay: true,
+                            zeroDay: "2020-01-21",
+                        },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "World",
+                                        code: "OWID_WRL",
+                                        id: 1,
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 1,
+                                    },
+                                    {
+                                        id: 2,
+                                    },
+                                    {
+                                        id: 3,
+                                    },
+                                    {
+                                        id: 400,
+                                    },
+                                    {
+                                        id: 800,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+            [
+                3,
+                {
+                    data: {
+                        entities: [1, 1, 1],
+                        values: [20, 21, 22],
+                        years: [2020, 2021, 2022],
+                    },
+                    metadata: {
+                        id: 3,
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "World",
+                                        code: "OWID_WRL",
+                                        id: 1,
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 2020,
+                                    },
+                                    {
+                                        id: 2021,
+                                    },
+                                    {
+                                        id: 2022,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+            [
+                4,
+                {
+                    data: {
+                        entities: [1, 1, 1],
+                        values: [1000, 2000, 3000],
+                        years: [1800, 1900, 2000],
+                    },
+                    metadata: {
+                        id: 3,
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "World",
+                                        code: "OWID_WRL",
+                                        id: 1,
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 1800,
+                                    },
+                                    {
+                                        id: 1900,
+                                    },
+                                    {
+                                        id: 2000,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+        ]
+    )
+    const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
+        dimensions: [
+            {
+                variableId: 2,
+                property: DimensionProperty.y,
+            },
+            {
+                variableId: 3,
+                property: DimensionProperty.y,
+            },
+            {
+                variableId: 4,
+                property: DimensionProperty.y,
+            },
+        ],
+    }
+
+    const { table } = legacyToOwidTableAndDimensions(
+        legacyVariableConfig,
+        legacyGrapherConfig
+    )
+
+    it("duplicates 'day' column into 'time'", () => {
+        expect(table.columnSlugs).toEqual(
+            expect.arrayContaining([OwidTableSlugs.day, OwidTableSlugs.time])
+        )
+        expect(
+            table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+        ).toBeTruthy()
+        expect(table.get(OwidTableSlugs.time).uniqValues).toEqual([
+            1, 2, 3, 400, 800,
+        ])
+    })
+
+    describe("join behaviour without target times is super weird", () => {
+        it("creates a weird table join", () => {
+            const { table } = legacyToOwidTableAndDimensions(
+                legacyVariableConfig,
+                legacyGrapherConfig
+            )
+
+            // A sane join between years and days would create 5 days for the given input
+            // data and join them with the other variables by year based on the year of the day
+            // Alas, this is not what the current join does. Instead we get this:
+
+            expect(table.rows.length).toEqual(10)
+            expect(table.columnSlugs.includes("2")).toBeTruthy()
+            expect(table.columnSlugs.includes("3")).toBeTruthy()
+            expect(table.columnSlugs.includes("4")).toBeTruthy()
+            expect(table.columnSlugs.includes("year")).toBeTruthy()
+            expect(table.columnSlugs.includes("time")).toBeTruthy()
+            let column = table.get("2")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                10,
+                11,
+                12,
+                410,
+                810,
+                10,
+                10,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+            ])
+            column = table.get("3")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                20,
+                20,
+                20,
+                20,
+                20,
+                21,
+                22,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+            ])
+            column = table.get("4")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                1000,
+                2000,
+                3000,
+            ])
+            column = table.get("year")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                2020, 2020, 2020, 2020, 2020, 2021, 2022, 1800, 1900, 2000,
+            ])
+            column = table.get("time")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                1,
+                2,
+                3,
+                400,
+                800,
+                1,
+                1,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+                ErrorValueTypes.NoMatchingValueAfterJoin,
+            ])
+        })
+    })
+})
 
 const getOwidVarSet = (): MultipleOwidVariableDataDimensionsMap => {
     return new Map([
