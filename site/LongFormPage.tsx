@@ -216,11 +216,11 @@ export const LongFormPage = (props: {
                                 )}
                             </header>
                         </div>
-                        {post.stickyNavLinks?.length && (
+                        {post.stickyNavLinks?.length ? (
                             <nav className="sticky-nav">
                                 <StickyNav links={post.stickyNavLinks} />
                             </nav>
-                        )}
+                        ) : null}
                         {!isPost && formattingOptions.subnavId && (
                             <SiteSubnavigation
                                 subnavId={formattingOptions.subnavId}
