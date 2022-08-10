@@ -60,6 +60,7 @@ import uniqBy from "lodash/uniqBy.js"
 import uniqWith from "lodash/uniqWith.js"
 import upperFirst from "lodash/upperFirst.js"
 import without from "lodash/without.js"
+import zip from "lodash/zip.js"
 export {
     capitalize,
     chunk,
@@ -120,6 +121,7 @@ export {
     uniqWith,
     upperFirst,
     without,
+    zip,
 }
 import { extent, pairs } from "d3-array"
 export { pairs }
@@ -780,6 +782,14 @@ export function dateDiffInDays(a: Date, b: Date): number {
 export const diffDateISOStringInDays = (a: string, b: string): number =>
     dayjs.utc(a).diff(dayjs.utc(b), "day")
 
+export const getYearFromISOStringAndDayOffset = (
+    epoch: string,
+    daysOffset: number
+): number => {
+    const date = dayjs.utc(epoch).add(daysOffset, "day")
+    return date.year()
+}
+
 export const addDays = (date: Date, days: number): Date => {
     const newDate = new Date(date.getTime())
     newDate.setDate(newDate.getDate() + days)
@@ -911,6 +921,12 @@ export const intersectionOfSets = <T>(sets: Set<T>[]): Set<T> => {
         }
     })
     return intersection
+}
+
+export const unionOfSets = <T>(sets: Set<T>[]): Set<T> => {
+    if (!sets.length) return new Set<T>()
+    const unionSet = new Set<T>(...sets)
+    return unionSet
 }
 
 export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {

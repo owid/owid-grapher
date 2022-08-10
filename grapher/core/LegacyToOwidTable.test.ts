@@ -184,6 +184,8 @@ describe(legacyToOwidTableAndDimensions, () => {
             const worldRows = table.rows.filter(
                 (row) => row.entityName === "World"
             )
+            expect(table.rows.length).toEqual(5)
+            expect(worldRows.length).toEqual(4)
             expect(worldRows[0]["3"]).toEqual(
                 ErrorValueTypes.NoMatchingValueAfterJoin
             )
@@ -459,7 +461,7 @@ describe(legacyToOwidTableAndDimensions, () => {
 
         describe("scatter-specific behavior", () => {
             it("only joins targetTime on Scatters", () => {
-                expect(table.rows.length).toEqual(4)
+                expect(table.rows.length).toEqual(3) // used to be 4 but IMHO that was wrong legacy behaviour (from combining left and right join and then dropping duplicates)
             })
 
             it("joins targetTime", () => {
@@ -643,8 +645,8 @@ describe("variables with mixed days & years with missing overlap and multiple po
         ])
     })
 
-    describe("join behaviour without target times is super weird", () => {
-        it("creates a weird table join", () => {
+    describe("join behaviour without target times is sane", () => {
+        it("creates a sane table join", () => {
             const { table } = legacyToOwidTableAndDimensions(
                 legacyVariableConfig,
                 legacyGrapherConfig
@@ -652,9 +654,13 @@ describe("variables with mixed days & years with missing overlap and multiple po
 
             // A sane join between years and days would create 5 days for the given input
             // data and join them with the other variables by year based on the year of the day
-            // Alas, this is not what the current join does. Instead we get this:
+            // This is what we see below.
+            // Note that variable 4 that does not have any values for years matching the days
+            // it is merged on the last year even though no tolerance is given. This mirrors
+            // the old behaviour and is unfortunately necessary until we pull tolerance into
+            // the this join that constructs the table
 
-            expect(table.rows.length).toEqual(10)
+            expect(table.rows.length).toEqual(5)
             expect(table.columnSlugs.includes("2")).toBeTruthy()
             expect(table.columnSlugs.includes("3")).toBeTruthy()
             expect(table.columnSlugs.includes("4")).toBeTruthy()
@@ -662,59 +668,25 @@ describe("variables with mixed days & years with missing overlap and multiple po
             expect(table.columnSlugs.includes("time")).toBeTruthy()
             let column = table.get("2")
             expect(column.valuesIncludingErrorValues).toEqual([
-                10,
-                11,
-                12,
-                410,
-                810,
-                10,
-                10,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
+                10, 11, 12, 410, 810,
             ])
             column = table.get("3")
             expect(column.valuesIncludingErrorValues).toEqual([
-                20,
-                20,
-                20,
-                20,
-                20,
-                21,
-                22,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
+                20, 20, 20, 21, 22,
             ])
+            // Note that this here shows that even though variable 4 has no tolerance
+            // we pick the last matching row as a workaround
             column = table.get("4")
             expect(column.valuesIncludingErrorValues).toEqual([
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                1000,
-                2000,
-                3000,
+                3000, 3000, 3000, 3000, 3000,
             ])
             column = table.get("year")
             expect(column.valuesIncludingErrorValues).toEqual([
-                2020, 2020, 2020, 2020, 2020, 2021, 2022, 1800, 1900, 2000,
+                2020, 2020, 2020, 2021, 2022,
             ])
             column = table.get("time")
             expect(column.valuesIncludingErrorValues).toEqual([
-                1,
-                2,
-                3,
-                400,
-                800,
-                1,
-                1,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
-                ErrorValueTypes.NoMatchingValueAfterJoin,
+                1, 2, 3, 400, 800,
             ])
         })
     })
