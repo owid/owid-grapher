@@ -570,7 +570,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                                     category === token.category &&
                                     term === token.term
                             ) + 1
-                        if (referenceIndex === 0) return
+                        if (referenceIndex === 0) return token
                         token.children.push(
                             new IRSuperscript(
                                 String(referenceIndex),
