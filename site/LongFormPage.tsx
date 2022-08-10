@@ -216,7 +216,7 @@ export const LongFormPage = (props: {
                                 )}
                             </header>
                         </div>
-                        {post.stickyNavLinks && (
+                        {post.stickyNavLinks?.length && (
                             <nav className="sticky-nav">
                                 <StickyNav links={post.stickyNavLinks} />
                             </nav>
