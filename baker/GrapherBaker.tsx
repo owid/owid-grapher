@@ -20,7 +20,6 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import ProgressBar from "progress"
 import * as db from "../db/db.js"
 import * as glob from "glob"
 import { JsonError } from "../clientUtils/owidTypes.js"
@@ -38,6 +37,7 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
 } from "../grapher/core/GrapherConstants.js"
+import workerpool from "workerpool"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -69,27 +69,32 @@ export const grapherSlugToHtmlPage = async (slug: string) => {
     return grapherConfigToHtmlPage(entity.config)
 }
 
-const bakeVariableData = async (
-    bakedSiteDir: string,
-    variableIds: number[]
-): Promise<void> => {
-    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLES_ROUTE}`)
-    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_DATA_ROUTE}`)
-    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`)
+interface BakeVariableDataArguments {
+    bakedSiteDir: string
+    variableId: number
+}
 
-    const promises = variableIds.map(async (variableId) => {
-        const variableData = await getVariableData(variableId)
-        const { data, metadata } = variableData
-        const path = `${bakedSiteDir}${getVariableDataRoute(variableId)}`
-        const metadataPath = `${bakedSiteDir}${getVariableMetadataRoute(
-            variableId
-        )}`
-        await fs.writeFile(path, JSON.stringify(data))
-        await fs.writeFile(metadataPath, JSON.stringify(metadata))
-        console.log(path)
-        console.log(metadataPath)
-    })
-    await Promise.all(promises)
+export const bakeVariableData = async (
+    bakeArgs: BakeVariableDataArguments
+): Promise<void> => {
+    await fs.mkdirp(`${bakeArgs.bakedSiteDir}${GRAPHER_VARIABLES_ROUTE}`)
+    await fs.mkdirp(`${bakeArgs.bakedSiteDir}${GRAPHER_VARIABLE_DATA_ROUTE}`)
+    await fs.mkdirp(
+        `${bakeArgs.bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`
+    )
+
+    const variableData = await getVariableData(bakeArgs.variableId)
+    const { data, metadata } = variableData
+    const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
+        bakeArgs.variableId
+    )}`
+    const metadataPath = `${bakeArgs.bakedSiteDir}${getVariableMetadataRoute(
+        bakeArgs.variableId
+    )}`
+    await fs.writeFile(path, JSON.stringify(data))
+    await fs.writeFile(metadataPath, JSON.stringify(metadata))
+    console.log(path)
+    console.log(metadataPath)
 }
 
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
@@ -116,17 +121,6 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
         grapher.dimensions?.map((d) => d.variableId)
     )
     if (!variableIds.length) return
-
-    // Make sure we bake the variables successfully before outputing the chart html
-    const vardataPaths = variableIds.flatMap((variableId) => [
-        `${bakedSiteDir}${getVariableDataRoute(variableId)}`,
-        `${bakedSiteDir}${getVariableMetadataRoute(variableId)}`,
-    ])
-    if (
-        !isSameVersion ||
-        !vardataPaths.every((vardataPath) => fs.existsSync(vardataPath))
-    )
-        await bakeVariableData(bakedSiteDir, variableIds)
 
     try {
         await fs.mkdirp(`${bakedSiteDir}/grapher/exports/`)
@@ -206,41 +200,82 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
     }
 }
 
+const bakeAllPublishedChartsVariableDataAndMetadata = async (
+    bakedSiteDir: string,
+    variableIds: number[]
+) => {
+    // TODO: figure out if rebake is necessary by checking the version of the data/metadata
+    const pool = workerpool.pool(__dirname + "/worker.js", {
+        minWorkers: 2,
+    })
+    const jobs = variableIds.map((variableId) => ({
+        bakedSiteDir: bakedSiteDir,
+        variableId: variableId,
+    }))
+
+    await Promise.all(jobs.map((job) => pool.exec("bakeVariableData", [job])))
+}
+
+export interface BakeSingleGrapherChartArguments {
+    id: number
+    config: string
+    bakedSiteDir: string
+}
+
+export const bakeSingleGrapherChart = async (
+    args: BakeSingleGrapherChartArguments
+) => {
+    const grapher: GrapherInterface = JSON.parse(args.config)
+    grapher.id = args.id
+
+    // Avoid baking paths that have an Explorer redirect.
+    // Redirects take precedence.
+    if (isPathRedirectedToExplorer(`/grapher/${grapher.slug}`)) {
+        console.log({
+            name: `⏩ ${grapher.slug} redirects to explorer`,
+        })
+        return
+    }
+
+    await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
+        args.bakedSiteDir,
+        grapher
+    )
+    console.log({ name: `✅ ${grapher.slug}` })
+}
+
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string) => {
+        const variablesToBake: { varId: number }[] =
+            await db.queryMysql(`select distinct vars.varID as varId
+from
+charts c,
+json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
+where JSON_EXTRACT(c.config, '$.isPublished')=true`)
+
+        bakeAllPublishedChartsVariableDataAndMetadata(
+            bakedSiteDir,
+            variablesToBake.map((v) => v.varId)
+        )
+
         const rows: { id: number; config: any }[] = await db.queryMysql(
             `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`
         )
 
-        const newSlugs = []
+        const newSlugs = rows.map((row) => row.config.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
-        const progressBar = new ProgressBar(
-            "BakeGrapherPageVarPngAndSVGIfChanged [:bar] :current/:total :elapseds :rate/s :etas :name\n",
-            {
-                width: 20,
-                total: rows.length + 1,
-            }
+        const jobs = rows.map((row) => ({
+            id: row.id,
+            config: row.config,
+            bakedSiteDir: bakedSiteDir,
+        }))
+        const pool = workerpool.pool(__dirname + "/worker.js", {
+            minWorkers: 2,
+        })
+        await Promise.all(
+            jobs.map((job) => pool.exec("bakeSingleGrapherChart", [job]))
         )
-        for (const row of rows) {
-            const grapher: GrapherInterface = JSON.parse(row.config)
-            grapher.id = row.id
-            newSlugs.push(grapher.slug)
 
-            // Avoid baking paths that have an Explorer redirect.
-            // Redirects take precedence.
-            if (isPathRedirectedToExplorer(`/grapher/${grapher.slug}`)) {
-                progressBar.tick({
-                    name: `⏩ ${grapher.slug} redirects to explorer`,
-                })
-                continue
-            }
-
-            await bakeGrapherPageAndVariablesPngAndSVGIfChanged(
-                bakedSiteDir,
-                grapher
-            )
-            progressBar.tick({ name: `✅ ${grapher.slug}` })
-        }
         await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
-        progressBar.tick({ name: `✅ Deleted old graphers` })
+        console.log({ name: `✅ Deleted old graphers` })
     }
