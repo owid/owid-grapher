@@ -74,16 +74,6 @@ export const ALGOLIA_SECRET_KEY: string =
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true" ?? false
 
-// Settings for automated email sending, e.g. for admin invite
-export const EMAIL_HOST: string = serverSettings.EMAIL_HOST ?? "smtp.mail.com"
-export const EMAIL_PORT: number =
-    parseIntOrUndefined(serverSettings.EMAIL_PORT) ?? 443
-export const EMAIL_HOST_USER: string = serverSettings.EMAIL_HOST_USER ?? "user"
-export const EMAIL_HOST_PASSWORD: string =
-    serverSettings.EMAIL_HOST_PASSWORD ?? "password"
-export const EMAIL_USE_TLS: boolean =
-    serverSettings.EMAIL_USE_TLS !== "false" ?? true
-
 // Wordpress target setting
 export const WORDPRESS_DIR: string = serverSettings.WORDPRESS_DIR ?? "wordpress"
 export const HTTPS_ONLY: boolean = serverSettings.HTTPS_ONLY !== "false" ?? true

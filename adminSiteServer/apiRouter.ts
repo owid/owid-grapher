@@ -11,14 +11,8 @@ import {
     BAKED_BASE_URL,
     ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
-import {
-    expectInt,
-    isValidSlug,
-    absoluteUrl,
-} from "../serverUtils/serverUtil.js"
-import { sendMail } from "./mail.js"
+import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
-import { UserInvitation } from "../db/model/UserInvitation.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { applyPatch } from "../clientUtils/patchHelper.js"
@@ -1316,37 +1310,19 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
     return { success: true }
 })
 
-apiRouter.post("/users/invite", async (req: Request, res: Response) => {
+apiRouter.post("/users/add", async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const { email } = req.body
+    const { email, fullName } = req.body
 
     await getConnection().transaction(async (manager) => {
-        // Remove any previous invites for this email address to avoid duplicate accounts
-        const repo = manager.getRepository(UserInvitation)
-        await repo
-            .createQueryBuilder()
-            .where(`email = :email`, { email })
-            .delete()
-            .execute()
-
-        const invite = new UserInvitation()
-        invite.email = email
-        invite.code = UserInvitation.makeInviteCode()
-        invite.validTill = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        invite.createdAt = new Date()
-        invite.updatedAt = new Date()
-        await repo.save(invite)
-
-        const inviteLink = absoluteUrl(`/admin/register?code=${invite.code}`)
-
-        await sendMail({
-            from: "no-reply@ourworldindata.org",
-            to: email,
-            subject: "Invitation to join owid-admin",
-            text: `Hi, please follow this link to register on owid-admin: ${inviteLink}`,
-        })
+        const user = new User()
+        user.email = email
+        user.fullName = fullName
+        user.createdAt = new Date()
+        user.updatedAt = new Date()
+        await manager.getRepository(User).save(user)
     })
 
     return { success: true }
