@@ -52,7 +52,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
                         <div className="form-group">
                             <label>Full name</label>
                             <input
-                                type="string"
+                                type="email"
                                 className="form-control"
                                 onChange={(e) =>
                                     (this.fullName = e.currentTarget.value)
