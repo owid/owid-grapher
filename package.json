@@ -215,12 +215,12 @@
         "workerpool": "^6.2.0"
     },
     "devDependencies": {
-        "@storybook/addon-measure": "^6.5.9",
-        "@storybook/addon-outline": "^6.5.9",
-        "@storybook/addon-viewport": "^6.5.9",
-        "@storybook/builder-webpack5": "^6.5.9",
-        "@storybook/manager-webpack5": "^6.5.9",
-        "@storybook/react": "^6.5.9",
+        "@storybook/addon-measure": "^6.5.10",
+        "@storybook/addon-outline": "^6.5.10",
+        "@storybook/addon-viewport": "^6.5.10",
+        "@storybook/builder-webpack5": "^6.5.10",
+        "@storybook/manager-webpack5": "^6.5.10",
+        "@storybook/react": "^6.5.10",
         "@testing-library/jest-dom": "^5.16.4",
         "@testing-library/react": "^12",
         "@types/jest": "^27.0.2",
@@ -236,7 +236,7 @@
         "opener": "^1.5.2",
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
-        "storybook": "^6.5.9",
+        "storybook": "^6.5.10",
         "tmex": "^1.0.8",
         "tsc-watch": "^4.2.9"
     },
