@@ -47,7 +47,8 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
-		bind Q kill-server \
+		bind Q kill-server \; \
+		set -g mouse on \
 		|| make down
 
 up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata.sql.gz
@@ -92,7 +93,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
-		bind Q kill-server \
+		bind Q kill-server \; \
+		set -g mouse on \
 		|| make down.full
 
 down:
