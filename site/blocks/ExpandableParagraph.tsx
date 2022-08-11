@@ -3,9 +3,16 @@ import React from "react"
 import ReactDOM from "react-dom"
 
 export class ExpandableParagraph extends React.Component<
-    {
-        children?: React.ReactNode
-    },
+    | {
+          children: React.ReactNode
+          dangerouslySetInnerHTML?: undefined
+      }
+    | {
+          children?: undefined
+          dangerouslySetInnerHTML: {
+              __html: string
+          }
+      },
     {
         isExpanded: boolean
     }
@@ -16,15 +23,16 @@ export class ExpandableParagraph extends React.Component<
 
     render() {
         const { isExpanded } = this.state
+
         return (
             <>
                 <div
                     className={classnames("expandable-paragraph", {
                         "expandable-paragraph--is-expanded": isExpanded,
                     })}
-                >
-                    {this.props.children}
-                </div>
+                    // Either pass children or dangerouslySetInnerHTML
+                    {...this.props}
+                />
                 {!isExpanded && (
                     <button
                         className="expandable-paragraph__expand-button"
@@ -48,12 +56,11 @@ export const hydrateExpandableParagraphs = () => {
     )
 
     expandableParagraphs.forEach((eP) => {
-        const lines = [...eP.querySelectorAll("p")].map((line, i) => (
-            <p key={i}>{line.textContent}</p>
-        ))
-
+        const innerHTML = eP.innerHTML
         ReactDOM.hydrate(
-            <ExpandableParagraph>{lines}</ExpandableParagraph>,
+            <ExpandableParagraph
+                dangerouslySetInnerHTML={{ __html: innerHTML }}
+            />,
             eP.parentElement
         )
     })

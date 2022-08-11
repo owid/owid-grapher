@@ -480,16 +480,14 @@ export const formatWordpressPost = async (
     const expandableParagraphs = cheerioEl('block[type="expandable-paragraph"]')
     expandableParagraphs.each((_, eP) => {
         const $el = cheerioEl(eP)
-        const text = $el.text() || ""
-        const lines = text.split("\n").filter((x) => x)
         const $dry = cheerioEl(
             ReactDOMServer.renderToStaticMarkup(
                 <div>
-                    <ExpandableParagraph>
-                        {lines.map((line, i) => (
-                            <p key={i}>{line}</p>
-                        ))}
-                    </ExpandableParagraph>
+                    <ExpandableParagraph
+                        dangerouslySetInnerHTML={{
+                            __html: $el.html() || "",
+                        }}
+                    />
                 </div>
             )
         )
