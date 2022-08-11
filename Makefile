@@ -67,7 +67,8 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
-		bind Q kill-server
+		bind Q kill-server \; \
+		set-option -g mouse on
 
 up.full: export DEBUG = 'knex:query'
 
