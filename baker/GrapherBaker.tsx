@@ -250,29 +250,30 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
     async (bakedSiteDir: string) => {
         const variablesToBake: { varId: number }[] =
             await db.queryMysql(`select distinct vars.varID as varId
-from
-charts c,
-json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
-where JSON_EXTRACT(c.config, '$.isPublished')=true`)
+            from
+            charts c,
+            json_table(c.config, '$.dimensions[*]' columns (varID integer path '$.variableId') ) as vars
+            where JSON_EXTRACT(c.config, '$.isPublished')=true`)
 
         await bakeAllPublishedChartsVariableDataAndMetadata(
             bakedSiteDir,
             variablesToBake.map((v) => v.varId)
         )
 
-        const rows: { id: number; config: any }[] = await db.queryMysql(
-            `SELECT id, config FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`
-        )
+        const rows: { id: number; config: string; slug: string }[] =
+            await db.queryMysql(
+                `SELECT id, config, config->>'$.slug' as slug FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`
+            )
 
-        const newSlugs = rows.map((row) => row.config.slug)
+        const newSlugs = rows.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
         const jobs = rows.map((row) => ({
             id: row.id,
             config: row.config,
             bakedSiteDir: bakedSiteDir,
         }))
+
         const maxWorkers = process.env.MAX_NUM_BAKE_PROCESSES || "4"
-        // TODO: figure out if rebake is necessary by checking the version of the data/metadata
         const pool = workerpool.pool(__dirname + "/worker.js", {
             minWorkers: 2,
             maxWorkers: parseInt(maxWorkers, 10),
