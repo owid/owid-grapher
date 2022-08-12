@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
+import ReactDOMServer from "react-dom/server.js"
 
 export const ExpandableParagraph = (
     props:
@@ -51,5 +52,25 @@ export const hydrateExpandableParagraphs = () => {
             />,
             eP.parentElement
         )
+    })
+}
+
+export const renderExpandableParagraphs = ($: CheerioStatic) => {
+    const expandableParagraphs = $('block[type="expandable-paragraph"]')
+    expandableParagraphs.each((_, eP) => {
+        const $el = $(eP)
+        const $dry = $(
+            ReactDOMServer.renderToStaticMarkup(
+                <div>
+                    <ExpandableParagraph
+                        dangerouslySetInnerHTML={{
+                            __html: $el.html() || "",
+                        }}
+                    />
+                </div>
+            )
+        )
+        $el.after($dry)
+        $el.remove()
     })
 }

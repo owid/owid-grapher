@@ -7,7 +7,6 @@ import { getTables } from "../db/wpdb.js"
 import Tablepress from "../site/Tablepress.js"
 import { GrapherExports } from "../baker/GrapherBakingUtils.js"
 import { AllCharts, renderAllCharts } from "../site/blocks/AllCharts.js"
-import { ExpandableParagraph } from "../site/blocks/ExpandableParagraph.js"
 import {
     BLOCK_WRAPPER_DATATYPE,
     DataValueProps,
@@ -50,6 +49,7 @@ import {
     renderAdditionalInformation,
 } from "../site/blocks/AdditionalInformation.js"
 import { renderHelp } from "../site/blocks/Help.js"
+import { renderExpandableParagraphs } from "../site/blocks/ExpandableParagraph.js"
 import {
     formatUrls,
     getBodyHtml,
@@ -316,6 +316,7 @@ export const formatWordpressPost = async (
     //   perspective, the server rendered version is different from the client
     //   one, hence the discrepancy.
     renderAdditionalInformation(cheerioEl)
+    renderExpandableParagraphs(cheerioEl)
     renderHelp(cheerioEl)
     renderAllCharts(cheerioEl, post)
     await renderProminentLinks(cheerioEl, post.id)
@@ -475,24 +476,6 @@ export const formatWordpressPost = async (
         if (columns.attribs.class === "wp-block-columns") {
             $columns.addClass("is-style-sticky-right")
         }
-    })
-
-    const expandableParagraphs = cheerioEl('block[type="expandable-paragraph"]')
-    expandableParagraphs.each((_, eP) => {
-        const $el = cheerioEl(eP)
-        const $dry = cheerioEl(
-            ReactDOMServer.renderToStaticMarkup(
-                <div>
-                    <ExpandableParagraph
-                        dangerouslySetInnerHTML={{
-                            __html: $el.html() || "",
-                        }}
-                    />
-                </div>
-            )
-        )
-        $el.after($dry)
-        $el.remove()
     })
 
     formatImages(cheerioEl)
