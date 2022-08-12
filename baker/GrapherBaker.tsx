@@ -19,6 +19,7 @@ import {
     OPTIMIZE_SVG_EXPORTS,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
+    MAX_NUM_BAKE_PROCESSES,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import * as glob from "glob"
@@ -204,11 +205,11 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
     bakedSiteDir: string,
     variableIds: number[]
 ) => {
-    const maxWorkers = process.env.MAX_NUM_BAKE_PROCESSES || "4"
+    const maxWorkers = MAX_NUM_BAKE_PROCESSES
     // TODO: figure out if rebake is necessary by checking the version of the data/metadata
     const pool = workerpool.pool(__dirname + "/worker.js", {
         minWorkers: 2,
-        maxWorkers: parseInt(maxWorkers, 10),
+        maxWorkers: maxWorkers,
     })
     const jobs = variableIds.map((variableId) => ({
         bakedSiteDir: bakedSiteDir,
@@ -271,10 +272,10 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             bakedSiteDir: bakedSiteDir,
         }))
 
-        const maxWorkers = process.env.MAX_NUM_BAKE_PROCESSES || "4"
+        const maxWorkers = MAX_NUM_BAKE_PROCESSES
         const pool = workerpool.pool(__dirname + "/worker.js", {
             minWorkers: 2,
-            maxWorkers: parseInt(maxWorkers, 10),
+            maxWorkers: maxWorkers,
         })
         await Promise.all(
             jobs.map((job) => pool.exec("bakeSingleGrapherChart", [job]))
