@@ -5,6 +5,7 @@ import { runDataTokens } from "../../site/runDataTokens.js"
 import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder.js"
 import { hydrateKeyInsights } from "./KeyInsights.js"
 import { hydrateStickyNav } from "./StickyNav.js"
+import { hydrateExpandableParagraphs } from "./ExpandableParagraph.js"
 
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {
@@ -19,5 +20,6 @@ export const runBlocks = () => {
     runSearchCountry()
     hydrateAdditionalInformation()
     hydrateKeyInsights()
+    hydrateExpandableParagraphs()
     hydrateStickyNav()
 }

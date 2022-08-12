@@ -10,6 +10,7 @@ import { registerKeyInsightsSlider } from "./KeyInsightsSlider/KeyInsightsSlider
 import { registerKeyInsight } from "./KeyInsight/KeyInsight.js"
 import { registerTechnicalText } from "./TechnicalText/TechnicalText.js"
 import { registerAllCharts } from "./AllCharts/AllCharts.js"
+import { registerExpandableParagraph } from "./ExpandableParagraph/ExpandableParagraph.js"
 import { registerStickyNav } from "./StickyNav/StickyNav.js"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
@@ -27,6 +28,7 @@ registerKeyInsightsSlider()
 registerKeyInsight()
 registerTechnicalText()
 registerAllCharts()
+registerExpandableParagraph()
 registerStickyNav()
 
 registerBlockStyle("core/columns", {
