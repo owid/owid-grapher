@@ -233,9 +233,7 @@ export const bakeSingleGrapherChart = async (
     // Avoid baking paths that have an Explorer redirect.
     // Redirects take precedence.
     if (isPathRedirectedToExplorer(`/grapher/${grapher.slug}`)) {
-        console.log({
-            name: `⏩ ${grapher.slug} redirects to explorer`,
-        })
+        console.log(`⏩ ${grapher.slug} redirects to explorer`)
         return
     }
 
@@ -243,7 +241,7 @@ export const bakeSingleGrapherChart = async (
         args.bakedSiteDir,
         grapher
     )
-    console.log({ name: `✅ ${grapher.slug}` })
+    console.log(`✅ ${grapher.slug}`)
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
@@ -283,5 +281,5 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         )
 
         await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
-        console.log({ name: `✅ Deleted old graphers` })
+        console.log(`✅ Deleted old graphers`)
     }
