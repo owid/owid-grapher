@@ -1,6 +1,6 @@
 import React from "react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, trace } from "mobx"
 import { observer } from "mobx-react"
 import {
     HorizontalCategoricalColorLegend,
@@ -871,9 +871,10 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const clipPath = makeClipPath(uid, bounds)
         const internalAnnotations = generateAnnotations(
             featuresWithData,
+            featuresWithNoData,
             choroplethData,
             viewportScale,
-            this.props.projection
+            this.props.projection,
         )
 
         return (
@@ -1012,16 +1013,27 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                         const fill = series ? series.color : defaultFill
                         const textFill = isDarkColor(fill) ? "white" : "black"
                         return (
+                            <>
                             <text
                                 key={label.id}
                                 x={label.position.x}
                                 y={label.position.y}
                                 fontSize={label.size}
-                                fill={textFill}
+                                fill={label.type=="internal"?textFill:"black"}
                                 fontWeight={annotationWeight}
                             >
                                 {label.value}
                             </text>
+                            {label.type == "external" && label.value &&
+                            <circle
+                                    cx={label.pole[0]}
+                                    cy={label.pole[1]}
+                                    r={2/viewportScale}
+                                    fill="grey"
+                                    style={{ pointerEvents: "none" }}
+                                />
+                            }
+                            </>
                         )
                     })}
                 </g>

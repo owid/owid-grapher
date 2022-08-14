@@ -9,16 +9,25 @@ import { MapProjectionName, MapProjectionGeos } from "./MapProjections.js"
 import { geoPath } from "d3-geo"
 import polylabel from "polylabel"
 import { Position } from "geojson"
+import { WorldRegionToProjection } from "./WorldRegionsToProjection.js"
 
 interface internalLabel {
     id: string
     position: PointVector
     value?: any
     size: number
+    type: string
+    pole: Position
+}
+interface gg {
+    position: number[],
+    width: number,
+    height: number
 }
 
 export function generateAnnotations(
     featureData: RenderFeature[],
+    featuresWithNoData: RenderFeature[],
     choroplethData: Map<string, ChoroplethSeries>,
     viewportScale: number,
     projection: MapProjectionName
@@ -26,6 +35,9 @@ export function generateAnnotations(
     const minSize = 8
     const maxSize = 16
     const projectionGeo = MapProjectionGeos[projection]
+    const just = yessir([...featureData, ...featuresWithNoData])
+    let nextIter: RenderFeature[] = []
+    const externalLabels: gg[] = []
     var retVal = featureData.map(function (country) {
         let fontSize = minSize
         let value = choroplethData.get(country.id)?.value
@@ -53,6 +65,7 @@ export function generateAnnotations(
             )
         )
         const centerpoint = new PointVector(p1, p2)
+        const pole = [p1,p2]
         if (country.geo.geometry.type === "Polygon") {
             let regionPath = country.path.slice(1, -1).split("L")
             regionPoints = regionPath.map((temp) => [
@@ -106,13 +119,49 @@ export function generateAnnotations(
                     ),
                     value: value,
                     size: fontSize / viewportScale,
+                    type: "internal",
+                    pole: pole
+                }
+            }
+        }
+        nextIter.push(country)
+        let h = null
+        if (value)
+            textWidth = pixelWidth(value.toString(), {
+                size: 10 / viewportScale,
+                font: "arial",
+            })
+        if (textWidth) {
+            for (let t = 1; t <= 8; t++) {
+                h = externalCheck(
+                    [p1, p2],
+                    just,
+                    t,
+                    textWidth,
+                    10 / viewportScale,
+                    externalLabels,
+                    country.id
+                )
+                if (h.length == 2)
+                {
+                    externalLabels.push({position: h,width: textWidth, height: 10/viewportScale})
+                    return {
+                        id: country.id,
+                        position: new PointVector(h[0], h[1]),
+                        value: value,
+                        size: 10 / viewportScale,
+                        type: "external",
+                        pole: pole
+                    }
                 }
             }
         }
         return {
             id: country.id,
-            position: new PointVector(labelPos[0], labelPos[1]),
+            position: new PointVector(p1, p2),
             size: minSize / viewportScale,
+            type: "external",
+            pole: pole
         }
     })
     return retVal
@@ -134,6 +183,138 @@ function insideCheck(point: number[], vs: Position[]): boolean {
     }
 
     return inside
+}
+
+function yessir(data: RenderFeature[]): Position[][] {
+    let allPoints: Position[][] = []
+    data.map(function (country) {
+        if (country.geo.geometry.type === "Polygon") {
+            let regionPath = country.path.slice(1, -1).split("L")
+            allPoints.push(
+                regionPath.map((temp) => [
+                    Number(temp.substring(0, temp.indexOf(","))),
+                    Number(temp.substring(temp.indexOf(",") + 1)),
+                ])
+            )
+        } else {
+            let countryPaths = country.path.slice(1, -1).split("ZM")
+            for (const region of countryPaths) {
+                let regionPath = region.split("L")
+                allPoints.push(
+                    regionPath.map((temp) => [
+                        Number(temp.substring(0, temp.indexOf(","))),
+                        Number(temp.substring(temp.indexOf(",") + 1)),
+                    ])
+                )
+            }
+        }
+    })
+    return allPoints
+}
+
+function externalCheck(
+    point: number[],
+    allPoints: Position[][],
+    type: number,
+    textWidth: number,
+    fontSize: number,
+    externalLabels: gg[],
+    id: string
+): number[] {
+    let k1 = [point[0], point[1]]
+    let i = 0
+    let g1 = false
+    let shoulder: Position[] = []
+    while (true) {
+        let tt = true
+        if (i > 25) break
+        if (i == 0) {
+            for (const x of allPoints) {
+                if (insideCheck(k1, x)) {
+                    shoulder = x
+                    break
+                }
+            }
+        } else if (!insideCheck(k1, shoulder)) {
+            for (const x of allPoints) {
+                if (insideCheck(k1, x)) {
+                    tt = false
+                    break
+                }
+            }
+            if (tt == true) {
+                g1 = true
+                break
+            } else {
+                break
+            }
+        }
+        if (type == 1) k1[0] = k1[0] + 1
+        else if (type == 2) k1[0] = k1[0] - 1
+        else if (type == 3) {
+            k1[0] = k1[0] + 0.707
+            k1[1] = k1[1] - 0.707
+        } else if (type == 4) {
+            k1[0] = k1[0] + 0.707
+            k1[1] = k1[1] + 0.707
+        } else if (type == 5) {
+            k1[0] = k1[0] - 0.707
+            k1[1] = k1[1] - 0.707
+        } else if (type == 6) {
+            k1[0] = k1[0] - 0.707
+            k1[1] = k1[1] + 0.707
+        }
+        else if (type == 7) {
+            k1[1] = k1[1] + 1
+        }
+        else if (type == 8) {
+            k1[1] = k1[1] - 1
+        }
+        i++
+    }
+    if (g1 == true) {
+        let fin = true
+        if(type == 8) {
+            k1[0] = k1[0] - textWidth/2
+            k1[1] = k1[1] - fontSize
+        }
+        else if(type == 7)
+        {
+            k1[0] = k1[0] - textWidth/2
+        }
+        if (type == 2 || type == 5 || type == 6) k1[0] = k1[0] - textWidth - 2
+        else k1[0] = k1[0] + 10
+        for (const x of allPoints) {
+            if (
+                insideCheck(k1, x) ||
+                insideCheck([k1[0] + textWidth, k1[1]], x) ||
+                insideCheck([k1[0] + textWidth, k1[1] - fontSize], x) ||
+                insideCheck([k1[0], k1[1] - fontSize], x)
+            ) {
+                fin = false
+                break
+            }
+        }
+        if (fin == true) {
+            for(const y of externalLabels)
+            {
+                if(!(
+                    k1[0] + textWidth < y.position[0] ||
+                    y.position[0] + y.width < k1[0] ||
+                    k1[1] + fontSize < y.position[1] ||
+                    y.position[1] + y.height < k1[1]
+                  ))
+                  {
+                  fin = false
+                  break
+                  }
+            }
+        }
+        if(fin==true)
+        return [k1[0], k1[1]]
+    }
+
+    return []
 }
 
 function rectCheck(
