@@ -874,7 +874,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             featuresWithNoData,
             choroplethData,
             viewportScale,
-            this.props.projection,
+            this.props.projection
         )
 
         return (
@@ -1014,25 +1014,39 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                         const textFill = isDarkColor(fill) ? "white" : "black"
                         return (
                             <>
-                            <text
-                                key={label.id}
-                                x={label.position.x}
-                                y={label.position.y}
-                                fontSize={label.size}
-                                fill={label.type=="internal"?textFill:"black"}
-                                fontWeight={annotationWeight}
-                            >
-                                {label.value}
-                            </text>
-                            {label.type == "external" && label.value &&
-                            <circle
-                                    cx={label.pole[0]}
-                                    cy={label.pole[1]}
-                                    r={2/viewportScale}
-                                    fill="grey"
-                                    style={{ pointerEvents: "none" }}
-                                />
-                            }
+                                <text
+                                    key={label.id}
+                                    x={label.position.x}
+                                    y={label.position.y}
+                                    fontSize={label.size}
+                                    fill={
+                                        label.type == "internal"
+                                            ? textFill
+                                            : "black"
+                                    }
+                                    fontWeight={label.type == "internal"?annotationWeight:600}
+                                >
+                                    {label.value}
+                                </text>
+                                {label.type == "external" && label.value && label.markerEnd && (
+                                    <>
+                                        <line
+                                            x1={label.pole[0]}
+                                            y1={label.pole[1]}
+                                            x2={label.markerEnd[0]}
+                                            y2={label.markerEnd[1]}
+                                            stroke="grey"
+                                            strokeWidth={1 / viewportScale}
+                                        />
+                                        <circle
+                                            cx={label.pole[0]}
+                                            cy={label.pole[1]}
+                                            r={2 / viewportScale}
+                                            fill="black"
+                                            style={{ pointerEvents: "none" }}
+                                        />
+                                    </>
+                                )}
                             </>
                         )
                     })}

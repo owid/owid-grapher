@@ -11,6 +11,17 @@ import polylabel from "polylabel"
 import { Position } from "geojson"
 import { WorldRegionToProjection } from "./WorldRegionsToProjection.js"
 
+enum externalPositions {
+    right = "right",
+    left = "left",
+    topRight = "topRight",
+    bottomRight = "bottomRight",
+    topLeft = "topLeft",
+    bottomLeft = "bottomLeft",
+    bottom = "bottom",
+    top = "top",
+}
+
 interface internalLabel {
     id: string
     position: PointVector
@@ -18,10 +29,11 @@ interface internalLabel {
     size: number
     type: string
     pole: Position
+    markerEnd?: Position
 }
 interface gg {
-    position: number[],
-    width: number,
+    position: number[]
+    width: number
     height: number
 }
 
@@ -65,7 +77,7 @@ export function generateAnnotations(
             )
         )
         const centerpoint = new PointVector(p1, p2)
-        const pole = [p1,p2]
+        const pole = [p1, p2]
         if (country.geo.geometry.type === "Polygon") {
             let regionPath = country.path.slice(1, -1).split("L")
             regionPoints = regionPath.map((temp) => [
@@ -85,13 +97,25 @@ export function generateAnnotations(
             }
         }
         if (p1 && p2 && textWidth) {
+            let t1 = [
+                centerpoint.x - textWidth / 2,
+                centerpoint.y + fontSize / viewportScale / 2,
+            ]
+            let t2 = [
+                centerpoint.x - textWidth / 2,
+                centerpoint.y - fontSize / viewportScale / 2,
+            ]
+            let t3 = [
+                centerpoint.x + textWidth / 2,
+                centerpoint.y - fontSize / viewportScale / 2,
+            ]
+            let t4 = [
+                centerpoint.x + textWidth / 2,
+                centerpoint.y + fontSize / viewportScale / 2,
+            ]
             if (
-                rectCheck(
-                    centerpoint,
-                    fontSize / viewportScale,
-                    textWidth,
-                    regionPoints
-                )
+                !rectIntersection(t1, t2, t3, t4, regionPoints) &&
+                insideCheck(t1, regionPoints)
             ) {
                 while (fontSize < maxSize) {
                     if (value) {
@@ -100,13 +124,25 @@ export function generateAnnotations(
                             font: "arial",
                         })
                     }
+                    let n1 = [
+                        centerpoint.x - textWidth / 2,
+                        centerpoint.y + (fontSize + 1) / viewportScale / 2,
+                    ]
+                    let n2 = [
+                        centerpoint.x - textWidth / 2,
+                        centerpoint.y - (fontSize + 1) / viewportScale / 2,
+                    ]
+                    let n3 = [
+                        centerpoint.x + textWidth / 2,
+                        centerpoint.y - (fontSize + 1) / viewportScale / 2,
+                    ]
+                    let n4 = [
+                        centerpoint.x + textWidth / 2,
+                        centerpoint.y + (fontSize + 1) / viewportScale / 2,
+                    ]
                     if (
-                        rectCheck(
-                            centerpoint,
-                            (fontSize + 1) / viewportScale,
-                            textWidth,
-                            regionPoints
-                        )
+                        !rectIntersection(n1, n2, n3, n4, regionPoints) &&
+                        insideCheck(t1, regionPoints)
                     )
                         fontSize++
                     else break
@@ -120,38 +156,43 @@ export function generateAnnotations(
                     value: value,
                     size: fontSize / viewportScale,
                     type: "internal",
-                    pole: pole
+                    pole: pole,
                 }
             }
         }
         nextIter.push(country)
         let h = null
+        if (typeof value === "number" && value>=10) value = Math.round(value)
         if (value)
             textWidth = pixelWidth(value.toString(), {
-                size: 10 / viewportScale,
+                size: 11 / viewportScale,
                 font: "arial",
             })
         if (textWidth) {
-            for (let t = 1; t <= 8; t++) {
+            for (const pos of Object.values(externalPositions)) {
                 h = externalCheck(
                     [p1, p2],
                     just,
-                    t,
+                    pos,
                     textWidth,
-                    10 / viewportScale,
+                    11 / viewportScale,
                     externalLabels,
                     country.id
                 )
-                if (h.length == 2)
-                {
-                    externalLabels.push({position: h,width: textWidth, height: 10/viewportScale})
+                if (h.length == 2) {
+                    externalLabels.push({
+                        position: h,
+                        width: textWidth,
+                        height: 11 / viewportScale,
+                    })
                     return {
                         id: country.id,
                         position: new PointVector(h[0], h[1]),
                         value: value,
-                        size: 10 / viewportScale,
+                        size: 11 / viewportScale,
                         type: "external",
-                        pole: pole
+                        pole: pole,
+                        markerEnd: markerEndPosition(pos, h, textWidth, 11/viewportScale),
                     }
                 }
             }
@@ -161,7 +202,7 @@ export function generateAnnotations(
             position: new PointVector(p1, p2),
             size: minSize / viewportScale,
             type: "external",
-            pole: pole
+            pole: pole,
         }
     })
     return retVal
@@ -215,7 +256,7 @@ function yessir(data: RenderFeature[]): Position[][] {
 function externalCheck(
     point: number[],
     allPoints: Position[][],
-    type: number,
+    type: externalPositions,
     textWidth: number,
     fontSize: number,
     externalLabels: gg[],
@@ -249,100 +290,74 @@ function externalCheck(
                 break
             }
         }
-        if (type == 1) k1[0] = k1[0] + 1
-        else if (type == 2) k1[0] = k1[0] - 1
-        else if (type == 3) {
-            k1[0] = k1[0] + 0.707
-            k1[1] = k1[1] - 0.707
-        } else if (type == 4) {
-            k1[0] = k1[0] + 0.707
-            k1[1] = k1[1] + 0.707
-        } else if (type == 5) {
-            k1[0] = k1[0] - 0.707
-            k1[1] = k1[1] - 0.707
-        } else if (type == 6) {
-            k1[0] = k1[0] - 0.707
-            k1[1] = k1[1] + 0.707
-        }
-        else if (type == 7) {
-            k1[1] = k1[1] + 1
-        }
-        else if (type == 8) {
-            k1[1] = k1[1] - 1
-        }
+        k1 = externalIncrement(type, k1)
         i++
     }
     if (g1 == true) {
-        let fin = true
-        if(type == 8) {
-            k1[0] = k1[0] - textWidth/2
-            k1[1] = k1[1] - fontSize
+        if (type == externalPositions.top) {
+            k1[0] = k1[0] - textWidth / 2
+        } else if (type == externalPositions.bottom) {
+            k1[0] = k1[0] - textWidth / 2
+            k1[1] = k1[1] + fontSize
+        } else if (type == externalPositions.left) {
+            k1[0] = k1[0] - textWidth
+            k1[1] = k1[1] + fontSize/2
+        } else if (type == externalPositions.right) {
+            k1[1] = k1[1] + fontSize/2
         }
-        else if(type == 7)
+        else if (
+            type == externalPositions.bottomLeft ||
+            type == externalPositions.topLeft
+        )
         {
-            k1[0] = k1[0] - textWidth/2
+            k1[0] = k1[0] - textWidth
+            k1[1] = k1[1] + fontSize/2
         }
-        if (type == 2 || type == 5 || type == 6) k1[0] = k1[0] - textWidth - 2
-        else k1[0] = k1[0] + 10
-        for (const x of allPoints) {
-            if (
-                insideCheck(k1, x) ||
-                insideCheck([k1[0] + textWidth, k1[1]], x) ||
-                insideCheck([k1[0] + textWidth, k1[1] - fontSize], x) ||
-                insideCheck([k1[0], k1[1] - fontSize], x)
-            ) {
-                fin = false
+        let u = 1
+        let fin = false
+        while (u <= 8) {
+            let more = true
+            externalIncrement(type, k1)
+            for (const x of allPoints) {
+                if (
+                    rectIntersection(
+                        k1,
+                        [k1[0] + textWidth, k1[1]],
+                        [k1[0] + textWidth, k1[1] - fontSize],
+                        [k1[0], k1[1] - fontSize],
+                        x
+                    ) ||
+                    insideCheck(k1, x)
+                ) {
+                    more = false
+                    break
+                }
+            }
+            if (more == true) {
+                fin = true
                 break
             }
+            u++
         }
         if (fin == true) {
-            for(const y of externalLabels)
-            {
-                if(!(
-                    k1[0] + textWidth < y.position[0] ||
-                    y.position[0] + y.width < k1[0] ||
-                    k1[1] + fontSize < y.position[1] ||
-                    y.position[1] + y.height < k1[1]
-                  ))
-                  {
-                  fin = false
-                  break
-                  }
+            for (const y of externalLabels) {
+                if (
+                    !(
+                        k1[0] + textWidth < y.position[0] ||
+                        y.position[0] + y.width < k1[0] ||
+                        k1[1] + fontSize < y.position[1] ||
+                        y.position[1] + y.height < k1[1]
+                    )
+                ) {
+                    fin = false
+                    break
+                }
             }
         }
-        if(fin==true)
-        return [k1[0], k1[1]]
+        if (fin == true) return [k1[0], k1[1]]
     }
 
     return []
-}
-
-function rectCheck(
-    center: PointVector,
-    fontSize: number,
-    textWidth: number,
-    regionPoints: Position[]
-): boolean {
-    let t1 = [center.x - textWidth / 2, center.y]
-    let t2 = [center.x - textWidth / 2, center.y + fontSize / 2]
-    let t3 = [center.x - textWidth / 2, center.y - fontSize / 2]
-    let t4 = [center.x, center.y - fontSize / 2]
-    let t5 = [center.x, center.y - fontSize / 2]
-    let t6 = [center.x + textWidth / 2, center.y]
-    let t7 = [center.x + textWidth / 2, center.y + fontSize / 2]
-    let t8 = [center.x + textWidth / 2, center.y - fontSize / 2]
-    if (
-        insideCheck(t1, regionPoints) &&
-        insideCheck(t2, regionPoints) &&
-        insideCheck(t3, regionPoints) &&
-        insideCheck(t4, regionPoints) &&
-        insideCheck(t5, regionPoints) &&
-        insideCheck(t6, regionPoints) &&
-        insideCheck(t7, regionPoints) &&
-        insideCheck(t8, regionPoints)
-    )
-        return true
-    return false
 }
 
 function getRatio(coordinates: any): number {
@@ -387,4 +402,110 @@ function polylabelStretched(rings: Position[][], ratio: number) {
     result[0] *= ratio // stretch the result back
     result.distance *= ratio
     return result
+}
+
+function rectIntersection(
+    p0: Position,
+    p1: Position,
+    p2: Position,
+    p3: Position,
+    regionPoints: Position[]
+): boolean {
+    for (var i = 0; i < regionPoints.length - 1; i++) {
+        let v1 = regionPoints[i]
+        let v2 = regionPoints[i + 1]
+        if (
+            lineIntersection(p0, p1, v1, v2) ||
+            lineIntersection(p1, p2, v1, v2) ||
+            lineIntersection(p2, p3, v1, v2) ||
+            lineIntersection(p3, p0, v1, v2)
+        )
+            return true
+    }
+    return false
+}
+
+function lineIntersection(
+    p0: Position,
+    p1: Position,
+    p2: Position,
+    p3: Position
+): boolean {
+    var s, s1_x, s1_y, s2_x, s2_y, t
+
+    s1_x = p1[0] - p0[0]
+    s1_y = p1[1] - p0[1]
+    s2_x = p3[0] - p2[0]
+    s2_y = p3[1] - p2[1]
+    s =
+        (-s1_y * (p0[0] - p2[0]) + s1_x * (p0[1] - p2[1])) /
+        (-s2_x * s1_y + s1_x * s2_y)
+    t =
+        (s2_x * (p0[1] - p2[1]) - s2_y * (p0[0] - p2[0])) /
+        (-s2_x * s1_y + s1_x * s2_y)
+    if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+        return true
+    }
+    return false
+}
+
+function markerEndPosition(type: externalPositions, point: Position, textWidth: number, fontSize: number): Position{
+    switch (type) {
+        case externalPositions.right:
+            return point
+        case externalPositions.left:
+            return [
+                point[0] + textWidth,
+                point[1],
+            ]
+        case externalPositions.topRight:
+            return point
+        case externalPositions.bottomRight:
+            return point
+        case externalPositions.topLeft:
+            return [
+                point[0] + textWidth,
+                point[1],
+            ]
+        case externalPositions.bottomLeft:
+            return [
+                point[0] + textWidth,
+                point[1] - fontSize,
+            ]
+        case externalPositions.bottom:
+            return [
+                point[0] + textWidth / 2,
+                point[1] - fontSize,
+            ]
+        case externalPositions.top:
+            return [
+                point[0] + textWidth / 2,
+                point[1],
+            ]
+        default:
+            return point
+    }
+}
+
+function externalIncrement(type: externalPositions, point: Position): Position{
+    if (type == externalPositions.right) point[0] = point[0] + 1
+        else if (type == externalPositions.left) point[0] = point[0] - 1
+        else if (type == externalPositions.topRight) {
+            point[0] = point[0] + 0.707
+            point[1] = point[1] - 0.707
+        } else if (type == externalPositions.bottomRight) {
+            point[0] = point[0] + 0.707
+            point[1] = point[1] + 0.707
+        } else if (type == externalPositions.topLeft) {
+            point[0] = point[0] - 0.707
+            point[1] = point[1] - 0.707
+        } else if (type == externalPositions.bottomLeft) {
+            point[0] = point[0] - 0.707
+            point[1] = point[1] + 0.707
+        } else if (type == externalPositions.bottom) {
+            point[1] = point[1] + 1
+        } else if (type == externalPositions.top) {
+            point[1] = point[1] - 1
+        }
+    return point
 }
