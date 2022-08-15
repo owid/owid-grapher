@@ -21,5 +21,7 @@ fillWordpressDb() {
         echo "live_wordpress.sql.gz missing in ${DATA_FOLDER}. Refresh aborted."
         return 1;
     fi
+
+    source "$( dirname -- "${BASH_SOURCE[0]}" )/create-wordpress-admin-user.sh"
 }
 fillWordpressDb
