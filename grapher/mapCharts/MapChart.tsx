@@ -17,6 +17,7 @@ import {
     difference,
     exposeInstanceOnWindow,
 } from "../../clientUtils/Util.js"
+import { ComponentWithReactiveProps } from "../../clientUtils/ComponentWithReactiveProps.js"
 import { isPresent } from "../../clientUtils/isPresent.js"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections.js"
 import { select } from "d3-selection"
@@ -645,7 +646,7 @@ export class MapChart
 declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
 @observer
-class ChoroplethMap extends React.Component<ChoroplethMapProps> {
+class ChoroplethMap extends ComponentWithReactiveProps<ChoroplethMapProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed private get uid(): number {
@@ -653,30 +654,30 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     @computed.struct private get bounds(): Bounds {
-        return this.props.bounds
+        return this.reactiveProps.bounds
     }
 
     @computed.struct private get defaultFill(): string {
-        return this.props.defaultFill
+        return this.reactiveProps.defaultFill
     }
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
-        return Bounds.merge(geoBoundsFor(this.props.projection))
+        return Bounds.merge(geoBoundsFor(this.reactiveProps.projection))
     }
 
     @computed private get focusBracket(): ColorScaleBin | undefined {
-        return this.props.focusBracket
+        return this.reactiveProps.focusBracket
     }
 
     @computed private get focusEntity(): MapEntity | undefined {
-        return this.props.focusEntity
+        return this.reactiveProps.focusEntity
     }
 
     // Check if a geo entity is currently focused, either directly or via the bracket
     private hasFocus(id: string): boolean {
         const { focusBracket, focusEntity } = this
-        const { choroplethData } = this.props
+        const { choroplethData } = this.reactiveProps
         if (focusEntity && focusEntity.id === id) return true
         else if (!focusBracket) return false
 
@@ -686,7 +687,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     private isSelected(id: string): boolean | undefined {
-        const { choroplethData } = this.props
+        const { choroplethData } = this.reactiveProps
         return choroplethData.get(id)!.isSelected
     }
 
@@ -707,7 +708,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
         }
 
-        return viewports[this.props.projection]
+        return viewports[this.reactiveProps.projection]
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
@@ -748,14 +749,14 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection(): RenderFeature[] {
         return difference(
-            renderFeaturesFor(this.props.projection),
+            renderFeaturesFor(this.reactiveProps.projection),
             this.featuresInProjection
         )
     }
 
     @computed private get featuresInProjection(): RenderFeature[] {
-        const { projection } = this.props
-        const features = renderFeaturesFor(this.props.projection)
+        const { projection } = this.reactiveProps
+        const features = renderFeaturesFor(this.reactiveProps.projection)
         if (projection === MapProjectionName.World) return features
 
         return features.filter(
@@ -772,7 +773,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     @computed private get featuresWithData(): RenderFeature[] {
-        const { choroplethData } = this.props
+        const { choroplethData } = this.reactiveProps
         return this.featuresInProjection.filter((feature) =>
             choroplethData.has(feature.id)
         )
@@ -806,11 +807,11 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             if (feature && feature.distance < 20) {
                 if (feature.feature !== this.hoverNearbyFeature) {
                     this.hoverNearbyFeature = feature.feature
-                    this.props.onHover(feature.feature.geo, ev)
+                    this.reactiveProps.onHover(feature.feature.geo, ev)
                 }
             } else {
                 this.hoverNearbyFeature = undefined
-                this.props.onHoverStop()
+                this.reactiveProps.onHoverStop()
             }
         } else console.error("subunits was falsy")
     }
@@ -820,12 +821,12 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         ev: SVGMouseEvent
     ): void {
         this.hoverEnterFeature = feature
-        this.props.onHover(feature.geo, ev)
+        this.reactiveProps.onHover(feature.geo, ev)
     }
 
     @action.bound private onMouseLeave(): void {
         this.hoverEnterFeature = undefined
-        this.props.onHoverStop()
+        this.reactiveProps.onHoverStop()
     }
 
     @computed private get hoverFeature(): RenderFeature | undefined {
@@ -834,7 +835,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     @action.bound private onClick(ev: React.MouseEvent<SVGGElement>): void {
         if (this.hoverFeature !== undefined)
-            this.props.onClick(this.hoverFeature.geo, ev)
+            this.reactiveProps.onClick(this.hoverFeature.geo, ev)
     }
 
     // If true selected countries will have an outline
@@ -858,7 +859,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const selectedStrokeWidth = 1
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
-        const { choroplethData } = this.props
+        const { choroplethData } = this.reactiveProps
 
         const clipPath = makeClipPath(uid, bounds)
 
@@ -930,7 +931,10 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                         fill={defaultFill}
                                         fillOpacity={fillOpacity}
                                         onClick={(ev: SVGMouseEvent): void =>
-                                            this.props.onClick(feature.geo, ev)
+                                            this.reactiveProps.onClick(
+                                                feature.geo,
+                                                ev
+                                            )
                                         }
                                         onMouseEnter={(ev): void =>
                                             this.onMouseEnter(feature, ev)
@@ -982,7 +986,10 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                     fill={fill}
                                     fillOpacity={fillOpacity}
                                     onClick={(ev: SVGMouseEvent): void =>
-                                        this.props.onClick(feature.geo, ev)
+                                        this.reactiveProps.onClick(
+                                            feature.geo,
+                                            ev
+                                        )
                                     }
                                     onMouseEnter={(ev): void =>
                                         this.onMouseEnter(feature, ev)
