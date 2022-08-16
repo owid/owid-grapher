@@ -49,6 +49,7 @@ import {
     renderAdditionalInformation,
 } from "../site/blocks/AdditionalInformation.js"
 import { renderHelp } from "../site/blocks/Help.js"
+import { renderCitationSnippets } from "../site/blocks/CitationSnippet.js"
 import { renderExpandableParagraphs } from "../site/blocks/ExpandableParagraph.js"
 import {
     formatUrls,
@@ -317,6 +318,7 @@ export const formatWordpressPost = async (
     //   one, hence the discrepancy.
     renderAdditionalInformation(cheerioEl)
     renderExpandableParagraphs(cheerioEl)
+    renderCitationSnippets(cheerioEl)
     renderHelp(cheerioEl)
     renderAllCharts(cheerioEl, post)
     await renderProminentLinks(cheerioEl, post.id)

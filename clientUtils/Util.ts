@@ -6,6 +6,7 @@ import cloneDeep from "lodash/cloneDeep.js"
 import compact from "lodash/compact.js"
 import countBy from "lodash/countBy.js"
 import debounce from "lodash/debounce.js"
+import delay from "lodash/delay.js"
 import difference from "lodash/difference.js"
 import drop from "lodash/drop.js"
 import extend from "lodash/extend.js"
@@ -69,6 +70,7 @@ export {
     compact,
     countBy,
     debounce,
+    delay,
     difference,
     drop,
     extend,

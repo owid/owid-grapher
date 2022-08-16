@@ -6,6 +6,7 @@ import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder.j
 import { hydrateKeyInsights } from "./KeyInsights.js"
 import { hydrateStickyNav } from "./StickyNav.js"
 import { hydrateExpandableParagraphs } from "./ExpandableParagraph.js"
+import { hydrateCitationSnippets } from "./CitationSnippet.js"
 
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {
@@ -22,4 +23,5 @@ export const runBlocks = () => {
     hydrateKeyInsights()
     hydrateExpandableParagraphs()
     hydrateStickyNav()
+    hydrateCitationSnippets()
 }

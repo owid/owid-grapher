@@ -1,0 +1,55 @@
+.wp-citation-snippet {
+    position: relative;
+    margin-bottom: 32px;
+
+    pre {
+        background-color: $gray-10;
+        padding: 16px 24px;
+        padding-right: calc(24px + 85px);
+        margin: 0;
+        border: 1px solid $blue-20;
+        color: $blue-60;
+    }
+
+    code {
+        margin-right: 85px;
+    }
+
+    button.citation-copy-button {
+        background: none;
+        border: none;
+        position: absolute;
+        right: 32px;
+        top: 24px;
+        color: $blue-60;
+        cursor: pointer;
+
+        &:hover {
+            color: $blue-90;
+        }
+
+        &:active {
+            color: $blue-100;
+        }
+    }
+
+    button.citation-copy-button--has-copied::after {
+        content: "Copied!";
+        position: absolute;
+        left: 24px;
+        top: -8px;
+        font-size: 12px;
+        color: $blue-100;
+        animation: fadeOut 500ms;
+        opacity: 0;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
