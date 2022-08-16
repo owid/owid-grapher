@@ -355,6 +355,7 @@ export class MapChart
                     isSelected: selectionArray.selectedSet.has(entityName),
                     color,
                     highlightFillColor: color,
+                    shortValue: mapColumn.formatValueShortWithAbbreviations(value)
                 }
             })
             .filter(isPresent)
@@ -1024,7 +1025,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                             ? textFill
                                             : "black"
                                     }
-                                    fontWeight={label.type == "internal"?annotationWeight:600}
+                                    fontWeight={label.type == "internal"?annotationWeight:500}
                                 >
                                     {label.value}
                                 </text>

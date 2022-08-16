@@ -31,11 +31,6 @@ interface internalLabel {
     pole: Position
     markerEnd?: Position
 }
-interface gg {
-    position: number[]
-    width: number
-    height: number
-}
 
 export function generateAnnotations(
     featureData: RenderFeature[],
@@ -49,13 +44,12 @@ export function generateAnnotations(
     const projectionGeo = MapProjectionGeos[projection]
     const just = yessir([...featureData, ...featuresWithNoData])
     let nextIter: RenderFeature[] = []
-    const externalLabels: gg[] = []
+    const externalLabels: Position[][] = []
     var retVal = featureData.map(function (country) {
         let fontSize = minSize
-        let value = choroplethData.get(country.id)?.value
+        let value = choroplethData.get(country.id)?.shortValue
         let textWidth
         let regionPoints: Position[] = []
-        if (typeof value === "number") value = Math.round(value * 10) / 10
         if (value) {
             textWidth = pixelWidth(value.toString(), {
                 size: fontSize / viewportScale,
@@ -162,7 +156,6 @@ export function generateAnnotations(
         }
         nextIter.push(country)
         let h = null
-        if (typeof value === "number" && value>=10) value = Math.round(value)
         if (value)
             textWidth = pixelWidth(value.toString(), {
                 size: 11 / viewportScale,
@@ -180,11 +173,59 @@ export function generateAnnotations(
                     country.id
                 )
                 if (h.length == 2) {
-                    externalLabels.push({
-                        position: h,
-                        width: textWidth,
-                        height: 11 / viewportScale,
-                    })
+                    let markerEnding = markerEndPosition(
+                        pos,
+                        h,
+                        textWidth,
+                        11 / viewportScale
+                    )
+                    externalLabels.push([
+                        [h[0], h[1]],
+                        [h[0] + textWidth, h[1]],
+                        [h[0] + textWidth, h[1] - 11 / viewportScale],
+                        [h[0], h[1] - 11 / viewportScale],
+                    ])
+                    //TODO: not working. needs fixing
+                    if (
+                        pos == externalPositions.left ||
+                        pos == externalPositions.right
+                    )
+                        externalLabels.push([
+                            [pole[0], pole[1] - 1],
+                            [pole[0], pole[1] + 1],
+                            [markerEnding[0], markerEnding[1] + 1],
+                            [markerEnding[0], markerEnding[1] - 1],
+                        ])
+                    else if (
+                        pos == externalPositions.top ||
+                        pos == externalPositions.bottom
+                    )
+                        externalLabels.push([
+                            [pole[0] - 1, pole[1]],
+                            [pole[0] + 1, pole[1]],
+                            [markerEnding[0] + 1, markerEnding[1]],
+                            [markerEnding[0] - 1, markerEnding[1]],
+                        ])
+                    else if (
+                        pos == externalPositions.bottomLeft ||
+                        pos == externalPositions.topRight
+                    )
+                        externalLabels.push([
+                            [pole[0] - 0.707, pole[1] - 0.707],
+                            [pole[0] + 0.707, pole[1] + 0.707],
+                            [markerEnding[0] + 0.707, markerEnding[1] + 0.707],
+                            [markerEnding[0] - 0.707, markerEnding[1] - 0.707],
+                        ])
+                    else if (
+                        pos == externalPositions.topLeft ||
+                        pos == externalPositions.bottomRight
+                    )
+                        externalLabels.push([
+                            [pole[0] - 0.707, pole[1] + 0.707],
+                            [pole[0] + 0.707, pole[1] - 0.707],
+                            [markerEnding[0] + 0.707, markerEnding[1] - 0.707],
+                            [markerEnding[0] - 0.707, markerEnding[1] + 0.707],
+                        ])
                     return {
                         id: country.id,
                         position: new PointVector(h[0], h[1]),
@@ -192,7 +233,7 @@ export function generateAnnotations(
                         size: 11 / viewportScale,
                         type: "external",
                         pole: pole,
-                        markerEnd: markerEndPosition(pos, h, textWidth, 11/viewportScale),
+                        markerEnd: markerEnding,
                     }
                 }
             }
@@ -259,7 +300,7 @@ function externalCheck(
     type: externalPositions,
     textWidth: number,
     fontSize: number,
-    externalLabels: gg[],
+    externalLabels: Position[][],
     id: string
 ): number[] {
     let k1 = [point[0], point[1]]
@@ -301,17 +342,15 @@ function externalCheck(
             k1[1] = k1[1] + fontSize
         } else if (type == externalPositions.left) {
             k1[0] = k1[0] - textWidth
-            k1[1] = k1[1] + fontSize/2
+            k1[1] = k1[1] + fontSize / 2
         } else if (type == externalPositions.right) {
-            k1[1] = k1[1] + fontSize/2
-        }
-        else if (
+            k1[1] = k1[1] + fontSize / 2
+        } else if (
             type == externalPositions.bottomLeft ||
             type == externalPositions.topLeft
-        )
-        {
+        ) {
             k1[0] = k1[0] - textWidth
-            k1[1] = k1[1] + fontSize/2
+            k1[1] = k1[1] + fontSize / 2
         }
         let u = 1
         let fin = false
@@ -342,11 +381,12 @@ function externalCheck(
         if (fin == true) {
             for (const y of externalLabels) {
                 if (
-                    !(
-                        k1[0] + textWidth < y.position[0] ||
-                        y.position[0] + y.width < k1[0] ||
-                        k1[1] + fontSize < y.position[1] ||
-                        y.position[1] + y.height < k1[1]
+                    rectIntersection(
+                        k1,
+                        [k1[0] + textWidth, k1[1]],
+                        [k1[0] + textWidth, k1[1] - fontSize],
+                        [k1[0], k1[1] - fontSize],
+                        y
                     )
                 ) {
                     fin = false
@@ -449,63 +489,53 @@ function lineIntersection(
     return false
 }
 
-function markerEndPosition(type: externalPositions, point: Position, textWidth: number, fontSize: number): Position{
+function markerEndPosition(
+    type: externalPositions,
+    point: Position,
+    textWidth: number,
+    fontSize: number
+): Position {
     switch (type) {
         case externalPositions.right:
             return point
         case externalPositions.left:
-            return [
-                point[0] + textWidth,
-                point[1],
-            ]
+            return [point[0] + textWidth, point[1]]
         case externalPositions.topRight:
             return point
         case externalPositions.bottomRight:
             return point
         case externalPositions.topLeft:
-            return [
-                point[0] + textWidth,
-                point[1],
-            ]
+            return [point[0] + textWidth, point[1]]
         case externalPositions.bottomLeft:
-            return [
-                point[0] + textWidth,
-                point[1] - fontSize,
-            ]
+            return [point[0] + textWidth, point[1] - fontSize]
         case externalPositions.bottom:
-            return [
-                point[0] + textWidth / 2,
-                point[1] - fontSize,
-            ]
+            return [point[0] + textWidth / 2, point[1] - fontSize]
         case externalPositions.top:
-            return [
-                point[0] + textWidth / 2,
-                point[1],
-            ]
+            return [point[0] + textWidth / 2, point[1]]
         default:
             return point
     }
 }
 
-function externalIncrement(type: externalPositions, point: Position): Position{
+function externalIncrement(type: externalPositions, point: Position): Position {
     if (type == externalPositions.right) point[0] = point[0] + 1
-        else if (type == externalPositions.left) point[0] = point[0] - 1
-        else if (type == externalPositions.topRight) {
-            point[0] = point[0] + 0.707
-            point[1] = point[1] - 0.707
-        } else if (type == externalPositions.bottomRight) {
-            point[0] = point[0] + 0.707
-            point[1] = point[1] + 0.707
-        } else if (type == externalPositions.topLeft) {
-            point[0] = point[0] - 0.707
-            point[1] = point[1] - 0.707
-        } else if (type == externalPositions.bottomLeft) {
-            point[0] = point[0] - 0.707
-            point[1] = point[1] + 0.707
-        } else if (type == externalPositions.bottom) {
-            point[1] = point[1] + 1
-        } else if (type == externalPositions.top) {
-            point[1] = point[1] - 1
-        }
+    else if (type == externalPositions.left) point[0] = point[0] - 1
+    else if (type == externalPositions.topRight) {
+        point[0] = point[0] + 0.707
+        point[1] = point[1] - 0.707
+    } else if (type == externalPositions.bottomRight) {
+        point[0] = point[0] + 0.707
+        point[1] = point[1] + 0.707
+    } else if (type == externalPositions.topLeft) {
+        point[0] = point[0] - 0.707
+        point[1] = point[1] - 0.707
+    } else if (type == externalPositions.bottomLeft) {
+        point[0] = point[0] - 0.707
+        point[1] = point[1] + 0.707
+    } else if (type == externalPositions.bottom) {
+        point[1] = point[1] + 1
+    } else if (type == externalPositions.top) {
+        point[1] = point[1] - 1
+    }
     return point
 }

@@ -26,6 +26,7 @@ export interface ChoroplethSeries extends ChartSeries {
     time: number
     isSelected?: boolean
     highlightFillColor: Color
+    shortValue?: number | string
 }
 
 export interface ChoroplethMapProps {
