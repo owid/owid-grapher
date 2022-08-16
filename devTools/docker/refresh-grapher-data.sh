@@ -19,11 +19,21 @@ import_db(){
 fillGrapherDb() {
     echo "Refreshing grapher database"
     $MYSQL -h $DB_ROOT_HOST -uroot -p$DB_ROOT_PASS -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME; GRANT ALL PRIVILEGES ON $GRAPHER_DB_NAME.* TO '$GRAPHER_DB_USER'"
-    
-    echo "Importing live Grapher metadata database (owid_metadata)"
-    import_db $DATA_FOLDER/owid_metadata.sql.gz    
 
-    echo "Importing live Grapher chartdata database (owid_chartdata)"
-    import_db $DATA_FOLDER/owid_chartdata.sql.gz
+    if [ -f "${DATA_FOLDER}/owid_metadata.sql.gz" ]; then
+        echo "Importing live Grapher metadata database (owid_metadata)"
+        import_db $DATA_FOLDER/owid_metadata.sql.gz
+    else
+        echo "owid_metata.sql.gz missing in ${DATA_FOLDER}. Refresh aborted."
+        return 1;
+    fi
+
+    if [ -f "${DATA_FOLDER}/owid_chartdata.sql.gz" ]; then
+        echo "Importing live Grapher chartdata database (owid_chartdata)"
+        import_db $DATA_FOLDER/owid_chartdata.sql.gz
+    else
+        echo "Skipping import of owid_chartdata (owid_chartdata.sql.gz missing in ${DATA_FOLDER})"
+        # This is a legitimate use case, so execution should continue.
+    fi
 }
 fillGrapherDb

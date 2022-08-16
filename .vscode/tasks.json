@@ -50,6 +50,62 @@
             ],
             "dependsOrder": "sequence",
             "problemMatcher": []
+        },
+        {
+            "label": "download wordpress database",
+            "type": "shell",
+            "command": "./devTools/docker/download-wordpress-mysql.sh"
+        },
+        {
+            "label": "download wordpress uploads",
+            "type": "shell",
+            "command": "./devTools/docker/download-wordpress-uploads.sh"
+        },
+        {
+            // This tasks refreshes the wordpress DB as well as wordpress uploads.
+            // Common scenarios:
+            // option 1 (default): download new db dump and refresh local db. Download uploads.
+            // option 2: partial fast refresh (update DB only)
+            // - comment out "download wordpress uploads" below
+            "label": "refresh wordpress",
+            "type": "shell",
+            "command": "docker compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-wordpress-data.sh",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "download wordpress database",
+                "download wordpress uploads"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "download grapher metadata",
+            "type": "shell",
+            "command": "./devTools/docker/download-grapher-metadata-mysql.sh"
+        },
+        {
+            "label": "download grapher chartdata",
+            "type": "shell",
+            "command": "./devTools/docker/download-grapher-chartdata-mysql.sh"
+        },
+        {
+            // This task refreshes the grapher DB based on the db dumps found
+            // in /tmp-downloads/.
+            // Common scenarios:
+            // option 1 (default): download new db dumps and refresh local db
+            // option 2: refresh based on previously downloaded db dumps
+            // - comment out the content of the "dependsOn" array below
+            // option 3: partial fast refresh (drop chartdata, update metadata)
+            // - delete /tmp-downloads/owid_chartdata.sql.gz
+            // - comment out "download grapher chartdata" below
+            "label": "refresh grapher",
+            "type": "shell",
+            "command": "docker compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-grapher-data.sh",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "download grapher metadata",
+                "download grapher chartdata"
+            ],
+            "problemMatcher": []
         }
     ]
 }

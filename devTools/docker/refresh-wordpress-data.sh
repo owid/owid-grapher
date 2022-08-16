@@ -13,8 +13,15 @@ set -o nounset
 MYSQL="mysql --default-character-set=utf8mb4"
 
 fillWordpressDb() {
-    echo "Importing Wordress database (live_wordpress)"
-    $MYSQL -h$DB_ROOT_HOST -uroot -p$DB_ROOT_PASS --port 3306 -e "DROP DATABASE IF EXISTS $WORDPRESS_DB_NAME;CREATE DATABASE $WORDPRESS_DB_NAME; GRANT ALL PRIVILEGES ON $WORDPRESS_DB_NAME.* TO '$WORDPRESS_DB_USER'"
-    cat $DATA_FOLDER/live_wordpress.sql.gz  | gunzip | $MYSQL -h$DB_ROOT_HOST --port=3306 -u$WORDPRESS_DB_USER -p$WORDPRESS_DB_PASS $WORDPRESS_DB_NAME
+    if [ -f "${DATA_FOLDER}/live_wordpress.sql.gz" ]; then
+        echo "Importing Wordress database (live_wordpress)"
+        $MYSQL -h$DB_ROOT_HOST -uroot -p$DB_ROOT_PASS --port 3306 -e "DROP DATABASE IF EXISTS $WORDPRESS_DB_NAME;CREATE DATABASE $WORDPRESS_DB_NAME; GRANT ALL PRIVILEGES ON $WORDPRESS_DB_NAME.* TO '$WORDPRESS_DB_USER'"
+        cat $DATA_FOLDER/live_wordpress.sql.gz  | gunzip | $MYSQL -h$DB_ROOT_HOST --port=3306 -u$WORDPRESS_DB_USER -p$WORDPRESS_DB_PASS $WORDPRESS_DB_NAME
+    else
+        echo "live_wordpress.sql.gz missing in ${DATA_FOLDER}. Refresh aborted."
+        return 1;
+    fi
+
+    source "$( dirname -- "${BASH_SOURCE[0]}" )/create-wordpress-admin-user.sh"
 }
 fillWordpressDb
