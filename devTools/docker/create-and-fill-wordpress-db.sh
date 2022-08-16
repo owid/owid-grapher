@@ -30,11 +30,11 @@ createAndFillWordpressDb() {
     fi
 
     echo "Creating user '$WORDPRESS_DB_USER'"
-    mysql -uroot -p"${DB_ROOT_PASS}" -h"${DB_ROOT_HOST}" --batch -e "CREATE USER IF NOT EXISTS '$WORDPRESS_DB_USER' IDENTIFIED BY '$WORDPRESS_DB_PASS'; GRANT SELECT ON * . * TO '$WORDPRESS_DB_USER'; FLUSH PRIVILEGES;"
+    mysql -uroot -p"${DB_ROOT_PASS}" -h"${DB_ROOT_HOST}" --batch -e "CREATE USER IF NOT EXISTS '$WORDPRESS_DB_USER' IDENTIFIED BY '$WORDPRESS_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$WORDPRESS_DB_USER'; FLUSH PRIVILEGES;"
 
     WITH_UPLOADS=true
 
-    source "$( dirname -- "${BASH_SOURCE[0]}" )/refresh-wordpress-data.sh"
+    WORDPRESS_DB_HOST="$DB_ROOT_HOST" source "$( dirname -- "${BASH_SOURCE[0]}" )/refresh-wordpress-data.sh"
 
     return 0
 }
