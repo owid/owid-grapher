@@ -27,7 +27,7 @@
     }
 }
 
-.btn-secondary {
+.front-matter .btn-secondary {
     padding: 8px 24px;
     border: 1px solid $accent-vermillion;
     display: inline-block;
@@ -36,18 +36,21 @@
     &:hover {
         border-color: darken($accent-vermillion, 10);
 
-        a {
+        a,
+        a:visited {
             color: darken($accent-vermillion, 10);
             text-decoration: none;
         }
     }
 
-    a {
+    a,
+    a:visited {
         color: $accent-vermillion;
     }
 }
 
-.front-matter .wp-block-button + .related-topics {
+.front-matter .wp-block-button + .related-topics,
+.front-matter .wp-block-buttons + .related-topics {
     margin-top: 48px;
 }
 
@@ -65,6 +68,7 @@
         color: $blue-40;
         font-weight: bold;
         line-height: 1;
+        letter-spacing: 1.6px;
     }
 
     ul {
@@ -76,21 +80,21 @@
         margin-bottom: 16px;
         list-style: none;
         position: relative;
-        text-underline-offset: 4px;
-        color: $blue-90;
+        text-underline-offset: 6px;
 
-        &:hover {
-            text-decoration: underline;
-            cursor: pointer;
-        }
-
-        a:visited {
+        a {
             color: $blue-90;
         }
 
-        &:after {
+        a:visited {
+            color: $blue-60;
+        }
+
+        a:after {
             content: "";
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="rgb(29, 61, 99)" viewBox="0 0 448 512"><path d="M438.6 278.6l-160 160C272.4 444.9 264.2 448 256 448s-16.38-3.125-22.62-9.375c-12.5-12.5-12.5-32.75 0-45.25L338.8 288H32C14.33 288 .0016 273.7 .0016 256S14.33 224 32 224h306.8l-105.4-105.4c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0l160 160C451.1 245.9 451.1 266.1 438.6 278.6z"/></svg>');
+            background-color: $blue-90;
+            mask: url($right-arrow) no-repeat;
+            -webkit-mask: url($right-arrow) no-repeat;
             position: absolute;
             top: 2px;
             width: 9px;
@@ -98,6 +102,10 @@
             background-repeat: no-repeat;
             margin-top: 6px;
             margin-left: 6px;
+        }
+
+        a:visited:after {
+            background-color: $blue-60;
         }
     }
 }
