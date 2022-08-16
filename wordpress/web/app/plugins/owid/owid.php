@@ -31,6 +31,7 @@ include 'src/AllCharts/all-charts.php';
 include 'src/ExpandableParagraph/expandable-paragraph.php';
 include 'src/StickyNav/sticky-nav.php';
 include 'src/CitationSnippet/citation-snippet.php';
+include 'src/CitationSection/citation-section.php';
 include 'src/FrontMatter/front-matter.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
@@ -205,6 +206,10 @@ function register()
 
     register_block_type(__DIR__ . '/src/CitationSnippet', [
         'render_callback' => __NAMESPACE__ . '\blocks\citation_snippet\render',
+    ]);
+
+    register_block_type(__DIR__ . '/src/CitationSection', [
+        'render_callback' => __NAMESPACE__ . '\blocks\citation_section\render',
     ]);
 }
 

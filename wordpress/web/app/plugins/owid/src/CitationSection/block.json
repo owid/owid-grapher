@@ -1,8 +1,8 @@
 {
     "$schema": "https://schemas.wp.org/trunk/block.json",
     "apiVersion": 2,
-    "name": "owid/citation-snippet",
-    "title": "Citation snippet",
-    "icon": "clipboard",
+    "name": "owid/citation-section",
+    "title": "Citation section",
+    "icon": "shortcode",
     "category": "media"
 }

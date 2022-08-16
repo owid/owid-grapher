@@ -21,6 +21,8 @@
         position: absolute;
         right: 32px;
         top: 24px;
+        // center the button when there is only a single line of text
+        top: min(24px, calc(50% - 12px));
         color: $blue-60;
         cursor: pointer;
 

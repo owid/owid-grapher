@@ -13,6 +13,7 @@ import { registerAllCharts } from "./AllCharts/AllCharts.js"
 import { registerExpandableParagraph } from "./ExpandableParagraph/ExpandableParagraph.js"
 import { registerStickyNav } from "./StickyNav/StickyNav.js"
 import { registerCitationSnippet } from "./CitationSnippet/CitationSnippet.js"
+import { registerCitationSection } from "./CitationSection/CitationSection.js"
 import { registerFrontMatter } from "./FrontMatter/FrontMatter.js"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
@@ -33,6 +34,7 @@ registerAllCharts()
 registerExpandableParagraph()
 registerStickyNav()
 registerCitationSnippet()
+registerCitationSection()
 registerFrontMatter()
 
 registerBlockStyle("core/columns", {
