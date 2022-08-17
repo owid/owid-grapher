@@ -39,6 +39,7 @@ import {
     getVariableMetadataRoute,
 } from "../grapher/core/GrapherConstants.js"
 import workerpool from "workerpool"
+import ProgressBar from "progress"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -77,13 +78,7 @@ interface BakeVariableDataArguments {
 
 export const bakeVariableData = async (
     bakeArgs: BakeVariableDataArguments
-): Promise<void> => {
-    await fs.mkdirp(`${bakeArgs.bakedSiteDir}${GRAPHER_VARIABLES_ROUTE}`)
-    await fs.mkdirp(`${bakeArgs.bakedSiteDir}${GRAPHER_VARIABLE_DATA_ROUTE}`)
-    await fs.mkdirp(
-        `${bakeArgs.bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`
-    )
-
+): Promise<BakeVariableDataArguments> => {
     const variableData = await getVariableData(bakeArgs.variableId)
     const { data, metadata } = variableData
     const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
@@ -94,8 +89,7 @@ export const bakeVariableData = async (
     )}`
     await fs.writeFile(path, JSON.stringify(data))
     await fs.writeFile(metadataPath, JSON.stringify(metadata))
-    console.log(path)
-    console.log(metadataPath)
+    return bakeArgs
 }
 
 const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
@@ -205,6 +199,18 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
     bakedSiteDir: string,
     variableIds: number[]
 ) => {
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLES_ROUTE}`)
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_DATA_ROUTE}`)
+    await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`)
+
+    const progressBar = new ProgressBar(
+        "bakeAllPublishedChartsVariableDataAndMetadata [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+        {
+            width: 20,
+            total: variableIds.length + 1,
+        }
+    )
+
     const maxWorkers = MAX_NUM_BAKE_PROCESSES
     // TODO: figure out if rebake is necessary by checking the version of the data/metadata
     const pool = workerpool.pool(__dirname + "/worker.js", {
@@ -216,7 +222,15 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
         variableId: variableId,
     }))
 
-    await Promise.all(jobs.map((job) => pool.exec("bakeVariableData", [job])))
+    await Promise.all(
+        jobs.map((job) =>
+            pool
+                .exec("bakeVariableData", [job])
+                .then((job) =>
+                    progressBar.tick(`baked variable (meta)data for ${job.id}`)
+                )
+        )
+    )
 }
 
 export interface BakeSingleGrapherChartArguments {
@@ -242,7 +256,7 @@ export const bakeSingleGrapherChart = async (
         args.bakedSiteDir,
         grapher
     )
-    console.log(`✅ ${grapher.slug}`)
+    return args
 }
 
 export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
@@ -272,13 +286,27 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             bakedSiteDir: bakedSiteDir,
         }))
 
+        const progressBar = new ProgressBar(
+            "BakeGrapherPageVarPngAndSVGIfChanged [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+            {
+                width: 20,
+                total: rows.length + 1,
+            }
+        )
+
         const maxWorkers = MAX_NUM_BAKE_PROCESSES
         const pool = workerpool.pool(__dirname + "/worker.js", {
             minWorkers: 2,
             maxWorkers: maxWorkers,
         })
         await Promise.all(
-            jobs.map((job) => pool.exec("bakeSingleGrapherChart", [job]))
+            jobs.map((job) =>
+                pool
+                    .exec("bakeSingleGrapherChart", [job])
+                    .then(() =>
+                        progressBar.tick({ name: `Baked chart ${job.id}` })
+                    )
+            )
         )
 
         await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
