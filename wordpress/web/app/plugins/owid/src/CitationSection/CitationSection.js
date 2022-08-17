@@ -15,7 +15,7 @@ const BLOCK_TEMPLATE = [
         },
     ],
     ["owid/citation-snippet"],
-    ["core/heading", { content: "BibTeX citation", level: 5 }],
+    ["core/paragraph", { content: "BibTeX citation" }],
     ["owid/citation-snippet"],
 ]
 
