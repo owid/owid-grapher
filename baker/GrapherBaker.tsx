@@ -225,7 +225,7 @@ export const bakeVariableData = async (
         bakeArgs.variableId
     )}`
     if (data.kind === "fetched") {
-        await fs.writeFile(path, JSON.stringify(data))
+        await fs.writeFile(path, JSON.stringify(data.data))
         if (data.checksum) {
             await fs.writeFile(dataChecksumPath, data.checksum)
         }
@@ -235,7 +235,7 @@ export const bakeVariableData = async (
         bakeArgs.variableId
     )}`
     if (metadata.kind === "fetched") {
-        await fs.writeFile(metadataPath, JSON.stringify(metadata))
+        await fs.writeFile(metadataPath, JSON.stringify(metadata.data))
 
         if (metadata.checksum) {
             await fs.writeFile(metadataChecksumPath, metadata.checksum)
