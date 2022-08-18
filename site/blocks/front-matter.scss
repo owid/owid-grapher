@@ -1,0 +1,111 @@
+.front-matter {
+    margin-top: 48px;
+    display: grid !important;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: 24px;
+
+    .wp-block-column:nth-child(1) {
+        grid-column: 1 / 13;
+
+        @media (min-width: 960px) {
+            grid-column: 1 / 9;
+        }
+        @media (min-width: 1280px) {
+            grid-column: 1 / 6;
+        }
+    }
+
+    .wp-block-column:nth-child(2) {
+        grid-column: 1 / 13;
+
+        @media (min-width: 960px) {
+            grid-column: 9 / 13;
+        }
+        @media (min-width: 1280px) {
+            grid-column: 9 / 13;
+        }
+    }
+}
+
+.front-matter .btn-secondary {
+    padding: 8px 24px;
+    border: 1px solid $accent-vermillion;
+    display: inline-block;
+    cursor: pointer;
+
+    &:hover {
+        border-color: darken($accent-vermillion, 10);
+
+        a,
+        a:visited {
+            color: darken($accent-vermillion, 10);
+            text-decoration: none;
+        }
+    }
+
+    a,
+    a:visited {
+        color: $accent-vermillion;
+    }
+}
+
+.front-matter .wp-block-button + .related-topics,
+.front-matter .wp-block-buttons + .related-topics {
+    margin-top: 48px;
+}
+
+.article-content .related-topics {
+    border-left: 1px solid $blue-10;
+    padding-left: 24px;
+    display: none;
+
+    @media (min-width: 960px) {
+        display: block;
+    }
+
+    p {
+        text-transform: uppercase;
+        color: $blue-40;
+        font-weight: bold;
+        line-height: 1;
+        letter-spacing: 1.6px;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+    }
+
+    li {
+        margin-bottom: 16px;
+        list-style: none;
+        position: relative;
+        text-underline-offset: 6px;
+
+        a {
+            color: $blue-90;
+        }
+
+        a:visited {
+            color: $blue-60;
+        }
+
+        a:after {
+            content: "";
+            background-color: $blue-90;
+            mask: url($right-arrow) no-repeat;
+            -webkit-mask: url($right-arrow) no-repeat;
+            position: absolute;
+            top: 2px;
+            width: 9px;
+            height: 12px;
+            background-repeat: no-repeat;
+            margin-top: 6px;
+            margin-left: 6px;
+        }
+
+        a:visited:after {
+            background-color: $blue-60;
+        }
+    }
+}

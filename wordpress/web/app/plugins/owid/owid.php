@@ -30,6 +30,7 @@ include 'src/TechnicalText/technical-text.php';
 include 'src/AllCharts/all-charts.php';
 include 'src/ExpandableParagraph/expandable-paragraph.php';
 include 'src/StickyNav/sticky-nav.php';
+include 'src/FrontMatter/front-matter.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
@@ -195,6 +196,10 @@ function register()
 
     register_block_type(__DIR__ . '/src/StickyNav', [
         'render_callback' => __NAMESPACE__ . '\blocks\sticky_nav\render',
+    ]);
+
+    register_block_type(__DIR__ . '/src/FrontMatter', [
+        'render_callback' => __NAMESPACE__ . '\blocks\front_matter\render',
     ]);
 }
 
