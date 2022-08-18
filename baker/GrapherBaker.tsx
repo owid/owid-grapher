@@ -204,7 +204,7 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
     await fs.mkdirp(`${bakedSiteDir}${GRAPHER_VARIABLE_METADATA_ROUTE}`)
 
     const progressBar = new ProgressBar(
-        "bakeAllPublishedChartsVariableDataAndMetadata [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+        "bake variable data/metadata json [:bar] :current/:total :elapseds :rate/s :etas :name\n",
         {
             width: 20,
             total: variableIds.length + 1,
@@ -217,18 +217,18 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
         minWorkers: 2,
         maxWorkers: maxWorkers,
     })
-    const jobs = variableIds.map((variableId) => ({
+    const jobs: BakeVariableDataArguments[] = variableIds.map((variableId) => ({
         bakedSiteDir: bakedSiteDir,
         variableId: variableId,
     }))
 
     await Promise.all(
         jobs.map((job) =>
-            pool
-                .exec("bakeVariableData", [job])
-                .then((job) =>
-                    progressBar.tick(`baked variable (meta)data for ${job.id}`)
-                )
+            pool.exec("bakeVariableData", [job]).then((job) =>
+                progressBar.tick({
+                    name: `variableid ${job.variableId}`,
+                })
+            )
         )
     )
 }
@@ -237,6 +237,7 @@ export interface BakeSingleGrapherChartArguments {
     id: number
     config: string
     bakedSiteDir: string
+    slug: string
 }
 
 export const bakeSingleGrapherChart = async (
@@ -280,14 +281,15 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
 
         const newSlugs = rows.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
-        const jobs = rows.map((row) => ({
+        const jobs: BakeSingleGrapherChartArguments[] = rows.map((row) => ({
             id: row.id,
             config: row.config,
             bakedSiteDir: bakedSiteDir,
+            slug: row.slug,
         }))
 
         const progressBar = new ProgressBar(
-            "BakeGrapherPageVarPngAndSVGIfChanged [:bar] :current/:total :elapseds :rate/s :etas :name\n",
+            "bake grapher page [:bar] :current/:total :elapseds :rate/s :etas :name\n",
             {
                 width: 20,
                 total: rows.length + 1,
@@ -304,11 +306,11 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 pool
                     .exec("bakeSingleGrapherChart", [job])
                     .then(() =>
-                        progressBar.tick({ name: `Baked chart ${job.id}` })
+                        progressBar.tick({ name: `Baked chart ${job.slug}` })
                     )
             )
         )
 
         await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
-        console.log(`✅ Deleted old graphers`)
+        progressBar.tick({ name: `✅ Deleted old graphers` })
     }
