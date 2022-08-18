@@ -37,10 +37,9 @@
 }
 
 .expandable-paragraph__expand-button {
+    @include owid-link-90;
     margin: 16px 0;
     background: none;
     border: none;
     cursor: pointer;
-    color: $blue-90;
-    text-decoration: underline;
 }

@@ -230,7 +230,7 @@ h6:hover .deep-link {
 }
 
 .article-footer a {
-    @include owid-link;
+    @include owid-link-90;
 }
 
 /* Homepage
@@ -988,7 +988,7 @@ html:not(.js) {
         }
 
         a {
-            @include owid-link;
+            @include owid-link-90;
         }
     }
 }
@@ -1230,10 +1230,7 @@ html:not(.js) {
             font-size: inherit;
         }
         a {
-            color: #453cbb;
-        }
-        a:hover {
-            color: #7d8aef;
+            @include owid-link-90;
         }
     }
 

@@ -34,11 +34,11 @@
     cursor: pointer;
 
     &:hover {
-        border-color: darken($accent-vermillion, 10);
+        border-color: $accent-vermillion;
 
         a,
         a:visited {
-            color: darken($accent-vermillion, 10);
+            color: $accent-vermillion;
             text-decoration: none;
         }
     }
@@ -83,11 +83,7 @@
         text-underline-offset: 6px;
 
         a {
-            color: $blue-90;
-        }
-
-        a:visited {
-            color: $blue-60;
+            @include owid-link-90;
         }
 
         a:after {
