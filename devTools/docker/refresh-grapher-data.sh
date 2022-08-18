@@ -7,9 +7,10 @@ set -o nounset
 : "${GRAPHER_DB_USER:?Need to set GRAPHER_DB_USER non-empty}"
 : "${GRAPHER_DB_PASS:?Need to set GRAPHER_DB_PASS non-empty}"
 : "${GRAPHER_DB_HOST:?Need to set GRAPHER_DB_HOST non-empty}"
+: "${GRAPHER_DB_PORT:?Need to set GRAPHER_DB_PORT non-empty}"
 : "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
 
-MYSQL="mysql --default-character-set=utf8mb4"
+MYSQL="mysql --default-character-set=utf8mb4 -h $GRAPHER_DB_HOST -u$GRAPHER_DB_USER -p$GRAPHER_DB_PASS -P ${GRAPHER_DB_PORT}"
 
 import_db(){
   cat $1 | gunzip | sed s/.\*DEFINER\=\`.\*// | $MYSQL -h$GRAPHER_DB_HOST -u$GRAPHER_DB_USER -p$GRAPHER_DB_PASS $GRAPHER_DB_NAME
@@ -17,7 +18,7 @@ import_db(){
 
 fillGrapherDb() {
     echo "Refreshing grapher database"
-    $MYSQL -h $GRAPHER_DB_HOST -u$GRAPHER_DB_USER -p"$GRAPHER_DB_PASS" -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME;" 
+    $MYSQL -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME;" 
     
     echo "Importing live Grapher metadata database (owid_metadata)"
     import_db $DATA_FOLDER/owid_metadata.sql.gz    

@@ -39,6 +39,6 @@ createAndFillGrapherDb() {
     echo "Creating user '$GRAPHER_DB_USER'"
     mysql -uroot -p"${DB_ROOT_PASS}" -h"${DB_ROOT_HOST}" --batch -e "CREATE USER IF NOT EXISTS '$GRAPHER_DB_USER' IDENTIFIED BY '$GRAPHER_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$GRAPHER_DB_USER'; FLUSH PRIVILEGES;"
 
-    GRAPHER_DB_HOST=${DB_ROOT_HOST} source "$( dirname -- "${BASH_SOURCE[0]}" )/refresh-grapher-data.sh"
+    GRAPHER_DB_HOST=${DB_ROOT_HOST} GRAPHER_DB_PORT=3306 source "$( dirname -- "${BASH_SOURCE[0]}" )/refresh-grapher-data.sh"
     return 0
 }
