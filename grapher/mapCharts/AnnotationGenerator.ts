@@ -40,11 +40,12 @@ export function generateAnnotations(
     projection: MapProjectionName
 ): internalLabel[] {
     const minSize = 8
-    const maxSize = 16
+    const maxSize = 14
     const projectionGeo = MapProjectionGeos[projection]
-    const just = yessir([...featureData, ...featuresWithNoData])
+    const just = combinedRegions([...featureData, ...featuresWithNoData])
     let nextIter: RenderFeature[] = []
     const externalLabels: Position[][] = []
+    const markers: Position[][] = []
     var retVal = featureData.map(function (country) {
         let fontSize = minSize
         let value = choroplethData.get(country.id)?.shortValue
@@ -155,10 +156,11 @@ export function generateAnnotations(
             }
         }
         nextIter.push(country)
+        fontSize = 11/ viewportScale
         let h = null
         if (value)
             textWidth = pixelWidth(value.toString(), {
-                size: 11 / viewportScale,
+                size: fontSize,
                 font: "arial",
             })
         if (textWidth) {
@@ -168,7 +170,7 @@ export function generateAnnotations(
                     just,
                     pos,
                     textWidth,
-                    11 / viewportScale,
+                    fontSize,
                     externalLabels,
                     country.id
                 )
@@ -177,63 +179,51 @@ export function generateAnnotations(
                         pos,
                         h,
                         textWidth,
-                        11 / viewportScale
+                        fontSize
                     )
-                    externalLabels.push([
-                        [h[0], h[1]],
-                        [h[0] + textWidth, h[1]],
-                        [h[0] + textWidth, h[1] - 11 / viewportScale],
-                        [h[0], h[1] - 11 / viewportScale],
-                    ])
-                    //TODO: not working. needs fixing
-                    if (
-                        pos == externalPositions.left ||
-                        pos == externalPositions.right
-                    )
+                    let markerCheck = true
+                    for (const y of markers) {
+                        if(lineIntersection(y[0],y[1],pole,markerEnding)||
+                        lineIntersection(y[0],y[1],h,[h[0]+textWidth,h[1]])||
+                        lineIntersection(y[0],y[1],[h[0]+textWidth,h[1]],[h[0]+textWidth,h[1]-fontSize])||
+                        lineIntersection(y[0],y[1],[h[0]+textWidth,h[1]-fontSize],[h[0],h[1]-fontSize])||
+                        lineIntersection(y[0],y[1],[h[0],h[1]-fontSize],h))
+                            {
+                                markerCheck = false
+                                break
+                            }
+                    }
+                    if(markerCheck === true)
+                    for(const y of externalLabels) {
+                        if(lineIntersection(y[0],y[1],pole,markerEnding)||
+                        lineIntersection(y[1],y[2],pole,markerEnding)||
+                        lineIntersection(y[2],y[3],pole,markerEnding)||
+                        lineIntersection(y[3],y[0],pole,markerEnding))
+                            {
+                                markerCheck = false
+                                break
+                            }
+                    }
+                    if(markerCheck === true)
+                    {
                         externalLabels.push([
-                            [pole[0], pole[1] - 1],
-                            [pole[0], pole[1] + 1],
-                            [markerEnding[0], markerEnding[1] + 1],
-                            [markerEnding[0], markerEnding[1] - 1],
+                            [h[0], h[1]],
+                            [h[0] + textWidth, h[1]],
+                            [h[0] + textWidth, h[1] - fontSize],
+                            [h[0], h[1] - fontSize],
                         ])
-                    else if (
-                        pos == externalPositions.top ||
-                        pos == externalPositions.bottom
-                    )
-                        externalLabels.push([
-                            [pole[0] - 1, pole[1]],
-                            [pole[0] + 1, pole[1]],
-                            [markerEnding[0] + 1, markerEnding[1]],
-                            [markerEnding[0] - 1, markerEnding[1]],
+                        markers.push([
+                            pole, markerEnding
                         ])
-                    else if (
-                        pos == externalPositions.bottomLeft ||
-                        pos == externalPositions.topRight
-                    )
-                        externalLabels.push([
-                            [pole[0] - 0.707, pole[1] - 0.707],
-                            [pole[0] + 0.707, pole[1] + 0.707],
-                            [markerEnding[0] + 0.707, markerEnding[1] + 0.707],
-                            [markerEnding[0] - 0.707, markerEnding[1] - 0.707],
-                        ])
-                    else if (
-                        pos == externalPositions.topLeft ||
-                        pos == externalPositions.bottomRight
-                    )
-                        externalLabels.push([
-                            [pole[0] - 0.707, pole[1] + 0.707],
-                            [pole[0] + 0.707, pole[1] - 0.707],
-                            [markerEnding[0] + 0.707, markerEnding[1] - 0.707],
-                            [markerEnding[0] - 0.707, markerEnding[1] + 0.707],
-                        ])
-                    return {
-                        id: country.id,
-                        position: new PointVector(h[0], h[1]),
-                        value: value,
-                        size: 11 / viewportScale,
-                        type: "external",
-                        pole: pole,
-                        markerEnd: markerEnding,
+                        return {
+                            id: country.id,
+                            position: new PointVector(h[0], h[1]),
+                            value: value,
+                            size: fontSize,
+                            type: "external",
+                            pole: pole,
+                            markerEnd: markerEnding,
+                        }
                     }
                 }
             }
@@ -267,7 +257,7 @@ function insideCheck(point: number[], vs: Position[]): boolean {
     return inside
 }
 
-function yessir(data: RenderFeature[]): Position[][] {
+function combinedRegions(data: RenderFeature[]): Position[][] {
     let allPoints: Position[][] = []
     data.map(function (country) {
         if (country.geo.geometry.type === "Polygon") {
@@ -497,17 +487,17 @@ function markerEndPosition(
 ): Position {
     switch (type) {
         case externalPositions.right:
-            return point
+            return [point[0],point[1]-fontSize/2.5]
         case externalPositions.left:
-            return [point[0] + textWidth, point[1]]
+            return [point[0] + textWidth, point[1] - fontSize/2.5]
         case externalPositions.topRight:
             return point
         case externalPositions.bottomRight:
-            return point
+            return [point[0], point[1]-fontSize/2.5]
         case externalPositions.topLeft:
-            return [point[0] + textWidth, point[1]]
+            return [point[0] + textWidth, point[1] - fontSize/3.5]
         case externalPositions.bottomLeft:
-            return [point[0] + textWidth, point[1] - fontSize]
+            return [point[0] + textWidth, point[1] - fontSize/2.5]
         case externalPositions.bottom:
             return [point[0] + textWidth / 2, point[1] - fontSize]
         case externalPositions.top:

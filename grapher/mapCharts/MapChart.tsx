@@ -1012,7 +1012,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     {internalAnnotations.map((label) => {
                         const series = choroplethData.get(label.id as string)
                         const fill = series ? series.color : defaultFill
-                        const textFill = isDarkColor(fill) ? "white" : "black"
+                        const textFill = isDarkColor(fill) ? "white" : "#444445"
                         return (
                             <>
                                 <text
@@ -1023,7 +1023,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                     fill={
                                         label.type == "internal"
                                             ? textFill
-                                            : "black"
+                                            : "#444445"
                                     }
                                     fontWeight={label.type == "internal"?annotationWeight:500}
                                 >
@@ -1036,14 +1036,14 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                             y1={label.pole[1]}
                                             x2={label.markerEnd[0]}
                                             y2={label.markerEnd[1]}
-                                            stroke="grey"
-                                            strokeWidth={1 / viewportScale}
+                                            stroke="#303030"
+                                            strokeWidth={0.5 / viewportScale}
                                         />
                                         <circle
                                             cx={label.pole[0]}
                                             cy={label.pole[1]}
-                                            r={2 / viewportScale}
-                                            fill="black"
+                                            r={1.25 / viewportScale}
+                                            fill="#303030"
                                             style={{ pointerEvents: "none" }}
                                         />
                                     </>
