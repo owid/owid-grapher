@@ -103,16 +103,16 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 refresh:
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-mysql.sh
-	
+
 	@echo '==> Updating grapher database'
-	@source .env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
+	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
 
 refresh.wp:
 	@echo '==> Downloading wordpress data'
 	./devTools/docker/download-wordpress-mysql.sh
-	
+
 	@echo '==> Updating wordpress data'
-	@source .env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-wordpress-data.sh
+	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-wordpress-data.sh
 
 refresh.full: refresh refresh.wp
 
