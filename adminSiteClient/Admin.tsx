@@ -13,6 +13,7 @@ type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 interface ClientSettings {
     ENV: "development" | "production"
     GITHUB_USERNAME: string
+    DATA_API_FOR_ADMIN_UI?: string
 }
 
 interface ErrorMessage {
@@ -80,7 +81,9 @@ export class Admin {
         }
         headers["Accept"] = "application/json"
 
-        return fetch(this.url(path), {
+        const fetchUrl = path.startsWith("http") ? path : this.url(path)
+
+        return fetch(fetchUrl, {
             method: method,
             credentials: "same-origin",
             headers: headers,
