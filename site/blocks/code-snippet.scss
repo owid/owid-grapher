@@ -1,4 +1,4 @@
-.wp-citation-snippet {
+.wp-code-snippet {
     position: relative;
     margin-bottom: 32px;
 
@@ -15,7 +15,7 @@
         margin-right: 85px;
     }
 
-    button.citation-copy-button {
+    button.code-copy-button {
         background: none;
         border: none;
         position: absolute;
@@ -35,7 +35,7 @@
         }
     }
 
-    button.citation-copy-button--has-copied::after {
+    button.code-copy-button--has-copied::after {
         content: "Copied!";
         position: absolute;
         left: 24px;

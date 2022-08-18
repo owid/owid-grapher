@@ -26,7 +26,7 @@ import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
 import { omit } from "../clientUtils/Util.js"
 import StickyNav from "./blocks/StickyNav.js"
-import { CitationSnippet } from "./blocks/CitationSnippet.js"
+import { CodeSnippet } from "./blocks/CodeSnippet.js"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -349,9 +349,9 @@ export const LongFormPage = (props: {
                                                 )}
                                                 {withCitation && (
                                                     <>
-                                                        <h3 id="citation">
-                                                            Citation
-                                                        </h3>
+                                                        <h2 id="citation">
+                                                            Cite our work
+                                                        </h2>
                                                         <p>
                                                             Our articles and
                                                             data visualizations
@@ -366,7 +366,7 @@ export const LongFormPage = (props: {
                                                             can be cited as:
                                                         </p>
                                                         <div>
-                                                            <CitationSnippet
+                                                            <CodeSnippet
                                                                 code={
                                                                     citationText
                                                                 }
@@ -374,7 +374,7 @@ export const LongFormPage = (props: {
                                                         </div>
                                                         <p>BibTeX citation</p>
                                                         <div>
-                                                            <CitationSnippet
+                                                            <CodeSnippet
                                                                 code={bibtex}
                                                             />
                                                         </div>

@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { delay } from "../../clientUtils/Util.js"
 
-export const CitationSnippet = (props: { code: string }) => {
+export const CodeSnippet = (props: { code: string }) => {
     const [hasCopied, setHasCopied] = useState(false)
 
     const copy = () => {
@@ -24,13 +24,13 @@ export const CitationSnippet = (props: { code: string }) => {
     }
 
     return (
-        <div className="wp-citation-snippet">
+        <div className="wp-code-snippet">
             <pre className="wp-block-code">
                 <code>{props.code}</code>
             </pre>
             <button
-                className={classnames("citation-copy-button", {
-                    "citation-copy-button--has-copied": hasCopied,
+                className={classnames("code-copy-button", {
+                    "code-copy-button--has-copied": hasCopied,
                 })}
                 onClick={copy}
                 aria-label="Copy to clipboard"
@@ -41,26 +41,24 @@ export const CitationSnippet = (props: { code: string }) => {
     )
 }
 
-export const hydrateCitationSnippets = () => {
-    const citationSnippets = document.querySelectorAll(
-        "div.wp-citation-snippet"
-    )
+export const hydrateCodeSnippets = () => {
+    const codeSnippets = document.querySelectorAll("div.wp-code-snippet")
 
-    citationSnippets.forEach((snippet) => {
+    codeSnippets.forEach((snippet) => {
         const code =
             snippet.querySelector(".wp-block-code code")?.textContent || ""
-        ReactDOM.hydrate(<CitationSnippet code={code} />, snippet.parentElement)
+        ReactDOM.hydrate(<CodeSnippet code={code} />, snippet.parentElement)
     })
 }
 
-export const renderCitationSnippets = ($: CheerioStatic) => {
-    const citationSnippets = $("div.wp-citation-snippet")
-    citationSnippets.each((_, snippet) => {
+export const renderCodeSnippets = ($: CheerioStatic) => {
+    const codeSnippets = $("div.wp-code-snippet")
+    codeSnippets.each((_, snippet) => {
         const $el = $(snippet)
         const $dry = $(
             ReactDOMServer.renderToStaticMarkup(
                 <div>
-                    <CitationSnippet code={$el.text().trim()} />
+                    <CodeSnippet code={$el.text().trim()} />
                 </div>
             )
         )

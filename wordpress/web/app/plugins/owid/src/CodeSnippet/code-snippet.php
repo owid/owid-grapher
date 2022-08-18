@@ -1,11 +1,11 @@
 <?php
 
-namespace OWID\blocks\citation_snippet;
+namespace OWID\blocks\code_snippet;
 
 function render($attributes, $content)
 {
     $block = <<<EOD
-	<div class="wp-citation-snippet">$content</div>
+	<div class="wp-code-snippet">$content</div>
 EOD;
 
     return $block;

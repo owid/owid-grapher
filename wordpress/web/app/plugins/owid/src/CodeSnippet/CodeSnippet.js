@@ -9,13 +9,13 @@ const blockStyle = {
     color: "darkgrey",
 }
 
-const CitationSnippet = {
+const CodeSnippet = {
     edit: () => {
         const blockProps = useBlockProps({ style: blockStyle })
 
         return (
             <div {...blockProps}>
-                <h3>Citation snippet</h3>
+                <h3>Code snippet</h3>
                 <InnerBlocks allowedBlocks={["core/code"]} />
             </div>
         )
@@ -23,6 +23,6 @@ const CitationSnippet = {
     save: () => <InnerBlocks.Content />,
 }
 
-export const registerCitationSnippet = () => {
-    registerBlockType(block.name, CitationSnippet)
+export const registerCodeSnippet = () => {
+    registerBlockType(block.name, CodeSnippet)
 }
