@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
+import { ArticleBlocks } from "./article-blocks.js"
 
-import ArticleElement from "./article-element.js"
 import Footnotes from "./footnotes.js"
 
 import { OwidArticleType, OwidArticleBlock } from "./gdoc-types.js"
@@ -33,18 +33,12 @@ export function OwidArticle(props: OwidArticleType) {
                 <div>
                     <details className={"summary"} open={true}>
                         <summary>Summary</summary>
-                        {content.summary.map(
-                            (d: OwidArticleBlock, i: number) => {
-                                return <ArticleElement key={i} d={d} />
-                            }
-                        )}
+                        <ArticleBlocks blocks={content.summary} />
                     </details>
                 </div>
             ) : null}
 
-            {content.body.map((d: OwidArticleBlock, i: number) => {
-                return <ArticleElement key={i} d={d} />
-            })}
+            <ArticleBlocks blocks={content.body} />
 
             {content.refs ? <Footnotes d={content.refs} /> : null}
 
