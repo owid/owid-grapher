@@ -33,12 +33,10 @@ export function OwidArticle(props: OwidArticleType) {
                 <div>
                     <details className={"summary"} open={true}>
                         <summary>Summary</summary>
-                        {content.summary.reduce(
-                            (memo: string, d: OwidArticleBlock) => {
-                                const text: string = d.value
-                                return memo + " " + text
-                            },
-                            ""
+                        {content.summary.map(
+                            (d: OwidArticleBlock, i: number) => {
+                                return <ArticleElement key={i} d={d} />
+                            }
                         )}
                     </details>
                 </div>
