@@ -227,9 +227,21 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
     }
 
-    @computed get sourcesLine(): string | undefined {
+    @computed get dataCitationLine(): string | undefined {
         const { sourcesLine } = this.manager
-        return sourcesLine?.replace(/; /g, ", ")
+        if (sourcesLine)
+            return sourcesLine
+                .replace(/; /g, ", ")
+                .replace(/\bOWID\b/g, "Our World in Data")
+                .replace(/^Data from /g, "")
+        else return undefined
+    }
+
+    @computed get chartCitationLine(): string | undefined {
+        const { dataCitationLine } = this
+        if (dataCitationLine)
+            return `Data from ${dataCitationLine}; Chart by Our World in Data`
+        else return undefined
     }
 
     private renderReady(): JSX.Element {
@@ -394,27 +406,25 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                     )}
                 </div>
 
-                {this.sourcesLine !== undefined && (
+                {this.dataCitationLine !== undefined && (
                     <div className="grouped-menu-section">
+                        <h2>How to cite this work</h2>
                         <div className="grouped-menu-list">
                             <div className="grouped-menu-item">
                                 <div className="grouped-menu-content">
-                                    <h3 className="title">How to cite</h3>
                                     <div className="description">
                                         When reusing this chart, please give
                                         attribution to the data publishers.
                                         <ul>
                                             <li>
                                                 Cite the <strong>data</strong>{" "}
-                                                as: <i>{this.sourcesLine}</i>
+                                                as:{" "}
+                                                <i>{this.dataCitationLine}</i>
                                             </li>
                                             <li>
                                                 Cite the <strong>chart</strong>{" "}
                                                 as:{" "}
-                                                <i>
-                                                    Data from {this.sourcesLine}
-                                                    ; Chart by Our World in Data
-                                                </i>
+                                                <i>{this.chartCitationLine}</i>
                                             </li>
                                         </ul>
                                     </div>
