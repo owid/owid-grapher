@@ -2301,7 +2301,7 @@ export class Grapher
     }
 
     @computed private get footerControlsLines(): number {
-        return this.hasTimeline ? 2 : 1
+        return this.showTimeline ? 2 : 1
     }
 
     @computed get footerControlsHeight(): number {
