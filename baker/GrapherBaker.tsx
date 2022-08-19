@@ -371,9 +371,6 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
     const poolOptions = {
         minWorkers: 2,
         maxWorkers: maxWorkers,
-        onTerminateWorker: async () => {
-            await cleanup()
-        },
     }
     const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
     const jobs: BakeVariableDataArguments[] = variableIds.map((variableId) => ({
@@ -464,9 +461,6 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         const poolOptions = {
             minWorkers: 2,
             maxWorkers: maxWorkers,
-            onTerminateWorker: async () => {
-                await cleanup()
-            },
         }
         const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
         try {
