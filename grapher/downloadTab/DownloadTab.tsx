@@ -5,6 +5,7 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { faQuoteLeft } from "@fortawesome/free-solid-svg-icons/faQuoteLeft"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import {
@@ -30,6 +31,7 @@ export interface DownloadTabManager {
     externalCsvLink?: string // Todo: we can ditch this once rootTable === externalCsv (currently not quite the case for Covid Explorer)
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
+    sourcesLine?: string
 }
 
 interface DownloadTabProps {
@@ -225,6 +227,11 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
     }
 
+    @computed get sourcesLine(): string | undefined {
+        const { sourcesLine } = this.manager
+        return sourcesLine?.replace(/; /g, ", ")
+    }
+
     private renderReady(): JSX.Element {
         const { targetWidth, targetHeight, svgPreviewUrl, bounds } = this
 
@@ -271,7 +278,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                                 </p>
                             </div>
                             <div className="grouped-menu-icon">
-                                <span className="download-icon">
+                                <span className="aside-icon">
                                     <FontAwesomeIcon icon={faDownload} />
                                 </span>
                             </div>
@@ -295,7 +302,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                                 </p>
                             </div>
                             <div className="grouped-menu-icon">
-                                <span className="download-icon">
+                                <span className="aside-icon">
                                     <FontAwesomeIcon icon={faDownload} />
                                 </span>
                             </div>
@@ -378,7 +385,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                                     </p>
                                 </div>
                                 <div className="grouped-menu-icon">
-                                    <span className="download-icon">
+                                    <span className="aside-icon">
                                         <FontAwesomeIcon icon={faDownload} />
                                     </span>
                                 </div>
@@ -386,6 +393,41 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         </div>
                     )}
                 </div>
+
+                {this.sourcesLine !== undefined && (
+                    <div className="grouped-menu-section">
+                        <div className="grouped-menu-list">
+                            <div className="grouped-menu-item">
+                                <div className="grouped-menu-content">
+                                    <h3 className="title">How to cite</h3>
+                                    <div className="description">
+                                        When reusing this chart, please give
+                                        attribution to the data publishers.
+                                        <ul>
+                                            <li>
+                                                Cite the <strong>data</strong>{" "}
+                                                as: <i>{this.sourcesLine}</i>
+                                            </li>
+                                            <li>
+                                                Cite the <strong>chart</strong>{" "}
+                                                as:{" "}
+                                                <i>
+                                                    Data from {this.sourcesLine}
+                                                    ; Chart by Our World in Data
+                                                </i>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div className="grouped-menu-icon">
+                                    <span className="aside-icon">
+                                        <FontAwesomeIcon icon={faQuoteLeft} />
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         )
     }

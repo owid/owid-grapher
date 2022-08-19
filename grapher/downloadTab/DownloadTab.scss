@@ -7,7 +7,7 @@
 
     .grouped-menu {
         width: 100%;
-        max-width: 35em;
+        max-width: 45em;
         margin: auto;
     }
 
@@ -81,14 +81,18 @@
         .faint {
             font-weight: normal;
         }
+
+        li {
+            margin-left: 1.25em;
+        }
     }
 
-    .download-icon {
+    .aside-icon {
         opacity: 0.5;
         padding-left: 0.5em;
         padding-right: 1.5em;
     }
-    .grouped-menu-item:hover .download-icon {
+    .grouped-menu-item:hover .aside-icon {
         opacity: 1;
     }
 
