@@ -1,6 +1,6 @@
 import React from "react"
 
-import ArticleElement from "./article-element"
+import ArticleBlock from "./article-block"
 import { OwidArticleBlock } from "./gdoc-types.js"
 
 export default function FixedSection({ d }: { d: OwidArticleBlock }) {
@@ -17,7 +17,7 @@ export default function FixedSection({ d }: { d: OwidArticleBlock }) {
                             _d.value.startsWith("<img src=")
                     )
                     .map((_d: OwidArticleBlock, j: number) => {
-                        return <ArticleElement key={j} d={_d} />
+                        return <ArticleBlock key={j} d={_d} />
                     })}
             </div>
             <div className={"fixedSectionContent"}>
@@ -28,7 +28,7 @@ export default function FixedSection({ d }: { d: OwidArticleBlock }) {
                             !_d.value.startsWith("<img src=")
                     )
                     .map((_d: OwidArticleBlock, j: number) => {
-                        return <ArticleElement key={j} d={_d} />
+                        return <ArticleBlock key={j} d={_d} />
                     })}
             </div>
         </section>
