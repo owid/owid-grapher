@@ -159,7 +159,7 @@ export const formatCountryProfile = (
     // (filtering them out based on whether they have a deep link anchor attached to them)
     cheerioEl(`h3 a.${DEEP_LINK_CLASS}`).each((_, deepLinkAnchor) => {
         const $deepLinkAnchor = cheerioEl(deepLinkAnchor)
-        $deepLinkAnchor.after(`${country.name}: `)
+        $deepLinkAnchor.parent().prepend(`${country.name}: `)
     })
 
     return { ...post, html: getBodyHtml(cheerioEl) }
