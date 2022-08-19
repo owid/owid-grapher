@@ -44,6 +44,7 @@ import workerpool from "workerpool"
 import ProgressBar from "progress"
 import fetch from "node-fetch"
 import { getVariableData } from "../db/model/Variable.js"
+import { cleanup } from "../db/cleanup.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -367,25 +368,32 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
     )
 
     const maxWorkers = MAX_NUM_BAKE_PROCESSES
-    const pool = workerpool.pool(__dirname + "/worker.js", {
+    const poolOptions = {
         minWorkers: 2,
         maxWorkers: maxWorkers,
-    })
+        onTerminateWorker: async () => {
+            await cleanup()
+        },
+    }
+    const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
     const jobs: BakeVariableDataArguments[] = variableIds.map((variableId) => ({
         bakedSiteDir,
         variableId,
         checksumsDir,
     }))
-
-    await Promise.all(
-        jobs.map((job) =>
-            pool.exec("bakeVariableData", [job]).then((job) =>
-                progressBar.tick({
-                    name: `variableid ${job.variableId}`,
-                })
+    try {
+        await Promise.all(
+            jobs.map((job) =>
+                pool.exec("bakeVariableData", [job]).then((job) =>
+                    progressBar.tick({
+                        name: `variableid ${job.variableId}`,
+                    })
+                )
             )
         )
-    )
+    } finally {
+        await pool.terminate(true)
+    }
 }
 
 export interface BakeSingleGrapherChartArguments {
@@ -453,20 +461,28 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         )
 
         const maxWorkers = MAX_NUM_BAKE_PROCESSES
-        const pool = workerpool.pool(__dirname + "/worker.js", {
+        const poolOptions = {
             minWorkers: 2,
             maxWorkers: maxWorkers,
-        })
-        await Promise.all(
-            jobs.map((job) =>
-                pool
-                    .exec("bakeSingleGrapherChart", [job])
-                    .then(() =>
-                        progressBar.tick({ name: `Baked chart ${job.slug}` })
+            onTerminateWorker: async () => {
+                await cleanup()
+            },
+        }
+        const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
+        try {
+            await Promise.all(
+                jobs.map((job) =>
+                    pool.exec("bakeSingleGrapherChart", [job]).then(() =>
+                        progressBar.tick({
+                            name: `Baked chart ${job.slug}`,
+                        })
                     )
+                )
             )
-        )
 
-        await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
+            await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
+        } finally {
+            await pool.terminate(true)
+        }
         progressBar.tick({ name: `✅ Deleted old graphers` })
     }
