@@ -11,7 +11,7 @@ import Recirc from "./recirc"
 import List from "./list"
 import Image from "./image"
 
-export default function ArticleElement({ d }: { d: OwidArticleBlock }) {
+export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {
         const _type = d.type.toLowerCase()
         let content: any = JSON.stringify(d)
