@@ -22,7 +22,7 @@ enum externalPositions {
     top = "top",
 }
 
-interface internalLabel {
+export interface internalLabel {
     id: string
     position: PointVector
     value?: any
@@ -43,12 +43,12 @@ export function generateAnnotations(
     const maxSize = 14
     const projectionGeo = MapProjectionGeos[projection]
     const just = combinedRegions([...featureData, ...featuresWithNoData])
-    let nextIter: RenderFeature[] = []
+    const nextIter: RenderFeature[] = []
     const externalLabels: Position[][] = []
     const markers: Position[][] = []
-    var retVal = featureData.map(function (country) {
+    const retVal = featureData.map(function (country) {
         let fontSize = minSize
-        let value = choroplethData.get(country.id)?.shortValue
+        const value = choroplethData.get(country.id)?.shortValue
         let textWidth
         let regionPoints: Position[] = []
         if (value) {
@@ -74,16 +74,16 @@ export function generateAnnotations(
         const centerpoint = new PointVector(p1, p2)
         const pole = [p1, p2]
         if (country.geo.geometry.type === "Polygon") {
-            let regionPath = country.path.slice(1, -1).split("L")
+            const regionPath = country.path.slice(1, -1).split("L")
             regionPoints = regionPath.map((temp) => [
                 Number(temp.substring(0, temp.indexOf(","))),
                 Number(temp.substring(temp.indexOf(",") + 1)),
             ])
         } else {
-            let countryPaths = country.path.slice(1, -1).split("ZM")
+            const countryPaths = country.path.slice(1, -1).split("ZM")
             for (const region of countryPaths) {
                 regionPoints = []
-                let regionPath = region.split("L")
+                const regionPath = region.split("L")
                 regionPoints = regionPath.map((temp) => [
                     Number(temp.substring(0, temp.indexOf(","))),
                     Number(temp.substring(temp.indexOf(",") + 1)),
@@ -92,19 +92,19 @@ export function generateAnnotations(
             }
         }
         if (p1 && p2 && textWidth) {
-            let t1 = [
+            const t1 = [
                 centerpoint.x - textWidth / 2,
                 centerpoint.y + fontSize / viewportScale / 2,
             ]
-            let t2 = [
+            const t2 = [
                 centerpoint.x - textWidth / 2,
                 centerpoint.y - fontSize / viewportScale / 2,
             ]
-            let t3 = [
+            const t3 = [
                 centerpoint.x + textWidth / 2,
                 centerpoint.y - fontSize / viewportScale / 2,
             ]
-            let t4 = [
+            const t4 = [
                 centerpoint.x + textWidth / 2,
                 centerpoint.y + fontSize / viewportScale / 2,
             ]
@@ -119,19 +119,19 @@ export function generateAnnotations(
                             font: "arial",
                         })
                     }
-                    let n1 = [
+                    const n1 = [
                         centerpoint.x - textWidth / 2,
                         centerpoint.y + (fontSize + 1) / viewportScale / 2,
                     ]
-                    let n2 = [
+                    const n2 = [
                         centerpoint.x - textWidth / 2,
                         centerpoint.y - (fontSize + 1) / viewportScale / 2,
                     ]
-                    let n3 = [
+                    const n3 = [
                         centerpoint.x + textWidth / 2,
                         centerpoint.y - (fontSize + 1) / viewportScale / 2,
                     ]
-                    let n4 = [
+                    const n4 = [
                         centerpoint.x + textWidth / 2,
                         centerpoint.y + (fontSize + 1) / viewportScale / 2,
                     ]
@@ -156,7 +156,7 @@ export function generateAnnotations(
             }
         }
         nextIter.push(country)
-        fontSize = 11/ viewportScale
+        fontSize = 11 / viewportScale
         let h = null
         if (value)
             textWidth = pixelWidth(value.toString(), {
@@ -175,7 +175,7 @@ export function generateAnnotations(
                     country.id
                 )
                 if (h.length == 2) {
-                    let markerEnding = markerEndPosition(
+                    const markerEnding = markerEndPosition(
                         pos,
                         h,
                         textWidth,
@@ -183,38 +183,70 @@ export function generateAnnotations(
                     )
                     let markerCheck = true
                     for (const y of markers) {
-                        if(lineIntersection(y[0],y[1],pole,markerEnding)||
-                        lineIntersection(y[0],y[1],h,[h[0]+textWidth,h[1]])||
-                        lineIntersection(y[0],y[1],[h[0]+textWidth,h[1]],[h[0]+textWidth,h[1]-fontSize])||
-                        lineIntersection(y[0],y[1],[h[0]+textWidth,h[1]-fontSize],[h[0],h[1]-fontSize])||
-                        lineIntersection(y[0],y[1],[h[0],h[1]-fontSize],h))
-                            {
+                        if (
+                            lineIntersection(y[0], y[1], pole, markerEnding) ||
+                            lineIntersection(y[0], y[1], h, [
+                                h[0] + textWidth,
+                                h[1],
+                            ]) ||
+                            lineIntersection(
+                                y[0],
+                                y[1],
+                                [h[0] + textWidth, h[1]],
+                                [h[0] + textWidth, h[1] - fontSize]
+                            ) ||
+                            lineIntersection(
+                                y[0],
+                                y[1],
+                                [h[0] + textWidth, h[1] - fontSize],
+                                [h[0], h[1] - fontSize]
+                            ) ||
+                            lineIntersection(
+                                y[0],
+                                y[1],
+                                [h[0], h[1] - fontSize],
+                                h
+                            )
+                        ) {
+                            markerCheck = false
+                            break
+                        }
+                    }
+                    if (markerCheck === true)
+                        for (const y of externalLabels) {
+                            if (
+                                lineIntersection(
+                                    y[0],
+                                    y[1],
+                                    pole,
+                                    markerEnding
+                                ) ||
+                                lineIntersection(
+                                    y[1],
+                                    y[2],
+                                    pole,
+                                    markerEnding
+                                ) ||
+                                lineIntersection(
+                                    y[2],
+                                    y[3],
+                                    pole,
+                                    markerEnding
+                                ) ||
+                                lineIntersection(y[3], y[0], pole, markerEnding)
+                            ) {
                                 markerCheck = false
                                 break
                             }
-                    }
-                    if(markerCheck === true)
-                    for(const y of externalLabels) {
-                        if(lineIntersection(y[0],y[1],pole,markerEnding)||
-                        lineIntersection(y[1],y[2],pole,markerEnding)||
-                        lineIntersection(y[2],y[3],pole,markerEnding)||
-                        lineIntersection(y[3],y[0],pole,markerEnding))
-                            {
-                                markerCheck = false
-                                break
-                            }
-                    }
-                    if(markerCheck === true)
-                    {
+                        }
+                    if (markerCheck === true) {
                         externalLabels.push([
                             [h[0], h[1]],
                             [h[0] + textWidth, h[1]],
                             [h[0] + textWidth, h[1] - fontSize],
                             [h[0], h[1] - fontSize],
                         ])
-                        markers.push([
-                            pole, markerEnding
-                        ])
+                        markers.push([pole, markerEnding])
                         return {
                             id: country.id,
                             position: new PointVector(h[0], h[1]),
@@ -240,16 +272,16 @@ export function generateAnnotations(
 }
 
 function insideCheck(point: number[], vs: Position[]): boolean {
-    var x = point[0],
+    const x = point[0],
         y = point[1]
-    var inside = false
-    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-        var xi = vs[i][0],
+    let inside = false
+    for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        const xi = vs[i][0],
             yi = vs[i][1]
-        var xj = vs[j][0],
+        const xj = vs[j][0],
             yj = vs[j][1]
 
-        var intersect =
+        const intersect =
             yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
         if (intersect) inside = !inside
     }
@@ -258,10 +290,10 @@ function insideCheck(point: number[], vs: Position[]): boolean {
 }
 
 function combinedRegions(data: RenderFeature[]): Position[][] {
-    let allPoints: Position[][] = []
+    const allPoints: Position[][] = []
     data.map(function (country) {
         if (country.geo.geometry.type === "Polygon") {
-            let regionPath = country.path.slice(1, -1).split("L")
+            const regionPath = country.path.slice(1, -1).split("L")
             allPoints.push(
                 regionPath.map((temp) => [
                     Number(temp.substring(0, temp.indexOf(","))),
@@ -269,9 +301,9 @@ function combinedRegions(data: RenderFeature[]): Position[][] {
                 ])
             )
         } else {
-            let countryPaths = country.path.slice(1, -1).split("ZM")
+            const countryPaths = country.path.slice(1, -1).split("ZM")
             for (const region of countryPaths) {
-                let regionPath = region.split("L")
+                const regionPath = region.split("L")
                 allPoints.push(
                     regionPath.map((temp) => [
                         Number(temp.substring(0, temp.indexOf(","))),
@@ -441,9 +473,9 @@ function rectIntersection(
     p3: Position,
     regionPoints: Position[]
 ): boolean {
-    for (var i = 0; i < regionPoints.length - 1; i++) {
-        let v1 = regionPoints[i]
-        let v2 = regionPoints[i + 1]
+    for (let i = 0; i < regionPoints.length - 1; i++) {
+        const v1 = regionPoints[i]
+        const v2 = regionPoints[i + 1]
         if (
             lineIntersection(p0, p1, v1, v2) ||
             lineIntersection(p1, p2, v1, v2) ||
@@ -461,7 +493,7 @@ function lineIntersection(
     p2: Position,
     p3: Position
 ): boolean {
-    var s, s1_x, s1_y, s2_x, s2_y, t
+    let s, s1_x, s1_y, s2_x, s2_y, t
 
     s1_x = p1[0] - p0[0]
     s1_y = p1[1] - p0[1]
@@ -487,17 +519,17 @@ function markerEndPosition(
 ): Position {
     switch (type) {
         case externalPositions.right:
-            return [point[0],point[1]-fontSize/2.5]
+            return [point[0], point[1] - fontSize / 2.5]
         case externalPositions.left:
-            return [point[0] + textWidth, point[1] - fontSize/2.5]
+            return [point[0] + textWidth, point[1] - fontSize / 2.5]
         case externalPositions.topRight:
             return point
         case externalPositions.bottomRight:
-            return [point[0], point[1]-fontSize/2.5]
+            return [point[0], point[1] - fontSize / 2.5]
         case externalPositions.topLeft:
-            return [point[0] + textWidth, point[1] - fontSize/3.5]
+            return [point[0] + textWidth, point[1] - fontSize / 3.5]
         case externalPositions.bottomLeft:
-            return [point[0] + textWidth, point[1] - fontSize/2.5]
+            return [point[0] + textWidth, point[1] - fontSize / 2.5]
         case externalPositions.bottom:
             return [point[0] + textWidth / 2, point[1] - fontSize]
         case externalPositions.top:

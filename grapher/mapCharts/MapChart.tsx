@@ -31,9 +31,9 @@ import {
     MapBracket,
     MapChartManager,
     MapEntity,
-    ChoroplethMapProps,
     RenderFeature,
     ChoroplethSeries,
+    ChoroplethMapManager,
 } from "./MapChartConstants.js"
 import { MapConfig } from "./MapConfig.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
@@ -71,7 +71,7 @@ import {
     HorizontalAlign,
     PrimitiveType,
 } from "../../clientUtils/owidTypes.js"
-import { generateAnnotations } from "./AnnotationGenerator.js"
+import { generateAnnotations, internalLabel } from "./AnnotationGenerator.js"
 import { isDarkColor } from "../color/ColorUtils.js"
 
 const PROJECTION_CHOOSER_WIDTH = 110
@@ -355,7 +355,8 @@ export class MapChart
                     isSelected: selectionArray.selectedSet.has(entityName),
                     color,
                     highlightFillColor: color,
-                    shortValue: mapColumn.formatValueShortWithAbbreviations(value)
+                    shortValue:
+                        mapColumn.formatValueShortWithAbbreviations(value),
                 }
             })
             .filter(isPresent)
@@ -367,6 +368,10 @@ export class MapChart
             map.set(series.seriesName, series)
         })
         return map
+    }
+
+    @computed get choroplethData(): Map<SeriesName, ChoroplethSeries> {
+        return this.seriesMap
     }
 
     @computed get colorScaleColumn(): CoreColumn {
@@ -574,6 +579,18 @@ export class MapChart
         )
     }
 
+    @computed get noDataColor(): Color {
+        return this.colorScale.noDataColor
+    }
+
+    @computed get choroplethMapBounds(): Bounds {
+        return this.bounds.padBottom(this.legendHeight + 15)
+    }
+
+    @computed get projection(): MapProjectionName {
+        return this.mapConfig.projection
+    }
+
     render(): JSX.Element {
         if (this.failMessage)
             return (
@@ -584,31 +601,11 @@ export class MapChart
                 />
             )
 
-        const {
-            focusBracket,
-            focusEntity,
-            tooltipTarget,
-            projectionChooserBounds,
-            seriesMap,
-            colorScale,
-            mapConfig,
-        } = this
-
-        const { projection } = mapConfig
+        const { tooltipTarget, projectionChooserBounds, mapConfig } = this
 
         return (
             <g ref={this.base} className="mapTab">
-                <ChoroplethMap
-                    bounds={this.bounds.padBottom(this.legendHeight + 15)}
-                    choroplethData={seriesMap}
-                    projection={projection}
-                    defaultFill={colorScale.noDataColor}
-                    onHover={this.onMapMouseOver}
-                    onHoverStop={this.onMapMouseLeave}
-                    onClick={this.onClick}
-                    focusBracket={focusBracket}
-                    focusEntity={focusEntity}
-                />
+                <ChoroplethMap manager={this} />
                 {this.renderMapLegend()}
                 <foreignObject
                     id="projection-chooser"
@@ -623,7 +620,7 @@ export class MapChart
                     }}
                 >
                     <ProjectionChooser
-                        value={projection}
+                        value={this.projection}
                         onChange={this.onProjectionChange}
                     />
                 </foreignObject>
@@ -649,39 +646,40 @@ export class MapChart
 declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
 @observer
-class ChoroplethMap extends React.Component<ChoroplethMapProps> {
+class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    @computed private get manager(): ChoroplethMapManager {
+        return this.props.manager
+    }
 
     @computed private get uid(): number {
         return guid()
     }
 
     @computed.struct private get bounds(): Bounds {
-        return this.props.bounds
+        return this.manager.bounds
     }
 
-    @computed.struct private get choroplethData(): Map<
-        string,
-        ChoroplethSeries
-    > {
-        return this.props.choroplethData
+    @computed private get choroplethData(): Map<SeriesName, ChoroplethSeries> {
+        return this.manager.choroplethData
     }
 
     @computed.struct private get defaultFill(): string {
-        return this.props.defaultFill
+        return this.manager.noDataColor
     }
 
     // Combine bounding boxes to get the extents of the entire map
     @computed private get mapBounds(): Bounds {
-        return Bounds.merge(geoBoundsFor(this.props.projection))
+        return Bounds.merge(geoBoundsFor(this.manager.projection))
     }
 
     @computed private get focusBracket(): ColorScaleBin | undefined {
-        return this.props.focusBracket
+        return this.manager.focusBracket
     }
 
     @computed private get focusEntity(): MapEntity | undefined {
-        return this.props.focusEntity
+        return this.manager.focusEntity
     }
 
     // Check if a geo entity is currently focused, either directly or via the bracket
@@ -716,7 +714,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
         }
 
-        return viewports[this.props.projection]
+        return viewports[this.manager.projection]
     }
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
@@ -757,14 +755,14 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection(): RenderFeature[] {
         return difference(
-            renderFeaturesFor(this.props.projection),
+            renderFeaturesFor(this.manager.projection),
             this.featuresInProjection
         )
     }
 
     @computed private get featuresInProjection(): RenderFeature[] {
-        const { projection } = this.props
-        const features = renderFeaturesFor(this.props.projection)
+        const { projection } = this.manager
+        const features = renderFeaturesFor(this.manager.projection)
         if (projection === MapProjectionName.World) return features
 
         return features.filter(
@@ -814,11 +812,11 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             if (feature && feature.distance < 20) {
                 if (feature.feature !== this.hoverNearbyFeature) {
                     this.hoverNearbyFeature = feature.feature
-                    this.props.onHover(feature.feature.geo, ev)
+                    this.manager.onMapMouseOver(feature.feature.geo, ev)
                 }
             } else {
                 this.hoverNearbyFeature = undefined
-                this.props.onHoverStop()
+                this.manager.onMapMouseLeave()
             }
         } else console.error("subunits was falsy")
     }
@@ -828,12 +826,12 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         ev: SVGMouseEvent
     ): void {
         this.hoverEnterFeature = feature
-        this.props.onHover(feature.geo, ev)
+        this.manager.onMapMouseOver(feature.geo, ev)
     }
 
     @action.bound private onMouseLeave(): void {
         this.hoverEnterFeature = undefined
-        this.props.onHoverStop()
+        this.manager.onMapMouseLeave()
     }
 
     @computed private get hoverFeature(): RenderFeature | undefined {
@@ -842,11 +840,27 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     @action.bound private onClick(ev: React.MouseEvent<SVGGElement>): void {
         if (this.hoverFeature !== undefined)
-            this.props.onClick(this.hoverFeature.geo, ev)
+            this.manager.onClick(this.hoverFeature.geo, ev)
     }
 
     // If true selected countries will have an outline
     @observable private showSelectedStyle = false
+
+    @computed private get internalAnnotations(): internalLabel[] {
+        const {
+            choroplethData,
+            featuresWithNoData,
+            featuresWithData,
+            viewportScale,
+        } = this
+        return generateAnnotations(
+            featuresWithData,
+            featuresWithNoData,
+            choroplethData,
+            viewportScale,
+            this.manager.projection
+        )
+    }
 
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
     // The ordering here is quite careful
@@ -875,7 +889,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             featuresWithNoData,
             choroplethData,
             viewportScale,
-            this.props.projection
+            this.manager.projection
         )
 
         return (
@@ -946,7 +960,10 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                         fill={defaultFill}
                                         fillOpacity={fillOpacity}
                                         onClick={(ev: SVGMouseEvent): void =>
-                                            this.props.onClick(feature.geo, ev)
+                                            this.manager.onClick(
+                                                feature.geo,
+                                                ev
+                                            )
                                         }
                                         onMouseEnter={(ev): void =>
                                             this.onMouseEnter(feature, ev)
@@ -998,7 +1015,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                     fill={fill}
                                     fillOpacity={fillOpacity}
                                     onClick={(ev: SVGMouseEvent): void =>
-                                        this.props.onClick(feature.geo, ev)
+                                        this.manager.onClick(feature.geo, ev)
                                     }
                                     onMouseEnter={(ev): void =>
                                         this.onMouseEnter(feature, ev)
@@ -1025,29 +1042,39 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                             ? textFill
                                             : "#444445"
                                     }
-                                    fontWeight={label.type == "internal"?annotationWeight:500}
+                                    fontWeight={
+                                        label.type == "internal"
+                                            ? annotationWeight
+                                            : 500
+                                    }
                                 >
                                     {label.value}
                                 </text>
-                                {label.type == "external" && label.value && label.markerEnd && (
-                                    <>
-                                        <line
-                                            x1={label.pole[0]}
-                                            y1={label.pole[1]}
-                                            x2={label.markerEnd[0]}
-                                            y2={label.markerEnd[1]}
-                                            stroke="#303030"
-                                            strokeWidth={0.5 / viewportScale}
-                                        />
-                                        <circle
-                                            cx={label.pole[0]}
-                                            cy={label.pole[1]}
-                                            r={1.25 / viewportScale}
-                                            fill="#303030"
-                                            style={{ pointerEvents: "none" }}
-                                        />
-                                    </>
-                                )}
+                                {label.type == "external" &&
+                                    label.value &&
+                                    label.markerEnd && (
+                                        <>
+                                            <line
+                                                x1={label.pole[0]}
+                                                y1={label.pole[1]}
+                                                x2={label.markerEnd[0]}
+                                                y2={label.markerEnd[1]}
+                                                stroke="#303030"
+                                                strokeWidth={
+                                                    0.5 / viewportScale
+                                                }
+                                            />
+                                            <circle
+                                                cx={label.pole[0]}
+                                                cy={label.pole[1]}
+                                                r={1.25 / viewportScale}
+                                                fill="#303030"
+                                                style={{
+                                                    pointerEvents: "none",
+                                                }}
+                                            />
+                                        </>
+                                    )}
                             </>
                         )
                     })}
