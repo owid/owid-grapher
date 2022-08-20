@@ -22,7 +22,7 @@ enum externalPositions {
     top = "top",
 }
 
-export interface internalLabel {
+export interface InternalLabel {
     id: string
     position: PointVector
     value?: any
@@ -38,7 +38,7 @@ export function generateAnnotations(
     choroplethData: Map<string, ChoroplethSeries>,
     viewportScale: number,
     projection: MapProjectionName
-): internalLabel[] {
+): InternalLabel[] {
     const minSize = 8
     const maxSize = 14
     const projectionGeo = MapProjectionGeos[projection]

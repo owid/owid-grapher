@@ -71,7 +71,7 @@ import {
     HorizontalAlign,
     PrimitiveType,
 } from "../../clientUtils/owidTypes.js"
-import { generateAnnotations, internalLabel } from "./AnnotationGenerator.js"
+import { generateAnnotations, InternalLabel } from "./AnnotationGenerator.js"
 import { isDarkColor } from "../color/ColorUtils.js"
 
 const PROJECTION_CHOOSER_WIDTH = 110
@@ -846,7 +846,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
     // If true selected countries will have an outline
     @observable private showSelectedStyle = false
 
-    @computed private get internalAnnotations(): internalLabel[] {
+    @computed private get internalAnnotations(): InternalLabel[] {
         const {
             choroplethData,
             featuresWithNoData,
@@ -875,6 +875,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
             featuresOutsideProjection,
             featuresWithNoData,
             featuresWithData,
+            internalAnnotations,
         } = this
         const focusStrokeColor = "#111"
         const focusStrokeWidth = 1.5
@@ -884,13 +885,6 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         const annotationWeight = 500
 
         const clipPath = makeClipPath(uid, bounds)
-        const internalAnnotations = generateAnnotations(
-            featuresWithData,
-            featuresWithNoData,
-            choroplethData,
-            viewportScale,
-            this.manager.projection
-        )
 
         return (
             <g
