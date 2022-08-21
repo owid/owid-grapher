@@ -355,7 +355,8 @@ export class MapChart
                     isSelected: selectionArray.selectedSet.has(entityName),
                     color,
                     highlightFillColor: color,
-                    shortValue: mapColumn.formatValueShortWithAbbreviations(value)
+                    shortValue:
+                        mapColumn.formatValueShortWithAbbreviations(value),
                 }
             })
             .filter(isPresent)
@@ -730,7 +731,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         )
     }
 
-    @computed private get matrixTransform(): string {
+    @computed private get offset(): number[] {
         const { bounds, mapBounds, viewport, viewportScale } = this
 
         // Calculate our reference dimensions. These values are independent of the current
@@ -750,8 +751,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const newOffsetX = boundsCenterX - newCenterX
         const newOffsetY = boundsCenterY - newCenterY
 
-        const matrixStr = `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
-        return matrixStr
+        return [newOffsetX, newOffsetY]
     }
 
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
@@ -856,7 +856,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             bounds,
             choroplethData,
             defaultFill,
-            matrixTransform,
+            offset,
             viewportScale,
             featuresOutsideProjection,
             featuresWithNoData,
@@ -868,6 +868,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
         const annotationWeight = 500
+        const matrixTransform = `matrix(${viewportScale},0,0,${viewportScale},${offset[0]},${offset[1]})`
 
         const clipPath = makeClipPath(uid, bounds)
         const internalAnnotations = generateAnnotations(
@@ -875,6 +876,8 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             featuresWithNoData,
             choroplethData,
             viewportScale,
+            offset,
+            bounds,
             this.props.projection
         )
 
@@ -1025,29 +1028,39 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                             ? textFill
                                             : "#444445"
                                     }
-                                    fontWeight={label.type == "internal"?annotationWeight:500}
+                                    fontWeight={
+                                        label.type == "internal"
+                                            ? annotationWeight
+                                            : 500
+                                    }
                                 >
                                     {label.value}
                                 </text>
-                                {label.type == "external" && label.value && label.markerEnd && (
-                                    <>
-                                        <line
-                                            x1={label.pole[0]}
-                                            y1={label.pole[1]}
-                                            x2={label.markerEnd[0]}
-                                            y2={label.markerEnd[1]}
-                                            stroke="#303030"
-                                            strokeWidth={0.5 / viewportScale}
-                                        />
-                                        <circle
-                                            cx={label.pole[0]}
-                                            cy={label.pole[1]}
-                                            r={1.25 / viewportScale}
-                                            fill="#303030"
-                                            style={{ pointerEvents: "none" }}
-                                        />
-                                    </>
-                                )}
+                                {label.type == "external" &&
+                                    label.value &&
+                                    label.markerEnd && (
+                                        <>
+                                            <line
+                                                x1={label.pole[0]}
+                                                y1={label.pole[1]}
+                                                x2={label.markerEnd[0]}
+                                                y2={label.markerEnd[1]}
+                                                stroke="#303030"
+                                                strokeWidth={
+                                                    0.5 / viewportScale
+                                                }
+                                            />
+                                            <circle
+                                                cx={label.pole[0]}
+                                                cy={label.pole[1]}
+                                                r={1.25 / viewportScale}
+                                                fill="#303030"
+                                                style={{
+                                                    pointerEvents: "none",
+                                                }}
+                                            />
+                                        </>
+                                    )}
                             </>
                         )
                     })}
