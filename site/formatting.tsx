@@ -32,9 +32,14 @@ export const formatUrls = (html: string) =>
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
         .replace(new RegExp("/app/uploads", "g"), "/uploads")
 
-export const formatAuthors = (authors: string[], requireMax?: boolean) => {
-    if (requireMax && authors.indexOf("Max Roser") === -1)
-        authors.push("Max Roser")
+export const formatAuthors = ({
+    authors,
+    requireMax,
+}: {
+    authors: string[]
+    requireMax?: boolean
+}) => {
+    if (requireMax && !authors.includes("Max Roser")) authors.push("Max Roser")
 
     let authorsText = authors.slice(0, -1).join(", ")
     if (authorsText.length === 0) authorsText = authors[0]

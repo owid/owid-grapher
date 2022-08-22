@@ -63,10 +63,10 @@ export const LongFormPage = (props: {
         overrides?.citationPublicationDate ?? post.date
     const citationPublishedYear = citationPublicationDate.getFullYear()
     const citationAuthors = overrides?.citationAuthors ?? post.authors
-    const citationAuthorsFormatted = formatAuthors(
-        citationAuthors,
-        withCitation
-    )
+    const citationAuthorsFormatted = formatAuthors({
+        authors: citationAuthors,
+        requireMax: withCitation,
+    })
 
     let hasSidebar = false
     const endNotes = { text: "Endnotes", slug: "endnotes" }
