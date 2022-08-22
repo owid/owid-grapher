@@ -16,6 +16,7 @@ export interface MarimekkoChartManager extends ChartManager {
     sortConfig?: SortConfig
     hideNoDataArea?: boolean
     includedEntities?: number[]
+    marimekkoChartIgnoreSelection?: boolean
 }
 
 export interface EntityColorData {

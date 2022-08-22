@@ -77,6 +77,7 @@ export interface CaptionedChartManager
     showSelectEntitiesButton?: boolean
     shouldIncludeDetailsInStaticExport?: boolean
     detailRenderers: MarkdownTextWrap[]
+    marimekkoChartIgnoreSelection?: boolean
 }
 
 interface CaptionedChartProps {
@@ -134,6 +135,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.manager.tab === GrapherTabOption.map
     }
 
+    @computed protected get isMarimekkoTab(): boolean {
+        return this.manager.tab === GrapherTabOption.marimekko
+    }
+
     @computed protected get bounds(): Bounds {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
@@ -159,11 +164,13 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     renderChart(): JSX.Element {
-        const { manager } = this
+        const { manager, isMarimekkoTab, isMapTab } = this
         const bounds = this.boundsForChart
 
-        const chartTypeName = this.isMapTab
+        const chartTypeName = isMapTab
             ? ChartTypeName.WorldMap
+            : isMarimekkoTab
+            ? ChartTypeName.Marimekko
             : manager.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ??
               manager.type ??
               ChartTypeName.LineChart

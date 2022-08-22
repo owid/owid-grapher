@@ -431,6 +431,10 @@ export class Grapher
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
 
+    @computed get hasMarimekkoTab(): boolean {
+        return this.yColumnSlugs?.length === 1
+    }
+
     /**
      * todo: factor this out and make more RAII.
      *
@@ -609,11 +613,20 @@ export class Grapher
     }
 
     @computed private get isChartOrMapTab(): boolean {
-        return this.tab === GrapherTabOption.chart || this.isOnMapTab
+        return (
+            this.tab === GrapherTabOption.chart ||
+            this.isOnMapTab ||
+            this.tab === GrapherTabOption.marimekko
+        )
     }
 
     @computed private get isOnMapTab(): boolean {
         return this.tab === GrapherTabOption.map
+    }
+
+    @computed get marimekkoChartIgnoreSelection(): boolean {
+
+        return this.tab === GrapherTabOption.marimekko
     }
 
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
@@ -1083,7 +1096,8 @@ export class Grapher
         if (
             desiredTab === GrapherTabOption.chart ||
             desiredTab === GrapherTabOption.map ||
-            desiredTab === GrapherTabOption.table
+            desiredTab === GrapherTabOption.table ||
+            desiredTab === GrapherTabOption.marimekko
         ) {
             this.tab = desiredTab
             this.overlay = undefined
@@ -1225,6 +1239,7 @@ export class Grapher
         return [
             this.hasChartTab && GrapherTabOption.chart,
             this.hasMapTab && GrapherTabOption.map,
+            this.hasMarimekkoTab && GrapherTabOption.marimekko,
             GrapherTabOption.table,
             GrapherTabOption.sources,
             GrapherTabOption.download,

@@ -716,7 +716,7 @@ export class MarimekkoChart
     }
 
     @computed private get selectedItems(): Item[] {
-        const selectedSet = this.selectionArray.selectedSet
+        const selectedSet = this.selectedSet
         const { sortedItems } = this
         if (selectedSet.size === 0) return []
         return sortedItems.filter((item) => selectedSet.has(item.entityName))
@@ -970,6 +970,12 @@ export class MarimekkoChart
         )
     }
 
+    @computed get selectedSet(): Set<string> {
+        if (this.manager.marimekkoChartIgnoreSelection) return new Set()
+
+        return this.selectionArray.selectedSet
+    }
+
     private renderBars(): JSX.Element[] {
         const normalElements: JSX.Element[] = []
         const highlightedElements: JSX.Element[] = [] // highlighted elements have a thicker stroke and should be drawn last to overlap others
@@ -983,14 +989,13 @@ export class MarimekkoChart
             placedItems,
             hoveredEntityName,
         } = this
-        const selectionSet = this.selectionArray.selectedSet
         const targetTime = this.manager.endTime
         const timeColumn = this.inputTable.timeColumn
         const xOverrideTime = this.manager.xOverrideTime
         const yAxisColumn = this.formatColumn
         const xAxisColumn = this.xColumn
         const labelYOffset = 0
-        const hasSelection = selectionSet.size > 0
+        const hasSelection = this.selectedSet.size > 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
         let patterns: JSX.Element[] = []
@@ -1088,7 +1093,7 @@ export class MarimekkoChart
                 dualAxis.horizontalAxis.place(xValue) -
                 dualAxis.horizontalAxis.place(x0)
 
-            const isSelected = selectionSet.has(entityName)
+            const isSelected = this.selectedSet.has(entityName)
             const isHovered = entityName === hoveredEntityName
             const isFaint =
                 (focusColorBin !== undefined &&
