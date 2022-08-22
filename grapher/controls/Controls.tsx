@@ -6,6 +6,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
+import { faChartArea } from "@fortawesome/free-solid-svg-icons/faChartArea"
+import { faGlobeAfrica } from "@fortawesome/free-solid-svg-icons/faGlobeAfrica"
+import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
+import { faList } from "@fortawesome/free-solid-svg-icons/faList"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
 import {
@@ -21,6 +25,7 @@ import { AxisConfig } from "../axis/AxisConfig.js"
 import { Tippy } from "../chart/Tippy.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import classnames from "classnames"
+import { match } from "ts-pattern"
 
 export interface NoDataAreaToggleManager {
     showNoDataArea?: boolean
@@ -295,6 +300,26 @@ export interface FooterControlsManager extends ShareMenuManager {
 export class FooterControls extends React.Component<{
     manager: FooterControlsManager
 }> {
+    private getIconForTab(tab: GrapherTabOption): JSX.Element {
+        return match(tab)
+            .with(GrapherTabOption.chart, () => (
+                <FontAwesomeIcon icon={faChartArea} />
+            ))
+            .with(GrapherTabOption.map, () => (
+                <FontAwesomeIcon icon={faGlobeAfrica} />
+            ))
+            .with(GrapherTabOption.table, () => (
+                <FontAwesomeIcon icon={faTable} />
+            ))
+            .with(GrapherTabOption.sources, () => (
+                <FontAwesomeIcon icon={faList} />
+            ))
+            .with(GrapherTabOption.download, () => (
+                <FontAwesomeIcon icon={faDownload} />
+            ))
+            .exhaustive()
+    }
+
     @computed private get manager(): FooterControlsManager {
         return this.props.manager
     }
@@ -329,6 +354,7 @@ export class FooterControls extends React.Component<{
                                     }}
                                     data-track-note={"chart-click-" + tabName}
                                 >
+                                    {this.getIconForTab(tabName)}
                                     {tabName}
                                 </a>
                             </li>
