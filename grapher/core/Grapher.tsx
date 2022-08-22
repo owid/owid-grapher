@@ -191,9 +191,6 @@ const legacyConfigToConfig = (
     if (!legacyConfig.selectedData) return legacyConfig
 
     const newConfig = { ...legacyConfig } as GrapherInterface
-    newConfig.selectedEntityIds = uniq(
-        legacyConfig.selectedData.map((row) => row.entityId)
-    ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
     return newConfig
 }
 
@@ -2034,23 +2031,6 @@ export class Grapher
     }
 
     @computed get selectedColumnSlugs(): ColumnSlug[] {
-        const { selectedData } = this.legacyConfigAsAuthored
-        const dimensions = this.filledDimensions
-
-        if (selectedData) {
-            const columnSlugs = selectedData.map((item) => {
-                const columnSlug = dimensions[item.index]?.columnSlug
-
-                if (!columnSlug)
-                    console.warn(
-                        `Couldn't find specified dimension in chart config`,
-                        item
-                    )
-                return columnSlug
-            })
-            return uniq(excludeUndefined(columnSlugs))
-        }
-
         return []
     }
 
@@ -2435,8 +2415,7 @@ export class Grapher
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
 
-        const originalSelectedEntityIds =
-            authoredConfig.selectedData?.map((row) => row.entityId) || []
+        const originalSelectedEntityIds = authoredConfig.selectedEntityIds ?? []
         const currentSelectedEntityIds = this.selection.allSelectedEntityIds
 
         const entityIdsThatTheUserDeselected = difference(

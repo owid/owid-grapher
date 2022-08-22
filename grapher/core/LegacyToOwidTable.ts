@@ -60,14 +60,6 @@ export const legacyToOwidTableAndDimensions = (
 
     const dimensions = grapherConfig.dimensions || []
 
-    grapherConfig.selectedData
-        ?.filter((item) => item.entityId && item.color)
-        .forEach((item) => {
-            entityColorMap.set(item.entityId, item.color!)
-            const varId = dimensions[item.index]?.variableId
-            if (varId) columnColorMap.set(varId.toString(), item.color!)
-        })
-
     // Base column defs, shared by all variable tables
 
     const baseColumnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
