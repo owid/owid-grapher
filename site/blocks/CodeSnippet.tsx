@@ -4,7 +4,6 @@ import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
-import { delay } from "../../clientUtils/Util.js"
 
 export const CodeSnippet = (props: { code: string }) => {
     const [hasCopied, setHasCopied] = useState(false)
@@ -14,7 +13,7 @@ export const CodeSnippet = (props: { code: string }) => {
             navigator.clipboard.writeText(props.code)
             setHasCopied(true)
             // reset CSS animation
-            delay(() => setHasCopied(false), 500)
+            setTimeout(() => setHasCopied(false), 500)
         } catch (err) {
             console.error(
                 "Couldn't copy to clipboard using navigator.clipboard",
