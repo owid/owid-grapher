@@ -1,0 +1,41 @@
+.wp-block-research-and-writing {
+    background-color: #fff;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    padding: 0 80px;
+}
+
+.research-and-writing__top {
+    grid-column: 1 / 13;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: 24px;
+
+    > .wp-block-owid-card {
+        grid-column: 1 / 7;
+    }
+
+    .research-and-writing__top-right {
+        grid-column: 7 / 13;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .research-and-writing__shorts {
+        background: $blue-10;
+        padding: 24px;
+
+        h5 {
+            text-transform: uppercase;
+            letter-spacing: 1.6px;
+        }
+
+        .wp-block-group {
+            h6 {
+                // TODO: comprehensive typography PR
+                @include owid-link-90;
+                font-family: $serif-font-stack;
+            }
+        }
+    }
+}

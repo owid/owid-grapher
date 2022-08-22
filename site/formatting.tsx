@@ -141,6 +141,7 @@ export const splitContentIntoSectionsAndColumns = (
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
                 $el.hasClass("wp-block-owid-grid") ||
+                $el.hasClass("wp-block-research-and-writing") ||
                 $el.hasClass(WP_BlockClass.FullContentWidth) ||
                 // restrict lookup to first-level children to prevent wrongly
                 // matching (unlikely) full-width additional information blocks
