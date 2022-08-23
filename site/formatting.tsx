@@ -41,7 +41,8 @@ export const formatAuthors = ({
     requireMax?: boolean
     forBibtex?: boolean
 }) => {
-    if (requireMax && !authors.includes("Max Roser")) authors.push("Max Roser")
+    if (requireMax && !authors.includes("Max Roser"))
+        authors = [...authors, "Max Roser"]
 
     let authorsText = authors.slice(0, -1).join(forBibtex ? " and " : ", ")
     if (authorsText.length === 0) authorsText = authors[0]
