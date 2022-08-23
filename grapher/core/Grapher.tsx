@@ -225,12 +225,12 @@ export const legacyConfigToConfig = (
                     newConfig.selectedEntityColors ?? {}
                 const entityName = entityNamesById[item.entityId]
                 if (entityName) {
-                    newConfig.selectedEntityColors[entityName] = item.color
+                    newConfig.selectedEntityColors[entityName] ??= item.color
                 }
             }
             if (dimension?.variableId) {
                 dimension.display = dimension.display ?? {}
-                dimension.display.color = item.color
+                dimension.display.color ??= item.color
             }
         }
     })
