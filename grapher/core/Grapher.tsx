@@ -508,7 +508,8 @@ export class Grapher
         this.inputTable = props.table ?? BlankOwidTable(`initialGrapherTable`)
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
-        if (props) this.setAuthoredVersion(props)
+        if (props)
+            this.setAuthoredVersion({ ...props, selectedData: undefined })
 
         this.updateFromObject(modernConfig)
 
