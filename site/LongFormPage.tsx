@@ -64,10 +64,6 @@ export const LongFormPage = (props: {
         overrides?.citationPublicationDate ?? post.date
     const citationPublishedYear = citationPublicationDate.getFullYear()
     const citationAuthors = overrides?.citationAuthors ?? post.authors
-    const citationAuthorsFormatted = formatAuthors(
-        citationAuthors,
-        withCitation
-    )
 
     let hasSidebar = false
     const endNotes = { text: "Endnotes", slug: "endnotes" }
@@ -105,10 +101,17 @@ export const LongFormPage = (props: {
         bodyClasses.push(formattingOptions.bodyClassName)
     }
 
-    const citationText = `${citationAuthorsFormatted} (${citationPublishedYear}) - "${citationTitle}. Published online at OurWorldInData.org. Retrieved from: '${citationCanonicalUrl}' [Online Resource]`
+    const citationText = `${formatAuthors({
+        authors: citationAuthors,
+        requireMax: true,
+    })} (${citationPublishedYear}) - "${citationTitle}". Published online at OurWorldInData.org. Retrieved from: '${citationCanonicalUrl}' [Online Resource]`
 
     const bibtex = `@article{owid${citationSlug.replace(/-/g, "")},
-    author = {${citationAuthorsFormatted}},
+    author = {${formatAuthors({
+        authors: citationAuthors,
+        requireMax: true,
+        forBibtex: true,
+    })}},
     title = {${citationTitle}},
     journal = {Our World in Data},
     year = {${citationPublishedYear}},
@@ -373,6 +376,7 @@ export const LongFormPage = (props: {
                                                             />
                                                         </div>
                                                         <p>BibTeX citation</p>
+
                                                         <div>
                                                             <CodeSnippet
                                                                 code={bibtex}

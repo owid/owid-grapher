@@ -571,40 +571,20 @@ export const trimObject = <Obj>(
     return clone
 }
 
-// TODO use fetchText() in fetchJSON()
-// decided not to do this while implementing our COVID-19 page in order to prevent breaking something.
 export const fetchText = async (url: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        req.addEventListener("load", function () {
-            resolve(this.responseText)
-        })
-        req.addEventListener("readystatechange", () => {
-            if (req.readyState === 4) {
-                if (req.status !== 200) {
-                    reject(new Error(`${req.status} ${req.statusText}`))
-                }
-            }
-        })
-        req.open("GET", url)
-        req.send()
+    return await fetch(url).then((res) => {
+        if (!res.ok)
+            throw new Error(`Fetch failed: ${res.status} ${res.statusText}`)
+        return res.text()
     })
 }
 
-// todo: can we ditch this in favor of a simple fetch?
 export const getCountryCodeFromNetlifyRedirect = async (): Promise<
     string | undefined
 > =>
-    new Promise((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        req.addEventListener("load", () => {
-            resolve(req.responseURL.split("?")[1])
-        })
-        req.addEventListener("error", () =>
-            reject(new Error("Couldn't retrieve country code"))
-        )
-        req.open("GET", "/detect-country-redirect")
-        req.send()
+    await fetch("/detect-country-redirect").then((res) => {
+        if (!res.ok) throw new Error("Couldn't retrieve country code")
+        return res.url.split("?")[1]
     })
 
 export const stripHTML = (html: string): string => striptags(html)

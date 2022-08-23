@@ -19,7 +19,10 @@ export const Byline = ({
                     }}
                 ></div>
             ) : (
-                <a href="/team">{`by ${formatAuthors(authors, withMax)}`}</a>
+                <a href="/team">{`by ${formatAuthors({
+                    authors,
+                    requireMax: withMax,
+                })}`}</a>
             )}
         </div>
     )
