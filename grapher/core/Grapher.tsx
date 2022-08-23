@@ -205,17 +205,6 @@ export const legacyConfigToConfig = (
         legacyConfig.selectedData.map((row) => row.entityId)
     ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
 
-    const variableIDsInSelectionOrder = excludeUndefined(
-        legacyConfig.selectedData?.map(
-            (item) => legacyConfig.dimensions?.[item.index]?.variableId
-        ) ?? []
-    )
-    newConfig.dimensions = sortBy(legacyConfig.dimensions || [], (dim) =>
-        variableIDsInSelectionOrder.findIndex(
-            (variableId) => dim.variableId === variableId
-        )
-    )
-
     legacyConfig.selectedData.forEach((item) => {
         if (item.entityId && item.color) {
             const dimension = newConfig.dimensions?.[item.index]
@@ -234,6 +223,17 @@ export const legacyConfigToConfig = (
             }
         }
     })
+
+    const variableIDsInSelectionOrder = excludeUndefined(
+        legacyConfig.selectedData?.map(
+            (item) => legacyConfig.dimensions?.[item.index]?.variableId
+        ) ?? []
+    )
+    newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
+        variableIDsInSelectionOrder.findIndex(
+            (variableId) => dim.variableId === variableId
+        )
+    )
 
     delete newConfig.selectedData
 
