@@ -183,6 +183,8 @@ import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 import { detailOnDemandRegex } from "../text/parser.js"
 
+import { entityNamesById } from "../entityIdsToNames.js"
+
 declare const window: any
 
 export const legacyConfigToConfig = (
@@ -221,7 +223,10 @@ export const legacyConfigToConfig = (
                 // Need to convert entityId to entityName, then insert it into `selectedEntityColors`
                 newConfig.selectedEntityColors =
                     newConfig.selectedEntityColors ?? {}
-                // newConfig.selectedEntityColors[entityName] = item.color
+                const entityName = entityNamesById[item.entityId]
+                if (entityName) {
+                    newConfig.selectedEntityColors[entityName] = item.color
+                }
             }
             if (dimension?.variableId) {
                 dimension.display = dimension.display ?? {}
