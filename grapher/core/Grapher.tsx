@@ -33,6 +33,7 @@ import {
     isEmpty,
     get,
     set,
+    sortBy,
 } from "../../clientUtils/Util.js"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
 import {
@@ -184,16 +185,53 @@ import { detailOnDemandRegex } from "../text/parser.js"
 
 declare const window: any
 
-const legacyConfigToConfig = (
+export const legacyConfigToConfig = (
     config: LegacyGrapherInterface | GrapherInterface
 ): GrapherInterface => {
     const legacyConfig = config as LegacyGrapherInterface
     if (!legacyConfig.selectedData) return legacyConfig
 
-    const newConfig = { ...legacyConfig } as GrapherInterface
+    const newConfig = { ...legacyConfig } as LegacyGrapherInterface
+    /*
+    (x) select variables to show
+    (x) select entities to show by default
+    (x) specify the order of dimensions
+    specify colors for dimensions
+    */
+
     newConfig.selectedEntityIds = uniq(
         legacyConfig.selectedData.map((row) => row.entityId)
     ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
+
+    const variableIDsInSelectionOrder = excludeUndefined(
+        legacyConfig.selectedData?.map(
+            (item) => legacyConfig.dimensions?.[item.index]?.variableId
+        ) ?? []
+    )
+    newConfig.dimensions = sortBy(legacyConfig.dimensions || [], (dim) =>
+        variableIDsInSelectionOrder.findIndex(
+            (variableId) => dim.variableId === variableId
+        )
+    )
+
+    legacyConfig.selectedData.forEach((item) => {
+        if (item.entityId && item.color) {
+            const dimension = newConfig.dimensions?.[item.index]
+            if (dimension) {
+                // Need to convert entityId to entityName, then insert it into `selectedEntityColors`
+                newConfig.selectedEntityColors =
+                    newConfig.selectedEntityColors ?? {}
+                // newConfig.selectedEntityColors[entityName] = item.color
+            }
+            if (dimension?.variableId) {
+                dimension.display = dimension.display ?? {}
+                dimension.display.color = item.color
+            }
+        }
+    })
+
+    delete newConfig.selectedData
+
     return newConfig
 }
 

@@ -5,7 +5,7 @@ import svgo from "svgo"
 import sharp from "sharp"
 import * as path from "path"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { Grapher } from "../grapher/core/Grapher.js"
+import { Grapher, legacyConfigToConfig } from "../grapher/core/Grapher.js"
 import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
@@ -91,7 +91,8 @@ export async function bakeGrapherToSvg(
     overwriteExisting = false,
     verbose = true
 ) {
-    const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
+    const convertedConfig = legacyConfigToConfig(jsonConfig)
+    const grapher = initGrapherForSvgExport(convertedConfig, queryStr)
     const { width, height } = grapher.idealBounds
     const outPath = buildSvgOutFilepath(
         slug,
