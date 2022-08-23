@@ -207,9 +207,8 @@ export const legacyConfigToConfig = (
 
     legacyConfig.selectedData.forEach((item) => {
         if (item.entityId && item.color) {
-            const dimension = newConfig.dimensions?.[item.index]
-            if (dimension) {
-                // Need to convert entityId to entityName, then insert it into `selectedEntityColors`
+            // migrate entity color
+            if (!legacyConfig.selectedEntityColors) {
                 newConfig.selectedEntityColors =
                     newConfig.selectedEntityColors ?? {}
                 const entityName = entityNamesById[item.entityId]
@@ -217,6 +216,9 @@ export const legacyConfigToConfig = (
                     newConfig.selectedEntityColors[entityName] ??= item.color
                 }
             }
+
+            // migrate dimension color
+            const dimension = newConfig.dimensions?.[item.index]
             if (dimension?.variableId) {
                 dimension.display = dimension.display ?? {}
                 dimension.display.color ??= item.color
