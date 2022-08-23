@@ -63,10 +63,6 @@ export const LongFormPage = (props: {
         overrides?.citationPublicationDate ?? post.date
     const citationPublishedYear = citationPublicationDate.getFullYear()
     const citationAuthors = overrides?.citationAuthors ?? post.authors
-    const citationAuthorsFormatted = formatAuthors(
-        citationAuthors,
-        withCitation
-    )
 
     let hasSidebar = false
     const endNotes = { text: "Endnotes", slug: "endnotes" }
@@ -105,7 +101,11 @@ export const LongFormPage = (props: {
     }
 
     const bibtex = `@article{owid${citationSlug.replace(/-/g, "")},
-    author = {${citationAuthorsFormatted}},
+    author = {${formatAuthors({
+        authors: citationAuthors,
+        requireMax: true,
+        forBibtex: true,
+    })}},
     title = {${citationTitle}},
     journal = {Our World in Data},
     year = {${citationPublishedYear}},
@@ -364,9 +364,12 @@ export const LongFormPage = (props: {
                                                             can be cited as:
                                                         </p>
                                                         <pre className="citation">
-                                                            {
-                                                                citationAuthorsFormatted
-                                                            }{" "}
+                                                            {formatAuthors({
+                                                                authors:
+                                                                    citationAuthors,
+                                                                requireMax:
+                                                                    true,
+                                                            })}{" "}
                                                             (
                                                             {
                                                                 citationPublishedYear
