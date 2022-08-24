@@ -191,6 +191,7 @@ export class LineLegend extends React.Component<{
                       text: label.annotation,
                       maxWidth: maxAnnotationWidth,
                       fontSize: fontSize * 0.9,
+                      lineHeight: 1,
                   })
                 : undefined
             const textWrap = new TextWrap({
@@ -198,6 +199,7 @@ export class LineLegend extends React.Component<{
                 maxWidth: maxTextWidth,
                 fontSize,
                 fontWeight,
+                lineHeight: 1,
             })
             return {
                 ...label,

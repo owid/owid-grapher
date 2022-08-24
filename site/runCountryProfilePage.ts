@@ -9,10 +9,6 @@ interface ChartItem {
     ul: HTMLUListElement
 }
 
-interface SearchResult {
-    target: string
-}
-
 function encodeHashSafe(s: string) {
     return encodeURIComponent(s.replace(/ /g, "-"))
 }

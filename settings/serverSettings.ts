@@ -25,6 +25,10 @@ export const ENV: "development" | "production" = clientSettings.ENV
 
 export const ADMIN_SERVER_PORT: number = clientSettings.ADMIN_SERVER_PORT
 export const ADMIN_SERVER_HOST: string = clientSettings.ADMIN_SERVER_HOST
+export const DATA_API_FOR_ADMIN_UI: string | undefined =
+    serverSettings.DATA_API_FOR_ADMIN_UI
+export const DATA_API_FOR_BAKING: string | undefined =
+    serverSettings.DATA_API_FOR_BAKING
 export const BAKED_BASE_URL: string = clientSettings.BAKED_BASE_URL
 
 export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL
@@ -79,16 +83,6 @@ export const ALGOLIA_SECRET_KEY: string =
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true" ?? false
 
-// Settings for automated email sending, e.g. for admin invite
-export const EMAIL_HOST: string = serverSettings.EMAIL_HOST ?? "smtp.mail.com"
-export const EMAIL_PORT: number =
-    parseIntOrUndefined(serverSettings.EMAIL_PORT) ?? 443
-export const EMAIL_HOST_USER: string = serverSettings.EMAIL_HOST_USER ?? "user"
-export const EMAIL_HOST_PASSWORD: string =
-    serverSettings.EMAIL_HOST_PASSWORD ?? "password"
-export const EMAIL_USE_TLS: boolean =
-    serverSettings.EMAIL_USE_TLS !== "false" ?? true
-
 // Wordpress target setting
 export const WORDPRESS_DIR: string = serverSettings.WORDPRESS_DIR ?? "wordpress"
 export const HTTPS_ONLY: boolean = serverSettings.HTTPS_ONLY !== "false" ?? true
@@ -107,8 +101,16 @@ export const UNCATEGORIZED_TAG_ID: number =
 // Should the static site output be baked when relevant database items change
 export const BAKE_ON_CHANGE: boolean =
     serverSettings.BAKE_ON_CHANGE === "true" ?? false
+export const MAX_NUM_BAKE_PROCESSES: number = Number.parseInt(
+    serverSettings.MAX_NUM_BAKE_PROCESSES ?? "4",
+    10
+)
 export const DEPLOY_QUEUE_FILE_PATH: string =
     serverSettings.DEPLOY_QUEUE_FILE_PATH ?? `${BASE_DIR}/.queue`
 export const DEPLOY_PENDING_FILE_PATH: string =
     serverSettings.DEPLOY_PENDING_FILE_PATH ?? `${BASE_DIR}/.pending`
 export const CLOUDFLARE_AUD: string = serverSettings.CLOUDFLARE_AUD ?? ""
+
+export const DATA_FILES_CHECKSUMS_DIRECTORY: string =
+    serverSettings.DATA_FILES_CHECKSUMS_DIRECTORY ??
+    `${BASE_DIR}/data_files_checksums`

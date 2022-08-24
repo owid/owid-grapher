@@ -1,5 +1,5 @@
 #! /usr/bin/env jest
-import { Grapher } from "../core/Grapher.js"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher.js"
 import {
     ChartTypeName,
     EntitySelectionMode,
@@ -9,6 +9,7 @@ import {
 import {
     GrapherInterface,
     GrapherQueryParams,
+    LegacyGrapherInterface,
     LegacyGrapherQueryParams,
 } from "../core/GrapherInterface.js"
 import {
@@ -84,7 +85,30 @@ it("does not preserve defaults in the object", () => {
 
 const unit = "% of children under 5"
 const name = "Some display name"
-const legacyConfig = {
+const data = {
+    years: [2000, 2010, 2010],
+    entities: [207, 15, 207],
+    values: [4, 20, 34],
+}
+const metadata = {
+    id: 3512,
+    display: {
+        name,
+    },
+    dimensions: {
+        entities: {
+            values: [
+                { name: "Afghanistan", id: 15, code: "AFG" },
+                { name: "Iceland", id: 207, code: "ISL" },
+            ],
+        },
+        years: {
+            values: [{ id: 2000 }, { id: 2010 }],
+        },
+    },
+}
+const legacyConfig: Omit<LegacyGrapherInterface, "data"> &
+    Pick<GrapherProgrammaticInterface, "owidDataset"> = {
     dimensions: [
         {
             variableId: 3512,
@@ -94,23 +118,15 @@ const legacyConfig = {
             },
         },
     ],
-    owidDataset: {
-        variables: {
-            "3512": {
-                years: [2000, 2010, 2010],
-                entities: [207, 15, 207],
-                values: [4, 20, 34],
-                id: 3512,
-                display: {
-                    name,
-                },
+    owidDataset: new Map([
+        [
+            3512,
+            {
+                data,
+                metadata,
             },
-        },
-        entityKey: {
-            "15": { name: "Afghanistan", id: 15, code: "AFG" },
-            "207": { name: "Iceland", id: 207, code: "ISL" },
-        },
-    },
+        ],
+    ]),
     selectedData: [
         { entityId: 207, index: 0 },
         { entityId: 15, index: 1 },
@@ -163,7 +179,9 @@ it("can generate a url with country selection even if there is no entity code", 
         ...legacyConfig,
         selectedData: [],
     }
-    config2.owidDataset.entityKey[15].code = undefined as any
+    metadata.dimensions.entities.values.find(
+        (entity) => entity.id === 15
+    )!.code = undefined as any
     const grapher2 = new Grapher(config2)
     expect(grapher2.queryStr).toBe("")
     grapher2.selection.selectAll()
@@ -230,21 +248,50 @@ const getGrapher = (): Grapher =>
                 property: DimensionProperty.y,
             },
         ],
-        owidDataset: {
-            variables: {
-                "142609": {
-                    years: [-1, 0, 1, 2],
-                    entities: [1, 2, 1, 2],
-                    values: [51, 52, 53, 54],
-                    id: 142609,
-                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+        owidDataset: new Map([
+            [
+                142609,
+                {
+                    data: {
+                        years: [-1, 0, 1, 2],
+                        entities: [1, 2, 1, 2],
+                        values: [51, 52, 53, 54],
+                    },
+                    metadata: {
+                        id: 142609,
+                        display: { zeroDay: "2020-01-21", yearIsDay: true },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "United Kingdom",
+                                        code: "GBR",
+                                        id: 1,
+                                    },
+                                    { name: "Ireland", code: "IRL", id: 2 },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: -1,
+                                    },
+                                    {
+                                        id: 0,
+                                    },
+                                    {
+                                        id: 1,
+                                    },
+                                    {
+                                        id: 2,
+                                    },
+                                ],
+                            },
+                        },
+                    },
                 },
-            },
-            entityKey: {
-                "1": { name: "United Kingdom", code: "GBR", id: 1 },
-                "2": { name: "Ireland", code: "IRL", id: 2 },
-            },
-        },
+            ],
+        ]),
         minTime: -5000,
         maxTime: 5000,
     })

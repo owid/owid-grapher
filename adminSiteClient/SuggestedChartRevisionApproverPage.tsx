@@ -1239,6 +1239,9 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             {...{
                                 ...grapherConfig,
                                 bounds: this.grapherBounds,
+                                dataApiUrlForAdmin:
+                                    this.context.admin.settings
+                                        .DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
                             }}
                         />
                     </figure>

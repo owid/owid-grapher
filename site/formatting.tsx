@@ -4,7 +4,7 @@ import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
     TocHeading,
-    WP_BlockType,
+    WP_BlockClass,
     WP_ColumnStyle,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
@@ -32,11 +32,19 @@ export const formatUrls = (html: string) =>
         .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
         .replace(new RegExp("/app/uploads", "g"), "/uploads")
 
-export const formatAuthors = (authors: string[], requireMax?: boolean) => {
-    if (requireMax && authors.indexOf("Max Roser") === -1)
-        authors.push("Max Roser")
+export const formatAuthors = ({
+    authors,
+    requireMax,
+    forBibtex,
+}: {
+    authors: string[]
+    requireMax?: boolean
+    forBibtex?: boolean
+}) => {
+    if (requireMax && !authors.includes("Max Roser"))
+        authors = [...authors, "Max Roser"]
 
-    let authorsText = authors.slice(0, -1).join(", ")
+    let authorsText = authors.slice(0, -1).join(forBibtex ? " and " : ", ")
     if (authorsText.length === 0) authorsText = authors[0]
     else authorsText += ` and ${last(authors)}`
 
@@ -133,7 +141,7 @@ export const splitContentIntoSectionsAndColumns = (
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
                 $el.hasClass("wp-block-owid-grid") ||
-                $el.hasClass(WP_BlockType.FullContentWidth) ||
+                $el.hasClass(WP_BlockClass.FullContentWidth) ||
                 // restrict lookup to first-level children to prevent wrongly
                 // matching (unlikely) full-width additional information blocks
                 // within key insights blocks. Full-width additional information

@@ -65,7 +65,7 @@ class ChartRow extends React.Component<{
         const { chart } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/charts/${chart.id}/setTags`,
-            { tagIds: tags.map((t) => t.id) },
+            { tags },
             "POST"
         )
         if (json.success) {
@@ -123,6 +123,7 @@ class ChartRow extends React.Component<{
                         tags={chart.tags}
                         suggestions={availableTags}
                         onSave={this.onSaveTags}
+                        hasKeyChartSupport={true}
                     />
                 </td>
                 <td>

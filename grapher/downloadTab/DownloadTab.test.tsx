@@ -33,13 +33,23 @@ const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
 it("correctly passes non-redistributable flag", () => {
     const tableFalse = getTable({ nonRedistributable: false })
     const viewFalse = new DownloadTab({
-        manager: { staticSVG: "", displaySlug: "", table: tableFalse },
+        manager: {
+            staticSVG: "",
+            displaySlug: "",
+            table: tableFalse,
+            detailRenderers: [],
+        },
     })
     expect(viewFalse["nonRedistributable"]).toBeFalsy()
 
     const tableTrue = getTable({ nonRedistributable: true })
     const viewTrue = new DownloadTab({
-        manager: { staticSVG: "", displaySlug: "", table: tableTrue },
+        manager: {
+            staticSVG: "",
+            displaySlug: "",
+            table: tableTrue,
+            detailRenderers: [],
+        },
     })
     expect(viewTrue["nonRedistributable"]).toBeTruthy()
 })

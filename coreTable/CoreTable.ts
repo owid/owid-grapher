@@ -1,5 +1,4 @@
 import {
-    formatYear,
     csvEscape,
     min,
     max,
@@ -779,7 +778,9 @@ export class CoreTable<
         return columnStoreToRows(this.inputColumnStore)
     }
 
-    @imemo private get inputAsTable() {
+    @imemo private get inputAsTable():
+        | Record<string, CoreValueType>[]
+        | CoreTableInputOption {
         const { inputType } = this
         return inputType === InputType.ColumnStore
             ? this.inputColumnStoreToRows
@@ -788,7 +789,7 @@ export class CoreTable<
             : this.originalInput
     }
 
-    @imemo private get explainColumns() {
+    @imemo private get explainColumns(): Record<string, unknown>[] {
         return this.columnsAsArray.map((col) => {
             const {
                 slug,
@@ -823,7 +824,7 @@ export class CoreTable<
     private static guids = 0
     private guid = ++CoreTable.guids
 
-    private get explanation() {
+    private get explanation(): Record<string, unknown> {
         // todo: is there a better way to do this in JS?
         const {
             tableDescription,

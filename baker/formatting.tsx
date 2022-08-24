@@ -11,7 +11,7 @@ import { Country } from "../clientUtils/countries.js"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { DATA_VALUE } from "../site/DataValue.js"
-import { OwidVariablesAndEntityKey } from "../clientUtils/OwidVariable.js"
+import { OwidVariableDataMetadataDimensions } from "../clientUtils/OwidVariable.js"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
@@ -106,18 +106,22 @@ export const formatDataValue = (
     legacyChartDimension: OwidChartDimensionInterface | undefined
 ) => {
     if (!legacyChartDimension) return
-    const legacyVariableConfig: OwidVariablesAndEntityKey = {
-        entityKey: {},
-        variables: {
-            [variableId]: {
-                id: variableId,
-                display: legacyVariableDisplayConfig,
-                values: [value],
-                years: [],
-                entities: [],
+    const legacyVariable: OwidVariableDataMetadataDimensions = {
+        data: {
+            values: [value],
+            years: [],
+            entities: [],
+        },
+        metadata: {
+            id: variableId,
+            display: legacyVariableDisplayConfig,
+            dimensions: {
+                years: { values: [] },
+                entities: { values: [] },
             },
         },
     }
+    const legacyVariableDataMap = new Map([[variableId, legacyVariable]])
 
     const legacyGrapherConfig = {
         dimensions: [
@@ -128,7 +132,7 @@ export const formatDataValue = (
     }
 
     const { table, dimensions } = legacyToOwidTableAndDimensions(
-        legacyVariableConfig,
+        legacyVariableDataMap,
         legacyGrapherConfig
     )
 
@@ -155,7 +159,7 @@ export const formatCountryProfile = (
     // (filtering them out based on whether they have a deep link anchor attached to them)
     cheerioEl(`h3 a.${DEEP_LINK_CLASS}`).each((_, deepLinkAnchor) => {
         const $deepLinkAnchor = cheerioEl(deepLinkAnchor)
-        $deepLinkAnchor.after(`${country.name}: `)
+        $deepLinkAnchor.parent().prepend(`${country.name}: `)
     })
 
     return { ...post, html: getBodyHtml(cheerioEl) }
@@ -184,7 +188,7 @@ export const isCanonicalInternalUrl = (url: Url): boolean => {
 export const formatImages = ($: CheerioStatic) => {
     for (const el of $("img").toArray()) {
         const $el = $(el)
-        if ($el.closest("[data-no-img-formatting]")) continue
+        if ($el.closest("[data-no-img-formatting]").length) continue
 
         // Recreate source image path by removing automatically added image
         // dimensions (e.g. remove 800x600).

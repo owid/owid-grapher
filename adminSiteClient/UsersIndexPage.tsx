@@ -17,28 +17,23 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    emailInput: React.RefObject<HTMLInputElement> = React.createRef()
-
     @observable email: string = ""
-    @observable inviteSuccess: boolean = false
+    @observable fullName: string = ""
+    @observable responseSuccess: boolean = false
 
     async submit() {
-        runInAction(() => (this.inviteSuccess = false))
+        runInAction(() => (this.responseSuccess = false))
         if (this.email) {
             const resp = await this.context.admin.requestJSON(
-                "/api/users/invite",
-                { email: this.email },
+                "/api/users/add",
+                { email: this.email, fullName: this.fullName },
                 "POST"
             )
             console.log(resp)
             if (resp.success) {
-                runInAction(() => (this.inviteSuccess = true))
+                runInAction(() => (this.responseSuccess = true))
             }
         }
-    }
-
-    componentDidMount() {
-        this.emailInput.current!.focus()
     }
 
     @action.bound onSubmit(event: React.FormEvent) {
@@ -51,11 +46,22 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
             <Modal onClose={this.props.onClose}>
                 <form onSubmit={this.onSubmit}>
                     <div className="modal-header">
-                        <h5 className="modal-title">Invite a user</h5>
+                        <h5 className="modal-title">Add a user</h5>
                     </div>
                     <div className="modal-body">
                         <div className="form-group">
-                            <label>Email address to invite</label>
+                            <label>Full name</label>
+                            <input
+                                type="string"
+                                className="form-control"
+                                onChange={(e) =>
+                                    (this.fullName = e.currentTarget.value)
+                                }
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
                             <input
                                 type="email"
                                 className="form-control"
@@ -63,7 +69,6 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
                                     (this.email = e.currentTarget.value)
                                 }
                                 required
-                                ref={this.emailInput}
                             />
                         </div>
                     </div>
@@ -71,12 +76,13 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
                         <input
                             type="submit"
                             className="btn btn-primary"
-                            value="Send invite"
+                            value="Add user"
                         />
                     </div>
-                    {this.inviteSuccess && (
+                    {this.responseSuccess && (
                         <div className="alert alert-success" role="alert">
-                            Invite sent!
+                            User added! They can now log in with their G Suite
+                            account.
                         </div>
                     )}
                 </form>
@@ -132,7 +138,7 @@ export class UsersIndexPage extends React.Component {
                                 )}
                                 className="btn btn-primary"
                             >
-                                Invite a user
+                                Add a user
                             </button>
                         )}
                     </div>

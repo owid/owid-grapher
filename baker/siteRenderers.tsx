@@ -24,7 +24,6 @@ import {
     GrapherExports,
 } from "../baker/GrapherBakingUtils.js"
 import cheerio from "cheerio"
-import { Post } from "../db/model/Post.js"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
@@ -37,7 +36,6 @@ import {
     EntriesByYearPage,
     EntriesForYearPage,
 } from "../site/EntriesByYearPage.js"
-import { VariableCountryPage } from "../site/VariableCountryPage.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import { getCountry, Country } from "../clientUtils/countries.js"
 import { memoize } from "../clientUtils/Util.js"
@@ -63,7 +61,7 @@ import {
     isPostCitable,
     getBlockContent,
 } from "../db/wpdb.js"
-import { mysqlFirst, queryMysql, knexTable } from "../db/db.js"
+import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -73,7 +71,7 @@ import {
     KeyInsightsSlides,
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
-import { formatUrls, getBodyHtml } from "../site/formatting.js"
+import { formatUrls } from "../site/formatting.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
@@ -88,6 +86,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
+import { postsTable } from "../db/model/Post.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -294,7 +293,7 @@ ${posts
 
 // These pages exist largely just for Google Scholar
 export const entriesByYearPage = async (year?: number) => {
-    const entries = (await knexTable(Post.table)
+    const entries = (await knexTable(postsTable)
         .where({ status: "publish" })
         .join("post_tags", { "post_tags.post_id": "posts.id" })
         .join("tags", { "tags.id": "post_tags.tag_id" })
@@ -315,44 +314,6 @@ export const entriesByYearPage = async (year?: number) => {
 
     return renderToHtmlPage(
         <EntriesByYearPage entries={entries} baseUrl={BAKED_BASE_URL} />
-    )
-}
-
-export const pagePerVariable = async (
-    variableId: number,
-    countryName: string
-) => {
-    const variable = await mysqlFirst(
-        `
-        SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
-               v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
-        FROM variables v
-        JOIN datasets d ON d.id=v.datasetId
-        JOIN users u ON u.id=d.dataEditedByUserId
-        WHERE v.id = ?
-    `,
-        [variableId]
-    )
-
-    if (!variable) throw new JsonError(`No variable by id '${variableId}'`, 404)
-
-    variable.display = JSON.parse(variable.display)
-    variable.source = await mysqlFirst(
-        `SELECT id, name FROM sources AS s WHERE id = ?`,
-        variable.sourceId
-    )
-
-    const country = await knexTable("entities")
-        .select("id", "name")
-        .whereRaw("lower(name) = ?", [countryName])
-        .first()
-
-    return renderToHtmlPage(
-        <VariableCountryPage
-            variable={variable}
-            country={country}
-            baseUrl={BAKED_BASE_URL}
-        />
     )
 }
 
@@ -488,7 +449,7 @@ export const renderProminentLinks = async (
             } finally {
                 if (!title) {
                     logContentErrorAndMaybeSendToSlack(
-                        new Error(
+                        new JsonError(
                             `No fallback title found for prominent link ${resolvedUrlString} in ${formatWordpressEditLink(
                                 containerPostId
                             )}. Block removed.`
@@ -617,7 +578,10 @@ const renderExplorerDefaultThumbnail = (): string => {
     )
 }
 
-export const renderKeyInsights = async (html: string): Promise<string> => {
+export const renderKeyInsights = async (
+    html: string,
+    containerPostId: number
+): Promise<string> => {
     const $ = cheerio.load(html)
 
     for (const block of Array.from($("block[type='key-insights']"))) {
@@ -628,16 +592,24 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
         const slug = $block.find("> slug").text()
         if (!title || !slug) {
             logContentErrorAndMaybeSendToSlack(
-                "Title or anchor missing for key insights block, content removed."
+                new JsonError(
+                    `Title or anchor missing for key insights block, content removed in ${formatWordpressEditLink(
+                        containerPostId
+                    )}.`
+                )
             )
             $block.remove()
             continue
         }
 
-        const keyInsights = extractKeyInsights($, $block)
+        const keyInsights = extractKeyInsights($, $block, containerPostId)
         if (!keyInsights.length) {
             logContentErrorAndMaybeSendToSlack(
-                "No valid key insights found within block, content removed."
+                new JsonError(
+                    `No valid key insights found within block, content removed in ${formatWordpressEditLink(
+                        containerPostId
+                    )}`
+                )
             )
             $block.remove()
             continue
@@ -663,7 +635,8 @@ export const renderKeyInsights = async (html: string): Promise<string> => {
 
 export const extractKeyInsights = (
     $: CheerioStatic,
-    $wrapper: Cheerio
+    $wrapper: Cheerio,
+    containerPostId: number
 ): KeyInsight[] => {
     const keyInsights: KeyInsight[] = []
 
@@ -680,11 +653,19 @@ export const extractKeyInsights = (
         const slug = $block.find("> slug").text()
         const content = $block.find("> content").html()
 
+        // "!content" is taken literally here. An empty paragraph will return
+        // "\n\n<p></p>\n\n" and will not trigger an error. This can be seen
+        // both as an unexpected behaviour or a feature, depending on the stage
+        // of work (published or WIP).
         if (!title || !slug || !content) {
             logContentErrorAndMaybeSendToSlack(
-                `Missing title, slug or content for key insight "${
-                    title || slug
-                }"`
+                new JsonError(
+                    `Missing title, slug or content for key insight ${
+                        title || slug
+                    }, content removed in ${formatWordpressEditLink(
+                        containerPostId
+                    )}.`
+                )
             )
             continue
         }

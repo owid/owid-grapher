@@ -18,10 +18,9 @@ import { faPaintbrush } from "@fortawesome/free-solid-svg-icons/faPaintbrush"
 import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-export class FieldsRow extends React.Component {
+export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
     render() {
-        const { props } = this
-        return <div className="FieldsRow">{props.children}</div>
+        return <div className="FieldsRow">{this.props.children}</div>
     }
 }
 
@@ -173,6 +172,9 @@ export class TextAreaField extends React.Component<TextFieldProps> {
                         text={props.value}
                         limit={props.softCharacterLimit}
                     />
+                )}
+                {props.errorMessage && (
+                    <ErrorMessage message={props.errorMessage} />
                 )}
             </div>
         )
@@ -459,11 +461,6 @@ export class Toggle extends React.Component<ToggleProps> {
     }
 }
 
-interface ButtonProps {
-    onClick: () => void
-    label?: string
-}
-
 export class EditableList extends React.Component<{ className?: string }> {
     render() {
         return this.props.children ? (
@@ -674,9 +671,7 @@ export class BindString extends React.Component<{
     }
 
     render() {
-        const { props } = this
-
-        const { field, store, label, textarea, ...rest } = props
+        const { field, store, label, textarea, ...rest } = this.props
         const value = store[field] as string | undefined
         if (textarea)
             return (
@@ -960,7 +955,7 @@ class EditTags extends React.Component<{
 }> {
     dismissable: boolean = true
 
-    @action.bound onClickSomewhere(e: MouseEvent) {
+    @action.bound onClickSomewhere() {
         if (this.dismissable) this.props.onSave()
         this.dismissable = true
     }
@@ -993,12 +988,15 @@ class EditTags extends React.Component<{
     }
 }
 
+const filterUncategorizedTag = (t: Tag) => t.name !== "Uncategorized"
+
 @observer
 export class EditableTags extends React.Component<{
     tags: Tag[]
     suggestions: Tag[]
     onSave: (tags: Tag[]) => void
     disabled?: boolean
+    hasKeyChartSupport?: boolean
 }> {
     @observable isEditing: boolean = false
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -1009,7 +1007,7 @@ export class EditableTags extends React.Component<{
         this.tags.push(tag)
         this.tags = lodash
             .uniqBy(this.tags, (t) => t.id)
-            .filter((t) => t.name !== "Uncategorized")
+            .filter(filterUncategorizedTag)
 
         this.ensureUncategorized()
     }
@@ -1017,6 +1015,11 @@ export class EditableTags extends React.Component<{
     @action.bound onRemoveTag(index: number) {
         this.tags.splice(index, 1)
         this.ensureUncategorized()
+    }
+
+    @action.bound onToggleKey(index: number) {
+        this.tags[index].isKey = !this.tags[index].isKey
+        this.props.onSave(this.tags.filter(filterUncategorizedTag))
     }
 
     @action.bound ensureUncategorized() {
@@ -1030,9 +1033,7 @@ export class EditableTags extends React.Component<{
 
     @action.bound onToggleEdit() {
         if (this.isEditing) {
-            this.props.onSave(
-                this.tags.filter((t) => t.name !== "Uncategorized")
-            )
+            this.props.onSave(this.tags.filter(filterUncategorizedTag))
         }
         this.isEditing = !this.isEditing
     }
@@ -1046,7 +1047,7 @@ export class EditableTags extends React.Component<{
     }
 
     render() {
-        const { disabled } = this.props
+        const { disabled, hasKeyChartSupport } = this.props
         const { tags } = this
 
         return (
@@ -1061,8 +1062,16 @@ export class EditableTags extends React.Component<{
                     />
                 ) : (
                     <div>
-                        {tags.map((t) => (
-                            <TagBadge key={t.id} tag={t} />
+                        {tags.map((t, i) => (
+                            <TagBadge
+                                onToggleKey={
+                                    hasKeyChartSupport
+                                        ? () => this.onToggleKey(i)
+                                        : undefined
+                                }
+                                key={t.id}
+                                tag={t}
+                            />
                         ))}
                         {!disabled && (
                             <button

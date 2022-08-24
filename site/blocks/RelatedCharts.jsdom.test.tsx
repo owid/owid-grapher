@@ -5,7 +5,10 @@ import { RelatedCharts } from "./RelatedCharts.js"
 
 import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+} from "../../settings/clientSettings.js"
 enzyme.configure({ adapter: new Adapter() })
 
 const charts = [
@@ -40,7 +43,7 @@ it("renders active chart links and loads respective chart on click", () => {
         expect(wrapper.find("figure")).toHaveLength(1)
         expect(
             wrapper.find(
-                `figure[data-grapher-src="/grapher/${charts[idx].slug}"]`
+                `figure[data-grapher-src="${BAKED_BASE_URL}/grapher/${charts[idx].slug}"]`
             )
         ).toHaveLength(1)
         // should have forced re-render by changing the `key`

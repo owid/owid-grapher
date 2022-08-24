@@ -47,7 +47,7 @@ export const strToQueryParams = (
  * Converts an object to a query string.
  * Expects the input object to not be encoded already, and handles the URI-encoding of the values.
  */
-export const queryParamsToStr = (params: QueryParams) => {
+export const queryParamsToStr = (params: QueryParams): string => {
     const queryParams = new URLSearchParams(omitUndefinedValues(params))
 
     // we're relying on `~` (%7E) to not be encoded in some places, so make sure that it never is
@@ -55,9 +55,9 @@ export const queryParamsToStr = (params: QueryParams) => {
     return newQueryStr.length ? `?${newQueryStr}` : ""
 }
 
-export const getWindowQueryStr = () => window.location.search
+export const getWindowQueryStr = (): string => window.location.search
 
-export const setWindowQueryStr = (str: string) =>
+export const setWindowQueryStr = (str: string): void =>
     history.replaceState(
         null,
         document.title,

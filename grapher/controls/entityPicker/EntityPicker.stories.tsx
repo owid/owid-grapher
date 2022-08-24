@@ -15,7 +15,7 @@ import { computed, observable } from "mobx"
 import { SelectionArray } from "../../selection/SelectionArray.js"
 import { ColumnSlug } from "../../../clientUtils/owidTypes.js"
 
-class PickerHolder extends React.Component {
+class PickerHolder extends React.Component<{ children: React.ReactNode }> {
     render(): JSX.Element {
         return (
             <div

@@ -4,6 +4,7 @@ import "grapher/core/grapher.scss"
 
 // Enable mobx-formatters
 import * as Mobx from "mobx"
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 import mobxFormatters from "mobx-formatters"
 mobxFormatters.default(Mobx)
 //Mobx.useStrict(true)

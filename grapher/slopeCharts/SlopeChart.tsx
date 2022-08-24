@@ -814,11 +814,13 @@ class LabelledSlopes
             const leftLabel = new TextWrap({
                 maxWidth,
                 fontSize,
+                lineHeight: 1,
                 text,
             })
             const rightLabel = new TextWrap({
                 maxWidth,
                 fontSize,
+                lineHeight: 1,
                 text,
             })
 

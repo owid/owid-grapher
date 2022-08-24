@@ -586,8 +586,9 @@ class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
     }
 }
 
-export const runHeaderMenus = (baseUrl: string) =>
+export const runHeaderMenus = (baseUrl: string) => {
     ReactDOM.render(
         <SiteHeaderMenus baseUrl={baseUrl} />,
         document.querySelector(".site-header")
     )
+}

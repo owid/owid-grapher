@@ -13,6 +13,7 @@ import {
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
+    STATIC_EXPORT_DETAIL_SPACING,
 } from "../core/GrapherConstants.js"
 import { MapChartManager } from "../mapCharts/MapChartConstants.js"
 import { ChartManager } from "../chart/ChartManager.js"
@@ -36,10 +37,14 @@ import { AddEntityButton } from "../controls/AddEntityButton.js"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "../footer/FooterManager.js"
 import { HeaderManager } from "../header/HeaderManager.js"
-import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
+import { exposeInstanceOnWindow, isEmpty } from "../../clientUtils/Util.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
+import {
+    MarkdownTextWrap,
+    sumTextWrapHeights,
+} from "../text/MarkdownTextWrap.js"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -70,6 +75,8 @@ export interface CaptionedChartManager
     showChangeEntityButton?: boolean
     showAddEntityButton?: boolean
     showSelectEntitiesButton?: boolean
+    shouldIncludeDetailsInStaticExport?: boolean
+    detailRenderers: MarkdownTextWrap[]
 }
 
 interface CaptionedChartProps {
@@ -79,7 +86,7 @@ interface CaptionedChartProps {
 }
 
 const OUTSIDE_PADDING = 15
-const PADDING_BELOW_HEADER = 18
+const PADDING_BELOW_HEADER = 16
 const CONTROLS_ROW_HEIGHT = 36
 const PADDING_ABOVE_FOOTER = 25
 
@@ -306,6 +313,43 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
+    renderSVGDetails(): JSX.Element | null {
+        if (
+            isEmpty(this.manager.details) ||
+            !this.manager.shouldIncludeDetailsInStaticExport
+        ) {
+            return null
+        }
+
+        let yOffset = 0
+        let previousOffset = 0
+        return (
+            <>
+                <line
+                    x1={OUTSIDE_PADDING}
+                    y1={this.bounds.height}
+                    x2={this.boundsForChart.width + OUTSIDE_PADDING}
+                    y2={this.bounds.height}
+                    stroke="#777"
+                ></line>
+                <g
+                    style={{
+                        transform: `translate(15px, ${
+                            // + padding below the grey line
+                            this.bounds.height + OUTSIDE_PADDING
+                        }px)`,
+                    }}
+                >
+                    {this.manager.detailRenderers.map((detail, i) => {
+                        previousOffset = yOffset
+                        yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
+                        return detail.renderSVG(0, previousOffset, { key: i })
+                    })}
+                </g>
+            </>
+        )
+    }
+
     render(): JSX.Element {
         const { bounds, chartHeight, maxWidth } = this
         const { width } = bounds
@@ -372,7 +416,14 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     render(): JSX.Element {
         const { bounds, paddedBounds } = this
-        const { width, height } = bounds
+        let { width, height } = bounds
+
+        if (this.manager.shouldIncludeDetailsInStaticExport) {
+            height += sumTextWrapHeights(
+                this.manager.detailRenderers,
+                STATIC_EXPORT_DETAIL_SPACING
+            )
+        }
 
         return (
             <svg
@@ -387,6 +438,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                     paddedBounds.x,
                     paddedBounds.bottom - this.footer.height
                 )}
+                {this.renderSVGDetails()}
             </svg>
         )
     }

@@ -12,7 +12,7 @@ import {
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { TextWrap } from "../text/TextWrap.js"
 import { AxisConfig } from "./AxisConfig.js"
-import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
+import { ColumnTypeMap, CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { ValueRange } from "../../coreTable/CoreTableConstants.js"
 import {
     AxisAlign,
@@ -293,14 +293,21 @@ abstract class AbstractAxis {
         if (this.hideFractionalTicks)
             ticks = ticks.filter((t) => t.value % 1 === 0)
 
+        // mark value=0 ticks as solid for non-time columns
+        if (!(this.formatColumn instanceof ColumnTypeMap.Time)) {
+            ticks = ticks.map((tick) =>
+                tick.value === 0 ? { ...tick, solid: true } : tick
+            )
+        }
+
         return uniq(ticks)
     }
 
     private getTickFormattingOptions(): TickFormattingOptions {
-        const options: TickFormattingOptions = {}
-        if (this.config.compactLabels) {
-            options.numberAbbreviation = "short"
+        const options: TickFormattingOptions = {
+            ...this.config.tickFormattingOptions,
         }
+
         // The chart's tick formatting function is used by default to format axis ticks. This means
         // that the chart's `numDecimalPlaces` is also used by default to format the axis ticks.
         //
@@ -431,6 +438,7 @@ abstract class AbstractAxis {
                   maxWidth: this.labelWidth,
                   fontSize: this.labelFontSize,
                   text,
+                  lineHeight: 1,
               })
             : undefined
     }
@@ -500,7 +508,10 @@ export class HorizontalAxis extends AbstractAxis {
         // sort by value, then priority.
         // this way, we don't end up with two ticks of the same value but different priorities.
         // instead, we deduplicate by choosing the highest priority (i.e. lowest priority value).
-        const sortedTicks = sortBy(ticks, [(t) => t.value, (t) => t.priority])
+        const sortedTicks = sortBy(ticks, [
+            (t): number => t.value,
+            (t): number => t.priority,
+        ])
         return sortedUniqBy(sortedTicks, (t) => t.value)
     }
 

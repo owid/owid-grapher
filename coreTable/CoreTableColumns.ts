@@ -57,7 +57,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     abstract jsType: JsTypes
 
-    parse(val: any): any {
+    parse(val: unknown): any {
         return val
     }
 
@@ -164,28 +164,34 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.display
     }
 
-    abstract formatValue(value: any, options?: TickFormattingOptions): string
+    abstract formatValue(
+        value: unknown,
+        options?: TickFormattingOptions
+    ): string
 
-    formatValueForMobile(value: any, options?: TickFormattingOptions): string {
-        return this.formatValue(value, options)
-    }
-
-    formatValueShortWithAbbreviations(
-        value: any,
+    formatValueForMobile(
+        value: unknown,
         options?: TickFormattingOptions
     ): string {
         return this.formatValue(value, options)
     }
 
-    formatValueShort(value: any, options?: TickFormattingOptions): string {
+    formatValueShortWithAbbreviations(
+        value: unknown,
+        options?: TickFormattingOptions
+    ): string {
         return this.formatValue(value, options)
     }
 
-    formatValueLong(value: any, options?: TickFormattingOptions): string {
+    formatValueShort(value: unknown, options?: TickFormattingOptions): string {
         return this.formatValue(value, options)
     }
 
-    formatForTick(value: any, options?: TickFormattingOptions): string {
+    formatValueLong(value: unknown, options?: TickFormattingOptions): string {
+        return this.formatValue(value, options)
+    }
+
+    formatForTick(value: unknown, options?: TickFormattingOptions): string {
         return this.formatValueShort(value, options)
     }
 
@@ -216,7 +222,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         if (!unit) return undefined
 
         if (unit.length < 3) return unit
-        if (new Set(["$", "£", "€", "%"]).has(unit[0])) return unit[0]
+        if (checkIsVeryShortUnit(unit[0])) return unit[0]
 
         return undefined
     }
@@ -285,7 +291,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // We approximate whether a column is parsed simply by looking at the first row.
-    needsParsing(value: any): boolean {
+    needsParsing(value: unknown): boolean {
         // Skip parsing if explicit flag is set
         if (this.def.skipParsing) return false
 
@@ -491,14 +497,14 @@ export class MissingColumn extends AbstractCoreColumn<any> {
 class StringColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string
 
-    formatValue(value: any): string {
+    formatValue(value: unknown): string {
         return anyToString(value)
     }
 
-    parse(val: any): any {
+    parse(val: unknown): any {
         if (val === null) return ErrorValueTypes.NullButShouldBeString
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeString
-        return val.toString() || ""
+        return String(val) || ""
     }
 }
 
@@ -510,11 +516,11 @@ class ColorColumn extends CategoricalColumn {}
 class BooleanColumn extends AbstractCoreColumn<boolean> {
     jsType = JsTypes.boolean
 
-    formatValue(value: any): "true" | "false" {
+    formatValue(value: unknown): "true" | "false" {
         return value ? "true" : "false"
     }
 
-    parse(val: any): boolean {
+    parse(val: unknown): boolean {
         return !!val
     }
 }
@@ -524,7 +530,7 @@ abstract class AbstractColumnWithNumberFormatting<
 > extends AbstractCoreColumn<T> {
     jsType = JsTypes.number
 
-    formatValue(value: any, options?: TickFormattingOptions): string {
+    formatValue(value: unknown, options?: TickFormattingOptions): string {
         if (isNumber(value)) {
             return formatValue(value, {
                 numDecimalPlaces: this.numDecimalPlaces,
@@ -535,7 +541,7 @@ abstract class AbstractColumnWithNumberFormatting<
     }
 
     formatValueShortWithAbbreviations(
-        value: any,
+        value: unknown,
         options?: TickFormattingOptions
     ): string {
         return super.formatValueShortWithAbbreviations(value, {
@@ -552,7 +558,7 @@ abstract class AbstractColumnWithNumberFormatting<
         })
     }
 
-    formatValueShort(value: any, options?: TickFormattingOptions): string {
+    formatValueShort(value: unknown, options?: TickFormattingOptions): string {
         return super.formatValueShort(value, {
             ...omitUndefinedValues({
                 unit: this.shortUnit,
@@ -561,7 +567,7 @@ abstract class AbstractColumnWithNumberFormatting<
         })
     }
 
-    formatValueLong(value: any, options?: TickFormattingOptions): string {
+    formatValueLong(value: unknown, options?: TickFormattingOptions): string {
         return super.formatValueLong(value, {
             ...omitUndefinedValues({
                 unit: this.unit,
@@ -589,30 +595,31 @@ abstract class AbstractColumnWithNumberFormatting<
 class NumberOrStringColumn extends AbstractColumnWithNumberFormatting<
     number | string
 > {
-    formatValue(value: any, options?: TickFormattingOptions): string {
+    formatValue(value: unknown, options?: TickFormattingOptions): string {
         if (isNumber(value)) {
             return super.formatValue(value, options)
         }
         return anyToString(value)
     }
-    parse(val: any): number | string | ErrorValue {
+    parse(val: unknown): number | string | ErrorValue {
         if (val === null) return ErrorValueTypes.NullButShouldBeNumber
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
         if (Number.isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
 
-        const num = parseFloat(val)
-        if (Number.isNaN(num)) return val // return string value
+        const valAsString = String(val)
+        const num = parseFloat(valAsString)
+        if (Number.isNaN(num)) return valAsString // return string value
 
         return num
     }
 }
 
 abstract class AbstractNumericColumn extends AbstractColumnWithNumberFormatting<number> {
-    parse(val: any): number | ErrorValue {
+    parse(val: unknown): number | ErrorValue {
         if (val === null) return ErrorValueTypes.NullButShouldBeNumber
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
         if (val === "") return ErrorValueTypes.BlankButShouldBeNumber
-        if (isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
+        if (isNaN(Number(val))) return ErrorValueTypes.NaNButShouldBeNumber
 
         const res = this._parse(val)
         if (isNaN(res))
@@ -621,8 +628,8 @@ abstract class AbstractNumericColumn extends AbstractColumnWithNumberFormatting<
         return res
     }
 
-    protected _parse(val: any): number {
-        return parseFloat(val)
+    protected _parse(val: unknown): number {
+        return parseFloat(String(val))
     }
 }
 
@@ -630,20 +637,20 @@ class NumericColumn extends AbstractNumericColumn {}
 class NumericCategoricalColumn extends AbstractNumericColumn {}
 
 class IntegerColumn extends NumericColumn {
-    formatValue(value: any, options?: TickFormattingOptions): string {
+    formatValue(value: unknown, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
             numDecimalPlaces: 0,
             ...options,
         })
     }
 
-    protected _parse(val: any): number {
-        return parseInt(val)
+    protected _parse(val: unknown): number {
+        return parseInt(String(val))
     }
 }
 
 class CurrencyColumn extends NumericColumn {
-    formatValue(value: any, options?: TickFormattingOptions): string {
+    formatValue(value: unknown, options?: TickFormattingOptions): string {
         return super.formatValue(value, {
             numDecimalPlaces: 0,
             unit: "$",
@@ -692,8 +699,8 @@ export abstract class TimeColumn extends AbstractCoreColumn<number> {
         return this.formatValue(time)
     }
 
-    parse(val: any): number | ErrorValue {
-        return parseInt(val)
+    parse(val: unknown): number | ErrorValue {
+        return parseInt(String(val))
     }
 }
 
@@ -724,18 +731,19 @@ class DayColumn extends TimeColumn {
 
 const dateToTimeCache = new Map<string, Time>() // Cache for performance
 class DateColumn extends DayColumn {
-    parse(val: any): number {
+    parse(val: unknown): number {
         // skip parsing if a date is a number, it's already been parsed
         if (typeof val === "number") return val
-        if (!dateToTimeCache.has(val))
+        const valAsString = String(val)
+        if (!dateToTimeCache.has(valAsString))
             dateToTimeCache.set(
-                val,
+                valAsString,
                 dateDiffInDays(
-                    dayjs.utc(val).toDate(),
+                    dayjs.utc(valAsString).toDate(),
                     dayjs.utc("2020-01-21").toDate()
                 )
             )
-        return dateToTimeCache.get(val)!
+        return dateToTimeCache.get(valAsString)!
     }
 }
 
@@ -744,7 +752,7 @@ class QuarterColumn extends TimeColumn {
 
     private static regEx = /^([+-]?\d+)-Q([1-4])$/
 
-    parse(val: any): number | ErrorValue {
+    parse(val: unknown): number | ErrorValue {
         // skip parsing if a date is a number, it's already been parsed
         if (typeof val === "number") return val
         if (typeof val === "string") {

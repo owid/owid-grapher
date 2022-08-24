@@ -282,7 +282,7 @@ export class TimelineComponent extends React.Component<{
             >
                 {!this.manager.disablePlay && (
                     <div
-                        onMouseDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e): void => e.stopPropagation()}
                         onClick={this.togglePlay}
                         className="play"
                     >
@@ -342,7 +342,7 @@ const TimelineHandle = ({
     tooltipContent: string
     tooltipVisible: boolean
     tooltipZIndex: number
-}) => {
+}): JSX.Element => {
     return (
         <div
             className={classNames("handle", type)}

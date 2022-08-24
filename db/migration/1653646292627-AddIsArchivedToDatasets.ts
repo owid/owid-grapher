@@ -9,5 +9,6 @@ export class AddIsArchivedToDatasets1653646292627
       `)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public async down(): Promise<void> {}
 }

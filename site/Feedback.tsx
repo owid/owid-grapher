@@ -10,29 +10,26 @@ import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { stringifyUnkownError } from "../clientUtils/Util.js"
 
-const sendFeedback = (feedback: Feedback) =>
-    new Promise((resolve, reject) => {
-        const json = toJS(feedback)
-        const req = new XMLHttpRequest()
+const sendFeedback = async (feedback: Feedback) => {
+    const json = {
+        ...toJS(feedback),
+        environment: `Current URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}\nViewport: ${window.innerWidth}x${window.innerHeight}`,
+    }
 
-        json.environment = `Current URL: ${window.location.href}\nUser Agent: ${navigator.userAgent}\nViewport: ${window.innerWidth}x${window.innerHeight}`
-
-        req.addEventListener("readystatechange", () => {
-            if (req.readyState === 4) {
-                if (req.status !== 200)
-                    reject(`${req.status} ${req.statusText}`)
-                else resolve(undefined)
-            }
-        })
-
-        req.open(
-            "POST",
-            `https://owid-feedback.netlify.app/.netlify/functions/hello`
-        )
-        req.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
-
-        req.send(JSON.stringify(json))
+    return await fetch(
+        "https://owid-feedback.netlify.app/.netlify/functions/hello",
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json;charset=UTF-8" },
+            body: JSON.stringify(json),
+        }
+    ).then((res) => {
+        if (!res.ok)
+            throw new Error(
+                `Sending feedback failed: ${res.status} ${res.statusText}`
+            )
     })
+}
 
 class Feedback {
     @observable name: string = ""

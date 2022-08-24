@@ -9,7 +9,6 @@ import {
     Toggle,
     FieldsRow,
     Section,
-    BindAutoString,
     BindString,
     TextField,
     Button,

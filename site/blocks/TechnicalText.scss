@@ -1,11 +1,11 @@
-.technical-text {
+.wp-block-owid-technical-text {
     h5 {
         text-transform: uppercase;
     }
     color: $grey-text-color;
 }
 
-.article-content > section .wp-block-columns .technical-text h5 {
+.article-content > section .wp-block-columns .wp-block-owid-technical-text h5 {
     font-family: $sans-serif-font-stack;
     font-size: 1rem;
 }

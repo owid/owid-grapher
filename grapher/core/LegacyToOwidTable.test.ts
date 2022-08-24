@@ -5,7 +5,10 @@ import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
 import { ColumnTypeMap } from "../../coreTable/CoreTableColumns.js"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableDataMetadataDimensions,
+} from "../../clientUtils/OwidVariable.js"
 import {
     OwidColumnDef,
     OwidTableSlugs,
@@ -14,18 +17,23 @@ import {
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
 describe(legacyToOwidTableAndDimensions, () => {
-    const legacyVariableConfig: OwidVariablesAndEntityKey = {
-        entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
-        variables: {
-            "2": {
-                id: 2,
-                display: { conversionFactor: 100 },
-                entities: [1],
-                values: [8],
-                years: [2020],
+    const legacyVariableEntry: OwidVariableDataMetadataDimensions = {
+        data: { entities: [1], values: [8], years: [2020] },
+        metadata: {
+            id: 2,
+            display: { conversionFactor: 100 },
+
+            dimensions: {
+                years: { values: [{ id: 2020 }] },
+                entities: {
+                    values: [{ name: "World", code: "OWID_WRL", id: 1 }],
+                },
             },
         },
     }
+    const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap = new Map(
+        [[2, legacyVariableEntry]]
+    )
     const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
         dimensions: [
             {
@@ -84,26 +92,74 @@ describe(legacyToOwidTableAndDimensions, () => {
     })
 
     describe("variables with years", () => {
-        const legacyVariableConfig: OwidVariablesAndEntityKey = {
-            entityKey: {
-                "1": { name: "World", code: "OWID_WRL", id: 1 },
-                "2": { name: "High-income", code: null as any, id: 2 },
-            },
-            variables: {
-                "2": {
-                    id: 2,
-                    entities: [1, 1, 1, 2],
-                    values: [8, 9, 10, 11],
-                    years: [2020, 2021, 2022, 2022],
-                },
-                "3": {
-                    id: 3,
-                    entities: [1, 2, 1],
-                    values: [20, 21, 22],
-                    years: [2022, 2022, 2024],
-                },
-            },
-        }
+        const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap =
+            new Map([
+                [
+                    2,
+                    {
+                        data: {
+                            entities: [1, 1, 1, 2],
+                            values: [8, 9, 10, 11],
+                            years: [2020, 2021, 2022, 2022],
+                        },
+                        metadata: {
+                            id: 2,
+                            dimensions: {
+                                entities: {
+                                    values: [
+                                        {
+                                            name: "World",
+                                            code: "OWID_WRL",
+                                            id: 1,
+                                        },
+                                        {
+                                            name: "High-income",
+                                            id: 2,
+                                        },
+                                    ],
+                                },
+                                years: {
+                                    values: [
+                                        { id: 2020 },
+                                        { id: 2021 },
+                                        { id: 2022 },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                ],
+                [
+                    3,
+                    {
+                        data: {
+                            entities: [1, 2, 1],
+                            values: [20, 21, 22],
+                            years: [2022, 2022, 2024],
+                        },
+                        metadata: {
+                            id: 3,
+                            dimensions: {
+                                entities: {
+                                    values: [
+                                        {
+                                            name: "World",
+                                            code: "OWID_WRL",
+                                            id: 1,
+                                        },
+                                        {
+                                            name: "High-income",
+                                            id: 2,
+                                        },
+                                    ],
+                                },
+                                years: { values: [{ id: 2022 }, { id: 2024 }] },
+                            },
+                        },
+                    },
+                ],
+            ])
+
         const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
             dimensions: [
                 {
@@ -128,6 +184,8 @@ describe(legacyToOwidTableAndDimensions, () => {
             const worldRows = table.rows.filter(
                 (row) => row.entityName === "World"
             )
+            expect(table.rows.length).toEqual(5)
+            expect(worldRows.length).toEqual(4)
             expect(worldRows[0]["3"]).toEqual(
                 ErrorValueTypes.NoMatchingValueAfterJoin
             )
@@ -162,31 +220,89 @@ describe(legacyToOwidTableAndDimensions, () => {
     })
 
     describe("variables with days", () => {
-        const legacyVariableConfig: OwidVariablesAndEntityKey = {
-            entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
-            variables: {
-                "2": {
-                    id: 2,
-                    entities: [1, 1, 1],
-                    values: [8, 9, 10],
-                    years: [-5, 0, 1],
-                    display: {
-                        yearIsDay: true,
-                        zeroDay: "2020-01-21",
+        const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap =
+            new Map([
+                [
+                    2,
+                    {
+                        data: {
+                            entities: [1, 1, 1],
+                            values: [8, 9, 10],
+                            years: [-5, 0, 1],
+                        },
+                        metadata: {
+                            id: 2,
+                            display: {
+                                yearIsDay: true,
+                                zeroDay: "2020-01-21",
+                            },
+                            dimensions: {
+                                entities: {
+                                    values: [
+                                        {
+                                            name: "World",
+                                            code: "OWID_WRL",
+                                            id: 1,
+                                        },
+                                    ],
+                                },
+                                years: {
+                                    values: [
+                                        {
+                                            id: -5,
+                                        },
+                                        {
+                                            id: 0,
+                                        },
+                                        {
+                                            id: 1,
+                                        },
+                                    ],
+                                },
+                            },
+                        },
                     },
-                },
-                "3": {
-                    id: 3,
-                    entities: [1, 1],
-                    values: [20, 21],
-                    years: [-4, -3],
-                    display: {
-                        yearIsDay: true,
-                        zeroDay: "2020-01-19",
+                ],
+                [
+                    3,
+                    {
+                        data: {
+                            entities: [1, 1],
+                            values: [20, 21],
+                            years: [-4, -3],
+                        },
+                        metadata: {
+                            id: 3,
+                            display: {
+                                yearIsDay: true,
+                                zeroDay: "2020-01-19",
+                            },
+                            dimensions: {
+                                entities: {
+                                    values: [
+                                        {
+                                            name: "World",
+                                            code: "OWID_WRL",
+                                            id: 1,
+                                        },
+                                    ],
+                                },
+                                years: {
+                                    values: [
+                                        {
+                                            id: -4,
+                                        },
+                                        {
+                                            id: -3,
+                                        },
+                                    ],
+                                },
+                            },
+                        },
                     },
-                },
-            },
-        }
+                ],
+            ])
+
         const legacyGrapherConfig = {
             dimensions: [
                 {
@@ -228,27 +344,84 @@ describe(legacyToOwidTableAndDimensions, () => {
     })
 
     describe("variables with mixed days & years", () => {
-        const legacyVariableConfig: OwidVariablesAndEntityKey = {
-            entityKey: { "1": { name: "World", code: "OWID_WRL", id: 1 } },
-            variables: {
-                "2": {
-                    id: 2,
-                    entities: [1, 1, 1],
-                    values: [8, 9, 10],
-                    years: [-5, 0, 1],
-                    display: {
-                        yearIsDay: true,
-                        zeroDay: "2020-01-21",
+        const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap =
+            new Map([
+                [
+                    2,
+                    {
+                        data: {
+                            entities: [1, 1, 1],
+                            values: [8, 9, 10],
+                            years: [-5, 0, 1],
+                        },
+                        metadata: {
+                            id: 2,
+                            display: {
+                                yearIsDay: true,
+                                zeroDay: "2020-01-21",
+                            },
+                            dimensions: {
+                                entities: {
+                                    values: [
+                                        {
+                                            name: "World",
+                                            code: "OWID_WRL",
+                                            id: 1,
+                                        },
+                                    ],
+                                },
+                                years: {
+                                    values: [
+                                        {
+                                            id: -5,
+                                        },
+                                        {
+                                            id: 0,
+                                        },
+                                        {
+                                            id: 1,
+                                        },
+                                    ],
+                                },
+                            },
+                        },
                     },
-                },
-                "3": {
-                    id: 3,
-                    entities: [1, 1],
-                    values: [20, 21],
-                    years: [2020, 2021],
-                },
-            },
-        }
+                ],
+                [
+                    3,
+                    {
+                        data: {
+                            entities: [1, 1],
+                            values: [20, 21],
+                            years: [2020, 2021],
+                        },
+                        metadata: {
+                            id: 3,
+                            dimensions: {
+                                entities: {
+                                    values: [
+                                        {
+                                            name: "World",
+                                            code: "OWID_WRL",
+                                            id: 1,
+                                        },
+                                    ],
+                                },
+                                years: {
+                                    values: [
+                                        {
+                                            id: 2020,
+                                        },
+                                        {
+                                            id: 2021,
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                ],
+            ])
         const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
             dimensions: [
                 {
@@ -288,7 +461,7 @@ describe(legacyToOwidTableAndDimensions, () => {
 
         describe("scatter-specific behavior", () => {
             it("only joins targetTime on Scatters", () => {
-                expect(table.rows.length).toEqual(4)
+                expect(table.rows.length).toEqual(3) // used to be 4 but IMHO that was wrong legacy behaviour (from combining left and right join and then dropping duplicates)
             })
 
             it("joins targetTime", () => {
@@ -312,35 +485,272 @@ describe(legacyToOwidTableAndDimensions, () => {
         })
     })
 })
-
-const getOwidVarSet = (): OwidVariablesAndEntityKey => {
-    return {
-        variables: {
-            "3512": {
-                years: [1983, 1985, 1985],
-                entities: [99, 45, 204],
-                values: [5.5, 4.2, 12.6],
-                id: 3512,
-                name: "Prevalence of wasting, weight for height (% of children under 5)",
-                unit: "% of children under 5",
-                description: "Prevalence of...",
-                shortUnit: "%",
-                display: {
-                    name: "Some Display Name",
+describe("variables with mixed days & years with missing overlap and multiple potential join targets", () => {
+    const legacyVariableConfig: MultipleOwidVariableDataDimensionsMap = new Map(
+        [
+            [
+                2,
+                {
+                    data: {
+                        entities: [1, 1, 1, 1, 1],
+                        values: [10, 11, 12, 410, 810],
+                        years: [1, 2, 3, 400, 800], // use days that fall into 2021 and 2022
+                    },
+                    metadata: {
+                        id: 2,
+                        display: {
+                            yearIsDay: true,
+                            zeroDay: "2020-01-21",
+                        },
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "World",
+                                        code: "OWID_WRL",
+                                        id: 1,
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 1,
+                                    },
+                                    {
+                                        id: 2,
+                                    },
+                                    {
+                                        id: 3,
+                                    },
+                                    {
+                                        id: 400,
+                                    },
+                                    {
+                                        id: 800,
+                                    },
+                                ],
+                            },
+                        },
+                    },
                 },
-                source: {
-                    id: 2174,
-                    name: "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
-                    link: "http://data.worldbank.org/data-catalog/world-development-indicators",
-                } as any,
+            ],
+            [
+                3,
+                {
+                    data: {
+                        entities: [1, 1, 1],
+                        values: [20, 21, 22],
+                        years: [2020, 2021, 2022],
+                    },
+                    metadata: {
+                        id: 3,
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "World",
+                                        code: "OWID_WRL",
+                                        id: 1,
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 2020,
+                                    },
+                                    {
+                                        id: 2021,
+                                    },
+                                    {
+                                        id: 2022,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+            [
+                4,
+                {
+                    data: {
+                        entities: [1, 1, 1],
+                        values: [1000, 2000, 3000],
+                        years: [1800, 1900, 2000],
+                    },
+                    metadata: {
+                        id: 3,
+                        dimensions: {
+                            entities: {
+                                values: [
+                                    {
+                                        name: "World",
+                                        code: "OWID_WRL",
+                                        id: 1,
+                                    },
+                                ],
+                            },
+                            years: {
+                                values: [
+                                    {
+                                        id: 1800,
+                                    },
+                                    {
+                                        id: 1900,
+                                    },
+                                    {
+                                        id: 2000,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+        ]
+    )
+    const legacyGrapherConfig: Partial<LegacyGrapherInterface> = {
+        dimensions: [
+            {
+                variableId: 2,
+                property: DimensionProperty.y,
             },
-        },
-        entityKey: {
-            45: { name: "Cape Verde", code: "CPV", id: 45 },
-            99: { name: "Papua New Guinea", code: "PNG", id: 99 },
-            204: { name: "Kiribati", code: "KIR", id: 204 },
-        },
+            {
+                variableId: 3,
+                property: DimensionProperty.y,
+            },
+            {
+                variableId: 4,
+                property: DimensionProperty.y,
+            },
+        ],
     }
+
+    const { table } = legacyToOwidTableAndDimensions(
+        legacyVariableConfig,
+        legacyGrapherConfig
+    )
+
+    it("duplicates 'day' column into 'time'", () => {
+        expect(table.columnSlugs).toEqual(
+            expect.arrayContaining([OwidTableSlugs.day, OwidTableSlugs.time])
+        )
+        expect(
+            table.get(OwidTableSlugs.time) instanceof ColumnTypeMap.Day
+        ).toBeTruthy()
+        expect(table.get(OwidTableSlugs.time).uniqValues).toEqual([
+            1, 2, 3, 400, 800,
+        ])
+    })
+
+    describe("join behaviour without target times is sane", () => {
+        it("creates a sane table join", () => {
+            const { table } = legacyToOwidTableAndDimensions(
+                legacyVariableConfig,
+                legacyGrapherConfig
+            )
+
+            // A sane join between years and days would create 5 days for the given input
+            // data and join them with the other variables by year based on the year of the day
+            // This is what we see below.
+            // Note that variable 4 that does not have any values for years matching the days
+            // it is merged on the last year even though no tolerance is given. This mirrors
+            // the old behaviour and is unfortunately necessary until we pull tolerance into
+            // the this join that constructs the table
+
+            expect(table.rows.length).toEqual(5)
+            expect(table.columnSlugs.includes("2")).toBeTruthy()
+            expect(table.columnSlugs.includes("3")).toBeTruthy()
+            expect(table.columnSlugs.includes("4")).toBeTruthy()
+            expect(table.columnSlugs.includes("year")).toBeTruthy()
+            expect(table.columnSlugs.includes("time")).toBeTruthy()
+            let column = table.get("2")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                10, 11, 12, 410, 810,
+            ])
+            column = table.get("3")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                20, 20, 20, 21, 22,
+            ])
+            // Note that this here shows that even though variable 4 has no tolerance
+            // we pick the last matching row as a workaround
+            column = table.get("4")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                3000, 3000, 3000, 3000, 3000,
+            ])
+            column = table.get("year")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                2020, 2020, 2020, 2021, 2022,
+            ])
+            column = table.get("time")
+            expect(column.valuesIncludingErrorValues).toEqual([
+                1, 2, 3, 400, 800,
+            ])
+        })
+    })
+})
+
+const getOwidVarSet = (): MultipleOwidVariableDataDimensionsMap => {
+    return new Map([
+        [
+            3512,
+            {
+                data: {
+                    entities: [99, 45, 204],
+                    values: [5.5, 4.2, 12.6],
+                    years: [1983, 1985, 1985],
+                },
+                metadata: {
+                    id: 3512,
+                    name: "Prevalence of wasting, weight for height (% of children under 5)",
+                    unit: "% of children under 5",
+                    description: "Prevalence of...",
+                    shortUnit: "%",
+                    display: {
+                        name: "Some Display Name",
+                    },
+                    source: {
+                        id: 2174,
+                        name: "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
+                        link: "http://data.worldbank.org/data-catalog/world-development-indicators",
+                    },
+                    dimensions: {
+                        entities: {
+                            values: [
+                                {
+                                    name: "Cape Verde",
+                                    code: "CPV",
+                                    id: 45,
+                                },
+                                {
+                                    name: "Papua New Guinea",
+                                    code: "PNG",
+                                    id: 99,
+                                },
+                                {
+                                    name: "Kiribati",
+                                    code: "KIR",
+                                    id: 204,
+                                },
+                            ],
+                        },
+                        years: {
+                            values: [
+                                {
+                                    id: 1983,
+                                },
+                                {
+                                    id: 1985,
+                                },
+                            ],
+                        },
+                    },
+                },
+            },
+        ],
+    ])
 }
 
 const getLegacyGrapherConfig = (): Partial<LegacyGrapherInterface> => {
@@ -389,7 +799,7 @@ describe("creating a table from legacy", () => {
 
     it("can apply legacy unit conversion factors", () => {
         const varSet = getOwidVarSet()
-        varSet.variables["3512"].display!.conversionFactor = 100
+        varSet.get(3512)!.metadata.display!.conversionFactor = 100
         expect(
             legacyToOwidTableAndDimensions(
                 varSet,
@@ -413,7 +823,7 @@ Papua New Guinea,PNG,1983,5.5`
 
     it("passes on the non-redistributable flag", () => {
         const varSet = getOwidVarSet()
-        varSet.variables["3512"].nonRedistributable = true
+        varSet.get(3512)!.metadata.nonRedistributable = true
         const columnDef = legacyToOwidTableAndDimensions(
             varSet,
             getLegacyGrapherConfig()

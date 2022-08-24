@@ -15,7 +15,8 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
     try {
         const inDir = parsedArgs["i"] ?? "grapherData"
         let outDir = parsedArgs["o"] ?? "grapherSvgs"
-        const targetConfigs: string[] = (String(parsedArgs["c"]) ?? "")
+        const targetConfigs: string[] = (parsedArgs["c"] ?? "")
+            .toString()
             .split(",")
             .map(String)
             .filter((entry: string) => entry)
@@ -95,7 +96,7 @@ Usage:
 Options:
     -i DIR         Input directory containing the data. [default: grapherData]
     -o DIR         Output directory that will contain the csv file and one svg file per grapher [default: grapherSvgs]
-    -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined] 
+    -c ID          A comma-separated list of config IDs that you want to run instead of generating SVGs from all configs [default: undefined]
     `)
     process.exit(0)
 } else {

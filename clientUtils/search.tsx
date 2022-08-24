@@ -80,7 +80,9 @@ export function filterFunctionForSearchWords<TargetObject>(
 export function highlightFunctionForSearchWords(
     searchWords: SearchWord[]
 ): (text: string | null | undefined) => JSX.Element | string {
-    return (text: string | null | undefined): JSX.Element | string => {
+    return function Highlighted(
+        text: string | null | undefined
+    ): JSX.Element | string {
         if (text === undefined || text === null) return ""
         if (searchWords.length > 0) {
             const firstMatches = searchWords
@@ -94,9 +96,9 @@ export function highlightFunctionForSearchWords(
             if (firstMatches.length > 0) {
                 // sort descending by end position and then length
                 const sortedFirstMatches = sortBy(firstMatches, [
-                    ({ matchStart, matchLength }) =>
+                    ({ matchStart, matchLength }): number =>
                         -(matchStart + matchLength),
-                    ({ matchStart, matchLength }) => -matchLength,
+                    ({ matchLength }): number => -matchLength,
                 ])
                 // merge overlapping match ranges
                 const mergedMatches = [sortedFirstMatches[0]]

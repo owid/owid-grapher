@@ -97,7 +97,7 @@ it("creates compact labels", () => {
         min: 1000,
         max: 4000,
         maxTicks: 3,
-        compactLabels: true,
+        tickFormattingOptions: { numberAbbreviation: "short" },
     }
     const axis = new AxisConfig(config).toVerticalAxis()
     axis.range = [0, 500]
@@ -110,7 +110,10 @@ it("creates compact labels", () => {
 })
 
 describe("singleValueAxisPointAlign", () => {
-    const testAlign = (align: AxisAlign | undefined, expected: number) => {
+    const testAlign = (
+        align: AxisAlign | undefined,
+        expected: number
+    ): void => {
         const config: AxisConfigInterface = {
             min: 0,
             max: 0,

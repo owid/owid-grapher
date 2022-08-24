@@ -11,14 +11,8 @@ import {
     BAKED_BASE_URL,
     ADMIN_BASE_URL,
 } from "../settings/serverSettings.js"
-import {
-    expectInt,
-    isValidSlug,
-    absoluteUrl,
-} from "../serverUtils/serverUtil.js"
-import { sendMail } from "./mail.js"
+import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
-import { UserInvitation } from "../db/model/UserInvitation.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { applyPatch } from "../clientUtils/patchHelper.js"
@@ -47,7 +41,6 @@ import {
 } from "./gitDataExport.js"
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
-import { Post } from "../db/model/Post.js"
 import { camelCaseProperties } from "../clientUtils/string.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
@@ -58,21 +51,25 @@ import { JsonError, PostRow } from "../clientUtils/owidTypes.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
-// import {
-//     BinaryLogicOperation,
-//     BinaryLogicOperators,
-//     EqualityComparision,
-//     EqualityOperator,
-//     parseToOperation,
-//     SqlColumnName,
-//     StringAtom,
-// } from "../clientUtils/SqlFilterSExpression.js"
 import {
     OperationContext,
     parseToOperation,
 } from "../clientUtils/SqlFilterSExpression.js"
-import { parseIntOrUndefined } from "../clientUtils/Util.js"
-//import parse = require("s-expression")
+import {
+    postsTable,
+    setTagsForPost,
+    select,
+    getTagsByPostId,
+} from "../db/model/Post.js"
+import {
+    omit,
+    parseIntOrUndefined,
+    set,
+    trimObject,
+} from "../clientUtils/Util.js"
+
+import { Detail } from "../grapher/core/GrapherConstants.js"
+
 const apiRouter = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
@@ -418,8 +415,8 @@ apiRouter.get(
                 namespace AS name,
                 namespaces.description AS description,
                 namespaces.isArchived AS isArchived
-            FROM datasets
-            JOIN namespaces ON namespaces.name = datasets.namespace`
+            FROM active_datasets
+            JOIN namespaces ON namespaces.name = active_datasets.namespace`
         )) as { name: string; description?: string; isArchived: boolean }[]
 
         return {
@@ -541,7 +538,7 @@ apiRouter.get(
                 d.namespace,
                 d.isPrivate,
                 d.nonRedistributable
-            FROM variables as v JOIN datasets as d ON v.datasetId = d.id
+            FROM variables as v JOIN active_datasets as d ON v.datasetId = d.id
             WHERE namespace=?
             ORDER BY d.updatedAt DESC
             `,
@@ -583,12 +580,33 @@ apiRouter.get(
 )
 
 apiRouter.get(
-    "/data/variables/:variableStr.json",
+    "/data/variables/data/:variableStr.json",
     async (req: Request, res: Response) => {
-        const variableIds: number[] = req.params.variableStr
-            .split("+")
-            .map((v: string) => parseInt(v))
-        return getVariableData(variableIds)
+        const variableStr = req.params.variableStr as string
+        if (!variableStr) throw new JsonError("No variable id given")
+        if (variableStr.includes("+"))
+            throw new JsonError(
+                "Requesting multiple variables at the same time is no longer supported"
+            )
+        const variableId = parseInt(variableStr)
+        if (isNaN(variableId)) throw new JsonError("Invalid variable id")
+        return (await getVariableData(variableId)).data
+    }
+)
+
+apiRouter.get(
+    "/data/variables/metadata/:variableStr.json",
+    async (req: Request, res: Response) => {
+        const variableStr = req.params.variableStr as string
+        if (!variableStr) throw new JsonError("No variable id given")
+        if (variableStr.includes("+"))
+            throw new JsonError(
+                "Requesting multiple variables at the same time is no longer supported"
+            )
+        const variableId = parseInt(variableStr)
+        if (isNaN(variableId)) throw new JsonError("Invalid variable id")
+        const variableData = await getVariableData(variableId)
+        return variableData.metadata
     }
 )
 
@@ -604,7 +622,7 @@ apiRouter.post(
     async (req: Request, res: Response) => {
         const chartId = expectInt(req.params.chartId)
 
-        await Chart.setTags(chartId, req.body.tagIds)
+        await Chart.setTags(chartId, req.body.tags)
 
         return { success: true }
     }
@@ -1292,37 +1310,19 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
     return { success: true }
 })
 
-apiRouter.post("/users/invite", async (req: Request, res: Response) => {
+apiRouter.post("/users/add", async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const { email } = req.body
+    const { email, fullName } = req.body
 
     await getConnection().transaction(async (manager) => {
-        // Remove any previous invites for this email address to avoid duplicate accounts
-        const repo = manager.getRepository(UserInvitation)
-        await repo
-            .createQueryBuilder()
-            .where(`email = :email`, { email })
-            .delete()
-            .execute()
-
-        const invite = new UserInvitation()
-        invite.email = email
-        invite.code = UserInvitation.makeInviteCode()
-        invite.validTill = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        invite.createdAt = new Date()
-        invite.updatedAt = new Date()
-        await repo.save(invite)
-
-        const inviteLink = absoluteUrl(`/admin/register?code=${invite.code}`)
-
-        await sendMail({
-            from: "no-reply@ourworldindata.org",
-            to: email,
-            subject: "Invitation to join owid-admin",
-            text: `Hi, please follow this link to register on owid-admin: ${inviteLink}`,
-        })
+        const user = new User()
+        user.email = email
+        user.fullName = fullName
+        user.createdAt = new Date()
+        user.updatedAt = new Date()
+        await manager.getRepository(User).save(user)
     })
 
     return { success: true }
@@ -1343,7 +1343,7 @@ apiRouter.get("/variables.json", async (req) => {
             d.dataEditedAt AS uploadedAt,
             u.fullName AS uploadedBy
         FROM variables AS v
-        JOIN datasets d ON d.id=v.datasetId
+        JOIN active_datasets d ON d.id=v.datasetId
         JOIN users u ON u.id=d.dataEditedByUserId
         ${searchStr ? "WHERE v.name LIKE ?" : ""}
         ORDER BY d.dataEditedAt DESC
@@ -1475,14 +1475,14 @@ apiRouter.get(
             await db.queryMysql(`SELECT variables.id as id,
             variables.name as name,
             variables.grapherConfig as config,
-            datasets.name as datasetname,
+            d.name as datasetname,
             namespaces.name as namespacename,
             variables.createdAt as createdAt,
             variables.updatedAt as updatedAt,
             variables.description as description
 FROM variables
-LEFT JOIN datasets on variables.datasetId = datasets.id
-LEFT JOIN namespaces on datasets.namespace = namespaces.name
+LEFT JOIN active_datasets as d on variables.datasetId = d.id
+LEFT JOIN namespaces on d.namespace = namespaces.name
 WHERE ${whereClause}
 ORDER BY variables.id DESC
 LIMIT 50
@@ -1494,8 +1494,8 @@ OFFSET ${offset.toString()}`)
         }))
         const resultCount = await db.queryMysql(`SELECT count(*) as count
 FROM variables
-LEFT JOIN datasets on variables.datasetId = datasets.id
-LEFT JOIN namespaces on datasets.namespace = namespaces.name
+LEFT JOIN active_datasets as d on variables.datasetId = d.id
+LEFT JOIN namespaces on d.namespace = namespaces.name
 WHERE ${whereClause}`)
         return { rows: results, numTotalRows: resultCount[0].count }
     }
@@ -1559,7 +1559,7 @@ interface VariableSingleMeta {
     display: any
 }
 
-// TODO where is this used? can we get rid of VariableSingleMeta type?
+// Used in VariableEditPage
 apiRouter.get(
     "/variables/:variableId.json",
     async (req: Request, res: Response) => {
@@ -1567,13 +1567,13 @@ apiRouter.get(
 
         const variable = await db.mysqlFirst(
             `
-        SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
-               v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
-        FROM variables v
-        JOIN datasets d ON d.id=v.datasetId
-        JOIN users u ON u.id=d.dataEditedByUserId
-        WHERE v.id = ?
-    `,
+            SELECT v.id, v.name, v.unit, v.shortUnit, v.description, v.sourceId, u.fullName AS uploadedBy,
+                v.display, d.id AS datasetId, d.name AS datasetName, d.namespace AS datasetNamespace
+            FROM variables v
+            JOIN datasets d ON d.id=v.datasetId
+            JOIN users u ON u.id=d.dataEditedByUserId
+            WHERE v.id = ?
+            `,
             [variableId]
         )
 
@@ -1590,14 +1590,14 @@ apiRouter.get(
 
         const charts = await db.queryMysql(
             `
-        SELECT ${OldChart.listFields}
-        FROM charts
-        JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
-        LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-        JOIN chart_dimensions cd ON cd.chartId = charts.id
-        WHERE cd.variableId = ?
-        GROUP BY charts.id
-    `,
+            SELECT ${OldChart.listFields}
+            FROM charts
+            JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
+            LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            JOIN chart_dimensions cd ON cd.chartId = charts.id
+            WHERE cd.variableId = ?
+            GROUP BY charts.id
+            `,
             [variableId]
         )
 
@@ -1664,7 +1664,7 @@ apiRouter.get("/datasets.json", async (req) => {
             mu.fullName AS metadataEditedByUserName,
             d.isPrivate,
             d.nonRedistributable
-        FROM datasets d
+        FROM active_datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         JOIN users mu ON mu.id=d.metadataEditedByUserId
         ORDER BY d.dataEditedAt DESC
@@ -1703,6 +1703,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
             d.metadataEditedByUserId,
             mu.fullName AS metadataEditedByUserName,
             d.isPrivate,
+            d.isArchived,
             d.nonRedistributable
         FROM datasets AS d
         JOIN users du ON du.id=d.dataEditedByUserId
@@ -2003,7 +2004,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
             du.fullName AS dataEditedByUserName,
             d.isPrivate,
             d.nonRedistributable
-        FROM datasets d
+        FROM active_datasets d
         JOIN users du ON du.id=d.dataEditedByUserId
         LEFT JOIN dataset_tags dt ON dt.datasetId = d.id
         WHERE dt.tagId ${uncategorized ? "IS NULL" : "= ?"}
@@ -2155,15 +2156,15 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
 })
 
 apiRouter.get("/posts.json", async (req) => {
-    const rows = await Post.select(
+    const rows = await select(
         "id",
         "title",
         "type",
         "status",
         "updated_at"
-    ).from(db.knexInstance().from(Post.table).orderBy("updated_at", "desc"))
+    ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
 
-    const tagsByPostId = await Post.tagsByPostId()
+    const tagsByPostId = await getTagsByPostId()
 
     const authorship = await wpdb.getAuthorship()
 
@@ -2218,7 +2219,7 @@ apiRouter.post(
     async (req: Request, res: Response) => {
         const postId = expectInt(req.params.postId)
 
-        await Post.setTags(postId, req.body.tagIds)
+        await setTagsForPost(postId, req.body.tagIds)
 
         return { success: true }
     }
@@ -2227,17 +2228,17 @@ apiRouter.post(
 apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
     const postId = expectInt(req.params.postId)
     const post = (await db
-        .knexTable(Post.table)
+        .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
         .first()) as PostRow | undefined
-    return camelCaseProperties(post)
+    return camelCaseProperties({ ...post })
 })
 
 apiRouter.get("/importData.json", async (req) => {
     // Get all datasets from the importable namespace to match against
     const datasets = await db.queryMysql(
-        `SELECT id, name FROM datasets WHERE namespace='owid' ORDER BY name ASC`
+        `SELECT id, name FROM active_datasets WHERE namespace='owid' ORDER BY name ASC`
     )
 
     // Get a unique list of all entities in the database (probably this won't scale indefinitely)
@@ -2465,7 +2466,7 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
         `
         SELECT s.id, s.name, s.description, s.createdAt, s.updatedAt, d.namespace
         FROM sources AS s
-        JOIN datasets AS d ON d.id=s.datasetId
+        JOIN active_datasets AS d ON d.id=s.datasetId
         WHERE s.id=?`,
         [sourceId]
     )
@@ -2484,6 +2485,97 @@ apiRouter.get("/deploys.json", async () => ({
 
 apiRouter.put("/deploy", async (req: Request, res: Response) => {
     triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+})
+
+apiRouter.get("/details", async () => ({
+    details: await db.queryMysql(
+        `SELECT id, category, term, title, content FROM details`
+    ),
+}))
+
+apiRouter.post("/details", async (req) => {
+    const { category, term, title, content } = req.body
+    const result = await db.execute(
+        `INSERT INTO details (category, term,title, content) VALUES (?, ?, ?, ?)`,
+        [category, term, title, content]
+    )
+
+    return {
+        success: true,
+        id: result.insertId,
+    }
+})
+
+apiRouter.delete("/details/:id", async (req) => {
+    const { id } = req.params
+    const matches = await db.queryMysql(
+        `SELECT id, category, term, title, content FROM details WHERE id = ?`,
+        [id]
+    )
+
+    if (!matches.length) {
+        throw new JsonError(`No detail with id ${id} found`)
+    }
+
+    const match = matches[0]
+
+    const references: { id: number; config: string }[] = await db.queryMysql(
+        `SELECT id, config FROM charts WHERE config LIKE '%(hover::${match.category}::${match.term})%'`
+    )
+
+    if (references.length) {
+        const ids = references.map((x) => x.id).join(", ")
+        throw new JsonError(
+            `Detail is being used by the following Graphers: ${ids}`
+        )
+    }
+
+    await db.execute(`DELETE FROM details WHERE id=?`, [id])
+    return { success: true }
+})
+
+apiRouter.put("/details/:id", async (req, res) => {
+    const {
+        params: { id },
+        body: detail,
+    } = req
+    const { category, term, title, content }: Detail = detail
+
+    const [original]: Detail[] = await db.execute(
+        `SELECT * FROM details WHERE id=?`,
+        [id]
+    )
+
+    await db.execute(
+        `UPDATE details SET category=?, term=?, title=?, content=? WHERE id=?`,
+        [category, term, title, content, id]
+    )
+
+    const references: { id: string; config: string }[] = await db.queryMysql(
+        `SELECT id, config FROM charts WHERE config LIKE '%(hover::${original.category}::${original.term})%'`
+    )
+
+    for (let { config: jsonConfig } of references) {
+        const originalConfig = JSON.parse(jsonConfig)
+
+        // replace syntax references with new category and term
+        jsonConfig = jsonConfig.replaceAll(
+            new RegExp(`hover::${original.category}::${original.term}`, "g"),
+            `hover::${category}::${term}`
+        )
+        // replace old detail definition, remove any empty categories, and add new one
+        const newConfig = JSON.parse(jsonConfig)
+        const originalPath = `${original.category}.${original.term}`
+        newConfig.details = omit(newConfig.details, originalPath)
+        newConfig.details = trimObject(newConfig.details)
+        newConfig.details = set(newConfig.details, [category, term], detail)
+
+        await db.transaction(async (t) => {
+            return saveGrapher(t, res.locals.user, newConfig, originalConfig)
+        })
+    }
+
+    return { success: true }
 })
 
 export { apiRouter }

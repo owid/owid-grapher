@@ -11,7 +11,7 @@ import {
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { Bounds } from "../clientUtils/Bounds.js"
-import { capitalize } from "../clientUtils/Util.js"
+import { capitalize, getIndexableKeys } from "../clientUtils/Util.js"
 import { Grapher } from "../grapher/core/Grapher.js"
 import { Admin } from "./Admin.js"
 import {
@@ -44,7 +44,9 @@ import {
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
-import { Topic } from "../grapher/core/GrapherConstants.js"
+import { Detail, Topic } from "../grapher/core/GrapherConstants.js"
+import { get, has, set } from "lodash"
+import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -80,6 +82,15 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
     }
 }
 
+function extractDetailsFromSyntax(str: string): [string, string][] {
+    const pattern = /\(hover::(\w+)::(\w+)\)/g
+
+    return [...str.matchAll(pattern)].map(([_, category, term]) => [
+        category,
+        term,
+    ])
+}
+
 @observer
 export class ChartEditorPage
     extends React.Component<{
@@ -95,6 +106,7 @@ export class ChartEditorPage
     @observable references: PostReference[] = []
     @observable redirects: ChartRedirect[] = []
     @observable allTopics: Topic[] = []
+    @observable details: GrapherInterface["details"] = {}
 
     @observable.ref grapherElement?: JSX.Element
 
@@ -131,6 +143,8 @@ export class ChartEditorPage
                     getGrapherInstance: (grapher) => {
                         this.grapher = grapher
                     },
+                    dataApiUrlForAdmin:
+                        this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
                 }}
             />
         )
@@ -186,6 +200,60 @@ export class ChartEditorPage
         runInAction(() => (this.allTopics = json.topics))
     }
 
+    async fetchDetails(): Promise<void> {
+        const data = (await this.context.admin.getJSON(`/api/details`)) as {
+            details: Detail[]
+        }
+
+        runInAction(() => {
+            this.details = data.details.reduce(
+                (acc, detail) =>
+                    set(acc, [detail.category, detail.term], detail),
+                {}
+            )
+        })
+    }
+
+    // unvalidated tuples extracted from the subtitle and note fields
+    // these may point to non-existent details e.g. ["not_a_real_category", "not_a_real_term"]
+    @computed get currentDetailReferences() {
+        return {
+            subtitle: extractDetailsFromSyntax(this.grapher.subtitle),
+            note: extractDetailsFromSyntax(this.grapher.note),
+        }
+    }
+
+    // the actual Detail objects, indexed by category.term
+    @computed get currentlyReferencedDetails(): GrapherInterface["details"] {
+        const grapherConfigDetails: GrapherInterface["details"] = {}
+        const allReferences = Object.values(this.currentDetailReferences).flat()
+
+        allReferences.forEach((categoryAndTerm) => {
+            const detail = get(this.details, categoryAndTerm)
+            if (detail) {
+                set(grapherConfigDetails, categoryAndTerm, detail)
+            }
+        })
+
+        return grapherConfigDetails
+    }
+
+    @computed get invalidDetailReferences() {
+        const keys = getIndexableKeys(this.currentDetailReferences)
+
+        const invalidReferences = keys.reduce(
+            (acc, key) => ({
+                ...acc,
+                [key]: this.currentDetailReferences[key].filter(
+                    (path) => !has(this.details, path)
+                ),
+            }),
+            {} as typeof this.currentDetailReferences
+        )
+
+        return invalidReferences
+    }
+
     @computed get admin(): Admin {
         return this.context.admin
     }
@@ -198,6 +266,7 @@ export class ChartEditorPage
 
     @action.bound refresh(): void {
         this.fetchGrapher()
+        this.fetchDetails()
         this.fetchData()
         this.fetchLogs()
         this.fetchRefs()
@@ -205,20 +274,32 @@ export class ChartEditorPage
         this.fetchTopics()
     }
 
-    dispose!: IReactionDisposer
+    disposers: IReactionDisposer[] = []
+
     componentDidMount(): void {
         this.refresh()
 
-        this.dispose = reaction(
-            () => this.editor && this.editor.previewMode,
-            () => {
-                if (this.editor) {
-                    localStorage.setItem(
-                        "editorPreviewMode",
-                        this.editor.previewMode
-                    )
+        this.disposers.push(
+            reaction(
+                () => this.editor && this.editor.previewMode,
+                () => {
+                    if (this.editor) {
+                        localStorage.setItem(
+                            "editorPreviewMode",
+                            this.editor.previewMode
+                        )
+                    }
                 }
-            }
+            )
+        )
+
+        this.disposers.push(
+            reaction(
+                () => this.currentlyReferencedDetails,
+                (currentlyReferencedDetails = {}) => {
+                    this.grapher.details = currentlyReferencedDetails
+                }
+            )
         )
     }
 
@@ -229,7 +310,7 @@ export class ChartEditorPage
     }
 
     componentWillUnmount(): void {
-        this.dispose()
+        this.disposers.forEach((dispose) => dispose())
     }
 
     render(): JSX.Element {

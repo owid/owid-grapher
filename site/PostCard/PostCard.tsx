@@ -1,6 +1,6 @@
 import React from "react"
 import { FullPost } from "../../clientUtils/owidTypes.js"
-import { formatAuthors, formatDate } from "../formatting.js"
+import { formatAuthors, formatDate, formatUrls } from "../formatting.js"
 
 const PostCard = ({ post }: { post: FullPost }) => {
     return (
@@ -10,7 +10,9 @@ const PostCard = ({ post }: { post: FullPost }) => {
                     <div
                         className="cover-image"
                         style={{
-                            backgroundImage: `url(${post.imageUrl})`,
+                            backgroundImage: `url(${formatUrls(
+                                post.imageUrl
+                            )})`,
                         }}
                     />
                 )}
@@ -22,9 +24,9 @@ const PostCard = ({ post }: { post: FullPost }) => {
                         )}
                     </div>
                     <div className="entry-meta">
-                        <span className="authors">{`By ${formatAuthors(
-                            post.authors
-                        )}`}</span>{" "}
+                        <span className="authors">{`By ${formatAuthors({
+                            authors: post.authors,
+                        })}`}</span>{" "}
                         &mdash; <time>{formatDate(post.date)}</time>
                     </div>
                 </div>

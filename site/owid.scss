@@ -47,6 +47,8 @@
 @import "explorer/Explorer.scss";
 @import "explorer/ExplorerControls.scss";
 
+@import "site/blocks/front-matter.scss";
+@import "site/blocks/expandable-paragraph.scss";
 @import "site/blocks/additional-information.scss";
 @import "site/blocks/prominent-link.scss";
 @import "site/blocks/related-charts.scss";
@@ -55,9 +57,11 @@
 @import "site/blocks/CookiePreferences.scss";
 @import "site/blocks/Grid.scss";
 @import "site/blocks/Card.scss";
+@import "site/blocks/code-snippet.scss";
 @import "site/blocks/BiographyCard.scss";
 @import "site/blocks/KeyInsights.scss";
 @import "site/blocks/TechnicalText.scss";
+@import "site/blocks/GalleryArrow.scss";
 @import "site/ExpandableInlineBlock.scss";
 @import "site/GlossaryExcerpt.scss";
 @import "site/PostCard/PostCard.scss";
@@ -227,7 +231,7 @@ h6:hover .deep-link {
 }
 
 .article-footer a {
-    @include owid-link;
+    @include owid-link-90;
 }
 
 /* Homepage
@@ -985,7 +989,7 @@ html:not(.js) {
         }
 
         a {
-            @include owid-link;
+            @include owid-link-90;
         }
     }
 }
@@ -1227,10 +1231,7 @@ html:not(.js) {
             font-size: inherit;
         }
         a {
-            color: #453cbb;
-        }
-        a:hover {
-            color: #7d8aef;
+            @include owid-link-90;
         }
     }
 

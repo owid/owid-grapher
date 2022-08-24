@@ -1,0 +1,8 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "owid/expandable-paragraph",
+    "title": "Expandable paragraph",
+    "icon": "text",
+    "category": "text"
+}

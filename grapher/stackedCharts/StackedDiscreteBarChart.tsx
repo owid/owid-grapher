@@ -55,7 +55,7 @@ import { isDarkColor } from "../color/ColorUtils.js"
 import { HorizontalAxis } from "../axis/Axis.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { ColorScheme } from "../color/ColorScheme.js"
-import { NodeGroup } from "react-move"
+import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 
@@ -169,14 +169,20 @@ export class StackedDiscreteBarChart
         return !this.manager.hideLegend
     }
 
-    @computed private get labelStyle() {
+    @computed private get labelStyle(): {
+        fontSize: number
+        fontWeight: number
+    } {
         return {
             fontSize: 0.75 * this.baseFontSize,
             fontWeight: 700,
         }
     }
 
-    @computed private get totalValueLabelStyle() {
+    @computed private get totalValueLabelStyle(): {
+        fill: string
+        fontSize: number
+    } {
         return {
             fill: "#555",
             fontSize: 0.75 * this.baseFontSize,
@@ -448,7 +454,7 @@ export class StackedDiscreteBarChart
             isInteractive: !this.manager.isExportingtoSvgOrPng,
         }
 
-        const handlePositionUpdate = (d: PlacedItem) => ({
+        const handlePositionUpdate = (d: PlacedItem): HashMap => ({
             translateY: [d.yPosition],
             timing: { duration: 350, ease: easeQuadOut },
         })
@@ -477,11 +483,11 @@ export class StackedDiscreteBarChart
                 )}
                 <NodeGroup
                     data={this.placedItems}
-                    keyAccessor={(d: PlacedItem) => d.label}
+                    keyAccessor={(d: PlacedItem): string => d.label}
                     start={handlePositionUpdate}
                     update={handlePositionUpdate}
                 >
-                    {(nodes) => (
+                    {(nodes): JSX.Element => (
                         <g>
                             {nodes.map(
                                 ({

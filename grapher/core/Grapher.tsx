@@ -30,6 +30,9 @@ import {
     debounce,
     isInIFrame,
     differenceObj,
+    isEmpty,
+    get,
+    set,
 } from "../../clientUtils/Util.js"
 import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
 import {
@@ -48,8 +51,14 @@ import {
     FacetAxisDomain,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
+    Detail,
 } from "../core/GrapherConstants.js"
-import { OwidVariablesAndEntityKey } from "../../clientUtils/OwidVariable.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableMixedData,
+    OwidVariableWithSourceAndDimension,
+} from "../../clientUtils/OwidVariable.js"
 import * as Cookies from "js-cookie"
 import {
     ChartDimension,
@@ -131,6 +140,7 @@ import {
     EntityId,
     EntityName,
     OwidColumnDef,
+    OwidVariableRow,
 } from "../../coreTable/OwidTableConstants.js"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import Mousetrap from "mousetrap"
@@ -140,7 +150,7 @@ import {
     DefaultChartClass,
 } from "../chart/ChartTypeMap.js"
 import { ColorSchemeName } from "../color/ColorConstants.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { Entity, SelectionArray } from "../selection/SelectionArray.js"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants.js"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils.js"
@@ -151,7 +161,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
-import { Url } from "../../clientUtils/urls/Url.js"
+import { getWindowUrl, Url } from "../../clientUtils/urls/Url.js"
 import {
     Annotation,
     ColumnSlug,
@@ -168,6 +178,9 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.
 import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
+import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
+import { detailOnDemandRegex } from "../text/parser.js"
 
 declare const window: any
 
@@ -184,11 +197,70 @@ const legacyConfigToConfig = (
     return newConfig
 }
 
+async function loadVariablesDataAdmin(
+    variableFetchBaseUrl: string | undefined,
+    variableIds: number[]
+): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const dataFetchPath = (variableId: number): string =>
+        variableFetchBaseUrl
+            ? `${variableFetchBaseUrl}/v1/variableById/data/${variableId}`
+            : `/api/data/variables/data/${variableId}.json`
+    const metadataFetchPath = (variableId: number): string =>
+        variableFetchBaseUrl
+            ? `${variableFetchBaseUrl}/v1/variableById/metadata/${variableId}`
+            : `/api/data/variables/metadata/${variableId}.json`
+
+    const loadVariableDataPromises = variableIds.map(async (variableId) => {
+        const dataPromise = window.admin.getJSON(
+            dataFetchPath(variableId)
+        ) as Promise<OwidVariableMixedData>
+        const metadataPromise = window.admin.getJSON(
+            metadataFetchPath(variableId)
+        ) as Promise<OwidVariableWithSourceAndDimension>
+        const [data, metadata] = await Promise.all([
+            dataPromise,
+            metadataPromise,
+        ])
+        return { data, metadata: { ...metadata, id: variableId } }
+    })
+    const variablesData: OwidVariableDataMetadataDimensions[] =
+        await Promise.all(loadVariableDataPromises)
+    const variablesDataMap = new Map(
+        variablesData.map((data) => [data.metadata.id, data])
+    )
+    return variablesDataMap
+}
+
+async function loadVariablesDataSite(
+    variableIds: number[],
+    baseUrl: string
+): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const loadVariableDataPromises = variableIds.map(async (variableId) => {
+        const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
+        const metadataPromise = fetch(`${baseUrl}metadata/${variableId}.json`)
+        const [dataResponse, metadataResponse] = await Promise.all([
+            dataPromise,
+            metadataPromise,
+        ])
+        if (!dataResponse.ok) throw new Error(dataResponse.statusText)
+        if (!metadataResponse.ok) throw new Error(metadataResponse.statusText)
+        const data = await dataResponse.json()
+        const metadata = await metadataResponse.json()
+        return { data, metadata }
+    })
+    const variablesData: OwidVariableDataMetadataDimensions[] =
+        await Promise.all(loadVariableDataPromises)
+    const variablesDataMap = new Map(
+        variablesData.map((data) => [data.metadata.id, data])
+    )
+    return variablesDataMap
+}
+
 const DEFAULT_MS_PER_TICK = 100
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
-    owidDataset?: OwidVariablesAndEntityKey // This is temporarily used for testing. Will be removed
+    owidDataset?: MultipleOwidVariableDataDimensionsMap // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean // This will be removed.
     hideEntityControls?: boolean
     queryStr?: string
@@ -198,6 +270,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
+    dataApiUrlForAdmin?: string
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -310,6 +383,19 @@ export class Grapher
     @observable includedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
+    // These are the details from the config for this specific Grapher,
+    // whereas globalDetailsOnDemand can have details
+    // from multiple sources
+    @observable details: Record<string, Record<string, Detail>> = {}
+
+    @action.bound private updateGlobalDetailsOnDemand(): void {
+        this.disposers.push(
+            autorun(() => {
+                globalDetailsOnDemand.addDetails(this.details)
+            })
+        )
+    }
+
     @observable.ref annotation?: Annotation = undefined
 
     @observable hideFacetControl?: boolean = true
@@ -321,7 +407,8 @@ export class Grapher
     @observable sortOrder?: SortOrder
     @observable sortColumnSlug?: string
 
-    owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
+    owidDataset?: MultipleOwidVariableDataDimensionsMap = undefined // This is used for passing data for testing
+
     manuallyProvideData? = false // This will be removed.
 
     // TODO: Pass these 5 in as options, don't get them as globals.
@@ -335,6 +422,10 @@ export class Grapher
     @observable.ref inputTable: OwidTable
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
+
+    @computed get dataApiUrlForAdmin(): string | undefined {
+        return this.props.dataApiUrlForAdmin
+    }
 
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
@@ -382,7 +473,10 @@ export class Grapher
             legacyToCurrentGrapherQueryParams(props.queryStr ?? "")
         )
 
-        if (this.isEditor) this.ensureValidConfigWhenEditing()
+        if (this.isEditor) {
+            this.ensureValidConfigWhenEditing()
+            this.updateGlobalDetailsOnDemand()
+        }
 
         if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
 
@@ -416,9 +510,9 @@ export class Grapher
 
     @action.bound downloadData(): void {
         if (this.manuallyProvideData) {
-        } else if (this.owidDataset)
+        } else if (this.owidDataset) {
             this._receiveOwidDataAndApplySelection(this.owidDataset)
-        else this.downloadLegacyDataFromOwidVariableIds()
+        } else this.downloadLegacyDataFromOwidVariableIds()
     }
 
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface): void {
@@ -679,30 +773,38 @@ export class Grapher
 
         try {
             if (this.useAdminAPI) {
-                const json = await window.admin.getJSON(
-                    `/api/data/variables/${this.dataFileName}`
+                // TODO grapher model: switch this to downloading multiple data and metadata files
+                const variablesDataMap = await loadVariablesDataAdmin(
+                    this.dataApiUrlForAdmin,
+                    this.variableIds
                 )
-                this._receiveOwidDataAndApplySelection(json)
+                this._receiveOwidDataAndApplySelection(variablesDataMap)
             } else {
-                const response = await fetch(this.dataUrl)
-                if (!response.ok) throw new Error(response.statusText)
-                const json = await response.json()
-                this._receiveOwidDataAndApplySelection(json)
+                const variablesDataMap = await loadVariablesDataSite(
+                    this.variableIds,
+                    this.dataBaseUrl
+                )
+                this._receiveOwidDataAndApplySelection(variablesDataMap)
             }
         } catch (err) {
-            console.log(`Error fetching '${this.dataUrl}'`)
+            // eslint-disable-next-line no-console
+            console.log(`Error fetching '${err}'`)
             console.error(err)
         }
     }
 
-    @action.bound receiveOwidData(json: OwidVariablesAndEntityKey): void {
+    @action.bound receiveOwidData(
+        json: MultipleOwidVariableDataDimensionsMap
+    ): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         this._receiveOwidDataAndApplySelection(json)
     }
 
     @action.bound private _setInputTable(
-        json: OwidVariablesAndEntityKey,
+        json: MultipleOwidVariableDataDimensionsMap,
         legacyConfig: Partial<LegacyGrapherInterface>
     ): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         const { dimensions, table } = legacyToOwidTableAndDimensions(
             json,
             legacyConfig
@@ -723,6 +825,7 @@ export class Grapher
     }
 
     @action rebuildInputOwidTable(): void {
+        // TODO grapher model: switch this to downloading multiple data and metadata files
         if (!this.legacyVariableDataJson) return
         this._setInputTable(
             this.legacyVariableDataJson,
@@ -730,10 +833,11 @@ export class Grapher
         )
     }
 
-    @observable private legacyVariableDataJson?: OwidVariablesAndEntityKey
+    @observable
+    private legacyVariableDataJson?: MultipleOwidVariableDataDimensionsMap
 
     @action.bound private _receiveOwidDataAndApplySelection(
-        json: OwidVariablesAndEntityKey
+        json: MultipleOwidVariableDataDimensionsMap
     ): void {
         this.legacyVariableDataJson = json
 
@@ -885,16 +989,8 @@ export class Grapher
         return uniq(this.dimensions.map((d) => d.variableId))
     }
 
-    @computed private get dataFileName(): string {
-        return `${this.variableIds.join("+")}.json?v=${
-            this.isEditor ? undefined : this.cacheTag
-        }`
-    }
-
-    @computed get dataUrl(): string {
-        return `${this.bakedGrapherURL ?? ""}/data/variables/${
-            this.dataFileName
-        }`
+    @computed get dataBaseUrl(): string {
+        return `${this.bakedGrapherURL ?? ""}/data/variables/`
     }
 
     externalCsvLink = ""
@@ -1069,6 +1165,60 @@ export class Grapher
 
     @computed get displaySlug(): string {
         return this.slug ?? slugify(this.displayTitle)
+    }
+
+    @observable shouldIncludeDetailsInStaticExport = true
+
+    // Used for superscript numbers in static exports
+    @computed get detailsOrderedByReference(): {
+        category: string
+        term: string
+    }[] {
+        if (isEmpty(this.details)) return []
+        const textInOrderOfAppearance = this.subtitle + this.note
+        const allDetails = textInOrderOfAppearance.matchAll(
+            new RegExp(detailOnDemandRegex, "g")
+        )
+        const uniqueDetails: {
+            category: string
+            term: string
+        }[] = []
+        const seen: Record<string, Record<string, boolean>> = {}
+        for (const detail of allDetails) {
+            const [_, category, term] = detail
+            if (!get(seen, [category, term])) {
+                uniqueDetails.push({ category, term })
+                set(seen, [category, term], true)
+            }
+        }
+        return uniqueDetails
+    }
+
+    // Used for static exports. Defined at this level because they need to
+    // be accessed by CaptionedChart and DownloadTab
+    @computed get detailRenderers(): MarkdownTextWrap[] {
+        return this.detailsOrderedByReference.map(
+            ({ category, term }: { category: string; term: string }, i) => {
+                let text = `**${i + 1}.** `
+                const detail = this.details[category][term]
+                if (detail) {
+                    text += `**${detail.title}**: ${detail.content.replaceAll(
+                        /\n\n/g,
+                        " "
+                    )}`
+                }
+                return new MarkdownTextWrap({
+                    text,
+                    fontSize: 12,
+                    // 30 is 15 margin on both sides
+                    maxWidth: this.idealBounds.width - 30,
+                    lineHeight: 1.2,
+                    style: {
+                        fill: "#777",
+                    },
+                })
+            }
+        )
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
@@ -1490,7 +1640,7 @@ export class Grapher
     }
 
     // Filter data to what can be display on the map (across all times)
-    @computed get mappableData() {
+    @computed get mappableData(): OwidVariableRow<any>[] {
         return this.inputTable
             .get(this.mapColumnSlug)
             .owidRows.filter((row) => isOnTheMap(row.entityName))
@@ -1728,7 +1878,7 @@ export class Grapher
             this.props.table?.availableEntities ?? []
         )
 
-    @computed get availableEntities() {
+    @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities
     }
 
@@ -2128,6 +2278,8 @@ export class Grapher
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
+        if (this.props.details)
+            globalDetailsOnDemand.addDetails(this.props.details)
     }
 
     private _shortcutsBound = false
@@ -2165,7 +2317,7 @@ export class Grapher
         this.checkVisibility()
     }
 
-    componentDidCatch(error: Error, info: any): void {
+    componentDidCatch(error: Error, info: unknown): void {
         this.setError(error)
         this.analytics.logGrapherViewError(error, info)
     }
@@ -2176,6 +2328,20 @@ export class Grapher
         if (!this.relatedQuestions.length) return false
         const question = this.relatedQuestions[0]
         return !!question && !!question.text && !!question.url
+    }
+
+    @computed get isRelatedQuestionTargetDifferentFromCurrentPage(): boolean {
+        // comparing paths rather than full URLs for this to work as
+        // expected on local and staging where the origin (e.g.
+        // hans.owid.cloud) doesn't match the production origin that has
+        // been entered in the related question URL field:
+        // "ourworldindata.org" and yet should still yield a match.
+        // - Note that this won't work on production previews (where the
+        //   path is /admin/posts/preview/ID)
+        return (
+            getWindowUrl().pathname !==
+            Url.fromURL(this.relatedQuestions[0]?.url).pathname
+        )
     }
 
     @computed private get footerControlsLines(): number {
@@ -2239,6 +2405,7 @@ export class Grapher
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions
+        this.details = grapher.details
     }
 
     debounceMode = false
@@ -2269,7 +2436,9 @@ export class Grapher
         const authoredConfig = this.legacyConfigAsAuthored
 
         const originalSelectedEntityIds =
-            authoredConfig.selectedData?.map((row) => row.entityId) || []
+            uniq(authoredConfig.selectedData?.map((row) => row.entityId)) ??
+            authoredConfig.selectedEntityIds ??
+            []
         const currentSelectedEntityIds = this.selection.allSelectedEntityIds
 
         const entityIdsThatTheUserDeselected = difference(
@@ -2350,7 +2519,7 @@ export class Grapher
 
     @computed get timeParam(): string | undefined {
         const { timeColumn } = this.table
-        const formatTime = (t: Time) =>
+        const formatTime = (t: Time): string =>
             timeBoundToTimeBoundString(
                 t,
                 timeColumn instanceof ColumnTypeMap.Day

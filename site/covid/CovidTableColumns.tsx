@@ -94,15 +94,14 @@ const casesDoubingBackgColorScale = scaleLinear<string>()
     .interpolate(interpolateLab)
     .clamp(true)
 
-const daysToDoubleGenerator =
-    (
-        accessorDatum: IntAccessor,
-        accessorRange: RangeAccessor,
-        noun: NounGenerator,
-        doubingBackgColorScale: (n: number) => string,
-        doubingTextColorScale: (n: number) => string
-    ) =>
-    (props: CovidTableCellSpec) => {
+const daysToDoubleGenerator = (
+    accessorDatum: IntAccessor,
+    accessorRange: RangeAccessor,
+    noun: NounGenerator,
+    doubingBackgColorScale: (n: number) => string,
+    doubingTextColorScale: (n: number) => string
+) =>
+    function CovidDoublingDays(props: CovidTableCellSpec) {
         const { datum, bars, isMobile } = props
         const range = accessorRange(datum)
         return (
@@ -176,9 +175,8 @@ const daysToDoubleGenerator =
         )
     }
 
-const totalGenerator =
-    (accessor: IntAccessor, noun: NounGenerator) =>
-    (props: CovidTableCellSpec) => {
+const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) =>
+    function CovidTotal(props: CovidTableCellSpec) {
         const { bars, datum } = props
         return (
             <td
@@ -220,9 +218,8 @@ const totalGenerator =
         )
     }
 
-const newGenerator =
-    (accessor: IntAccessor, noun: NounGenerator) =>
-    (props: CovidTableCellSpec) => {
+const newGenerator = (accessor: IntAccessor, noun: NounGenerator) =>
+    function CovidNew(props: CovidTableCellSpec) {
         const { bars, datum } = props
         return (
             <td

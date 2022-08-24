@@ -84,7 +84,7 @@ export class ColorScaleConfig
     extends ColorScaleConfigDefaults
     implements Persistable
 {
-    updateFromObject(obj: any): void {
+    updateFromObject(obj: Record<string, unknown>): void {
         extend(this, obj)
     }
 

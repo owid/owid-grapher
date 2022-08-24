@@ -300,7 +300,7 @@ export class DecisionMatrix {
         return hits[0]
     }
 
-    get selectedRowIndex() {
+    get selectedRowIndex(): number {
         return this.firstMatch === undefined
             ? 0
             : this.table.indexOf(this.firstMatch)

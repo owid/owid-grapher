@@ -1,6 +1,6 @@
 import { isEmpty, max, stripHTML, linkify } from "../../clientUtils/Util.js"
 import { computed } from "mobx"
-import { Bounds } from "../../clientUtils/Bounds.js"
+import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import React from "react"
 
 declare type FontSize = number
@@ -32,7 +32,7 @@ export const shortenForTargetWidth = (
     fontSettings: {
         fontSize?: number
         fontWeight?: number
-        fontFamily?: string
+        fontFamily?: FontFamily
     } = {}
 ): string => {
     // use binary search to find the largest substring that fits within the target width
@@ -77,8 +77,8 @@ export class TextWrap {
 
         const words = isEmpty(text)
             ? []
-            : // We prepend spaces to newlines in order to be able to do a "starts with"
-              // check to trigger a new line.
+            : // Prepend spaces so that the string is also split before newline characters
+              // See startsWithNewline
               text.replace(/\n/g, " \n").split(" ")
 
         const lines: WrapLine[] = []
@@ -130,12 +130,9 @@ export class TextWrap {
     }
 
     @computed get height(): number {
-        if (this.lines.length === 0) return 0
-
-        return (
-            this.lines.reduce((total, line) => total + line.height, 0) +
-            this.lineHeight * (this.lines.length - 1)
-        )
+        const { lines, lineHeight, fontSize } = this
+        if (lines.length === 0) return 0
+        return lines.length * lineHeight * fontSize
     }
 
     @computed get width(): number {
@@ -157,15 +154,10 @@ export class TextWrap {
 
         if (lines.length === 0) return null
 
-        // if (props.raw)
-        //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options} dangerouslySetInnerHTML={{__html: text}}/>
-        // else
-        //     return <p style={{ fontSize: fontSize.toFixed(2) + "px", lineHeight: lineHeight, width: this.width }} {...options}>{strip(text)}</p>
-
         return (
             <span>
                 {lines.map((line, index) => {
-                    const content = props.rawHtml ? (
+                    const content = this.props.rawHtml ? (
                         <span
                             dangerouslySetInnerHTML={{
                                 __html: line.text,
@@ -201,7 +193,16 @@ export class TextWrap {
 
         if (lines.length === 0) return null
 
-        const yOffset = y + lines[0].height - lines[0].height * 0.2
+        // Magic number set through experimentation.
+        // The HTML and SVG renderers need to position lines identically.
+        // This number was tweaked until the overlaid HTML and SVG outputs
+        // overlap (see storybook of this component).
+        const HEIGHT_CORRECTION_FACTOR = 0.74
+
+        const textHeight = lines[0].height * HEIGHT_CORRECTION_FACTOR
+        const containerHeight = lineHeight * fontSize
+        const yOffset =
+            y + (containerHeight - (containerHeight - textHeight) / 2)
         return (
             <text
                 fontSize={fontSize.toFixed(2)}
@@ -216,10 +217,7 @@ export class TextWrap {
                             <tspan
                                 key={i}
                                 x={x}
-                                y={
-                                    yOffset +
-                                    (i === 0 ? 0 : lineHeight * fontSize * i)
-                                }
+                                y={yOffset + lineHeight * fontSize * i}
                                 dangerouslySetInnerHTML={{ __html: line.text }}
                             />
                         )

@@ -9,7 +9,6 @@ import {
     renderDonatePage,
     entriesByYearPage,
     makeAtomFeed,
-    pagePerVariable,
     feedbackPage,
     renderNotFoundPage,
     renderBlogByPageNum,
@@ -20,13 +19,11 @@ import {
 import { grapherSlugToHtmlPage } from "../baker/GrapherBaker.js"
 import {
     BAKED_BASE_URL,
-    BAKED_GRAPHER_URL,
     WORDPRESS_DIR,
     BASE_DIR,
     BAKED_SITE_DIR,
 } from "../settings/serverSettings.js"
 
-import * as db from "../db/db.js"
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import {
     countryProfilePage,
@@ -72,16 +69,21 @@ mockSiteRouter.get(`/entries-by-year/:year`, async (req, res) =>
 )
 
 mockSiteRouter.get(
-    "/grapher/data/variables/:variableIds.json",
+    "/grapher/data/variables/data/:variableId.json",
     async (req, res) => {
         res.set("Access-Control-Allow-Origin", "*")
-        res.json(
-            await getVariableData(
-                (req.params.variableIds as string)
-                    .split("+")
-                    .map((v) => expectInt(v))
-            )
+        res.json((await getVariableData(expectInt(req.params.variableId))).data)
+    }
+)
+
+mockSiteRouter.get(
+    "/grapher/data/variables/metadata/:variableId.json",
+    async (req, res) => {
+        res.set("Access-Control-Allow-Origin", "*")
+        const variableData = await getVariableData(
+            expectInt(req.params.variableId)
         )
+        res.json(variableData.metadata)
     }
 )
 
@@ -194,11 +196,6 @@ mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
 })
 
 mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
-
-mockSiteRouter.get("/indicator/:variableId/:country", async (req, res) => {
-    const variableId = expectInt(req.params.variableId)
-    res.send(await pagePerVariable(variableId, req.params.country))
-})
 
 mockSiteRouter.get("/countries", async (req, res) =>
     res.send(await countriesIndexPage(BAKED_BASE_URL))

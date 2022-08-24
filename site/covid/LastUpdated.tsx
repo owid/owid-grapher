@@ -23,7 +23,7 @@ export const LastUpdated = ({ timestampUrl }: LastUpdatedTokenProps) => {
             setDate(parsedDate)
         }
         fetchTimeStamp()
-    }, [])
+    }, [timestampUrl])
 
     return (
         date && (

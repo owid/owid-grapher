@@ -27,5 +27,7 @@ serverSettings.json
 localBake/
 /grapherData
 /grapherSvgs
+/differentGrapherSvgs
 /owid-content
 tmp-downloads
+/data_files_checksums

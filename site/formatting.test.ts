@@ -1,6 +1,7 @@
 import cheerio from "cheerio"
 import { WP_ColumnStyle } from "../clientUtils/owidTypes.js"
 import {
+    formatAuthors,
     GRAPHER_PREVIEW_CLASS,
     splitContentIntoSectionsAndColumns,
 } from "./formatting.js"
@@ -135,5 +136,27 @@ describe("splits consecutive charts in side-by-side columns", () => {
         splitContentIntoSectionsAndColumns($)
         testColumnsContent($, chart, chart2, WP_ColumnStyle.SideBySide)
         testColumnsContent($, chart3, "", WP_ColumnStyle.StickyLeft)
+    })
+})
+
+describe(formatAuthors, () => {
+    it("formats authors nicely", () => {
+        const authors = ["Author 1", "Author 2", "Author 3"]
+        expect(formatAuthors({ authors })).toEqual(
+            "Author 1, Author 2 and Author 3"
+        )
+
+        expect(formatAuthors({ authors, requireMax: true })).toEqual(
+            "Author 1, Author 2, Author 3 and Max Roser"
+        )
+
+        expect(formatAuthors({ authors: ["Author 1"] })).toEqual("Author 1")
+        expect(formatAuthors({ authors: ["Author 1", "Author 2"] })).toEqual(
+            "Author 1 and Author 2"
+        )
+
+        expect(
+            formatAuthors({ authors, requireMax: true, forBibtex: true })
+        ).toEqual("Author 1 and Author 2 and Author 3 and Max Roser")
     })
 })

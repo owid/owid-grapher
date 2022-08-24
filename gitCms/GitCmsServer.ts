@@ -101,6 +101,7 @@ export class GitCmsServer {
             } as GitPullResponse
         } catch (error) {
             const err = error as Error
+            // eslint-disable-next-line no-console
             if (verbose ?? this.verbose) console.log(err)
             return { success: false, error: err.toString() }
         }
@@ -136,6 +137,7 @@ export class GitCmsServer {
             return { success: true, content }
         } catch (error) {
             const err = error as Error
+            // eslint-disable-next-line no-console
             if (this.verbose) console.log(err)
             return {
                 success: false,

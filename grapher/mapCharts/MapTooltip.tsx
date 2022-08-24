@@ -20,6 +20,7 @@ import {
     darkenColorForLine,
 } from "../color/ColorUtils.js"
 import { isNumber, AllKeysRequired } from "../../clientUtils/Util.js"
+import { checkIsVeryShortUnit } from "../../clientUtils/formatValue.js"
 
 interface MapTooltipProps {
     entityName: EntityName
@@ -122,6 +123,15 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.timeSeriesTable ?? new OwidTable()
     }
     @computed private get sparklineManager(): LineChartManager {
+        // Pass down short units, while omitting long or undefined ones.
+        const unit = this.sparklineTable.get(this.mapColumnSlug).shortUnit
+        const yAxisUnit =
+            typeof unit === "string"
+                ? checkIsVeryShortUnit(unit)
+                    ? unit
+                    : ""
+                : ""
+
         return {
             table: this.sparklineTable,
             transformedTable: this.sparklineTable,
@@ -141,7 +151,10 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             yAxisConfig: {
                 hideAxis: false,
                 hideGridlines: false,
-                compactLabels: true,
+                tickFormattingOptions: {
+                    unit: yAxisUnit,
+                    numberAbbreviation: "short",
+                },
                 // Copy min/max from top-level Grapher config if Y column == Map column
                 min: this.mapAndYColumnAreTheSame
                     ? this.props.manager.yAxisConfig?.min
@@ -150,7 +163,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     ? this.props.manager.yAxisConfig?.max
                     : undefined,
                 ticks: [
-                    { value: 0, priority: 1 },
+                    { value: 0, priority: 1, solid: true },
                     // Show minimum and maximum
                     { value: -Infinity, priority: 2 },
                     { value: Infinity, priority: 2 },
@@ -159,7 +172,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             xAxisConfig: {
                 hideAxis: false,
                 hideGridlines: true,
-                compactLabels: true,
+                tickFormattingOptions: {},
                 // Always show up to the target time on the X axis,
                 // even if there is no data for it.
                 min: this.props.targetTime,

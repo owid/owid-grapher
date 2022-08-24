@@ -249,7 +249,7 @@ where JSON_CONTAINS_PATH(${column}, 'one', '$."yAxis"."numDecimalPlaces"') = 1;`
         }
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
+    public async down(): Promise<void> {
         // This migration is not really undo-able unless we would create a backup table to hold the old
         // chart ${column}s which is probably not worth it
     }

@@ -1,5 +1,5 @@
 import * as db from "../db/db.js"
-import { getVariableData } from "../db/model/Variable.js"
+import { getDataForMultipleVariables } from "../db/model/Variable.js"
 import fs from "fs-extra"
 import svgo from "svgo"
 import sharp from "sharp"
@@ -10,15 +10,17 @@ import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
+import { MultipleOwidVariableDataDimensionsMap } from "../clientUtils/OwidVariable.js"
 
 export async function bakeGraphersToPngs(
     outDir: string,
     jsonConfig: GrapherInterface,
-    vardata: any,
+    vardata: MultipleOwidVariableDataDimensionsMap,
     optimizeSvgs = false
 ) {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
     grapher.isExportingtoSvgOrPng = true
+    grapher.shouldIncludeDetailsInStaticExport = false
     grapher.receiveOwidData(vardata)
     const outPath = path.join(outDir, grapher.slug as string)
 
@@ -103,7 +105,7 @@ export async function bakeGrapherToSvg(
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
     const variableIds = grapher.dimensions.map((d) => d.variableId)
-    const vardata = await getVariableData(variableIds)
+    const vardata = await getDataForMultipleVariables(variableIds)
     grapher.receiveOwidData(vardata)
 
     let svgCode = grapher.staticSVG
@@ -123,6 +125,7 @@ export function initGrapherForSvgExport(
         queryStr,
     })
     grapher.isExportingtoSvgOrPng = true
+    grapher.shouldIncludeDetailsInStaticExport = false
     return grapher
 }
 
@@ -209,10 +212,11 @@ async function optimizeSvg(svgString: string): Promise<string> {
 
 export async function grapherToSVG(
     jsonConfig: GrapherInterface,
-    vardata: any
+    vardata: MultipleOwidVariableDataDimensionsMap
 ): Promise<string> {
     const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
     grapher.isExportingtoSvgOrPng = true
+    grapher.shouldIncludeDetailsInStaticExport = false
     grapher.receiveOwidData(vardata)
     return grapher.staticSVG
 }

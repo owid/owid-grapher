@@ -146,7 +146,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                             </li>
                             <li>
                                 <a
-                                    href="https://instagram.com/ourworldindata_official"
+                                    href="https://www.instagram.com/ourworldindata/"
                                     data-track-note="footer-navigation"
                                 >
                                     Instagram
@@ -256,7 +256,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                 </div>
             </div>
             <div className="site-tools" />
-            <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry" />
+            <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry,ResizeObserver" />
             <script src={webpackUrl("commons.js", props.baseUrl)} />
             <script src={webpackUrl("vendors.js", props.baseUrl)} />
             <script src={webpackUrl("owid.js", props.baseUrl)} />

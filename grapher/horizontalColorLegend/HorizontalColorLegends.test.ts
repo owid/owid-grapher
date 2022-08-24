@@ -27,17 +27,6 @@ describe(HorizontalNumericColorLegend, () => {
     })
 
     it("adds margins between categorical but not numeric bins", () => {
-        const bin = new NumericBin({
-            isFirst: false,
-            isOpenLeft: false,
-            isOpenRight: false,
-            min: 0,
-            max: 100,
-            displayMin: "Zero",
-            displayMax: "One hundred",
-            color: "blue",
-        })
-
         const legend = new HorizontalNumericColorLegend({
             manager: {
                 numericLegendData: [

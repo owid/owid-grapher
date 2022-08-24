@@ -23,6 +23,8 @@ export const GRAPHER_IS_IN_IFRAME_CLASS = "IsInIframe"
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
+export const STATIC_EXPORT_DETAIL_SPACING = 24
+
 export enum CookieKey {
     isAdmin = "isAdmin",
 }
@@ -88,6 +90,14 @@ export interface Topic {
     name: string
 }
 
+export interface Detail {
+    category: string
+    term: string
+    title: string
+    content: string
+    id: number
+}
+
 export const WorldEntityName = "World"
 
 // When a user hovers over a connected series line in a ScatterPlot we show
@@ -107,3 +117,13 @@ export interface EntitySelection {
 }
 
 export type SeriesName = string
+
+export const GRAPHER_VARIABLES_ROUTE = "/grapher/data/variables"
+export const GRAPHER_VARIABLE_DATA_ROUTE = `${GRAPHER_VARIABLES_ROUTE}/data`
+export const GRAPHER_VARIABLE_METADATA_ROUTE = `${GRAPHER_VARIABLES_ROUTE}/metadata`
+
+export const getVariableDataRoute = (variableId: number): string =>
+    `${GRAPHER_VARIABLE_DATA_ROUTE}/${variableId}.json`
+
+export const getVariableMetadataRoute = (variableId: number): string =>
+    `${GRAPHER_VARIABLE_METADATA_ROUTE}/${variableId}.json`

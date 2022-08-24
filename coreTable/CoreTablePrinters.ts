@@ -47,7 +47,7 @@ export const toAlignedTextTable = (
         return false
     })
 
-    const cellFn = (cellText = "", row: number, col: number) => {
+    const cellFn = (cellText = "", row: number, col: number): string => {
         const width = colWidths[col]
         // Strip newlines in fixedWidth output
         const cellValue = cellText?.toString().replace(/\n/g, "\\n") || ""

@@ -18,6 +18,7 @@
         { "path": "./adminSiteServer" },
         { "path": "./.storybook" },
         { "path": "./devTools/svgTester" },
-        { "path": "./devTools/schemaProcessor" }
+        { "path": "./devTools/schemaProcessor" },
+        { "path": "./devTools/dodParserTestGenerator" }
     ]
 }

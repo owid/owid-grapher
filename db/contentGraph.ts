@@ -9,7 +9,10 @@ import { once, isEmpty } from "../clientUtils/Util.js"
 import { queryMysql } from "./db.js"
 import { ENTRIES_CATEGORY_ID, getDocumentsInfo } from "./wpdb.js"
 
+// no defintions exist
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
 import fortune from "fortune" // Works in web browsers, too.
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
 import MemoryAdapter from "fortune/lib/adapter/adapters/memory/index.js"
 const {
     errors: { ConflictError },
@@ -61,7 +64,7 @@ const throwAllButConflictError = (err: unknown): void => {
 
 export const addDocumentsToGraph = async (
     documents: DocumentNode[],
-    graph: any
+    graph: typeof fortune
 ): Promise<void> => {
     for (const document of documents) {
         // Create the parent topics first (add records with the only available
@@ -169,7 +172,9 @@ const addEmbeddedChartsToGraph = async (
     }
 }
 
-export const removeUnpublishedDocuments = async (graph: any): Promise<void> => {
+export const removeUnpublishedDocuments = async (
+    graph: typeof fortune
+): Promise<void> => {
     const ids = (
         await graph.find(GraphType.Document, null, {
             fields: { id: true },

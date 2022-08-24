@@ -17,6 +17,23 @@ export interface GridBounds {
     bounds: Bounds
 }
 
+export enum FontFamily {
+    "andale mono" = "andale mono",
+    "arial" = "arial",
+    "avenir next" = "avenir next",
+    "avenir" = "avenir",
+    "comic sans ms" = "comic sans ms",
+    "courier new" = "courier new",
+    "georgia" = "georgia",
+    "impact" = "impact",
+    "open sans" = "open sans",
+    "tahoma" = "tahoma",
+    "times new roman" = "times new roman",
+    "trebuchet ms" = "trebuchet ms",
+    "verdana" = "verdana",
+    "webdings" = "webdings",
+}
+
 export class Bounds {
     static ctx: CanvasRenderingContext2D
 
@@ -75,12 +92,15 @@ export class Bounds {
             y = 0,
             fontSize = 16,
             fontWeight = 400,
+            fontFamily = FontFamily.arial,
+            isItalic = false,
         }: {
             x?: number
             y?: number
             fontSize?: number
             fontWeight?: number
-            fontFamily?: string
+            fontFamily?: FontFamily
+            isItalic?: boolean
         } = {}
     ): Bounds {
         // Collapse contiguous spaces into one
@@ -95,9 +115,10 @@ export class Bounds {
             // rough estimate of string width based on characters in a string - it is probably not
             // worth caching further
             const width = pixelWidth(str, {
-                font: "arial",
+                font: fontFamily,
                 size: fontSize,
                 bold: isBold,
+                italic: isItalic,
             })
             bounds = bounds.set({ width })
         }
@@ -248,14 +269,13 @@ export class Bounds {
     }
 
     intersects(otherBounds: Bounds): boolean {
-        const r1 = this
         const r2 = otherBounds
 
         return !(
-            r2.left > r1.right ||
-            r2.right < r1.left ||
-            r2.top > r1.bottom ||
-            r2.bottom < r1.top
+            r2.left > this.right ||
+            r2.right < this.left ||
+            r2.top > this.bottom ||
+            r2.bottom < this.top
         )
     }
 

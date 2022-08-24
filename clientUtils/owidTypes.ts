@@ -1,3 +1,5 @@
+import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
+
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
 
@@ -53,6 +55,7 @@ export interface RelatedChart {
     title: string
     slug: string
     variantName?: string | null
+    isKey?: boolean
 }
 
 export type OwidVariableId = Integer // remove.
@@ -61,6 +64,7 @@ export const BLOCK_WRAPPER_DATATYPE = "block-wrapper"
 
 export interface FormattedPost extends FullPost {
     supertitle?: string
+    stickyNavLinks?: { text: string; target: string }[]
     lastUpdated?: string
     byline?: string
     info?: string
@@ -153,6 +157,10 @@ export interface PostRow {
     content: string
     published_at: Date | null
     updated_at: Date
+}
+
+export interface Tag extends TagReactTagAutocomplete {
+    isKey?: boolean
 }
 
 export interface EntryMeta {
@@ -278,8 +286,12 @@ export enum WP_ColumnStyle {
     SideBySide = "side-by-side",
 }
 
-export enum WP_BlockType {
+export enum WP_BlockClass {
     FullContentWidth = "wp-block-full-content-width", // not an actual WP block yet
+}
+
+export enum WP_BlockType {
+    AllCharts = "all-charts",
 }
 
 export enum SuggestedChartRevisionStatus {

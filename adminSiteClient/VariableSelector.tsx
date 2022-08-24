@@ -141,7 +141,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
         const rows: Array<string | Variable[]> = []
         const unsorted = Object.entries(resultsByDataset)
-        const sorted = lodash.sortBy(unsorted, ([datasetName, variables]) => {
+        const sorted = lodash.sortBy(unsorted, ([_, variables]) => {
             const sizes = lodash.map(
                 variables,
                 (variable) => variable.usageCount ?? 0
