@@ -22,9 +22,6 @@ fillGrapherDb() {
     echo "Refreshing grapher database"
     _mysql -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME;" 
     
-    echo "Importing live Grapher metadata database (owid_metadata)"
-    import_db $DATA_FOLDER/owid_metadata.sql.gz    
-
     if [ -f "${DATA_FOLDER}/owid_metadata.sql.gz" ]; then
         echo "Importing live Grapher metadata database (owid_metadata)"
         import_db $DATA_FOLDER/owid_metadata.sql.gz
