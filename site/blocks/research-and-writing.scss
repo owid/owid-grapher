@@ -3,6 +3,79 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     padding: 0 80px;
+
+    // "Research & Writing" heading
+    > h3:first-child {
+        grid-column: 1 / 13;
+        font-family: $serif-font-stack;
+        font-size: 32px;
+        line-height: 40px;
+        text-align: center;
+        margin: 48px 0;
+        font-weight: lighter;
+    }
+
+    // Category headings
+    > h4 {
+        grid-column: 1 / 13;
+        text-align: center;
+        margin: 40px 0 24px 0;
+        text-transform: uppercase;
+        letter-spacing: 1.6px;
+        font-size: 12px;
+        color: $blue-90;
+    }
+
+    // Article cards
+    // Despite varying sizes, all cards in the section are styled this way
+    .wp-block-owid-card {
+        border: none;
+
+        &:hover {
+            box-shadow: none;
+        }
+
+        figure {
+            padding-bottom: 57%;
+            width: 100%;
+            max-height: 57%;
+            display: block;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+
+            img {
+                width: 100%;
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+        }
+
+        .text-wrapper {
+            padding: 0;
+            margin-top: 16px;
+        }
+
+        .title {
+            line-height: 32px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a:hover .title {
+            text-decoration: underline;
+        }
+
+        // byline
+        p:last-child {
+            margin-top: 16px;
+            font-style: italic;
+            color: $blue-60;
+        }
+    }
 }
 
 .research-and-writing__top {
@@ -19,6 +92,7 @@
         grid-column: 7 / 13;
         display: grid;
         grid-template-columns: repeat(2, 1fr);
+        column-gap: 24px;
     }
 
     .research-and-writing__shorts {
@@ -28,14 +102,45 @@
         h5 {
             text-transform: uppercase;
             letter-spacing: 1.6px;
+            color: $blue-50;
         }
 
         .wp-block-group {
+            &:not(:last-child) {
+                border-bottom: 1px solid white;
+            }
+
             h6 {
                 // TODO: comprehensive typography PR
-                @include owid-link-90;
+                line-height: 24px;
                 font-family: $serif-font-stack;
+                font-size: 18px;
+                font-style: unset;
+                font-weight: bold;
+                text-align: left;
+                margin-top: 24px;
+                margin-bottom: 16px;
+                opacity: 1;
+
+                a {
+                    color: $blue-90;
+                    text-decoration: none;
+                }
+
+                a:hover {
+                    text-decoration: underline;
+                }
+            }
+
+            p {
+                color: $blue-60;
+                font-size: 14px;
+                font-style: italic;
             }
         }
     }
+}
+
+.research-and-writing__sub-category {
+    grid-column: 1 / 13;
 }

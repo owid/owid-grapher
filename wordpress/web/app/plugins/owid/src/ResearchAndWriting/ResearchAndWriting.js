@@ -18,7 +18,7 @@ const BLOCK_TEMPLATE = [
             [
                 "core/heading",
                 {
-                    level: 3,
+                    level: 2,
                     content: "Research & Writing",
                     anchor: "research-and-writing",
                 },
@@ -74,13 +74,13 @@ const BLOCK_TEMPLATE = [
             ["core/heading", { level: 4 }],
             [
                 "owid/grid",
-                {},
+                { className: "research-and-writing__sub-category" },
                 [["owid/card"], ["owid/card"], ["owid/card"], ["owid/card"]],
             ],
             ["core/heading", { level: 4 }],
             [
                 "owid/grid",
-                {},
+                { className: "research-and-writing__sub-category" },
                 [["owid/card"], ["owid/card"], ["owid/card"], ["owid/card"]],
             ],
         ],
