@@ -25,26 +25,30 @@ export function transformConfig(
         legacyConfig.selectedData.map((row) => row.entityId)
     ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
 
-    legacyConfig.selectedData.forEach((item) => {
-        if (item.entityId && item.color) {
-            // migrate entity color
-            if (!legacyConfig.selectedEntityColors) {
-                newConfig.selectedEntityColors =
-                    newConfig.selectedEntityColors ?? {}
-                const entityName = entityNamesById[item.entityId]
-                if (entityName) {
-                    newConfig.selectedEntityColors[entityName] ??= item.color
+    legacyConfig.selectedData
+        .slice()
+        .reverse()
+        .forEach((item) => {
+            if (item.entityId && item.color) {
+                // migrate entity color
+                if (!legacyConfig.selectedEntityColors) {
+                    newConfig.selectedEntityColors =
+                        newConfig.selectedEntityColors ?? {}
+                    const entityName = entityNamesById[item.entityId]
+                    if (entityName) {
+                        newConfig.selectedEntityColors[entityName] ??=
+                            item.color
+                    }
+                }
+
+                // migrate dimension color
+                const dimension = newConfig.dimensions?.[item.index]
+                if (dimension?.variableId) {
+                    dimension.display = dimension.display ?? {}
+                    dimension.display.color ??= item.color
                 }
             }
-
-            // migrate dimension color
-            const dimension = newConfig.dimensions?.[item.index]
-            if (dimension?.variableId) {
-                dimension.display = dimension.display ?? {}
-                dimension.display.color ??= item.color
-            }
-        }
-    })
+        })
 
     const variableIDsInSelectionOrder = excludeUndefined(
         legacyConfig.selectedData?.map(
