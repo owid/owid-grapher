@@ -10,7 +10,7 @@ import {
 } from "../settings/serverSettings.js"
 import { BCryptHasher } from "../db/hashers.js"
 import fetch from "node-fetch"
-import jwt, { Secret } from "jsonwebtoken"
+import { Secret } from "jsonwebtoken"
 import { ADMIN_BASE_URL, ENV } from "../settings/serverSettings.js"
 import { JsonError } from "../clientUtils/owidTypes.js"
 

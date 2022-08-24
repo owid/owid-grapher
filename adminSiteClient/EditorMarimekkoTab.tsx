@@ -9,8 +9,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "../coreTable/OwidTableConstants.js"
 import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash.js"
 import lodash from "lodash-es"
-import { grapherKeysToSerialize } from "../grapher/core/GrapherInterface.js"
-import { tSParenthesizedType } from "@babel/types"
 
 @observer
 export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {

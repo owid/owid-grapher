@@ -44,7 +44,6 @@ import workerpool from "workerpool"
 import ProgressBar from "progress"
 import fetch from "node-fetch"
 import { getVariableData } from "../db/model/Variable.js"
-import { cleanup } from "../db/cleanup.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
