@@ -590,6 +590,7 @@ export const formatPost = async (
     const options: FormattingOptions = {
         toc: post.type === "page",
         footnotes: true,
+        emphasiseHeadings: true,
         ...formattingOptions,
     }
 

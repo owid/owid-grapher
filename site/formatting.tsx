@@ -3,6 +3,7 @@ import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
+    FormattingOptions,
     TocHeading,
     WP_BlockClass,
     WP_ColumnStyle,
@@ -422,13 +423,21 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
     )
 }
 
-export const addContentFeatures = (post: FormattedPost): string => {
+export const addContentFeatures = ({
+    post,
+    formattingOptions,
+}: {
+    post: FormattedPost
+    formattingOptions: FormattingOptions
+}): string => {
     const cheerioEl = cheerio.load(post.html)
 
     if (post.type === WP_PostType.Post) addPostHeader(cheerioEl, post)
     splitContentIntoSectionsAndColumns(cheerioEl)
     bakeGlobalEntitySelector(cheerioEl)
-    addTocToSections(cheerioEl, post.tocHeadings)
+    if (formattingOptions.emphasiseHeadings) {
+        addTocToSections(cheerioEl, post.tocHeadings)
+    }
     if (post.glossary) addGlossaryToSections(cheerioEl)
 
     return getBodyHtml(cheerioEl)
