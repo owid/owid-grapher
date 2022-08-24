@@ -183,64 +183,7 @@ import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 import { detailOnDemandRegex } from "../text/parser.js"
 
-import { entityNamesById } from "../entityIdsToNames.js"
-
 declare const window: any
-
-export const legacyConfigToConfig = (
-    config: LegacyGrapherInterface | GrapherInterface
-): GrapherInterface => {
-    const legacyConfig = config as LegacyGrapherInterface
-    if (!legacyConfig.selectedData) return legacyConfig
-
-    const newConfig = { ...legacyConfig } as LegacyGrapherInterface
-    /*
-    (x) select variables to show
-    (x) select entities to show by default
-    (x) specify the order of dimensions
-    specify colors for dimensions
-    */
-
-    newConfig.selectedEntityIds = uniq(
-        legacyConfig.selectedData.map((row) => row.entityId)
-    ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
-
-    legacyConfig.selectedData.forEach((item) => {
-        if (item.entityId && item.color) {
-            // migrate entity color
-            if (!legacyConfig.selectedEntityColors) {
-                newConfig.selectedEntityColors =
-                    newConfig.selectedEntityColors ?? {}
-                const entityName = entityNamesById[item.entityId]
-                if (entityName) {
-                    newConfig.selectedEntityColors[entityName] ??= item.color
-                }
-            }
-
-            // migrate dimension color
-            const dimension = newConfig.dimensions?.[item.index]
-            if (dimension?.variableId) {
-                dimension.display = dimension.display ?? {}
-                dimension.display.color ??= item.color
-            }
-        }
-    })
-
-    const variableIDsInSelectionOrder = excludeUndefined(
-        legacyConfig.selectedData?.map(
-            (item) => legacyConfig.dimensions?.[item.index]?.variableId
-        ) ?? []
-    )
-    newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
-        variableIDsInSelectionOrder.findIndex(
-            (variableId) => dim.variableId === variableId
-        )
-    )
-
-    delete newConfig.selectedData
-
-    return newConfig
-}
 
 async function loadVariablesDataAdmin(
     variableFetchBaseUrl: string | undefined,
@@ -506,12 +449,10 @@ export class Grapher
         const { getGrapherInstance, ...props } = propsWithGrapherInstanceGetter
 
         this.inputTable = props.table ?? BlankOwidTable(`initialGrapherTable`)
-        const modernConfig = props ? legacyConfigToConfig(props) : props
 
-        if (props)
-            this.setAuthoredVersion({ ...props, selectedData: undefined })
+        if (props) this.setAuthoredVersion(props)
 
-        this.updateFromObject(modernConfig)
+        this.updateFromObject(props)
 
         if (!props.table) this.downloadData()
 

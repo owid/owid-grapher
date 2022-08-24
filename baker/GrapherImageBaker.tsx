@@ -4,13 +4,17 @@ import * as fs from "fs-extra"
 import svgo from "svgo"
 import sharp from "sharp"
 import * as path from "path"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { Grapher, legacyConfigToConfig } from "../grapher/core/Grapher.js"
+import {
+    GrapherInterface,
+    LegacyGrapherInterface,
+} from "../grapher/core/GrapherInterface.js"
+import { Grapher } from "../grapher/core/Grapher.js"
 import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
 import { MultipleOwidVariableDataDimensionsMap } from "../clientUtils/OwidVariable.js"
+import { transformConfig } from "../db/migration/1661264304751-MigrateSelectedData.js"
 
 export async function bakeGraphersToPngs(
     outDir: string,
@@ -91,8 +95,7 @@ export async function bakeGrapherToSvg(
     overwriteExisting = false,
     verbose = true
 ) {
-    const convertedConfig = legacyConfigToConfig(jsonConfig)
-    const grapher = initGrapherForSvgExport(convertedConfig, queryStr)
+    const grapher = initGrapherForSvgExport(jsonConfig, queryStr)
     const { width, height } = grapher.idealBounds
     const outPath = buildSvgOutFilepath(
         slug,
@@ -120,8 +123,9 @@ export function initGrapherForSvgExport(
     jsonConfig: GrapherInterface,
     queryStr: string = ""
 ) {
+    const converted = transformConfig(jsonConfig as LegacyGrapherInterface)
     const grapher = new Grapher({
-        ...jsonConfig,
+        ...converted,
         manuallyProvideData: true,
         queryStr,
     })
