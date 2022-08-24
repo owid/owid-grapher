@@ -2,14 +2,14 @@
     background-color: #fff;
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    padding: 0 80px;
+    padding: 0 16px;
 
     // "Research & Writing" heading
     > h3:first-child {
         grid-column: 1 / 13;
         font-family: $serif-font-stack;
         font-size: 32px;
-        line-height: 40px;
+        line-height: 1.33;
         text-align: center;
         margin: 48px 0;
         font-weight: lighter;
@@ -30,6 +30,7 @@
     // Despite varying sizes, all cards in the section are styled this way
     .wp-block-owid-card {
         border: none;
+        margin-bottom: 24px;
 
         &:hover {
             box-shadow: none;
@@ -58,7 +59,7 @@
         }
 
         .title {
-            line-height: 32px;
+            line-height: 1.33;
         }
 
         a {
@@ -85,24 +86,34 @@
     column-gap: 24px;
 
     > .wp-block-owid-card {
-        grid-column: 1 / 7;
+        grid-column: 1 / 13;
     }
 
     .research-and-writing__top-right {
-        grid-column: 7 / 13;
+        grid-column: 1 / 13;
         display: grid;
         grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto 1fr;
         column-gap: 24px;
+
+        > .wp-block-owid-card {
+            grid-column: 1 / 3;
+        }
     }
 
     .research-and-writing__shorts {
         background: $blue-10;
         padding: 24px;
+        grid-column: 1 / 3;
+        @media (min-width: 960px) {
+            grid-column: 2 / 3;
+        }
 
         h5 {
             text-transform: uppercase;
             letter-spacing: 1.6px;
             color: $blue-50;
+            margin-top: 0;
         }
 
         .wp-block-group {
@@ -112,7 +123,7 @@
 
             h6 {
                 // TODO: comprehensive typography PR
-                line-height: 24px;
+                line-height: 1.33;
                 font-family: $serif-font-stack;
                 font-size: 18px;
                 font-style: unset;
@@ -142,5 +153,55 @@
 }
 
 .research-and-writing__sub-category {
-    grid-column: 1 / 13;
+    grid-column: 1/13;
+    grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(256px, 1fr);
+    overflow-x: auto;
+    padding-bottom: 16px;
+    margin: 0;
+
+    .title {
+        font-size: 14px;
+        line-height: 1.33;
+    }
+}
+
+@media (min-width: 960px) {
+    .wp-block-research-and-writing {
+        padding: 0 80px;
+    }
+
+    .research-and-writing__top {
+        > .wp-block-owid-card {
+            grid-column: 1 / 13;
+        }
+
+        .research-and-writing__top-right {
+            > .wp-block-owid-card {
+                grid-column: 1 / 2;
+            }
+
+            .research-and-writing__shorts {
+                grid-column: 2 / 3;
+            }
+        }
+    }
+
+    .research-and-writing__sub-category {
+        .title {
+            font-size: 18px;
+        }
+    }
+}
+
+@media (min-width: 1280px) {
+    .research-and-writing__top {
+        > .wp-block-owid-card {
+            grid-column: 1/7;
+        }
+        .research-and-writing__top-right {
+            grid-column: 7/13;
+        }
+    }
 }
