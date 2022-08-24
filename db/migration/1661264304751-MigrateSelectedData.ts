@@ -9,9 +9,9 @@ import {
 } from "../../grapher/core/GrapherInterface.js"
 
 export function transformConfig(
-    legacyConfig: LegacyGrapherInterface
+    legacyConfig: LegacyGrapherInterface | undefined
 ): GrapherInterface {
-    if (!legacyConfig.selectedData) return legacyConfig
+    if (!legacyConfig || !legacyConfig.selectedData) return legacyConfig
 
     const newConfig = { ...legacyConfig } as LegacyGrapherInterface
     /*
@@ -21,10 +21,13 @@ export function transformConfig(
     specify colors for dimensions
     */
 
+    // Migrate selected entities
     newConfig.selectedEntityIds = uniq(
         legacyConfig.selectedData.map((row) => row.entityId)
     ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
 
+    // Migrate dimension and entity colors.
+    // Iterate through the reversed array because in case of multiple entries for one entity, the last one applies.
     legacyConfig.selectedData
         .slice()
         .reverse()
@@ -56,12 +59,15 @@ export function transformConfig(
         ) ?? []
     )
 
+    // Migrate order of dimensions.
+    // Skipped for LineCharts, because there dimension order doesn't matter and changing them up will only affect colors.
     if (newConfig.type !== "LineChart" && newConfig.type !== undefined) {
+        // TODO: Maybe do a flatMap instead of sortBy? And then have a look manually?
         newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
             variableIDsInSelectionOrder.findIndex(
                 (variableId) => dim.variableId === variableId
             )
-        )
+        ).filter((dim) => variableIDsInSelectionOrder.includes(dim.variableId))
     }
 
     delete newConfig.selectedData
