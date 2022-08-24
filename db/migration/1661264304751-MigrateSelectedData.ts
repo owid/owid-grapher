@@ -55,11 +55,14 @@ export function transformConfig(
             (item) => legacyConfig.dimensions?.[item.index]?.variableId
         ) ?? []
     )
-    newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
-        variableIDsInSelectionOrder.findIndex(
-            (variableId) => dim.variableId === variableId
+
+    if (newConfig.type !== "LineChart" && newConfig.type !== undefined) {
+        newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
+            variableIDsInSelectionOrder.findIndex(
+                (variableId) => dim.variableId === variableId
+            )
         )
-    )
+    }
 
     delete newConfig.selectedData
 
