@@ -10,12 +10,16 @@ set -o nounset
 : "${DB_ROOT_HOST:?Need to set DB_ROOT_HOST non-empty}"
 : "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
 
+export WORDPRESS_DB_HOST=${DB_ROOT_HOST}
+export WORDPRESS_DB_PORT=3306
+
+MYSQL="mysql -uroot -p${DB_ROOT_PASS} -h${DB_ROOT_HOST} --batch --skip-column-names"
 
 createAndFillWordpressDb() {
     echo "Waiting for DB to be online"
     mysqladmin ping -h "${DB_ROOT_HOST}" -uroot --password="${DB_ROOT_PASS}" --wait=30
 
-    DB_EXISTS=$(mysql -uroot -p"${DB_ROOT_PASS}" -h"${DB_ROOT_HOST}" --batch --skip-column-names -e "SHOW DATABASES LIKE '"${WORDPRESS_DB_NAME}"';" | grep "${WORDPRESS_DB_NAME}" > /dev/null; echo "$?")
+    DB_EXISTS=$($MYSQL -e "SHOW DATABASES LIKE '"${WORDPRESS_DB_NAME}"';" | grep "${WORDPRESS_DB_NAME}" > /dev/null; echo "$?")
     if [ $DB_EXISTS -eq 0 ];then
         echo "A database with the name '$WORDPRESS_DB_NAME' already exists. exiting"
         return 0;
@@ -30,7 +34,7 @@ createAndFillWordpressDb() {
     fi
 
     echo "Creating user '$WORDPRESS_DB_USER'"
-    mysql -uroot -p"${DB_ROOT_PASS}" -h"${DB_ROOT_HOST}" --batch -e "CREATE USER IF NOT EXISTS '$WORDPRESS_DB_USER' IDENTIFIED BY '$WORDPRESS_DB_PASS'; GRANT SELECT ON * . * TO '$WORDPRESS_DB_USER'; FLUSH PRIVILEGES;"
+    $MYSQL -e "CREATE USER IF NOT EXISTS '$WORDPRESS_DB_USER' IDENTIFIED BY '$WORDPRESS_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$WORDPRESS_DB_USER'; FLUSH PRIVILEGES;"
 
     WITH_UPLOADS=true
 
