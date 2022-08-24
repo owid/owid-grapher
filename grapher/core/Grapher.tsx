@@ -2422,9 +2422,7 @@ export class Grapher
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
 
-        const originalSelectedEntityIds = authoredConfig.selectedData?.length
-            ? uniq(authoredConfig.selectedData?.map((row) => row.entityId))
-            : authoredConfig.selectedEntityIds ?? []
+        const originalSelectedEntityIds = authoredConfig.selectedEntityIds ?? []
         const currentSelectedEntityIds = this.selection.allSelectedEntityIds
 
         const entityIdsThatTheUserDeselected = difference(
