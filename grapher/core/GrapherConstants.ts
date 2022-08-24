@@ -69,7 +69,7 @@ export type SeriesColorMap = Map<SeriesName, Color>
 
 export enum GrapherTabOption {
     chart = "chart",
-    marimekko = "marimekko",
+    ranking = "ranking",
     map = "map",
     sources = "sources",
     download = "download",

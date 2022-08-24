@@ -306,7 +306,7 @@ export class FooterControls extends React.Component<{
             .with(GrapherTabOption.chart, () => (
                 <FontAwesomeIcon icon={faChartArea} />
             ))
-            .with(GrapherTabOption.marimekko, () => (
+            .with(GrapherTabOption.ranking, () => (
                 <FontAwesomeIcon icon={faSignal} />
             ))
             .with(GrapherTabOption.map, () => (

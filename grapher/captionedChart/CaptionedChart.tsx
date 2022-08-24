@@ -136,7 +136,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get isMarimekkoTab(): boolean {
-        return this.manager.tab === GrapherTabOption.marimekko
+        return this.manager.tab === GrapherTabOption.ranking
     }
 
     @computed protected get bounds(): Bounds {

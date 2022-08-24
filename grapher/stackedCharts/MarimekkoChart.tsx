@@ -623,6 +623,7 @@ export class MarimekkoChart
         const maxValues = this.allPoints.map(
             (point) => point.value + point.valueOffset
         )
+
         return [
             Math.min(this.y0, min(maxValues) as number),
             Math.max(this.y0, max(maxValues) as number),

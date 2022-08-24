@@ -616,7 +616,7 @@ export class Grapher
         return (
             this.tab === GrapherTabOption.chart ||
             this.isOnMapTab ||
-            this.tab === GrapherTabOption.marimekko
+            this.tab === GrapherTabOption.ranking
         )
     }
 
@@ -625,8 +625,7 @@ export class Grapher
     }
 
     @computed get marimekkoChartIgnoreSelection(): boolean {
-
-        return this.tab === GrapherTabOption.marimekko
+        return this.tab === GrapherTabOption.ranking
     }
 
     @computed get yAxisConfig(): Readonly<AxisConfigInterface> {
@@ -677,8 +676,9 @@ export class Grapher
     @computed
     get tableAfterAuthorTimelineAndActiveChartTransform(): OwidTable {
         const table = this.tableAfterAuthorTimelineFilter
+        const chartInstance = this.chartInstance
         if (!this.isReady || !this.isChartOrMapTab) return table
-        return this.chartInstance.transformTable(table)
+        return chartInstance.transformTable(table)
     }
 
     @computed get chartInstance(): ChartInterface {
@@ -706,12 +706,20 @@ export class Grapher
 
     @computed
     private get tableAfterAllTransformsAndFilters(): OwidTable {
-        const { startTime, endTime } = this
+        const {
+            startTime,
+            endTime,
+            isDiscreteBar,
+            isLineChartThatTurnedIntoDiscreteBar,
+            isMarimekko,
+            isOnMapTab,
+            isSlopeChart,
+        } = this
         const table = this.tableAfterAuthorTimelineAndActiveChartTransform
 
         if (startTime === undefined || endTime === undefined) return table
 
-        if (this.isOnMapTab)
+        if (isOnMapTab)
             return table.filterByTargetTimes(
                 [endTime],
                 this.map.timeTolerance ??
@@ -719,17 +727,17 @@ export class Grapher
             )
 
         if (
-            this.isDiscreteBar ||
-            this.isLineChartThatTurnedIntoDiscreteBar ||
-            this.isMarimekko
-        )
+            isDiscreteBar ||
+            isLineChartThatTurnedIntoDiscreteBar ||
+            isMarimekko
+        ) {
             return table.filterByTargetTimes(
                 [endTime],
                 table.get(this.yColumnSlugs[0]).tolerance
             )
+        }
 
-        if (this.isSlopeChart)
-            return table.filterByTargetTimes([startTime, endTime])
+        if (isSlopeChart) return table.filterByTargetTimes([startTime, endTime])
 
         return table.filterByTimeRange(startTime, endTime)
     }
@@ -1097,7 +1105,7 @@ export class Grapher
             desiredTab === GrapherTabOption.chart ||
             desiredTab === GrapherTabOption.map ||
             desiredTab === GrapherTabOption.table ||
-            desiredTab === GrapherTabOption.marimekko
+            desiredTab === GrapherTabOption.ranking
         ) {
             this.tab = desiredTab
             this.overlay = undefined
@@ -1239,7 +1247,7 @@ export class Grapher
         return [
             this.hasChartTab && GrapherTabOption.chart,
             this.hasMapTab && GrapherTabOption.map,
-            this.hasMarimekkoTab && GrapherTabOption.marimekko,
+            this.hasMarimekkoTab && GrapherTabOption.ranking,
             GrapherTabOption.table,
             GrapherTabOption.sources,
             GrapherTabOption.download,
@@ -1302,6 +1310,7 @@ export class Grapher
 
             // StackedBar, StackedArea, and DiscreteBar charts never display a timeline
             case GrapherTabOption.chart:
+            case GrapherTabOption.ranking:
                 return !this.hideTimeline && !this.isDiscreteBar
 
             default:
@@ -1523,8 +1532,11 @@ export class Grapher
     @computed
     get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): ChartTypeName {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
+        const { tab } = this
         return this.isLineChartThatTurnedIntoDiscreteBar
             ? ChartTypeName.DiscreteBar
+            : tab === GrapherTabOption.ranking
+            ? ChartTypeName.Marimekko
             : this.type
     }
 
@@ -1550,7 +1562,10 @@ export class Grapher
         return this.type === ChartTypeName.StackedBar
     }
     @computed get isMarimekko(): boolean {
-        return this.type === ChartTypeName.Marimekko
+        return (
+            this.type === ChartTypeName.Marimekko ||
+            this.tab === GrapherTabOption.ranking
+        )
     }
     @computed get isStackedDiscreteBar(): boolean {
         return this.type === ChartTypeName.StackedDiscreteBar
