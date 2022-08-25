@@ -33,6 +33,7 @@ import {
     ChoroplethMapManager,
     RenderFeature,
     ChoroplethSeries,
+    internalLabel,
 } from "./MapChartConstants.js"
 import { MapConfig } from "./MapConfig.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
@@ -785,6 +786,19 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         )
     }
 
+    @computed private get mapAnnotations(): internalLabel[] {
+        const { projection } = this.manager
+        return generateAnnotations(
+            this.featuresWithData,
+            this.featuresWithNoData,
+            this.choroplethData,
+            this.viewportScale,
+            this.offset,
+            this.bounds,
+            projection
+        )
+    }
+
     // Map uses a hybrid approach to mouseover
     // If mouse is inside an element, that is prioritized
     // Otherwise we look for the closest center point of a feature bounds, so that we can hover
@@ -860,6 +874,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
             featuresOutsideProjection,
             featuresWithNoData,
             featuresWithData,
+            mapAnnotations,
         } = this
         const focusStrokeColor = "#111"
         const focusStrokeWidth = 1.5
@@ -870,15 +885,6 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         const matrixTransform = `matrix(${viewportScale},0,0,${viewportScale},${offset[0]},${offset[1]})`
 
         const clipPath = makeClipPath(uid, bounds)
-        const internalAnnotations = generateAnnotations(
-            featuresWithData,
-            featuresWithNoData,
-            choroplethData,
-            viewportScale,
-            offset,
-            bounds,
-            this.props.projection
-        )
 
         return (
             <g
@@ -1014,7 +1020,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                         }),
                         (p) => p.props["strokeWidth"]
                     )}
-                    {internalAnnotations.map((label) => {
+                    {mapAnnotations.map((label) => {
                         const series = choroplethData.get(label.id as string)
                         const fill = series ? series.color : defaultFill
                         const textFill = isDarkColor(fill) ? "white" : "#444445"
@@ -1035,6 +1041,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                             ? annotationWeight
                                             : 500
                                     }
+                                    style={{ pointerEvents: "none" }}
                                 >
                                     {label.value}
                                 </text>

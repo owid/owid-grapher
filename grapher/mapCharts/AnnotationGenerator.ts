@@ -3,6 +3,7 @@ import pixelWidth from "string-pixel-width"
 import {
     ChoroplethSeries,
     GeoFeature,
+    internalLabel,
     RenderFeature,
 } from "./MapChartConstants.js"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections.js"
@@ -22,16 +23,6 @@ enum externalPositions {
     bottomLeft = "bottomLeft",
     bottom = "bottom",
     top = "top",
-}
-
-interface internalLabel {
-    id: string
-    position: PointVector
-    value?: any
-    size: number
-    type: string
-    pole: Position
-    markerEnd?: Position
 }
 
 interface Itemp {
