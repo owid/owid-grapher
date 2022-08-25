@@ -19,12 +19,6 @@ export function transformConfig(
     }
 
     const newConfig = { ...legacyConfig } as LegacyGrapherInterface
-    /*
-    (x) select variables to show
-    (x) select entities to show by default
-    (x) specify the order of dimensions
-    specify colors for dimensions
-    */
 
     // Migrate selected entities
     newConfig.selectedEntityIds = uniq(
@@ -35,7 +29,7 @@ export function transformConfig(
     // Iterate through the reversed array because in case of multiple entries for one entity, the last one applies.
     legacyConfig.selectedData
         .slice()
-        .reverse()
+        // .reverse()
         .forEach((item) => {
             if (item.entityId && item.color) {
                 // migrate entity color
@@ -58,12 +52,6 @@ export function transformConfig(
             }
         })
 
-    const variableIDsInSelectionOrder = excludeUndefined(
-        legacyConfig.selectedData?.map(
-            (item) => legacyConfig.dimensions?.[item.index]?.variableId
-        ) ?? []
-    )
-
     const migrateDimensionsTypes: ChartTypeName[] = [
         ChartTypeName.Marimekko,
         ChartTypeName.StackedArea,
@@ -77,20 +65,17 @@ export function transformConfig(
         legacyConfig.type &&
         migrateDimensionsTypes.includes(legacyConfig.type)
     ) {
-        // TODO: Maybe do a flatMap instead of sortBy? And then have a look manually?
+        const variableIDsInSelectionOrder = excludeUndefined(
+            legacyConfig.selectedData?.map(
+                (item) => legacyConfig.dimensions?.[item.index]?.variableId
+            ) ?? []
+        )
+
         newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
             variableIDsInSelectionOrder.findIndex(
                 (variableId) => dim.variableId === variableId
             )
-        )
-
-        const filtered = newConfig.dimensions.filter(
-            (dim) => variableIDsInSelectionOrder.includes(dim.variableId)
-            // || dim.property !== DimensionProperty.y
-        )
-        // if (filtered.some((dim) => dim.property === DimensionProperty.y)) {
-        newConfig.dimensions = filtered
-        // }
+        ).filter((dim) => variableIDsInSelectionOrder.includes(dim.variableId))
     }
 
     delete newConfig.selectedData
