@@ -11,7 +11,7 @@ import {
 export function transformConfig(
     legacyConfig: LegacyGrapherInterface | undefined
 ): GrapherInterface {
-    if (!legacyConfig || !legacyConfig.selectedData) return legacyConfig
+    if (!legacyConfig?.selectedData) return legacyConfig ?? {}
 
     const newConfig = { ...legacyConfig } as LegacyGrapherInterface
     /*
