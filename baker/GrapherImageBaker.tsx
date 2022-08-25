@@ -14,7 +14,7 @@ import {
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
 import { MultipleOwidVariableDataDimensionsMap } from "../clientUtils/OwidVariable.js"
-import { transformConfig } from "../db/migration/1661264304751-MigrateSelectedData.js"
+import { MigrateSelectedData1661264304751 } from "../db/migration/1661264304751-MigrateSelectedData.js"
 
 export async function bakeGraphersToPngs(
     outDir: string,
@@ -123,7 +123,9 @@ export function initGrapherForSvgExport(
     jsonConfig: GrapherInterface,
     queryStr: string = ""
 ) {
-    const converted = transformConfig(jsonConfig as LegacyGrapherInterface)
+    const converted = MigrateSelectedData1661264304751.transformConfig(
+        jsonConfig as LegacyGrapherInterface
+    )
     const grapher = new Grapher({
         ...converted,
         manuallyProvideData: true,
