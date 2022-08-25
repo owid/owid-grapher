@@ -64,16 +64,19 @@ export function transformConfig(
         ) ?? []
     )
 
-    const ignoredTypes: Array<ChartTypeName | undefined> = [
-        undefined,
-        ChartTypeName.LineChart,
-        ChartTypeName.DiscreteBar,
-        ChartTypeName.ScatterPlot,
+    const migrateDimensionsTypes: ChartTypeName[] = [
+        ChartTypeName.Marimekko,
+        ChartTypeName.StackedArea,
+        ChartTypeName.StackedBar,
+        ChartTypeName.StackedDiscreteBar,
     ]
 
     // Migrate order of dimensions.
-    // Skipped for LineCharts, because there dimension order doesn't matter and changing them up will only affect colors.
-    if (!ignoredTypes.includes(legacyConfig.type)) {
+    // Only applied to stacked charts, because only they rely on `yColumnSlugsInSelectionOrder`.
+    if (
+        legacyConfig.type &&
+        migrateDimensionsTypes.includes(legacyConfig.type)
+    ) {
         // TODO: Maybe do a flatMap instead of sortBy? And then have a look manually?
         newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
             variableIDsInSelectionOrder.findIndex(
