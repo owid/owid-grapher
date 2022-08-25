@@ -1,7 +1,6 @@
 import { useEffect, RefObject, useState } from "react"
 import throttle from "lodash/throttle.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import { RelatedChart } from "../clientUtils/owidTypes.js"
 
 export const useTriggerWhenClickOutside = (
     container: RefObject<HTMLElement>,
@@ -20,7 +19,7 @@ export const useTriggerWhenClickOutside = (
         return () => {
             document.removeEventListener("mousedown", handleClick)
         }
-    }, [active])
+    }, [active, container, trigger])
 }
 
 export enum ScrollDirection {
@@ -29,11 +28,10 @@ export enum ScrollDirection {
 }
 
 export const useScrollDirection = () => {
-    let lastScrollY = window.pageYOffset
-
     const [direction, setDirection] = useState<null | ScrollDirection>(null)
 
     useEffect(() => {
+        let lastScrollY = window.pageYOffset
         const updateDirection = () => {
             const scrollY = window.pageYOffset
             setDirection(
@@ -66,5 +64,5 @@ export const useEmbedChart = (
             // Track newly injected <figure> elements in embedder
             MultiEmbedderSingleton.observeFigures(refChartContainer.current)
         }
-    }, [activeChartIdx])
+    }, [activeChartIdx, refChartContainer])
 }

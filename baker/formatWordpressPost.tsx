@@ -49,6 +49,8 @@ import {
     renderAdditionalInformation,
 } from "../site/blocks/AdditionalInformation.js"
 import { renderHelp } from "../site/blocks/Help.js"
+import { renderCodeSnippets } from "../site/blocks/CodeSnippet.js"
+import { renderExpandableParagraphs } from "../site/blocks/ExpandableParagraph.js"
 import {
     formatUrls,
     getBodyHtml,
@@ -315,6 +317,8 @@ export const formatWordpressPost = async (
     //   perspective, the server rendered version is different from the client
     //   one, hence the discrepancy.
     renderAdditionalInformation(cheerioEl)
+    renderExpandableParagraphs(cheerioEl)
+    renderCodeSnippets(cheerioEl)
     renderHelp(cheerioEl)
     renderAllCharts(cheerioEl, post)
     await renderProminentLinks(cheerioEl, post.id)
@@ -540,9 +544,22 @@ export const formatWordpressPost = async (
         $heading.append(`<a class="${DEEP_LINK_CLASS}" href="#${slug}"></a>`)
     })
 
+    // Extracting the useful information from the HTML
+    const stickyNavLinks: { text: string; target: string }[] = []
+    const $stickyNavContents = cheerioEl(".sticky-nav-contents")
+    const $stickyNavLinks = $stickyNavContents.children().children()
+    $stickyNavLinks.each((_, element) => {
+        const $elem = cheerioEl(element)
+        const text = $elem.text()
+        const target = $elem.attr("href")
+        if (text && target) stickyNavLinks.push({ text, target })
+    })
+    $stickyNavContents.remove()
+
     return {
         ...post,
         supertitle,
+        stickyNavLinks,
         lastUpdated,
         byline,
         info,

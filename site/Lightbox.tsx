@@ -19,15 +19,16 @@ const Lightbox = ({
     containerNode: Element | null
     imgSrc: string
 }) => {
-    const close = () => {
-        if (containerNode) {
-            ReactDOM.unmountComponentAtNode(containerNode)
-        }
-    }
     const [isLoaded, setIsLoaded] = useState(false)
     const contentRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
+        const close = () => {
+            if (containerNode) {
+                ReactDOM.unmountComponentAtNode(containerNode)
+            }
+        }
+
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 close()
@@ -37,7 +38,7 @@ const Lightbox = ({
         return () => {
             document.removeEventListener("keydown", handleKeyDown)
         }
-    }, [])
+    }, [containerNode])
 
     return (
         <div className="container">

@@ -3,12 +3,6 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-FOLDER="${DATA_FOLDER:-./tmp-downloads}"
+source "$( dirname -- "${BASH_SOURCE[0]}" )/download-grapher-metadata-mysql.sh"
 
-mkdir -p $FOLDER
-
-echo "Downloading live Grapher metadata database (owid_metadata)"
-curl -Lo $FOLDER/owid_metadata.sql.gz https://files.ourworldindata.org/owid_metadata.sql.gz
-
-echo "Downloading live Grapher chartdata database (owid_chartdata)"
-curl -Lo $FOLDER/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
+source "$( dirname -- "${BASH_SOURCE[0]}" )/download-grapher-chartdata-mysql.sh"

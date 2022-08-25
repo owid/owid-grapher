@@ -1,0 +1,8 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "owid/front-matter",
+    "title": "Front matter",
+    "icon": "index-card",
+    "category": "layout"
+}

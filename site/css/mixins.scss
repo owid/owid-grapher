@@ -1,11 +1,24 @@
-@mixin owid-link {
-    color: $link-color;
+@mixin owid-link-90 {
+    color: $blue-90;
+    text-decoration: underline;
+
     &:visited {
-        color: $link-visited-color;
+        color: $purple-90;
     }
     &:hover {
-        color: $link-hover-color;
-        text-decoration: underline;
+        text-decoration: none;
+    }
+}
+
+@mixin owid-link-60 {
+    color: $blue-60;
+    text-decoration: underline;
+
+    &:visited {
+        color: $purple-60;
+    }
+    &:hover {
+        text-decoration: none;
     }
 }
 

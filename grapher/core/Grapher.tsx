@@ -140,6 +140,7 @@ import {
     EntityId,
     EntityName,
     OwidColumnDef,
+    OwidVariableRow,
 } from "../../coreTable/OwidTableConstants.js"
 import { BlankOwidTable, OwidTable } from "../../coreTable/OwidTable.js"
 import * as Mousetrap from "mousetrap"
@@ -149,7 +150,7 @@ import {
     DefaultChartClass,
 } from "../chart/ChartTypeMap.js"
 import { ColorSchemeName } from "../color/ColorConstants.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { Entity, SelectionArray } from "../selection/SelectionArray.js"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants.js"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils.js"
@@ -197,20 +198,30 @@ const legacyConfigToConfig = (
 }
 
 async function loadVariablesDataAdmin(
+    variableFetchBaseUrl: string | undefined,
     variableIds: number[]
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const dataFetchPath = (variableId: number): string =>
+        variableFetchBaseUrl
+            ? `${variableFetchBaseUrl}/v1/variableById/data/${variableId}`
+            : `/api/data/variables/data/${variableId}.json`
+    const metadataFetchPath = (variableId: number): string =>
+        variableFetchBaseUrl
+            ? `${variableFetchBaseUrl}/v1/variableById/metadata/${variableId}`
+            : `/api/data/variables/metadata/${variableId}.json`
+
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
         const dataPromise = window.admin.getJSON(
-            `/api/data/variables/data/${variableId}.json`
+            dataFetchPath(variableId)
         ) as Promise<OwidVariableMixedData>
         const metadataPromise = window.admin.getJSON(
-            `/api/data/variables/metadata/${variableId}.json`
+            metadataFetchPath(variableId)
         ) as Promise<OwidVariableWithSourceAndDimension>
         const [data, metadata] = await Promise.all([
             dataPromise,
             metadataPromise,
         ])
-        return { data, metadata }
+        return { data, metadata: { ...metadata, id: variableId } }
     })
     const variablesData: OwidVariableDataMetadataDimensions[] =
         await Promise.all(loadVariableDataPromises)
@@ -259,6 +270,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
+    dataApiUrlForAdmin?: string
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -410,6 +422,10 @@ export class Grapher
     @observable.ref inputTable: OwidTable
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
+
+    @computed get dataApiUrlForAdmin(): string | undefined {
+        return this.props.dataApiUrlForAdmin
+    }
 
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
@@ -759,6 +775,7 @@ export class Grapher
             if (this.useAdminAPI) {
                 // TODO grapher model: switch this to downloading multiple data and metadata files
                 const variablesDataMap = await loadVariablesDataAdmin(
+                    this.dataApiUrlForAdmin,
                     this.variableIds
                 )
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
@@ -770,6 +787,7 @@ export class Grapher
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
             }
         } catch (err) {
+            // eslint-disable-next-line no-console
             console.log(`Error fetching '${err}'`)
             console.error(err)
         }
@@ -1622,7 +1640,7 @@ export class Grapher
     }
 
     // Filter data to what can be display on the map (across all times)
-    @computed get mappableData() {
+    @computed get mappableData(): OwidVariableRow<any>[] {
         return this.inputTable
             .get(this.mapColumnSlug)
             .owidRows.filter((row) => isOnTheMap(row.entityName))
@@ -1860,7 +1878,7 @@ export class Grapher
             this.props.table?.availableEntities ?? []
         )
 
-    @computed get availableEntities() {
+    @computed get availableEntities(): Entity[] {
         return this.tableForSelection.availableEntities
     }
 
@@ -2299,7 +2317,7 @@ export class Grapher
         this.checkVisibility()
     }
 
-    componentDidCatch(error: Error, info: any): void {
+    componentDidCatch(error: Error, info: unknown): void {
         this.setError(error)
         this.analytics.logGrapherViewError(error, info)
     }
@@ -2417,8 +2435,9 @@ export class Grapher
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
 
-        const originalSelectedEntityIds =
-            authoredConfig.selectedData?.map((row) => row.entityId) || []
+        const originalSelectedEntityIds = authoredConfig.selectedData?.length
+            ? uniq(authoredConfig.selectedData?.map((row) => row.entityId))
+            : authoredConfig.selectedEntityIds ?? []
         const currentSelectedEntityIds = this.selection.allSelectedEntityIds
 
         const entityIdsThatTheUserDeselected = difference(
@@ -2499,7 +2518,7 @@ export class Grapher
 
     @computed get timeParam(): string | undefined {
         const { timeColumn } = this.table
-        const formatTime = (t: Time) =>
+        const formatTime = (t: Time): string =>
             timeBoundToTimeBoundString(
                 t,
                 timeColumn instanceof ColumnTypeMap.Day

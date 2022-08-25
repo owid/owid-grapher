@@ -9,7 +9,7 @@ import {
 } from "typeorm"
 import * as lodash from "lodash"
 import * as db from "../db.js"
-import { getDataForMultipleVariables, getVariableData } from "./Variable.js"
+import { getDataForMultipleVariables } from "./Variable.js"
 import { User } from "./User.js"
 import { ChartRevision } from "./ChartRevision.js"
 import { MultipleOwidVariableDataDimensionsMap } from "../../clientUtils/OwidVariable.js"
@@ -175,7 +175,7 @@ export class OldChart {
 
     id: number
     config: any
-    constructor(id: number, config: any) {
+    constructor(id: number, config: Record<string, unknown>) {
         this.id = id
         this.config = config
 

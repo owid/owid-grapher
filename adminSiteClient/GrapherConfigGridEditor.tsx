@@ -103,7 +103,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
 import { getWindowUrl, setWindowUrl } from "../clientUtils/urls/Url.js"
 
-function HotColorScaleRenderer(props: Record<string, unknown>) {
+function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
 }
 /**
@@ -117,15 +117,9 @@ class HotColorScaleEditor extends BaseEditorComponent<Record<string, never>> {
         super(props)
     }
 
-    setValue(value: any, callback: any) {}
-
     getValue() {
         return undefined
     }
-
-    open() {}
-
-    close() {}
 
     prepare(
         row: any,
@@ -319,6 +313,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             getGrapherInstance: (grapher: Grapher) => {
                 this.grapher = grapher
             },
+            dataApiUrlForAdmin:
+                this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
         }
         if (this.grapherElement) {
             this.grapher.setAuthoredVersion(newConfig)
@@ -334,7 +330,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         } else this.grapherElement = <Grapher {...newConfig} />
     }
 
-    @action private updatePreviewToRow(row: number): void {
+    @action private updatePreviewToRow(): void {
         const { selectedRowContent } = this
         if (selectedRowContent === undefined) return
 
@@ -575,7 +571,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 )
             }
         }
-        if (this.selectedRow) this.updatePreviewToRow(this.selectedRow)
+        if (this.selectedRow) this.updatePreviewToRow()
         await this.sendPatches(action.patches)
     }
 
@@ -826,7 +822,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         if (row1 !== this.selectedRow) {
             this.hasUncommitedRichEditorChanges = false
             this.selectedRow = row1
-            this.updatePreviewToRow(row1)
+            this.updatePreviewToRow()
         }
         this.selectionEndRow = row2
         if (column1 !== this.selectedColumn) {
@@ -855,7 +851,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             beforeKeyDown: (
                 event // TODO: check if this works ok with normal editing delete key use
             ) => (event.key === "Delete" ? this.clearCellContent() : undefined),
-            modifyColWidth: (width, col) => {
+            modifyColWidth: (width) => {
                 if (width > 350) {
                     return 300
                 }

@@ -60,6 +60,7 @@ import uniqBy from "lodash/uniqBy.js"
 import uniqWith from "lodash/uniqWith.js"
 import upperFirst from "lodash/upperFirst.js"
 import without from "lodash/without.js"
+import zip from "lodash/zip.js"
 export {
     capitalize,
     chunk,
@@ -120,6 +121,7 @@ export {
     uniqWith,
     upperFirst,
     without,
+    zip,
 }
 import { extent, pairs } from "d3-array"
 export { pairs }
@@ -246,7 +248,7 @@ const isStorybook = (): boolean =>
 
 // Just a quick and dirty way to expose window.chart/explorer/etc for debugging. Last caller wins.
 export const exposeInstanceOnWindow = (
-    component: any,
+    component: unknown,
     name = "chart",
     alsoOnTopWindow?: boolean
 ): void => {
@@ -466,7 +468,7 @@ export const slugifySameCase = (str: string): string =>
 // Useful for coordinating between embeds to avoid conflicts in their ids
 let _guid = 0
 export const guid = (): number => ++_guid
-export const TESTING_ONLY_reset_guid = () => (_guid = 0)
+export const TESTING_ONLY_reset_guid = (): number => (_guid = 0)
 
 // Take an array of points and make it into an SVG path specification string
 export const pointsToPath = (points: Array<[number, number]>): string => {
@@ -569,40 +571,20 @@ export const trimObject = <Obj>(
     return clone
 }
 
-// TODO use fetchText() in fetchJSON()
-// decided not to do this while implementing our COVID-19 page in order to prevent breaking something.
 export const fetchText = async (url: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        req.addEventListener("load", function () {
-            resolve(this.responseText)
-        })
-        req.addEventListener("readystatechange", () => {
-            if (req.readyState === 4) {
-                if (req.status !== 200) {
-                    reject(new Error(`${req.status} ${req.statusText}`))
-                }
-            }
-        })
-        req.open("GET", url)
-        req.send()
+    return await fetch(url).then((res) => {
+        if (!res.ok)
+            throw new Error(`Fetch failed: ${res.status} ${res.statusText}`)
+        return res.text()
     })
 }
 
-// todo: can we ditch this in favor of a simple fetch?
 export const getCountryCodeFromNetlifyRedirect = async (): Promise<
     string | undefined
 > =>
-    new Promise((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        req.addEventListener("load", () => {
-            resolve(req.responseURL.split("?")[1])
-        })
-        req.addEventListener("error", () =>
-            reject(new Error("Couldn't retrieve country code"))
-        )
-        req.open("GET", "/detect-country-redirect")
-        req.send()
+    await fetch("/detect-country-redirect").then((res) => {
+        if (!res.ok) throw new Error("Couldn't retrieve country code")
+        return res.url.split("?")[1]
     })
 
 export const stripHTML = (html: string): string => striptags(html)
@@ -780,6 +762,14 @@ export function dateDiffInDays(a: Date, b: Date): number {
 export const diffDateISOStringInDays = (a: string, b: string): number =>
     dayjs.utc(a).diff(dayjs.utc(b), "day")
 
+export const getYearFromISOStringAndDayOffset = (
+    epoch: string,
+    daysOffset: number
+): number => {
+    const date = dayjs.utc(epoch).add(daysOffset, "day")
+    return date.year()
+}
+
 export const addDays = (date: Date, days: number): Date => {
     const newDate = new Date(date.getTime())
     newDate.setDate(newDate.getDate() + days)
@@ -808,8 +798,10 @@ export function parseIntOrUndefined(s: string | undefined): number | undefined {
     return isNaN(value) ? undefined : value
 }
 
-export const anyToString = (value: any): string =>
-    value?.toString ? value.toString() : ""
+export const anyToString = (value: unknown): string => {
+    if (typeof value === "undefined" || value === null) return ""
+    return String(value)
+}
 
 // Scroll Helpers
 // Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
@@ -911,6 +903,12 @@ export const intersectionOfSets = <T>(sets: Set<T>[]): Set<T> => {
     return intersection
 }
 
+export const unionOfSets = <T>(sets: Set<T>[]): Set<T> => {
+    if (!sets.length) return new Set<T>()
+    const unionSet = new Set<T>(...sets)
+    return unionSet
+}
+
 export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
     if (!sets.length) return new Set<T>()
     const diff = new Set<T>(sets[0])
@@ -1003,12 +1001,13 @@ export const findIndexFast = (
 }
 
 export const logMe = (
-    target: any,
+    target: unknown,
     propertyName: string,
     descriptor: TypedPropertyDescriptor<any>
 ): TypedPropertyDescriptor<any> => {
     const originalMethod = descriptor.value
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: any[]): any {
+        // eslint-disable-next-line no-console
         console.log(`Running ${propertyName} with '${args}'`)
         return originalMethod.apply(this, args)
     }
@@ -1231,6 +1230,12 @@ export function checkIsPlainObjectWithGuard(
     x: unknown
 ): x is Record<string, unknown> {
     return isPlainObject(x)
+}
+
+export function checkIsStringIndexable(
+    x: unknown
+): x is Record<string, unknown> {
+    return isPlainObject(x) || isArray(x)
 }
 
 function checkIsTouchEvent(

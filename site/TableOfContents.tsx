@@ -144,7 +144,7 @@ export const TableOfContents = ({
                 observer.observe(contentHeading)
             })
         }
-    }, [])
+    }, [headings, hideSubheadings])
 
     return (
         <div className={TOC_WRAPPER_CLASSNAME}>

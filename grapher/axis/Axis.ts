@@ -508,7 +508,10 @@ export class HorizontalAxis extends AbstractAxis {
         // sort by value, then priority.
         // this way, we don't end up with two ticks of the same value but different priorities.
         // instead, we deduplicate by choosing the highest priority (i.e. lowest priority value).
-        const sortedTicks = sortBy(ticks, [(t) => t.value, (t) => t.priority])
+        const sortedTicks = sortBy(ticks, [
+            (t): number => t.value,
+            (t): number => t.priority,
+        ])
         return sortedUniqBy(sortedTicks, (t) => t.value)
     }
 

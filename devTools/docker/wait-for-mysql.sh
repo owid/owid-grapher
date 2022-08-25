@@ -1,7 +1,12 @@
 #!/usr/bin/env  bash
+
 set -o errexit
 set -o pipefail
 set -o nounset
+
+if [ -e .env ]; then
+    source .env
+fi
 
 : "${GRAPHER_DB_NAME:?Need to set GRAPHER_DB_NAME non-empty}"
 : "${GRAPHER_DB_USER:?Need to set GRAPHER_DB_USER non-empty}"

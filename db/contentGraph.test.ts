@@ -12,7 +12,9 @@ import {
     fortuneRecordTypes,
     getGrapherSlugs,
 } from "./contentGraph.js"
-const fortune = require("fortune") // Works in web browsers, too.
+// no defintions exist
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const fortune = require("fortune")
 
 const slugs = [
     "share-of-deaths-by-cause",
@@ -50,7 +52,7 @@ const getContent = (slugs: string[]): string => {
     `
 }
 
-const getTopicTitle = (id: TopicId) => {
+const getTopicTitle = (id: TopicId): string => {
     return `topic ${id}`
 }
 

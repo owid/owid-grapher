@@ -75,7 +75,7 @@ export class Dataset extends BaseEntity {
                     stream.write(arrToCsvRow(row))
                 }
                 row = [datum.entity, datum.year]
-                for (const variable of variables) {
+                for (const _ of variables) {
                     row.push("")
                 }
             }

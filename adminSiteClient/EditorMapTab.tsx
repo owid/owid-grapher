@@ -18,7 +18,6 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { OwidVariableId } from "../clientUtils/owidTypes.js"
 import { MapConfig } from "../grapher/mapCharts/MapConfig.js"
 import { ChartDimension } from "../grapher/chart/ChartDimension.js"
-import { ColorScale } from "../grapher/color/ColorScale.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
 
 @observer

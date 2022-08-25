@@ -18,10 +18,9 @@ import { faPaintbrush } from "@fortawesome/free-solid-svg-icons/faPaintbrush"
 import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-export class FieldsRow extends React.Component {
+export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
     render() {
-        const { props } = this
-        return <div className="FieldsRow">{props.children}</div>
+        return <div className="FieldsRow">{this.props.children}</div>
     }
 }
 
@@ -460,11 +459,6 @@ export class Toggle extends React.Component<ToggleProps> {
             </div>
         )
     }
-}
-
-interface ButtonProps {
-    onClick: () => void
-    label?: string
 }
 
 export class EditableList extends React.Component<{ className?: string }> {
@@ -961,7 +955,7 @@ class EditTags extends React.Component<{
 }> {
     dismissable: boolean = true
 
-    @action.bound onClickSomewhere(e: MouseEvent) {
+    @action.bound onClickSomewhere() {
         if (this.dismissable) this.props.onSave()
         this.dismissable = true
     }
@@ -1002,6 +996,7 @@ export class EditableTags extends React.Component<{
     suggestions: Tag[]
     onSave: (tags: Tag[]) => void
     disabled?: boolean
+    hasKeyChartSupport?: boolean
 }> {
     @observable isEditing: boolean = false
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -1052,7 +1047,7 @@ export class EditableTags extends React.Component<{
     }
 
     render() {
-        const { disabled } = this.props
+        const { disabled, hasKeyChartSupport } = this.props
         const { tags } = this
 
         return (
@@ -1069,7 +1064,11 @@ export class EditableTags extends React.Component<{
                     <div>
                         {tags.map((t, i) => (
                             <TagBadge
-                                onToggleKey={() => this.onToggleKey(i)}
+                                onToggleKey={
+                                    hasKeyChartSupport
+                                        ? () => this.onToggleKey(i)
+                                        : undefined
+                                }
                                 key={t.id}
                                 tag={t}
                             />

@@ -1,12 +1,17 @@
 import jsonpointer from "json8-pointer"
 import { isNil } from "lodash"
 import { GrapherConfigPatch } from "./AdminSessionTypes.js"
-import { isArray, isEqual, checkIsPlainObjectWithGuard } from "./Util.js"
+import {
+    isArray,
+    isEqual,
+    checkIsPlainObjectWithGuard,
+    checkIsStringIndexable,
+} from "./Util.js"
 
 export function setValueRecursiveInplace(
-    json: any,
+    json: unknown,
     pointer: string[],
-    newValue: any
+    newValue: unknown
 ): any {
     if (pointer.length === 0) throw new Error("Pointer must not be empty")
 
@@ -25,28 +30,34 @@ export function setValueRecursiveInplace(
             if (json.length > currentPartAsNumber)
                 json[currentPartAsNumber] = newValue
             else json.push(newValue)
-        } else json[key] = newValue
+        } else (json as Record<string, unknown>)[key] = newValue
 
         return json
     }
 
-    if (json[key] === undefined) {
-        // because we work in-place, we need to create the missing child element before recursing
-        const nextPartAsNumber = Number.parseInt(pointer[0])
-        if (!isNaN(nextPartAsNumber)) {
-            json[key] = []
-        } else {
-            json[key] = {}
+    if (checkIsStringIndexable(json)) {
+        if (json[key] === undefined) {
+            // because we work in-place, we need to create the missing child element before recursing
+            const nextPartAsNumber = Number.parseInt(pointer[0])
+            if (!isNaN(nextPartAsNumber)) {
+                json[key] = []
+            } else {
+                json[key] = {}
+            }
         }
     }
 
-    return setValueRecursiveInplace(json[key], pointer, newValue)
+    return setValueRecursiveInplace(
+        (json as Record<string, unknown>)[key],
+        pointer,
+        newValue
+    )
 }
 
 export function setValueRecursive(
-    json: any,
+    json: unknown,
     pointer: string[],
-    newValue: any
+    newValue: unknown
 ): any {
     // If the pointer is empty at this recursion level then just return newValue
     if (pointer.length == 0) {
@@ -58,7 +69,8 @@ export function setValueRecursive(
         if (Number.isNaN(currentPartAsNumber)) {
             // If we have a string then recurse into the object
             let newObject: any = {}
-            if (json !== undefined) newObject = { ...json }
+            if (json !== undefined && checkIsPlainObjectWithGuard(json))
+                newObject = { ...json }
             const currentValue = newObject.hasOwnProperty(currentPart)
                 ? newObject[currentPart]
                 : undefined

@@ -31,5 +31,6 @@ export class TargetYear1657627850269 implements MigrationInterface {
         )
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public async down(): Promise<void> {}
 }

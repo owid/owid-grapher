@@ -7,7 +7,7 @@ import { difference, mapBy } from "../../clientUtils/Util.js"
 import { isPresent } from "../../clientUtils/isPresent.js"
 import { action, computed, observable } from "mobx"
 
-interface Entity {
+export interface Entity {
     entityName: EntityName
     entityId?: EntityId
     entityCode?: EntityCode

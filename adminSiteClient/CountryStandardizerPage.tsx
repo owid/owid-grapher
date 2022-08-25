@@ -507,7 +507,7 @@ export class CountryStandardizerPage extends React.Component {
     }
 
     // IE11 compatibility
-    @action.bound onDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+    @action.bound onDownload() {
         const { shouldSaveSelection } = this
 
         if (shouldSaveSelection) {
