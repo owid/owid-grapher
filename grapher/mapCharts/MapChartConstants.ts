@@ -28,16 +28,16 @@ export interface ChoroplethSeries extends ChartSeries {
     highlightFillColor: Color
 }
 
-export interface ChoroplethMapProps {
+export interface ChoroplethMapManager {
     choroplethData: Map<SeriesName, ChoroplethSeries>
-    bounds: Bounds
+    choroplethMapBounds: Bounds
     projection: MapProjectionName
-    defaultFill: string
+    noDataColor: string
     focusBracket?: MapBracket
     focusEntity?: MapEntity
     onClick: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
-    onHover: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
-    onHoverStop: () => void
+    onMapMouseOver: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
+    onMapMouseLeave: () => void
 }
 
 export interface RenderFeature {
