@@ -1,13 +1,12 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 import { excludeUndefined, sortBy, uniq } from "../../clientUtils/Util.js"
 
-import { entityNamesById } from "../../grapher/entityIdsToNames.js"
+import { entityNameById } from "./data/entityNameById.js"
 
 import {
     LegacyGrapherInterface,
     GrapherInterface,
 } from "../../grapher/core/GrapherInterface.js"
-import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 
 export function transformConfig(
@@ -29,14 +28,14 @@ export function transformConfig(
     // Iterate through the reversed array because in case of multiple entries for one entity, the last one applies.
     legacyConfig.selectedData
         .slice()
-        // .reverse()
+        .reverse()
         .forEach((item) => {
             if (item.entityId && item.color) {
                 // migrate entity color
                 if (!legacyConfig.selectedEntityColors) {
                     newConfig.selectedEntityColors =
                         newConfig.selectedEntityColors ?? {}
-                    const entityName = entityNamesById[item.entityId]
+                    const entityName = entityNameById[item.entityId]
                     if (entityName) {
                         newConfig.selectedEntityColors[entityName] ??=
                             item.color
