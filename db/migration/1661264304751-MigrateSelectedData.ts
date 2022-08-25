@@ -11,7 +11,10 @@ import {
 export function transformConfig(
     legacyConfig: LegacyGrapherInterface | undefined
 ): GrapherInterface {
-    if (!legacyConfig?.selectedData) return legacyConfig ?? {}
+    if (!legacyConfig?.selectedData?.length) {
+        if (legacyConfig) delete legacyConfig.selectedData
+        return legacyConfig ?? {}
+    }
 
     const newConfig = { ...legacyConfig } as LegacyGrapherInterface
     /*
