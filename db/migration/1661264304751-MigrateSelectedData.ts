@@ -71,11 +71,16 @@ export function transformConfig(
             variableIDsInSelectionOrder.findIndex(
                 (variableId) => dim.variableId === variableId
             )
-        ).filter(
+        )
+
+        const filtered = newConfig.dimensions.filter(
             (dim) =>
                 variableIDsInSelectionOrder.includes(dim.variableId) ||
                 dim.property !== DimensionProperty.y
         )
+        if (filtered.some((dim) => dim.property === DimensionProperty.y)) {
+            newConfig.dimensions = filtered
+        }
     }
 
     delete newConfig.selectedData
