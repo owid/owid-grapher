@@ -6,7 +6,6 @@ const blockStyle = {
     border: "1px dashed lightgrey",
     padding: "0 1rem",
     marginBottom: "1rem",
-    color: "darkgrey",
     // see style.css for additional editor styles
 }
 
@@ -35,34 +34,52 @@ const BLOCK_TEMPLATE = [
                             ["owid/card"],
                             [
                                 "core/group",
-                                { className: "research-and-writing__shorts" },
+                                {},
                                 [
                                     [
-                                        "core/heading",
-                                        { level: 5, content: "shorts" },
-                                    ],
-                                    [
                                         "core/group",
-                                        {},
+                                        {
+                                            className:
+                                                "research-and-writing__shorts",
+                                        },
                                         [
-                                            ["core/heading", { level: 6 }],
-                                            ["core/paragraph"],
-                                        ],
-                                    ],
-                                    [
-                                        "core/group",
-                                        {},
-                                        [
-                                            ["core/heading", { level: 6 }],
-                                            ["core/paragraph"],
-                                        ],
-                                    ],
-                                    [
-                                        "core/group",
-                                        {},
-                                        [
-                                            ["core/heading", { level: 6 }],
-                                            ["core/paragraph"],
+                                            [
+                                                "core/heading",
+                                                { level: 5, content: "shorts" },
+                                            ],
+                                            [
+                                                "core/group",
+                                                {},
+                                                [
+                                                    [
+                                                        "core/heading",
+                                                        { level: 6 },
+                                                    ],
+                                                    ["core/paragraph"],
+                                                ],
+                                            ],
+                                            [
+                                                "core/group",
+                                                {},
+                                                [
+                                                    [
+                                                        "core/heading",
+                                                        { level: 6 },
+                                                    ],
+                                                    ["core/paragraph"],
+                                                ],
+                                            ],
+                                            [
+                                                "core/group",
+                                                {},
+                                                [
+                                                    [
+                                                        "core/heading",
+                                                        { level: 6 },
+                                                    ],
+                                                    ["core/paragraph"],
+                                                ],
+                                            ],
                                         ],
                                     ],
                                 ],
