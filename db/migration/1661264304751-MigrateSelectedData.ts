@@ -8,6 +8,7 @@ import {
     GrapherInterface,
 } from "../../grapher/core/GrapherInterface.js"
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
+import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 
 export function transformConfig(
     legacyConfig: LegacyGrapherInterface | undefined
@@ -63,9 +64,16 @@ export function transformConfig(
         ) ?? []
     )
 
+    const ignoredTypes: Array<ChartTypeName | undefined> = [
+        undefined,
+        ChartTypeName.LineChart,
+        ChartTypeName.DiscreteBar,
+        ChartTypeName.ScatterPlot,
+    ]
+
     // Migrate order of dimensions.
     // Skipped for LineCharts, because there dimension order doesn't matter and changing them up will only affect colors.
-    if (newConfig.type !== "LineChart" && newConfig.type !== undefined) {
+    if (!ignoredTypes.includes(legacyConfig.type)) {
         // TODO: Maybe do a flatMap instead of sortBy? And then have a look manually?
         newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
             variableIDsInSelectionOrder.findIndex(
@@ -74,13 +82,12 @@ export function transformConfig(
         )
 
         const filtered = newConfig.dimensions.filter(
-            (dim) =>
-                variableIDsInSelectionOrder.includes(dim.variableId) ||
-                dim.property !== DimensionProperty.y
+            (dim) => variableIDsInSelectionOrder.includes(dim.variableId)
+            // || dim.property !== DimensionProperty.y
         )
-        if (filtered.some((dim) => dim.property === DimensionProperty.y)) {
-            newConfig.dimensions = filtered
-        }
+        // if (filtered.some((dim) => dim.property === DimensionProperty.y)) {
+        newConfig.dimensions = filtered
+        // }
     }
 
     delete newConfig.selectedData
