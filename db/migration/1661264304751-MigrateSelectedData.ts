@@ -7,6 +7,7 @@ import {
     LegacyGrapherInterface,
     GrapherInterface,
 } from "../../grapher/core/GrapherInterface.js"
+import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
 export function transformConfig(
     legacyConfig: LegacyGrapherInterface | undefined
@@ -70,7 +71,11 @@ export function transformConfig(
             variableIDsInSelectionOrder.findIndex(
                 (variableId) => dim.variableId === variableId
             )
-        ).filter((dim) => variableIDsInSelectionOrder.includes(dim.variableId))
+        ).filter(
+            (dim) =>
+                variableIDsInSelectionOrder.includes(dim.variableId) ||
+                dim.property !== DimensionProperty.y
+        )
     }
 
     delete newConfig.selectedData
