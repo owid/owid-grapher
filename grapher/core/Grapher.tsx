@@ -1320,12 +1320,6 @@ export class Grapher
             .map((dim) => dim.column)
     }
 
-    @computed get yColumnSlugsInSelectionOrder(): string[] {
-        return this.selectedColumnSlugs?.length
-            ? this.selectedColumnSlugs
-            : this.yColumnSlugs
-    }
-
     @computed get yColumnSlugs(): string[] {
         return this.ySlugs
             ? this.ySlugs.split(" ")
@@ -2018,27 +2012,6 @@ export class Grapher
 
     @computed private get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
-    }
-
-    @computed get selectedColumnSlugs(): ColumnSlug[] {
-        const { selectedData } = this.legacyConfigAsAuthored
-        const dimensions = this.filledDimensions
-
-        if (selectedData) {
-            const columnSlugs = selectedData.map((item) => {
-                const columnSlug = dimensions[item.index]?.columnSlug
-
-                if (!columnSlug)
-                    console.warn(
-                        `Couldn't find specified dimension in chart config`,
-                        item
-                    )
-                return columnSlug
-            })
-            return uniq(excludeUndefined(columnSlugs))
-        }
-
-        return []
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {

@@ -140,7 +140,6 @@ class DimensionSlotView extends React.Component<{
             this.dimensionsInSelectionOrder
         )
         this.grapher.updateAuthoredVersion({
-            selectedData: this.legacySelectionOrderedAsDisplayed,
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
         this.grapher.rebuildInputOwidTable()
@@ -159,26 +158,11 @@ class DimensionSlotView extends React.Component<{
         window.addEventListener("mouseup", this.onMouseUp)
     }
 
-    private get legacySelectionOrderedAsDisplayed() {
-        return sortBy(
-            this.grapher.legacyConfigAsAuthored.selectedData || [],
-            (selectedDatum) =>
-                findIndex(
-                    this.dimensionsOrderedAsDisplayed,
-                    (dim) =>
-                        dim.columnSlug ===
-                        this.grapher.dimensions[selectedDatum.index]?.columnSlug
-                )
-        )
-    }
-
     @action.bound private onMouseEnter(targetSlug: ColumnSlug) {
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
-        const dimensionsClone = clone(
-            this.props.slot.dimensionsOrderedAsInPersistedSelection
-        )
+        const dimensionsClone = clone(this.props.slot.dimensions)
 
         const dragIndex = dimensionsClone.findIndex(
             (dim) => dim.slug === this.draggingColumnSlug
@@ -191,7 +175,7 @@ class DimensionSlotView extends React.Component<{
         dimensionsClone.splice(
             targetIndex,
             0,
-            this.props.slot.dimensionsOrderedAsInPersistedSelection[dragIndex]
+            this.props.slot.dimensions[dragIndex]
         )
 
         this.dimensionsOrderedAsDisplayed = dimensionsClone
@@ -200,7 +184,7 @@ class DimensionSlotView extends React.Component<{
     @computed private get dimensionsInSelectionOrder() {
         return this.dimensionsOrderedAsDisplayed.length
             ? this.dimensionsOrderedAsDisplayed
-            : this.props.slot.dimensionsOrderedAsInPersistedSelection
+            : this.props.slot.dimensions
     }
 
     render() {
