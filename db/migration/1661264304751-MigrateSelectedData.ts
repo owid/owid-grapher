@@ -96,7 +96,11 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
 
         for (const [tableName, columnName] of Object.entries(tables)) {
             const rows = await queryRunner.query(
-                `SELECT id, ${columnName} AS json FROM ${tableName}`
+                `
+                SELECT id, ${columnName} AS json
+                FROM ${tableName}
+                WHERE JSON_CONTAINS_PATH(${columnName}, 'one', '$.selectedData')
+                `
             )
             for (const row of rows) {
                 const config = JSON.parse(row.json) as LegacyGrapherInterface
