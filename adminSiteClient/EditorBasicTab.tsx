@@ -24,6 +24,7 @@ import {
     DimensionProperty,
     OwidVariableId,
 } from "../clientUtils/owidTypes.js"
+import {} from "react-beautiful-dnd"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -90,7 +91,7 @@ class DimensionSlotView extends React.Component<{
 
         if (this.dispose) this.dispose()
         this.dispose = reaction(
-            () => grapher.type && grapher.yColumnsFromDimensions,
+            () => [grapher.type, grapher.yColumnsFromDimensions.length],
             () => {
                 if (
                     grapher.isScatter ||
