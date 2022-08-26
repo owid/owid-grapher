@@ -1,10 +1,10 @@
-const {
+import {
     GRAPHER_DB_HOST,
     GRAPHER_DB_NAME,
     GRAPHER_DB_USER,
     GRAPHER_DB_PASS,
     GRAPHER_DB_PORT,
-} = require("./itsJustJavascript/settings/serverSettings")
+} from "./itsJustJavascript/settings/serverSettings.js"
 
 export default {
     type: "mysql",
