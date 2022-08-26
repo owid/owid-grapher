@@ -7,7 +7,7 @@ import { Toggle, NumberField, SelectField, Section } from "./Forms.js"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "../coreTable/OwidTableConstants.js"
-import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash.js"
+import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash"
 import lodash from "lodash-es"
 
 @observer

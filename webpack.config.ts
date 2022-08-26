@@ -12,8 +12,8 @@ import { dirname } from "path"
 import { fileURLToPath } from "url"
 
 // used to be import.meta.url, but apparently that's not valid
-// const __filename = fileURLToPath(import.meta.url)
-const __filename = fileURLToPath(".")
+const __filename = fileURLToPath(import.meta.url)
+//const __filename = fileURLToPath(".")
 const __dirname = dirname(__filename)
 
 const config = (env: any, argv: any): webpack.Configuration => {
