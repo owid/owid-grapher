@@ -29,7 +29,6 @@ import {
     DimensionProperty,
     OwidVariableId,
 } from "../clientUtils/owidTypes.js"
-import {} from "react-beautiful-dnd"
 import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 
 @observer
