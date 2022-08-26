@@ -1,14 +1,7 @@
 import React from "react"
 import { observable, action, reaction, IReactionDisposer, computed } from "mobx"
 import { observer } from "mobx-react"
-import {
-    clone,
-    findIndex,
-    sample,
-    sampleSize,
-    sortBy,
-    startCase,
-} from "../clientUtils/Util.js"
+import { sample, sampleSize, startCase } from "../clientUtils/Util.js"
 import {
     EntitySelectionMode,
     ChartTypeName,
@@ -31,7 +24,6 @@ import {
     DimensionProperty,
     OwidVariableId,
 } from "../clientUtils/owidTypes.js"
-import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -130,7 +122,6 @@ class DimensionSlotView extends React.Component<{
     }
 
     @observable private draggingColumnSlug?: ColumnSlug
-    @observable private dimensionsOrderedAsDisplayed: ChartDimension[] = []
 
     @action.bound private updateLegacySelectionAndRebuildTable() {
         const { grapher } = this.props.editor
@@ -162,29 +153,21 @@ class DimensionSlotView extends React.Component<{
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
-        const dimensionsClone = clone(this.props.slot.dimensions)
+        const dimensions = this.props.slot.dimensions
 
-        const dragIndex = dimensionsClone.findIndex(
+        const dragIndex = dimensions.findIndex(
             (dim) => dim.slug === this.draggingColumnSlug
         )
-        const targetIndex = dimensionsClone.findIndex(
+        const targetIndex = dimensions.findIndex(
             (dim) => dim.slug === targetSlug
         )
 
-        dimensionsClone.splice(dragIndex, 1)
-        dimensionsClone.splice(
-            targetIndex,
-            0,
-            this.props.slot.dimensions[dragIndex]
-        )
-
-        this.dimensionsOrderedAsDisplayed = dimensionsClone
+        const [draggedDimension] = dimensions.splice(dragIndex, 1)
+        dimensions.splice(targetIndex, 0, draggedDimension)
     }
 
     @computed private get dimensionsInSelectionOrder() {
-        return this.dimensionsOrderedAsDisplayed.length
-            ? this.dimensionsOrderedAsDisplayed
-            : this.props.slot.dimensions
+        return this.props.slot.dimensions
     }
 
     render() {
