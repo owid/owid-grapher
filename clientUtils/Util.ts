@@ -1123,12 +1123,9 @@ export const isInIFrame = (): boolean => {
     }
 }
 
-export const differenceObj = <
-    A extends Record<string, unknown>,
-    B extends Record<string, unknown>
->(
+export const differenceObj = <A extends Record<string, unknown>>(
     obj: A,
-    defaultObj: B
+    defaultObj: Record<string, unknown>
 ): Partial<A> => {
     const result: Partial<A> = {}
     for (const key in obj) {
@@ -1174,7 +1171,9 @@ export const dyFromAlign = (align: VerticalAlign): string => {
     return "0"
 }
 
-export const values = <Obj>(obj: Obj): Obj[keyof Obj][] => {
+export const values = <Obj extends Record<string, any>>(
+    obj: Obj
+): Obj[keyof Obj][] => {
     return Object.values(obj)
 }
 

@@ -9,7 +9,6 @@ import {
     sampleFrom,
     slugifySameCase,
     toString,
-    values,
 } from "../clientUtils/Util.js"
 import {
     CoreColumnStore,
@@ -404,7 +403,7 @@ export const appendRowsToColumnStore = (
 }
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
-    return max(values(store).map((v) => v.length)) ?? 0
+    return max(Object.values(store).map((v) => v.length)) ?? 0
 }
 
 export const concatColumnStores = (
