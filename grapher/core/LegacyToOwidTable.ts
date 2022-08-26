@@ -53,20 +53,7 @@ export const legacyToOwidTableAndDimensions = (
         entityMeta.map((entity) => [entity.id.toString(), entity])
     )
 
-    // Color maps
-
-    const entityColorMap = new Map<EntityId, Color>()
-    const columnColorMap = new Map<ColumnSlug, Color>()
-
     const dimensions = grapherConfig.dimensions || []
-
-    grapherConfig.selectedData
-        ?.filter((item) => item.entityId && item.color)
-        .forEach((item) => {
-            entityColorMap.set(item.entityId, item.color!)
-            const varId = dimensions[item.index]?.variableId
-            if (varId) columnColorMap.set(varId.toString(), item.color!)
-        })
 
     // Base column defs, shared by all variable tables
 
@@ -75,10 +62,9 @@ export const legacyToOwidTableAndDimensions = (
         baseColumnDefs.set(def.slug, def)
     })
 
-    const entityColorColumnSlug =
-        entityColorMap.size > 0 || grapherConfig.selectedEntityColors
-            ? OwidTableSlugs.entityColor
-            : undefined
+    const entityColorColumnSlug = grapherConfig.selectedEntityColors
+        ? OwidTableSlugs.entityColor
+        : undefined
     if (entityColorColumnSlug) {
         baseColumnDefs.set(entityColorColumnSlug, {
             slug: entityColorColumnSlug,
@@ -112,9 +98,7 @@ export const legacyToOwidTableAndDimensions = (
 
         // Value column
         const valueColumnDef = columnDefFromOwidVariable(variable.metadata)
-        const valueColumnColor =
-            dimension.display?.color ??
-            columnColorMap.get(dimension.variableId.toString())
+        const valueColumnColor = dimension.display?.color
         // Ensure the column slug is unique by copying it from the dimensions
         // (there can be two columns of the same variable with different targetTimes)
         valueColumnDef.slug = dimension.slug
@@ -179,7 +163,7 @@ export const legacyToOwidTableAndDimensions = (
                 const selectedEntityColors = grapherConfig.selectedEntityColors
                 return entityName && selectedEntityColors
                     ? selectedEntityColors[entityName]
-                    : entityColorMap.get(entityId)
+                    : undefined
             })
         }
 
