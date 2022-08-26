@@ -9,6 +9,24 @@ import {
 } from "../../grapher/core/GrapherInterface.js"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 
+/**
+ * Migrate the legacy `selectedData` and get rid of it.
+ *
+ * The presence of the legacy `selectedData` property has caused various hard-to-trace problems in the past, especially
+ * around editing chart dimensions and reordering dimensions.
+ *
+ * In particular, `selectedData` was still being used for four things:
+ * 1. select variables to show
+ * 2. select entities to show by default
+ * 3. specify the order of dimensions
+ * 4. specify colors for dimensions and entities
+ *
+ * However, we also have other ways for all of these things, and sometimes the legacy config could clash with the other
+ * config properties.
+ * For example, there are several charts where dimensions were added to a chart but are not displayed, because there was
+ * a `selectedData` property and it didn't include the new dimension; there is no real way in our admin to fix this.
+ */
+
 export class MigrateSelectedData1661264304751 implements MigrationInterface {
     name = "MigrateSelectedData1661264304751"
 
