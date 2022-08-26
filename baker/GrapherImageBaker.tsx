@@ -4,13 +4,17 @@ import * as fs from "fs-extra"
 import svgo from "svgo"
 import sharp from "sharp"
 import * as path from "path"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import {
+    GrapherInterface,
+    LegacyGrapherInterface,
+} from "../grapher/core/GrapherInterface.js"
 import { Grapher } from "../grapher/core/Grapher.js"
 import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
 import { MultipleOwidVariableDataDimensionsMap } from "../clientUtils/OwidVariable.js"
+import { MigrateSelectedData1661264304751 } from "../db/migration/1661264304751-MigrateSelectedData.js"
 
 export async function bakeGraphersToPngs(
     outDir: string,
@@ -119,8 +123,14 @@ export function initGrapherForSvgExport(
     jsonConfig: GrapherInterface,
     queryStr: string = ""
 ) {
+    // Applying this transform before baking is only a temporary measure for the
+    // svg tester, and can be removed once the grapher configs used for the svg tester
+    // are migrated using MigrateSelectedData1661264304751.
+    const converted = MigrateSelectedData1661264304751.transformConfig(
+        jsonConfig as LegacyGrapherInterface
+    )
     const grapher = new Grapher({
-        ...jsonConfig,
+        ...converted,
         manuallyProvideData: true,
         queryStr,
     })
