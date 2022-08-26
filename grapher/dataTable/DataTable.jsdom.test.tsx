@@ -9,15 +9,15 @@ import {
     IncompleteDataTable,
 } from "./DataTable.sample.js"
 
-import { mount, ReactWrapper, configure } from "enzyme"
+import enzyme from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-configure({ adapter: new Adapter() })
+enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a table", () => {
-    let view: ReactWrapper
+    let view: enzyme.ReactWrapper
     beforeAll(() => {
         const grapher = childMortalityGrapher()
-        view = mount(<DataTable manager={grapher} />)
+        view = enzyme.mount(<DataTable manager={grapher} />)
     })
 
     it("renders a table", () => {
@@ -64,7 +64,7 @@ describe("when you render a table", () => {
 })
 
 describe("when you select a range of years", () => {
-    let view: ReactWrapper
+    let view: enzyme.ReactWrapper
     beforeAll(() => {
         const grapher = childMortalityGrapher({
             type: ChartTypeName.LineChart,
@@ -72,7 +72,7 @@ describe("when you select a range of years", () => {
         })
         grapher.timelineHandleTimeBounds = [1950, 2019]
 
-        view = mount(<DataTable manager={grapher} />)
+        view = enzyme.mount(<DataTable manager={grapher} />)
     })
 
     it("header is split into two rows", () => {
@@ -108,7 +108,7 @@ describe("when you select a range of years", () => {
 describe("when the table doesn't have data for all rows", () => {
     const grapher = IncompleteDataTable()
     grapher.timelineHandleTimeBounds = [2000, 2000]
-    const view = mount(<DataTable manager={grapher} />)
+    const view = enzyme.mount(<DataTable manager={grapher} />)
 
     it("renders no value when data is not available for years within the tolerance", () => {
         expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
