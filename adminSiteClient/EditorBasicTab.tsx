@@ -110,7 +110,7 @@ class DimensionSlotView extends React.Component<{
                     const entity = availableEntityNameSet.has(WorldEntityName)
                         ? WorldEntityName
                         : sample(availableEntityNames)
-                    selection.selectEntity(entity!)
+                    if (entity) selection.setSelectedEntities([entity])
                     grapher.addCountryMode = EntitySelectionMode.SingleEntity
                 } else {
                     selection.setSelectedEntities(
