@@ -127,6 +127,7 @@ const legacyConfig: Omit<LegacyGrapherInterface, "data"> &
             },
         ],
     ]),
+    selectedEntityIds: [207, 15],
 }
 
 it("can apply legacy chart dimension settings", () => {
@@ -164,6 +165,7 @@ it("can fallback to a ycolumn if a map variableId does not exist", () => {
 it("can generate a url with country selection even if there is no entity code", () => {
     const config = {
         ...legacyConfig,
+        selectedEntityIds: [],
     }
     const grapher = new Grapher(config)
     expect(grapher.queryStr).toBe("")
@@ -172,6 +174,7 @@ it("can generate a url with country selection even if there is no entity code", 
 
     const config2 = {
         ...legacyConfig,
+        selectedEntityIds: [],
     }
     metadata.dimensions.entities.values.find(
         (entity) => entity.id === 15
