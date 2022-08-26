@@ -1,7 +1,6 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
 import { ChartTypeName } from "../core/GrapherConstants.js"
-import { Color } from "../../coreTable/CoreTableConstants.js"
 import {
     ColumnTypeNames,
     CoreColumnDef,
@@ -30,7 +29,6 @@ import {
     StandardOwidColumnDefs,
     OwidTableSlugs,
     OwidColumnDef,
-    EntityId,
 } from "../../coreTable/OwidTableConstants.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { ColumnSlug, EPOCH_DATE } from "../../clientUtils/owidTypes.js"

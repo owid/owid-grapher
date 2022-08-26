@@ -114,5 +114,7 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
         }
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    public async down(): Promise<void> {
+        // best of luck reverting this change :/
+    }
 }
