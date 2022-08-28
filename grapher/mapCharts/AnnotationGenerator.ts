@@ -6,12 +6,10 @@ import {
     internalLabel,
     RenderFeature,
 } from "./MapChartConstants.js"
-import { MapProjectionName, MapProjectionGeos } from "./MapProjections.js"
+import { MapProjectionName } from "./MapProjections.js"
 import { geoPath } from "d3-geo"
 import polylabel from "polylabel"
 import { Position } from "geojson"
-import { WorldRegionToProjection } from "./WorldRegionsToProjection.js"
-import { polygonArea } from "d3-polygon"
 import { Bounds } from "../../clientUtils/Bounds.js"
 
 enum externalPositions {
@@ -205,7 +203,6 @@ function internalGenerator(
 } {
     const minSize = 8
     const maxSize = 14
-    const projectionGeo = MapProjectionGeos[projection]
     let outerinfo: Itemp[] = []
     const just = combinedRegions([...featureData, ...featuresWithNoData])
     const retVal: internalLabel[] = []
@@ -220,40 +217,12 @@ function internalGenerator(
                 font: "arial",
             })
         }
-        const labelPos = getLabelInfo(country.geo.geometry)
-        const projectionPath = projectionGeo({
-            type: "Point",
-            coordinates: [labelPos[0], labelPos[1]],
-        })
-        const p1 = Number(
-            projectionPath?.substring(1, projectionPath.indexOf(","))
-        )
-        const p2 = Number(
-            projectionPath?.substring(
-                projectionPath.indexOf(",") + 1,
-                projectionPath.indexOf(",", projectionPath.indexOf(",") + 1) - 2
-            )
-        )
+        const labelPos = getLabelInfo(country.geo.geometry, country.path)
+        const p1 = labelPos.position[0]
+        const p2 = labelPos.position[1]
         const centerpoint = new PointVector(p1, p2)
         const pole = [p1, p2]
-        if (country.geo.geometry.type === "Polygon") {
-            let regionPath = country.path.slice(1, -1).split("L")
-            regionPoints = regionPath.map((temp) => [
-                Number(temp.substring(0, temp.indexOf(","))),
-                Number(temp.substring(temp.indexOf(",") + 1)),
-            ])
-        } else {
-            let countryPaths = country.path.slice(1, -1).split("ZM")
-            for (const region of countryPaths) {
-                regionPoints = []
-                let regionPath = region.split("L")
-                regionPoints = regionPath.map((temp) => [
-                    Number(temp.substring(0, temp.indexOf(","))),
-                    Number(temp.substring(temp.indexOf(",") + 1)),
-                ])
-                if (insideCheck([p1, p2], regionPoints)) break
-            }
-        }
+        regionPoints = labelPos.points
         if (p1 && p2 && textWidth) {
             let t1 = [
                 centerpoint.x - textWidth / 2,
@@ -513,24 +482,64 @@ function getRatio(coordinates: any): number {
     return Math.min(Math.max(ratio, 1 / A), A)
 }
 
-function getLabelInfo(geometry: GeoFeature["geometry"]): number[] {
+function getLabelInfo(
+    geometry: GeoFeature["geometry"],
+    path: string
+): {position: number[], points: Position[]} {
     let pos, ratio
-    if (geometry.type === "MultiPolygon") {
-        let maxDist = 0 // for multipolygons, pick the polygon with most available space
-        for (const polygon of geometry.coordinates) {
-            const r = getRatio(polygon)
-            const p = polylabelStretched(polygon, r)
+    let regionPoints: Position[] = []
+    if (geometry.type === "Polygon") {
+        if(geometry.coordinates[0].length>1)
+        {
+            let maxLength = 0
+            let countryPaths = path.slice(1, -1).split("ZM")
+            let tempPoints = []
+            for (const region of countryPaths) {
+                let regionPath = region.split("L")
+                tempPoints.push(regionPath.map((temp) => [
+                    Number(temp.substring(0, temp.indexOf(","))),
+                    Number(temp.substring(temp.indexOf(",") + 1)),
+                ]))
+                if(tempPoints[tempPoints.length -1].length>maxLength)
+                {
+                    maxLength = tempPoints[tempPoints.length -1].length
+                    regionPoints = tempPoints[tempPoints.length -1]
+                }
+            }
+            ratio = getRatio(tempPoints)
+            pos = polylabelStretched(tempPoints, ratio)
+        }
+        else
+        {
+        let regionPath = path.slice(1, -1).split("L")
+        regionPoints = regionPath.map((temp) => [
+            Number(temp.substring(0, temp.indexOf(","))),
+            Number(temp.substring(temp.indexOf(",") + 1)),
+        ])
+        ratio = getRatio([regionPoints])
+        pos = polylabelStretched([regionPoints], ratio)
+    }
+    } else {
+        let maxDist = 0
+        let countryPaths = path.slice(1, -1).split("ZM")
+        for (const region of countryPaths) {
+            let tempPoints = []
+            let regionPath = region.split("L")
+            tempPoints = regionPath.map((temp) => [
+                Number(temp.substring(0, temp.indexOf(","))),
+                Number(temp.substring(temp.indexOf(",") + 1)),
+            ])
+            const r = getRatio([tempPoints])
+            const p = polylabelStretched([tempPoints], r)
             if (p.distance > maxDist) {
                 pos = p
                 maxDist = p.distance
                 ratio = r
+                regionPoints = tempPoints
             }
         }
-    } else if (geometry.type === "Polygon") {
-        ratio = getRatio(geometry.coordinates)
-        pos = polylabelStretched(geometry.coordinates, ratio)
     }
-    return pos.slice(0, 2)
+    return {position: pos.slice(0, 2), points: regionPoints}
 }
 
 function polylabelStretched(rings: Position[][], ratio: number) {
