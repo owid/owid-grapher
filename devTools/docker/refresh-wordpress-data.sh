@@ -15,7 +15,7 @@ _mysql() {
 }
 
 fillWordpressDb() {
-    echo "⏳ Refreshing wordpress database"
+    echo "==> Refreshing wordpress database"
     if [ -f "${DATA_FOLDER}/live_wordpress.sql.gz" ]; then
         echo "Importing Wordress database (live_wordpress)"
         _mysql -e "DROP DATABASE IF EXISTS $WORDPRESS_DB_NAME;CREATE DATABASE $WORDPRESS_DB_NAME;"
@@ -26,7 +26,7 @@ fillWordpressDb() {
     fi
 
     source "$( dirname -- "${BASH_SOURCE[0]}" )/create-wordpress-admin-user.sh"
-    echo "✅ Wordpress DB refresh complete"
+    echo "==> ✅ Wordpress DB refresh complete"
 }
 
 fillWordpressDb
