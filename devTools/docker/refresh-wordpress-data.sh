@@ -19,7 +19,7 @@ fillWordpressDb() {
     if [ -f "${DATA_FOLDER}/live_wordpress.sql.gz" ]; then
         echo "Importing Wordress database (live_wordpress)"
         _mysql -e "DROP DATABASE IF EXISTS $WORDPRESS_DB_NAME;CREATE DATABASE $WORDPRESS_DB_NAME;"
-        cat $DATA_FOLDER/live_wordpress.sql.gz  | gunzip | $MYSQL $WORDPRESS_DB_NAME
+        cat $DATA_FOLDER/live_wordpress.sql.gz  | gunzip | _mysql $WORDPRESS_DB_NAME
     else
         echo "live_wordpress.sql.gz missing in ${DATA_FOLDER}. Refresh aborted."
         return 1;
