@@ -6,7 +6,6 @@ const blockStyle = {
     border: "1px dashed lightgrey",
     padding: "0 1rem",
     marginBottom: "1rem",
-    color: "darkgrey",
 }
 
 const ExpandableParagraph = {
@@ -15,8 +14,10 @@ const ExpandableParagraph = {
 
         return (
             <div {...blockProps}>
-                <h3>Expandable paragraph</h3>
-                <InnerBlocks allowedBlocks={["core/paragraph"]} />
+                <h3 style={{ color: "darkgrey" }}>Expandable paragraph</h3>
+                <InnerBlocks
+                    allowedBlocks={["core/paragraph", "core/heading"]}
+                />
             </div>
         )
     },
