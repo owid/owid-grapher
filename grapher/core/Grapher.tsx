@@ -184,19 +184,6 @@ import { detailOnDemandRegex } from "../text/parser.js"
 
 declare const window: any
 
-const legacyConfigToConfig = (
-    config: LegacyGrapherInterface | GrapherInterface
-): GrapherInterface => {
-    const legacyConfig = config as LegacyGrapherInterface
-    if (!legacyConfig.selectedData) return legacyConfig
-
-    const newConfig = { ...legacyConfig } as GrapherInterface
-    newConfig.selectedEntityIds = uniq(
-        legacyConfig.selectedData.map((row) => row.entityId)
-    ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
-    return newConfig
-}
-
 async function loadVariablesDataAdmin(
     variableFetchBaseUrl: string | undefined,
     variableIds: number[]
@@ -461,11 +448,10 @@ export class Grapher
         const { getGrapherInstance, ...props } = propsWithGrapherInstanceGetter
 
         this.inputTable = props.table ?? BlankOwidTable(`initialGrapherTable`)
-        const modernConfig = props ? legacyConfigToConfig(props) : props
 
         if (props) this.setAuthoredVersion(props)
 
-        this.updateFromObject(modernConfig)
+        this.updateFromObject(props)
 
         if (!props.table) this.downloadData()
 
@@ -1333,12 +1319,6 @@ export class Grapher
             .map((dim) => dim.column)
     }
 
-    @computed get yColumnSlugsInSelectionOrder(): string[] {
-        return this.selectedColumnSlugs?.length
-            ? this.selectedColumnSlugs
-            : this.yColumnSlugs
-    }
-
     @computed get yColumnSlugs(): string[] {
         return this.ySlugs
             ? this.ySlugs.split(" ")
@@ -2033,27 +2013,6 @@ export class Grapher
         return this.yColumnSlugs.length > 1
     }
 
-    @computed get selectedColumnSlugs(): ColumnSlug[] {
-        const { selectedData } = this.legacyConfigAsAuthored
-        const dimensions = this.filledDimensions
-
-        if (selectedData) {
-            const columnSlugs = selectedData.map((item) => {
-                const columnSlug = dimensions[item.index]?.columnSlug
-
-                if (!columnSlug)
-                    console.warn(
-                        `Couldn't find specified dimension in chart config`,
-                        item
-                    )
-                return columnSlug
-            })
-            return uniq(excludeUndefined(columnSlugs))
-        }
-
-        return []
-    }
-
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
@@ -2435,8 +2394,7 @@ export class Grapher
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
 
-        const originalSelectedEntityIds =
-            authoredConfig.selectedData?.map((row) => row.entityId) || []
+        const originalSelectedEntityIds = authoredConfig.selectedEntityIds ?? []
         const currentSelectedEntityIds = this.selection.allSelectedEntityIds
 
         const entityIdsThatTheUserDeselected = difference(

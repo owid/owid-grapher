@@ -50,6 +50,7 @@ import {
     toleranceInterpolation,
     replaceDef,
     InterpolationProvider,
+    InterpolationContext,
 } from "./CoreTableUtils.js"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns.js"
 import { ColumnSlug } from "../clientUtils/owidTypes.js"
@@ -608,7 +609,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // Retrieves the two columns `columnSlug` and `timeColumnSlug` from the table and
     // passes their values to the respective interpolation method.
     // `withAllRows` is expected to be completed and sorted.
-    private interpolate<K>(
+    private interpolate<K extends InterpolationContext>(
         withAllRows: this,
         columnSlug: ColumnSlug,
         timeColumnSlug: ColumnSlug,

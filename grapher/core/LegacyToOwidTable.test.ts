@@ -767,7 +767,7 @@ const getLegacyGrapherConfig = (): Partial<LegacyGrapherInterface> => {
 describe("creating a table from legacy", () => {
     const table = legacyToOwidTableAndDimensions(getOwidVarSet(), {
         ...getLegacyGrapherConfig(),
-        selectedData: [{ entityId: 45, index: 0, color: "blue" }],
+        selectedEntityColors: { "Cape Verde": "blue" },
     }).table
     const name =
         "Prevalence of wasting, weight for height (% of children under 5)"
