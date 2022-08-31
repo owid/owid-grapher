@@ -113,10 +113,15 @@ class DimensionSlotView extends React.Component<{
         this.disposers.push(
             reaction(
                 () => this.props.slot.dimensions,
-                () =>
-                    (this.dimensionsInDisplayOrder = [
-                        ...this.props.slot.dimensions,
-                    ]),
+                () => {
+                    if (
+                        this.props.slot.dimensions.length !==
+                        this.dimensionsInDisplayOrder.length
+                    )
+                        this.dimensionsInDisplayOrder = [
+                            ...this.props.slot.dimensions,
+                        ]
+                },
                 { fireImmediately: true }
             )
         )
