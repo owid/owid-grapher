@@ -25,6 +25,7 @@ import { SectionHeading } from "./SectionHeading.js"
 
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 export const SUMMARY_CLASSNAME = "wp-block-owid-summary"
+export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
 
 export const formatUrls = (html: string) =>
     html
@@ -142,7 +143,7 @@ export const splitContentIntoSectionsAndColumns = (
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
                 $el.hasClass("wp-block-owid-grid") ||
-                $el.hasClass("wp-block-research-and-writing") ||
+                $el.hasClass(RESEARCH_AND_WRITING_CLASSNAME) ||
                 $el.hasClass(WP_BlockClass.FullContentWidth) ||
                 // restrict lookup to first-level children to prevent wrongly
                 // matching (unlikely) full-width additional information blocks
@@ -374,7 +375,10 @@ const addTocToSections = (
         .toArray()
         .map((el) => cheerioEl(el))
         .filter(($el) => {
-            return $el.closest(`.${SUMMARY_CLASSNAME}`).length === 0
+            return (
+                $el.closest(`.${SUMMARY_CLASSNAME}`).length === 0 &&
+                $el.closest(`.${RESEARCH_AND_WRITING_CLASSNAME}`).length === 0
+            )
         })
         .forEach(($el) => {
             $el.replaceWith(
@@ -435,9 +439,7 @@ export const addContentFeatures = ({
     if (post.type === WP_PostType.Post) addPostHeader(cheerioEl, post)
     splitContentIntoSectionsAndColumns(cheerioEl)
     bakeGlobalEntitySelector(cheerioEl)
-    if (formattingOptions.emphasiseHeadings) {
-        addTocToSections(cheerioEl, post.tocHeadings)
-    }
+    addTocToSections(cheerioEl, post.tocHeadings)
     if (post.glossary) addGlossaryToSections(cheerioEl)
 
     return getBodyHtml(cheerioEl)

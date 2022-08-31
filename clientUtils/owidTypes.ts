@@ -88,7 +88,6 @@ export enum SubNavId {
 
 export interface FormattingOptions {
     toc?: boolean
-    emphasiseHeadings?: boolean
     hideAuthors?: boolean
     bodyClassName?: string
     subnavId?: SubNavId
