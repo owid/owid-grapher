@@ -113,10 +113,15 @@ class DimensionSlotView extends React.Component<{
         this.disposers.push(
             reaction(
                 () => this.props.slot.dimensions,
-                () =>
-                    (this.dimensionsInDisplayOrder = [
-                        ...this.props.slot.dimensions,
-                    ]),
+                () => {
+                    if (
+                        this.props.slot.dimensions.length !==
+                        this.dimensionsInDisplayOrder.length
+                    )
+                        this.dimensionsInDisplayOrder = [
+                            ...this.props.slot.dimensions,
+                        ]
+                },
                 { fireImmediately: true }
             )
         )
@@ -164,6 +169,10 @@ class DimensionSlotView extends React.Component<{
         this.updateLegacySelectionAndRebuildTable()
     }
 
+    @action.bound onBlur() {
+        this.updateLegacySelectionAndRebuildTable()
+    }
+
     @action.bound private onStartDrag(targetSlug: ColumnSlug) {
         this.draggingColumnSlug = targetSlug
 
@@ -196,7 +205,7 @@ class DimensionSlotView extends React.Component<{
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
 
         return (
-            <div>
+            <div onBlur={this.onBlur}>
                 <h5>{slot.name}</h5>
                 <EditableList>
                     {this.dimensionsInDisplayOrder.map((dim) => {
