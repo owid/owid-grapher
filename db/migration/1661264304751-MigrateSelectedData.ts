@@ -3,10 +3,7 @@ import { excludeUndefined, sortBy, uniq } from "../../clientUtils/Util.js"
 
 import { entityNameById } from "./data/entityNameById.js"
 
-import {
-    LegacyGrapherInterface,
-    GrapherInterface,
-} from "../../grapher/core/GrapherInterface.js"
+import { GrapherInterface } from "../../grapher/core/GrapherInterface.js"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 
 /**
@@ -27,18 +24,28 @@ import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
  * a `selectedData` property and it didn't include the new dimension; there is no real way in our admin to fix this.
  */
 
+interface EntitySelection {
+    entityId: number
+    index: number // Which dimension the entity is from
+    color?: string
+}
+
+interface GrapherInterfaceBeforeMigration extends GrapherInterface {
+    selectedData?: EntitySelection[]
+}
+
 export class MigrateSelectedData1661264304751 implements MigrationInterface {
     name = "MigrateSelectedData1661264304751"
 
     static transformConfig(
-        legacyConfig: LegacyGrapherInterface | undefined
+        legacyConfig: GrapherInterfaceBeforeMigration | undefined
     ): GrapherInterface {
         if (!legacyConfig?.selectedData?.length) {
             if (legacyConfig) delete legacyConfig.selectedData
             return legacyConfig ?? {}
         }
 
-        const newConfig = { ...legacyConfig } as LegacyGrapherInterface
+        const newConfig = { ...legacyConfig } as GrapherInterfaceBeforeMigration
 
         // Migrate selected entities
         newConfig.selectedEntityIds = uniq(
@@ -121,7 +128,9 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
                 `
             )
             for (const row of rows) {
-                const config = JSON.parse(row.json) as LegacyGrapherInterface
+                const config = JSON.parse(
+                    row.json
+                ) as GrapherInterfaceBeforeMigration
                 const newConfig =
                     MigrateSelectedData1661264304751.transformConfig(config)
                 await queryRunner.query(
