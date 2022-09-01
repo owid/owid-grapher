@@ -703,10 +703,11 @@
         },
         "details": {
             "type": "object",
-            "description": "A list of definitions for the details on demand feature that shows on-hover explanations for terms used\nin subtitles and footnotes. Entries here have a hierarchy of category > term > detail information.\nThe syntax to use details on demand is similar to markdown links as folows:\n[visible text](hover::category::subcategory)\n",
+            "description": "A list of definitions for the details on demand feature that shows on-hover explanations for terms used\nin subtitles and footnotes. Entries here have a hierarchy of category > term > detail information.\nThe syntax to use details on demand is similar to markdown links as follows:\n[visible text](hover::category::subcategory)\n",
             "patternProperties": {
                 "^\\w+$": {
                     "type": "object",
+                    "description": "Details on Demand category",
                     "patternProperties": {
                         "^\\w+$": {
                             "type": "object",
@@ -722,7 +723,7 @@
                                 },
                                 "term": {
                                     "type": "string",
-                                    "description": "The term identifier of the Detail on Demand (same as the object key 1 levels higher up)"
+                                    "description": "The term identifier of the Detail on Demand (same as the object key 1 level higher up)"
                                 },
                                 "title": {
                                     "type": "string",
