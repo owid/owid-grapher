@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://files.ourworldindata.org/schemas/grapher-schema.001.json",
+    "$id": "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
     "$defs": {
         "axis": {
             "type": "object",
@@ -21,7 +21,10 @@
                     "type": "string",
                     "description": "Toggle linear/logarithmic",
                     "default": "linear",
-                    "enum": ["linear", "log"]
+                    "enum": [
+                        "linear",
+                        "log"
+                    ]
                 },
                 "max": {
                     "type": "number",
@@ -35,7 +38,10 @@
                 "facetDomain": {
                     "type": "string",
                     "description": "Whether the axis domain should be the same across faceted charts (if possible)",
-                    "enum": ["independent", "shared"]
+                    "enum": [
+                        "independent",
+                        "shared"
+                    ]
                 }
             },
             "additionalProperties": false
@@ -48,7 +54,10 @@
                     "type": "array",
                     "description": "Custom labels for each numeric bin. Only applied when strategy is `manual`.\n`null` falls back to default label.\n",
                     "items": {
-                        "type": ["string", "null"]
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "customCategoryColors": {
@@ -130,7 +139,12 @@
                     "type": "string",
                     "description": "The strategy for generating the bin boundaries",
                     "default": "ckmeans",
-                    "enum": ["equalInterval", "quantiles", "ckmeans", "manual"]
+                    "enum": [
+                        "equalInterval",
+                        "quantiles",
+                        "ckmeans",
+                        "manual"
+                    ]
                 },
                 "legendDescription": {
                     "type": "string",
@@ -140,7 +154,10 @@
                     "type": "array",
                     "description": "Override some or all colors for the numerical color legend.\nColors are CSS colors, usually in the form `#aa9944`\n`null` falls back the color scheme color.\n",
                     "items": {
-                        "type": ["string", "null"]
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "customNumericValues": {
@@ -183,7 +200,11 @@
             "additionalProperties": false
         }
     },
-    "required": ["title", "version", "dimensions"],
+    "required": [
+        "title",
+        "version",
+        "dimensions"
+    ],
     "type": "object",
     "description": "Our World In Data grapher configuration. Most of the fields can be left empty and will be\nfilled with reasonable default values.\n",
     "properties": {
@@ -191,7 +212,7 @@
             "type": "string",
             "description": "Url of the concrete schema version to use to validate this document",
             "format": "uri",
-            "default": "https://files.ourworldindata.org/schemas/grapher-schema.001.json"
+            "default": "https://files.ourworldindata.org/schemas/grapher-schema.002.json"
         },
         "id": {
             "type": "integer",
@@ -244,7 +265,9 @@
                         },
                         {
                             "type": "string",
-                            "enum": ["latest"]
+                            "enum": [
+                                "latest"
+                            ]
                         }
                     ]
                 },
@@ -266,7 +289,10 @@
                 },
                 {
                     "type": "string",
-                    "enum": ["latest", "earliest"]
+                    "enum": [
+                        "latest",
+                        "earliest"
+                    ]
                 }
             ]
         },
@@ -278,7 +304,10 @@
             "type": "array",
             "description": "The initial selection of entities",
             "items": {
-                "type": ["string", "null"]
+                "type": [
+                    "string",
+                    "null"
+                ]
             }
         },
         "baseColorScheme": {
@@ -293,27 +322,13 @@
             "type": "string",
             "description": "The tab that is shown initially",
             "default": "chart",
-            "enum": ["chart", "map", "sources", "download", "table"]
-        },
-        "selectedData": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "color": {
-                        "type": "string"
-                    },
-                    "index": {
-                        "type": "integer",
-                        "minimum": 0
-                    },
-                    "entityId": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                },
-                "additionalProperties": false
-            }
+            "enum": [
+                "chart",
+                "map",
+                "sources",
+                "download",
+                "table"
+            ]
         },
         "matchingEntitiesOnly": {
             "type": "boolean",
@@ -371,13 +386,21 @@
             "type": "string",
             "default": "year",
             "description": "When a user hovers over a connected series line in a ScatterPlot we show\na label for each point. By default that value will be from the \"year\" column\nbut by changing this option the column used for the x or y axis could be used instead.\n",
-            "enum": ["x", "y", "year"]
+            "enum": [
+                "x",
+                "y",
+                "year"
+            ]
         },
         "selectedFacetStrategy": {
             "type": "string",
             "default": "none",
             "description": "The desired facetting strategy (none for no facetting)",
-            "enum": ["none", "entity", "metric"]
+            "enum": [
+                "none",
+                "entity",
+                "metric"
+            ]
         },
         "sourceDesc": {
             "type": "string",
@@ -429,7 +452,11 @@
             "type": "string",
             "description": "Which logo to show on the upper right side",
             "default": "owid",
-            "enum": ["owid", "core+owid", "gv+owid"]
+            "enum": [
+                "owid",
+                "core+owid",
+                "gv+owid"
+            ]
         },
         "entityType": {
             "type": "string",
@@ -445,7 +472,10 @@
             "description": "List of dimensions and their mapping to variables",
             "items": {
                 "type": "object",
-                "required": ["property", "variableId"],
+                "required": [
+                    "property",
+                    "variableId"
+                ],
                 "properties": {
                     "targetYear": {
                         "type": "integer",
@@ -454,7 +484,13 @@
                     "property": {
                         "type": "string",
                         "description": "Which dimension this property maps to",
-                        "enum": ["y", "x", "size", "color", "table"]
+                        "enum": [
+                            "y",
+                            "x",
+                            "size",
+                            "color",
+                            "table"
+                        ]
                     },
                     "display": {
                         "type": "object",
@@ -557,7 +593,11 @@
             "type": "string",
             "description": "Whether the user can change countries, add additional ones or neither",
             "default": "add-country",
-            "enum": ["add-country", "change-country", "disabled"]
+            "enum": [
+                "add-country",
+                "change-country",
+                "disabled"
+            ]
         },
         "compareEndPointsOnly": {
             "type": "boolean",
@@ -616,9 +656,18 @@
             "description": "Indicates if the map tab should be shown"
         },
         "stackMode": {
-            "type": ["string", "null"],
+            "type": [
+                "string",
+                "null"
+            ],
             "description": "Stack mode. Only absolute and relative are actively used.",
-            "enum": ["absolute", "relative", "grouped", "stacked", null]
+            "enum": [
+                "absolute",
+                "relative",
+                "grouped",
+                "stacked",
+                null
+            ]
         },
         "minTime": {
             "oneOf": [
@@ -627,7 +676,10 @@
                 },
                 {
                     "type": "string",
-                    "enum": ["latest", "earliest"]
+                    "enum": [
+                        "latest",
+                        "earliest"
+                    ]
                 }
             ],
             "description": "Start point of the initially selected time span."
@@ -686,13 +738,20 @@
             "type": "string",
             "description": "Sort criterium (used by stacked bar charts and marimekko)",
             "default": "total",
-            "enum": ["column", "total", "entityName"]
+            "enum": [
+                "column",
+                "total",
+                "entityName"
+            ]
         },
         "sortOrder": {
             "type": "string",
             "description": "Sort order (used by stacked bar charts and marimekko)",
             "default": "desc",
-            "enum": ["desc", "asc"]
+            "enum": [
+                "desc",
+                "asc"
+            ]
         },
         "sortColumnSlug": {
             "description": "Sort column if sortBy is column (used by stacked bar charts and marimekko)",
@@ -720,6 +779,43 @@
             "default": false,
             "description": "Legacy flag, should be removed",
             "$comment": "Remove this flag once the codepaths that use it are deleted"
+        },
+        "details": {
+            "type": "object",
+            "description": "A list of definitions for the details on demand feature that shows on-hover explanations for terms used\nin subtitles and footnotes. Entries here have a hierarchy of category > term > detail information.\nThe syntax to use details on demand is similar to markdown links as folows:\n[visible text](hover::category::subcategory)\n",
+            "patternProperties": {
+                "^\\w+$": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^\\w+$": {
+                            "type": "object",
+                            "description": "Details on Demand data",
+                            "properties": {
+                                "id": {
+                                    "type": "number",
+                                    "description": "The id of the Detail on Demand in our database"
+                                },
+                                "category": {
+                                    "type": "string",
+                                    "description": "The category of the Detail on Demand (same as the object key 2 levels higher up)"
+                                },
+                                "term": {
+                                    "type": "string",
+                                    "description": "The term identifier of the Detail on Demand (same as the object key 1 levels higher up)"
+                                },
+                                "title": {
+                                    "type": "string",
+                                    "description": "Human readable title for the Detail on Demand term"
+                                },
+                                "content": {
+                                    "type": "string",
+                                    "description": "Content to be shown in the on-hover box. This can use a limited subset of markdown including bold, italic and links"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "additionalProperties": false

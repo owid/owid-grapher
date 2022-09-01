@@ -1,5 +1,5 @@
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.001.json"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.002.json"
 $defs:
     axis:
         type: object
@@ -176,7 +176,7 @@ properties:
         type: string
         description: Url of the concrete schema version to use to validate this document
         format: uri
-        default: "https://files.ourworldindata.org/schemas/grapher-schema.001.json"
+        default: "https://files.ourworldindata.org/schemas/grapher-schema.002.json"
     id:
         type: integer
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
@@ -264,20 +264,6 @@ properties:
             - sources
             - download
             - table
-    selectedData:
-        type: array
-        items:
-            type: object
-            properties:
-                color:
-                    type: string
-                index:
-                    type: integer
-                    minimum: 0
-                entityId:
-                    type: integer
-                    minimum: 0
-            additionalProperties: false
     matchingEntitiesOnly:
         type: boolean
         default: false
@@ -634,4 +620,34 @@ properties:
         default: false
         description: Legacy flag, should be removed
         $comment: Remove this flag once the codepaths that use it are deleted
+    details:
+        type: object
+        description: |
+            A list of definitions for the details on demand feature that shows on-hover explanations for terms used
+            in subtitles and footnotes. Entries here have a hierarchy of category > term > detail information.
+            The syntax to use details on demand is similar to markdown links as folows:
+            [visible text](hover::category::subcategory)
+        patternProperties:
+            "^\\w+$":
+                type: object
+                patternProperties:
+                    "^\\w+$":
+                        type: object
+                        description: Details on Demand data
+                        properties:
+                            id:
+                                type: number
+                                description: The id of the Detail on Demand in our database
+                            category:
+                                type: string
+                                description: The category of the Detail on Demand (same as the object key 2 levels higher up)
+                            term:
+                                type: string
+                                description: The term identifier of the Detail on Demand (same as the object key 1 levels higher up)
+                            title:
+                                type: string
+                                description: Human readable title for the Detail on Demand term
+                            content:
+                                type: string
+                                description: Content to be shown in the on-hover box. This can use a limited subset of markdown including bold, italic and links
 additionalProperties: false
