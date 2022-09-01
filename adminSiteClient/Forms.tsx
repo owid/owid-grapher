@@ -996,6 +996,7 @@ export class EditableTags extends React.Component<{
     suggestions: Tag[]
     onSave: (tags: Tag[]) => void
     disabled?: boolean
+    hasKeyChartSupport?: boolean
 }> {
     @observable isEditing: boolean = false
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -1046,7 +1047,7 @@ export class EditableTags extends React.Component<{
     }
 
     render() {
-        const { disabled } = this.props
+        const { disabled, hasKeyChartSupport } = this.props
         const { tags } = this
 
         return (
@@ -1063,7 +1064,11 @@ export class EditableTags extends React.Component<{
                     <div>
                         {tags.map((t, i) => (
                             <TagBadge
-                                onToggleKey={() => this.onToggleKey(i)}
+                                onToggleKey={
+                                    hasKeyChartSupport
+                                        ? () => this.onToggleKey(i)
+                                        : undefined
+                                }
                                 key={t.id}
                                 tag={t}
                             />

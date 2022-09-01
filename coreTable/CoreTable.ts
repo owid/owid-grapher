@@ -1539,7 +1539,9 @@ class FilterMask {
  *
  * todo: define all column def property types
  */
-export const columnDefinitionsFromDelimited = <T>(delimited: string): T[] =>
+export const columnDefinitionsFromDelimited = <T extends CoreRow>(
+    delimited: string
+): T[] =>
     new CoreTable<T>(delimited.trim()).columnFilter(
         "slug",
         (value) => !!value,

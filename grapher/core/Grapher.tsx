@@ -184,34 +184,31 @@ import { detailOnDemandRegex } from "../text/parser.js"
 
 declare const window: any
 
-const legacyConfigToConfig = (
-    config: LegacyGrapherInterface | GrapherInterface
-): GrapherInterface => {
-    const legacyConfig = config as LegacyGrapherInterface
-    if (!legacyConfig.selectedData) return legacyConfig
-
-    const newConfig = { ...legacyConfig } as GrapherInterface
-    newConfig.selectedEntityIds = uniq(
-        legacyConfig.selectedData.map((row) => row.entityId)
-    ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
-    return newConfig
-}
-
 async function loadVariablesDataAdmin(
+    variableFetchBaseUrl: string | undefined,
     variableIds: number[]
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const dataFetchPath = (variableId: number): string =>
+        variableFetchBaseUrl
+            ? `${variableFetchBaseUrl}/v1/variableById/data/${variableId}`
+            : `/api/data/variables/data/${variableId}.json`
+    const metadataFetchPath = (variableId: number): string =>
+        variableFetchBaseUrl
+            ? `${variableFetchBaseUrl}/v1/variableById/metadata/${variableId}`
+            : `/api/data/variables/metadata/${variableId}.json`
+
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
         const dataPromise = window.admin.getJSON(
-            `/api/data/variables/data/${variableId}.json`
+            dataFetchPath(variableId)
         ) as Promise<OwidVariableMixedData>
         const metadataPromise = window.admin.getJSON(
-            `/api/data/variables/metadata/${variableId}.json`
+            metadataFetchPath(variableId)
         ) as Promise<OwidVariableWithSourceAndDimension>
         const [data, metadata] = await Promise.all([
             dataPromise,
             metadataPromise,
         ])
-        return { data, metadata }
+        return { data, metadata: { ...metadata, id: variableId } }
     })
     const variablesData: OwidVariableDataMetadataDimensions[] =
         await Promise.all(loadVariableDataPromises)
@@ -260,6 +257,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
+    dataApiUrlForAdmin?: string
 
     getGrapherInstance?: (instance: Grapher) => void
 
@@ -412,6 +410,10 @@ export class Grapher
 
     @observable.ref legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
 
+    @computed get dataApiUrlForAdmin(): string | undefined {
+        return this.props.dataApiUrlForAdmin
+    }
+
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
@@ -446,11 +448,10 @@ export class Grapher
         const { getGrapherInstance, ...props } = propsWithGrapherInstanceGetter
 
         this.inputTable = props.table ?? BlankOwidTable(`initialGrapherTable`)
-        const modernConfig = props ? legacyConfigToConfig(props) : props
 
         if (props) this.setAuthoredVersion(props)
 
-        this.updateFromObject(modernConfig)
+        this.updateFromObject(props)
 
         if (!props.table) this.downloadData()
 
@@ -760,6 +761,7 @@ export class Grapher
             if (this.useAdminAPI) {
                 // TODO grapher model: switch this to downloading multiple data and metadata files
                 const variablesDataMap = await loadVariablesDataAdmin(
+                    this.dataApiUrlForAdmin,
                     this.variableIds
                 )
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
@@ -1315,12 +1317,6 @@ export class Grapher
         return this.filledDimensions
             .filter((dim) => dim.property === DimensionProperty.y)
             .map((dim) => dim.column)
-    }
-
-    @computed get yColumnSlugsInSelectionOrder(): string[] {
-        return this.selectedColumnSlugs?.length
-            ? this.selectedColumnSlugs
-            : this.yColumnSlugs
     }
 
     @computed get yColumnSlugs(): string[] {
@@ -2017,27 +2013,6 @@ export class Grapher
         return this.yColumnSlugs.length > 1
     }
 
-    @computed get selectedColumnSlugs(): ColumnSlug[] {
-        const { selectedData } = this.legacyConfigAsAuthored
-        const dimensions = this.filledDimensions
-
-        if (selectedData) {
-            const columnSlugs = selectedData.map((item) => {
-                const columnSlug = dimensions[item.index]?.columnSlug
-
-                if (!columnSlug)
-                    console.warn(
-                        `Couldn't find specified dimension in chart config`,
-                        item
-                    )
-                return columnSlug
-            })
-            return uniq(excludeUndefined(columnSlugs))
-        }
-
-        return []
-    }
-
     @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
@@ -2419,8 +2394,7 @@ export class Grapher
         | undefined {
         const authoredConfig = this.legacyConfigAsAuthored
 
-        const originalSelectedEntityIds =
-            authoredConfig.selectedData?.map((row) => row.entityId) || []
+        const originalSelectedEntityIds = authoredConfig.selectedEntityIds ?? []
         const currentSelectedEntityIds = this.selection.allSelectedEntityIds
 
         const entityIdsThatTheUserDeselected = difference(

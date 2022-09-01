@@ -18,12 +18,15 @@ help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
-	@echo '  make up           start dev environment via docker-compose and tmux'
-	@echo '  make down         stop any services still running'
+	@echo '  make up            start dev environment via docker-compose and tmux'
+	@echo '  make down          stop any services still running'
+	@echo '  make refresh       download a new grapher snapshot and update MySQL'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
-	@echo '  make up.full      start dev environment via docker-compose and tmux'
-	@echo '  make down.full    stop any services still running'
+	@echo '  make up.full       start dev environment via docker-compose and tmux'
+	@echo '  make down.full     stop any services still running'
+	@echo '  make refresh.wp    download a new wordpress snapshot and update MySQL'
+	@echo '  make refresh.full  do a full MySQL update of both wordpress and grapher'
 	@echo
 
 up: export DEBUG = 'knex:query'
@@ -47,7 +50,8 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
-		bind Q kill-server \
+		bind Q kill-server \; \
+		set -g mouse on \
 		|| make down
 
 up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata.sql.gz
@@ -92,8 +96,25 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
-		bind Q kill-server \
+		bind Q kill-server \; \
+		set -g mouse on \
 		|| make down.full
+
+refresh:
+	@echo '==> Downloading chart data'
+	./devTools/docker/download-grapher-mysql.sh
+
+	@echo '==> Updating grapher database'
+	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
+
+refresh.wp:
+	@echo '==> Downloading wordpress data'
+	./devTools/docker/download-wordpress-mysql.sh
+
+	@echo '==> Updating wordpress data'
+	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-wordpress-data.sh
+
+refresh.full: refresh refresh.wp
 
 down:
 	@echo '==> Stopping services'

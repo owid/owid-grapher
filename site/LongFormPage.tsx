@@ -26,6 +26,7 @@ import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
 import { omit } from "../clientUtils/Util.js"
 import StickyNav from "./blocks/StickyNav.js"
+import { CodeSnippet } from "./blocks/CodeSnippet.js"
 
 export interface PageOverrides {
     pageTitle?: string
@@ -63,10 +64,6 @@ export const LongFormPage = (props: {
         overrides?.citationPublicationDate ?? post.date
     const citationPublishedYear = citationPublicationDate.getFullYear()
     const citationAuthors = overrides?.citationAuthors ?? post.authors
-    const citationAuthorsFormatted = formatAuthors(
-        citationAuthors,
-        withCitation
-    )
 
     let hasSidebar = false
     const endNotes = { text: "Endnotes", slug: "endnotes" }
@@ -104,14 +101,22 @@ export const LongFormPage = (props: {
         bodyClasses.push(formattingOptions.bodyClassName)
     }
 
+    const citationText = `${formatAuthors({
+        authors: citationAuthors,
+        requireMax: true,
+    })} (${citationPublishedYear}) - "${citationTitle}". Published online at OurWorldInData.org. Retrieved from: '${citationCanonicalUrl}' [Online Resource]`
+
     const bibtex = `@article{owid${citationSlug.replace(/-/g, "")},
-    author = {${citationAuthorsFormatted}},
+    author = {${formatAuthors({
+        authors: citationAuthors,
+        requireMax: true,
+        forBibtex: true,
+    })}},
     title = {${citationTitle}},
     journal = {Our World in Data},
     year = {${citationPublishedYear}},
     note = {${citationCanonicalUrl}}
 }`
-
     return (
         <html>
             <Head
@@ -216,11 +221,11 @@ export const LongFormPage = (props: {
                                 )}
                             </header>
                         </div>
-                        {post.stickyNavLinks && (
+                        {post.stickyNavLinks?.length ? (
                             <nav className="sticky-nav">
                                 <StickyNav links={post.stickyNavLinks} />
                             </nav>
-                        )}
+                        ) : null}
                         {!isPost && formattingOptions.subnavId && (
                             <SiteSubnavigation
                                 subnavId={formattingOptions.subnavId}
@@ -347,9 +352,9 @@ export const LongFormPage = (props: {
                                                 )}
                                                 {withCitation && (
                                                     <>
-                                                        <h3 id="citation">
-                                                            Citation
-                                                        </h3>
+                                                        <h2 id="citation">
+                                                            Cite our work
+                                                        </h2>
                                                         <p>
                                                             Our articles and
                                                             data visualizations
@@ -363,31 +368,20 @@ export const LongFormPage = (props: {
                                                             sources. This entry
                                                             can be cited as:
                                                         </p>
-                                                        <pre className="citation">
-                                                            {
-                                                                citationAuthorsFormatted
-                                                            }{" "}
-                                                            (
-                                                            {
-                                                                citationPublishedYear
-                                                            }
-                                                            ) - "{citationTitle}
-                                                            ".{" "}
-                                                            <em>
-                                                                Published online
-                                                                at
-                                                                OurWorldInData.org.
-                                                            </em>{" "}
-                                                            Retrieved from: '
-                                                            {
-                                                                citationCanonicalUrl
-                                                            }
-                                                            ' [Online Resource]
-                                                        </pre>
+                                                        <div>
+                                                            <CodeSnippet
+                                                                code={
+                                                                    citationText
+                                                                }
+                                                            />
+                                                        </div>
                                                         <p>BibTeX citation</p>
-                                                        <pre className="citation">
-                                                            {bibtex}
-                                                        </pre>
+
+                                                        <div>
+                                                            <CodeSnippet
+                                                                code={bibtex}
+                                                            />
+                                                        </div>
                                                     </>
                                                 )}
                                             </div>

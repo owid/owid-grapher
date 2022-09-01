@@ -49,6 +49,8 @@ import {
     renderAdditionalInformation,
 } from "../site/blocks/AdditionalInformation.js"
 import { renderHelp } from "../site/blocks/Help.js"
+import { renderCodeSnippets } from "../site/blocks/CodeSnippet.js"
+import { renderExpandableParagraphs } from "../site/blocks/ExpandableParagraph.js"
 import {
     formatUrls,
     getBodyHtml,
@@ -315,6 +317,8 @@ export const formatWordpressPost = async (
     //   perspective, the server rendered version is different from the client
     //   one, hence the discrepancy.
     renderAdditionalInformation(cheerioEl)
+    renderExpandableParagraphs(cheerioEl)
+    renderCodeSnippets(cheerioEl)
     renderHelp(cheerioEl)
     renderAllCharts(cheerioEl, post)
     await renderProminentLinks(cheerioEl, post.id)

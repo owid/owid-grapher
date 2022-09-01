@@ -1,0 +1,45 @@
+.expandable-paragraph {
+    overflow-y: hidden;
+    position: relative;
+
+    & > *:nth-child(2) {
+        max-height: 32px;
+    }
+
+    & > *:nth-child(n + 3) {
+        display: none;
+    }
+
+    &::after {
+        content: "";
+        pointer-events: none;
+        width: 100%;
+        height: 120px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        background: linear-gradient(#fff0, $body-bg);
+    }
+}
+
+.expandable-paragraph--is-expanded {
+    & > *:nth-child(2) {
+        max-height: unset;
+    }
+
+    & > *:nth-child(n + 3) {
+        display: block;
+    }
+
+    &::after {
+        content: none;
+    }
+}
+
+.expandable-paragraph__expand-button {
+    @include owid-link-90;
+    margin: 16px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+}

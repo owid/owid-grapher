@@ -190,10 +190,7 @@ export class ChartEditor {
         onError,
     }: { onError?: () => void } = {}): Promise<void> {
         const { grapher, isNewGrapher } = this
-        const currentGrapherObject = {
-            ...this.grapher.object,
-            selectedData: this.grapher.legacyConfigAsAuthored.selectedData,
-        }
+        const currentGrapherObject = this.grapher.object
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job

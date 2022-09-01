@@ -30,6 +30,8 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
         const props = {
             ...this.props.grapher.toObject(),
             bounds: this.bounds,
+            dataApiUrlForAdmin:
+                this.context?.admin?.settings?.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
         }
         return (
             // They key= in here makes it so that the chart is re-loaded when the slug changes.

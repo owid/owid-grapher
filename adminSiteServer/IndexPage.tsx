@@ -1,5 +1,9 @@
 import React from "react"
-import { ENV, GITHUB_USERNAME } from "../settings/serverSettings.js"
+import {
+    ENV,
+    GITHUB_USERNAME,
+    DATA_API_FOR_ADMIN_UI,
+} from "../settings/serverSettings.js"
 import { webpackUrl } from "../site/webpackUtils.js"
 
 export const IndexPage = (props: {
@@ -12,7 +16,7 @@ export const IndexPage = (props: {
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-        { ENV, GITHUB_USERNAME }
+        { ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI }
     )}})
         admin.start(document.querySelector("#app"), '${props.gitCmsBranchName}')
 `

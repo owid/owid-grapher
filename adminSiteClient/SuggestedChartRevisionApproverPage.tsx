@@ -598,15 +598,17 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                 <FontAwesomeIcon icon={faExternalLinkAlt} />
                             </Link>
                             . This opens the suggested chart revision in the
-                            chart editor. If you make changes to the chart
-                            within the chart editor,{" "}
+                            chart editor. If you make and save changes to the
+                            chart within the chart editor,{" "}
                             <i>
-                                your changes will overwrite the original chart,
-                                but will NOT overwrite the suggested revision.
+                                your config and data changes will be applied to
+                                the original chart, equivalent to approving it.
                             </i>{" "}
-                            If you save your changes within the chart editor,
-                            you will no longer have the option to approve the
-                            suggested revision.
+                            Currently, the suggestion is not updated and the
+                            approval is left as pending, but you will no longer
+                            be able to approve it (since the chart has changed).
+                            Because it has actually been applied, you can now
+                            reject it.
                         </li>
                     </ol>
                     <h5>Other useful information</h5>
@@ -1239,6 +1241,9 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             {...{
                                 ...grapherConfig,
                                 bounds: this.grapherBounds,
+                                dataApiUrlForAdmin:
+                                    this.context.admin.settings
+                                        .DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
                             }}
                         />
                     </figure>

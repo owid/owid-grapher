@@ -55,7 +55,6 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
         grapher.updateFromObject(configJson)
         grapher.updateAuthoredVersion({
             ...grapher.toObject(),
-            selectedData: configJson.selectedData,
             data: configJson.data,
         })
         grapher.rebuildInputOwidTable()

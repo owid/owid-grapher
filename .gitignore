@@ -7,7 +7,7 @@ db.sqlite3
 yarn-error.log
 .vscode/tags
 .awcache
-data
+/data
 itsJustJavascript/
 .netlify
 *.swp
@@ -30,3 +30,4 @@ localBake/
 /differentGrapherSvgs
 /owid-content
 tmp-downloads
+/data_files_checksums

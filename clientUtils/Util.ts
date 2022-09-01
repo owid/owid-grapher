@@ -60,6 +60,7 @@ import uniqBy from "lodash/uniqBy.js"
 import uniqWith from "lodash/uniqWith.js"
 import upperFirst from "lodash/upperFirst.js"
 import without from "lodash/without.js"
+import zip from "lodash/zip.js"
 export {
     capitalize,
     chunk,
@@ -120,6 +121,7 @@ export {
     uniqWith,
     upperFirst,
     without,
+    zip,
 }
 import { extent, pairs } from "d3-array"
 export { pairs }
@@ -569,40 +571,20 @@ export const trimObject = <Obj>(
     return clone
 }
 
-// TODO use fetchText() in fetchJSON()
-// decided not to do this while implementing our COVID-19 page in order to prevent breaking something.
 export const fetchText = async (url: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        req.addEventListener("load", function () {
-            resolve(this.responseText)
-        })
-        req.addEventListener("readystatechange", () => {
-            if (req.readyState === 4) {
-                if (req.status !== 200) {
-                    reject(new Error(`${req.status} ${req.statusText}`))
-                }
-            }
-        })
-        req.open("GET", url)
-        req.send()
+    return await fetch(url).then((res) => {
+        if (!res.ok)
+            throw new Error(`Fetch failed: ${res.status} ${res.statusText}`)
+        return res.text()
     })
 }
 
-// todo: can we ditch this in favor of a simple fetch?
 export const getCountryCodeFromNetlifyRedirect = async (): Promise<
     string | undefined
 > =>
-    new Promise((resolve, reject) => {
-        const req = new XMLHttpRequest()
-        req.addEventListener("load", () => {
-            resolve(req.responseURL.split("?")[1])
-        })
-        req.addEventListener("error", () =>
-            reject(new Error("Couldn't retrieve country code"))
-        )
-        req.open("GET", "/detect-country-redirect")
-        req.send()
+    await fetch("/detect-country-redirect").then((res) => {
+        if (!res.ok) throw new Error("Couldn't retrieve country code")
+        return res.url.split("?")[1]
     })
 
 export const stripHTML = (html: string): string => striptags(html)
@@ -780,6 +762,14 @@ export function dateDiffInDays(a: Date, b: Date): number {
 export const diffDateISOStringInDays = (a: string, b: string): number =>
     dayjs.utc(a).diff(dayjs.utc(b), "day")
 
+export const getYearFromISOStringAndDayOffset = (
+    epoch: string,
+    daysOffset: number
+): number => {
+    const date = dayjs.utc(epoch).add(daysOffset, "day")
+    return date.year()
+}
+
 export const addDays = (date: Date, days: number): Date => {
     const newDate = new Date(date.getTime())
     newDate.setDate(newDate.getDate() + days)
@@ -911,6 +901,12 @@ export const intersectionOfSets = <T>(sets: Set<T>[]): Set<T> => {
         }
     })
     return intersection
+}
+
+export const unionOfSets = <T>(sets: Set<T>[]): Set<T> => {
+    if (!sets.length) return new Set<T>()
+    const unionSet = new Set<T>(...sets)
+    return unionSet
 }
 
 export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
@@ -1127,12 +1123,9 @@ export const isInIFrame = (): boolean => {
     }
 }
 
-export const differenceObj = <
-    A extends Record<string, unknown>,
-    B extends Record<string, unknown>
->(
+export const differenceObj = <A extends Record<string, unknown>>(
     obj: A,
-    defaultObj: B
+    defaultObj: Record<string, unknown>
 ): Partial<A> => {
     const result: Partial<A> = {}
     for (const key in obj) {
@@ -1178,7 +1171,9 @@ export const dyFromAlign = (align: VerticalAlign): string => {
     return "0"
 }
 
-export const values = <Obj>(obj: Obj): Obj[keyof Obj][] => {
+export const values = <Obj extends Record<string, any>>(
+    obj: Obj
+): Obj[keyof Obj][] => {
     return Object.values(obj)
 }
 

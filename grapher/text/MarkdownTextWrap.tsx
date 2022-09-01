@@ -570,7 +570,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                                     category === token.category &&
                                     term === token.term
                             ) + 1
-                        if (referenceIndex === 0) return
+                        if (referenceIndex === 0) return token
                         token.children.push(
                             new IRSuperscript(
                                 String(referenceIndex),
@@ -609,15 +609,23 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         if (htmlLines.length === 0) return null
         return (
             <span style={this.style} className="markdown-text-wrap">
-                {htmlLines.map((line, i) => (
-                    <span className="markdown-text-wrap__line" key={i}>
-                        {line.length ? (
-                            line.map((token, i) => token.toHTML(i))
-                        ) : (
-                            <br />
-                        )}
-                    </span>
-                ))}
+                {htmlLines.map((line, i) => {
+                    const plaintextLine = line
+                        .map((token) => token.toPlaintext())
+                        .join("")
+                    return (
+                        <span
+                            className="markdown-text-wrap__line"
+                            key={`${i}-${plaintextLine}`}
+                        >
+                            {line.length ? (
+                                line.map((token, i) => token.toHTML(i))
+                            ) : (
+                                <br />
+                            )}
+                        </span>
+                    )
+                })}
             </span>
         )
     }

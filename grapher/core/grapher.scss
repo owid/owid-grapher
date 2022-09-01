@@ -58,8 +58,16 @@ $zindex-Tooltip: 20;
     .flash {
         margin: 10px;
     }
+
     .clickable {
         cursor: pointer;
+
+        a {
+            text-decoration: none;
+            &:visited {
+                color: initial;
+            }
+        }
     }
     input[type="checkbox"] {
         cursor: pointer;

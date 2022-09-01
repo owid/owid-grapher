@@ -109,13 +109,6 @@ export enum ScatterPointLabelStrategy {
     y = "y",
 }
 
-// todo: remove
-export interface EntitySelection {
-    entityId: number
-    index: number // Which dimension the entity is from
-    color?: string
-}
-
 export type SeriesName = string
 
 export const GRAPHER_VARIABLES_ROUTE = "/grapher/data/variables"
