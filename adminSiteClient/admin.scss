@@ -1231,3 +1231,9 @@ main:not(.ChartEditorPage) {
         outline: 1px solid #cbcbcb;
     }
 }
+
+.ModalAddGdoc {
+    ol {
+        list-style-position: inside;
+    }
+}
