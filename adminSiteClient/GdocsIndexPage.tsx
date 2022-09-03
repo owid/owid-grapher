@@ -67,7 +67,10 @@ export const GdocsIndexPage = () => {
                     )} */}
             </main>
             {showModal && (
-                <Modal onClose={() => setShowModal(false)}>
+                <Modal
+                    onClose={() => setShowModal(false)}
+                    className="ModalAddGdoc"
+                >
                     <form onSubmit={onSubmit}>
                         <div className="modal-header">
                             <h5 className="modal-title">Add a document</h5>
@@ -86,7 +89,6 @@ export const GdocsIndexPage = () => {
                                 </li>
                             </ol>
                             <div className="form-group">
-                                <label>Document URL</label>
                                 <input
                                     type="string"
                                     className="form-control"
@@ -95,6 +97,7 @@ export const GdocsIndexPage = () => {
                                     }
                                     value={documentUrl}
                                     required
+                                    placeholder="Document URL"
                                 />
                             </div>
                         </div>
