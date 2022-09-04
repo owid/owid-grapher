@@ -66,5 +66,6 @@ export interface internalLabel {
     size: number
     type: string
     pole: Position
+    markerStart?: Position
     markerEnd?: Position
 }

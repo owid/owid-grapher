@@ -172,6 +172,8 @@ const renderFeaturesFor = (
     return renderFeaturesCache.get(projectionName)!
 }
 
+const annotationsCache = new Map<string, any>()
+
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
@@ -795,7 +797,8 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
             this.viewportScale,
             this.offset,
             this.bounds,
-            projection
+            projection,
+            annotationsCache
         )
     }
 
@@ -1047,26 +1050,18 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                 </text>
                                 {label.type == "external" &&
                                     label.value &&
-                                    label.markerEnd && (
+                                    label.markerEnd &&
+                                    label.markerStart && (
                                         <>
                                             <line
-                                                x1={label.pole[0]}
-                                                y1={label.pole[1]}
+                                                x1={label.markerStart[0]}
+                                                y1={label.markerStart[1]}
                                                 x2={label.markerEnd[0]}
                                                 y2={label.markerEnd[1]}
                                                 stroke="#303030"
                                                 strokeWidth={
                                                     0.5 / viewportScale
                                                 }
-                                            />
-                                            <circle
-                                                cx={label.pole[0]}
-                                                cy={label.pole[1]}
-                                                r={1.25 / viewportScale}
-                                                fill="#303030"
-                                                style={{
-                                                    pointerEvents: "none",
-                                                }}
                                             />
                                         </>
                                     )}
