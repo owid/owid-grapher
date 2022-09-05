@@ -109,3 +109,8 @@ export const CLOUDFLARE_AUD: string = serverSettings.CLOUDFLARE_AUD ?? ""
 export const DATA_FILES_CHECKSUMS_DIRECTORY: string =
     serverSettings.DATA_FILES_CHECKSUMS_DIRECTORY ??
     `${BASE_DIR}/data_files_checksums`
+
+export const GDOCS_PRIVATE_KEY: string = serverSettings.GDOCS_PRIVATE_KEY ?? ""
+export const GDOCS_CLIENT_EMAIL: string =
+    serverSettings.GDOCS_CLIENT_EMAIL ?? ""
+export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""

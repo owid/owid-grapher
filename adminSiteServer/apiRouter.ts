@@ -13,7 +13,12 @@ import {
 } from "../settings/serverSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
-import { Request, Response, CurrentUser } from "./authentication.js"
+import {
+    Request,
+    Response,
+    CurrentUser,
+    getGoogleAuth,
+} from "./authentication.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { applyPatch } from "../clientUtils/patchHelper.js"
 import {
@@ -67,6 +72,7 @@ import {
     set,
     trimObject,
 } from "../clientUtils/Util.js"
+import { docToArchieML } from "@ourworldindata/doc-to-archieml"
 
 import { Detail } from "../grapher/core/GrapherConstants.js"
 
@@ -2578,6 +2584,18 @@ apiRouter.put("/details/:id", async (req, res) => {
     }
 
     return { success: true }
+})
+
+apiRouter.put("/gdocs/:id", async (req) => {
+    const { id } = req.params
+    const auth = getGoogleAuth()
+    // todo use interface type after merging mc/gdocs-render-baker branch
+    const results = (await docToArchieML({ documentId: id, auth })) as {
+        title: string
+    }
+
+    // todo: handle error
+    return { success: true, title: results.title }
 })
 
 export { apiRouter }

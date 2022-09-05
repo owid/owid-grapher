@@ -137,6 +137,7 @@
         "fuzzysort": "^1.1.4",
         "get-stream": "^6.0.1",
         "glob": "^8.0.3",
+        "google-auth-library": "^8.5.1",
         "handsontable": "^12.1.2",
         "html-to-text": "^8.2.0",
         "js-base64": "^3.7.2",

@@ -1,16 +1,38 @@
-import React from "react"
+import React, { useContext } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow, Modal, SearchField } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons/faCirclePlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { AdminAppContext } from "./AdminAppContext.js"
 
 export const GdocsIndexPage = () => {
     const [showModal, setShowModal] = React.useState(false)
     const [responseSuccess, setResponseSuccess] = React.useState(false)
+    const [documentTitle, setDocumentTitle] = React.useState(false)
     const [documentUrl, setDocumentUrl] = React.useState("")
 
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const context = useContext(AdminAppContext)
+
+    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+        const regex = /https:\/\/docs\.google\.com\/document\/d\/([^\/]+)\/edit/
+
+        const match = documentUrl.match(regex)
+
+        // handled by HTML5 validation below
+        if (!match) return
+
+        const documentId = match[1]
+        const json = await context.admin.requestJSON(
+            `/api/gdocs/${documentId}`,
+            {},
+            "PUT"
+        )
+
+        // todo: handle error
+        if (!json.success) return
+
+        setDocumentTitle(json.title)
         setResponseSuccess(true)
     }
 
@@ -98,6 +120,7 @@ export const GdocsIndexPage = () => {
                                     value={documentUrl}
                                     required
                                     placeholder="Document URL"
+                                    pattern="https:\/\/docs\.google\.com\/document\/d\/([^\/]+)\/edit"
                                 />
                             </div>
                         </div>
@@ -110,7 +133,7 @@ export const GdocsIndexPage = () => {
                         </div>
                         {responseSuccess && (
                             <div className="alert alert-success" role="alert">
-                                Document added successfully!
+                                {`Document '${documentTitle}' added successfully!`}
                             </div>
                         )}
                     </form>
