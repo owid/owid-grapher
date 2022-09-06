@@ -43,7 +43,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     rows?: number
     softCharacterLimit?: number
     errorMessage?: string
-    buttonText?: string
+    buttonText?: string | JSX.Element
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -102,15 +102,17 @@ export class TextField extends React.Component<TextFieldProps> {
                         {...passthroughProps}
                     />
                     {props.buttonText && (
-                        <button
-                            className="btn btn-outline-secondary"
-                            type="button"
-                            onClick={() =>
-                                props.onButtonClick && props.onButtonClick()
-                            }
-                        >
-                            {props.buttonText}
-                        </button>
+                        <div className="input-group-append">
+                            <button
+                                className="btn btn-outline-secondary"
+                                type="button"
+                                onClick={() =>
+                                    props.onButtonClick && props.onButtonClick()
+                                }
+                            >
+                                {props.buttonText}
+                            </button>
+                        </div>
                     )}
                 </div>
                 {props.helpText && (
@@ -198,6 +200,8 @@ interface NumberFieldProps {
     title?: string
     disabled?: boolean
     helpText?: string
+    buttonText?: string | JSX.Element
+    onButtonClick?: () => void
 }
 
 interface NumberFieldState {
@@ -610,20 +614,12 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
         const { props } = this
 
         return (
-            <div className="form-group AutoTextField">
-                {props.label && <label>{props.label}</label>}
-                <div className="input-group mb-2 mb-sm-0">
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={props.value}
-                        placeholder={props.placeholder}
-                        onChange={(e) => props.onValue(e.currentTarget.value)}
-                        onBlur={props.onBlur}
-                    />
+            <TextField
+                {...props}
+                value={props.isAuto ? undefined : props.value}
+                placeholder={props.isAuto ? props.value : undefined}
+                buttonText={
                     <div
-                        className="input-group-addon"
-                        onClick={() => props.onToggleAuto(!props.isAuto)}
                         title={
                             props.isAuto ? "Automatic default" : "Manual input"
                         }
@@ -634,19 +630,9 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
                             <FontAwesomeIcon icon={faUnlink} />
                         )}
                     </div>
-                </div>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-                {props.softCharacterLimit && props.value && (
-                    <SoftCharacterLimit
-                        text={props.value}
-                        limit={props.softCharacterLimit}
-                    />
-                )}
-            </div>
+                }
+                onButtonClick={() => props.onToggleAuto(!props.isAuto)}
+            />
         )
     }
 }
@@ -762,17 +748,29 @@ class AutoFloatField extends React.Component<AutoFloatFieldProps> {
     render() {
         const { props } = this
 
-        const textFieldProps = {
-            ...props,
-            value: props.isAuto ? undefined : props.value.toString(),
-            onValue: (value: string) => {
-                const asNumber = parseFloat(value)
-                props.onValue(isNaN(asNumber) ? undefined : asNumber)
-            },
-            placeholder: props.isAuto ? props.value.toString() : undefined,
-        }
-
-        return <AutoTextField {...textFieldProps} />
+        return (
+            <NumberField
+                allowDecimal
+                allowNegative
+                {...props}
+                value={props.isAuto ? undefined : props.value}
+                placeholder={props.isAuto ? props.value.toString() : undefined}
+                buttonText={
+                    <div
+                        title={
+                            props.isAuto ? "Automatic default" : "Manual input"
+                        }
+                    >
+                        {props.isAuto ? (
+                            <FontAwesomeIcon icon={faLink} />
+                        ) : (
+                            <FontAwesomeIcon icon={faUnlink} />
+                        )}
+                    </div>
+                }
+                onButtonClick={() => props.onToggleAuto(!props.isAuto)}
+            />
+        )
     }
 }
 
@@ -787,17 +785,7 @@ class FloatField extends React.Component<FloatFieldProps> {
     render() {
         const { props } = this
 
-        const textFieldProps = {
-            ...props,
-            value:
-                props.value === undefined ? undefined : props.value.toString(),
-            onValue: (value: string) => {
-                const asNumber = parseFloat(value)
-                props.onValue(isNaN(asNumber) ? undefined : asNumber)
-            },
-        }
-
-        return <TextField {...textFieldProps} />
+        return <NumberField {...props} allowDecimal allowNegative />
     }
 }
 
