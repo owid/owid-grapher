@@ -68,4 +68,5 @@ export interface internalLabel {
     pole: Position
     markerStart?: Position
     markerEnd?: Position
+    anchor?: boolean
 }

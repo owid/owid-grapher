@@ -1063,6 +1063,16 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                                     0.5 / viewportScale
                                                 }
                                             />
+                                            {label.anchor===true &&
+                                            <circle
+                                                cx={label.pole[0]}
+                                                cy={label.pole[1]}
+                                                r={1.25 / viewportScale}
+                                                fill="#303030"
+                                                style={{
+                                                    pointerEvents: "none",
+                                                }}
+                                            />}
                                         </>
                                     )}
                             </>
