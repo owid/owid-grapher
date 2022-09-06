@@ -1,17 +1,19 @@
-import React, { useContext } from "react"
+import React, { useContext, useEffect } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow, Modal, SearchField } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons/faCirclePlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
+import { Gdoc } from "../clientUtils/owidTypes.js"
 
 export const GdocsIndexPage = () => {
     const [showModal, setShowModal] = React.useState(false)
     const [responseSuccess, setResponseSuccess] = React.useState(false)
     const [documentTitle, setDocumentTitle] = React.useState(false)
     const [documentUrl, setDocumentUrl] = React.useState("")
+    const [gdocs, setGdocs] = React.useState<Gdoc[]>([])
 
-    const context = useContext(AdminAppContext)
+    const { admin } = useContext(AdminAppContext)
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -23,18 +25,26 @@ export const GdocsIndexPage = () => {
         if (!match) return
 
         const documentId = match[1]
-        const json = await context.admin.requestJSON(
+        const json = await admin.requestJSON(
             `/api/gdocs/${documentId}`,
             {},
-            "PUT"
+            "POST"
         )
 
         // todo: handle error
         if (!json.success) return
 
-        setDocumentTitle(json.title)
+        setDocumentTitle(json.gdoc.title)
         setResponseSuccess(true)
     }
+
+    useEffect(() => {
+        const fetchGodcs = async () => {
+            const json = await admin.getJSON("/api/gdocs")
+            setGdocs(json.gdocs)
+        }
+        fetchGodcs()
+    }, [admin, responseSuccess])
 
     return (
         <AdminLayout title="Google Docs Articles">
@@ -68,16 +78,27 @@ export const GdocsIndexPage = () => {
                             <th></th>
                         </tr>
                     </thead>
-                    {/* <tbody>
-                            {postsToShow.map((post) => (
+                    <tbody>
+                        {gdocs.map((gdoc) => (
+                            <tr key={gdoc.slug}>
+                                <td>{gdoc.slug}</td>
+                                <td>Authors</td>
+                                <td>Type</td>
+                                <td>Status</td>
+                                <td>Tags</td>
+                                <td>Last Updated</td>
+                                <td></td>
+                            </tr>
+                        ))}
+                        {/* {postsToShow.map((post) => (
                                 <PostRow
                                     key={post.id}
                                     post={post}
                                     highlight={highlight}
                                     availableTags={this.availableTags}
                                 />
-                            ))}
-                        </tbody> */}
+                            ))} */}
+                    </tbody>
                 </table>
                 {/* {!searchInput && (
                         <button
@@ -119,7 +140,7 @@ export const GdocsIndexPage = () => {
                                     }
                                     value={documentUrl}
                                     required
-                                    placeholder="Document URL"
+                                    placeholder="https://docs.google.com/document/d/****/edit"
                                     pattern="https:\/\/docs\.google\.com\/document\/d\/([^\/]+)\/edit"
                                 />
                             </div>
