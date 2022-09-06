@@ -43,7 +43,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     rows?: number
     softCharacterLimit?: number
     errorMessage?: string
-    buttonText?: string | JSX.Element
+    buttonContent?: React.ReactNode
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -101,7 +101,7 @@ export class TextField extends React.Component<TextFieldProps> {
                         onKeyDown={this.onKeyDown}
                         {...passthroughProps}
                     />
-                    {props.buttonText && (
+                    {props.buttonContent && (
                         <div className="input-group-append">
                             <button
                                 className="btn btn-outline-secondary"
@@ -110,7 +110,7 @@ export class TextField extends React.Component<TextFieldProps> {
                                     props.onButtonClick && props.onButtonClick()
                                 }
                             >
-                                {props.buttonText}
+                                {props.buttonContent}
                             </button>
                         </div>
                     )}
@@ -200,7 +200,7 @@ interface NumberFieldProps {
     title?: string
     disabled?: boolean
     helpText?: string
-    buttonText?: string | JSX.Element
+    buttonContent?: React.ReactNode
     onButtonClick?: () => void
 }
 
@@ -618,7 +618,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
                 {...props}
                 value={props.isAuto ? undefined : props.value}
                 placeholder={props.isAuto ? props.value : undefined}
-                buttonText={
+                buttonContent={
                     <div
                         title={
                             props.isAuto ? "Automatic default" : "Manual input"
@@ -649,7 +649,7 @@ export class BindString extends React.Component<{
     disabled?: boolean
     rows?: number
     errorMessage?: string
-    buttonText?: string
+    buttonContent?: React.ReactChild
     onButtonClick?: () => void
 }> {
     @action.bound onValue(value: string = "") {
@@ -755,7 +755,7 @@ class AutoFloatField extends React.Component<AutoFloatFieldProps> {
                 {...props}
                 value={props.isAuto ? undefined : props.value}
                 placeholder={props.isAuto ? props.value.toString() : undefined}
-                buttonText={
+                buttonContent={
                     <div
                         title={
                             props.isAuto ? "Automatic default" : "Manual input"
