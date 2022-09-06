@@ -187,15 +187,18 @@ figure[data-explorer-src] {
  */
 .page .wp-block-columns {
     @include lg-up {
-        display: flex;
-        align-items: flex-start; // maintain columns original height to allow sticky positioning
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        column-gap: 24px;
 
         .wp-block-column {
             &:first-child {
-                margin-right: $padding-x-md * 0.5;
+                grid-column: 1 / 6;
+                max-width: 100%;
             }
             &:last-child {
-                margin-left: $padding-x-md * 0.5;
+                grid-column: 6 / 13;
+                max-width: 100%;
             }
         }
 
