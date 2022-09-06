@@ -25,7 +25,10 @@ import {
     GrapherInterface,
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface.js"
-import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
+import {
+    GdocParsed,
+    SuggestedChartRevisionStatus,
+} from "../clientUtils/owidTypes.js"
 import {
     GrapherConfigPatch,
     BulkGrapherConfigResponse,
@@ -70,6 +73,7 @@ import {
     omit,
     parseIntOrUndefined,
     set,
+    slugify,
     trimObject,
 } from "../clientUtils/Util.js"
 import { docToArchieML } from "@ourworldindata/doc-to-archieml"
@@ -2586,16 +2590,31 @@ apiRouter.put("/details/:id", async (req, res) => {
     return { success: true }
 })
 
-apiRouter.put("/gdocs/:id", async (req) => {
+apiRouter.get("/gdocs", async (req) => {
+    return {
+        gdocs: await db.queryMysql("SELECT * FROM posts_gdocs"),
+    }
+})
+
+apiRouter.post("/gdocs/:id", async (req) => {
     const { id } = req.params
+    // todo handle error
     const auth = getGoogleAuth()
     // todo use interface type after merging mc/gdocs-render-baker branch
-    const results = (await docToArchieML({ documentId: id, auth })) as {
-        title: string
-    }
+    const results = (await docToArchieML({
+        documentId: id,
+        auth,
+    })) as GdocParsed
+
+    if (!results.title) return { success: false, error: "No title found" }
+
+    await db.execute(`INSERT INTO posts_gdocs (id, slug) VALUES (?,?)`, [
+        id,
+        slugify(results.title),
+    ])
 
     // todo: handle error
-    return { success: true, title: results.title }
+    return { success: true, gdoc: { id, title: results.title } }
 })
 
 export { apiRouter }

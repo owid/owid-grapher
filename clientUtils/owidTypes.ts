@@ -377,3 +377,12 @@ export interface GridParameters {
     rows: number
     columns: number
 }
+
+export interface Gdoc {
+    id: number
+    slug: string
+}
+export interface GdocParsed {
+    id: number
+    title: string
+}
