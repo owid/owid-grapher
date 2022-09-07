@@ -8,6 +8,7 @@ import { Color, Time } from "../../coreTable/CoreTableConstants.js"
 import { ChartTypeName, SeriesName } from "../core/GrapherConstants.js"
 import { ChartSeries } from "../chart/ChartInterface.js"
 import { ColumnSlug } from "../../clientUtils/owidTypes.js"
+import { Position } from "geojson"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
@@ -26,6 +27,7 @@ export interface ChoroplethSeries extends ChartSeries {
     time: number
     isSelected?: boolean
     highlightFillColor: Color
+    shortValue?: number | string
 }
 
 export interface ChoroplethMapManager {
@@ -55,4 +57,16 @@ export interface MapChartManager extends ChartManager {
     type?: ChartTypeName // Used to determine the "Click to select" text in MapTooltip
     mapConfig?: MapConfig
     endTime?: Time
+}
+
+export interface internalLabel {
+    id: string
+    position: PointVector
+    value?: any
+    size: number
+    type: string
+    pole: Position
+    markerStart?: Position
+    markerEnd?: Position
+    anchor?: boolean
 }
