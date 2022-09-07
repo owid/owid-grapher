@@ -2,7 +2,6 @@
 
 import { Grapher } from "../core/Grapher.js"
 import { computed } from "mobx"
-import { excludeUndefined, findIndex, sortBy } from "../../clientUtils/Util.js"
 import { ChartDimension } from "./ChartDimension.js"
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
@@ -41,20 +40,5 @@ export class DimensionSlot {
         return this.grapher.dimensions.filter(
             (d) => d.property === this.property
         )
-    }
-
-    @computed get dimensionsOrderedAsInPersistedSelection(): ChartDimension[] {
-        const legacyConfig = this.grapher.legacyConfigAsAuthored
-        const variableIDsInSelectionOrder = excludeUndefined(
-            legacyConfig.selectedData?.map(
-                (item) => legacyConfig.dimensions?.[item.index]?.variableId
-            ) ?? []
-        )
-        return sortBy(this.grapher.filledDimensions || [], (dim) =>
-            findIndex(
-                variableIDsInSelectionOrder,
-                (variableId) => dim.variableId === variableId
-            )
-        ).filter((dim) => dim.property === this.property)
     }
 }

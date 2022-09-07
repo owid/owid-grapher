@@ -16,7 +16,7 @@
         //   "target": "es2020",
 
         "lib": ["dom", "dom.iterable", "es2020"],
-        "target": "es6",
+        "target": "es2019",
 
         "alwaysStrict": true,
         "noImplicitReturns": true,

@@ -11,7 +11,7 @@
     > .block-editor-inner-blocks
     > .block-editor-block-list__layout {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     grid-gap: 1rem;
 }
 
@@ -22,5 +22,28 @@
 div[data-type="owid/prominent-link"] p,
 div[data-type="owid/prominent-link"]
     .block-editor-default-block-appender__content {
+    margin: 0;
+}
+
+/* research-and-writing styles */
+.wp-block-owid-research-and-writing .research-and-writing__top {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: 4px;
+}
+
+.wp-block-owid-research-and-writing
+    .research-and-writing__top
+    > div:first-child {
+    grid-column: 1 / 6;
+}
+
+.wp-block-owid-research-and-writing
+    .research-and-writing__top
+    .research-and-writing__top-right {
+    grid-column: 6 / 13;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 24px;
     margin: 0;
 }

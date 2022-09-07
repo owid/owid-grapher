@@ -471,10 +471,7 @@ export class MarimekkoChart
     }
 
     @computed protected get yColumnSlugs(): string[] {
-        return (
-            this.manager.yColumnSlugsInSelectionOrder ??
-            autoDetectYColumnSlugs(this.manager)
-        )
+        return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
     }
 
     @computed protected get xColumnSlug(): string | undefined {

@@ -839,10 +839,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed protected get yColumnSlugs(): string[] {
-        return (
-            this.manager.yColumnSlugsInSelectionOrder ??
-            autoDetectYColumnSlugs(this.manager)
-        )
+        return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
     }
 
     @computed protected get yColumns(): CoreColumn[] {

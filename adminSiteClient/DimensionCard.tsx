@@ -84,7 +84,7 @@ export class DimensionCard extends React.Component<{
         const { grapher } = this.props.editor
 
         grapher.updateAuthoredVersion({
-            dimensions: grapher.filledDimensions.map((dim) => dim.toObject()),
+            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
 
         grapher.seriesColorMap?.clear()

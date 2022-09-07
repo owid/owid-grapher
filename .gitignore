@@ -7,7 +7,7 @@ db.sqlite3
 yarn-error.log
 .vscode/tags
 .awcache
-data
+/data
 itsJustJavascript/
 .netlify
 *.swp

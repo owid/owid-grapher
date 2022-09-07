@@ -2,11 +2,11 @@
     overflow-y: hidden;
     position: relative;
 
-    & p:nth-child(2) {
+    & > *:nth-child(2) {
         max-height: 32px;
     }
 
-    & p:nth-child(n + 3) {
+    & > *:nth-child(n + 3) {
         display: none;
     }
 
@@ -23,11 +23,11 @@
 }
 
 .expandable-paragraph--is-expanded {
-    & p:nth-child(2) {
+    & > *:nth-child(2) {
         max-height: unset;
     }
 
-    & p:nth-child(n + 3) {
+    & > *:nth-child(n + 3) {
         display: block;
     }
 

@@ -116,10 +116,7 @@ export class AbstractStackedChart
     }
 
     @computed protected get yColumnSlugs(): string[] {
-        return (
-            this.manager.yColumnSlugsInSelectionOrder ??
-            autoDetectYColumnSlugs(this.manager)
-        )
+        return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
     }
 
     private animSelection?: d3.Selection<

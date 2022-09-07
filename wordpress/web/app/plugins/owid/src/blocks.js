@@ -14,6 +14,7 @@ import { registerExpandableParagraph } from "./ExpandableParagraph/ExpandablePar
 import { registerStickyNav } from "./StickyNav/StickyNav.js"
 import { registerCodeSnippet } from "./CodeSnippet/CodeSnippet.js"
 import { registerFrontMatter } from "./FrontMatter/FrontMatter.js"
+import { registerResearchAndWriting } from "./ResearchAndWriting/ResearchAndWriting.js"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
 const { addFilter } = wp.hooks
@@ -34,6 +35,7 @@ registerExpandableParagraph()
 registerStickyNav()
 registerCodeSnippet()
 registerFrontMatter()
+registerResearchAndWriting()
 
 registerBlockStyle("core/columns", {
     name: "sticky-right",

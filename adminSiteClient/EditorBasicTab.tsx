@@ -1,12 +1,10 @@
 import React from "react"
-import { observable, action, reaction, IReactionDisposer, computed } from "mobx"
+import { observable, action, reaction, IReactionDisposer, when } from "mobx"
 import { observer } from "mobx-react"
 import {
-    clone,
-    findIndex,
+    moveArrayItemToIndex,
     sample,
     sampleSize,
-    sortBy,
     startCase,
 } from "../clientUtils/Util.js"
 import {
@@ -38,7 +36,7 @@ class DimensionSlotView extends React.Component<{
     slot: DimensionSlot
     editor: ChartEditor
 }> {
-    dispose!: IReactionDisposer
+    disposers: IReactionDisposer[] = []
 
     @observable.ref isSelectingVariables: boolean = false
 
@@ -69,7 +67,6 @@ class DimensionSlotView extends React.Component<{
         })
 
         this.isSelectingVariables = false
-        this.updateDefaults()
     }
 
     @action.bound private onRemoveDimension(variableId: OwidVariableId) {
@@ -87,8 +84,6 @@ class DimensionSlotView extends React.Component<{
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
         grapher.rebuildInputOwidTable()
-
-        this.updateDefaults()
     }
 
     private updateDefaults() {
@@ -96,51 +91,72 @@ class DimensionSlotView extends React.Component<{
         const { selection } = grapher
         const { availableEntityNames, availableEntityNameSet } = selection
 
-        if (this.dispose) this.dispose()
-        this.dispose = reaction(
-            () => grapher.type && grapher.yColumnsFromDimensions,
-            () => {
-                if (
-                    grapher.isScatter ||
-                    grapher.isSlopeChart ||
-                    grapher.isMarimekko
-                ) {
-                    selection.clearSelection()
-                } else if (grapher.yColumnsFromDimensions.length > 1) {
-                    const entity = availableEntityNameSet.has(WorldEntityName)
-                        ? WorldEntityName
-                        : sample(availableEntityNames)
-                    selection.selectEntity(entity!)
-                    grapher.addCountryMode = EntitySelectionMode.SingleEntity
-                } else {
-                    selection.setSelectedEntities(
-                        availableEntityNames.length > 10
-                            ? sampleSize(availableEntityNames, 3)
-                            : availableEntityNames
+        if (grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko) {
+            selection.clearSelection()
+        } else if (grapher.yColumnsFromDimensions.length > 1) {
+            const entity = availableEntityNameSet.has(WorldEntityName)
+                ? WorldEntityName
+                : sample(availableEntityNames)
+            if (entity) selection.setSelectedEntities([entity])
+            grapher.addCountryMode = EntitySelectionMode.SingleEntity
+        } else {
+            selection.setSelectedEntities(
+                availableEntityNames.length > 10
+                    ? sampleSize(availableEntityNames, 3)
+                    : availableEntityNames
+            )
+            grapher.addCountryMode = EntitySelectionMode.MultipleEntities
+        }
+    }
+
+    componentDidMount() {
+        this.disposers.push(
+            reaction(
+                () => this.props.slot.dimensions,
+                () => {
+                    if (
+                        this.props.slot.dimensions.length !==
+                        this.dimensionsInDisplayOrder.length
                     )
-                    grapher.addCountryMode =
-                        EntitySelectionMode.MultipleEntities
-                }
+                        this.dimensionsInDisplayOrder = [
+                            ...this.props.slot.dimensions,
+                        ]
+                },
+                { fireImmediately: true }
+            )
+        )
+
+        // We want to add the reaction only after the grapher is loaded, so we don't update the initial chart (as configured) by accident.
+        when(
+            () => this.grapher.isReady,
+            () => {
+                this.disposers.push(
+                    reaction(
+                        () =>
+                            this.grapher.type &&
+                            this.grapher.yColumnsFromDimensions.length,
+                        () => this.updateDefaults()
+                    )
+                )
             }
         )
     }
 
     componentWillUnmount() {
-        if (this.dispose) this.dispose()
+        this.disposers.forEach((dispose) => dispose())
     }
 
     @observable private draggingColumnSlug?: ColumnSlug
-    @observable private dimensionsOrderedAsDisplayed: ChartDimension[] = []
+    @observable private dimensionsInDisplayOrder: ChartDimension[] = []
 
     @action.bound private updateLegacySelectionAndRebuildTable() {
         const { grapher } = this.props.editor
 
         grapher.setDimensionsForProperty(
             this.props.slot.property,
-            this.dimensionsInSelectionOrder
+            this.dimensionsInDisplayOrder
         )
         this.grapher.updateAuthoredVersion({
-            selectedData: this.legacySelectionOrderedAsDisplayed,
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
         this.grapher.rebuildInputOwidTable()
@@ -153,32 +169,21 @@ class DimensionSlotView extends React.Component<{
         this.updateLegacySelectionAndRebuildTable()
     }
 
+    @action.bound onBlur() {
+        this.updateLegacySelectionAndRebuildTable()
+    }
+
     @action.bound private onStartDrag(targetSlug: ColumnSlug) {
         this.draggingColumnSlug = targetSlug
 
         window.addEventListener("mouseup", this.onMouseUp)
     }
 
-    private get legacySelectionOrderedAsDisplayed() {
-        return sortBy(
-            this.grapher.legacyConfigAsAuthored.selectedData || [],
-            (selectedDatum) =>
-                findIndex(
-                    this.dimensionsOrderedAsDisplayed,
-                    (dim) =>
-                        dim.columnSlug ===
-                        this.grapher.dimensions[selectedDatum.index]?.columnSlug
-                )
-        )
-    }
-
     @action.bound private onMouseEnter(targetSlug: ColumnSlug) {
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
-        const dimensionsClone = clone(
-            this.props.slot.dimensionsOrderedAsInPersistedSelection
-        )
+        const dimensionsClone = [...this.props.slot.dimensions]
 
         const dragIndex = dimensionsClone.findIndex(
             (dim) => dim.slug === this.draggingColumnSlug
@@ -187,20 +192,11 @@ class DimensionSlotView extends React.Component<{
             (dim) => dim.slug === targetSlug
         )
 
-        dimensionsClone.splice(dragIndex, 1)
-        dimensionsClone.splice(
-            targetIndex,
-            0,
-            this.props.slot.dimensionsOrderedAsInPersistedSelection[dragIndex]
+        this.dimensionsInDisplayOrder = moveArrayItemToIndex(
+            dimensionsClone,
+            dragIndex,
+            targetIndex
         )
-
-        this.dimensionsOrderedAsDisplayed = dimensionsClone
-    }
-
-    @computed private get dimensionsInSelectionOrder() {
-        return this.dimensionsOrderedAsDisplayed.length
-            ? this.dimensionsOrderedAsDisplayed
-            : this.props.slot.dimensionsOrderedAsInPersistedSelection
     }
 
     render() {
@@ -209,10 +205,10 @@ class DimensionSlotView extends React.Component<{
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
 
         return (
-            <div>
+            <div onBlur={this.onBlur}>
                 <h5>{slot.name}</h5>
                 <EditableList>
-                    {this.dimensionsInSelectionOrder.map((dim) => {
+                    {this.dimensionsInDisplayOrder.map((dim) => {
                         return (
                             dim.property === slot.property && (
                                 <DimensionCard
