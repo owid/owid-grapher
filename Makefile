@@ -105,14 +105,14 @@ refresh:
 	./devTools/docker/download-grapher-mysql.sh
 
 	@echo '==> Updating grapher database'
-	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
+	docker compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-grapher-data.sh
 
 refresh.wp:
 	@echo '==> Downloading wordpress data'
 	./devTools/docker/download-wordpress-mysql.sh
 
 	@echo '==> Updating wordpress data'
-	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-wordpress-data.sh
+	docker compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-wordpress-data.sh
 
 refresh.full: refresh refresh.wp
 

@@ -4,13 +4,11 @@ set -o pipefail
 set -o nounset
 
 : "${WORDPRESS_DB_NAME:?Need to set WORDPRESS_DB_NAME non-empty}"
-: "${WORDPRESS_DB_USER:?Need to set WORDPRESS_DB_USER non-empty}"
-: "${WORDPRESS_DB_PASS:?Need to set WORDPRESS_DB_PASS non-empty}"
-: "${WORDPRESS_DB_PORT:?Need to set WORDPRESS_DB_PORT non-empty}"
-: "${WORDPRESS_DB_HOST:?Need to set WORDPRESS_DB_HOST non-empty}"
+: "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"
+: "${DB_ROOT_HOST:?Need to set DB_ROOT_HOST non-empty}"
 
 _mysql() {
-    mysql --default-character-set=utf8mb4 -u$WORDPRESS_DB_USER -p$WORDPRESS_DB_PASS -h $WORDPRESS_DB_HOST --port="${WORDPRESS_DB_PORT}" -e "$1" $WORDPRESS_DB_NAME
+    mysql --default-character-set=utf8mb4 -uroot -p$DB_ROOT_PASS -h $DB_ROOT_HOST --port=3306 -e "$1" $WORDPRESS_DB_NAME
 }
 
 createWordpressAdminUser() {

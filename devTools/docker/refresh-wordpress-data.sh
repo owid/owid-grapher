@@ -5,13 +5,12 @@ set -o nounset
 
 : "${WORDPRESS_DB_NAME:?Need to set WORDPRESS_DB_NAME non-empty}"
 : "${WORDPRESS_DB_USER:?Need to set WORDPRESS_DB_USER non-empty}"
-: "${WORDPRESS_DB_PASS:?Need to set WORDPRESS_DB_PASS non-empty}"
-: "${WORDPRESS_DB_HOST:?Need to set WORDPRESS_DB_HOST non-empty}"
-: "${WORDPRESS_DB_PORT:?Need to set WORDPRESS_DB_HOST non-empty}"
+: "${DB_ROOT_PASS:?Need to set DB_ROOT_PASS non-empty}"
+: "${DB_ROOT_HOST:?Need to set DB_ROOT_HOST non-empty}"
 : "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
 
 _mysql() {
-    mysql --default-character-set=utf8mb4 -h"${WORDPRESS_DB_HOST}" -u"${WORDPRESS_DB_USER}" -p"${WORDPRESS_DB_PASS}" --port "${WORDPRESS_DB_PORT}" "$@"
+    mysql --default-character-set=utf8mb4 -h"${DB_ROOT_HOST}" -uroot -p"${DB_ROOT_PASS}" --port 3306 "$@"
 }
 
 fillWordpressDb() {
