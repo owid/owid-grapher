@@ -4,6 +4,7 @@ import {
     Column,
     BaseEntity,
     ManyToOne,
+    OneToMany,
     Unique,
     Relation,
 } from "typeorm"
@@ -11,6 +12,7 @@ import { Writable } from "stream"
 
 import { User } from "./User.js"
 import { Source } from "./Source.js"
+import { Table } from "./Table.js"
 
 import * as db from "../db.js"
 import { arrToCsvRow, slugify } from "../../clientUtils/Util.js"
@@ -35,6 +37,9 @@ export class Dataset extends BaseEntity {
 
     @ManyToOne(() => User, (user) => user.createdDatasets)
     createdByUser!: Relation<User>
+
+    @OneToMany(() => Table, (table) => table.dataset)
+    tables!: Relation<Table[]>
 
     // Export dataset variables to CSV (not including metadata)
     static async writeCSV(datasetId: number, stream: Writable): Promise<void> {

@@ -36,6 +36,7 @@ export interface VariableRow {
     createdAt: Date
     updatedAt: Date
     datasetId: number
+    tableId: number
     sourceId: number
     display: OwidVariableDisplayConfigInterface
     coverage?: string
