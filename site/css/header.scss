@@ -143,8 +143,9 @@
 
     a {
         display: none;
-        @media (min-width: 68rem) {
+        @media (min-width: $lg) {
             display: initial;
+            margin: 1px;
         }
         color: white;
         opacity: 0.8;
@@ -437,7 +438,7 @@
 
 /* Mobile navigation */
 
-@include sm-only {
+@include md-only {
     .site-header .wrapper {
         height: $mobile-header-wrapper-height;
         padding: 0;

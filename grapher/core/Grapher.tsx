@@ -1686,9 +1686,7 @@ export class Grapher
     }
 
     @computed private get bounds(): Bounds {
-        const result = this.props.bounds ?? DEFAULT_BOUNDS
-        console.log("result", result)
-        return result
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get isPortrait(): boolean {

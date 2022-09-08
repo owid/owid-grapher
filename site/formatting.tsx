@@ -73,10 +73,25 @@ export const splitContentIntoSectionsAndColumns = (
         const emptyColumns = `<div class="wp-block-columns is-style-${style}"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>`
         const cheerioEl = cheerio.load(emptyColumns)
         const $columns = cheerioEl("body").children().first()
+
+        let first = $columns.children().first()
+        let last = $columns.children().last()
+
+        // due to how CSS grid's implicit row height works, we need a div inside the sticky column that can move within it
+        const container = `<div class="wp-sticky-container"></div>`
+        if (style === WP_ColumnStyle.StickyLeft) {
+            first.append(container)
+            first = first.children().first()
+        }
+        if (style === WP_ColumnStyle.StickyRight) {
+            last.append(container)
+            last = last.children().first()
+        }
+
         return {
             wrapper: $columns,
-            first: $columns.children().first(),
-            last: $columns.children().last(),
+            first,
+            last,
         }
     }
 

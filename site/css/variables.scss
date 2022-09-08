@@ -49,6 +49,12 @@ $xxlg: 1536px;
     }
 }
 
+@mixin md-only {
+    @media (max-width: $md) {
+        @content;
+    }
+}
+
 @mixin md-up {
     @media (min-width: $md) {
         @content;
