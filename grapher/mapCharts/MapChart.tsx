@@ -1028,9 +1028,8 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                         const fill = series ? series.color : defaultFill
                         const textFill = isDarkColor(fill) ? "white" : "#444445"
                         return (
-                            <>
+                            <React.Fragment key={label.id}>
                                 <text
-                                    key={label.id}
                                     x={label.position.x}
                                     y={label.position.y}
                                     fontSize={label.size}
@@ -1063,19 +1062,20 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                                     0.5 / viewportScale
                                                 }
                                             />
-                                            {label.anchor===true &&
-                                            <circle
-                                                cx={label.pole[0]}
-                                                cy={label.pole[1]}
-                                                r={1.25 / viewportScale}
-                                                fill="#303030"
-                                                style={{
-                                                    pointerEvents: "none",
-                                                }}
-                                            />}
+                                            {label.anchor === true && (
+                                                <circle
+                                                    cx={label.pole[0]}
+                                                    cy={label.pole[1]}
+                                                    r={1.25 / viewportScale}
+                                                    fill="#303030"
+                                                    style={{
+                                                        pointerEvents: "none",
+                                                    }}
+                                                />
+                                            )}
                                         </>
                                     )}
-                            </>
+                            </React.Fragment>
                         )
                     })}
                 </g>
