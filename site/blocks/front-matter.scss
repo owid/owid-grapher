@@ -1,8 +1,6 @@
 .front-matter {
     margin-top: 48px;
-    display: grid !important;
-    grid-template-columns: repeat(12, 1fr);
-    column-gap: 24px;
+    @include grid-12;
 
     .wp-block-column:nth-child(1) {
         grid-column: 1 / 13;

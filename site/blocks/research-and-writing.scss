@@ -1,10 +1,9 @@
 .wp-block-research-and-writing {
+    @include grid-12;
     background-color: #fff;
     // faking a page-wide white background until sections are reworked
     box-shadow: 50vw 0px 0 0 white, -50vw 0px 0 0 white;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    padding: 0 16px 48px 16px;
+    padding-bottom: 48px;
 
     // "Research & Writing" heading
     > h2:first-child {
@@ -90,9 +89,7 @@
 
 .research-and-writing__top {
     grid-column: 1 / 13;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    column-gap: 24px;
+    @include grid-12;
 
     .wp-block-owid-card {
         .title {
@@ -109,10 +106,8 @@
 
     .research-and-writing__top-right {
         grid-column: 1 / 13;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        @include grid-2;
         grid-template-rows: auto 1fr;
-        column-gap: 24px;
 
         > .wp-block-owid-card,
         > .wp-block-group {
@@ -184,10 +179,8 @@
     }
 }
 
-@media (min-width: 960px) {
+@include md-up {
     .wp-block-research-and-writing {
-        padding: 0 80px 48px 80px;
-
         .research-and-writing__sub-category {
             padding-bottom: 0;
         }
@@ -225,7 +218,7 @@
     }
 }
 
-@media (min-width: 1280px) {
+@include lg-up {
     .research-and-writing__top {
         > .wp-block-owid-card {
             grid-column: 1/7;
