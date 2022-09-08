@@ -3,6 +3,7 @@ import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import {
     FormattedPost,
+    FormattingOptions,
     TocHeading,
     WP_BlockClass,
     WP_ColumnStyle,
@@ -24,6 +25,7 @@ import { SectionHeading } from "./SectionHeading.js"
 
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 export const SUMMARY_CLASSNAME = "wp-block-owid-summary"
+export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
 
 export const formatUrls = (html: string) =>
     html
@@ -156,6 +158,7 @@ export const splitContentIntoSectionsAndColumns = (
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
                 $el.hasClass("wp-block-owid-grid") ||
+                $el.hasClass(RESEARCH_AND_WRITING_CLASSNAME) ||
                 $el.hasClass(WP_BlockClass.FullContentWidth) ||
                 // restrict lookup to first-level children to prevent wrongly
                 // matching (unlikely) full-width additional information blocks
@@ -387,7 +390,10 @@ const addTocToSections = (
         .toArray()
         .map((el) => cheerioEl(el))
         .filter(($el) => {
-            return $el.closest(`.${SUMMARY_CLASSNAME}`).length === 0
+            return (
+                $el.closest(`.${SUMMARY_CLASSNAME}`).length === 0 &&
+                $el.closest(`.${RESEARCH_AND_WRITING_CLASSNAME}`).length === 0
+            )
         })
         .forEach(($el) => {
             $el.replaceWith(
@@ -436,7 +442,13 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
     )
 }
 
-export const addContentFeatures = (post: FormattedPost): string => {
+export const addContentFeatures = ({
+    post,
+    formattingOptions,
+}: {
+    post: FormattedPost
+    formattingOptions: FormattingOptions
+}): string => {
     const cheerioEl = cheerio.load(post.html)
 
     if (post.type === WP_PostType.Post) addPostHeader(cheerioEl, post)

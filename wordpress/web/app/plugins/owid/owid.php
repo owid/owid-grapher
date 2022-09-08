@@ -32,6 +32,7 @@ include 'src/ExpandableParagraph/expandable-paragraph.php';
 include 'src/StickyNav/sticky-nav.php';
 include 'src/CodeSnippet/code-snippet.php';
 include 'src/FrontMatter/front-matter.php';
+include 'src/ResearchAndWriting/research-and-writing.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 const GLOSSARY_META_FIELD = "owid_glossary_meta_field";
@@ -201,6 +202,11 @@ function register()
 
     register_block_type(__DIR__ . '/src/FrontMatter', [
         'render_callback' => __NAMESPACE__ . '\blocks\front_matter\render',
+    ]);
+
+    register_block_type(__DIR__ . '/src/ResearchAndWriting', [
+        'render_callback' =>
+            __NAMESPACE__ . '\blocks\research_and_writing\render',
     ]);
 
     register_block_type(__DIR__ . '/src/CodeSnippet', [

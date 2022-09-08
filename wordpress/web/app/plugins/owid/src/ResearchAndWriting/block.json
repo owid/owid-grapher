@@ -1,0 +1,8 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "owid/research-and-writing",
+    "title": "Research and writing",
+    "icon": "chart-line",
+    "category": "layout"
+}
