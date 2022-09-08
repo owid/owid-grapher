@@ -35,7 +35,7 @@ export const GdocsIndexPage = () => {
         // todo: handle error
         if (!json.success) return
 
-        setDocumentTitle(json.gdoc.title)
+        setDocumentTitle(json.gdoc.content.title)
         setResponseSuccess(true)
     }
 
