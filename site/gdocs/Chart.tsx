@@ -1,7 +1,7 @@
 import React from "react"
 import { useState, useRef } from "react"
-import { OwidArticleBlock } from "./gdoc-types.js"
 import { useEmbedChart } from "../hooks.js"
+import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
 
 export default function Chart({ d }: { d: OwidArticleBlock }) {
     let content

@@ -1,7 +1,5 @@
 import React from "react"
 
-import { OwidArticleBlock } from "./gdoc-types.js"
-
 import ChartStory from "./ChartStory"
 import Scroller from "./Scroller"
 import Chart from "./Chart"
@@ -10,6 +8,7 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
+import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
 
 export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {

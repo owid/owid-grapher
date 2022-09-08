@@ -1,12 +1,11 @@
 import React from "react"
 
-import { OwidArticleType } from "./gdoc-types.js"
-
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
 import { OwidArticle } from "./OwidArticle.js"
+import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
 
 declare global {
     interface Window {

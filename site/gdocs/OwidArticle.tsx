@@ -2,8 +2,10 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks"
 import Footnotes from "./Footnotes"
-
-import { OwidArticleType, OwidArticleBlock } from "./gdoc-types.js"
+import {
+    OwidArticleBlock,
+    OwidArticleType,
+} from "../../clientUtils/owidTypes.js"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content } = props
