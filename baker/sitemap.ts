@@ -9,6 +9,8 @@ import { countries } from "../clientUtils/countries.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { postsTable } from "../db/model/Post.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 
 interface SitemapUrl {
     loc: string
@@ -27,7 +29,7 @@ const xmlify = (url: SitemapUrl) => {
     </url>`
 }
 
-export const makeSitemap = async () => {
+export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
     const posts = (await db
         .knexTable(postsTable)
         .where({ status: "publish" })
@@ -39,6 +41,8 @@ export const makeSitemap = async () => {
         updatedAt: Date
         slug: string
     }[]
+
+    const explorers = await explorerAdminServer.getAllPublishedExplorers()
 
     let urls = countries.map((c) => ({
         loc: urljoin(BAKED_BASE_URL, "country", c.slug),
@@ -63,7 +67,15 @@ export const makeSitemap = async () => {
                 loc: urljoin(BAKED_GRAPHER_URL, c.slug),
                 lastmod: dayjs(c.updatedAt).format("YYYY-MM-DD"),
             }))
-        ) as SitemapUrl[]
+        )
+        .concat(
+            explorers.map((e) => ({
+                loc: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${e.slug}`,
+                lastmod: e.lastCommit?.date
+                    ? dayjs(e.lastCommit.date).format("YYYY-MM-DD")
+                    : undefined,
+            }))
+        )
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

@@ -218,12 +218,13 @@ export class SiteBaker {
             `${this.bakedSiteDir}/headerMenu.json`,
             await renderMenuJson()
         )
-        await this.stageWrite(
-            `${this.bakedSiteDir}/sitemap.xml`,
-            await makeSitemap()
-        )
 
         const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
+
+        await this.stageWrite(
+            `${this.bakedSiteDir}/sitemap.xml`,
+            await makeSitemap(explorerAdminServer)
+        )
 
         await bakeAllExplorerRedirects(this.bakedSiteDir, explorerAdminServer)
 

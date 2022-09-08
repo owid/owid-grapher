@@ -53,7 +53,7 @@ mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
 
 mockSiteRouter.get("/sitemap.xml", async (req, res) =>
-    res.send(await makeSitemap())
+    res.send(await makeSitemap(explorerAdminServer))
 )
 
 mockSiteRouter.get("/atom.xml", async (req, res) =>
