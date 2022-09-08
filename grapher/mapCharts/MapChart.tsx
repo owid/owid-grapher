@@ -33,7 +33,7 @@ import {
     ChoroplethMapManager,
     RenderFeature,
     ChoroplethSeries,
-    internalLabel,
+    InternalLabel,
 } from "./MapChartConstants.js"
 import { MapConfig } from "./MapConfig.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
@@ -788,7 +788,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         )
     }
 
-    @computed private get mapAnnotations(): internalLabel[] {
+    @computed private get mapAnnotations(): InternalLabel[] {
         const { projection } = this.manager
         return generateAnnotations(
             this.featuresWithData,

@@ -2,7 +2,7 @@ import { PointVector } from "../../clientUtils/PointVector.js"
 import pixelWidth from "string-pixel-width"
 import {
     ChoroplethSeries,
-    internalLabel,
+    InternalLabel,
     RenderFeature,
 } from "./MapChartConstants.js"
 import { MapProjectionName } from "./MapProjections.js"
@@ -11,7 +11,7 @@ import polylabel from "polylabel"
 import { Position } from "geojson"
 import { Bounds } from "../../clientUtils/Bounds.js"
 
-enum externalPositions {
+enum ExternalPositions {
     right = "right",
     left = "left",
     topRight = "topRight",
@@ -22,7 +22,7 @@ enum externalPositions {
     top = "top",
 }
 
-interface Itemp {
+interface ExternalArea {
     id: string
     region: Position[]
     area: number
@@ -30,17 +30,17 @@ interface Itemp {
     regionPoints: Position[]
 }
 
-interface Iinternal {
+interface InternalPosition {
     position: number[]
     points: Position[]
     id: string
 }
 
-interface Icoast {
+interface CoastPositions {
     positions: { [position: string]: Position }
     id: string
 }
-interface IcalculatedPosition {
+interface CalculatedPosition {
     id: string
     boundaryPosition: Position
     labelPosition: string
@@ -51,9 +51,17 @@ interface IcalculatedPosition {
     markerEnd?: Position
     anchor?: boolean
 }
-interface IcombinedRegions {
+interface CombinedRegions {
     id: string
     points: Position[]
+}
+
+interface PositionsCacheForProjection {
+    coastPositions: CoastPositions[]
+    calculatedPositions: CalculatedPosition[]
+    combinedRegions: CombinedRegions[]
+    polylabelCache: InternalPosition[]
+    allPoints: Record<string, number>
 }
 
 let globalScale: number
@@ -67,7 +75,7 @@ export function generateAnnotations(
     bounds: Bounds,
     projection: MapProjectionName,
     annotationsCache: Map<string, any>
-): internalLabel[] {
+): InternalLabel[] {
     const combinedData = [...featureData, ...featuresWithNoData]
     if (!annotationsCache.has(projection)) {
         annotationsCache.set(projection, new Map<string, any>())
@@ -92,13 +100,13 @@ export function generateAnnotations(
         prevViewportScale === viewportScale
     )
     annotationsCache.set("noChanges",true) */
-    const combinedRegionsCache: IcombinedRegions[] = annotationsCache
+    const combinedRegionsCache: CombinedRegions[] = annotationsCache
         .get(projection)
         .get("combinedRegions")
-    const coastPositionsCache: Icoast[] = annotationsCache
+    const coastPositionsCache: CoastPositions[] = annotationsCache
         .get(projection)
         .get("coastPositions")
-    const calculatedPositionsCache: IcalculatedPosition[] = annotationsCache
+    const calculatedPositionsCache: CalculatedPosition[] = annotationsCache
         .get(projection)
         .get("calculatedPositions")
     const topLeftBoundPoint = [
@@ -118,7 +126,7 @@ export function generateAnnotations(
         projection,
         annotationsCache
     )
-    const finale: internalLabel[] = confused.labels
+    const finale: InternalLabel[] = confused.labels
     confused.externalAreas.sort((a, b) => b.area - a.area)
     for (const country of confused.externalAreas) {
         const fontSize = 11 / viewportScale
@@ -144,7 +152,7 @@ export function generateAnnotations(
                 )
             const coastPositions = coastPositionsCache.find(
                 (el) => el.id === country.id
-            ) as Icoast
+            ) as CoastPositions
             for (const pos in coastPositions.positions) {
                 const ch = externalCheck(
                     coastPositions.positions[pos],
@@ -250,17 +258,17 @@ function internalGenerator(
     projection: MapProjectionName,
     annotationsCache: Map<string, any>
 ): {
-    labels: internalLabel[]
-    externalAreas: Itemp[]
+    labels: InternalLabel[]
+    externalAreas: ExternalArea[]
 } {
     const minSize = 8
     const maxSize = 14
-    const outerinfo: Itemp[] = []
-    const combinedRegionsCache: IcombinedRegions[] = annotationsCache
+    const outerinfo: ExternalArea[] = []
+    const combinedRegionsCache: CombinedRegions[] = annotationsCache
         .get(projection)
         .get("combinedRegions")
-    const retVal: internalLabel[] = []
-    const polylabelCache: Iinternal[] = annotationsCache
+    const retVal: InternalLabel[] = []
+    const polylabelCache: InternalPosition[] = annotationsCache
         .get(projection)
         .get("polylabels")
     for (const country of featureData) {
@@ -276,7 +284,7 @@ function internalGenerator(
         }
         const labelPos = polylabelCache.find(
             (el) => el.id === country.id
-        ) as Iinternal
+        ) as InternalPosition
         const p1 = labelPos.position[0]
         const p2 = labelPos.position[1]
         const centerpoint = new PointVector(p1, p2)
@@ -401,7 +409,7 @@ function combinedRegions(
     projection: MapProjectionName,
     annotationsCache: Map<string, any>
 ): void {
-    const allPoints: { id: string; points: Position[] }[] = []
+    const allPoints: CombinedRegions[] = []
     data.map(function (country) {
         const countryPaths = country.path.slice(1, -1).split("ZM")
         for (const region of countryPaths) {
@@ -424,11 +432,11 @@ function externalCheck(
     type: string,
     textWidth: number,
     fontSize: number,
-    country: Itemp,
+    country: ExternalArea,
     combinedData: RenderFeature[],
     viewportScale: number,
-    calculatedPositionsCache: IcalculatedPosition[]
-): IcalculatedPosition {
+    calculatedPositionsCache: CalculatedPosition[]
+): CalculatedPosition {
     const calculatedPosition = calculatedPositionsCache.find(
         (el) =>
             el.id === country.id &&
@@ -441,19 +449,19 @@ function externalCheck(
     const k1 = [point[0], point[1]]
     const kk = true
     if (kk) {
-        if (type == externalPositions.top) {
+        if (type == ExternalPositions.top) {
             k1[0] = k1[0] - textWidth / 2
-        } else if (type == externalPositions.bottom) {
+        } else if (type == ExternalPositions.bottom) {
             k1[0] = k1[0] - textWidth / 2
             k1[1] = k1[1] + fontSize
-        } else if (type == externalPositions.left) {
+        } else if (type == ExternalPositions.left) {
             k1[0] = k1[0] - textWidth
             k1[1] = k1[1] + fontSize / 2
-        } else if (type == externalPositions.right) {
+        } else if (type == ExternalPositions.right) {
             k1[1] = k1[1] + fontSize / 2
         } else if (
-            type == externalPositions.bottomLeft ||
-            type == externalPositions.topLeft
+            type == ExternalPositions.bottomLeft ||
+            type == ExternalPositions.topLeft
         ) {
             k1[0] = k1[0] - textWidth
             k1[1] = k1[1] + fontSize / 2
@@ -467,7 +475,7 @@ function externalCheck(
             let more = true
             externalIncrement(type, k1)
             const markerEnd = markerEndPosition(
-                type as externalPositions,
+                type as ExternalPositions,
                 k1,
                 textWidth,
                 fontSize
@@ -552,7 +560,7 @@ function externalCheck(
         }
         if (fin == true) {
             const markerEnd = markerEndPosition(
-                type as externalPositions,
+                type as ExternalPositions,
                 k1,
                 textWidth,
                 fontSize
@@ -598,7 +606,7 @@ function getLabelInfo(
     annotationsCache: Map<string, any>
 ): void {
     const allPoints: Record<string, number> = {}
-    const polylabelCache: Iinternal[] = []
+    const polylabelCache: InternalPosition[] = []
     for (const country of featureData) {
         let pos, ratio
         const geometry = country.geo.geometry
@@ -725,27 +733,27 @@ function lineIntersection(
 }
 
 function markerEndPosition(
-    type: externalPositions,
+    type: ExternalPositions,
     point: Position,
     textWidth: number,
     fontSize: number
 ): Position {
     switch (type) {
-        case externalPositions.right:
+        case ExternalPositions.right:
             return [point[0], point[1] - fontSize / 2.5]
-        case externalPositions.left:
+        case ExternalPositions.left:
             return [point[0] + textWidth, point[1] - fontSize / 2.5]
-        case externalPositions.topRight:
+        case ExternalPositions.topRight:
             return point
-        case externalPositions.bottomRight:
+        case ExternalPositions.bottomRight:
             return [point[0], point[1] - fontSize / 2.5]
-        case externalPositions.topLeft:
+        case ExternalPositions.topLeft:
             return [point[0] + textWidth, point[1] - fontSize / 3.5]
-        case externalPositions.bottomLeft:
+        case ExternalPositions.bottomLeft:
             return [point[0] + textWidth, point[1] - fontSize / 2.5]
-        case externalPositions.bottom:
+        case ExternalPositions.bottom:
             return [point[0] + textWidth / 2, point[1] - fontSize]
-        case externalPositions.top:
+        case ExternalPositions.top:
             return [point[0] + textWidth / 2, point[1]]
         default:
             return point
@@ -755,23 +763,23 @@ function markerEndPosition(
 function externalIncrement(type: string, point: Position): Position {
     const inc1 = 1 / globalScale
     const inc2 = 0.707 / globalScale
-    if (type == externalPositions.right) point[0] = point[0] + inc1
-    else if (type == externalPositions.left) point[0] = point[0] - inc1
-    else if (type == externalPositions.topRight) {
+    if (type == ExternalPositions.right) point[0] = point[0] + inc1
+    else if (type == ExternalPositions.left) point[0] = point[0] - inc1
+    else if (type == ExternalPositions.topRight) {
         point[0] = point[0] + inc2
         point[1] = point[1] - inc2
-    } else if (type == externalPositions.bottomRight) {
+    } else if (type == ExternalPositions.bottomRight) {
         point[0] = point[0] + inc2
         point[1] = point[1] + inc2
-    } else if (type == externalPositions.topLeft) {
+    } else if (type == ExternalPositions.topLeft) {
         point[0] = point[0] - inc2
         point[1] = point[1] - inc2
-    } else if (type == externalPositions.bottomLeft) {
+    } else if (type == ExternalPositions.bottomLeft) {
         point[0] = point[0] - inc2
         point[1] = point[1] + inc2
-    } else if (type == externalPositions.bottom) {
+    } else if (type == ExternalPositions.bottom) {
         point[1] = point[1] + inc1
-    } else if (type == externalPositions.top) {
+    } else if (type == ExternalPositions.top) {
         point[1] = point[1] - inc1
     }
     return point
@@ -842,66 +850,66 @@ function getCoastPositions(
             (Math.atan((x[1] - point[1]) / (x[0] - point[0])) * 180) / Math.PI
         if (deg >= 0) {
             if (x[0] > point[0]) {
-                if (!(externalPositions.right in degChecks)) {
-                    degChecks[externalPositions.right] = deg
-                    ans[externalPositions.right] = x
+                if (!(ExternalPositions.right in degChecks)) {
+                    degChecks[ExternalPositions.right] = deg
+                    ans[ExternalPositions.right] = x
                 } else {
-                    if (degChecks[externalPositions.right] > deg) {
-                        degChecks[externalPositions.right] = deg
-                        ans[externalPositions.right] = x
+                    if (degChecks[ExternalPositions.right] > deg) {
+                        degChecks[ExternalPositions.right] = deg
+                        ans[ExternalPositions.right] = x
                     }
                 }
-                if (!(externalPositions.topRight in degChecks)) {
-                    degChecks[externalPositions.right] = deg
-                    ans[externalPositions.topRight] = x
+                if (!(ExternalPositions.topRight in degChecks)) {
+                    degChecks[ExternalPositions.right] = deg
+                    ans[ExternalPositions.topRight] = x
                 } else {
                     if (
-                        Math.abs(45 - degChecks[externalPositions.topRight]) >
+                        Math.abs(45 - degChecks[ExternalPositions.topRight]) >
                         Math.abs(deg - 45)
                     ) {
-                        degChecks[externalPositions.topRight] = deg
-                        ans[externalPositions.topRight] = x
+                        degChecks[ExternalPositions.topRight] = deg
+                        ans[ExternalPositions.topRight] = x
                     }
                 }
-                if (!(externalPositions.top in degChecks)) {
-                    degChecks[externalPositions.top] = deg
-                    ans[externalPositions.top] = x
+                if (!(ExternalPositions.top in degChecks)) {
+                    degChecks[ExternalPositions.top] = deg
+                    ans[ExternalPositions.top] = x
                 } else {
-                    if (degChecks[externalPositions.top] - deg < 0) {
-                        degChecks[externalPositions.top] = deg
-                        ans[externalPositions.top] = x
+                    if (degChecks[ExternalPositions.top] - deg < 0) {
+                        degChecks[ExternalPositions.top] = deg
+                        ans[ExternalPositions.top] = x
                     }
                 }
             } else {
-                if (!(externalPositions.left in degChecks)) {
-                    degChecks[externalPositions.left] = deg
-                    ans[externalPositions.left] = x
+                if (!(ExternalPositions.left in degChecks)) {
+                    degChecks[ExternalPositions.left] = deg
+                    ans[ExternalPositions.left] = x
                 } else {
-                    if (degChecks[externalPositions.left] > deg) {
-                        degChecks[externalPositions.left] = deg
-                        ans[externalPositions.left] = x
+                    if (degChecks[ExternalPositions.left] > deg) {
+                        degChecks[ExternalPositions.left] = deg
+                        ans[ExternalPositions.left] = x
                     }
                 }
-                if (!(externalPositions.bottomRight in degChecks)) {
-                    degChecks[externalPositions.bottomRight] = deg
-                    ans[externalPositions.bottomRight] = x
+                if (!(ExternalPositions.bottomRight in degChecks)) {
+                    degChecks[ExternalPositions.bottomRight] = deg
+                    ans[ExternalPositions.bottomRight] = x
                 } else {
                     if (
                         Math.abs(
-                            45 - degChecks[externalPositions.bottomRight]
+                            45 - degChecks[ExternalPositions.bottomRight]
                         ) > Math.abs(deg - 45)
                     ) {
-                        degChecks[externalPositions.bottomRight] = deg
-                        ans[externalPositions.bottomRight] = x
+                        degChecks[ExternalPositions.bottomRight] = deg
+                        ans[ExternalPositions.bottomRight] = x
                     }
                 }
-                if (!(externalPositions.bottom in degChecks)) {
-                    degChecks[externalPositions.bottom] = deg
-                    ans[externalPositions.bottom] = x
+                if (!(ExternalPositions.bottom in degChecks)) {
+                    degChecks[ExternalPositions.bottom] = deg
+                    ans[ExternalPositions.bottom] = x
                 } else {
-                    if (degChecks[externalPositions.bottom] - deg < 0) {
-                        degChecks[externalPositions.bottom] = deg
-                        ans[externalPositions.bottom] = x
+                    if (degChecks[ExternalPositions.bottom] - deg < 0) {
+                        degChecks[ExternalPositions.bottom] = deg
+                        ans[ExternalPositions.bottom] = x
                     }
                 }
             }

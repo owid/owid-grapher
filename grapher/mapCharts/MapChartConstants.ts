@@ -59,7 +59,7 @@ export interface MapChartManager extends ChartManager {
     endTime?: Time
 }
 
-export interface internalLabel {
+export interface InternalLabel {
     id: string
     position: PointVector
     value?: any
