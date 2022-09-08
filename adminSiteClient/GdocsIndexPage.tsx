@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow, Modal, SearchField } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons/faCirclePlus"
+import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons/faCloudArrowUp"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Gdoc } from "../clientUtils/owidTypes.js"
@@ -36,6 +37,13 @@ export const GdocsIndexPage = () => {
 
         setDocumentTitle(json.gdoc.title)
         setResponseSuccess(true)
+    }
+
+    const validate = async (id: number) => {
+        const json = await admin.getJSON(`/api/gdocs/${id}/validate`)
+
+        // todo
+        console.log(json)
     }
 
     useEffect(() => {
@@ -81,7 +89,15 @@ export const GdocsIndexPage = () => {
                     <tbody>
                         {gdocs.map((gdoc) => (
                             <tr key={gdoc.slug}>
-                                <td>{gdoc.slug}</td>
+                                <td>
+                                    {gdoc.slug}
+                                    <button onClick={() => validate(gdoc.id)}>
+                                        <FontAwesomeIcon
+                                            icon={faCloudArrowUp}
+                                        />
+                                        Publish
+                                    </button>
+                                </td>
                                 <td>Authors</td>
                                 <td>Type</td>
                                 <td>Status</td>

@@ -43,6 +43,7 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
+import { Gdoc } from "../db/model/Gdoc.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -79,6 +80,11 @@ import {
 import { docToArchieML } from "@ourworldindata/doc-to-archieml"
 
 import { Detail } from "../grapher/core/GrapherConstants.js"
+import {
+    DatelineHandler,
+    TitleHandler,
+    ValidationMessage,
+} from "./gdocsValidation.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2594,6 +2600,21 @@ apiRouter.get("/gdocs", async (req) => {
     return {
         gdocs: await db.queryMysql("SELECT * FROM posts_gdocs"),
     }
+})
+
+apiRouter.get("/gdocs/:id/validate", async (req) => {
+    const { id } = req.params
+    const messages: ValidationMessage[] = []
+
+    const gdoc = await Gdoc.findOne({ id })
+
+    if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
+
+    const titleHandler = new TitleHandler()
+    titleHandler.setNext(new DatelineHandler())
+
+    titleHandler.handle(gdoc, messages)
+    return { messages }
 })
 
 apiRouter.post("/gdocs/:id", async (req) => {
