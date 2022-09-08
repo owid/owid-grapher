@@ -386,3 +386,32 @@ export interface GdocParsed {
     id: number
     title: string
 }
+
+export interface OwidArticleBlock {
+    type: string
+    value: string | any
+}
+
+export interface OwidArticleType {
+    id: string
+    slug: string
+    content: OwidArticleContent
+    published: boolean
+    createdAt: Date
+    updatedAt: Date
+}
+
+export interface OwidArticleContent {
+    body: OwidArticleBlock[]
+    title: string
+    subtitle: string
+    template: string
+    byline: string | string[]
+    slug?: string
+    dateline?: string
+    refs?: OwidArticleBlock[]
+    summary?: OwidArticleBlock[]
+    citation?: OwidArticleBlock[]
+    "cover-image"?: any
+    "featured-image"?: any
+}
