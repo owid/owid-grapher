@@ -26,7 +26,7 @@ import {
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface.js"
 import {
-    GdocParsed,
+    OwidArticleContent,
     SuggestedChartRevisionStatus,
 } from "../clientUtils/owidTypes.js"
 import {
@@ -2598,7 +2598,7 @@ apiRouter.put("/details/:id", async (req, res) => {
 
 apiRouter.get("/gdocs", async (req) => {
     return {
-        gdocs: await db.queryMysql("SELECT * FROM posts_gdocs"),
+        gdocs: await Gdoc.find(),
     }
 })
 
@@ -2621,21 +2621,21 @@ apiRouter.post("/gdocs/:id", async (req) => {
     const { id } = req.params
     // todo handle error
     const auth = getGoogleAuth()
-    // todo use interface type after merging mc/gdocs-render-baker branch
-    const results = (await docToArchieML({
+    const content = (await docToArchieML({
         documentId: id,
         auth,
-    })) as GdocParsed
+    })) as OwidArticleContent
 
-    if (!results.title) return { success: false, error: "No title found" }
+    if (!content.title) return { success: false, error: "No title found" }
 
-    await db.execute(`INSERT INTO posts_gdocs (id, slug) VALUES (?,?)`, [
-        id,
-        slugify(results.title),
-    ])
+    const gdoc = new Gdoc()
+    gdoc.id = id
+    gdoc.content = content
+
+    await gdoc.save()
 
     // todo: handle error
-    return { success: true, gdoc: { id, title: results.title } }
+    return { success: true, gdoc }
 })
 
 export { apiRouter }
