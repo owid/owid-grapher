@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as lodash from "lodash"
-import { getConnection } from "typeorm"
+import { getConnection, getRepository } from "typeorm"
 import express from "express"
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
@@ -2633,7 +2633,9 @@ apiRouter.post("/gdocs/:id", async (req) => {
     gdoc.id = id
     gdoc.content = content
 
-    await gdoc.save()
+    await getRepository(Gdoc).insert(gdoc)
+    // this silently updates the gdoc if it already exists
+    //await gdoc.save()
 
     return { success: true, gdoc }
 })
