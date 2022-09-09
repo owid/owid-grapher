@@ -24,9 +24,6 @@ export const GdocsAdd = () => {
             "POST"
         )
 
-        // todo: handle error
-        if (!json.success) return
-
         setDocumentTitle(json.gdoc.content.title)
         setResponseSuccess(true)
     }
