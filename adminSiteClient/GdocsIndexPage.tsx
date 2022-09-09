@@ -3,41 +3,24 @@ import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow, Modal, SearchField } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons/faCirclePlus"
 import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons/faCloudArrowUp"
+import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Gdoc } from "../clientUtils/owidTypes.js"
+import { Route, RouteComponentProps } from "react-router-dom"
+import { Link } from "./Link.js"
+import { GdocsAdd } from "./GdocsAdd.js"
 
-export const GdocsIndexPage = () => {
-    const [showModal, setShowModal] = React.useState(false)
-    const [responseSuccess, setResponseSuccess] = React.useState(false)
-    const [documentTitle, setDocumentTitle] = React.useState(false)
-    const [documentUrl, setDocumentUrl] = React.useState("")
+interface MatchParams {
+    id: string
+}
+
+type MatchProps = RouteComponentProps<MatchParams>
+
+export const GdocsIndexPage = ({ match, history }: MatchProps) => {
     const [gdocs, setGdocs] = React.useState<Gdoc[]>([])
 
     const { admin } = useContext(AdminAppContext)
-
-    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        const regex = /https:\/\/docs\.google\.com\/document\/d\/([^\/]+)\/edit/
-
-        const match = documentUrl.match(regex)
-
-        // handled by HTML5 validation below
-        if (!match) return
-
-        const documentId = match[1]
-        const json = await admin.requestJSON(
-            `/api/gdocs/${documentId}`,
-            {},
-            "POST"
-        )
-
-        // todo: handle error
-        if (!json.success) return
-
-        setDocumentTitle(json.gdoc.content.title)
-        setResponseSuccess(true)
-    }
 
     const validate = async (id: number) => {
         const json = await admin.getJSON(`/api/gdocs/${id}/validate`)
@@ -52,7 +35,7 @@ export const GdocsIndexPage = () => {
             setGdocs(json.gdocs)
         }
         fetchGodcs()
-    }, [admin, responseSuccess])
+    }, [admin])
 
     return (
         <AdminLayout title="Google Docs Articles">
@@ -69,7 +52,7 @@ export const GdocsIndexPage = () => {
                         /> */}
                     <button
                         className="btn btn-primary"
-                        onClick={() => setShowModal(true)}
+                        onClick={() => history.push(`${match.url}/add`)}
                     >
                         <FontAwesomeIcon icon={faCirclePlus} /> Add document
                     </button>
@@ -97,6 +80,12 @@ export const GdocsIndexPage = () => {
                                         />
                                         Publish
                                     </button>
+                                    <Link
+                                        to={`${match.url}/${gdoc.id}/settings`}
+                                    >
+                                        <FontAwesomeIcon icon={faGear} />
+                                        Settings
+                                    </Link>
                                 </td>
                                 <td>Authors</td>
                                 <td>Type</td>
@@ -125,57 +114,27 @@ export const GdocsIndexPage = () => {
                         </button>
                     )} */}
             </main>
-            {showModal && (
-                <Modal
-                    onClose={() => setShowModal(false)}
-                    className="ModalAddGdoc"
-                >
-                    <form onSubmit={onSubmit}>
-                        <div className="modal-header">
-                            <h5 className="modal-title">Add a document</h5>
-                        </div>
-                        <div className="modal-body">
-                            <ol>
-                                <li>Make a copy of this Google Doc.</li>
-                                <li>Edit the title</li>
-                                <li>
-                                    Add xxx@yy.iam.gserviceaccount.com as an
-                                    editor
-                                </li>
-                                <li>
-                                    Fill in the URL of your Doc in the field
-                                    below 👇
-                                </li>
-                            </ol>
-                            <div className="form-group">
-                                <input
-                                    type="string"
-                                    className="form-control"
-                                    onChange={(e) =>
-                                        setDocumentUrl(e.target.value)
-                                    }
-                                    value={documentUrl}
-                                    required
-                                    placeholder="https://docs.google.com/document/d/****/edit"
-                                    pattern="https:\/\/docs\.google\.com\/document\/d\/([^\/]+)\/edit"
-                                />
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <input
-                                type="submit"
-                                className="btn btn-primary"
-                                value="Add document"
-                            />
-                        </div>
-                        {responseSuccess && (
-                            <div className="alert alert-success" role="alert">
-                                {`Document '${documentTitle}' added successfully!`}
-                            </div>
-                        )}
-                    </form>
-                </Modal>
-            )}
+
+            <Route
+                path={`${match.path}/:id/settings`}
+                // "match" is from the parent route, and hence doesn't have the id
+                // param
+                render={({ match: localMatch }) => {
+                    return (
+                        <Modal onClose={() => history.push(match.url)}>
+                            {`Settings modal for ${localMatch.params.id}`}
+                        </Modal>
+                    )
+                }}
+            />
+            <Route
+                path={`${match.path}/add`}
+                render={() => (
+                    <Modal onClose={() => history.push(match.url)}>
+                        <GdocsAdd />
+                    </Modal>
+                )}
+            />
         </AdminLayout>
     )
 }
