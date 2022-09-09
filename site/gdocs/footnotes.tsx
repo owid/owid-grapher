@@ -1,6 +1,9 @@
 import React from "react"
 
 export default function Footnotes({ d }: any) {
+    if (!d || !d.length) {
+        return null
+    }
     return (
         <section className={"footnoteContainer"}>
             <h2>Endnotes</h2>

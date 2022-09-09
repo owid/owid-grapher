@@ -50,7 +50,7 @@
     grid-column: 11 / span 3;
 }
 .owidArticle > .aside-text.left {
-    grid-column: 2 / span 3;
+    grid-column: 1 / span 3;
     text-align: right;
 }
 
@@ -251,7 +251,7 @@
     grid-row: 2 / span 1;
     grid-column: 5 / span 4;
     text-align: center;
-    margin-top: 0;
+    margin-top: 0.5em;
     font-size: 18px;
     font-family: "Playfair Display", serif;
     font-size: 18px;
@@ -544,13 +544,14 @@
 
     .owidArticle > figure {
         grid-column: 2 / span 12;
+        margin: 0;
     }
     .owidArticle > .aside-text {
-        grid-column: 3 / span 10;
+        grid-column: 3 / span 9;
         text-align: left;
     }
     .owidArticle > .aside-text.left {
-        grid-column: 3 / span 10;
+        grid-column: 3 / span 9;
         text-align: left;
     }
     .owidArticle .articlePage {
@@ -561,4 +562,10 @@
     .owidArticle .recirc {
         grid-column: 3 / span 10;
     }
+
+    .owidArticle img {
+        grid-column: 3 / span 10;
+    }
+
+    // TODO(gdocs): Add mobile styles for the fixed images / charts.
 }

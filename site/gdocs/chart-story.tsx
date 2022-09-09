@@ -4,8 +4,6 @@ import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons/faCircleArr
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export default function ChartStory({ slides }: any) {
-    // const [showDetails, setShowDetails] = useState(false);
-
     const [slide, setSlide] = useState(0)
     const showDetails = true
 

@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import VisibilitySensor from "react-visibility-sensor"
-// import styles from '../styles/Home.module.css'
 import { OwidArticleBlock } from "./gdoc-types.js"
 
 export default function Scroller({ d }: any) {

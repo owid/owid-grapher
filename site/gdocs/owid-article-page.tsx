@@ -1,5 +1,3 @@
-// import BaseStyles from '../styles/Home.module.css'
-// import Head from 'next/head'
 import React from "react"
 
 import { OwidArticleType } from "./gdoc-types.js"
