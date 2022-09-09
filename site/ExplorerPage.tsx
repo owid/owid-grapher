@@ -9,6 +9,7 @@ import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EMBEDDED_EXPLORER_DELIMITER,
     ExplorerContainerId,
+    EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
@@ -79,7 +80,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
     return (
         <html>
             <Head
-                canonicalUrl={`${baseUrl}/${slug}`}
+                canonicalUrl={`${baseUrl}/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
                 pageTitle={explorerTitle}
                 imageUrl={thumbnail}
                 baseUrl={baseUrl}

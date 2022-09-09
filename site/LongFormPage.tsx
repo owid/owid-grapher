@@ -248,7 +248,10 @@ export const LongFormPage = (props: {
                                     <div
                                         className="article-content"
                                         dangerouslySetInnerHTML={{
-                                            __html: addContentFeatures(post),
+                                            __html: addContentFeatures({
+                                                post,
+                                                formattingOptions,
+                                            }),
                                         }}
                                     />
                                     <footer className="article-footer">

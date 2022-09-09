@@ -44,6 +44,7 @@ export const VerticalScrollContainer = React.forwardRef(
             children,
             contentsId,
             style,
+            scrollLock,
             ...rest
         } = props
 
@@ -55,7 +56,10 @@ export const VerticalScrollContainer = React.forwardRef(
             contentsId
         )
 
-        useScrollLock(scrollContainerRef, { doNotLockIfNoScroll: true })
+        useScrollLock(scrollContainerRef, {
+            enable: scrollLock,
+            doNotLockIfNoScroll: true,
+        })
 
         return (
             <div
@@ -189,6 +193,7 @@ function useScrollBounds<ElementType extends HTMLElement>(
 }
 
 interface ScrollLockOptions {
+    enable: boolean
     doNotLockIfNoScroll: boolean
 }
 
@@ -204,9 +209,10 @@ function useScrollLock<ElementType extends HTMLElement>(
         const el = ref.current
         const options: ScrollLockOptions = {
             doNotLockIfNoScroll: false,
+            enable: true,
             ...opts,
         }
-        if (el) {
+        if (options.enable && el) {
             function onWheel(ev: WheelEvent): void {
                 const el = ref.current
                 if (el) {
