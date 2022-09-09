@@ -1,7 +1,6 @@
-import {MigrationInterface, QueryRunner} from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class AddGoogleDocsPostTable1659996181316 implements MigrationInterface {
-
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE \`posts_gdocs\` (
             \`id\` int NOT NULL AUTO_INCREMENT,
@@ -19,5 +18,4 @@ export class AddGoogleDocsPostTable1659996181316 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`DROP TABLE posts_gdocs`)
     }
-
 }
