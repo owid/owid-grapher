@@ -293,11 +293,7 @@ export class AdminApp extends React.Component<{
                                     />
                                 )}
                             />
-                            <Route
-                                exact
-                                path="/gdocs"
-                                component={GdocsIndexPage}
-                            />
+                            <Route path="/gdocs" component={GdocsIndexPage} />
                             <Route
                                 exact
                                 path="/test"
