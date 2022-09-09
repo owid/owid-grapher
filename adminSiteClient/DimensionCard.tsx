@@ -150,7 +150,7 @@ export class DimensionCard extends React.Component<{
                     </div>
                 </header>
                 {this.isExpanded && (
-                    <div>
+                    <div onMouseDown={(e) => e.stopPropagation()}>
                         <BindAutoString
                             label="Display name"
                             field="name"
