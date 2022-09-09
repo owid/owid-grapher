@@ -155,7 +155,7 @@
         "mobx-utils": "5",
         "mousetrap": "^1.6.5",
         "mysql": "^2.18.1",
-        "netlify-cli": "^10.16.0",
+        "netlify-cli": "^11.7.1",
         "node-fetch": "^2.6.7",
         "normalize.css": "^8.0.1",
         "optimize-css-assets-webpack-plugin": "^6.0.1",
