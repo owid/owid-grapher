@@ -136,7 +136,9 @@ export const runLightbox = () => {
         document.body.appendChild(lightboxContainer)
     }
     Array.from(
-        document.querySelectorAll<HTMLImageElement>(".article-content img")
+        document.querySelectorAll<HTMLImageElement>(
+            ".article-content img, .lightbox-image"
+        )
     ).forEach((img) => {
         if (img.closest("[data-no-lightbox]")) return
 
