@@ -23,6 +23,7 @@ import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 export class DimensionCard extends React.Component<{
     dimension: ChartDimension
     editor: ChartEditor
+    onChange: (dimension: ChartDimension) => void
     onEdit?: () => void
     onRemove?: () => void
     onMouseEnter?: () => void
@@ -40,12 +41,12 @@ export class DimensionCard extends React.Component<{
 
     @action.bound onIsProjection(value: boolean) {
         this.props.dimension.display.isProjection = value
-        this.updateTables()
+        this.onChange()
     }
 
     @action.bound onColor(color: string | undefined) {
         this.props.dimension.display.color = color
-        this.updateTables()
+        this.onChange()
     }
 
     @computed get color() {
@@ -64,7 +65,7 @@ export class DimensionCard extends React.Component<{
                     value={!!tableDisplay.hideAbsoluteChange}
                     onValue={(value) => {
                         tableDisplay.hideAbsoluteChange = value
-                        this.updateTables()
+                        this.onChange()
                     }}
                 />
                 <Toggle
@@ -72,7 +73,7 @@ export class DimensionCard extends React.Component<{
                     value={!!tableDisplay.hideRelativeChange}
                     onValue={(value) => {
                         tableDisplay.hideRelativeChange = value
-                        this.updateTables()
+                        this.onChange()
                     }}
                 />
                 <hr className="ui divider" />
@@ -80,15 +81,8 @@ export class DimensionCard extends React.Component<{
         )
     }
 
-    @action.bound updateTables() {
-        const { grapher } = this.props.editor
-
-        grapher.updateAuthoredVersion({
-            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
-        })
-
-        grapher.seriesColorMap?.clear()
-        grapher.rebuildInputOwidTable()
+    @action.bound onChange() {
+        this.props.onChange(this.props.dimension)
     }
 
     render() {
@@ -156,21 +150,21 @@ export class DimensionCard extends React.Component<{
                             field="name"
                             store={dimension.display}
                             auto={column.displayName}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         <BindAutoString
                             label="Unit of measurement"
                             field="unit"
                             store={dimension.display}
                             auto={column.unit ?? ""}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         <BindAutoString
                             label="Short (axis) unit"
                             field="shortUnit"
                             store={dimension.display}
                             auto={column.shortUnit ?? ""}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         <BindAutoFloat
                             label="Number of decimal places"
@@ -178,7 +172,7 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.numDecimalPlaces}
                             helpText={`A negative number here will round integers`}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         <BindAutoFloat
                             label="Unit conversion factor"
@@ -186,14 +180,14 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         {this.tableDisplaySettings}
                         <BindAutoFloat
                             field="tolerance"
                             store={dimension.display}
                             auto={column.tolerance}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         {grapher.isLineChart && (
                             <Toggle
