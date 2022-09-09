@@ -14,6 +14,8 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
+.PHONY: help up up.full down down.full refresh refresh.wp refresh.full
+
 help:
 	@echo 'Available commands:'
 	@echo
