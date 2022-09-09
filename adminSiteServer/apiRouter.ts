@@ -2619,14 +2619,15 @@ apiRouter.get("/gdocs/:id/validate", async (req) => {
 
 apiRouter.post("/gdocs/:id", async (req) => {
     const { id } = req.params
-    // todo handle error
+
     const auth = getGoogleAuth()
+
     const content = (await docToArchieML({
         documentId: id,
         auth,
     })) as OwidArticleContent
 
-    if (!content.title) return { success: false, error: "No title found" }
+    if (!content.title) throw new JsonError("❌ No title found")
 
     const gdoc = new Gdoc()
     gdoc.id = id
@@ -2634,7 +2635,6 @@ apiRouter.post("/gdocs/:id", async (req) => {
 
     await gdoc.save()
 
-    // todo: handle error
     return { success: true, gdoc }
 })
 
