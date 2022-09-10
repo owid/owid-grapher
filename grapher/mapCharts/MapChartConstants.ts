@@ -59,14 +59,51 @@ export interface MapChartManager extends ChartManager {
     endTime?: Time
 }
 
-export interface InternalLabel {
+export interface Annotation {
     id: string
     position: PointVector
-    value?: any
+    value: any
     size: number
     type: string
     pole: Position
-    markerStart?: Position
-    markerEnd?: Position
+    marker?: Position[]
     anchor?: boolean
 }
+
+export interface AnnotationsCache {
+    coastPositions: CoastPositions[]
+    calculatedPositions: CalculatedPosition[]
+    regions: Region[]
+    internalInfo: InternalInfo[]
+    allPoints: Record<string, number>
+}
+
+export interface InternalInfo {
+    position: number[]
+    points: Position[]
+    id: string
+}
+
+export interface CoastPositions {
+    positions: { [position: string]: Position }
+    id: string
+}
+
+export interface CalculatedPosition {
+    id: string
+    boundaryPosition: Position
+    labelPosition: string
+    textWidth: number
+    noHope: boolean
+    finalPosition?: Position
+    marker?: Position[]
+    anchor?: boolean
+}
+
+export interface Region {
+    id: string
+    points: Position[]
+}
+export const MIN_INTERNAL_ANNOTATION_SIZE = 8
+export const MAX_INTERNAL_ANNOTATION_SIZE = 14
+export const EXTERNAL_ANNOTATION_SIZE = 11
