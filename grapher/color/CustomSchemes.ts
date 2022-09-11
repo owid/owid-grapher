@@ -1,8 +1,4 @@
-import {
-    ColorSchemeInterface,
-    ContinentColors,
-    ColorSchemeName,
-} from "./ColorConstants.js"
+import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants.js"
 
 export const CustomColorSchemes: ColorSchemeInterface[] = []
 
@@ -1064,37 +1060,37 @@ CustomColorSchemes.push({
     ],
 })
 
-export enum OwidDistinctColors {
-    Purple = "#6D3E91",
-    DarkOrange = "#C05917",
-    LightTeal = "#58AC8C",
-    Blue = "#286BBB",
-    Maroon = "#883039",
-    Camel = "#BC8E5A",
-    MidnightBlue = "#00295B",
-    DustyCoral = "#C15065",
-    DarkOliveGreen = "#18470F",
-    DarkCopper = "#9A5129",
-    Peach = "#E56E5A",
-    Mauve = "#A2559C",
-    Turquoise = "#38AABA",
-    OliveGreen = "#578145",
-    Cherry = "#970046",
-    Teal = "#00847E",
-    RustyOrange = "#B13507",
-    Denim = "#4C6A9C",
-    Fuchsia = "#CF0A66",
-    TealishGreen = "#00875E",
-    Copper = "#B16214",
-    DarkMauve = "#8C4569",
-    Lime = "#3B8E1D",
-    Coral = "#D73C50",
-}
+export const OwidDistinctColors = {
+    Purple: "#6D3E91",
+    DarkOrange: "#C05917",
+    LightTeal: "#58AC8C",
+    Blue: "#286BBB",
+    Maroon: "#883039",
+    Camel: "#BC8E5A",
+    MidnightBlue: "#00295B",
+    DustyCoral: "#C15065",
+    DarkOliveGreen: "#18470F",
+    DarkCopper: "#9A5129",
+    Peach: "#E56E5A",
+    Mauve: "#A2559C",
+    Turquoise: "#38AABA",
+    OliveGreen: "#578145",
+    Cherry: "#970046",
+    Teal: "#00847E",
+    RustyOrange: "#B13507",
+    Denim: "#4C6A9C",
+    Fuchsia: "#CF0A66",
+    TealishGreen: "#00875E",
+    Copper: "#B16214",
+    DarkMauve: "#8C4569",
+    Lime: "#3B8E1D",
+    Coral: "#D73C50",
+} as const
 
 export const OwidNoDataGray = "#6e7581"
-
 // Create some of our own!
-CustomColorSchemes.push({
+
+export const OwidDistinctColorScheme = {
     name: ColorSchemeName["owid-distinct"],
     displayName: "OWID Distinct",
     singleColorScale: false,
@@ -1127,7 +1123,8 @@ CustomColorSchemes.push({
             OwidDistinctColors.Coral,
         ],
     ],
-})
+}
+CustomColorSchemes.push(OwidDistinctColorScheme)
 
 CustomColorSchemes.push({
     name: ColorSchemeName.stackedAreaDefault,
@@ -1151,28 +1148,30 @@ CustomColorSchemes.push({
     ],
 })
 
-export enum ContinentColors {
-    Africa = OwidDistinctColors.Mauve,
-    Antarctica = OwidDistinctColors.Turquoise,
-    Asia = OwidDistinctColors.Teal,
-    Europe = OwidDistinctColors.Denim,
-    NorthAmerica = OwidDistinctColors.Peach,
-    SouthAmerica = OwidDistinctColors.Maroon,
-    Oceania = OwidDistinctColors.DarkCopper,
-    World = OwidDistinctColors.DarkOliveGreen,
-    SubSaharanAfrica = OwidDistinctColors.DarkMauve,
-    MiddleEastNorthAfrica = OwidDistinctColors.Purple,
-    CentralAsia = OwidDistinctColors.LightTeal,
-    EastAsia = OwidDistinctColors.TealishGreen,
-    SoutheastAsia = OwidDistinctColors.Lime,
-    SouthAsia = OwidDistinctColors.OliveGreen,
-    CentralAmericaAndCarribean = OwidDistinctColors.DustyCoral,
-    EasternEurope = OwidDistinctColors.Blue,
-    WesternEurope = OwidDistinctColors.MidnightBlue,
-    AustralasiaAndOceania = OwidDistinctColors.Copper,
-}
+export const ContinentColors = {
+    Africa: OwidDistinctColors.Mauve,
+    Antarctica: OwidDistinctColors.Turquoise,
+    Asia: OwidDistinctColors.Teal,
+    Europe: OwidDistinctColors.Denim,
+    NorthAmerica: OwidDistinctColors.Peach,
+    ["North America"]: OwidDistinctColors.Peach,
+    SouthAmerica: OwidDistinctColors.Maroon,
+    ["South America"]: OwidDistinctColors.Maroon,
+    Oceania: OwidDistinctColors.DarkCopper,
+    World: OwidDistinctColors.DarkOliveGreen,
+    SubSaharanAfrica: OwidDistinctColors.DarkMauve,
+    MiddleEastNorthAfrica: OwidDistinctColors.Purple,
+    CentralAsia: OwidDistinctColors.LightTeal,
+    EastAsia: OwidDistinctColors.TealishGreen,
+    SoutheastAsia: OwidDistinctColors.Lime,
+    SouthAsia: OwidDistinctColors.OliveGreen,
+    CentralAmericaAndCarribean: OwidDistinctColors.DustyCoral,
+    EasternEurope: OwidDistinctColors.Blue,
+    WesternEurope: OwidDistinctColors.MidnightBlue,
+    AustralasiaAndOceania: OwidDistinctColors.Copper,
+} as const
 
-CustomColorSchemes.push({
+export const ContinentColorsColorScheme = {
     name: ColorSchemeName.continents,
     displayName: "Continents",
     singleColorScale: false,
@@ -1199,4 +1198,8 @@ CustomColorSchemes.push({
             ContinentColors.AustralasiaAndOceania,
         ],
     ],
-})
+}
+
+CustomColorSchemes.push(ContinentColorsColorScheme)
+
+export const DefaultColorScheme = OwidDistinctColorScheme

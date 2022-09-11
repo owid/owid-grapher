@@ -24,7 +24,7 @@ import {
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
-import { ContinentColors } from "../color/ColorConstants.js"
+import { ContinentColors } from "../color/CustomSchemes.js"
 import { OwidTableSlugs } from "../../coreTable/OwidTableConstants.js"
 import { Color } from "../../coreTable/CoreTableConstants.js"
 import { makeOriginalTimeSlugFromColumnSlug } from "../../coreTable/OwidTableUtil.js"
@@ -548,9 +548,9 @@ describe("colors & legend", () => {
             [
                 ContinentColors.Africa,
                 ContinentColors.Europe,
-                ContinentColors["North America"],
+                ContinentColors.NorthAmerica,
                 ContinentColors.Oceania,
-                ContinentColors["South America"],
+                ContinentColors.SouthAmerica,
             ].sort()
         )
     })

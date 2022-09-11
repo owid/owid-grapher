@@ -3,6 +3,7 @@
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"
+import { DefaultColorScheme } from "../color/CustomSchemes.js"
 import { Grapher } from "../core/Grapher.js"
 import { ChartTypeName } from "../core/GrapherConstants.js"
 import { MarimekkoChart } from "./MarimekkoChart.js"
@@ -78,7 +79,7 @@ it("can filter years correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
@@ -92,7 +93,7 @@ it("can filter years correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
@@ -106,7 +107,7 @@ it("can filter years correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
@@ -181,7 +182,7 @@ it("shows no data points at the end", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
@@ -195,7 +196,7 @@ it("shows no data points at the end", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
@@ -288,7 +289,7 @@ test("interpolation works as expected", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
@@ -302,7 +303,7 @@ test("interpolation works as expected", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
@@ -316,7 +317,7 @@ test("interpolation works as expected", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
@@ -416,13 +417,13 @@ it("can deal with y columns with missing values", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints1[0],
                 },
                 {
                     kind: BarShape.Bar,
-                    color: "#B13507",
+                    color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
                     yPoint: expectedYPoints2[0],
                 },
@@ -436,13 +437,13 @@ it("can deal with y columns with missing values", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints1[2],
                 },
                 {
                     kind: BarShape.Bar,
-                    color: "#B13507",
+                    color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
                     yPoint: expectedYPoints2[1],
                 },
@@ -456,7 +457,7 @@ it("can deal with y columns with missing values", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints1[1],
                 },
