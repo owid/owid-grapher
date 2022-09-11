@@ -99,6 +99,12 @@ export const ExplorerGrammar: Grammar = {
         keyword: "isPublished",
         description: "Set to true to make this Explorer public.",
     },
+    indexViewsSeparately: {
+        ...BooleanCellDef,
+        keyword: "indexViewsSeparately",
+        description:
+            "Set to true to make Google index every view of this explorer, rather than only indexing the default view.",
+    },
     wpBlockId: {
         ...IntegerCellDef,
         keyword: "wpBlockId",
