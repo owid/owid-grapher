@@ -70,16 +70,28 @@ export interface Annotation {
     anchor?: boolean
 }
 
+// AnnotationsCache has the following data:
+// externalCandidates: Cache of all possible starting points of markers for external annotations
+//                     and their associated directions
+// candidateInfo: Cache of positional info of a candidate point for external annotation and its
+//                feasibility
+// regions: Cache of all distinct polygons (regions) of a country
+// internalInfo: Cache of the calculated poles of inaccessibility for internal annotations and the
+//               associated regional polygon for that country
+// allPoints: Dictionary of all countries' points on a map and the count of the coordinate's occurrence.
+//            Occurrence > 1 implies the point is shared by 2 or more nations
+// viewportScale: The viewportScale value. Used to invalidate cache and recalculate if viewport changes
 export interface AnnotationsCache {
     externalCandidates: ExternalCandidates[]
     candidateInfo: CandidateInfo[]
     regions: Region[]
     internalInfo: InternalInfo[]
     allPoints: Record<string, number>
+    viewportScale: number
 }
 
 export interface InternalInfo {
-    position: number[]
+    pole: number[]
     points: Position[]
     id: string
 }
@@ -92,10 +104,10 @@ export interface ExternalCandidates {
 export interface CandidateInfo {
     id: string
     boundaryPosition: Position
-    labelPosition: string
+    direction: string
     textWidth: number
     possible: boolean
-    finalPosition?: Position
+    labelPosition?: Position
     marker?: Position[]
     anchor?: boolean
 }

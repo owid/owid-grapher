@@ -49,13 +49,18 @@ export function generateAnnotations(
     annotationsCache: Map<MapProjectionName, AnnotationsCache>
 ): Annotation[] {
     const combinedData = [...featureData, ...featuresWithNoData]
-    if (!annotationsCache.has(projection)) {
+    // Reset annotation cache if there is a change in viewportScale
+    if (
+        !annotationsCache.has(projection) ||
+        annotationsCache.get(projection)!.viewportScale != viewportScale
+    ) {
         const projectionCache = {
             externalCandidates: [],
             candidateInfo: [],
             regions: [],
             internalInfo: [],
             allPoints: {},
+            viewportScale: viewportScale,
         }
         annotationsCache.set(projection, projectionCache)
         setAnnotationCache(combinedData, projection, annotationsCache)
@@ -86,7 +91,6 @@ export function generateAnnotations(
     for (const country of initialData.externalInfo) {
         const fontSize = EXTERNAL_ANNOTATION_SIZE / viewportScale
         const value = choroplethData.get(country.id)!.shortValue!
-        let h = null
         const textWidth = pixelWidth(value.toString(), {
             size: fontSize,
             font: "arial",
@@ -109,15 +113,15 @@ export function generateAnnotations(
                 candidateInfoCache
             )
             if (candidateInfo.possible === false) continue
-            h = candidateInfo.finalPosition as Position
+            const labelPos = candidateInfo.labelPosition as Position
             const marker = candidateInfo.marker as Position[]
             let check = true
             // Check to see if label lies within map bounds
             if (
-                h[0] + textWidth > bottomRightBound[0] ||
-                h[0] < topLeftBound[0] ||
-                h[1] > bottomRightBound[1] ||
-                h[1] - fontSize < topLeftBound[1]
+                labelPos[0] + textWidth > bottomRightBound[0] ||
+                labelPos[0] < topLeftBound[0] ||
+                labelPos[1] > bottomRightBound[1] ||
+                labelPos[1] - fontSize < topLeftBound[1]
             )
                 check = false
             //Collision check between current label and all labels
@@ -125,7 +129,7 @@ export function generateAnnotations(
                 for (const e of externalLabels)
                     if (
                         rectIntersection(
-                            getLabelRect(h, textWidth, fontSize),
+                            getLabelRect(labelPos, textWidth, fontSize),
                             e
                         )
                     ) {
@@ -140,7 +144,7 @@ export function generateAnnotations(
                     if (
                         lineIntersection(y[0], y[1], marker[0], marker[1]) ||
                         rectIntersection(
-                            getLabelRect(h, textWidth, fontSize),
+                            getLabelRect(labelPos, textWidth, fontSize),
                             y
                         )
                     ) {
@@ -157,10 +161,14 @@ export function generateAnnotations(
                 }
             // All checks passed
             if (check === true) {
-                const externalLabel = getLabelRect(h, textWidth, fontSize)
+                const externalLabel = getLabelRect(
+                    labelPos,
+                    textWidth,
+                    fontSize
+                )
                 const externalAnnotation = {
                     id: country.id,
-                    position: new PointVector(h[0], h[1]),
+                    position: new PointVector(labelPos[0], labelPos[1]),
                     value: value,
                     size: fontSize,
                     type: "external",
@@ -208,11 +216,11 @@ function internalGenerator(
             size: fontSize / viewportScale,
             font: "arial",
         })
-        const labelPos = internalInfoCache.find(
+        const internalInfo = internalInfoCache.find(
             (el) => el.id === country.id
         ) as InternalInfo
-        const pole = [labelPos.position[0], labelPos.position[1]]
-        regionPoints = labelPos.points
+        const pole = internalInfo.pole
+        regionPoints = internalInfo.points
         let t1, t2, t3, t4
         let check = false
         // Check if internal annotation lies within a country's polygon and if so,
@@ -222,6 +230,7 @@ function internalGenerator(
                 size: fontSize / viewportScale,
                 font: "arial",
             })
+            // Coordinates of the label text with pole of inaccessibility as center
             t1 = [
                 pole[0] - textWidth / 2,
                 pole[1] + fontSize / viewportScale / 2,
@@ -246,6 +255,9 @@ function internalGenerator(
                 check = true
             } else break
         }
+        // check is true implies it is confirmed that we have a valid internal annotation
+        // otherwise the country is added to externalInfo to check if we can display an
+        // external annotation for it
         if (check === true) {
             internalAnnotations.push({
                 id: country.id,
@@ -286,11 +298,11 @@ function internalGenerator(
     }
 }
 
-// Process feasibility of candidate position and store result within cache
+// Process feasibility and positional info of candidate position and store result within cache
 function getCandidateInfo(
     point: number[],
     regionsCache: Region[],
-    type: string,
+    direction: string,
     textWidth: number,
     fontSize: number,
     country: ExternalInfo,
@@ -302,25 +314,26 @@ function getCandidateInfo(
         (el) =>
             el.id === country.id &&
             el.textWidth === textWidth &&
-            el.labelPosition === type &&
+            el.direction === direction &&
             el.boundaryPosition == point
     )
     if (candidateInfo !== undefined) return candidateInfo
     let anchor = false
     const p = [point[0], point[1]]
-    if (type == ExternalDirections.top) {
+    // Get starting position of label text using the starting position of the marker line
+    if (direction == ExternalDirections.top) {
         p[0] = p[0] - textWidth / 2
-    } else if (type == ExternalDirections.bottom) {
+    } else if (direction == ExternalDirections.bottom) {
         p[0] = p[0] - textWidth / 2
         p[1] = p[1] + fontSize
-    } else if (type == ExternalDirections.left) {
+    } else if (direction == ExternalDirections.left) {
         p[0] = p[0] - textWidth
         p[1] = p[1] + fontSize / 2
-    } else if (type == ExternalDirections.right) {
+    } else if (direction == ExternalDirections.right) {
         p[1] = p[1] + fontSize / 2
     } else if (
-        type == ExternalDirections.bottomLeft ||
-        type == ExternalDirections.topLeft
+        direction == ExternalDirections.bottomLeft ||
+        direction == ExternalDirections.topLeft
     ) {
         p[0] = p[0] - textWidth
         p[1] = p[1] + fontSize / 2
@@ -328,24 +341,29 @@ function getCandidateInfo(
     let j = 1
     let check = true
     let markerEnd: Position
+    // Check if country area is more than threshold and add length to marking line
+    // Otherwise, we don't display the marking line and show an anchor point
     if (country.area / viewportScale > 0.5)
-        for (let i = 1; i <= 8; i++) externalIncrement(type, p, viewportScale)
+        for (let i = 1; i <= 8; i++)
+            externalIncrement(direction, p, viewportScale)
     else anchor = true
     while (j <= 2) {
         check = true
-        externalIncrement(type, p, viewportScale)
+        externalIncrement(direction, p, viewportScale)
         markerEnd = getMarkerEndPosition(
-            type as ExternalDirections,
+            direction as ExternalDirections,
             p,
             textWidth,
             fontSize
         )
         for (const x of combinedData) {
-            const g1 = [x.bounds.bottomLeft.x, x.bounds.bottomLeft.y]
-            const g2 = [x.bounds.bottomRight.x, x.bounds.bottomRight.y]
-            const g3 = [x.bounds.topRight.x, x.bounds.topRight.y]
-            const g4 = [x.bounds.topLeft.x, x.bounds.topLeft.y]
-            const rectPoints = [g1, g2, g3, g4, g1]
+            // Explicitly assigning points since Bounds uses PointVector and we require
+            // Position direction
+            const r1 = [x.bounds.bottomLeft.x, x.bounds.bottomLeft.y]
+            const r2 = [x.bounds.bottomRight.x, x.bounds.bottomRight.y]
+            const r3 = [x.bounds.topRight.x, x.bounds.topRight.y]
+            const r4 = [x.bounds.topLeft.x, x.bounds.topLeft.y]
+            const rectPoints = [r1, r2, r3, r4, r1]
             const firstPoint = x.path.slice(1, x.path.indexOf("L")).split(",")
             const labelPoints = [...getLabelRect(p, textWidth, fontSize), p]
             // Check if country lies inside the label
@@ -382,9 +400,10 @@ function getCandidateInfo(
                 }
             }
             // Check if marking line intersects the country's bounds
+            // Excluding origin country since marker already touches a border point
             if (
                 x.id != country.id &&
-                rectIntersection([g1, g2, g3, g4], [point, markerEnd])
+                rectIntersection([r1, r2, r3, r4], [point, markerEnd])
             ) {
                 const regions = regionsCache.filter((el) => el.id === x.id)
                 // Check if marking line intersects the country polygon
@@ -411,20 +430,21 @@ function getCandidateInfo(
         const newobj = {
             id: country.id,
             boundaryPosition: point,
-            labelPosition: type,
+            direction: direction,
             textWidth: textWidth,
             possible: true,
-            finalPosition: p,
+            labelPosition: p,
             anchor: anchor,
             marker: [point, markerEnd!],
         }
         candidateInfoCache.push(newobj)
         return newobj
     }
+    // Case where external annotation is not possible for any text value
     const newobj = {
         id: country.id,
         boundaryPosition: point,
-        labelPosition: type,
+        direction: direction,
         textWidth: textWidth,
         possible: false,
     }
@@ -451,69 +471,95 @@ function getExternalCandidates(
         (el) => el.id === country.id
     )
     if (externalCandidates !== undefined) return externalCandidates
-    let left = regionPoints[0][0],
-        right = regionPoints[0][0],
-        top = regionPoints[0][1],
-        bottom = regionPoints[0][1]
-    let r1, r2, r3, r4
-    let j1 = 0,
-        j2 = 0
-    for (const x of regionPoints) {
-        if (x[0] < left) left = x[0]
-        if (x[0] > right) right = x[0]
-        if (x[1] < top) top = x[1]
-        if (x[1] > bottom) bottom = x[1]
-    }
-    j1 = (left + right) / 2
-    j2 = (top + bottom) / 2
+    let leftBound = regionPoints[0][0],
+        rightBound = regionPoints[0][0],
+        topBound = regionPoints[0][1],
+        bottomBound = regionPoints[0][1]
     for (const x of regionPoints) {
         if (allPoints[x.join()] > 1) continue
-        // left mid
-        if (x[0] < j1 && Math.abs(x[1] - j2) < 0.25 * (bottom - top)) {
-            if (r1 === undefined || Math.abs(x[1] - j2) < Math.abs(r1[1] - j2))
-                r1 = x
+        if (x[0] < leftBound) leftBound = x[0]
+        if (x[0] > rightBound) rightBound = x[0]
+        if (x[1] < topBound) topBound = x[1]
+        if (x[1] > bottomBound) bottomBound = x[1]
+    }
+    const mid = [(leftBound + rightBound) / 2, (topBound + bottomBound) / 2]
+    let left, right, bottom, top
+    for (const x of regionPoints) {
+        if (allPoints[x.join()] > 1) continue
+        //right candidate
+        if (
+            x[0] > mid[0] &&
+            Math.abs(x[1] - mid[1]) < 0.25 * (bottomBound - topBound)
+        ) {
+            if (
+                right === undefined ||
+                Math.abs(x[1] - mid[1]) < Math.abs(right[1] - mid[1])
+            )
+                right = x
         }
-        //right mid
-        else if (x[0] > j1 && Math.abs(x[1] - j2) < 0.25 * (bottom - top)) {
-            if (r2 === undefined || Math.abs(x[1] - j2) < Math.abs(r2[1] - j2))
-                r2 = x
+        // left candidate
+        else if (
+            x[0] < mid[0] &&
+            Math.abs(x[1] - mid[1]) < 0.25 * (bottomBound - topBound)
+        ) {
+            if (
+                left === undefined ||
+                Math.abs(x[1] - mid[1]) < Math.abs(left[1] - mid[1])
+            )
+                left = x
         }
-        //bottom mid
-        else if (x[1] > j2 && Math.abs(x[0] - j1) < 0.25 * (right - left)) {
-            if (r3 === undefined || Math.abs(x[0] - j1) < Math.abs(r3[0] - j1))
-                r3 = x
+        //bottom candidate
+        else if (
+            x[1] > mid[1] &&
+            Math.abs(x[0] - mid[0]) < 0.25 * (rightBound - leftBound)
+        ) {
+            if (
+                bottom === undefined ||
+                Math.abs(x[0] - mid[0]) < Math.abs(bottom[0] - mid[0])
+            )
+                bottom = x
         }
-        //top mid
-        else if (x[1] < j2 && Math.abs(x[0] - j1) < 0.25 * (right - left)) {
-            if (r4 === undefined || Math.abs(x[0] - j1) < Math.abs(r4[0] - j1))
-                r4 = x
+        //top candidate
+        else if (
+            x[1] < mid[1] &&
+            Math.abs(x[0] - mid[0]) < 0.25 * (rightBound - leftBound)
+        ) {
+            if (
+                top === undefined ||
+                Math.abs(x[0] - mid[0]) < Math.abs(top[0] - mid[0])
+            )
+                top = x
         }
     }
-    if (r2 != undefined) {
-        ans.push({ direction: ExternalDirections.right, point: r2 })
-        ans.push({ direction: ExternalDirections.topRight, point: r2 })
-        ans.push({ direction: ExternalDirections.bottomRight, point: r2 })
+    // Pushing the candidates in the order preferred for annotating
+    // It is preferred to externally annotate to the right of a country
+    // followed by left, bottom and top
+    if (right != undefined) {
+        ans.push({ direction: ExternalDirections.right, point: right })
+        ans.push({ direction: ExternalDirections.topRight, point: right })
+        ans.push({ direction: ExternalDirections.bottomRight, point: right })
     }
-    if (r1 != undefined) {
-        ans.push({ direction: ExternalDirections.left, point: r1 })
-        ans.push({ direction: ExternalDirections.topLeft, point: r1 })
-        ans.push({ direction: ExternalDirections.bottomLeft, point: r1 })
+    if (left != undefined) {
+        ans.push({ direction: ExternalDirections.left, point: left })
+        ans.push({ direction: ExternalDirections.topLeft, point: left })
+        ans.push({ direction: ExternalDirections.bottomLeft, point: left })
     }
-    if (r3 != undefined) {
-        ans.push({ direction: ExternalDirections.bottom, point: r3 })
-        ans.push({ direction: ExternalDirections.bottomRight, point: r3 })
-        ans.push({ direction: ExternalDirections.bottomLeft, point: r3 })
+    if (bottom != undefined) {
+        ans.push({ direction: ExternalDirections.bottom, point: bottom })
+        ans.push({ direction: ExternalDirections.bottomRight, point: bottom })
+        ans.push({ direction: ExternalDirections.bottomLeft, point: bottom })
     }
-    if (r4 != undefined) {
-        ans.push({ direction: ExternalDirections.top, point: r4 })
-        ans.push({ direction: ExternalDirections.topRight, point: r4 })
-        ans.push({ direction: ExternalDirections.topLeft, point: r4 })
+    if (top != undefined) {
+        ans.push({ direction: ExternalDirections.top, point: top })
+        ans.push({ direction: ExternalDirections.topRight, point: top })
+        ans.push({ direction: ExternalDirections.topLeft, point: top })
     }
     externalCandidatesCache.push({ id: id, positions: ans })
     return { id: id, positions: ans }
 }
 
-//Initialize cache for a projection's annotations
+// Initialize regions, internalInfo, allPoints cache for a projection's annotations
+// Polylabel function is used here for obtaining poles of inaccessibility
 function setAnnotationCache(
     featureData: RenderFeature[],
     projection: MapProjectionName,
@@ -534,22 +580,24 @@ function setAnnotationCache(
             const tempPoints = []
             for (const region of countryPaths) {
                 const regionPath = region.split("L")
-                const temptemp = []
-                for (const temp of regionPath) {
-                    const o = [
-                        Number(temp.substring(0, temp.indexOf(","))),
-                        Number(temp.substring(temp.indexOf(",") + 1)),
+                const tempRegion = []
+                for (const point of regionPath) {
+                    const x = [
+                        Number(point.substring(0, point.indexOf(","))),
+                        Number(point.substring(point.indexOf(",") + 1)),
                     ]
-                    temptemp.push(o)
-                    const u = o[0].toString() + "," + o[1].toString()
-                    if (u in allPoints) allPoints[u] = allPoints[u] + 1
-                    else allPoints[u] = 1
+                    tempRegion.push(x)
+                    const key = x[0].toString() + "," + x[1].toString()
+                    if (key in allPoints) allPoints[key]++
+                    else allPoints[key] = 1
                 }
                 regions.push({
                     id: country.id,
-                    points: temptemp,
+                    points: tempRegion,
                 })
-                tempPoints.push(temptemp)
+                tempPoints.push(tempRegion)
+                // Pick region with most points for geojson of type "Polygon"
+                // The only country whose geojson has multiple polygons is South Africa
                 if (tempPoints[tempPoints.length - 1].length > maxLength) {
                     maxLength = tempPoints[tempPoints.length - 1].length
                     regionPoints = tempPoints[tempPoints.length - 1]
@@ -563,15 +611,15 @@ function setAnnotationCache(
             for (const region of countryPaths) {
                 const tempPoints = []
                 const regionPath = region.split("L")
-                for (const temp of regionPath) {
-                    const o = [
-                        Number(temp.substring(0, temp.indexOf(","))),
-                        Number(temp.substring(temp.indexOf(",") + 1)),
+                for (const point of regionPath) {
+                    const x = [
+                        Number(point.substring(0, point.indexOf(","))),
+                        Number(point.substring(point.indexOf(",") + 1)),
                     ]
-                    tempPoints.push(o)
-                    const u = o[0].toString() + "," + o[1].toString()
-                    if (u in allPoints) allPoints[u] = allPoints[u] + 1
-                    else allPoints[u] = 1
+                    tempPoints.push(x)
+                    const key = x[0].toString() + "," + x[1].toString()
+                    if (key in allPoints) allPoints[key]++
+                    else allPoints[key] = 1
                 }
                 regions.push({
                     id: country.id,
@@ -579,6 +627,7 @@ function setAnnotationCache(
                 })
                 const r = getRatio([tempPoints])
                 const p = polylabelStretched([tempPoints], r)
+                // Pick region with most inward pole of inaccessibility for MultiPolygon
                 if (p.distance > maxDist) {
                     pos = p
                     maxDist = p.distance
@@ -588,7 +637,7 @@ function setAnnotationCache(
             }
         }
         internalInfo.push({
-            position: pos.slice(0, 2),
+            pole: pos.slice(0, 2),
             points: regionPoints,
             id: id,
         })
@@ -598,6 +647,7 @@ function setAnnotationCache(
     annotationsCache.get(projection)!.allPoints = allPoints
 }
 
+// Returns appropriate ratio to be used for picking pole of inaccessibility
 function getRatio(coordinates: any): number {
     const bounds = geoPath().bounds({ type: "Polygon", coordinates })
     const dx = bounds[1][0] - bounds[0][0]
@@ -607,6 +657,7 @@ function getRatio(coordinates: any): number {
     return Math.min(Math.max(ratio, 1 / A), A)
 }
 
+// Returns pole of inaccessibility for the given polygon and ratio
 function polylabelStretched(rings: Position[][], ratio: number): any {
     const polygon = []
     for (const ring of rings) {
