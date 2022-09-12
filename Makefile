@@ -30,6 +30,10 @@ help:
 	@echo '  make refresh.wp    download a new wordpress snapshot and update MySQL'
 	@echo '  make refresh.full  do a full MySQL update of both wordpress and grapher'
 	@echo
+	@echo '  OPS (staff-only)'
+	@echo '  make deploy        Deploy your local site to production'
+	@echo '  make stage         Deploy your local site to staging'
+	@echo
 
 up: export DEBUG = 'knex:query'
 
@@ -191,3 +195,25 @@ wordpress/.env:
 wordpress/web/app/uploads/2022:
 	@echo '==> Downloading wordpress uploads'
 	./devTools/docker/download-wordpress-uploads.sh
+
+deploy:
+	@echo '==> Starting from a clean slate...'
+	rm -rf itsJustJavascript
+	
+	@echo '==> Building...'
+	yarn
+	yarn run tsc -b
+	
+	@echo '==> Deploying...'
+	yarn buildAndDeploySite live
+
+stage:
+	@echo '==> Starting from a clean slate...'
+	rm -rf itsJustJavascript
+	
+	@echo '==> Building...'
+	yarn
+	yarn run tsc -b
+	
+	@echo '==> Deploying to staging...'
+	yarn buildAndDeploySite staging
