@@ -110,7 +110,12 @@
         "pointer": "/map/colorScale/binningStrategy",
         "default": "ckmeans",
         "editor": "dropdown",
-        "enumOptions": ["equalInterval", "quantiles", "ckmeans", "manual"]
+        "enumOptions": [
+            "equalInterval",
+            "quantiles",
+            "ckmeans",
+            "manual"
+        ]
     },
     {
         "type": "string",
@@ -168,7 +173,10 @@
         "editor": "checkbox"
     },
     {
-        "type": ["string", "number"],
+        "type": [
+            "string",
+            "number"
+        ],
         "pointer": "/map/time",
         "default": "latest",
         "editor": "textfield"
@@ -179,7 +187,10 @@
         "editor": "numeric"
     },
     {
-        "type": ["string", "number"],
+        "type": [
+            "string",
+            "number"
+        ],
         "pointer": "/maxTime",
         "default": "latest",
         "editor": "textfield"
@@ -221,7 +232,10 @@
         "pointer": "/yAxis/scaleType",
         "default": "linear",
         "editor": "dropdown",
-        "enumOptions": ["linear", "log"]
+        "enumOptions": [
+            "linear",
+            "log"
+        ]
     },
     {
         "type": "number",
@@ -238,29 +252,23 @@
         "type": "string",
         "pointer": "/yAxis/facetDomain",
         "editor": "dropdown",
-        "enumOptions": ["independent", "shared"]
+        "enumOptions": [
+            "independent",
+            "shared"
+        ]
     },
     {
         "type": "string",
         "pointer": "/tab",
         "default": "chart",
         "editor": "dropdown",
-        "enumOptions": ["chart", "map", "sources", "download", "table"]
-    },
-    {
-        "type": "string",
-        "pointer": "/selectedData/0/color",
-        "editor": "textfield"
-    },
-    {
-        "type": "integer",
-        "pointer": "/selectedData/0/index",
-        "editor": "numeric"
-    },
-    {
-        "type": "integer",
-        "pointer": "/selectedData/0/entityId",
-        "editor": "numeric"
+        "enumOptions": [
+            "chart",
+            "map",
+            "sources",
+            "download",
+            "table"
+        ]
     },
     {
         "type": "boolean",
@@ -391,7 +399,12 @@
         "pointer": "/colorScale/binningStrategy",
         "default": "ckmeans",
         "editor": "dropdown",
-        "enumOptions": ["equalInterval", "quantiles", "ckmeans", "manual"]
+        "enumOptions": [
+            "equalInterval",
+            "quantiles",
+            "ckmeans",
+            "manual"
+        ]
     },
     {
         "type": "string",
@@ -441,14 +454,22 @@
         "pointer": "/scatterPointLabelStrategy",
         "default": "year",
         "editor": "dropdown",
-        "enumOptions": ["x", "y", "year"]
+        "enumOptions": [
+            "x",
+            "y",
+            "year"
+        ]
     },
     {
         "type": "string",
         "pointer": "/selectedFacetStrategy",
         "default": "none",
         "editor": "dropdown",
-        "enumOptions": ["none", "entity", "metric"]
+        "enumOptions": [
+            "none",
+            "entity",
+            "metric"
+        ]
     },
     {
         "type": "string",
@@ -503,7 +524,11 @@
         "pointer": "/logo",
         "default": "owid",
         "editor": "dropdown",
-        "enumOptions": ["owid", "core+owid", "gv+owid"]
+        "enumOptions": [
+            "owid",
+            "core+owid",
+            "gv+owid"
+        ]
     },
     {
         "type": "string",
@@ -517,7 +542,10 @@
         "editor": "textfield"
     },
     {
-        "type": ["integer", "null"],
+        "type": [
+            "integer",
+            "null"
+        ],
         "pointer": "/dimensions/0/targetYear",
         "editor": "textfield"
     },
@@ -525,7 +553,13 @@
         "type": "string",
         "pointer": "/dimensions/0/property",
         "editor": "dropdown",
-        "enumOptions": ["y", "x", "size", "color", "table"]
+        "enumOptions": [
+            "y",
+            "x",
+            "size",
+            "color",
+            "table"
+        ]
     },
     {
         "type": "boolean",
@@ -623,7 +657,11 @@
         "pointer": "/addCountryMode",
         "default": "add-country",
         "editor": "dropdown",
-        "enumOptions": ["add-country", "change-country", "disabled"]
+        "enumOptions": [
+            "add-country",
+            "change-country",
+            "disabled"
+        ]
     },
     {
         "type": "boolean",
@@ -676,13 +714,25 @@
         "editor": "checkbox"
     },
     {
-        "type": ["string", "null"],
+        "type": [
+            "string",
+            "null"
+        ],
         "pointer": "/stackMode",
         "editor": "textfield",
-        "enumOptions": ["absolute", "relative", "grouped", "stacked", null]
+        "enumOptions": [
+            "absolute",
+            "relative",
+            "grouped",
+            "stacked",
+            null
+        ]
     },
     {
-        "type": ["string", "number"],
+        "type": [
+            "string",
+            "number"
+        ],
         "pointer": "/minTime",
         "editor": "textfield"
     },
@@ -718,7 +768,10 @@
         "pointer": "/xAxis/scaleType",
         "default": "linear",
         "editor": "dropdown",
-        "enumOptions": ["linear", "log"]
+        "enumOptions": [
+            "linear",
+            "log"
+        ]
     },
     {
         "type": "number",
@@ -735,7 +788,10 @@
         "type": "string",
         "pointer": "/xAxis/facetDomain",
         "editor": "dropdown",
-        "enumOptions": ["independent", "shared"]
+        "enumOptions": [
+            "independent",
+            "shared"
+        ]
     },
     {
         "type": "integer",
@@ -783,14 +839,21 @@
         "pointer": "/sortBy",
         "default": "total",
         "editor": "dropdown",
-        "enumOptions": ["column", "total", "entityName"]
+        "enumOptions": [
+            "column",
+            "total",
+            "entityName"
+        ]
     },
     {
         "type": "string",
         "pointer": "/sortOrder",
         "default": "desc",
         "editor": "dropdown",
-        "enumOptions": ["desc", "asc"]
+        "enumOptions": [
+            "desc",
+            "asc"
+        ]
     },
     {
         "type": "string",
