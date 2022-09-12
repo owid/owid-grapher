@@ -59,12 +59,23 @@ export interface MapChartManager extends ChartManager {
     endTime?: Time
 }
 
+export enum ExternalDirections {
+    right = "right",
+    left = "left",
+    topRight = "topRight",
+    bottomRight = "bottomRight",
+    topLeft = "topLeft",
+    bottomLeft = "bottomLeft",
+    bottom = "bottom",
+    top = "top",
+}
+
 export interface Annotation {
     id: string
     position: PointVector
     value: any
     size: number
-    type: string
+    type: "internal" | "external"
     pole: Position
     marker?: Position[]
     anchor?: boolean
@@ -97,14 +108,14 @@ export interface InternalInfo {
 }
 
 export interface ExternalCandidates {
-    positions: { direction: string; point: Position }[]
+    positions: { direction: ExternalDirections; point: Position }[]
     id: string
 }
 
 export interface CandidateInfo {
     id: string
     boundaryPosition: Position
-    direction: string
+    direction: ExternalDirections
     textWidth: number
     possible: boolean
     labelPosition?: Position
