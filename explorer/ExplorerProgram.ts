@@ -50,6 +50,7 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     facetYDomain?: FacetAxisDomain
     relatedQuestionText?: string
     relatedQuestionUrl?: string
+    mapTargetTime?: number
 }
 
 const ExplorerRootDef: CellDef = {
