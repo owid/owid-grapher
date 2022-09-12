@@ -438,7 +438,7 @@
 
 /* Mobile navigation */
 
-@include md-only {
+@include md-down {
     .site-header .wrapper {
         height: $mobile-header-wrapper-height;
         padding: 0;

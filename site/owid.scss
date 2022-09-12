@@ -21,6 +21,7 @@
 @import "css/variables.scss";
 @import "css/colors.scss";
 @import "css/mixins.scss";
+@import "css/typography.scss";
 @import "css/category-coloring.scss";
 @import "css/util.scss";
 @import "css/layout.scss";
@@ -31,9 +32,9 @@
 @import "css/forms.scss";
 @import "css/page.scss";
 @import "css/sidebar.scss";
-@import "css/typography.scss";
 
 @import "css/homepage.scss";
+@import "css/topic-page.scss";
 @import "css/donate.scss";
 @import "css/faq.scss";
 @import "css/covid.scss";
@@ -489,7 +490,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     /* The CSS here is very precise so as not to interfere with any iframeless embeds */
 
     > p {
-        margin-bottom: 1em;
+        @include body-2-regular;
     }
 
     /* Subsections e.g. I.1 Historical perspective */

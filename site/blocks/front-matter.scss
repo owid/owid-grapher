@@ -5,27 +5,32 @@
     .wp-block-column:nth-child(1) {
         grid-column: 1 / 13;
 
-        @media (min-width: 960px) {
-            grid-column: 1 / 9;
+        @include md-up {
+            grid-column: 1 / 8;
         }
-        @media (min-width: 1280px) {
-            grid-column: 1 / 6;
+
+        @include lg-up {
+            grid-column: 1 / 7;
         }
     }
 
     .wp-block-column:nth-child(2) {
         grid-column: 1 / 13;
 
-        @media (min-width: 960px) {
+        @include md-up {
             grid-column: 9 / 13;
         }
-        @media (min-width: 1280px) {
-            grid-column: 9 / 13;
+
+        @include lg-up {
+            grid-column: 10 / 13;
         }
     }
 }
 
 .front-matter .btn-secondary {
+    @include md-down {
+        margin-top: 24px;
+    }
     padding: 8px 24px;
     border: 1px solid $accent-vermillion;
     display: inline-block;

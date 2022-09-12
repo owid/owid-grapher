@@ -1,0 +1,7 @@
+// added to the body of a page via formattingOptions
+// scopes styles just to topic pages when necessary
+.topic-page {
+    h3 {
+        @include display-1-semibold;
+    }
+}

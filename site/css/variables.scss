@@ -49,7 +49,7 @@ $xxlg: 1536px;
     }
 }
 
-@mixin md-only {
+@mixin md-down {
     @media (max-width: $md) {
         @content;
     }

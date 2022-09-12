@@ -56,7 +56,7 @@ const KeyInsightsSlider = {
                 </InspectorControls>
                 <div {...blockProps}>
                     <RichText
-                        tagName="h3"
+                        tagName="h2"
                         onChange={onChangeTitle}
                         value={title}
                         // withoutInteractiveFormatting <-- doesn't remove bold and italic formatting
