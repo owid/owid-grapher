@@ -24,6 +24,7 @@ import {
     flatten,
     isInIFrame,
     keyMap,
+    omit,
     omitUndefinedValues,
     throttle,
     uniqBy,
@@ -313,7 +314,12 @@ export class Explorer
             facetYDomain,
             relatedQuestionText,
             relatedQuestionUrl,
+            mapTargetTime,
         } = grapherConfigFromExplorer
+        const grapherConfigFromExplorerOnlyGrapherProps = omit(
+            grapherConfigFromExplorer,
+            ["mapTargetTime"]
+        )
 
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
@@ -323,7 +329,7 @@ export class Explorer
 
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
-            ...grapherConfigFromExplorer,
+            ...grapherConfigFromExplorerOnlyGrapherProps,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: tableSlug ? true : false,
         }
@@ -339,6 +345,9 @@ export class Explorer
             grapher.relatedQuestions = [
                 { text: relatedQuestionText, url: relatedQuestionUrl },
             ]
+        }
+        if (mapTargetTime) {
+            grapher.map.time = mapTargetTime
         }
         grapher.updateFromObject(config)
 
