@@ -7,8 +7,8 @@ import {
     RenderFeature,
     Region,
     InternalInfo,
-    CoastPositions,
-    CalculatedPosition,
+    ExternalCandidates,
+    CandidateInfo,
     MIN_INTERNAL_ANNOTATION_SIZE,
     MAX_INTERNAL_ANNOTATION_SIZE,
     EXTERNAL_ANNOTATION_SIZE,
@@ -53,8 +53,8 @@ export function generateAnnotations(
     const combinedData = [...featureData, ...featuresWithNoData]
     if (!annotationsCache.has(projection)) {
         const projectionCache = {
-            coastPositions: [],
-            calculatedPositions: [],
+            externalCandidates: [],
+            candidateInfo: [],
             regions: [],
             internalInfo: [],
             allPoints: {},
@@ -64,10 +64,8 @@ export function generateAnnotations(
     }
     globalScale = viewportScale
     const regionsCache: Region[] = annotationsCache.get(projection)!.regions
-    const coastPositionsCache: CoastPositions[] =
-        annotationsCache.get(projection)!.coastPositions
-    const calculatedPositionsCache: CalculatedPosition[] =
-        annotationsCache.get(projection)!.calculatedPositions
+    const candidateInfoCache: CandidateInfo[] =
+        annotationsCache.get(projection)!.candidateInfo
     const topLeftBound = [
         (bounds.x - offset[0]) / viewportScale,
         (bounds.y - offset[1]) / viewportScale,
@@ -78,16 +76,16 @@ export function generateAnnotations(
     ]
     const externalLabels: Position[][] = []
     const markers: Position[][] = []
-    const internalAnnotations = internalGenerator(
+    const initialData = internalGenerator(
         featureData,
         choroplethData,
         viewportScale,
         projection,
         annotationsCache
     )
-    const allAnnotations: Annotation[] = internalAnnotations.internalAnnotations
-    internalAnnotations.externalInfo.sort((a, b) => b.area - a.area)
-    for (const country of internalAnnotations.externalInfo) {
+    const allAnnotations: Annotation[] = initialData.internalAnnotations
+    initialData.externalInfo.sort((a, b) => b.area - a.area)
+    for (const country of initialData.externalInfo) {
         const fontSize = EXTERNAL_ANNOTATION_SIZE / viewportScale
         const value = choroplethData.get(country.id)!.shortValue!
         let h = null
@@ -95,29 +93,27 @@ export function generateAnnotations(
             size: fontSize,
             font: "arial",
         })
-        if (
-            coastPositionsCache.find((el) => el.id === country.id) === undefined
+        const externalCandidates = getExternalCandidates(
+            country,
+            projection,
+            annotationsCache
         )
-            getCoastPositions(country, projection, annotationsCache)
-        const coastPositions = coastPositionsCache.find(
-            (el) => el.id === country.id
-        ) as CoastPositions
-        for (const pos in coastPositions.positions) {
-            const ch = externalCheck(
-                coastPositions.positions[pos],
+        for (const pos of externalCandidates.positions) {
+            const candidateInfo = getCandidateInfo(
+                pos.point,
                 regionsCache,
-                pos,
+                pos.direction,
                 textWidth,
                 fontSize,
                 country,
                 combinedData,
                 viewportScale,
-                calculatedPositionsCache
+                candidateInfoCache
             )
-            if (ch.noHope === true) continue
-            h = ch.finalPosition as Position
-            const marker = ch.marker as Position[]
-            let markerCheck = true
+            if (candidateInfo.possible === false) continue
+            h = candidateInfo.finalPosition as Position
+            const marker = candidateInfo.marker as Position[]
+            let check = true
             // Check to see if label lies within map bounds
             if (
                 h[0] + textWidth > bottomRightBound[0] ||
@@ -125,45 +121,37 @@ export function generateAnnotations(
                 h[1] > bottomRightBound[1] ||
                 h[1] - fontSize < topLeftBound[1]
             )
-                markerCheck = false
+                check = false
             //Collision check between current label and previous labels
-            if (markerCheck === true) {
-                for (const y of externalLabels) {
+            if (check === true) {
+                for (const e of externalLabels) {
                     if (
                         rectIntersection(
-                            h,
-                            [h[0] + textWidth, h[1]],
-                            [h[0] + textWidth, h[1] - fontSize],
-                            [h[0], h[1] - fontSize],
-                            y
+                            getLabelRect(h, textWidth, fontSize),
+                            e
                         )
                     ) {
-                        markerCheck = false
+                        check = false
                         break
                     }
                 }
             }
             //Collision check between previous markers and current marker, label
             if (
-                markerCheck === true &&
+                check === true &&
                 markerCollision(markers, marker, h, textWidth, fontSize)
             )
-                markerCheck = false
+                check = false
             //Collision check between previous labels and current marker
-            if (markerCheck === true)
-                for (const y of externalLabels) {
-                    if (rectIntersection(y[0], y[1], y[2], y[3], marker)) {
-                        markerCheck = false
+            if (check === true)
+                for (const e of externalLabels) {
+                    if (rectIntersection(e, marker)) {
+                        check = false
                         break
                     }
                 }
-            if (markerCheck === true) {
-                const externalLabel = [
-                    [h[0], h[1]],
-                    [h[0] + textWidth, h[1]],
-                    [h[0] + textWidth, h[1] - fontSize],
-                    [h[0], h[1] - fontSize],
-                ]
+            if (check === true) {
+                const externalLabel = getLabelRect(h, textWidth, fontSize)
                 const externalAnnotation = {
                     id: country.id,
                     position: new PointVector(h[0], h[1]),
@@ -172,7 +160,7 @@ export function generateAnnotations(
                     type: "external",
                     pole: country.pole,
                     marker: marker,
-                    anchor: ch.anchor,
+                    anchor: candidateInfo.anchor,
                 }
                 externalLabels.push(externalLabel)
                 markers.push(marker)
@@ -238,7 +226,7 @@ function internalGenerator(
                 pole[1] + fontSize / viewportScale / 2,
             ]
             if (
-                !rectIntersection(t1, t2, t3, t4, regionPoints) &&
+                !rectIntersection([t1, t2, t3, t4], regionPoints) &&
                 polygonContains(t1, regionPoints)
             ) {
                 fontSize++
@@ -260,11 +248,11 @@ function internalGenerator(
         } else {
             let externalRegion: Position[]
             if (country.geo.geometry.type == "MultiPolygon")
-                for (const x of regionsCache.filter(
-                    (x) => x.id == country.id
+                for (const el of regionsCache.filter(
+                    (el) => el.id == country.id
                 )) {
-                    if (polygonContains(pole, x.points)) {
-                        externalRegion = x.points
+                    if (polygonContains(pole, el.points)) {
+                        externalRegion = el.points
                         break
                     }
                 }
@@ -304,162 +292,144 @@ function polygonContains(point: number[], polygon: Position[]): boolean {
     return inside
 }
 
-function externalCheck(
+function getCandidateInfo(
     point: number[],
-    allPoints: { id: string; points: Position[] }[],
+    regionsCache: Region[],
     type: string,
     textWidth: number,
     fontSize: number,
     country: ExternalInfo,
     combinedData: RenderFeature[],
     viewportScale: number,
-    calculatedPositionsCache: CalculatedPosition[]
-): CalculatedPosition {
-    const calculatedPosition = calculatedPositionsCache.find(
+    candidateInfoCache: CandidateInfo[]
+): CandidateInfo {
+    const candidateInfo = candidateInfoCache.find(
         (el) =>
             el.id === country.id &&
             el.textWidth === textWidth &&
             el.labelPosition === type &&
             el.boundaryPosition == point
     )
-    if (calculatedPosition !== undefined) return calculatedPosition
+    if (candidateInfo !== undefined) return candidateInfo
     let anchor = false
-    const k1 = [point[0], point[1]]
-    const kk = true
-    if (kk) {
-        if (type == ExternalDirections.top) {
-            k1[0] = k1[0] - textWidth / 2
-        } else if (type == ExternalDirections.bottom) {
-            k1[0] = k1[0] - textWidth / 2
-            k1[1] = k1[1] + fontSize
-        } else if (type == ExternalDirections.left) {
-            k1[0] = k1[0] - textWidth
-            k1[1] = k1[1] + fontSize / 2
-        } else if (type == ExternalDirections.right) {
-            k1[1] = k1[1] + fontSize / 2
-        } else if (
-            type == ExternalDirections.bottomLeft ||
-            type == ExternalDirections.topLeft
-        ) {
-            k1[0] = k1[0] - textWidth
-            k1[1] = k1[1] + fontSize / 2
-        }
-        let u = 1
-        let fin = false
-        let markerEnd: Position
-        if (country.area / viewportScale > 0.5)
-            for (let g = 1; g <= 8; g++) externalIncrement(type, k1)
-        else anchor = true
-        while (u <= 2) {
-            let more = true
-            externalIncrement(type, k1)
-            markerEnd = markerEndPosition(
-                type as ExternalDirections,
-                k1,
-                textWidth,
-                fontSize
-            )
-            for (const x of combinedData) {
-                const g1 = [x.bounds.bottomLeft.x, x.bounds.bottomLeft.y]
-                const g2 = [x.bounds.bottomRight.x, x.bounds.bottomRight.y]
-                const g3 = [x.bounds.topRight.x, x.bounds.topRight.y]
-                const g4 = [x.bounds.topLeft.x, x.bounds.topLeft.y]
-                const rectPoints = [g1, g2, g3, g4, g1]
-                const b1 = k1
-                const b2 = [k1[0] + textWidth, k1[1]]
-                const b3 = [k1[0] + textWidth, k1[1] - fontSize]
-                const b4 = [k1[0], k1[1] - fontSize]
-                const firstPoint = x.path
-                    .slice(1, x.path.indexOf("L"))
-                    .split(",")
-                const labelPoints = [b1, b2, b3, b4, b1]
-                if (
-                    polygonContains(
-                        [Number(firstPoint[0]), Number(firstPoint[1])],
-                        labelPoints
-                    )
-                ) {
-                    more = false
-                    break
+    const p = [point[0], point[1]]
+    if (type == ExternalDirections.top) {
+        p[0] = p[0] - textWidth / 2
+    } else if (type == ExternalDirections.bottom) {
+        p[0] = p[0] - textWidth / 2
+        p[1] = p[1] + fontSize
+    } else if (type == ExternalDirections.left) {
+        p[0] = p[0] - textWidth
+        p[1] = p[1] + fontSize / 2
+    } else if (type == ExternalDirections.right) {
+        p[1] = p[1] + fontSize / 2
+    } else if (
+        type == ExternalDirections.bottomLeft ||
+        type == ExternalDirections.topLeft
+    ) {
+        p[0] = p[0] - textWidth
+        p[1] = p[1] + fontSize / 2
+    }
+    let j = 1
+    let check = true
+    let markerEnd: Position
+    if (country.area / viewportScale > 0.5)
+        for (let i = 1; i <= 8; i++) externalIncrement(type, p)
+    else anchor = true
+    while (j <= 2) {
+        check = true
+        externalIncrement(type, p)
+        markerEnd = markerEndPosition(
+            type as ExternalDirections,
+            p,
+            textWidth,
+            fontSize
+        )
+        for (const x of combinedData) {
+            const g1 = [x.bounds.bottomLeft.x, x.bounds.bottomLeft.y]
+            const g2 = [x.bounds.bottomRight.x, x.bounds.bottomRight.y]
+            const g3 = [x.bounds.topRight.x, x.bounds.topRight.y]
+            const g4 = [x.bounds.topLeft.x, x.bounds.topLeft.y]
+            const rectPoints = [g1, g2, g3, g4, g1]
+            const firstPoint = x.path.slice(1, x.path.indexOf("L")).split(",")
+            const labelPoints = [...getLabelRect(p, textWidth, fontSize), p]
+            if (
+                polygonContains(
+                    [Number(firstPoint[0]), Number(firstPoint[1])],
+                    labelPoints
+                )
+            ) {
+                check = false
+                break
+            }
+            if (
+                rectIntersection(
+                    getLabelRect(p, textWidth, fontSize),
+                    rectPoints
+                ) ||
+                polygonContains(p, rectPoints)
+            ) {
+                const regions = regionsCache.filter((el) => el.id === x.id)
+                for (const region of regions) {
+                    if (
+                        rectIntersection(
+                            getLabelRect(p, textWidth, fontSize),
+                            region.points
+                        ) ||
+                        polygonContains(p, region.points)
+                    ) {
+                        check = false
+                        break
+                    }
                 }
-                if (
-                    rectIntersection(
-                        k1,
-                        [k1[0] + textWidth, k1[1]],
-                        [k1[0] + textWidth, k1[1] - fontSize],
-                        [k1[0], k1[1] - fontSize],
-                        rectPoints
-                    ) ||
-                    polygonContains(k1, rectPoints)
-                ) {
-                    const m = allPoints.filter((el) => el.id === x.id)
-                    for (const x2 of m) {
+            }
+            // This should be a intersection check between current marker and all regions
+            if (
+                x.id != country.id &&
+                rectIntersection([g1, g2, g3, g4], [point, markerEnd])
+            ) {
+                const regions = regionsCache.filter((el) => el.id === x.id)
+                for (const region of regions)
+                    for (let i = 0; i < region.points.length - 1; i++) {
                         if (
-                            rectIntersection(
-                                k1,
-                                [k1[0] + textWidth, k1[1]],
-                                [k1[0] + textWidth, k1[1] - fontSize],
-                                [k1[0], k1[1] - fontSize],
-                                x2.points
-                            ) ||
-                            polygonContains(k1, x2.points)
+                            lineIntersection(
+                                point,
+                                markerEnd,
+                                region.points[i],
+                                region.points[i + 1]
+                            )
                         ) {
-                            more = false
+                            check = false
                             break
                         }
                     }
-                }
-                // This should be a intersection check between current marker and all regions
-                if (
-                    x.id != country.id &&
-                    rectIntersection(g1, g2, g3, g4, [point, markerEnd])
-                ) {
-                    const m = allPoints.filter((el) => el.id === x.id)
-                    for (const x2 of m)
-                        for (let i = 0; i < x2.points.length - 1; i++) {
-                            if (
-                                lineIntersection(
-                                    point,
-                                    markerEnd,
-                                    x2.points[i],
-                                    x2.points[i + 1]
-                                )
-                            ) {
-                                more = false
-                                break
-                            }
-                        }
-                }
             }
-            if (more == true) {
-                fin = true
-                break
-            }
-            u++
         }
-        if (fin == true) {
-            const newobj = {
-                id: country.id,
-                boundaryPosition: point,
-                labelPosition: type,
-                textWidth: textWidth,
-                noHope: false,
-                finalPosition: k1,
-                anchor: anchor,
-                marker: [point, markerEnd!],
-            }
-            calculatedPositionsCache.push(newobj)
-            return newobj
+        if (check == true) break
+        j++
+    }
+    if (check == true) {
+        const newobj = {
+            id: country.id,
+            boundaryPosition: point,
+            labelPosition: type,
+            textWidth: textWidth,
+            possible: true,
+            finalPosition: p,
+            anchor: anchor,
+            marker: [point, markerEnd!],
         }
+        candidateInfoCache.push(newobj)
+        return newobj
     }
     const newobj = {
         id: country.id,
         boundaryPosition: point,
         labelPosition: type,
         textWidth: textWidth,
-        noHope: true,
+        possible: false,
     }
-    calculatedPositionsCache.push(newobj)
+    candidateInfoCache.push(newobj)
     return newobj
 }
 
@@ -571,13 +541,11 @@ function polylabelStretched(rings: Position[][], ratio: number): any {
     return result
 }
 
-function rectIntersection(
-    p0: Position,
-    p1: Position,
-    p2: Position,
-    p3: Position,
-    regionPoints: Position[]
-): boolean {
+function rectIntersection(rect: Position[], regionPoints: Position[]): boolean {
+    const p0 = rect[0],
+        p1 = rect[1],
+        p2 = rect[2],
+        p3 = rect[3]
     for (let i = 0; i < regionPoints.length - 1; i++) {
         const v1 = regionPoints[i]
         const v2 = regionPoints[i + 1]
@@ -590,6 +558,19 @@ function rectIntersection(
             return true
     }
     return false
+}
+
+function getLabelRect(
+    point: Position,
+    textWidth: number,
+    fontSize: number
+): Position[] {
+    return [
+        point,
+        [point[0] + textWidth, point[1]],
+        [point[0] + textWidth, point[1] - fontSize],
+        [point[0], point[1] - fontSize],
+    ]
 }
 
 function lineIntersection(
@@ -715,89 +696,81 @@ function markerCollision(
     return false
 }
 
-function getCoastPositions(
+function getExternalCandidates(
     country: ExternalInfo,
     projection: MapProjectionName,
     annotationsCache: Map<MapProjectionName, AnnotationsCache>
-): void {
+): ExternalCandidates {
     const id = country.id
-    const pole = country.pole
     const regionPoints = country.regionPoints
-    const ans: { [position: string]: Position } = {}
-    const degChecks: { [position: string]: number } = {}
+    const ans: { direction: string; point: Position }[] = []
     const allPoints = annotationsCache.get(projection)!.allPoints
+    const externalCandidatesCache =
+        annotationsCache.get(projection)!.externalCandidates
+    const externalCandidates = externalCandidatesCache.find(
+        (el) => el.id === country.id
+    )
+    if (externalCandidates !== undefined) return externalCandidates
+    let left = regionPoints[0][0],
+        right = regionPoints[0][0],
+        top = regionPoints[0][1],
+        bottom = regionPoints[0][1]
+    let r1, r2, r3, r4
+    let j1 = 0,
+        j2 = 0
+    for (const x of regionPoints) {
+        j1 += x[0]
+        j2 += x[1]
+        if (x[0] < left) left = x[0]
+        if (x[0] > right) right = x[0]
+        if (x[1] < top) top = x[1]
+        if (x[1] > bottom) bottom = x[1]
+    }
+    j1 = (left + right) / 2
+    j2 = (top + bottom) / 2
     for (const x of regionPoints) {
         if (allPoints[x.join()] > 1) continue
-        const deg =
-            (Math.atan((x[1] - pole[1]) / (x[0] - pole[0])) * 180) / Math.PI
-        if (deg >= 0) {
-            if (x[0] > pole[0]) {
-                if (!(ExternalDirections.right in degChecks)) {
-                    degChecks[ExternalDirections.right] = deg
-                    ans[ExternalDirections.right] = x
-                } else {
-                    if (degChecks[ExternalDirections.right] > deg) {
-                        degChecks[ExternalDirections.right] = deg
-                        ans[ExternalDirections.right] = x
-                    }
-                }
-                if (!(ExternalDirections.topRight in degChecks)) {
-                    degChecks[ExternalDirections.right] = deg
-                    ans[ExternalDirections.topRight] = x
-                } else {
-                    if (
-                        Math.abs(45 - degChecks[ExternalDirections.topRight]) >
-                        Math.abs(deg - 45)
-                    ) {
-                        degChecks[ExternalDirections.topRight] = deg
-                        ans[ExternalDirections.topRight] = x
-                    }
-                }
-                if (!(ExternalDirections.top in degChecks)) {
-                    degChecks[ExternalDirections.top] = deg
-                    ans[ExternalDirections.top] = x
-                } else {
-                    if (degChecks[ExternalDirections.top] - deg < 0) {
-                        degChecks[ExternalDirections.top] = deg
-                        ans[ExternalDirections.top] = x
-                    }
-                }
-            } else {
-                if (!(ExternalDirections.left in degChecks)) {
-                    degChecks[ExternalDirections.left] = deg
-                    ans[ExternalDirections.left] = x
-                } else {
-                    if (degChecks[ExternalDirections.left] > deg) {
-                        degChecks[ExternalDirections.left] = deg
-                        ans[ExternalDirections.left] = x
-                    }
-                }
-                if (!(ExternalDirections.bottomRight in degChecks)) {
-                    degChecks[ExternalDirections.bottomRight] = deg
-                    ans[ExternalDirections.bottomRight] = x
-                } else {
-                    if (
-                        Math.abs(
-                            45 - degChecks[ExternalDirections.bottomRight]
-                        ) > Math.abs(deg - 45)
-                    ) {
-                        degChecks[ExternalDirections.bottomRight] = deg
-                        ans[ExternalDirections.bottomRight] = x
-                    }
-                }
-                if (!(ExternalDirections.bottom in degChecks)) {
-                    degChecks[ExternalDirections.bottom] = deg
-                    ans[ExternalDirections.bottom] = x
-                } else {
-                    if (degChecks[ExternalDirections.bottom] - deg < 0) {
-                        degChecks[ExternalDirections.bottom] = deg
-                        ans[ExternalDirections.bottom] = x
-                    }
-                }
-            }
+        // left mid
+        if (x[0] < j1 && Math.abs(x[1] - j2) < 0.25 * (bottom - top)) {
+            if (r1 === undefined || Math.abs(x[1] - j2) < Math.abs(r1[1] - j2))
+                r1 = x
+        }
+        //right mid
+        else if (x[0] > j1 && Math.abs(x[1] - j2) < 0.25 * (bottom - top)) {
+            if (r2 === undefined || Math.abs(x[1] - j2) < Math.abs(r2[1] - j2))
+                r2 = x
+        }
+        //bottom mid
+        else if (x[1] > j2 && Math.abs(x[0] - j1) < 0.25 * (right - left)) {
+            if (r3 === undefined || Math.abs(x[0] - j1) < Math.abs(r3[0] - j1))
+                r3 = x
+        }
+        //top mid
+        else if (x[1] < j2 && Math.abs(x[0] - j1) < 0.25 * (right - left)) {
+            if (r4 === undefined || Math.abs(x[0] - j1) < Math.abs(r4[0] - j1))
+                r4 = x
         }
     }
-    annotationsCache
-        .get(projection)!
-        .coastPositions.push({ id: id, positions: ans })
+    if (r2 != undefined) {
+        ans.push({ direction: ExternalDirections.right, point: r2 })
+        ans.push({ direction: ExternalDirections.topRight, point: r2 })
+        ans.push({ direction: ExternalDirections.bottomRight, point: r2 })
+    }
+    if (r1 != undefined) {
+        ans.push({ direction: ExternalDirections.left, point: r1 })
+        ans.push({ direction: ExternalDirections.topLeft, point: r1 })
+        ans.push({ direction: ExternalDirections.bottomLeft, point: r1 })
+    }
+    if (r3 != undefined) {
+        ans.push({ direction: ExternalDirections.bottom, point: r3 })
+        ans.push({ direction: ExternalDirections.bottomRight, point: r3 })
+        ans.push({ direction: ExternalDirections.bottomLeft, point: r3 })
+    }
+    if (r4 != undefined) {
+        ans.push({ direction: ExternalDirections.top, point: r4 })
+        ans.push({ direction: ExternalDirections.topRight, point: r4 })
+        ans.push({ direction: ExternalDirections.topLeft, point: r4 })
+    }
+    externalCandidatesCache.push({ id: id, positions: ans })
+    return { id: id, positions: ans }
 }

@@ -71,8 +71,8 @@ export interface Annotation {
 }
 
 export interface AnnotationsCache {
-    coastPositions: CoastPositions[]
-    calculatedPositions: CalculatedPosition[]
+    externalCandidates: ExternalCandidates[]
+    candidateInfo: CandidateInfo[]
     regions: Region[]
     internalInfo: InternalInfo[]
     allPoints: Record<string, number>
@@ -84,17 +84,17 @@ export interface InternalInfo {
     id: string
 }
 
-export interface CoastPositions {
-    positions: { [position: string]: Position }
+export interface ExternalCandidates {
+    positions: { direction: string; point: Position }[]
     id: string
 }
 
-export interface CalculatedPosition {
+export interface CandidateInfo {
     id: string
     boundaryPosition: Position
     labelPosition: string
     textWidth: number
-    noHope: boolean
+    possible: boolean
     finalPosition?: Position
     marker?: Position[]
     anchor?: boolean
@@ -107,3 +107,5 @@ export interface Region {
 export const MIN_INTERNAL_ANNOTATION_SIZE = 8
 export const MAX_INTERNAL_ANNOTATION_SIZE = 14
 export const EXTERNAL_ANNOTATION_SIZE = 11
+export const ANNOTATION_TEXT_COLOR = "#444445"
+export const ANNOTATION_LINE_COLOR = "#303030"
