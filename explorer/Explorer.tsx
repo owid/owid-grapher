@@ -214,6 +214,7 @@ export class Explorer
 
     private setCanonicalUrl() {
         // see https://developers.google.com/search/docs/advanced/javascript/javascript-seo-basics#properly-inject-canonical-links
+        // Note that the URL is not updated when the user interacts with the explorer - this should be enough for Googlebot I hope.
         const canonicalElement = document.createElement("link")
         canonicalElement.setAttribute("rel", "canonical")
         canonicalElement.href = this.canonicalUrlForGoogle
