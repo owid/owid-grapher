@@ -65,6 +65,7 @@ class DimensionSlotView extends React.Component<{
         grapher.updateAuthoredVersion({
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
+        this.updateDimensionsFromProps()
 
         this.isSelectingVariables = false
     }
@@ -83,6 +84,7 @@ class DimensionSlotView extends React.Component<{
         grapher.updateAuthoredVersion({
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
+        this.updateDimensionsFromProps()
         grapher.rebuildInputOwidTable()
     }
 
@@ -113,6 +115,10 @@ class DimensionSlotView extends React.Component<{
         }
     }
 
+    private updateDimensionsFromProps() {
+        this.dimensionsInDisplayOrder = [...this.props.slot.dimensions]
+    }
+
     componentDidMount() {
         this.disposers.push(
             reaction(
@@ -122,9 +128,7 @@ class DimensionSlotView extends React.Component<{
                         this.props.slot.dimensions.length !==
                         this.dimensionsInDisplayOrder.length
                     )
-                        this.dimensionsInDisplayOrder = [
-                            ...this.props.slot.dimensions,
-                        ]
+                        this.updateDimensionsFromProps()
                 },
                 { fireImmediately: true }
             )
