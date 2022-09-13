@@ -185,6 +185,13 @@ export class ExplorerProgram extends GridProgram {
         )
     }
 
+    get indexViewsSeparately() {
+        return (
+            this.getLineValue(ExplorerGrammar.indexViewsSeparately.keyword) ===
+            GridBoolean.true
+        )
+    }
+
     get wpBlockId() {
         const blockIdString = this.getLineValue(
             ExplorerGrammar.wpBlockId.keyword
