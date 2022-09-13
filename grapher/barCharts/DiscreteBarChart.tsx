@@ -619,8 +619,7 @@ export class DiscreteBarChart
         // We used to choose owid-distinct here as the default if this is a collapsed line chart but
         // as part of the color revamp in Autumn 2022 we decided to make bar charts always default to
         // an all-blue color scheme (singleColorDenim).
-        const defaultColorScheme =
-            ColorSchemes[ColorSchemeName.SingleColorDenim]
+        const defaultColorScheme = ColorSchemes[this.defaultBaseColorScheme]
 
         return (
             (this.manager.isLineChart
@@ -638,21 +637,6 @@ export class DiscreteBarChart
             uniq(sortedRawSeries.map((series) => series.value)),
             !manager.invertColorScheme // negate here to be consistent with how things worked before
         )
-    }
-
-    // Only used if it's a LineChart turned into DiscreteBar due to single-point timeline
-    @computed private get categoricalColorAssigner():
-        | CategoricalColorAssigner
-        | undefined {
-        return new CategoricalColorAssigner({
-            colorScheme: this.colorScheme,
-            invertColorScheme: this.manager.invertColorScheme,
-            colorMap:
-                this.seriesStrategy === SeriesStrategy.entity
-                    ? this.inputTable.entityNameColorIndex
-                    : this.inputTable.columnDisplayNameToColorMap,
-            autoColorMapCache: this.manager.seriesColorMap,
-        })
     }
 
     @computed private get hasColorScale(): boolean {
@@ -687,7 +671,7 @@ export class DiscreteBarChart
         )
     }
 
-    defaultBaseColorScheme = ColorSchemeName.YlGnBu
+    defaultBaseColorScheme = ColorSchemeName.SingleColorDenim
     defaultNoDataColor = "#959595"
     transformColor = darkenColorForLine
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
