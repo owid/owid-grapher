@@ -22,7 +22,6 @@ import { Bounds } from "../../clientUtils/Bounds.js"
 
 interface ExternalInfo {
     id: string
-    region: Position[]
     area: number
     pole: Position
     regionPoints: Position[]
@@ -262,20 +261,26 @@ function internalGenerator(
             })
         } else {
             let externalRegion: Position[]
-            if (country.geo.geometry.type == "MultiPolygon")
+            // For MultiPolygon countries, pole of inaccessibility does not necessarily
+            // lie in the region with the largest area e.g, Chile. So we need to assign the
+            // region with the largest area as the one from which external annotations needs
+            // to be marked
+            if (country.geo.geometry.type == "MultiPolygon") {
+                let maxArea = 0
                 for (const el of regionsCache.filter(
                     (el) => el.id == country.id
                 )) {
-                    if (polygonContains(pole, el.points)) {
+                    const tempArea = polygonArea(el.points)
+                    if (tempArea > maxArea) {
                         externalRegion = el.points
-                        break
+                        maxArea = tempArea
+                        regionPoints = el.points.slice(0, -1)
                     }
                 }
-            else if (country.geo.geometry.type == "Polygon")
+            } else if (country.geo.geometry.type == "Polygon")
                 externalRegion = country.geo.geometry.coordinates[0]
             externalInfo.push({
                 id: country.id,
-                region: externalRegion!,
                 area: polygonArea(externalRegion!),
                 pole: pole,
                 regionPoints: regionPoints,
