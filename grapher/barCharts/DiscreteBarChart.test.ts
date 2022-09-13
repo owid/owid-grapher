@@ -7,16 +7,14 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
-import {
-    DEFAULT_BAR_COLOR,
-    DiscreteBarChartManager,
-} from "./DiscreteBarChartConstants.js"
+import { DiscreteBarChartManager } from "./DiscreteBarChartConstants.js"
 import { ColorSchemeName } from "../color/ColorConstants.js"
 import { SeriesStrategy } from "../core/GrapherConstants.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { isNumber } from "../../clientUtils/Util.js"
 import { SortBy, SortOrder } from "../../clientUtils/owidTypes.js"
+import { ColorSchemes } from "../color/ColorSchemes.js"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
@@ -52,7 +50,9 @@ describe("barcharts with columns as the series", () => {
     it("can add colors to columns as series", () => {
         manager.baseColorScheme = ColorSchemeName.Reds
         const chart = new DiscreteBarChart({ manager })
-        expect(chart.series[0].color).not.toEqual(DEFAULT_BAR_COLOR)
+        expect(chart.series[0].color).not.toEqual(
+            ColorSchemes[ColorSchemeName.SingleColorDenim].colorSets[0][0]
+        )
     })
 
     it("can filter a series when there are no points (column strategy)", () => {

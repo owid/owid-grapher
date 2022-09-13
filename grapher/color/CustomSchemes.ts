@@ -1060,6 +1060,8 @@ CustomColorSchemes.push({
     ],
 })
 
+// Create some of our own!
+
 export const OwidDistinctColors = {
     Purple: "#6D3E91",
     DarkOrange: "#C05917",
@@ -1086,9 +1088,6 @@ export const OwidDistinctColors = {
     Lime: "#3B8E1D",
     Coral: "#D73C50",
 } as const
-
-export const OwidNoDataGray = "#6e7581"
-// Create some of our own!
 
 export const OwidDistinctColorScheme = {
     name: ColorSchemeName["owid-distinct"],
@@ -1201,5 +1200,55 @@ export const ContinentColorsColorScheme = {
 }
 
 CustomColorSchemes.push(ContinentColorsColorScheme)
+
+export const SingleColorDenim = {
+    name: ColorSchemeName.SingleColorDenim,
+    displayName: "Single color: Denim",
+    singleColorScale: true,
+    isDistinct: true,
+    colorSets: [[OwidDistinctColors.Denim]],
+}
+
+CustomColorSchemes.push(SingleColorDenim)
+
+export const SingleColorTeal = {
+    name: ColorSchemeName.SingleColorTeal,
+    displayName: "Single color: Teal",
+    singleColorScale: true,
+    isDistinct: true,
+    colorSets: [[OwidDistinctColors.Teal]],
+}
+
+CustomColorSchemes.push(SingleColorTeal)
+
+export const SingleColorPurple = {
+    name: ColorSchemeName.SingleColorPurple,
+    displayName: "Single color: Purple",
+    singleColorScale: true,
+    isDistinct: true,
+    colorSets: [[OwidDistinctColors.Purple]],
+}
+
+CustomColorSchemes.push(SingleColorPurple)
+
+export const SingleColorDustyCoral = {
+    name: ColorSchemeName.SingleColorDustyCoral,
+    displayName: "Single color: Dusty coral",
+    singleColorScale: true,
+    isDistinct: true,
+    colorSets: [[OwidDistinctColors.DustyCoral]],
+}
+
+CustomColorSchemes.push(SingleColorDustyCoral)
+
+export const SingleColorDarkCopper = {
+    name: ColorSchemeName.SingleColorDarkCopper,
+    displayName: "Single color: Dark copper",
+    singleColorScale: true,
+    isDistinct: true,
+    colorSets: [[OwidDistinctColors.DarkCopper]],
+}
+
+CustomColorSchemes.push(SingleColorDarkCopper)
 
 export const DefaultColorScheme = OwidDistinctColorScheme

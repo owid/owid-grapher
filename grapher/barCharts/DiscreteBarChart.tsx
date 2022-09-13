@@ -27,7 +27,6 @@ import { ColorSchemes } from "../color/ColorSchemes.js"
 import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     BACKGROUND_COLOR,
-    DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants.js"
@@ -56,7 +55,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigInterface,
 } from "../color/ColorScaleConfig.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { ColorSchemeName, OwidErrorColor } from "../color/ColorConstants.js"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
@@ -616,12 +615,12 @@ export class DiscreteBarChart
         return sortedSeries
     }
 
-    @computed private get colorScheme(): ColorScheme | undefined {
+    @computed private get colorScheme(): ColorScheme {
         // If this DiscreteBarChart stems from a LineChart, we want to match its (default) color
         // scheme OWID Distinct. Otherwise, use an all-blue color scheme (`undefined`) as default.
         const defaultColorScheme = this.manager.isLineChart
             ? ColorSchemes["owid-distinct"]
-            : undefined
+            : ColorSchemes[ColorSchemeName.SingleColorDenim]
 
         return (
             (this.manager.baseColorScheme
@@ -630,10 +629,10 @@ export class DiscreteBarChart
         )
     }
 
-    @computed private get valuesToColorsMap(): Map<number, string> | undefined {
+    @computed private get valuesToColorsMap(): Map<number, string> {
         const { manager, colorScheme, sortedRawSeries } = this
 
-        return colorScheme?.getUniqValueColorMap(
+        return colorScheme.getUniqValueColorMap(
             uniq(sortedRawSeries.map((series) => series.value)),
             !manager.invertColorScheme // negate here to be consistent with how things worked before
         )
@@ -643,7 +642,6 @@ export class DiscreteBarChart
     @computed private get categoricalColorAssigner():
         | CategoricalColorAssigner
         | undefined {
-        if (!this.colorScheme) return undefined
         return new CategoricalColorAssigner({
             colorScheme: this.colorScheme,
             invertColorScheme: this.manager.invertColorScheme,
@@ -764,10 +762,11 @@ export class DiscreteBarChart
                 time,
                 colorValue,
                 seriesName,
+                // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
                 color:
                     color ??
-                    this.valuesToColorsMap?.get(value) ??
-                    DEFAULT_BAR_COLOR,
+                    this.valuesToColorsMap.get(value) ??
+                    OwidErrorColor,
             }
             return series
         })

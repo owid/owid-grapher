@@ -58,4 +58,12 @@ export enum ColorSchemeName {
     continents = "continents",
     stackedAreaDefault = "stackedAreaDefault",
     "owid-distinct" = "owid-distinct",
+    SingleColorDenim = "SingleColorDenim",
+    SingleColorTeal = "SingleColorTeal",
+    SingleColorPurple = "SingleColorPurple",
+    SingleColorDustyCoral = "SingleColorDustyCoral",
+    SingleColorDarkCopper = "SingleColorDarkCopper",
 }
+
+export const OwidNoDataGray = "#6e7581"
+export const OwidErrorColor = "ff0000"
