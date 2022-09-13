@@ -2602,6 +2602,15 @@ apiRouter.get("/gdocs", async (req) => {
     }
 })
 
+apiRouter.get("/gdocs/:id", async (req) => {
+    const { id } = req.params
+    const gdoc = await Gdoc.findOne(id)
+
+    if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
+
+    return gdoc
+})
+
 apiRouter.get("/gdocs/:id/validate", async (req) => {
     const { id } = req.params
     const messages: ValidationMessage[] = []
@@ -2617,15 +2626,36 @@ apiRouter.get("/gdocs/:id/validate", async (req) => {
     return { messages }
 })
 
-apiRouter.post("/gdocs/:id", async (req) => {
+apiRouter.patch("/gdocs/:id", async (req) => {
     const { id } = req.params
+    const patches: GdocsPatch[] = req.body
 
-    const auth = getGoogleAuth()
+    const gdoc = await Gdoc.findOne({ id })
+    if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
-    const content = (await docToArchieML({
-        documentId: id,
-        auth,
-    })) as OwidArticleContent
+    if (!patches) return { gdoc }
+
+    for (const { op, property, payload } of patches) {
+        if (op === GdocsPatchOp.Update) {
+            switch (property) {
+                case "slug":
+                case "title":
+                    gdoc[property] = payload
+                    break
+            }
+        } else if (op === GdocsPatchOp.Refresh) {
+            switch (property) {
+                case "content":
+                    gdoc[property] = await gdoc.getContentFromGdocs(id)
+                    break
+            }
+        }
+    }
+
+    await gdoc.save()
+
+    return gdoc
+})
 
     if (!content.title) throw new JsonError("❌ No title found")
 

@@ -5,6 +5,7 @@ export class AddGoogleDocsPostTable1659996181316 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE \`posts_gdocs\` (
             \`id\` varchar(255) NOT NULL,
             \`slug\` varchar(255) DEFAULT NULL,
+            \`title\` varchar(255) DEFAULT NULL,
             \`content\` json DEFAULT NULL,
             \`published\` tinyint DEFAULT 0 NOT NULL,
             \`createdAt\` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
