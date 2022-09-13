@@ -81,6 +81,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
         <html>
             <Head
                 canonicalUrl={`${baseUrl}/${EXPLORERS_ROUTE_FOLDER}/${slug}`}
+                hideCanonicalUrl // explorers set their canonical url dynamically
                 pageTitle={explorerTitle}
                 imageUrl={thumbnail}
                 baseUrl={baseUrl}
