@@ -15,6 +15,7 @@ import { OwidTable } from "../../coreTable/OwidTable.js"
 import { isNumber } from "../../clientUtils/Util.js"
 import { SortBy, SortOrder } from "../../clientUtils/owidTypes.js"
 import { ColorSchemes } from "../color/ColorSchemes.js"
+import { OwidDistinctColorScheme } from "../color/CustomSchemes.js"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
@@ -51,7 +52,7 @@ describe("barcharts with columns as the series", () => {
         manager.baseColorScheme = ColorSchemeName.Reds
         const chart = new DiscreteBarChart({ manager })
         expect(chart.series[0].color).not.toEqual(
-            ColorSchemes[ColorSchemeName.SingleColorDenim].colorSets[0][0]
+            OwidDistinctColorScheme.colorSets[0][0]
         )
     })
 

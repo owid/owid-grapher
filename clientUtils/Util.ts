@@ -877,6 +877,17 @@ export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
     return diff
 }
 
+/** Tests whether the first argument is a strict subset of the second. The arguments do not have
+    to be sets yet, they can be any iterable. Sets will be created by the function internally */
+export function isStrictSubsetOf<T>(
+    subsetIter: Iterable<T>,
+    supersetIter: Iterable<T>
+): boolean {
+    const subset = new Set(subsetIter)
+    const superset = new Set(supersetIter)
+    return intersectionOfSets([subset, superset]).size === subset.size
+}
+
 // ES6 is now significantly faster than lodash's intersection
 export const intersection = <T>(...arrs: T[][]): T[] => {
     if (arrs.length === 0) return []
