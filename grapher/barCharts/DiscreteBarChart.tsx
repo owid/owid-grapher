@@ -616,14 +616,16 @@ export class DiscreteBarChart
     }
 
     @computed private get colorScheme(): ColorScheme {
-        // If this DiscreteBarChart stems from a LineChart, we want to match its (default) color
-        // scheme OWID Distinct. Otherwise, use an all-blue color scheme (`undefined`) as default.
-        const defaultColorScheme = this.manager.isLineChart
-            ? ColorSchemes["owid-distinct"]
-            : ColorSchemes[ColorSchemeName.SingleColorDenim]
+        // We used to choose owid-distinct here as the default if this is a collapsed line chart but
+        // as part of the color revamp in Autumn 2022 we decided to make bar charts always default to
+        // an all-blue color scheme (singleColorDenim).
+        const defaultColorScheme =
+            ColorSchemes[ColorSchemeName.SingleColorDenim]
 
         return (
-            (this.manager.baseColorScheme
+            (this.manager.isLineChart
+                ? defaultColorScheme
+                : this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
                 : undefined) ?? defaultColorScheme
         )
@@ -753,8 +755,6 @@ export class DiscreteBarChart
     // End of color legend props
 
     @computed get series(): DiscreteBarSeries[] {
-        const { manager } = this
-
         const series = this.sortedRawSeries.map((rawSeries) => {
             const { value, time, colorValue, seriesName, color } = rawSeries
             const series: DiscreteBarSeries = {
@@ -771,17 +771,6 @@ export class DiscreteBarChart
             return series
         })
 
-        if (
-            manager.isLineChart &&
-            !this.hasColorScale &&
-            this.categoricalColorAssigner
-        ) {
-            // For LineChart-based bar charts, we want to assign colors from the color scheme.
-            // This way we get consistent between the DiscreteBarChart and the LineChart (by using the same logic).
-            series.forEach((s) => {
-                s.color = this.categoricalColorAssigner!.assign(s.seriesName)
-            })
-        }
         return series
     }
 }
