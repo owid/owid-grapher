@@ -1,3 +1,4 @@
+import { encodeXML } from "entities"
 import { Chart } from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
@@ -20,14 +21,16 @@ interface SitemapUrl {
 }
 
 const xmlify = (url: SitemapUrl) => {
+    const escapedUrl = encodeXML(url.loc)
+
     if (url.lastmod)
         return `    <url>
-        <loc>${url.loc}</loc>
+        <loc>${escapedUrl}</loc>
         <lastmod>${url.lastmod}</lastmod>
     </url>`
 
     return `    <url>
-        <loc>${url.loc}</loc>
+        <loc>${escapedUrl}</loc>
     </url>`
 }
 
