@@ -1,8 +1,5 @@
 .wp-block-research-and-writing {
     @include grid-12;
-    background-color: #fff;
-    // faking a page-wide white background until sections are reworked
-    box-shadow: 50vw 0px 0 0 white, -50vw 0px 0 0 white;
     padding-bottom: 48px;
 
     // "Research & Writing" heading

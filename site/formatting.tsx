@@ -26,6 +26,7 @@ import { SectionHeading } from "./SectionHeading.js"
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 export const SUMMARY_CLASSNAME = "wp-block-owid-summary"
 export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
+export const KEY_INSIGHTS_H2_CLASSNAME = "key-insights-heading"
 
 export const formatUrls = (html: string) =>
     html
@@ -392,6 +393,7 @@ const addTocToSections = (
         .filter(($el) => {
             return (
                 $el.closest(`.${SUMMARY_CLASSNAME}`).length === 0 &&
+                $el.closest(`.${KEY_INSIGHTS_H2_CLASSNAME}`).length === 0 &&
                 $el.closest(`.${RESEARCH_AND_WRITING_CLASSNAME}`).length === 0
             )
         })

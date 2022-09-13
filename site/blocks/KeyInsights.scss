@@ -78,8 +78,8 @@ $slide-content-height: $grapher-height;
 
         &:hover {
             cursor: pointer;
-            background-color: $accent-pale-blue;
-            border-color: $accent-pale-blue;
+            background-color: $gray-10;
+            border-color: $gray-10;
         }
 
         &[aria-selected="true"] {
