@@ -651,7 +651,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 }
 
 hr {
-    color: lightgrey;
+    color: $blue-20;
     border-bottom: none;
     border-left: none;
     border-right: none;
@@ -681,6 +681,8 @@ hr {
 
     ol.endnotes {
         margin-top: 1em;
+        padding-bottom: 24px;
+        border-bottom: 1px solid $blue-20;
     }
 
     ol.endnotes > li {
