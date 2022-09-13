@@ -5,9 +5,6 @@ import { User } from "../db/model/User.js"
 import * as db from "../db/db.js"
 import {
     CLOUDFLARE_AUD,
-    GDOCS_CLIENT_EMAIL,
-    GDOCS_CLIENT_ID,
-    GDOCS_PRIVATE_KEY,
     SECRET_KEY,
     SESSION_COOKIE_AGE,
 } from "../settings/serverSettings.js"
@@ -16,7 +13,6 @@ import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
 import { ADMIN_BASE_URL, ENV } from "../settings/serverSettings.js"
 import { JsonError } from "../clientUtils/owidTypes.js"
-import { GoogleAuth } from "google-auth-library"
 
 export type CurrentUser = User
 
@@ -220,17 +216,4 @@ export async function logInWithCredentials(
         return logInAsUser(user)
 
     throw new Error("Invalid password")
-}
-
-export const getGoogleAuth = () => {
-    return new GoogleAuth({
-        credentials: {
-            type: "service_account",
-            private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
-            client_email: GDOCS_CLIENT_EMAIL,
-            client_id: GDOCS_CLIENT_ID,
-        },
-        // Scopes can be specified either as an array or as a single, space-delimited string.
-        scopes: ["https://www.googleapis.com/auth/documents.readonly"],
-    })
 }

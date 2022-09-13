@@ -395,6 +395,7 @@ export interface OwidArticleBlock {
 export interface OwidArticleType {
     id: string
     slug: string
+    title: string
     content: OwidArticleContent
     published: boolean
     createdAt: Date
@@ -414,4 +415,15 @@ export interface OwidArticleContent {
     citation?: OwidArticleBlock[]
     "cover-image"?: any
     "featured-image"?: any
+}
+
+export enum GdocsPatchOp {
+    Update = "update",
+    Refresh = "refresh",
+}
+
+export interface GdocsPatch {
+    op: GdocsPatchOp
+    property: keyof OwidArticleType
+    payload: string
 }
