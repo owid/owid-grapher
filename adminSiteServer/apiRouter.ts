@@ -76,10 +76,10 @@ import {
 
 import { Detail } from "../grapher/core/GrapherConstants.js"
 import {
-    DatelineHandler,
+    ErrorMessage,
+    SlugHandler,
     TitleHandler,
-    ValidationMessage,
-} from "./gdocsValidation.js"
+} from "../adminSiteClient/gdocsValidation.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2606,17 +2606,17 @@ apiRouter.get("/gdocs/:id", async (req) => {
 
 apiRouter.get("/gdocs/:id/validate", async (req) => {
     const { id } = req.params
-    const messages: ValidationMessage[] = []
+    const errors: ErrorMessage[] = []
 
     const gdoc = await Gdoc.findOne({ id })
 
     if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
     const titleHandler = new TitleHandler()
-    titleHandler.setNext(new DatelineHandler())
+    titleHandler.setNext(new SlugHandler())
 
-    titleHandler.handle(gdoc, messages)
-    return { messages }
+    titleHandler.handle(gdoc, errors)
+    return errors
 })
 
 apiRouter.patch("/gdocs/:id", async (req) => {
