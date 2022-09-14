@@ -10,8 +10,13 @@ import {
 } from "../clientUtils/owidTypes.js"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 
-export const GdocsSettings = ({ id }: { id: string }) => {
-    const [gdoc, setGdoc] = React.useState<OwidArticleType>()
+export const GdocsSettings = ({
+    gdoc,
+    setGdoc,
+}: {
+    gdoc: OwidArticleType
+    setGdoc: (gdoc: OwidArticleType) => void
+}) => {
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
 
     const { admin } = useContext(AdminAppContext)
@@ -32,18 +37,8 @@ export const GdocsSettings = ({ id }: { id: string }) => {
             { op: GdocsPatchOp.Update, property: "slug", payload: gdoc.slug },
         ]
 
-        await admin.requestJSON(`/api/gdocs/${id}`, gdocsPatches, "PATCH")
+        await admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdocsPatches, "PATCH")
     }
-
-    useEffect(() => {
-        const fetchGdoc = async () => {
-            const gdoc = (await admin.getJSON(
-                `/api/gdocs/${id}`
-            )) as OwidArticleType
-            setGdoc(gdoc)
-        }
-        fetchGdoc()
-    }, [id, admin])
 
     useEffect(() => {
         if (!gdoc) return
@@ -55,7 +50,7 @@ export const GdocsSettings = ({ id }: { id: string }) => {
             <div className="form-group">
                 <p>
                     <a
-                        href={`https://docs.google.com/document/d/${id}/edit`}
+                        href={`https://docs.google.com/document/d/${gdoc.id}/edit`}
                         target="_blank"
                         rel="noopener"
                     >
