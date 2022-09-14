@@ -6,19 +6,19 @@ import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons/faCloudArrowUp
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { GdocsPatch, OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { GdocsSettings } from "./GdocsSettings.js"
 
-interface MatchParams {
+interface GdocsMatchParams {
     id: string
 }
 
-type MatchProps = RouteComponentProps<MatchParams>
+export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
 
-export const GdocsIndexPage = ({ match, history }: MatchProps) => {
+export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
     const [gdocs, setGdocs] = React.useState<OwidArticleType[]>([])
 
     const { admin } = useContext(AdminAppContext)
@@ -41,20 +41,11 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
         )) as OwidArticleType
         setGdocs([...gdocs, gdoc])
 
-        history.push(`/gdocs/${id}/settings`)
-    }
-
-    const onSaveSettings = async (id: string, gdocsPatches: GdocsPatch[]) => {
-        const gdocUpdated = (await admin.requestJSON(
-            `/api/gdocs/${id}`,
-            gdocsPatches,
-            "PATCH"
-        )) as OwidArticleType
-        setGdocs(gdocs.map((gdoc) => (gdoc.id === id ? gdocUpdated : gdoc)))
+        history.push(`/gdocs/${id}/edit`)
     }
 
     return (
-        <AdminLayout title="Google Docs Articles">
+        <AdminLayout title="Google Docs">
             <main>
                 <FieldsRow>
                     <span>
@@ -107,6 +98,12 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
                                         <FontAwesomeIcon icon={faGear} />
                                         Settings
                                     </Link>
+                                    <Link
+                                        to={`${match.url}/${gdoc.id}/edit`}
+                                        className="btn btn-primary"
+                                    >
+                                        Edit
+                                    </Link>
                                 </td>
                             </tr>
                         ))}
@@ -138,11 +135,7 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
                     const onClose = () => history.push(match.url)
                     return (
                         <Modal onClose={onClose}>
-                            <GdocsSettings
-                                onClose={onClose}
-                                onSaveSettings={onSaveSettings}
-                                id={localMatch.params.id}
-                            />
+                            <GdocsSettings id={localMatch.params.id} />
                         </Modal>
                     )
                 }}

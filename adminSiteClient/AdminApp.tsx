@@ -43,6 +43,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { DetailsOnDemandPage } from "./DetailsOnDemand.js"
 import { GdocsIndexPage } from "./GdocsIndexPage.js"
+import { GdocsEditPage } from "./GdocsEditPage.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -292,6 +293,11 @@ export class AdminApp extends React.Component<{
                                         postId={parseInt(match.params.postId)}
                                     />
                                 )}
+                            />
+                            <Route
+                                exact
+                                path="/gdocs/:id/edit"
+                                component={GdocsEditPage}
                             />
                             <Route path="/gdocs" component={GdocsIndexPage} />
                             <Route
