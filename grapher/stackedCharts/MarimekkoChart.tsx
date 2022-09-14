@@ -59,7 +59,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants.js"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { ColorScheme } from "../color/ColorScheme.js"
@@ -325,7 +325,7 @@ export class MarimekkoChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     defaultBaseColorScheme = ColorSchemeName.continents
-    defaultNoDataColor = "#959595"
+    defaultNoDataColor = OwidNoDataGray
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     transformTable(table: OwidTable): OwidTable {

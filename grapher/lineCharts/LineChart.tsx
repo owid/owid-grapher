@@ -69,7 +69,7 @@ import {
     ColorScaleConfigInterface,
 } from "../color/ColorScaleConfig.js"
 import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants.js"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline.js"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
@@ -843,7 +843,7 @@ export class LineChart
     }
 
     defaultBaseColorScheme = ColorSchemeName.YlGnBu
-    defaultNoDataColor = "#959595"
+    defaultNoDataColor = OwidNoDataGray
     transformColor = darkenColorForLine
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
