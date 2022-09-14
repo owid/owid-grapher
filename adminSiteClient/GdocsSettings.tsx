@@ -40,6 +40,7 @@ export const GdocsSettings = ({
             { op: GdocsPatchOp.Update, property: "slug", payload: gdoc.slug },
         ]
         onSaveSettings(id, gdocsPatches)
+        onClose()
     }
 
     useEffect(() => {

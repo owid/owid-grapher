@@ -149,11 +149,15 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
             />
             <Route
                 path={`${match.path}/add`}
-                render={() => (
-                    <Modal onClose={() => history.push(match.url)}>
-                        <GdocsAdd onAdd={onAdd} />
-                    </Modal>
-                )}
+                render={() => {
+                    const onClose = () => history.push(match.url)
+
+                    return (
+                        <Modal onClose={onClose}>
+                            <GdocsAdd onAdd={onAdd} />
+                        </Modal>
+                    )
+                }}
             />
         </AdminLayout>
     )
