@@ -23,13 +23,6 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
 
     const { admin } = useContext(AdminAppContext)
 
-    const validate = async (id: string) => {
-        const json = await admin.getJSON(`/api/gdocs/${id}/validate`)
-
-        // todo
-        console.log(json)
-    }
-
     useEffect(() => {
         const fetchGodcs = async () => {
             const gdocs = (await admin.getJSON(
@@ -95,9 +88,14 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
                     <tbody>
                         {gdocs.map((gdoc) => (
                             <tr key={gdoc.slug}>
+                                <td>{gdoc.title}</td>
+                                <td>{gdoc.slug}</td>
+                                <td>Type</td>
+                                <td>Status</td>
+                                <td>Tags</td>
+                                <td>Last Updated</td>
                                 <td>
-                                    {gdoc.title}
-                                    <button onClick={() => validate(gdoc.id)}>
+                                    <button>
                                         <FontAwesomeIcon
                                             icon={faCloudArrowUp}
                                         />
@@ -110,12 +108,6 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
                                         Settings
                                     </Link>
                                 </td>
-                                <td>Authors</td>
-                                <td>Type</td>
-                                <td>Status</td>
-                                <td>Tags</td>
-                                <td>Last Updated</td>
-                                <td></td>
                             </tr>
                         ))}
                         {/* {postsToShow.map((post) => (
