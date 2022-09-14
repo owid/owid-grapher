@@ -6,7 +6,7 @@ import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons/faCloudArrowUp
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import { GdocsPatch, OwidArticleType } from "../clientUtils/owidTypes.js"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
@@ -49,6 +49,15 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
         setGdocs([...gdocs, gdoc])
 
         history.push(`/gdocs/${id}/settings`)
+    }
+
+    const onSaveSettings = async (id: string, gdocsPatches: GdocsPatch[]) => {
+        const gdocUpdated = (await admin.requestJSON(
+            `/api/gdocs/${id}`,
+            gdocsPatches,
+            "PATCH"
+        )) as OwidArticleType
+        setGdocs(gdocs.map((gdoc) => (gdoc.id === id ? gdocUpdated : gdoc)))
     }
 
     return (
@@ -139,6 +148,7 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
                         <Modal onClose={onClose}>
                             <GdocsSettings
                                 onClose={onClose}
+                                onSaveSettings={onSaveSettings}
                                 id={localMatch.params.id}
                             />
                         </Modal>
