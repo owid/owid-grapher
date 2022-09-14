@@ -211,7 +211,7 @@ function internalGenerator(
         const pole = internalInfo.pole
         regionPoints = internalInfo.points
         let t1, t2, t3, t4
-        let check = false
+        let fitsInsideCountry = false
         // Check if internal annotation lies within a country's polygon and if so,
         // try to increase the font size as much as possible till it hits maxSize
         while (fontSize < maxSize) {
@@ -241,13 +241,13 @@ function internalGenerator(
                 polygonContains(t1, regionPoints)
             ) {
                 fontSize++
-                check = true
+                fitsInsideCountry = true
             } else break
         }
         // check is true implies it is confirmed that we have a valid internal annotation
         // otherwise the country is added to externalInfo to check if we can display an
         // external annotation for it
-        if (check === true) {
+        if (fitsInsideCountry === true) {
             internalAnnotations.push({
                 id: country.id,
                 position: new PointVector(
@@ -361,27 +361,24 @@ function getCandidateInfo(
             const r3 = [x.bounds.topRight.x, x.bounds.topRight.y]
             const r4 = [x.bounds.topLeft.x, x.bounds.topLeft.y]
             const rectPoints = [r1, r2, r3, r4, r1]
-            const firstPoint = x.path.slice(1, x.path.indexOf("L")).split(",")
             const labelPoints = [...getLabelRect(p, textWidth, fontSize), p]
-            // Check if country lies inside the label
-            if (
-                polygonContains(
-                    [Number(firstPoint[0]), Number(firstPoint[1])],
-                    labelPoints
-                )
-            ) {
-                canAvoidCountries = false
-                break
+            const regions = regionsCache.filter((el) => el.id === x.id)
+            // Check if a region of the country lies completely inside the label
+            for (const region of regions) {
+                if (polygonContains(region.points[0], labelPoints)) {
+                    canAvoidCountries = false
+                    break
+                }
             }
             // Check if label intersects or lies inside the country's bounds
             if (
-                rectIntersection(
+                canAvoidCountries === true &&
+                (rectIntersection(
                     getLabelRect(p, textWidth, fontSize),
                     rectPoints
                 ) ||
-                polygonContains(p, rectPoints)
+                    polygonContains(p, rectPoints))
             ) {
-                const regions = regionsCache.filter((el) => el.id === x.id)
                 // Check if label intersects or lies inside the country polygon
                 for (const region of regions) {
                     if (
@@ -399,12 +396,12 @@ function getCandidateInfo(
             // Check if marking line intersects the country's bounds
             // Excluding origin country since marker already touches a border point
             if (
+                canAvoidCountries === true &&
                 x.id != country.id &&
                 rectIntersection([r1, r2, r3, r4], [point, markerEnd])
             ) {
-                const regions = regionsCache.filter((el) => el.id === x.id)
                 // Check if marking line intersects the country polygon
-                for (const region of regions)
+                for (const region of regions) {
                     for (let i = 0; i < region.points.length - 1; i++) {
                         if (
                             lineIntersection(
@@ -418,6 +415,8 @@ function getCandidateInfo(
                             break
                         }
                     }
+                    if (canAvoidCountries === false) break
+                }
             }
         }
         if (canAvoidCountries == true) break
