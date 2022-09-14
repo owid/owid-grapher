@@ -6,7 +6,7 @@ import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons/faCloudArrowUp
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { Gdoc } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
@@ -19,11 +19,11 @@ interface MatchParams {
 type MatchProps = RouteComponentProps<MatchParams>
 
 export const GdocsIndexPage = ({ match, history }: MatchProps) => {
-    const [gdocs, setGdocs] = React.useState<Gdoc[]>([])
+    const [gdocs, setGdocs] = React.useState<OwidArticleType[]>([])
 
     const { admin } = useContext(AdminAppContext)
 
-    const validate = async (id: number) => {
+    const validate = async (id: string) => {
         const json = await admin.getJSON(`/api/gdocs/${id}/validate`)
 
         // todo
@@ -32,11 +32,24 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
 
     useEffect(() => {
         const fetchGodcs = async () => {
-            const gdocs = (await admin.getJSON("/api/gdocs")) as Gdoc[]
+            const gdocs = (await admin.getJSON(
+                "/api/gdocs"
+            )) as OwidArticleType[]
             setGdocs(gdocs)
         }
         fetchGodcs()
     }, [admin])
+
+    const onAdd = async (id: string) => {
+        const gdoc = (await admin.requestJSON(
+            `/api/gdocs/${id}`,
+            {},
+            "PUT"
+        )) as OwidArticleType
+        setGdocs([...gdocs, gdoc])
+
+        history.push(`/gdocs/${id}/settings`)
+    }
 
     return (
         <AdminLayout title="Google Docs Articles">
@@ -74,7 +87,7 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
                         {gdocs.map((gdoc) => (
                             <tr key={gdoc.slug}>
                                 <td>
-                                    {gdoc.slug}
+                                    {gdoc.title}
                                     <button onClick={() => validate(gdoc.id)}>
                                         <FontAwesomeIcon
                                             icon={faCloudArrowUp}
@@ -136,7 +149,7 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
                 path={`${match.path}/add`}
                 render={() => (
                     <Modal onClose={() => history.push(match.url)}>
-                        <GdocsAdd />
+                        <GdocsAdd onAdd={onAdd} />
                     </Modal>
                 )}
             />

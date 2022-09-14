@@ -1,12 +1,11 @@
-import React, { useContext } from "react"
-import { AdminAppContext } from "./AdminAppContext.js"
+import React from "react"
 
-export const GdocsAdd = () => {
-    const [documentTitle, setDocumentTitle] = React.useState(false)
+export const GdocsAdd = ({
+    onAdd,
+}: {
+    onAdd: (id: string) => Promise<void>
+}) => {
     const [documentUrl, setDocumentUrl] = React.useState("")
-    const [responseSuccess, setResponseSuccess] = React.useState(false)
-
-    const { admin } = useContext(AdminAppContext)
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -17,18 +16,12 @@ export const GdocsAdd = () => {
         // handled by HTML5 validation below
         if (!match) return
 
-        const documentId = match[1]
-        const json = await admin.requestJSON(
-            `/api/gdocs/${documentId}`,
-            {},
-            "POST"
-        )
+        const id = match[1]
 
-        setDocumentTitle(json.gdoc.content.title)
-        setResponseSuccess(true)
+        onAdd(id)
     }
     return (
-        <form className="GdocAddForm" onSubmit={onSubmit}>
+        <form className="GdocsAddForm" onSubmit={onSubmit}>
             <div className="modal-header">
                 <h5 className="modal-title">Add a document</h5>
             </div>
@@ -52,17 +45,10 @@ export const GdocsAdd = () => {
                 </div>
             </div>
             <div className="modal-footer">
-                <input
-                    type="submit"
-                    className="btn btn-primary"
-                    value="Add document"
-                />
+                <button type="submit" className="btn btn-primary">
+                    Add document
+                </button>
             </div>
-            {responseSuccess && (
-                <div className="alert alert-success" role="alert">
-                    {`Document '${documentTitle}' added successfully!`}
-                </div>
-            )}
         </form>
     )
 }

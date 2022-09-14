@@ -23,7 +23,7 @@ export const GdocsSettings = ({
             setTitle(gdoc.title)
         }
         fetchData()
-    }, [id])
+    }, [admin, id])
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
