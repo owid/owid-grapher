@@ -558,10 +558,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 .article-content .section-heading {
     .wrapper {
         @include content-wrapper;
-        @include lg-up {
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
-        }
     }
     @include full-width;
     padding-top: 2.5rem;
@@ -633,13 +629,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 }
 
 .with-sidebar .section-heading {
-    @include md-up {
-        // position: relative;
-        // width: calc(100vw - #{$sidebar-closed-drawer-width});
-        // left: $sidebar-closed-drawer-width;
-        // margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
-    }
-
     @include xxlg-up {
         position: relative;
         width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});

@@ -24,6 +24,7 @@
 
 @mixin cancel-link-styles {
     color: $primary-color-800;
+    text-decoration: none;
     &:visited {
         color: $primary-color-800;
     }
