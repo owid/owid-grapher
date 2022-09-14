@@ -32,8 +32,8 @@ export const GdocsIndexPage = ({ match, history }: MatchProps) => {
 
     useEffect(() => {
         const fetchGodcs = async () => {
-            const json = await admin.getJSON("/api/gdocs")
-            setGdocs(json.gdocs)
+            const gdocs = (await admin.getJSON("/api/gdocs")) as Gdoc[]
+            setGdocs(gdocs)
         }
         fetchGodcs()
     }, [admin])
