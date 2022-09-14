@@ -8,12 +8,13 @@ import { GdocsPatch, GdocsPatchOp } from "../clientUtils/owidTypes.js"
 export const GdocsSettings = ({
     id,
     onClose,
+    onSaveSettings,
 }: {
     id: string
     onClose: VoidFunction
+    onSaveSettings: (id: string, gdocsPatches: GdocsPatch[]) => Promise<void>
 }) => {
     const [title, setTitle] = React.useState("")
-    const [responseSuccess, setResponseSuccess] = React.useState(false)
 
     const { admin } = useContext(AdminAppContext)
 
@@ -31,10 +32,7 @@ export const GdocsSettings = ({
         const gdocsPatches: GdocsPatch[] = [
             { op: GdocsPatchOp.Update, property: "title", payload: title },
         ]
-
-        await admin.requestJSON(`/api/gdocs/${id}`, gdocsPatches, "PATCH")
-
-        setResponseSuccess(true)
+        onSaveSettings(id, gdocsPatches)
     }
     return (
         <form className="GdocsSettingsForm" onSubmit={onSubmit}>
@@ -72,11 +70,6 @@ export const GdocsSettings = ({
                 </button>
                 <button className="btn btn-primary">Save</button>
             </div>
-            {responseSuccess && (
-                <div className="alert alert-success" role="alert">
-                    {`✅ Settings saved!`}
-                </div>
-            )}
         </form>
     )
 }
