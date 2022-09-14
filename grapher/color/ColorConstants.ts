@@ -63,6 +63,11 @@ export enum ColorSchemeName {
     SingleColorPurple = "SingleColorPurple",
     SingleColorDustyCoral = "SingleColorDustyCoral",
     SingleColorDarkCopper = "SingleColorDarkCopper",
+    OwidCategoricalA = "OwidCategoricalA",
+    OwidCategoricalB = "OwidCategoricalB",
+    OwidCategoricalC = "OwidCategoricalC",
+    OwidCategoricalD = "OwidCategoricalD",
+    OwidCategoricalE = "OwidCategoricalE",
 }
 
 export const OwidNoDataGray = "#6e7581"
