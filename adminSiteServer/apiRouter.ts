@@ -13,12 +13,7 @@ import {
 } from "../settings/serverSettings.js"
 import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
-import {
-    Request,
-    Response,
-    CurrentUser,
-    getGoogleAuth,
-} from "./authentication.js"
+import { Request, Response, CurrentUser } from "./authentication.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { applyPatch } from "../clientUtils/patchHelper.js"
 import {
@@ -26,7 +21,8 @@ import {
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface.js"
 import {
-    OwidArticleContent,
+    GdocsPatch,
+    GdocsPatchOp,
     SuggestedChartRevisionStatus,
 } from "../clientUtils/owidTypes.js"
 import {
@@ -77,7 +73,6 @@ import {
     slugify,
     trimObject,
 } from "../clientUtils/Util.js"
-import { docToArchieML } from "@ourworldindata/doc-to-archieml"
 
 import { Detail } from "../grapher/core/GrapherConstants.js"
 import {
@@ -2655,17 +2650,18 @@ apiRouter.patch("/gdocs/:id", async (req) => {
     return gdoc
 })
 
-    if (!content.title) throw new JsonError("❌ No title found")
+apiRouter.put("/gdocs/:id", async (req) => {
+    const { id } = req.params
 
     const gdoc = new Gdoc()
     gdoc.id = id
-    gdoc.content = content
+    gdoc.content = await gdoc.getContentFromGdocs(id)
 
     await getRepository(Gdoc).insert(gdoc)
     // this silently updates the gdoc if it already exists
-    //await gdoc.save()
+    // await gdoc.save()
 
-    return { success: true, gdoc }
+    return gdoc
 })
 
 export { apiRouter }
