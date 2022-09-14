@@ -8,6 +8,11 @@
     @include owid-link-90;
 }
 
+.article-content .ref {
+    color: $vermillion;
+    text-decoration: none;
+}
+
 /*******************************************************************************
  * Figures, images
  */

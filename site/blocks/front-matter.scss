@@ -87,6 +87,7 @@
 
         a {
             @include owid-link-90;
+            text-decoration: none;
         }
 
         a:after {
