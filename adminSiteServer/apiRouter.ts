@@ -2597,9 +2597,7 @@ apiRouter.put("/details/:id", async (req, res) => {
 })
 
 apiRouter.get("/gdocs", async (req) => {
-    return {
-        gdocs: await Gdoc.find(),
-    }
+    return Gdoc.find()
 })
 
 apiRouter.get("/gdocs/:id", async (req) => {
