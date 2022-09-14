@@ -10,7 +10,6 @@ import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
-import { GdocsSettings } from "./GdocsSettings.js"
 
 interface GdocsMatchParams {
     id: string
@@ -127,19 +126,6 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                     )} */}
             </main>
 
-            <Route
-                path={`${match.path}/:id/settings`}
-                // "match" is from the parent route, and hence doesn't have the id
-                // param
-                render={({ match: localMatch }) => {
-                    const onClose = () => history.push(match.url)
-                    return (
-                        <Modal onClose={onClose}>
-                            <GdocsSettings id={localMatch.params.id} />
-                        </Modal>
-                    )
-                }}
-            />
             <Route
                 path={`${match.path}/add`}
                 render={() => {
