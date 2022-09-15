@@ -65,6 +65,7 @@ class DimensionSlotView extends React.Component<{
         grapher.updateAuthoredVersion({
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
+        this.updateDimensionsFromProps()
 
         this.isSelectingVariables = false
     }
@@ -83,7 +84,12 @@ class DimensionSlotView extends React.Component<{
         grapher.updateAuthoredVersion({
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
+        this.updateDimensionsFromProps()
         grapher.rebuildInputOwidTable()
+    }
+
+    @action.bound private onChangeDimension() {
+        this.updateLegacySelectionAndRebuildTable()
     }
 
     private updateDefaults() {
@@ -109,6 +115,10 @@ class DimensionSlotView extends React.Component<{
         }
     }
 
+    private updateDimensionsFromProps() {
+        this.dimensionsInDisplayOrder = [...this.props.slot.dimensions]
+    }
+
     componentDidMount() {
         this.disposers.push(
             reaction(
@@ -118,9 +128,7 @@ class DimensionSlotView extends React.Component<{
                         this.props.slot.dimensions.length !==
                         this.dimensionsInDisplayOrder.length
                     )
-                        this.dimensionsInDisplayOrder = [
-                            ...this.props.slot.dimensions,
-                        ]
+                        this.updateDimensionsFromProps()
                 },
                 { fireImmediately: true }
             )
@@ -159,6 +167,7 @@ class DimensionSlotView extends React.Component<{
         this.grapher.updateAuthoredVersion({
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
+        grapher.seriesColorMap?.clear()
         this.grapher.rebuildInputOwidTable()
     }
 
@@ -166,10 +175,6 @@ class DimensionSlotView extends React.Component<{
         this.draggingColumnSlug = undefined
         window.removeEventListener("mouseup", this.onMouseUp)
 
-        this.updateLegacySelectionAndRebuildTable()
-    }
-
-    @action.bound onBlur() {
         this.updateLegacySelectionAndRebuildTable()
     }
 
@@ -205,7 +210,7 @@ class DimensionSlotView extends React.Component<{
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
 
         return (
-            <div onBlur={this.onBlur}>
+            <div>
                 <h5>{slot.name}</h5>
                 <EditableList>
                     {this.dimensionsInDisplayOrder.map((dim) => {
@@ -215,6 +220,7 @@ class DimensionSlotView extends React.Component<{
                                     key={dim.columnSlug}
                                     dimension={dim}
                                     editor={editor}
+                                    onChange={this.onChangeDimension}
                                     onEdit={
                                         slot.allowMultiple
                                             ? undefined

@@ -14,19 +14,26 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
+.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate
+
 help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
 	@echo '  make up            start dev environment via docker-compose and tmux'
 	@echo '  make down          stop any services still running'
-	@echo '  make refresh       download a new grapher snapshot and update MySQL'
+	@echo '  make refresh       (while up) download a new grapher snapshot and update MySQL'
+	@echo '  make migrate       (while up) run any outstanding db migrations'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
 	@echo '  make up.full       start dev environment via docker-compose and tmux'
 	@echo '  make down.full     stop any services still running'
 	@echo '  make refresh.wp    download a new wordpress snapshot and update MySQL'
 	@echo '  make refresh.full  do a full MySQL update of both wordpress and grapher'
+	@echo
+	@echo '  OPS (staff-only)'
+	@echo '  make deploy        Deploy your local site to production'
+	@echo '  make stage         Deploy your local site to staging'
 	@echo
 
 up: export DEBUG = 'knex:query'
@@ -99,6 +106,10 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 		bind Q kill-server \; \
 		set -g mouse on \
 		|| make down.full
+
+migrate:
+	@echo '==> Running DB migrations'
+	yarn && yarn buildTsc && yarn runDbMigrations
 
 refresh:
 	@echo '==> Downloading chart data'
@@ -189,3 +200,25 @@ wordpress/.env:
 wordpress/web/app/uploads/2022:
 	@echo '==> Downloading wordpress uploads'
 	./devTools/docker/download-wordpress-uploads.sh
+
+deploy:
+	@echo '==> Starting from a clean slate...'
+	rm -rf itsJustJavascript
+	
+	@echo '==> Building...'
+	yarn
+	yarn run tsc -b
+	
+	@echo '==> Deploying...'
+	yarn buildAndDeploySite live
+
+stage:
+	@echo '==> Starting from a clean slate...'
+	rm -rf itsJustJavascript
+	
+	@echo '==> Building...'
+	yarn
+	yarn run tsc -b
+	
+	@echo '==> Deploying to staging...'
+	yarn buildAndDeploySite staging

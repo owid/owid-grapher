@@ -215,4 +215,10 @@ export const GrapherGrammar: Grammar = {
         keyword: "relatedQuestionUrl",
         description: "The link of the related question text",
     },
+    mapTargetTime: {
+        ...IntegerCellDef,
+        keyword: "mapTargetTime",
+        description:
+            "Set the 'target time' for the map chart. This is the year that will be shown by default in the map chart.",
+    },
 } as const

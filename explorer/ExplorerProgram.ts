@@ -50,6 +50,7 @@ interface ExplorerGrapherInterface extends GrapherInterface {
     facetYDomain?: FacetAxisDomain
     relatedQuestionText?: string
     relatedQuestionUrl?: string
+    mapTargetTime?: number
 }
 
 const ExplorerRootDef: CellDef = {
@@ -181,6 +182,13 @@ export class ExplorerProgram extends GridProgram {
         return this.clone.setLineValue(
             ExplorerGrammar.isPublished.keyword,
             value ? GridBoolean.true : GridBoolean.false
+        )
+    }
+
+    get indexViewsSeparately() {
+        return (
+            this.getLineValue(ExplorerGrammar.indexViewsSeparately.keyword) ===
+            GridBoolean.true
         )
     }
 
