@@ -21,6 +21,7 @@ import {
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface.js"
 import {
+    GdocsContentSource,
     GdocsPatch,
     GdocsPatchOp,
     SuggestedChartRevisionStatus,
@@ -2597,11 +2598,20 @@ apiRouter.get("/gdocs", async (req) => {
 
 apiRouter.get("/gdocs/:id", async (req) => {
     const { id } = req.params
+    const contentSource = req.query.contentSource as
+        | GdocsContentSource
+        | undefined
+
     const gdoc = await Gdoc.findOne(id)
 
     if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
-    return gdoc
+    if (contentSource === GdocsContentSource.Gdocs) {
+        const content = await gdoc.getContentFromGdocs(id)
+        return { ...gdoc, content }
+    } else {
+        return gdoc
+    }
 })
 
 apiRouter.get("/gdocs/:id/validate", async (req) => {

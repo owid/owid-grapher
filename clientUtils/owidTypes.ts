@@ -427,3 +427,8 @@ export interface GdocsPatch {
     property: keyof OwidArticleType
     payload: string
 }
+
+export enum GdocsContentSource {
+    Internal = "internal",
+    Gdocs = "gdocs",
+}
