@@ -842,7 +842,7 @@ export class LineChart
         )
     }
 
-    defaultBaseColorScheme = ColorSchemeName.YlGnBu
+    defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
     defaultNoDataColor = OwidNoDataGray
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
@@ -936,7 +936,7 @@ export class LineChart
         return (
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
-                : null) ?? ColorSchemes["owid-distinct"]
+                : null) ?? ColorSchemes[this.defaultBaseColorScheme]
         )
     }
 
