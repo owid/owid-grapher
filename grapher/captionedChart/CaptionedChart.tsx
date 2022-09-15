@@ -449,6 +449,22 @@ export class StaticCaptionedChart extends CaptionedChart {
                 height={height}
                 viewBox={`0 0 ${width} ${height}`}
             >
+                <defs>
+                    <pattern
+                        id={Patterns.noDataPattern}
+                        key={Patterns.noDataPattern}
+                        patternUnits="userSpaceOnUse"
+                        width="4"
+                        height="4"
+                        patternTransform="rotate(-45 2 2)"
+                    >
+                        <path
+                            d="M -1,2 l 6,0"
+                            stroke="#ccc"
+                            strokeWidth="0.7"
+                        />
+                    </pattern>
+                </defs>
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
                 {this.footer.renderStatic(

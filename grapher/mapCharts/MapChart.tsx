@@ -615,16 +615,6 @@ export class MapChart
 
         return (
             <g ref={this.base} className="mapTab">
-                <pattern
-                    id="diagonalHatch"
-                    key="diagonalHatch"
-                    patternUnits="userSpaceOnUse"
-                    width="4"
-                    height="4"
-                    patternTransform="rotate(-45 2 2)"
-                >
-                    <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="0.7" />
-                </pattern>
                 <ChoroplethMap manager={this} />
                 {this.renderMapLegend()}
                 {this.manager.isExportingtoSvgOrPng ? null : ( // only use projection chooser if we are not exporting
