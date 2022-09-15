@@ -87,12 +87,12 @@ export const GdocsSettings = ({
                 />
             </div>
             <div className="d-flex justify-content-end">
-                <button type="button" className="btn btn-secondary mr-2">
-                    Cancel
+                <button type="button" className="btn btn-primary">
+                    Done
                 </button>
-                <button disabled={!isValid} className="btn btn-primary">
+                {/* <button disabled={!isValid} className="btn btn-primary">
                     Save
-                </button>
+                </button> */}
             </div>
         </form>
     ) : null

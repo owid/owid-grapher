@@ -667,7 +667,7 @@ body {
     }
 }
 
-main:not(.ChartEditorPage) {
+main:not(.ChartEditorPage):not(.GdocsEditPage) {
     padding: 2em;
 }
 
@@ -1237,8 +1237,10 @@ main:not(.ChartEditorPage) {
         list-style-position: inside;
     }
 }
-
-.GdocsSettingsForm {
-    flex: 0 0 300px;
-    margin-right: 20px;
+.GdocsEditPage {
+    .settings-toggle {
+        position: fixed;
+        bottom: 10%;
+        right: 0;
+    }
 }
