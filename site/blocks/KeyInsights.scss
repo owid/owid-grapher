@@ -35,7 +35,7 @@ $slide-content-height: $grapher-height;
         align-items: center;
         justify-content: center;
         height: 100%;
-        background: $primary-color-30;
+        background: $gray-10;
         border: none;
         font-size: 1.5rem;
         width: 3rem;
@@ -44,23 +44,23 @@ $slide-content-height: $grapher-height;
         cursor: pointer;
 
         &:hover {
-            color: $primary-color-600;
+            color: $blue-60;
         }
 
         &.left {
             left: 0;
-            box-shadow: 0.5rem 0 0.5rem $primary-color-30;
+            box-shadow: 0.5rem 0 0.5rem $gray-10;
             clip-path: inset(0 -2.5rem 0 0);
         }
         &.right {
             right: 0;
-            box-shadow: -0.5rem 0 0.5rem $primary-color-30;
+            box-shadow: -0.5rem 0 0.5rem $gray-10;
             clip-path: inset(0 0 0 -2.5rem);
         }
     }
 
     .thumbs {
-        background-color: $primary-color-30;
+        background-color: $gray-10;
         border-bottom: 1px solid #efefef;
         padding: 0 0.5rem;
     }
@@ -79,13 +79,13 @@ $slide-content-height: $grapher-height;
 
         &:hover {
             cursor: pointer;
-            background-color: $primary-color-30;
-            border: 1px solid $primary-color;
+            background-color: $gray-10;
+            border: 1px solid $oxford-blue;
         }
 
         &[aria-selected="true"] {
-            background-color: $primary-color-100;
-            border-color: $primary-color;
+            background-color: $blue-10;
+            border-color: $oxford-blue;
             font-weight: 700;
         }
     }

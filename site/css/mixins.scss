@@ -23,13 +23,13 @@
 }
 
 @mixin cancel-link-styles {
-    color: $primary-color-800;
+    color: $blue-90;
     &:visited {
-        color: $primary-color-800;
+        color: $blue-90;
     }
     &:hover {
         text-decoration: none;
-        color: $primary-color;
+        color: $blue-100;
     }
 }
 
@@ -138,7 +138,7 @@
 
 @mixin button-hover {
     &:hover {
-        background-color: $primary-color-700;
+        background-color: $blue-90;
     }
 }
 
@@ -151,7 +151,7 @@
     color: white;
     cursor: pointer;
     font-size: 0.875rem;
-    background: $primary-color;
+    background: $oxford-blue;
     outline: none;
 
     @include button-hover;
@@ -187,16 +187,16 @@
 }
 
 @mixin expandable-block-button {
-    background-color: $primary-color-100;
+    background-color: $blue-10;
     border-radius: 3px;
     border: none;
     cursor: pointer;
     outline: none;
     padding: 0.25rem;
-    color: $primary-color;
+    color: $blue-100;
     transition: all 150ms;
     &:hover {
-        background-color: $primary-color-200;
+        background-color: $blue-20;
     }
 }
 

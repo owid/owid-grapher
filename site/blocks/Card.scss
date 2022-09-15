@@ -1,11 +1,11 @@
 .wp-block-owid-card {
-    border: 1px solid $primary-color-200;
+    border: 1px solid $blue-20;
     background-color: $white;
     transition: all 0.1s;
 
     &:hover {
         @include block-shadow;
-        border: 1px solid $primary-color-400;
+        border: 1px solid $blue-40;
     }
 
     .text-wrapper {
@@ -21,7 +21,7 @@
 
     img {
         box-shadow: none;
-        border-bottom: 1px solid $primary-color-100;
+        border-bottom: 1px solid $blue-10;
     }
 
     .title {

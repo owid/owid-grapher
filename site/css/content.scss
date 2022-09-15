@@ -160,7 +160,7 @@ figure[data-explorer-src] {
 
 .tablepress th {
     border-bottom: 1px solid #333;
-    background: $primary-color-200;
+    background: $blue-20;
 }
 
 .tablepress th,
@@ -256,7 +256,7 @@ figure[data-explorer-src] {
         margin-top: 1rem;
         margin-bottom: 2rem;
         padding: $padding-x-sm;
-        background-color: $tertiary-color;
+        background-color: $amber;
         h3 {
             span {
                 @include hide;
@@ -273,7 +273,7 @@ figure[data-explorer-src] {
         margin-top: 1rem;
         margin-bottom: 2rem;
         padding: $padding-x-sm;
-        background-color: $tertiary-color;
+        background-color: $amber;
         .title {
             font-weight: bold;
             margin: 0 0 0.5rem;

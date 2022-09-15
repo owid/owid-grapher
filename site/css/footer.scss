@@ -1,7 +1,7 @@
 .site-footer {
-    background-color: $primary-color;
+    background-color: $oxford-blue;
     padding: 3rem 0;
-    color: $primary-color-500;
+    color: $blue-50;
 
     @include sm-only {
         text-align: center;
@@ -14,11 +14,11 @@
     }
 
     a {
-        color: $primary-color-400;
+        color: $blue-40;
         transition: color 150ms ease;
 
         &:hover {
-            color: $primary-color-300;
+            color: $blue-30;
         }
     }
 
@@ -27,7 +27,7 @@
         font-size: 1.5rem;
         font-weight: 300;
         text-decoration: none;
-        color: $primary-color-700;
+        color: $blue-90;
         text-align: right;
     }
 
@@ -46,17 +46,17 @@
 
         @include sm-only {
             margin-bottom: 2rem;
-            border-top: 1px solid $primary-color-800;
+            border-top: 1px solid $blue-90;
 
             li {
-                border-bottom: 1px solid $primary-color-800;
+                border-bottom: 1px solid $blue-90;
             }
         }
     }
 
     .legal {
         font-size: 0.875rem;
-        color: $primary-color-600;
+        color: $blue-60;
         text-align: left;
 
         p {
@@ -89,7 +89,7 @@
     }
 
     .donate-link {
-        border: 2px solid $primary-color-600;
+        border: 2px solid $blue-60;
         padding: 0.5rem;
     }
 
@@ -99,7 +99,7 @@
 }
 
 .donate-footer {
-    background-color: $tertiary-color;
+    background-color: $amber;
     padding: 1.25rem 0;
     text-align: center;
     margin-top: 2rem;
@@ -121,7 +121,7 @@
     .donate-button {
         display: inline-block;
         font-size: 1.125rem;
-        background-color: $secondary-color;
+        background-color: $vermillion;
 
         .icon {
             margin-left: 0.5rem;

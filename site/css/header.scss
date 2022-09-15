@@ -1,6 +1,6 @@
 .site-header {
-    background-color: $primary-color;
-    border-bottom: $mobile-header-border-height solid $secondary-color;
+    background-color: $oxford-blue;
+    border-bottom: $mobile-header-border-height solid $vermillion;
 }
 
 .site-logo a {
@@ -57,7 +57,7 @@
     }
 
     a {
-        color: $primary-color-300;
+        color: $blue-30;
         &:hover {
             color: white;
         }
@@ -78,9 +78,9 @@
     }
 
     a {
-        color: $primary-color-500;
+        color: $blue-50;
         &:hover {
-            color: $primary-color-300;
+            color: $blue-30;
         }
     }
 }
@@ -95,7 +95,7 @@
         line-height: 1.375;
         color: white;
         background-color: transparent;
-        border: 1px solid $primary-color-700;
+        border: 1px solid $blue-90;
         border-radius: 100px;
         padding: 0.3rem 1rem 0.3rem 2.25rem;
         display: block;
@@ -103,11 +103,11 @@
         outline: none;
 
         &::placeholder {
-            color: $primary-color-400;
+            color: $blue-40;
             transition: color 150ms ease;
         }
         &:focus::placeholder {
-            color: $primary-color-800;
+            color: $blue-90;
         }
     }
 
@@ -118,7 +118,7 @@
         bottom: 0;
         display: flex;
         align-items: center;
-        color: $primary-color-600;
+        color: $blue-60;
     }
 }
 
@@ -166,11 +166,11 @@
 /* Subnavigation */
 
 .offset-subnavigation {
-    background-color: $primary-color-200;
+    background-color: $blue-20;
 }
 
 .site-subnavigation {
-    color: $primary-color;
+    color: $blue-100;
     position: relative;
 
     @include sm-only {
@@ -183,8 +183,8 @@
             width: 1.25rem;
             background: linear-gradient(
                 to right,
-                $primary-color-200 15%,
-                rgba($primary-color-200, 0)
+                $blue-20 15%,
+                rgba($blue-20, 0)
             );
             z-index: 1;
         }
@@ -198,8 +198,8 @@
             width: 1.25rem;
             background: linear-gradient(
                 to left,
-                $primary-color-200 15%,
-                rgba($primary-color-200, 0)
+                $blue-20 15%,
+                rgba($blue-20, 0)
             );
             z-index: 1;
         }
@@ -231,7 +231,7 @@
     }
 
     li {
-        color: $primary-color;
+        color: $blue-100;
         padding: 0 6px;
         font-size: 14px;
         &:first-child {
@@ -255,7 +255,7 @@
 
         &:hover {
             padding-bottom: 9px;
-            border-bottom: 3px solid $secondary-color;
+            border-bottom: 3px solid $vermillion;
         }
     }
 
@@ -264,7 +264,7 @@
     }
 
     .current a {
-        border-bottom: 3px solid $secondary-color;
+        border-bottom: 3px solid $vermillion;
         padding-bottom: 9px;
     }
 }
@@ -283,8 +283,8 @@
     font-family: inherit;
     font-size: 1.0625rem;
     line-height: 1.35;
-    color: $primary-color-400;
-    border: 1px solid $primary-color-700;
+    color: $blue-40;
+    border: 1px solid $blue-90;
     border-radius: 6px;
     background-color: transparent;
     outline: none;
@@ -295,7 +295,7 @@
     text-align: left;
 
     strong {
-        color: $primary-color-200;
+        color: $blue-20;
         font-weight: 800;
     }
 
@@ -304,7 +304,7 @@
     }
 
     .icon {
-        color: $primary-color-600;
+        color: $blue-60;
         flex: 0;
         display: flex;
         padding-left: 3px;
@@ -314,14 +314,14 @@
     &:active {
         background-color: white;
         border-color: white;
-        color: $primary-color-700;
+        color: $blue-90;
 
         strong {
-            color: $primary-color;
+            color: $blue-100;
         }
 
         .icon {
-            color: $primary-color-300;
+            color: $blue-30;
         }
     }
 }
@@ -371,7 +371,7 @@
         padding: 0.5rem 0;
 
         .item {
-            color: $primary-color-600;
+            color: $blue-60;
             padding: 0.35rem 1rem 0.4rem 1.15rem;
             display: flex;
             flex-direction: row;
@@ -383,25 +383,25 @@
 
             .icon {
                 margin-left: 1rem;
-                color: $primary-color-200;
+                color: $blue-20;
             }
         }
 
         .item.active,
         a.item:hover {
-            color: $primary-color;
+            color: $blue-100;
             .icon {
-                color: $primary-color-600;
+                color: $blue-60;
             }
         }
 
         .item.active {
-            background-color: $primary-color-100;
+            background-color: $blue-10;
         }
 
         hr {
             border: none;
-            border-bottom: 1px solid $primary-color-100;
+            border-bottom: 1px solid $blue-10;
             margin: 0.25rem 0;
             padding: 0;
             display: block;
@@ -416,15 +416,15 @@
     .submenu {
         flex: 1;
         padding: 1rem 1.25rem;
-        background-color: $primary-color-100;
+        background-color: $blue-10;
 
         .item {
-            color: $primary-color;
+            color: $blue-100;
             display: block;
             margin: 0 0.5rem 0.8rem;
 
             &:hover {
-                color: $primary-color-600;
+                color: $blue-60;
             }
         }
     }
@@ -498,9 +498,9 @@
     }
 
     li a {
-        color: $primary-color-800;
+        color: $blue-90;
         padding: 0.5rem 1rem;
-        border-bottom: 1px solid rgba($primary-color, 0.08);
+        border-bottom: 1px solid rgba($oxford-blue, 0.08);
         display: block;
         text-align: center;
 
@@ -512,7 +512,7 @@
         }
 
         .entries-muted {
-            color: $primary-color-400;
+            color: $blue-40;
             font-size: 0.7em;
             font-weight: 400;
             overflow: hidden;
@@ -525,7 +525,7 @@
         }
 
         &:hover {
-            background-color: $primary-color-100;
+            background-color: $blue-10;
         }
     }
 
@@ -542,7 +542,7 @@
         text-align: left;
 
         .icon {
-            color: $primary-color-300;
+            color: $blue-30;
         }
     }
 
@@ -551,14 +551,14 @@
     }
 
     .subcategory-menu {
-        background-color: $primary-color-100;
+        background-color: $blue-10;
         margin-top: -1px;
 
         a {
             color: $blue-90;
             padding-left: 1.5rem;
             &:hover {
-                background-color: $primary-color-200;
+                background-color: $blue-20;
             }
         }
     }

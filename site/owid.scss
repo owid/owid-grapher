@@ -114,7 +114,7 @@ header.blog-header h1 {
     text-align: center;
     font-family: $serif-font-stack;
     font-weight: 400;
-    background: $primary-color;
+    background: $oxford-blue;
     color: white;
     margin: auto;
     margin-bottom: 1rem;
@@ -497,7 +497,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         margin-top: 5rem;
         margin-bottom: 2.5rem;
         padding-top: 2.5rem;
-        border-top: 1px solid $primary-color-200;
+        border-top: 1px solid $blue-20;
     }
 
     // e.g. see "Sector by sector: where do global greenhouse gas emissions come from?"
@@ -570,7 +570,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         padding-bottom: 4 * $vertical-spacing;
         margin-bottom: 5rem;
     }
-    background-color: $primary-color-200;
+    background-color: $blue-20;
 
     @include xxlg-up {
         width: calc(100vw - #{2 * $padding-x-md});
@@ -598,10 +598,10 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         text-transform: uppercase;
         font-size: 0.9rem;
         font-weight: bold;
-        color: $primary-color-400;
+        color: $blue-40;
         .border {
             margin-left: 1rem;
-            background-color: $primary-color-300;
+            background-color: $blue-30;
             height: 0.7em;
             flex: 1;
         }
@@ -619,13 +619,13 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     }
 
     a {
-        color: $primary-color;
+        color: $blue-100;
         &:hover svg {
             color: inherit;
         }
     }
     svg {
-        color: $primary-color-400;
+        color: $blue-40;
         margin-right: 0.5rem;
     }
 }
@@ -997,7 +997,7 @@ html:not(.js) {
 
 .ChartsIndexPage #explorers-section {
     padding-bottom: $vertical-spacing;
-    border-bottom: 1px solid $primary-color-200;
+    border-bottom: 1px solid $blue-20;
 }
 
 .SearchPage > main,
@@ -1273,7 +1273,7 @@ html:not(.js) {
 
         .icon {
             font-size: 3rem;
-            color: rgba($primary-color, 0.45);
+            color: rgba($blue-100, 0.45);
         }
     }
 }
