@@ -801,7 +801,11 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     y={this.categoryLegendY + mark.y}
                                     width={mark.rectSize}
                                     height={mark.rectSize}
-                                    fill={mark.bin.color}
+                                    fill={
+                                        mark.bin.patternRef
+                                            ? `url(#${mark.bin.patternRef})`
+                                            : mark.bin.color
+                                    }
                                     stroke={manager.categoricalBinStroke}
                                     strokeWidth={0.4}
                                     opacity={manager.legendOpacity} // defaults to undefined which removes the prop

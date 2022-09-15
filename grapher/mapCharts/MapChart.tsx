@@ -479,10 +479,17 @@ export class MapChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.legendData.filter(
+        const bins = this.legendData.filter(
             (bin): bin is CategoricalBin =>
                 bin instanceof CategoricalBin && !bin.isHidden
         )
+        for (const bin of bins)
+            if (bin.value === "No data")
+                bin.props = {
+                    ...bin.props,
+                    patternRef: Patterns.noDataPattern,
+                }
+        return bins
     }
 
     @computed get hasCategorical(): boolean {
