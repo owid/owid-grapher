@@ -1,4 +1,4 @@
-import { useEffect, RefObject, useState } from "react"
+import { useEffect, RefObject, useState, useRef } from "react"
 import throttle from "lodash/throttle.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 
@@ -65,4 +65,26 @@ export const useEmbedChart = (
             MultiEmbedderSingleton.observeFigures(refChartContainer.current)
         }
     }, [activeChartIdx, refChartContainer])
+}
+
+// Adapted from https://overreacted.io/making-setinterval-declarative-with-react-hooks/
+export const useInterval = (callback: VoidFunction, delay: number | null) => {
+    const savedCallback = useRef(callback)
+
+    // Remember the latest callback.
+    useEffect(() => {
+        savedCallback.current = callback
+    }, [callback])
+
+    // Set up the interval.
+    useEffect(() => {
+        function tick() {
+            savedCallback.current()
+        }
+        if (delay !== null) {
+            const id = setInterval(tick, delay)
+            return () => clearInterval(id)
+        }
+        return
+    }, [delay])
 }
