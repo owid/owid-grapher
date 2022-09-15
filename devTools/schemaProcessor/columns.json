@@ -248,21 +248,6 @@
         "enumOptions": ["chart", "map", "sources", "download", "table"]
     },
     {
-        "type": "string",
-        "pointer": "/selectedData/0/color",
-        "editor": "textfield"
-    },
-    {
-        "type": "integer",
-        "pointer": "/selectedData/0/index",
-        "editor": "numeric"
-    },
-    {
-        "type": "integer",
-        "pointer": "/selectedData/0/entityId",
-        "editor": "numeric"
-    },
-    {
         "type": "boolean",
         "pointer": "/matchingEntitiesOnly",
         "default": false,

@@ -4,9 +4,7 @@ import { excludeUndefined, omitUndefinedValues } from "../Util.js"
 
 import { QueryParams, queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
 
-const parseUrl = (
-    url: string
-): Omit<urlParseLib, "query"> & { query: string } => {
+const parseUrl = (url: string): urlParseLib<string> => {
     const parsed = urlParseLib(url, {})
     // The library returns an unparsed string for `query`, its types aren't quite right.
     const query = parsed.query.toString()

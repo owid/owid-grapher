@@ -3,13 +3,14 @@ import { webpackUrl } from "../site/webpackUtils.js"
 
 export const Head = (props: {
     canonicalUrl: string
+    hideCanonicalUrl?: boolean
     pageTitle?: string
     pageDesc?: string
     imageUrl?: string
     children?: any
     baseUrl: string
 }) => {
-    const { canonicalUrl, baseUrl } = props
+    const { canonicalUrl, hideCanonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
     const fullPageTitle = props.pageTitle
         ? `${props.pageTitle} - Our World in Data`
@@ -27,7 +28,7 @@ export const Head = (props: {
             />
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
-            <link rel="canonical" href={canonicalUrl} />
+            {!hideCanonicalUrl && <link rel="canonical" href={canonicalUrl} />}
             <link
                 rel="alternate"
                 type="application/atom+xml"

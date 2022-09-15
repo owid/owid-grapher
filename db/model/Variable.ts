@@ -36,6 +36,8 @@ export interface VariableRow {
     coverage?: string
     timespan?: string
     columnOrder?: number
+    catalogPath?: string
+    dimensions?: string
 }
 
 export type UnparsedVariableRow = VariableRow & { display: string }

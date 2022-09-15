@@ -1,3 +1,4 @@
+import { encodeXML } from "entities"
 import { Chart } from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
@@ -11,6 +12,8 @@ import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { postsTable } from "../db/model/Post.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 
 interface SitemapUrl {
     loc: string
@@ -18,15 +21,41 @@ interface SitemapUrl {
 }
 
 const xmlify = (url: SitemapUrl) => {
+    const escapedUrl = encodeXML(url.loc)
+
     if (url.lastmod)
         return `    <url>
-        <loc>${url.loc}</loc>
+        <loc>${escapedUrl}</loc>
         <lastmod>${url.lastmod}</lastmod>
     </url>`
 
     return `    <url>
-        <loc>${url.loc}</loc>
+        <loc>${escapedUrl}</loc>
     </url>`
+}
+
+const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
+    const baseUrl = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${program.slug}`
+    const lastmod = program.lastCommit?.date
+        ? dayjs(program.lastCommit.date).format("YYYY-MM-DD")
+        : undefined
+
+    if (program.indexViewsSeparately) {
+        // return an array containing the URLs to each view of the explorer
+        return program.decisionMatrix
+            .allDecisionsAsQueryParams()
+            .map((params) => ({
+                loc: baseUrl + queryParamsToStr(params),
+                lastmod,
+            }))
+    } else {
+        return [
+            {
+                loc: baseUrl,
+                lastmod,
+            },
+        ]
+    }
 }
 
 export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
@@ -68,14 +97,7 @@ export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
                 lastmod: dayjs(c.updatedAt).format("YYYY-MM-DD"),
             }))
         )
-        .concat(
-            explorers.map((e) => ({
-                loc: `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${e.slug}`,
-                lastmod: e.lastCommit?.date
-                    ? dayjs(e.lastCommit.date).format("YYYY-MM-DD")
-                    : undefined,
-            }))
-        )
+        .concat(explorers.flatMap(explorerToSitemapUrl))
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
