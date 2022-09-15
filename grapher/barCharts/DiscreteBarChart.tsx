@@ -619,15 +619,11 @@ export class DiscreteBarChart
         // We used to choose owid-distinct here as the default if this is a collapsed line chart but
         // as part of the color revamp in Autumn 2022 we decided to make bar charts always default to
         // an all-blue color scheme (singleColorDenim).
-        const defaultColorScheme = ColorSchemes[this.defaultBaseColorScheme]
-
-        return (
-            (this.manager.isLineChart
-                ? defaultColorScheme
-                : this.manager.baseColorScheme
-                ? ColorSchemes[this.manager.baseColorScheme]
-                : undefined) ?? defaultColorScheme
-        )
+        const defaultColorScheme = this.defaultBaseColorScheme
+        const colorScheme = this.manager.baseColorScheme ?? defaultColorScheme
+        return this.manager.isLineChart
+            ? ColorSchemes[defaultColorScheme]
+            : ColorSchemes[colorScheme]
     }
 
     @computed private get valuesToColorsMap(): Map<number, string> {

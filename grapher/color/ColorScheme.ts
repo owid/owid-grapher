@@ -81,7 +81,7 @@ export class ColorScheme implements ColorSchemeInterface {
         if (numColors > colorSets.length - 1) {
             // If more colors are wanted than we have defined, have to improvise
             const colorSet = lastOfNonEmptyArray(colorSets)
-            // Special cased for colorSchemes with a single color where the usual interpolation would not work
+            // Special case for colorSchemes with a single color where the usual interpolation would not work
             if (colorSet.length === 1) return Array(numColors).fill(colorSet[0])
             return this.improviseGradientFromShorter(colorSet, numColors)
         }
