@@ -68,6 +68,13 @@ export enum ColorSchemeName {
     OwidCategoricalC = "OwidCategoricalC",
     OwidCategoricalD = "OwidCategoricalD",
     OwidCategoricalE = "OwidCategoricalE",
+    OwidEnergy = "OwidEnergy",
+    OwidDistinctLines = "OwidDistinctLines",
+    BinaryMapPaletteA = "BinaryMapPaletteA",
+    BinaryMapPaletteB = "BinaryMapPaletteB",
+    BinaryMapPaletteC = "BinaryMapPaletteC",
+    BinaryMapPaletteD = "BinaryMapPaletteD",
+    BinaryMapPaletteE = "BinaryMapPaletteE",
 }
 
 export const OwidNoDataGray = "#6e7581"

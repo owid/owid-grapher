@@ -32,6 +32,17 @@ export const OwidDistinctColors = {
     Coral: "#D73C50",
 } as const
 
+// These are variations of some of the colors above where the original color would have too little
+// contrast against a white background for thin lines or text elements
+export const DarkerOwidDistinctColors = {
+    DarkOrangeDarker: "#BE5915",
+    LightTealDarker: "#2C8465",
+    CamelDarker: "#996D39",
+    PeachDarker: "#C4523E",
+    TurquoiseDarker: "#008291",
+    LimeDarker: "#338711",
+}
+
 // Below are 5 variations of the same colors in different permutations
 export const CategoricalColorsPaletteA = [
     OwidDistinctColors.Denim,
@@ -129,6 +140,28 @@ export const OwidDistinctColorScheme = {
 }
 PriorityCustomColorSchemes.push(OwidDistinctColorScheme)
 
+const OwidDistinctLinesPalette = [
+    OwidDistinctColors.DustyCoral,
+    DarkerOwidDistinctColors.LightTealDarker,
+    DarkerOwidDistinctColors.DarkOrangeDarker,
+    OwidDistinctColors.Purple,
+    OwidDistinctColors.Fuchsia,
+    OwidDistinctColors.DarkOliveGreen,
+    OwidDistinctColors.Blue,
+    OwidDistinctColors.Maroon,
+    DarkerOwidDistinctColors.CamelDarker,
+    OwidDistinctColors.MidnightBlue,
+]
+
+export const OwidDistinctLinesColorScheme = {
+    name: ColorSchemeName["OwidDistinctLines"],
+    displayName: "OWID Distinct (lines)",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [OwidDistinctLinesPalette],
+}
+PriorityCustomColorSchemes.push(OwidDistinctLinesColorScheme)
+
 export const OwidCategoricalAScheme = {
     name: ColorSchemeName["OwidCategoricalA"],
     displayName: "OWID categorical A",
@@ -173,6 +206,60 @@ export const OwidCategoricalEScheme = {
     colorSets: [CategoricalColorsPaletteE],
 }
 NonPriorityCustomColorSchemes.push(OwidCategoricalEScheme)
+
+export const EnergyColors = {
+    Coal: OwidDistinctColors.Maroon,
+    Oil: OwidDistinctColors.DustyCoral,
+    Gas: OwidDistinctColors.Purple,
+    Biomass: OwidDistinctColors.DarkCopper,
+    Hydropower: OwidDistinctColors.Blue,
+    Nuclear: OwidDistinctColors.Teal,
+    Wind: OwidDistinctColors.MidnightBlue,
+    Solar: OwidDistinctColors.Peach,
+    OtherRenewables: OwidDistinctColors.OliveGreen,
+}
+
+const EnergyColorPalette = [
+    EnergyColors.Coal,
+    EnergyColors.Oil,
+    EnergyColors.Gas,
+    EnergyColors.Biomass,
+    EnergyColors.Hydropower,
+    EnergyColors.Nuclear,
+    EnergyColors.Wind,
+    EnergyColors.Solar,
+    EnergyColors.OtherRenewables,
+]
+
+export const OwidEnergy = {
+    name: ColorSchemeName["OwidEnergy"],
+    displayName: "OWID Energy",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [EnergyColorPalette],
+}
+NonPriorityCustomColorSchemes.push(OwidCategoricalEScheme)
+
+// export const OwidEnergyLines = {
+//     name: ColorSchemeName["OwidEnergyLines"],
+//     displayName: "OWID Energy (line charts)",
+//     singleColorScale: false,
+//     isDistinct: true,
+//     colorSets: [
+//         [
+//             EnergyColors.Coal,
+//             EnergyColors.Oil,
+//             EnergyColors.Gas,
+//             EnergyColors.Biomass,
+//             EnergyColors.Hydropower,
+//             EnergyColors.Nuclear,
+//             EnergyColors.Wind,
+//             DarkerOwidDistinctColors.PeachDarker,
+//             DarkerOwidDistinctColors.LimeDarker,
+//         ],
+//     ],
+// }
+// NonPriorityCustomColorSchemes.push(OwidEnergyLines)
 
 NonPriorityCustomColorSchemes.push({
     name: ColorSchemeName.stackedAreaDefault,
@@ -299,6 +386,56 @@ export const SingleColorDarkCopper = {
 }
 
 NonPriorityCustomColorSchemes.push(SingleColorDarkCopper)
+
+export const BinaryMapPaletteA = {
+    name: ColorSchemeName.BinaryMapPaletteA,
+    displayName: "Binary map palette A",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [["#dfc27d", "#80cdc1"]],
+}
+
+NonPriorityCustomColorSchemes.push(BinaryMapPaletteA)
+
+export const BinaryMapPaletteB = {
+    name: ColorSchemeName.BinaryMapPaletteB,
+    displayName: "Binary map palette B",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [["#F1B6DA", "#b8e186"]],
+}
+
+NonPriorityCustomColorSchemes.push(BinaryMapPaletteB)
+
+export const BinaryMapPaletteC = {
+    name: ColorSchemeName.BinaryMapPaletteC,
+    displayName: "Binary map palette C",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [["#c2a5cf", "#a6dba0"]],
+}
+
+NonPriorityCustomColorSchemes.push(BinaryMapPaletteC)
+
+export const BinaryMapPaletteD = {
+    name: ColorSchemeName.BinaryMapPaletteD,
+    displayName: "Binary map palette D",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [["#FDB863", "#b2abd2"]],
+}
+
+NonPriorityCustomColorSchemes.push(BinaryMapPaletteD)
+
+export const BinaryMapPaletteE = {
+    name: ColorSchemeName.BinaryMapPaletteE,
+    displayName: "Binary map palette E",
+    singleColorScale: false,
+    isDistinct: true,
+    colorSets: [["#f4a582", "#92c5de"]],
+}
+
+NonPriorityCustomColorSchemes.push(BinaryMapPaletteE)
 
 export const DefaultColorScheme = OwidDistinctColorScheme
 
