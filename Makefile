@@ -14,7 +14,7 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-.PHONY: help up up.full down down.full refresh refresh.wp refresh.full
+.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate
 
 help:
 	@echo 'Available commands:'
@@ -22,7 +22,8 @@ help:
 	@echo '  GRAPHER ONLY'
 	@echo '  make up            start dev environment via docker-compose and tmux'
 	@echo '  make down          stop any services still running'
-	@echo '  make refresh       download a new grapher snapshot and update MySQL'
+	@echo '  make refresh       (while up) download a new grapher snapshot and update MySQL'
+	@echo '  make migrate       (while up) run any outstanding db migrations'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
 	@echo '  make up.full       start dev environment via docker-compose and tmux'
@@ -105,6 +106,10 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 		bind Q kill-server \; \
 		set -g mouse on \
 		|| make down.full
+
+migrate:
+	@echo '==> Running DB migrations'
+	yarn && yarn runDbMigrations
 
 refresh:
 	@echo '==> Downloading chart data'
