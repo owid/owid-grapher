@@ -119,6 +119,23 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         })
     }
 
+    protected get patterns(): JSX.Element {
+        return (
+            <defs>
+                <pattern
+                    id={Patterns.noDataPattern}
+                    key={Patterns.noDataPattern}
+                    patternUnits="userSpaceOnUse"
+                    width="4"
+                    height="4"
+                    patternTransform="rotate(-45 2 2)"
+                >
+                    <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="0.7" />
+                </pattern>
+            </defs>
+        )
+    }
+
     @computed protected get chartHeight(): number {
         const controlsRowHeight = this.controls.length ? CONTROLS_ROW_HEIGHT : 0
         return Math.floor(
@@ -371,22 +388,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                         height={chartHeight}
                         viewBox={`0 0 ${width} ${chartHeight}`}
                     >
-                        <defs>
-                            <pattern
-                                id={Patterns.noDataPattern}
-                                key={Patterns.noDataPattern}
-                                patternUnits="userSpaceOnUse"
-                                width="4"
-                                height="4"
-                                patternTransform="rotate(-45 2 2)"
-                            >
-                                <path
-                                    d="M -1,2 l 6,0"
-                                    stroke="#ccc"
-                                    strokeWidth="0.7"
-                                />
-                            </pattern>
-                        </defs>
+                        {this.patterns}
                         {this.manager.isReady
                             ? this.renderChart()
                             : this.renderLoadingIndicator()}
@@ -449,22 +451,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                 height={height}
                 viewBox={`0 0 ${width} ${height}`}
             >
-                <defs>
-                    <pattern
-                        id={Patterns.noDataPattern}
-                        key={Patterns.noDataPattern}
-                        patternUnits="userSpaceOnUse"
-                        width="4"
-                        height="4"
-                        patternTransform="rotate(-45 2 2)"
-                    >
-                        <path
-                            d="M -1,2 l 6,0"
-                            stroke="#ccc"
-                            strokeWidth="0.7"
-                        />
-                    </pattern>
-                </defs>
+                {this.patterns}
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
                 {this.footer.renderStatic(
