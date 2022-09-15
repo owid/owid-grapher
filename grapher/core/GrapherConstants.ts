@@ -120,3 +120,7 @@ export const getVariableDataRoute = (variableId: number): string =>
 
 export const getVariableMetadataRoute = (variableId: number): string =>
     `${GRAPHER_VARIABLE_METADATA_ROUTE}/${variableId}.json`
+
+export enum Patterns {
+    noDataPattern = "noDataPattern",
+}

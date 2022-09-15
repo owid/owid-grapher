@@ -40,6 +40,7 @@ import {
     BASE_FONT_SIZE,
     GrapherTabOption,
     SeriesName,
+    Patterns,
 } from "../core/GrapherConstants.js"
 import { ChartInterface } from "../chart/ChartInterface.js"
 import {
@@ -458,12 +459,19 @@ export class MapChart
                 (bin) => bin instanceof NumericBin && !bin.isHidden
             )
 
-        const bin = this.legendData.filter(
+        const bins: ColorScaleBin[] = this.legendData.filter(
             (bin) =>
                 (bin instanceof NumericBin || bin.value === "No data") &&
                 !bin.isHidden
         )
-        return flatten([bin[bin.length - 1], bin.slice(0, -1)])
+        for (const bin of bins)
+            if (bin instanceof CategoricalBin && bin.value === "No data")
+                bin.props = {
+                    ...bin.props,
+                    patternRef: Patterns.noDataPattern,
+                }
+
+        return flatten([bins[bins.length - 1], bins.slice(0, -1)])
     }
 
     @computed get hasNumeric(): boolean {
@@ -600,6 +608,16 @@ export class MapChart
 
         return (
             <g ref={this.base} className="mapTab">
+                <pattern
+                    id="diagonalHatch"
+                    key="diagonalHatch"
+                    patternUnits="userSpaceOnUse"
+                    width="4"
+                    height="4"
+                    patternTransform="rotate(-45 2 2)"
+                >
+                    <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="0.7" />
+                </pattern>
                 <ChoroplethMap manager={this} />
                 {this.renderMapLegend()}
                 {this.manager.isExportingtoSvgOrPng ? null : ( // only use projection chooser if we are not exporting
@@ -933,7 +951,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                         stroke={stroke}
                                         strokeOpacity={strokeOpacity}
                                         cursor="pointer"
-                                        fill={defaultFill}
+                                        fill={`url(#${Patterns.noDataPattern})`}
                                         fillOpacity={fillOpacity}
                                         onClick={(ev: SVGMouseEvent): void =>
                                             this.manager.onClick(

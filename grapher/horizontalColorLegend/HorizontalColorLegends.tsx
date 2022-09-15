@@ -578,7 +578,11 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                 y={bottomY - numericBinSize}
                                 width={positionedBin.width}
                                 height={numericBinSize}
-                                fill={bin.color}
+                                fill={
+                                    bin.patternRef
+                                        ? `url(#${bin.patternRef})`
+                                        : bin.color
+                                }
                                 opacity={manager.legendOpacity} // defaults to undefined which removes the prop
                                 stroke={isFocus ? FOCUS_BORDER_COLOR : stroke}
                                 strokeWidth={isFocus ? 2 : strokeWidth}
