@@ -152,7 +152,6 @@ describe(ColorScale, () => {
             colorScaleColumn: table.get("color"),
             hasNoDataBin: true,
             defaultNoDataColor: "#fff",
-            transformColor: (): string => "#ccc",
         })
         expect(scale.getColor(0.5)).toEqual("#ccc")
         expect(scale.getColor(undefined)).toEqual("#ccc")
