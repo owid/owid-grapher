@@ -1,15 +1,12 @@
 .cookie-notice {
     @include content-wrapper;
     background-color: $tertiary-color;
-    font-weight: 700;
-    line-height: 1.5;
-    padding: 16px;
-    text-align: center;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: $zindex-cookie-notice;
+    padding: 16px;
     // to avoid flash before animation
     display: none;
 
@@ -18,10 +15,23 @@
         animation: 400ms ease slide-in forwards;
     }
 
-    @include lg-up {
-        &.open {
+    .cookie-notice__inner {
+        font-weight: 700;
+        max-width: $lg;
+        margin: auto;
+        line-height: 1.5;
+        text-align: center;
+
+        @include lg-up {
             display: flex;
             justify-content: space-between;
+        }
+    }
+
+    .cookie-notice__text {
+        @include lg-up {
+            text-align: left;
+            margin: 0;
         }
     }
 
@@ -47,16 +57,20 @@
         border: 2px solid rgba($text-color, 0.2);
         transition: border-color 150ms linear;
         margin-top: 8px;
-        margin-right: 12px;
         min-width: 196px;
 
         @include md-up {
             flex: 0;
             font-size: 1rem;
+            margin-top: 0;
         }
 
         &:hover {
             border-color: rgba($text-color, 0.8);
+        }
+
+        &:not(:last-child) {
+            margin-right: 12px;
         }
 
         .icon {

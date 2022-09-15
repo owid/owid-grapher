@@ -29,36 +29,38 @@ export const CookieNotice = ({
             })}
             data-test="cookie-notice"
         >
-            <div>
-                <p className="cookie-notice__text">
-                    We use cookies to give you the best experience on our
-                    website.
-                </p>
-                <p>
-                    By continuing without changing your cookie settings, we
-                    assume you agree to this.
-                </p>
-            </div>
-            <div className="actions">
-                <a href="/privacy-policy" className="button">
-                    Manage preferences
-                </a>
-                <button
-                    className="button accept"
-                    onClick={() =>
-                        dispatch({
-                            type: Action.Accept,
-                            payload: { date: getTodayDate() },
-                        })
-                    }
-                    data-test="accept"
-                    data-track-note="cookie-notice"
-                >
-                    <span className="icon">
-                        <FontAwesomeIcon icon={faCheck} />
-                    </span>
-                    I agree
-                </button>
+            <div className="cookie-notice__inner">
+                <div>
+                    <p className="cookie-notice__text">
+                        We use cookies to give you the best experience on our
+                        website.
+                    </p>
+                    <p className="cookie-notice__text">
+                        By continuing without changing your cookie settings, we
+                        assume you agree to this.
+                    </p>
+                </div>
+                <div className="actions">
+                    <a href="/privacy-policy" className="button">
+                        Manage preferences
+                    </a>
+                    <button
+                        className="button accept"
+                        onClick={() =>
+                            dispatch({
+                                type: Action.Accept,
+                                payload: { date: getTodayDate() },
+                            })
+                        }
+                        data-test="accept"
+                        data-track-note="cookie-notice"
+                    >
+                        <span className="icon">
+                            <FontAwesomeIcon icon={faCheck} />
+                        </span>
+                        I agree
+                    </button>
+                </div>
             </div>
         </div>
     )
