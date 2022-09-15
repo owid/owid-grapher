@@ -602,23 +602,25 @@ export class MapChart
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap manager={this} />
                 {this.renderMapLegend()}
-                <foreignObject
-                    id="projection-chooser"
-                    x={projectionChooserBounds.left}
-                    y={projectionChooserBounds.top}
-                    width={projectionChooserBounds.width}
-                    height={projectionChooserBounds.height}
-                    style={{
-                        overflow: "visible",
-                        height: "100%",
-                        pointerEvents: "none",
-                    }}
-                >
-                    <ProjectionChooser
-                        value={projection}
-                        onChange={this.onProjectionChange}
-                    />
-                </foreignObject>
+                {this.manager.isExportingtoSvgOrPng ? null : ( // only use projection chooser if we are not exporting
+                    <foreignObject
+                        id="projection-chooser"
+                        x={projectionChooserBounds.left}
+                        y={projectionChooserBounds.top}
+                        width={projectionChooserBounds.width}
+                        height={projectionChooserBounds.height}
+                        style={{
+                            overflow: "visible",
+                            height: "100%",
+                            pointerEvents: "none",
+                        }}
+                    >
+                        <ProjectionChooser
+                            value={projection}
+                            onChange={this.onProjectionChange}
+                        />
+                    </foreignObject>
+                )}
                 {tooltipTarget && (
                     <MapTooltip
                         entityName={tooltipTarget?.featureId}
