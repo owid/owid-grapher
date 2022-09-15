@@ -180,6 +180,34 @@ export class SiteBaker {
     }
 
     // Bake all Wordpress posts, both blog posts and entry pages
+
+    private async removeDeletedPosts() {
+        const postsApi = await wpdb.getPosts()
+
+        const postSlugs = []
+        for (const postApi of postsApi) {
+            const post = await wpdb.getFullPost(postApi)
+            postSlugs.push(post.slug)
+        }
+
+        const gdocPosts = await queryMysql(
+            `SELECT * FROM posts_gdocs WHERE published = 1`
+        )
+
+        for (const post of gdocPosts) {
+            postSlugs.push(post.slug)
+        }
+
+        // Delete any previously rendered posts that aren't in the database
+        for (const slug of this.getPostSlugsToRemove(postSlugs)) {
+            const outPath = `${this.bakedSiteDir}/${slug}.html`
+            await fs.unlink(outPath)
+            this.stage(outPath, `DELETING ${outPath}`)
+        }
+
+        this.progressBar.tick({ name: "✅ removed deleted posts" })
+    }
+
     private async bakePosts() {
         const postsApi = await wpdb.getPosts()
 
@@ -194,18 +222,14 @@ export class SiteBaker {
         // Maxes out resources (TODO: RCA)
         // await Promise.all(bakingPosts.map(post => this.bakePost(post)))
 
-        // Delete any previously rendered posts that aren't in the database
-        for (const slug of this.getPostSlugsToRemove(postSlugs)) {
-            const outPath = `${this.bakedSiteDir}/${slug}.html`
-            await fs.unlink(outPath)
-            this.stage(outPath, `DELETING ${outPath}`)
-        }
         this.progressBar.tick({ name: "✅ baked posts" })
     }
 
     // Bake all GDoc posts
     private async bakeGDocPosts() {
-        const posts = await queryMysql(`SELECT * FROM posts_gdocs`)
+        const posts = await queryMysql(
+            `SELECT * FROM posts_gdocs WHERE published = 1`
+        )
 
         const postSlugs = []
         for (const post of posts) {
@@ -213,7 +237,6 @@ export class SiteBaker {
             await this.bakeGDocPost(post)
         }
 
-        // TODO - Delete any previously rendered posts that aren't in the database
         this.progressBar.tick({ name: "✅ baked google doc posts" })
     }
 
@@ -380,6 +403,7 @@ export class SiteBaker {
     async bakeAll() {
         // Ensure caches are correctly initialized
         this.flushCache()
+        await this.removeDeletedPosts()
         await this.bakeWordpressPages()
         await this._bakeNonWordpressPages()
         await this.bakeGDocPosts()
