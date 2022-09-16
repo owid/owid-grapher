@@ -384,23 +384,6 @@ export const domainExtent = (
 // Compound annual growth rate
 // cagr = ((new_value - old_value) ** (1 / Δt)) - 1
 // see https://en.wikipedia.org/wiki/Compound_annual_growth_rate
-interface Point {
-    timeValue: Time
-    entityName?: string
-    x?: number
-    y?: number
-}
-// Todo: add unit tests
-const cagrFromPoints = (
-    startPoint: Point,
-    endPoint: Point,
-    property: "x" | "y"
-): number => {
-    const elapsed = endPoint.timeValue - startPoint.timeValue
-    if (!elapsed) return 0
-    return cagr(startPoint[property]!, endPoint[property]!, elapsed)
-}
-
 export const cagr = (
     startValue: number,
     endValue: number,
