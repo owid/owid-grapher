@@ -8,7 +8,7 @@ import {
     GdocsContentSource,
     OwidArticleType,
 } from "../clientUtils/owidTypes.js"
-import { Button, Drawer, PageHeader, Switch } from "antd"
+import { Button, Col, Drawer, Row, Space, Switch, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { faRotate } from "@fortawesome/free-solid-svg-icons/faRotate"
@@ -44,42 +44,40 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     return gdoc ? (
         <AdminLayout title="Google Docs - Edit" noSidebar>
             <main className="GdocsEditPage">
-                <PageHeader
-                    title={gdoc.title}
-                    subTitle={
-                        <Button
-                            type="default"
-                            size="small"
-                            onClick={() => setIsSettingsOpen(true)}
+                <Row justify="space-between" className="m-3">
+                    <Col flex={1}>
+                        <Typography.Title
+                            editable={{
+                                onChange: (title) =>
+                                    setGdoc({ ...gdoc, title }),
+                            }}
+                            style={{ marginBottom: 0 }}
+                            level={4}
                         >
-                            Edit title
-                        </Button>
-                    }
-                    className="site-page-header"
-                    // tags={<Tag color="blue">Live</Tag>}
-                    extra={[
-                        <span key="1">
-                            {isContentSyncing ? "Syncing" : "Paused"}{" "}
-                            <Switch
-                                checked={isContentSyncing}
-                                checkedChildren={
-                                    <FontAwesomeIcon icon={faRotate} />
-                                }
-                                unCheckedChildren={
-                                    <FontAwesomeIcon icon={faPause} />
-                                }
-                                onChange={(checked) =>
-                                    setIsContentSyncing(checked)
-                                }
-                            />
-                        </span>,
-                        <Button key="2" type="primary">
-                            Publish
-                        </Button>,
-                        //   <DropdownMenu key="more" />,
-                    ]}
-                    // breadcrumb={{ routes }}
-                ></PageHeader>
+                            {gdoc.title}
+                        </Typography.Title>
+                    </Col>
+                    <Col>
+                        <Space>
+                            <span>
+                                {isContentSyncing ? "Syncing" : "Paused"}{" "}
+                                <Switch
+                                    checked={isContentSyncing}
+                                    checkedChildren={
+                                        <FontAwesomeIcon icon={faRotate} />
+                                    }
+                                    unCheckedChildren={
+                                        <FontAwesomeIcon icon={faPause} />
+                                    }
+                                    onChange={(checked) =>
+                                        setIsContentSyncing(checked)
+                                    }
+                                />
+                            </span>
+                            <Button type="primary">Publish</Button>
+                        </Space>
+                    </Col>
+                </Row>
                 <Drawer
                     title="Settings"
                     placement="right"
