@@ -390,7 +390,7 @@
     margin-bottom: 1em;
 }
 
-.stickySection {
+.owidArticle .stickySection {
     display: grid;
     grid-column: 2 / -2;
     display: grid;
@@ -401,20 +401,20 @@
     column-gap: 24px;
 }
 
-.stickyFigure {
+.owidArticle .stickyFigure {
     position: sticky;
     grid-row: auto;
     grid-column: 7 / span 6;
     top: calc((100vh - 550px) / 2);
 }
 
-.stickyContent {
+.owidArticle .stickyContent {
     grid-row: auto;
     grid-column: 1 / span 6;
     /* position: relative; */
 }
 
-.stickyContent p {
+.owidArticle .stickyContent p {
     height: 50vh;
     margin: 200px 0;
 }
@@ -495,10 +495,12 @@
     .owidArticle .chartStory .chart-story--nav-back {
         grid-row: 2 / span 1;
         grid-column: 1 / span 1;
+        margin-left: 0.5em;
     }
     .owidArticle .chartStory .chart-story--nav-next {
         grid-row: 2 / span 1;
         grid-column: 12 / span 1;
+        margin-right: 0.5em;
     }
     .owidArticle .chartStory .chart-story--narrative-text {
         grid-row: 2 / span 1;
@@ -533,6 +535,7 @@
 @media only screen and (max-width: 900px) {
     .owidArticle {
         grid-template-columns: 0 0 repeat(10, 1fr) 0 0;
+        column-gap: 12px;
     }
     .owidArticle > h1,
     .owidArticle > h2,
@@ -540,6 +543,19 @@
     .owidArticle p,
     .owidArticle > blockquote {
         grid-column: 3 / span 10;
+    }
+
+    .owidArticle .fixedSection .fixedSectionContent,
+    .owidArticle .fixedSection.left .fixedSectionContent {
+        grid-row: 2 / auto;
+        grid-column: 1 / span 12;
+    }
+    .owidArticle .fixedSection .fixedSectionGraphic,
+    .owidArticle .fixedSection.left .fixedSectionGraphic {
+        grid-row: 1 / auto;
+        grid-column: 1 / span 12;
+        position: static;
+        height: auto;
     }
 
     .owidArticle > figure {
@@ -567,5 +583,25 @@
         grid-column: 3 / span 10;
     }
 
-    // TODO(gdocs): Add mobile styles for the fixed images / charts.
+    .owidArticle .stickyFigure {
+        position: sticky;
+        grid-row: auto;
+        grid-column: 1 / span 12;
+        top: calc((100vh - 550px) / 2);
+    }
+
+    .owidArticle .stickyContent {
+        grid-row: auto;
+        grid-column: 1 / span 12;
+        /* position: relative; */
+        z-index: 99;
+    }
+
+    .owidArticle .stickyContent p {
+        background-color: #fff;
+        height: auto;
+        margin-bottom: 50vh;
+        padding: 0.5em;
+        border: solid 1px #efefef;
+    }
 }
