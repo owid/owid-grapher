@@ -1,7 +1,6 @@
 import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants.js"
 
-export const PriorityCustomColorSchemes: ColorSchemeInterface[] = []
-export const NonPriorityCustomColorSchemes: ColorSchemeInterface[] = []
+export const CustomColorSchemes: ColorSchemeInterface[] = []
 
 // Create some of our own!
 
@@ -138,7 +137,7 @@ export const OwidDistinctColorScheme = {
     // colors
     colorSets: [CategoricalColorsPaletteA, CategoricalColorsPaletteC],
 }
-PriorityCustomColorSchemes.push(OwidDistinctColorScheme)
+CustomColorSchemes.push(OwidDistinctColorScheme)
 
 const OwidDistinctLinesPalette = [
     OwidDistinctColors.DustyCoral,
@@ -160,7 +159,7 @@ export const OwidDistinctLinesColorScheme = {
     isDistinct: true,
     colorSets: [OwidDistinctLinesPalette],
 }
-PriorityCustomColorSchemes.push(OwidDistinctLinesColorScheme)
+CustomColorSchemes.push(OwidDistinctLinesColorScheme)
 
 export const OwidCategoricalAScheme = {
     name: ColorSchemeName["OwidCategoricalA"],
@@ -169,7 +168,7 @@ export const OwidCategoricalAScheme = {
     isDistinct: true,
     colorSets: [CategoricalColorsPaletteA],
 }
-NonPriorityCustomColorSchemes.push(OwidCategoricalAScheme)
+CustomColorSchemes.push(OwidCategoricalAScheme)
 
 export const OwidCategoricalBScheme = {
     name: ColorSchemeName["OwidCategoricalB"],
@@ -178,7 +177,7 @@ export const OwidCategoricalBScheme = {
     isDistinct: true,
     colorSets: [CategoricalColorsPaletteB],
 }
-NonPriorityCustomColorSchemes.push(OwidCategoricalBScheme)
+CustomColorSchemes.push(OwidCategoricalBScheme)
 
 export const OwidCategoricalCScheme = {
     name: ColorSchemeName["OwidCategoricalC"],
@@ -187,7 +186,7 @@ export const OwidCategoricalCScheme = {
     isDistinct: true,
     colorSets: [CategoricalColorsPaletteC],
 }
-NonPriorityCustomColorSchemes.push(OwidCategoricalCScheme)
+CustomColorSchemes.push(OwidCategoricalCScheme)
 
 export const OwidCategoricalDScheme = {
     name: ColorSchemeName["OwidCategoricalD"],
@@ -196,7 +195,7 @@ export const OwidCategoricalDScheme = {
     isDistinct: true,
     colorSets: [CategoricalColorsPaletteD],
 }
-NonPriorityCustomColorSchemes.push(OwidCategoricalDScheme)
+CustomColorSchemes.push(OwidCategoricalDScheme)
 
 export const OwidCategoricalEScheme = {
     name: ColorSchemeName["OwidCategoricalE"],
@@ -205,7 +204,7 @@ export const OwidCategoricalEScheme = {
     isDistinct: true,
     colorSets: [CategoricalColorsPaletteE],
 }
-NonPriorityCustomColorSchemes.push(OwidCategoricalEScheme)
+CustomColorSchemes.push(OwidCategoricalEScheme)
 
 export const EnergyColors = {
     Coal: OwidDistinctColors.Maroon,
@@ -238,7 +237,7 @@ export const OwidEnergy = {
     isDistinct: true,
     colorSets: [EnergyColorPalette],
 }
-NonPriorityCustomColorSchemes.push(OwidCategoricalEScheme)
+CustomColorSchemes.push(OwidCategoricalEScheme)
 
 // export const OwidEnergyLines = {
 //     name: ColorSchemeName["OwidEnergyLines"],
@@ -259,9 +258,9 @@ NonPriorityCustomColorSchemes.push(OwidCategoricalEScheme)
 //         ],
 //     ],
 // }
-// NonPriorityCustomColorSchemes.push(OwidEnergyLines)
+// CustomColorSchemes.push(OwidEnergyLines)
 
-NonPriorityCustomColorSchemes.push({
+CustomColorSchemes.push({
     name: ColorSchemeName.stackedAreaDefault,
     displayName: "OWID 4 Color Gradient (=Owid Distinct)",
     // TODO: this is now a copy of owid-distinct. After a data migration to get
@@ -325,7 +324,7 @@ export const ContinentColorsColorScheme = {
     ],
 }
 
-PriorityCustomColorSchemes.push(ContinentColorsColorScheme)
+CustomColorSchemes.push(ContinentColorsColorScheme)
 
 export const SingleColorDenim = {
     name: ColorSchemeName.SingleColorDenim,
@@ -335,7 +334,7 @@ export const SingleColorDenim = {
     colorSets: [[OwidDistinctColors.Denim]],
 }
 
-NonPriorityCustomColorSchemes.push(SingleColorDenim)
+CustomColorSchemes.push(SingleColorDenim)
 
 export const SingleColorTeal = {
     name: ColorSchemeName.SingleColorTeal,
@@ -345,7 +344,7 @@ export const SingleColorTeal = {
     colorSets: [[OwidDistinctColors.Teal]],
 }
 
-NonPriorityCustomColorSchemes.push(SingleColorTeal)
+CustomColorSchemes.push(SingleColorTeal)
 
 export const SingleColorPurple = {
     name: ColorSchemeName.SingleColorPurple,
@@ -355,7 +354,7 @@ export const SingleColorPurple = {
     colorSets: [[OwidDistinctColors.Purple]],
 }
 
-NonPriorityCustomColorSchemes.push(SingleColorPurple)
+CustomColorSchemes.push(SingleColorPurple)
 
 export const SingleColorDustyCoral = {
     name: ColorSchemeName.SingleColorDustyCoral,
@@ -365,7 +364,7 @@ export const SingleColorDustyCoral = {
     colorSets: [[OwidDistinctColors.DustyCoral]],
 }
 
-NonPriorityCustomColorSchemes.push(SingleColorDustyCoral)
+CustomColorSchemes.push(SingleColorDustyCoral)
 
 export const SingleColorDarkCopper = {
     name: ColorSchemeName.SingleColorDarkCopper,
@@ -375,7 +374,7 @@ export const SingleColorDarkCopper = {
     colorSets: [[OwidDistinctColors.DarkCopper]],
 }
 
-NonPriorityCustomColorSchemes.push(SingleColorDarkCopper)
+CustomColorSchemes.push(SingleColorDarkCopper)
 
 export const BinaryMapPaletteA = {
     name: ColorSchemeName.BinaryMapPaletteA,
@@ -385,7 +384,7 @@ export const BinaryMapPaletteA = {
     colorSets: [["#dfc27d", "#80cdc1"]],
 }
 
-NonPriorityCustomColorSchemes.push(BinaryMapPaletteA)
+CustomColorSchemes.push(BinaryMapPaletteA)
 
 export const BinaryMapPaletteB = {
     name: ColorSchemeName.BinaryMapPaletteB,
@@ -395,7 +394,7 @@ export const BinaryMapPaletteB = {
     colorSets: [["#F1B6DA", "#b8e186"]],
 }
 
-NonPriorityCustomColorSchemes.push(BinaryMapPaletteB)
+CustomColorSchemes.push(BinaryMapPaletteB)
 
 export const BinaryMapPaletteC = {
     name: ColorSchemeName.BinaryMapPaletteC,
@@ -405,7 +404,7 @@ export const BinaryMapPaletteC = {
     colorSets: [["#c2a5cf", "#a6dba0"]],
 }
 
-NonPriorityCustomColorSchemes.push(BinaryMapPaletteC)
+CustomColorSchemes.push(BinaryMapPaletteC)
 
 export const BinaryMapPaletteD = {
     name: ColorSchemeName.BinaryMapPaletteD,
@@ -415,7 +414,7 @@ export const BinaryMapPaletteD = {
     colorSets: [["#FDB863", "#b2abd2"]],
 }
 
-NonPriorityCustomColorSchemes.push(BinaryMapPaletteD)
+CustomColorSchemes.push(BinaryMapPaletteD)
 
 export const BinaryMapPaletteE = {
     name: ColorSchemeName.BinaryMapPaletteE,
@@ -425,12 +424,12 @@ export const BinaryMapPaletteE = {
     colorSets: [["#f4a582", "#92c5de"]],
 }
 
-NonPriorityCustomColorSchemes.push(BinaryMapPaletteE)
+CustomColorSchemes.push(BinaryMapPaletteE)
 
 export const DefaultColorScheme = OwidDistinctColorScheme
 
 // Perceptual color scales from https://github.com/politiken-journalism/scale-color-perceptual
-NonPriorityCustomColorSchemes.push({
+CustomColorSchemes.push({
     name: ColorSchemeName.Viridis,
     singleColorScale: false,
     colorSets: [
@@ -695,7 +694,7 @@ NonPriorityCustomColorSchemes.push({
     ],
 })
 
-NonPriorityCustomColorSchemes.push({
+CustomColorSchemes.push({
     name: ColorSchemeName.Magma,
     colorSets: [
         [
@@ -959,7 +958,7 @@ NonPriorityCustomColorSchemes.push({
     ],
 })
 
-NonPriorityCustomColorSchemes.push({
+CustomColorSchemes.push({
     name: ColorSchemeName.Plasma,
     colorSets: [
         [
@@ -1223,7 +1222,7 @@ NonPriorityCustomColorSchemes.push({
     ],
 })
 
-NonPriorityCustomColorSchemes.push({
+CustomColorSchemes.push({
     name: ColorSchemeName.Inferno,
     colorSets: [
         [
@@ -1486,8 +1485,3 @@ NonPriorityCustomColorSchemes.push({
         ],
     ],
 })
-
-export const CustomColorSchemes: ColorSchemeInterface[] = [
-    ...PriorityCustomColorSchemes,
-    ...NonPriorityCustomColorSchemes,
-]

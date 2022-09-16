@@ -19,6 +19,7 @@ import { OwidVariableId } from "../clientUtils/owidTypes.js"
 import { MapConfig } from "../grapher/mapCharts/MapConfig.js"
 import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
+import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
 
 @observer
 class VariableSection extends React.Component<{
@@ -164,6 +165,7 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                         <TimelineSection mapConfig={mapConfig} />
                         <EditorColorScaleSection
                             scale={colorScale}
+                            chartType={ChartTypeName.WorldMap}
                             features={{
                                 visualScaling: true,
                                 legendDescription: false,
