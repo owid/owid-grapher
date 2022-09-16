@@ -78,14 +78,21 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                         </Space>
                     </Col>
                 </Row>
+                {/* <Route
+                    path={`${match.path}/settings`}
+                    render={() => {
+                        return ( */}
                 <Drawer
                     title="Settings"
-                    placement="right"
+                    placement="bottom"
                     onClose={() => setIsSettingsOpen(false)}
-                    visible={isSettingsOpen}
+                    open={isSettingsOpen}
                 >
                     <GdocsSettings gdoc={gdoc} setGdoc={setGdoc} />
                 </Drawer>
+                {/* )
+                    }}
+                /> */}
 
                 <OwidArticle {...gdoc} />
                 <Button
