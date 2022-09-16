@@ -201,7 +201,10 @@ export class Explorer
             )
         }
 
-        if (this.props.isInStandalonePage) this.setCanonicalUrl()
+        if (this.props.isInStandalonePage) {
+            // expose a more useful title to the Google crawler
+            this.setCanonicalUrl()
+        }
 
         this.grapher?.populateFromQueryParams(url.queryParams)
 
@@ -210,6 +213,19 @@ export class Explorer
         this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
 
         this.attachEventListeners()
+    }
+
+    private maybeUpdatePageTitle() {
+        // expose the title of the current view to the Google crawler on non-default views
+        // of opted-in standalone explorer pages
+        if (
+            this.props.isInStandalonePage &&
+            this.grapher &&
+            this.explorerProgram.indexViewsSeparately &&
+            document.location.search
+        ) {
+            document.title = `${this.grapher.displayTitle} - Our World in Data`
+        }
     }
 
     private setCanonicalUrl() {
@@ -597,6 +613,9 @@ export class Explorer
 
     render() {
         const { showExplorerControls, showHeaderElement } = this
+
+        this.maybeUpdatePageTitle()
+
         return (
             <div
                 className={classNames({
