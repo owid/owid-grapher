@@ -123,4 +123,5 @@ export const getVariableMetadataRoute = (variableId: number): string =>
 
 export enum Patterns {
     noDataPattern = "noDataPattern",
+    noDataPatternForMapChart = "noDataPatternForMapChart",
 }
