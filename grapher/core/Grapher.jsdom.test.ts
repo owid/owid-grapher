@@ -21,7 +21,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
-import { isStrictSubsetOf, orderBy } from "../../clientUtils/Util.js"
+import { isSubsetOf, orderBy } from "../../clientUtils/Util.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
 import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils.js"
@@ -432,16 +432,10 @@ describe("line chart to bar chart and bar chart race", () => {
             )
 
             expect(
-                isStrictSubsetOf(
-                    linecolors,
-                    OwidDistinctColorScheme.colorSets[0]
-                )
+                isSubsetOf(linecolors, OwidDistinctColorScheme.colorSets[0])
             ).toBeTruthy()
             expect(
-                isStrictSubsetOf(
-                    barColors,
-                    OwidDistinctColorScheme.colorSets[0]
-                )
+                isSubsetOf(barColors, OwidDistinctColorScheme.colorSets[0])
             ).toBeTruthy()
             expect(new Set(barColors).size).toEqual(1)
         })

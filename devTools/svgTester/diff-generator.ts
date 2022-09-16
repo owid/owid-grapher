@@ -7,7 +7,7 @@ import readline from "readline"
 import _ from "lodash"
 import cheerio from "cheerio"
 
-// This script generates an html report from a newline seprated list of chart ids that were different
+// This script generates an html report from a newline separated list of chart ids that were different
 // created with verify-graphs.ts. Github already shows nice diffs and for most cases it's easier
 // to just look at files on Github but when there are a lot diffs this gets super slow. Also,
 // this script generates an html file per chart type which can be useful.

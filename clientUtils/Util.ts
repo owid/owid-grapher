@@ -879,7 +879,7 @@ export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
 
 /** Tests whether the first argument is a strict subset of the second. The arguments do not have
     to be sets yet, they can be any iterable. Sets will be created by the function internally */
-export function isStrictSubsetOf<T>(
+export function isSubsetOf<T>(
     subsetIter: Iterable<T>,
     supersetIter: Iterable<T>
 ): boolean {
