@@ -54,15 +54,6 @@ export default function OwidArticlePage({
                     href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&amp;display=swap"
                     rel="stylesheet"
                 />
-                {/* TODO(gdocs) - replace with correct URLs */}
-                <link
-                    rel="stylesheet"
-                    href="http://localhost:8090/commons.css"
-                ></link>
-                <link
-                    rel="stylesheet"
-                    href="http://localhost:8090/owid.css"
-                ></link>
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_ARTICLE_PROPS = ${JSON.stringify(
