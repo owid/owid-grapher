@@ -2607,7 +2607,7 @@ apiRouter.get("/gdocs/:id", async (req) => {
     if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
     if (contentSource === GdocsContentSource.Gdocs) {
-        const content = await gdoc.getContentFromGdocs(id)
+        const content = await gdoc.getDraftContent()
         return { ...gdoc, content }
     } else {
         return gdoc
@@ -2649,7 +2649,7 @@ apiRouter.patch("/gdocs/:id", async (req) => {
         } else if (op === GdocsPatchOp.Refresh) {
             switch (property) {
                 case "content":
-                    gdoc[property] = await gdoc.getContentFromGdocs(id)
+                    gdoc[property] = await gdoc.getDraftContent()
                     break
             }
         }
@@ -2665,7 +2665,7 @@ apiRouter.put("/gdocs/:id", async (req) => {
 
     const gdoc = new Gdoc()
     gdoc.id = id
-    gdoc.content = await gdoc.getContentFromGdocs(id)
+    gdoc.content = await gdoc.getDraftContent()
 
     await getRepository(Gdoc).insert(gdoc)
     // this silently updates the gdoc if it already exists
