@@ -18,24 +18,30 @@ export class Gdoc extends BaseEntity {
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
 
+    static cachedGoogleAuth?: GoogleAuth
+
     static getGoogleAuth(): GoogleAuth {
-        return new GoogleAuth({
-            credentials: {
-                type: "service_account",
-                private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
-                client_email: GDOCS_CLIENT_EMAIL,
-                client_id: GDOCS_CLIENT_ID,
-            },
-            // Scopes can be specified either as an array or as a single, space-delimited string.
-            scopes: ["https://www.googleapis.com/auth/documents.readonly"],
-        })
+        if (!Gdoc.cachedGoogleAuth) {
+            console.log("getting new credentials")
+            Gdoc.cachedGoogleAuth = new GoogleAuth({
+                credentials: {
+                    type: "service_account",
+                    private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
+                    client_email: GDOCS_CLIENT_EMAIL,
+                    client_id: GDOCS_CLIENT_ID,
+                },
+                // Scopes can be specified either as an array or as a single, space-delimited string.
+                scopes: ["https://www.googleapis.com/auth/documents.readonly"],
+            })
+        }
+        return Gdoc.cachedGoogleAuth
     }
 
-    async getContentFromGdocs(id: string): Promise<OwidArticleContent> {
+    async getDraftContent(): Promise<OwidArticleContent> {
         const auth = Gdoc.getGoogleAuth()
 
         return docToArchieML({
-            documentId: id,
+            documentId: this.id,
             auth,
         }) as Promise<OwidArticleContent>
     }
