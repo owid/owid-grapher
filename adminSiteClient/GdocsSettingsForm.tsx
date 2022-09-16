@@ -9,6 +9,7 @@ import {
     OwidArticleType,
 } from "../clientUtils/owidTypes.js"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
+import { GdocsSlug } from "./GdocsSlug.js"
 
 export const GdocsSettings = ({
     gdoc,
@@ -57,6 +58,7 @@ export const GdocsSettings = ({
                         <FontAwesomeIcon icon={faEdit} /> Edit document
                     </a>
                 </p>
+
                 <TextField
                     label="Title"
                     value={gdoc.title}
@@ -69,6 +71,11 @@ export const GdocsSettings = ({
                         errors?.find((error) => error.property === "title")
                             ?.message
                     }
+                />
+                <GdocsSlug
+                    gdoc={gdoc}
+                    setGdoc={setGdoc}
+                    error={errors?.find((error) => error.property === "slug")}
                 />
                 <TextField
                     label="Slug"
