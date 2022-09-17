@@ -123,7 +123,7 @@ export class Dataset extends BaseEntity {
     // Return object representing datapackage.json for this dataset
     async toDatapackage(): Promise<any> {
         // XXX
-        const sources = await Source.find({ datasetId: this.id })
+        const sources = await Source.findBy({ datasetId: this.id })
         const variables = (await db
             .knexTable(variableTable)
             .where({ datasetId: this.id })) as VariableRow[]

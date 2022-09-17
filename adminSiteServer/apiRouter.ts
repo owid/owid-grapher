@@ -1269,18 +1269,19 @@ apiRouter.get("/users.json", async (req: Request, res: Response) => ({
 }))
 
 apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => ({
-    user: await User.findOne(req.params.userId, {
-        select: [
-            "id",
-            "email",
-            "fullName",
-            "isActive",
-            "isSuperuser",
-            "createdAt",
-            "updatedAt",
-            "lastLogin",
-            "lastSeen",
-        ],
+    user: await User.findOne({
+        where: { id: parseIntOrUndefined(req.params.userId) },
+        select: {
+            id: true,
+            email: true,
+            fullName: true,
+            isActive: true,
+            isSuperuser: true,
+            createdAt: true,
+            updatedAt: true,
+            lastLogin: true,
+            lastSeen: true,
+        },
     }),
 }))
 
@@ -1300,7 +1301,8 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const user = await User.findOne(req.params.userId)
+    const userId = parseIntOrUndefined(req.params.userId)
+    const user = await User.findOneBy({ id: userId })
     if (!user) throw new JsonError("No such user", 404)
 
     user.fullName = req.body.fullName
@@ -1794,7 +1796,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
 apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
     const datasetId = expectInt(req.params.datasetId)
-    const dataset = await Dataset.findOne({ id: datasetId })
+    const dataset = await Dataset.findOneBy({ id: datasetId })
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
     await db.transaction(async (t) => {
@@ -1892,7 +1894,7 @@ apiRouter.delete(
     async (req: Request, res: Response) => {
         const datasetId = expectInt(req.params.datasetId)
 
-        const dataset = await Dataset.findOne({ id: datasetId })
+        const dataset = await Dataset.findOneBy({ id: datasetId })
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
         await db.transaction(async (t) => {
@@ -1935,7 +1937,7 @@ apiRouter.post(
     async (req: Request, res: Response) => {
         const datasetId = expectInt(req.params.datasetId)
 
-        const dataset = await Dataset.findOne({ id: datasetId })
+        const dataset = await Dataset.findOneBy({ id: datasetId })
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
         if (req.body.republish) {
