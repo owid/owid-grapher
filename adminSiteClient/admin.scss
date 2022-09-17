@@ -1237,10 +1237,3 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         list-style-position: inside;
     }
 }
-.GdocsEditPage {
-    .settings-toggle {
-        position: fixed;
-        bottom: 10%;
-        right: 0;
-    }
-}

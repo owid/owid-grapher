@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react"
+import React, { useContext } from "react"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Help } from "./Forms.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -12,7 +12,7 @@ import {
     ErrorMessage,
     ErrorMessageType,
     getErrors,
-    getValidationStatus,
+    getPropertyValidationStatus,
 } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
 import { Input } from "antd"
@@ -21,13 +21,13 @@ export const GdocsSettings = ({
     gdoc,
     setGdoc,
     onSuccess,
+    errors,
 }: {
     gdoc: OwidArticleType
     setGdoc: (gdoc: OwidArticleType) => void
     onSuccess: VoidFunction
+    errors?: ErrorMessage[]
 }) => {
-    const [errors, setErrors] = React.useState<ErrorMessage[]>()
-
     const { admin } = useContext(AdminAppContext)
 
     const isValid = gdoc
@@ -50,11 +50,6 @@ export const GdocsSettings = ({
         onSuccess()
     }
 
-    useEffect(() => {
-        if (!gdoc) return
-        setErrors(getErrors(gdoc))
-    }, [gdoc])
-
     return gdoc ? (
         <form className="GdocsSettingsForm" onSubmit={onSubmit}>
             <p>
@@ -73,11 +68,9 @@ export const GdocsSettings = ({
                     onChange={(e) =>
                         setGdoc({ ...gdoc, title: e.target.value })
                     }
-                    placeholder="much-better-awful-can-be-better"
-                    required
-                    status={getValidationStatus("title", errors)}
+                    status={getPropertyValidationStatus("title", errors)}
                     id="title"
-                    defaultValue={"test"}
+                    required
                 />
                 <Help>The document title as it will appear on the site.</Help>
             </div>
