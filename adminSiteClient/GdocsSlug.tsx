@@ -1,7 +1,11 @@
-import { Input, Switch } from "antd"
+import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
+import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { Col, Input, Row, Space, Switch, Tooltip } from "antd"
 import React, { useEffect, useState } from "react"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { slugify } from "../clientUtils/Util.js"
+import { Help } from "./Forms.js"
 import { ErrorMessage } from "./gdocsValidation.js"
 
 export const GdocsSlug = ({
@@ -34,32 +38,70 @@ export const GdocsSlug = ({
     }, [slugFromTitle, isSlugSyncing])
 
     return (
-        <Input.Group>
-            <Input
-                addonBefore="https://ourworldindata.org/"
-                value={slug}
-                onChange={(e) => setSlug(slugify(e.target.value))}
-                placeholder="much-better-awful-can-be-better"
-                required
-                status={!!error ? "error" : ""}
-                disabled={!isSlugSyncing}
-            />
-            {`Status: ${
-                slug === slugFromTitle
-                    ? "in sync with title"
-                    : "out of sync with title"
-            }`}
-            "Sync with title"
-            <Switch
-                checked={isSlugSyncing}
-                onChange={(checked) => {
-                    setSlugSyncing(checked)
-                    if (checked) setSlug(slugFromTitle)
-                }}
-            />
-            {!isSlugSyncing
-                ? "⚠️ Before syncing consider how changing the anchor might break exisiting links (internal or external). Unless the block has been published recently, it is generally advised to keep this turned off."
-                : "Updating to the title will update the anchor. Overriding the anchor manually is possible."}
-        </Input.Group>
+        <>
+            <label htmlFor="slug">Slug</label>
+            <Row gutter={24}>
+                <Col span={12}>
+                    <Input
+                        addonBefore="https://ourworldindata.org/"
+                        value={slug}
+                        onChange={(e) => setSlug(slugify(e.target.value))}
+                        placeholder={slugFromTitle}
+                        required
+                        status={!!error ? "error" : ""}
+                        disabled={!isSlugSyncing}
+                        id="slug"
+                        suffix={
+                            slug === slugFromTitle ? (
+                                <Tooltip title="In sync with title">
+                                    <span>
+                                        <FontAwesomeIcon icon={faLink} />
+                                    </span>
+                                </Tooltip>
+                            ) : isSlugSyncing ? (
+                                <Tooltip title="Click to sync with title">
+                                    <span
+                                        onClick={() => setSlug(slugFromTitle)}
+                                        style={{ cursor: "pointer" }}
+                                    >
+                                        <FontAwesomeIcon icon={faUnlink} />
+                                    </span>
+                                </Tooltip>
+                            ) : (
+                                <FontAwesomeIcon icon={faUnlink} />
+                            )
+                        }
+                    />
+                </Col>
+                <Col span={12}>
+                    <Space>
+                        <Switch
+                            checked={isSlugSyncing}
+                            onChange={(checked) => {
+                                setSlugSyncing(checked)
+                                if (checked) setSlug(slugFromTitle)
+                            }}
+                            id="slug-sync"
+                        />
+                        <label htmlFor="slug-sync" style={{ marginBottom: 0 }}>
+                            {isSlugSyncing ? "Updates from title" : "Locked"}
+                        </label>
+                    </Space>
+                    <Help>
+                        {isSlugSyncing ? (
+                            "Updating the title updates the slug. Manual overrides are possible."
+                        ) : (
+                            <>
+                                Unlock to update the slug from the title <br />
+                                ⚠️ Before unlocking, consider how this might
+                                break exisiting links. Unless the article hasn't
+                                been published yet, it is generally advised to
+                                keep this turned off.
+                            </>
+                        )}
+                    </Help>
+                </Col>
+            </Row>
+        </>
     )
 }
