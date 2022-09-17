@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { TextField } from "./Forms.js"
+import { Help } from "./Forms.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
 import {
@@ -10,6 +10,7 @@ import {
 } from "../clientUtils/owidTypes.js"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
+import { Input } from "antd"
 
 export const GdocsSettings = ({
     gdoc,
@@ -48,49 +49,39 @@ export const GdocsSettings = ({
 
     return gdoc ? (
         <form className="GdocsSettingsForm" onSubmit={onSubmit}>
+            <p>
+                <a
+                    href={`https://docs.google.com/document/d/${gdoc.id}/edit`}
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <FontAwesomeIcon icon={faEdit} /> Edit document
+                </a>
+            </p>
             <div className="form-group">
-                <p>
-                    <a
-                        href={`https://docs.google.com/document/d/${gdoc.id}/edit`}
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        <FontAwesomeIcon icon={faEdit} /> Edit document
-                    </a>
-                </p>
-
-                <TextField
-                    label="Title"
+                <label htmlFor="title">Title</label>
+                <Input
                     value={gdoc.title}
-                    onValue={(title) => setGdoc({ ...gdoc, title })}
-                    placeholder="The world is awful. The world is much better. The world can be much better."
-                    helpText="The document title as it will appear on the site."
-                    softCharacterLimit={50}
-                    required
-                    errorMessage={
-                        errors?.find((error) => error.property === "title")
-                            ?.message
+                    onChange={(e) =>
+                        setGdoc({ ...gdoc, title: e.target.value })
                     }
+                    placeholder="much-better-awful-can-be-better"
+                    required
+                    status={
+                        errors?.some((error) => error.property === "title")
+                            ? "error"
+                            : ""
+                    }
+                    id="title"
+                    defaultValue={"test"}
                 />
+                <Help>The document title as it will appear on the site.</Help>
+            </div>
+            <div className="form-group">
                 <GdocsSlug
                     gdoc={gdoc}
                     setGdoc={setGdoc}
                     error={errors?.find((error) => error.property === "slug")}
-                />
-                <TextField
-                    label="Slug"
-                    value={gdoc.slug}
-                    onValue={(slug) => setGdoc({ ...gdoc, slug })}
-                    placeholder="much-better-awful-can-be-better"
-                    helpText={`https://ourworldindata.org/${
-                        gdoc.slug ?? "[slug]"
-                    }`}
-                    softCharacterLimit={50}
-                    required
-                    errorMessage={
-                        errors?.find((error) => error.property === "slug")
-                            ?.message
-                    }
                 />
             </div>
             <div className="d-flex justify-content-end">

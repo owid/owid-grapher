@@ -19,7 +19,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-    const [isContentSyncing, setIsContentSyncing] = React.useState(true)
+    const [isContentSyncing, setIsContentSyncing] = useState(false)
 
     const { admin } = useContext(AdminAppContext)
 
