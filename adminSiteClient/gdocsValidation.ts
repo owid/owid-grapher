@@ -76,3 +76,21 @@ export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
 
     return errors
 }
+
+export const getFirstError = (
+    type: ErrorMessageType,
+    property: keyof OwidArticleType,
+    errors: ErrorMessage[]
+) => errors?.find((error) => error.property === property && error.type === type)
+
+export const getValidationStatus = (
+    property: keyof OwidArticleType,
+    errors: ErrorMessage[] | undefined
+): ErrorMessageType | undefined => {
+    if (!errors?.length) return
+    return getFirstError(ErrorMessageType.Error, property, errors)
+        ? ErrorMessageType.Error
+        : getFirstError(ErrorMessageType.Warning, property, errors)
+        ? ErrorMessageType.Warning
+        : undefined
+}

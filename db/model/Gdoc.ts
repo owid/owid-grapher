@@ -22,7 +22,6 @@ export class Gdoc extends BaseEntity {
 
     static getGoogleAuth(): GoogleAuth {
         if (!Gdoc.cachedGoogleAuth) {
-            console.log("getting new credentials")
             Gdoc.cachedGoogleAuth = new GoogleAuth({
                 credentials: {
                     type: "service_account",
