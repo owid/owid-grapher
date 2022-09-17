@@ -8,16 +8,23 @@ import {
     GdocsPatchOp,
     OwidArticleType,
 } from "../clientUtils/owidTypes.js"
-import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
+import {
+    ErrorMessage,
+    ErrorMessageType,
+    getErrors,
+    getValidationStatus,
+} from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
 import { Input } from "antd"
 
 export const GdocsSettings = ({
     gdoc,
     setGdoc,
+    onSuccess,
 }: {
     gdoc: OwidArticleType
     setGdoc: (gdoc: OwidArticleType) => void
+    onSuccess: VoidFunction
 }) => {
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
 
@@ -40,6 +47,7 @@ export const GdocsSettings = ({
         ]
 
         await admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdocsPatches, "PATCH")
+        onSuccess()
     }
 
     useEffect(() => {
@@ -67,30 +75,19 @@ export const GdocsSettings = ({
                     }
                     placeholder="much-better-awful-can-be-better"
                     required
-                    status={
-                        errors?.some((error) => error.property === "title")
-                            ? "error"
-                            : ""
-                    }
+                    status={getValidationStatus("title", errors)}
                     id="title"
                     defaultValue={"test"}
                 />
                 <Help>The document title as it will appear on the site.</Help>
             </div>
             <div className="form-group">
-                <GdocsSlug
-                    gdoc={gdoc}
-                    setGdoc={setGdoc}
-                    error={errors?.find((error) => error.property === "slug")}
-                />
+                <GdocsSlug gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
             </div>
             <div className="d-flex justify-content-end">
-                <button type="button" className="btn btn-primary">
-                    Done
+                <button disabled={!isValid} className="btn btn-primary">
+                    Save and publish
                 </button>
-                {/* <button disabled={!isValid} className="btn btn-primary">
-                    Save
-                </button> */}
             </div>
         </form>
     ) : null

@@ -6,16 +6,16 @@ import React, { useEffect, useState } from "react"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { slugify } from "../clientUtils/Util.js"
 import { Help } from "./Forms.js"
-import { ErrorMessage } from "./gdocsValidation.js"
+import { ErrorMessage, getValidationStatus } from "./gdocsValidation.js"
 
 export const GdocsSlug = ({
     gdoc,
     setGdoc,
-    error,
+    errors,
 }: {
     gdoc: OwidArticleType
     setGdoc: (gdoc: OwidArticleType) => void
-    error?: ErrorMessage
+    errors?: ErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)
     const { title, slug } = gdoc
@@ -48,28 +48,18 @@ export const GdocsSlug = ({
                         onChange={(e) => setSlug(slugify(e.target.value))}
                         placeholder={slugFromTitle}
                         required
-                        status={!!error ? "error" : ""}
+                        status={getValidationStatus("slug", errors)}
                         disabled={!isSlugSyncing}
                         id="slug"
                         suffix={
-                            slug === slugFromTitle ? (
-                                <Tooltip title="In sync with title">
-                                    <span>
-                                        <FontAwesomeIcon icon={faLink} />
-                                    </span>
-                                </Tooltip>
-                            ) : isSlugSyncing ? (
-                                <Tooltip title="Click to sync with title">
-                                    <span
-                                        onClick={() => setSlug(slugFromTitle)}
-                                        style={{ cursor: "pointer" }}
-                                    >
-                                        <FontAwesomeIcon icon={faUnlink} />
-                                    </span>
-                                </Tooltip>
-                            ) : (
-                                <FontAwesomeIcon icon={faUnlink} />
-                            )
+                            <>
+                                <SlugTitleLink
+                                    slug={slug}
+                                    setSlug={setSlug}
+                                    slugFromTitle={slugFromTitle}
+                                    isSlugSyncing={isSlugSyncing}
+                                />
+                            </>
                         }
                     />
                 </Col>
@@ -103,5 +93,36 @@ export const GdocsSlug = ({
                 </Col>
             </Row>
         </>
+    )
+}
+
+const SlugTitleLink = ({
+    slug,
+    slugFromTitle,
+    isSlugSyncing,
+    setSlug,
+}: {
+    slug: string
+    slugFromTitle: string
+    isSlugSyncing: boolean
+    setSlug: (slug: string) => void
+}) => {
+    return slug === slugFromTitle ? (
+        <Tooltip title="In sync with title">
+            <span>
+                <FontAwesomeIcon icon={faLink} />
+            </span>
+        </Tooltip>
+    ) : isSlugSyncing ? (
+        <Tooltip title="Click to sync with title">
+            <span
+                onClick={() => setSlug(slugFromTitle)}
+                style={{ cursor: "pointer" }}
+            >
+                <FontAwesomeIcon icon={faUnlink} />
+            </span>
+        </Tooltip>
+    ) : (
+        <FontAwesomeIcon icon={faUnlink} />
     )
 }
