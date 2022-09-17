@@ -167,7 +167,7 @@
         "prop-types": "^15.7.2",
         "randomstring": "^1.2.2",
         "react": "^16.14.0",
-        "react-animate-height": "^2.0.17",
+        "react-animate-height": "^3.0.4",
         "react-awesome-query-builder": "5",
         "react-beautiful-dnd": "^13.1.0",
         "react-codemirror2": "^7.2.1",
