@@ -87,7 +87,7 @@
         "@types/react-recaptcha": "^2.3.3",
         "@types/react-router-dom": "^4.3.3",
         "@types/react-tag-autocomplete": "^6.1.1",
-        "@types/sharp": "^0.28.4",
+        "@types/sharp": "^0.31.0",
         "@types/shell-quote": "^1.6.1",
         "@types/shelljs": "^0.8.5",
         "@types/slack-node": "^0.1.2",
