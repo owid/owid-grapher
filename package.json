@@ -19,7 +19,7 @@
         "fixLint": "eslint . --fix",
         "fixPrettierAll": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "fixPrettierChanged": "yarn pretty-quick --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
-        "runDbMigrations": "yarn typeorm migration:run",
+        "runDbMigrations": "yarn typeorm migration:run -d itsJustJavascript/db/dataSource.js",
         "runPostUpdateHook": "node ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node ./itsJustJavascript/adminSiteServer/app.js",
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
