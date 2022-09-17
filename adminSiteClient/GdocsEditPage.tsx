@@ -6,57 +6,85 @@ import { OwidArticle } from "../site/gdocs/owid-article.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     GdocsContentSource,
+    GdocsPatch,
+    GdocsPatchOp,
     OwidArticleType,
 } from "../clientUtils/owidTypes.js"
-import { Button, Col, Drawer, Row, Space, Switch, Typography } from "antd"
+import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
-import { faRotate } from "@fortawesome/free-solid-svg-icons/faRotate"
-import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
 import { useInterval } from "../site/hooks.js"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
-import {
-    ErrorMessage,
-    ErrorMessageType,
-    getErrors,
-    getGdocValidationStatus,
-} from "./gdocsValidation.js"
+import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import { faRotate } from "@fortawesome/free-solid-svg-icons/faRotate"
+import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-    const [isContentSyncing, setIsContentSyncing] = useState(false)
+    const [isSettingsOpen, setSettingsOpen] = useState(false)
+    const [syncingError, setSyncingError] = React.useState(false)
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
-    const [validationStatus, setValidationStatus] =
-        React.useState<ErrorMessageType>()
 
     const { admin } = useContext(AdminAppContext)
 
     const fetchGdoc = useCallback(async () => {
-        const draftGdoc = (await admin.getJSON(
-            `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`
-        )) as OwidArticleType
-        setGdoc((currGdoc) =>
-            currGdoc ? { ...currGdoc, content: draftGdoc.content } : draftGdoc
-        )
+        try {
+            const draftGdoc = (await admin.requestJSON(
+                `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
+                {},
+                "GET",
+                { onFailure: "continue" }
+            )) as OwidArticleType
+            setGdoc((currGdoc) =>
+                currGdoc
+                    ? { ...currGdoc, content: draftGdoc.content }
+                    : draftGdoc
+            )
+            setSyncingError(false)
+        } catch (e) {
+            console.log(e)
+            setSyncingError(true)
+        }
     }, [id, admin])
 
-    // First load
+    const hasErrors =
+        errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
+    const hasWarnings =
+        errors?.some((error) => error.type === ErrorMessageType.Warning) ??
+        false
+
+    const onSubmit = async (
+        e: React.MouseEvent<HTMLElement>,
+        overridePatch?: GdocsPatch[]
+    ) => {
+        if (!gdoc || (gdoc.published && hasErrors)) return
+
+        const gdocsPatches: GdocsPatch[] = [
+            { op: GdocsPatchOp.Update, property: "title", payload: gdoc.title },
+            { op: GdocsPatchOp.Update, property: "slug", payload: gdoc.slug },
+            ...(overridePatch ?? []),
+        ]
+
+        await admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdocsPatches, "PATCH")
+        setSettingsOpen(false)
+    }
+
+    // Fetch the gdoc on mount
     useEffect(() => {
         fetchGdoc()
         admin.loadingIndicatorSetting = "off"
     }, [admin, fetchGdoc])
 
     // Sync content every 5 seconds
-    useInterval(fetchGdoc, isContentSyncing ? 5000 : null)
+    useInterval(fetchGdoc, 5000)
 
+    // Handle errors and validation status
     useEffect(() => {
         if (!gdoc) return
         const errors = getErrors(gdoc)
         setErrors(errors)
-        setValidationStatus(getGdocValidationStatus(errors))
     }, [gdoc])
 
     return gdoc ? (
@@ -64,42 +92,58 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
             <main className="GdocsEditPage">
                 <Row justify="space-between" className="m-3">
                     <Col flex={1}>
-                        <Typography.Title
-                            editable={{
-                                onChange: (title) =>
-                                    setGdoc({ ...gdoc, title }),
-                            }}
-                            style={{ marginBottom: 0 }}
-                            level={4}
-                        >
-                            {gdoc.title}
-                        </Typography.Title>
+                        <Space>
+                            <Typography.Title
+                                editable={{
+                                    onChange: (title) =>
+                                        setGdoc({ ...gdoc, title }),
+                                }}
+                                style={{ marginBottom: 0 }}
+                                level={4}
+                            >
+                                {gdoc.title}
+                            </Typography.Title>
+                            {gdoc.published ? (
+                                <Tag color="success">live</Tag>
+                            ) : (
+                                <Tag color="default">Draft</Tag>
+                            )}
+                        </Space>
                     </Col>
                     <Col>
                         <Space>
                             <span>
-                                {isContentSyncing ? "Syncing" : "Paused"}{" "}
-                                <Switch
-                                    checked={isContentSyncing}
-                                    checkedChildren={
-                                        <FontAwesomeIcon icon={faRotate} />
-                                    }
-                                    unCheckedChildren={
-                                        <FontAwesomeIcon icon={faPause} />
-                                    }
-                                    onChange={(checked) =>
-                                        setIsContentSyncing(checked)
-                                    }
-                                />
+                                {syncingError ? (
+                                    <>
+                                        <span>Syncing error, retrying...</span>{" "}
+                                        <FontAwesomeIcon
+                                            icon={faExclamationTriangle}
+                                            color="orange"
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Syncing content</span>{" "}
+                                        <FontAwesomeIcon
+                                            icon={faRotate}
+                                            color="green"
+                                        />
+                                    </>
+                                )}
                             </span>
-                            <Button type="primary">Publish</Button>
+                            <GdocsSaveButtons
+                                published={gdoc.published}
+                                hasErrors={hasErrors}
+                                hasWarnings={hasWarnings}
+                                onSubmit={onSubmit}
+                            />
                             <Button
-                                onClick={() => setIsSettingsOpen(true)}
+                                onClick={() => setSettingsOpen(true)}
                                 className="settings-toggle"
                             >
                                 <FontAwesomeIcon icon={faGear} />
 
-                                {validationStatus === ErrorMessageType.Error ? (
+                                {hasErrors ? (
                                     <FontAwesomeIcon
                                         icon={faExclamationCircle}
                                         color="red"
@@ -109,8 +153,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                             right: "-0.5em",
                                         }}
                                     />
-                                ) : validationStatus ===
-                                  ErrorMessageType.Warning ? (
+                                ) : hasWarnings ? (
                                     <FontAwesomeIcon
                                         icon={faExclamationTriangle}
                                         color="orange"
@@ -128,13 +171,20 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                 <Drawer
                     title="Settings"
                     placement="bottom"
-                    onClose={() => setIsSettingsOpen(false)}
+                    onClose={() => setSettingsOpen(false)}
                     open={isSettingsOpen}
                 >
                     <GdocsSettings
                         gdoc={gdoc}
                         setGdoc={setGdoc}
-                        onSuccess={() => setIsSettingsOpen(false)}
+                        saveButtons={
+                            <GdocsSaveButtons
+                                published={gdoc.published}
+                                hasErrors={hasErrors}
+                                hasWarnings={hasWarnings}
+                                onSubmit={onSubmit}
+                            />
+                        }
                         errors={errors}
                     />
                 </Drawer>
