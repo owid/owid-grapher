@@ -77,20 +77,29 @@ export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
     return errors
 }
 
-export const getFirstError = (
+export const getFirstPropertyError = (
     type: ErrorMessageType,
     property: keyof OwidArticleType,
-    errors: ErrorMessage[]
+    errors?: ErrorMessage[]
 ) => errors?.find((error) => error.property === property && error.type === type)
 
-export const getValidationStatus = (
+export const getPropertyValidationStatus = (
     property: keyof OwidArticleType,
     errors: ErrorMessage[] | undefined
 ): ErrorMessageType | undefined => {
-    if (!errors?.length) return
-    return getFirstError(ErrorMessageType.Error, property, errors)
+    return getFirstPropertyError(ErrorMessageType.Error, property, errors)
         ? ErrorMessageType.Error
-        : getFirstError(ErrorMessageType.Warning, property, errors)
+        : getFirstPropertyError(ErrorMessageType.Warning, property, errors)
+        ? ErrorMessageType.Warning
+        : undefined
+}
+
+export const getGdocValidationStatus = (
+    errors: ErrorMessage[] | undefined
+): ErrorMessageType | undefined => {
+    return errors?.some((error) => error.type === ErrorMessageType.Error)
+        ? ErrorMessageType.Error
+        : errors?.some((error) => error.type === ErrorMessageType.Warning)
         ? ErrorMessageType.Warning
         : undefined
 }

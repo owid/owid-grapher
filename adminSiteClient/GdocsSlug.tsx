@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { slugify } from "../clientUtils/Util.js"
 import { Help } from "./Forms.js"
-import { ErrorMessage, getValidationStatus } from "./gdocsValidation.js"
+import { ErrorMessage, getPropertyValidationStatus } from "./gdocsValidation.js"
 
 export const GdocsSlug = ({
     gdoc,
@@ -48,7 +48,7 @@ export const GdocsSlug = ({
                         onChange={(e) => setSlug(slugify(e.target.value))}
                         placeholder={slugFromTitle}
                         required
-                        status={getValidationStatus("slug", errors)}
+                        status={getPropertyValidationStatus("slug", errors)}
                         disabled={!isSlugSyncing}
                         id="slug"
                         suffix={

@@ -14,12 +14,23 @@ import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { faRotate } from "@fortawesome/free-solid-svg-icons/faRotate"
 import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
 import { useInterval } from "../site/hooks.js"
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
+import {
+    ErrorMessage,
+    ErrorMessageType,
+    getErrors,
+    getGdocValidationStatus,
+} from "./gdocsValidation.js"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
     const [isContentSyncing, setIsContentSyncing] = useState(false)
+    const [errors, setErrors] = React.useState<ErrorMessage[]>()
+    const [validationStatus, setValidationStatus] =
+        React.useState<ErrorMessageType>()
 
     const { admin } = useContext(AdminAppContext)
 
@@ -40,6 +51,13 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
 
     // Sync content every 5 seconds
     useInterval(fetchGdoc, isContentSyncing ? 5000 : null)
+
+    useEffect(() => {
+        if (!gdoc) return
+        const errors = getErrors(gdoc)
+        setErrors(errors)
+        setValidationStatus(getGdocValidationStatus(errors))
+    }, [gdoc])
 
     return gdoc ? (
         <AdminLayout title="Google Docs - Edit" noSidebar>
@@ -75,6 +93,35 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                 />
                             </span>
                             <Button type="primary">Publish</Button>
+                            <Button
+                                onClick={() => setIsSettingsOpen(true)}
+                                className="settings-toggle"
+                            >
+                                <FontAwesomeIcon icon={faGear} />
+
+                                {validationStatus === ErrorMessageType.Error ? (
+                                    <FontAwesomeIcon
+                                        icon={faExclamationCircle}
+                                        color="red"
+                                        style={{
+                                            position: "absolute",
+                                            top: "-0.5em",
+                                            right: "-0.5em",
+                                        }}
+                                    />
+                                ) : validationStatus ===
+                                  ErrorMessageType.Warning ? (
+                                    <FontAwesomeIcon
+                                        icon={faExclamationTriangle}
+                                        color="orange"
+                                        style={{
+                                            position: "absolute",
+                                            top: "-0.5em",
+                                            right: "-0.5em",
+                                        }}
+                                    />
+                                ) : null}
+                            </Button>
                         </Space>
                     </Col>
                 </Row>
@@ -88,17 +135,11 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                         gdoc={gdoc}
                         setGdoc={setGdoc}
                         onSuccess={() => setIsSettingsOpen(false)}
+                        errors={errors}
                     />
                 </Drawer>
 
                 <OwidArticle {...gdoc} />
-                <Button
-                    type="primary"
-                    onClick={() => setIsSettingsOpen(true)}
-                    className="settings-toggle"
-                >
-                    <FontAwesomeIcon icon={faGear} />
-                </Button>
             </main>
         </AdminLayout>
     ) : null
