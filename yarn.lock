@@ -12963,7 +12963,7 @@ moize@^6.0.0, moize@^6.1.0:
     fast-equals "^2.0.1"
     micro-memoize "^4.0.9"
 
-moment@2.29.4, moment@>=2.14.0, moment@^2.24.0, moment@^2.25.3, moment@^2.29.1:
+moment@2.29.4, moment@>=2.14.0, moment@^2.24.0, moment@^2.25.3, moment@^2.29.4:
   version "2.29.4"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
@@ -15484,22 +15484,22 @@ react-animate-height@^3.0.4:
   dependencies:
     classnames "^2.3.1"
 
-react-awesome-query-builder@5:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/react-awesome-query-builder/-/react-awesome-query-builder-5.0.0.tgz#1a765415f98fc5192b4204197c69fadf84b06593"
-  integrity sha512-tY39r+Q9gsAGXB/W1C4tdMDbgC3m2exiwTd35DqE1QfK7dmOeqqMTzTgK/ey+pbjzvPAOFZG32/atGGcPIkk2g==
+react-awesome-query-builder@^5.3.1:
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/react-awesome-query-builder/-/react-awesome-query-builder-5.3.1.tgz#8a6b676a9e9640f313c305ec2fd337a93abc670b"
+  integrity sha512-EqQx1fIPSyo+clb2tWH2scLQ9Kzs+lHs1U7fJL5XJmfLeZAmudCuZWW3eNAoNQNob0+NSfVn2H75RY1FaLb2+A==
   dependencies:
     "@date-io/moment" "^1.3.13"
     classnames "^2.3.1"
     clone "^2.1.2"
     immutable "^3.8.2"
     lodash "^4.17.21"
-    moment "^2.29.1"
+    moment "^2.29.4"
     prop-types "^15.7.2"
     react-redux "^7.2.2"
-    redux "^4.1.0"
-    spel2js "github:ukrbublik/spel2js#getRaw"
-    sqlstring "^2.3.2"
+    redux "^4.2.0"
+    spel2js "^0.2.8"
+    sqlstring "^2.3.3"
 
 react-beautiful-dnd@^13.1.0:
   version "13.1.0"
@@ -15887,10 +15887,10 @@ redent@^3.0.0:
     indent-string "^4.0.0"
     strip-indent "^3.0.0"
 
-redux@^4.0.0, redux@^4.0.4, redux@^4.1.0:
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/redux/-/redux-4.1.2.tgz#140f35426d99bb4729af760afcf79eaaac407104"
-  integrity sha512-SH8PglcebESbd/shgf6mii6EIoRM0zrQyjcuQ+ojmfxjTtE0z9Y8pa62iA/OJ58qjP6j27uyW4kUF4jl/jd6sw==
+redux@^4.0.0, redux@^4.0.4, redux@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/redux/-/redux-4.2.0.tgz#46f10d6e29b6666df758780437651eeb2b969f13"
+  integrity sha512-oSBmcKKIuIR4ME29/AeNUnl5L+hvBq7OaJWzaptTQJAntaPvxIJqfnjbaEiCzzaIz+XmVILfqAM3Ob0aXLPfjA==
   dependencies:
     "@babel/runtime" "^7.9.2"
 
@@ -16988,9 +16988,10 @@ speech-rule-engine@^3.1.0:
     wicked-good-xpath "^1.3.0"
     xmldom-sre "^0.1.31"
 
-"spel2js@github:ukrbublik/spel2js#getRaw":
-  version "0.2.7"
-  resolved "https://codeload.github.com/ukrbublik/spel2js/tar.gz/f5b05db9b7da82b1367c3e05d7590e0795dcffcf"
+spel2js@^0.2.8:
+  version "0.2.8"
+  resolved "https://registry.yarnpkg.com/spel2js/-/spel2js-0.2.8.tgz#3ba3b291e5c6bae5c9f703e839294969b61fc691"
+  integrity sha512-dzYq+v4YV7SPIdNrmvFAUjc0HcgI7b0yoMw7kzOBmlj/GjdOb/+8dVn1I7nLuOS5X2SW+LK3tf2SVkXRjCkWBA==
 
 split-string@^3.0.1, split-string@^3.0.2:
   version "3.1.0"
@@ -17023,10 +17024,10 @@ sqlstring@2.3.1:
   resolved "https://registry.yarnpkg.com/sqlstring/-/sqlstring-2.3.1.tgz#475393ff9e91479aea62dcaf0ca3d14983a7fb40"
   integrity sha1-R1OT/56RR5rqYtyvDKPRSYOn+0A=
 
-sqlstring@^2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/sqlstring/-/sqlstring-2.3.2.tgz#cdae7169389a1375b18e885f2e60b3e460809514"
-  integrity sha512-vF4ZbYdKS8OnoJAWBmMxCQDkiEBkGQYU7UZPtL8flbDRSNkhaXvRJ279ZtI6M+zDaQovVU4tuRgzK5fVhvFAhg==
+sqlstring@^2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/sqlstring/-/sqlstring-2.3.3.tgz#2ddc21f03bce2c387ed60680e739922c65751d0c"
+  integrity sha512-qC9iz2FlN7DQl3+wjwn3802RTyjCx7sDvfQEXchwa6CWOx07/WVfh91gBmQ9fahw8snwGEWU3xGzOt4tFyHLxg==
 
 sshpk@^1.14.1, sshpk@^1.7.0:
   version "1.17.0"
