@@ -90,7 +90,12 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     return gdoc ? (
         <AdminLayout title="Google Docs - Edit" noSidebar fixedNav={false}>
             <main className="GdocsEditPage">
-                <Row justify="space-between" className="m-3">
+                <Row
+                    justify="space-between"
+                    className={`p-3 admin-bar ${
+                        gdoc.published ? "published" : "draft"
+                    }`}
+                >
                     <Col flex={1}>
                         <Space>
                             <Typography.Title

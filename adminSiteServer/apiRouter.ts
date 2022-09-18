@@ -71,7 +71,6 @@ import {
     omit,
     parseIntOrUndefined,
     set,
-    slugify,
     trimObject,
 } from "../clientUtils/Util.js"
 
@@ -2638,13 +2637,18 @@ apiRouter.patch("/gdocs/:id", async (req) => {
 
     if (!patches) return { gdoc }
 
+    // todo: there is probably a simpler way to do this
     for (const { op, property, payload } of patches) {
         if (op === GdocsPatchOp.Update) {
             switch (property) {
                 case "slug":
                 case "title":
-                    gdoc[property] = payload
+                    gdoc[property] = payload as string
                     break
+                case "published":
+                    gdoc[property] = payload as boolean
+                    break
+                case "published":
             }
         } else if (op === GdocsPatchOp.Refresh) {
             switch (property) {
