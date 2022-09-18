@@ -1,7 +1,4 @@
-import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
-import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { Col, Input, Row, Space, Switch, Tooltip } from "antd"
+import { Col, Input, Row, Space, Switch } from "antd"
 import React, { useEffect, useState } from "react"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { slugify } from "../clientUtils/Util.js"
@@ -22,10 +19,10 @@ export const GdocsSlug = ({
     const slugFromTitle = slugify(title)
 
     useEffect(() => {
-        if (!title || !slug) {
+        if (!gdoc.published) {
             setSlugSyncing(true)
         }
-    }, [title, slug])
+    }, [gdoc.published])
 
     const setSlug = (slug: string) => {
         setGdoc({ ...gdoc, slug })
@@ -49,18 +46,8 @@ export const GdocsSlug = ({
                         placeholder={slugFromTitle}
                         required
                         status={getPropertyValidationStatus("slug", errors)}
-                        disabled={!isSlugSyncing}
+                        disabled={isSlugSyncing}
                         id="slug"
-                        suffix={
-                            <>
-                                <SlugTitleLink
-                                    slug={slug}
-                                    setSlug={setSlug}
-                                    slugFromTitle={slugFromTitle}
-                                    isSlugSyncing={isSlugSyncing}
-                                />
-                            </>
-                        }
                     />
                 </Col>
                 <Col span={12}>
@@ -74,55 +61,22 @@ export const GdocsSlug = ({
                             id="slug-sync"
                         />
                         <label htmlFor="slug-sync" style={{ marginBottom: 0 }}>
-                            {isSlugSyncing ? "Updates from title" : "Locked"}
+                            Sync with title
                         </label>
                     </Space>
                     <Help>
-                        {isSlugSyncing ? (
-                            "Updating the title updates the slug. Manual overrides are possible."
-                        ) : (
+                        {isSlugSyncing
+                            ? "Updating the title updates the slug."
+                            : "Unlock to update the slug from the title."}
+                        {gdoc.published && (
                             <>
-                                Unlock to update the slug from the title <br />
-                                ⚠️ Before unlocking, consider how this might
-                                break exisiting links. Unless the article hasn't
-                                been published yet, it is generally advised to
-                                keep this turned off.
+                                <br />ⓘ This setting is not saved to prevent the
+                                creation of unncessary redirects.
                             </>
                         )}
                     </Help>
                 </Col>
             </Row>
         </>
-    )
-}
-
-const SlugTitleLink = ({
-    slug,
-    slugFromTitle,
-    isSlugSyncing,
-    setSlug,
-}: {
-    slug: string
-    slugFromTitle: string
-    isSlugSyncing: boolean
-    setSlug: (slug: string) => void
-}) => {
-    return slug === slugFromTitle ? (
-        <Tooltip title="In sync with title">
-            <span>
-                <FontAwesomeIcon icon={faLink} />
-            </span>
-        </Tooltip>
-    ) : isSlugSyncing ? (
-        <Tooltip title="Click to sync with title">
-            <span
-                onClick={() => setSlug(slugFromTitle)}
-                style={{ cursor: "pointer" }}
-            >
-                <FontAwesomeIcon icon={faUnlink} />
-            </span>
-        </Tooltip>
-    ) : (
-        <FontAwesomeIcon icon={faUnlink} />
     )
 }
