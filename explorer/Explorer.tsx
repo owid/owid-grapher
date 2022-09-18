@@ -201,10 +201,7 @@ export class Explorer
             )
         }
 
-        if (this.props.isInStandalonePage) {
-            // expose a more useful title to the Google crawler
-            this.setCanonicalUrl()
-        }
+        if (this.props.isInStandalonePage) this.setCanonicalUrl()
 
         this.grapher?.populateFromQueryParams(url.queryParams)
 
