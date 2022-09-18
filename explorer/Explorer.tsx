@@ -212,6 +212,10 @@ export class Explorer
         this.attachEventListeners()
     }
 
+    componentDidUpdate() {
+        this.maybeUpdatePageTitle()
+    }
+
     private maybeUpdatePageTitle() {
         // expose the title of the current view to the Google crawler on non-default views
         // of opted-in standalone explorer pages
@@ -610,8 +614,6 @@ export class Explorer
 
     render() {
         const { showExplorerControls, showHeaderElement } = this
-
-        this.maybeUpdatePageTitle()
 
         return (
             <div
