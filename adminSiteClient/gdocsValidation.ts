@@ -93,13 +93,3 @@ export const getPropertyValidationStatus = (
         ? ErrorMessageType.Warning
         : undefined
 }
-
-export const getGdocValidationStatus = (
-    errors: ErrorMessage[] | undefined
-): ErrorMessageType | undefined => {
-    return errors?.some((error) => error.type === ErrorMessageType.Error)
-        ? ErrorMessageType.Error
-        : errors?.some((error) => error.type === ErrorMessageType.Warning)
-        ? ErrorMessageType.Warning
-        : undefined
-}

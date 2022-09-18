@@ -1,5 +1,4 @@
-import React, { useContext } from "react"
-import { AdminAppContext } from "./AdminAppContext.js"
+import React from "react"
 import { Help } from "./Forms.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
@@ -19,8 +18,6 @@ export const GdocsSettings = ({
     saveButtons: React.ReactNode
     errors?: ErrorMessage[]
 }) => {
-    const { admin } = useContext(AdminAppContext)
-
     return gdoc ? (
         <form className="GdocsSettingsForm">
             <p>

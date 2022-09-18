@@ -34,7 +34,7 @@ export const GdocsSaveButtons = ({
                     ])
                 }
             >
-                Publish
+                {published ? "Update" : "Publish"}
                 {hasWarnings && (
                     <>
                         <FontAwesomeIcon
