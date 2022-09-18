@@ -88,7 +88,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     }, [gdoc])
 
     return gdoc ? (
-        <AdminLayout title="Google Docs - Edit" noSidebar>
+        <AdminLayout title="Google Docs - Edit" noSidebar fixedNav={false}>
             <main className="GdocsEditPage">
                 <Row justify="space-between" className="m-3">
                     <Col flex={1}>

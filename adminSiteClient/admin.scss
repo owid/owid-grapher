@@ -126,12 +126,8 @@ body {
 .AdminLayout {
     height: 100%;
 
-    padding-top: 45px;
     > nav {
         background-color: #001c3d;
-        position: fixed;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 45px;
     }
@@ -145,11 +141,21 @@ body {
     padding-left: 160px;
 }
 
+.AdminLayout.fixedNav {
+    padding-top: 45px;
+    > nav {
+        position: fixed;
+        z-index: 2;
+        top: 0;
+    }
+}
+
 .AdminSidebar {
     position: fixed;
     left: 0;
+    top: 0;
     width: 160px;
-    height: calc(100% - 45px);
+    height: 100%;
 
     overflow-y: auto;
     background: #222d32;
@@ -1235,5 +1241,16 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 .GdocsAddForm {
     ol {
         list-style-position: inside;
+    }
+}
+
+.GdocsEditPage {
+    .admin-bar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px,
+            rgba(0, 0, 0, 0.24) 0px 1px 2px;
+        background: #fff;
     }
 }
