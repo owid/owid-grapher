@@ -9,9 +9,10 @@ import {
     DONATE_API_URL,
     BAKED_BASE_URL,
     RECAPTCHA_SITE_KEY,
+    STRIPE_PUBLIC_KEY,
 } from "../../settings/clientSettings.js"
 
-import stripe from "./stripe.js"
+import { loadStripe } from "@stripe/stripe-js/pure.js"
 import { stringifyUnkownError } from "../../clientUtils/Util.js"
 
 type Interval = "once" | "monthly"
@@ -150,6 +151,8 @@ export class DonateForm extends React.Component {
         })
         const session = await response.json()
         if (!response.ok) throw session
+        const stripe = await loadStripe(STRIPE_PUBLIC_KEY)
+        if (!stripe) throw new Error("Stripe failed to load")
         const result: { error: any } = await stripe.redirectToCheckout({
             sessionId: session.id,
         })
