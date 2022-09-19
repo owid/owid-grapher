@@ -472,18 +472,36 @@ export const formatWordpressPost = async (
         $div.append($table)
     }
 
+    // Due to CSS Grid, we need to nest a container _inside_ the sticky column
+    // then put the children of that column inside the container
+    function nestStickyContainer(
+        $columns: Cheerio,
+        side: "left" | "right" = "right"
+    ) {
+        const parent =
+            side === "left"
+                ? $columns.children().first()
+                : $columns.children().last()
+        const container = cheerioEl(`<div class="wp-sticky-container"></div>`)
+        container.append(parent.children())
+        parent.append(container)
+    }
+
+    // Nesting for sticky columns that have been manually created
+    ;(["left", "right"] as const).forEach((side) => {
+        cheerioEl(`.wp-block-columns.is-style-sticky-${side}`).each(
+            (_, columns) => {
+                nestStickyContainer(cheerioEl(columns), side)
+            }
+        )
+    })
+
     // Make sticky-right layout the default for columns
-    // and wrap the sticky right column children in a wrapper for CSS grid
     cheerioEl(".wp-block-columns").each((_, columns) => {
         const $columns = cheerioEl(columns)
         if (columns.attribs.class === "wp-block-columns") {
             $columns.addClass("is-style-sticky-right")
-            const last = $columns.children().last()
-            const container = cheerioEl(
-                `<div class="wp-sticky-container"></div>`
-            )
-            container.append(last.children())
-            last.append(container)
+            nestStickyContainer($columns)
         }
     })
 
