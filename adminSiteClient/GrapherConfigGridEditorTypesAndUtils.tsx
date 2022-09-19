@@ -53,7 +53,7 @@ import {
     isArray,
     checkIsPlainObjectWithGuard,
 } from "../clientUtils/Util.js"
-import { isNil, isPlainObject } from "lodash"
+import { isNil } from "lodash"
 import {
     EditorOption,
     FieldDescription,

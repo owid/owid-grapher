@@ -429,6 +429,7 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
 
 export const addContentFeatures = ({
     post,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     formattingOptions,
 }: {
     post: FormattedPost
