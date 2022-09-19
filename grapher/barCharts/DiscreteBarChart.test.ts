@@ -14,7 +14,6 @@ import { SelectionArray } from "../selection/SelectionArray.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { isNumber } from "../../clientUtils/Util.js"
 import { SortBy, SortOrder } from "../../clientUtils/owidTypes.js"
-import { ColorSchemes } from "../color/ColorSchemes.js"
 import { OwidDistinctColorScheme } from "../color/CustomSchemes.js"
 
 it("can create a new bar chart", () => {

@@ -49,7 +49,6 @@ import {
     HorizontalAlign,
     AxisAlign,
 } from "../../clientUtils/owidTypes.js"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
     ColorScaleConfig,
