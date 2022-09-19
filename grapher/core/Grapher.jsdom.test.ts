@@ -433,7 +433,6 @@ describe("line chart to bar chart and bar chart race", () => {
             const linecolors = orderBy(lineSeries, "seriesName").map(
                 (series) => series.color
             )
-            console.log("linecolors", linecolors)
             expect(
                 isSubsetOf(
                     linecolors,

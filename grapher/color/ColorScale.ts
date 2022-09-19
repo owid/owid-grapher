@@ -12,9 +12,6 @@ import {
     last,
     roundSigFig,
     mapNullToUndefined,
-    isString,
-    mapValues,
-    identity,
 } from "../../clientUtils/Util.js"
 import { Color, CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { ColorSchemes } from "../color/ColorSchemes.js"

@@ -79,10 +79,7 @@ import {
     HorizontalAlign,
     PrimitiveType,
 } from "../../clientUtils/owidTypes.js"
-import {
-    darkenColorForHighContrastText,
-    darkenColorForLine,
-} from "../color/ColorUtils.js"
+import { darkenColorForHighContrastText } from "../color/ColorUtils.js"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,

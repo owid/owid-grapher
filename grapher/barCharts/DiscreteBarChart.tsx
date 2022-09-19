@@ -59,7 +59,6 @@ import {
     OwidErrorColor,
     OwidNoDataGray,
 } from "../color/ColorConstants.js"
-import { darkenColorForLine } from "../color/ColorUtils.js"
 import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
