@@ -1,10 +1,7 @@
 import React from "react"
 import { computed, action } from "mobx"
 import Select from "react-select"
-import {
-    ColorSchemes,
-    getColorSchemeForChartType,
-} from "../grapher/color/ColorSchemes.js"
+import { getColorSchemeForChartType } from "../grapher/color/ColorSchemes.js"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ColorScheme } from "../grapher/color/ColorScheme.js"
