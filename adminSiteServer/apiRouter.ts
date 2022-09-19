@@ -24,6 +24,7 @@ import {
     GdocsContentSource,
     GdocsPatch,
     GdocsPatchOp,
+    OwidArticleContent,
     SuggestedChartRevisionStatus,
 } from "../clientUtils/owidTypes.js"
 import {
@@ -2648,8 +2649,11 @@ apiRouter.patch("/gdocs/:id", async (req) => {
                 case "published":
                     gdoc[property] = payload as boolean
                     break
-                case "published":
+                case "content":
+                    gdoc[property] = payload as OwidArticleContent
+                    break
             }
+            // todo: remove, not used?
         } else if (op === GdocsPatchOp.Refresh) {
             switch (property) {
                 case "content":

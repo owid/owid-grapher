@@ -64,6 +64,11 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
         const gdocsPatches: GdocsPatch[] = [
             { op: GdocsPatchOp.Update, property: "title", payload: gdoc.title },
             { op: GdocsPatchOp.Update, property: "slug", payload: gdoc.slug },
+            {
+                op: GdocsPatchOp.Update,
+                property: "content",
+                payload: gdoc.content,
+            },
             ...(overridePatch ?? []),
         ]
 

@@ -425,7 +425,7 @@ export enum GdocsPatchOp {
 export interface GdocsPatch {
     op: GdocsPatchOp
     property: keyof OwidArticleType
-    payload: string | boolean
+    payload?: string | boolean | OwidArticleContent
 }
 
 export enum GdocsContentSource {
