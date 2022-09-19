@@ -13,6 +13,7 @@ import {
     MIN_INTERNAL_ANNOTATION_SIZE,
     MAX_INTERNAL_ANNOTATION_SIZE,
     EXTERNAL_ANNOTATION_SIZE,
+    InternalAnnotation,
 } from "./MapChartConstants.js"
 import { MapProjectionName } from "./MapProjections.js"
 import { geoPath } from "d3-geo"
@@ -48,6 +49,7 @@ export function generateAnnotations(
             candidateInfo: [],
             regions: [],
             internalInfo: [],
+            internalAnnotations: [],
             allPoints: {},
             viewportScale: viewportScale,
         }
@@ -118,7 +120,7 @@ export function generateAnnotations(
                 for (const e of externalLabels)
                     if (
                         rectIntersection(
-                            getLabelRect(labelPos, textWidth, fontSize),
+                            getCornerPointRect(labelPos, textWidth, fontSize),
                             e
                         )
                     ) {
@@ -133,7 +135,7 @@ export function generateAnnotations(
                     if (
                         lineIntersection(y[0], y[1], marker[0], marker[1]) ||
                         rectIntersection(
-                            getLabelRect(labelPos, textWidth, fontSize),
+                            getCornerPointRect(labelPos, textWidth, fontSize),
                             y
                         )
                     ) {
@@ -150,7 +152,7 @@ export function generateAnnotations(
                 }
             // All checks passed
             if (canFitExternalLabel === true) {
-                const externalLabel = getLabelRect(
+                const externalLabel = getCornerPointRect(
                     labelPos,
                     textWidth,
                     fontSize
@@ -190,6 +192,8 @@ function internalGenerator(
     internalAnnotations: Annotation[]
     externalInfo: ExternalInfo[]
 } {
+    const internalAnnotationsCache: InternalAnnotation[] =
+        annotationsCache.get(projection)!.internalAnnotations
     const minSize = MIN_INTERNAL_ANNOTATION_SIZE
     const maxSize = MAX_INTERNAL_ANNOTATION_SIZE
     const externalInfo: ExternalInfo[] = []
@@ -198,67 +202,142 @@ function internalGenerator(
     const internalInfoCache: InternalInfo[] =
         annotationsCache.get(projection)!.internalInfo
     for (const country of featureData) {
-        let fontSize = minSize
         const value = choroplethData.get(country.id)!.shortValue!
-        let regionPoints: Position[] = []
-        let textWidth = pixelWidth(value.toString(), {
-            size: fontSize / viewportScale,
-            font: "arial",
-        })
         const internalInfo = internalInfoCache.find(
             (el) => el.id === country.id
         ) as InternalInfo
         const pole = internalInfo.pole
-        regionPoints = internalInfo.points
-        let t1, t2, t3, t4
+        // Since we'll be incrementing at the start of the while loop
+        let fontSize = minSize - 1
+        const initialWidth = pixelWidth(value.toString(), {
+            size: minSize / viewportScale,
+            font: "arial",
+        })
+        let textWidth: number
+        const internalAnnotation = internalAnnotationsCache.find(
+            (el) => el.id === country.id && el.textWidth === initialWidth
+        )
+        if (internalAnnotation !== undefined) {
+            internalAnnotations.push({
+                id: country.id,
+                position: internalAnnotation.position,
+                value: value,
+                size: internalAnnotation.size,
+                type: "internal",
+                pole: pole,
+            })
+            continue
+        }
+        let regionPoints = internalInfo.points
+        let labelPoints
         let fitsInsideCountry = false
+        const center = pole.slice()
         // Check if internal annotation lies within a country's polygon and if so,
         // try to increase the font size as much as possible till it hits maxSize
         while (fontSize < maxSize) {
+            fontSize++
             textWidth = pixelWidth(value.toString(), {
                 size: fontSize / viewportScale,
                 font: "arial",
             })
-            // Coordinates of the label text with pole of inaccessibility as center
-            t1 = [
-                pole[0] - textWidth / 2,
-                pole[1] + fontSize / viewportScale / 2,
-            ]
-            t2 = [
-                pole[0] - textWidth / 2,
-                pole[1] - fontSize / viewportScale / 2,
-            ]
-            t3 = [
-                pole[0] + textWidth / 2,
-                pole[1] - fontSize / viewportScale / 2,
-            ]
-            t4 = [
-                pole[0] + textWidth / 2,
-                pole[1] + fontSize / viewportScale / 2,
-            ]
+            labelPoints = getCenterPointRect(
+                center,
+                textWidth,
+                fontSize / viewportScale
+            )
+            // Check whether label rectangle does not intersect the region and whether it lies
+            // inside the polygon (latter check is for the cases where label does not
+            // intersect the polygon but contains it entirely
             if (
-                !rectIntersection([t1, t2, t3, t4], regionPoints) &&
-                polygonContains(t1, regionPoints)
-            ) {
-                fontSize++
+                !rectIntersection(labelPoints, regionPoints) &&
+                polygonContains(labelPoints[0], regionPoints)
+            )
                 fitsInsideCountry = true
-            } else break
+            // This else if block is to check if it is possible to fit an annotation
+            // for the minimum font size by moving it left or right. This is a partial
+            // improvement to the internal placement algorithm since a better implementation
+            // would be able to detect bigger space no matter what direction it is in.
+            else if (fontSize == minSize) {
+                // Check if left bound of the label rectangle lies within the country and
+                // try to move it even further to the left
+                if (
+                    polygonContains(labelPoints[0], regionPoints) &&
+                    polygonContains(labelPoints[1], regionPoints)
+                ) {
+                    while (
+                        polygonContains(labelPoints[0], regionPoints) &&
+                        polygonContains(labelPoints[1], regionPoints)
+                    ) {
+                        center[0]--
+                        labelPoints = getCenterPointRect(
+                            center,
+                            textWidth,
+                            fontSize / viewportScale
+                        )
+                    }
+                    center[0]++
+                }
+                // Check if right bound of the label rectangle lies within the country and
+                // try to move it even further to the right
+                if (
+                    polygonContains(labelPoints[2], regionPoints) &&
+                    polygonContains(labelPoints[3], regionPoints)
+                ) {
+                    while (
+                        polygonContains(labelPoints[2], regionPoints) &&
+                        polygonContains(labelPoints[3], regionPoints)
+                    ) {
+                        center[0]++
+                        labelPoints = getCenterPointRect(
+                            center,
+                            textWidth,
+                            fontSize / viewportScale
+                        )
+                    }
+                    center[0]--
+                }
+                labelPoints = getCenterPointRect(
+                    center,
+                    textWidth,
+                    fontSize / viewportScale
+                )
+                // Check once again if label lies inside the country for the new center
+                // and if not, break.
+                if (
+                    !rectIntersection(labelPoints, regionPoints) &&
+                    polygonContains(labelPoints[0], regionPoints)
+                )
+                    fitsInsideCountry = true
+                else break
+            } else {
+                fontSize--
+                break
+            }
         }
         // check is true implies it is confirmed that we have a valid internal annotation
         // otherwise the country is added to externalInfo to check if we can display an
         // external annotation for it
         if (fitsInsideCountry === true) {
+            const pos = new PointVector(
+                center[0] - textWidth! / 2,
+                center[1] + fontSize / viewportScale / 2
+            )
             internalAnnotations.push({
                 id: country.id,
-                position: new PointVector(
-                    pole[0] - textWidth / 2,
-                    pole[1] + fontSize / viewportScale / 2
-                ),
+                position: pos,
                 value: value,
                 size: fontSize / viewportScale,
                 type: "internal",
                 pole: pole,
             })
+            //Store calculated internal annotation in cache
+            const newobj = {
+                id: country.id,
+                position: pos,
+                textWidth: initialWidth,
+                size: fontSize / viewportScale,
+            }
+            internalAnnotationsCache.push(newobj)
         } else {
             let externalRegion: Position[]
             // For MultiPolygon countries, pole of inaccessibility does not necessarily
@@ -361,7 +440,10 @@ function getCandidateInfo(
             const r3 = [x.bounds.topRight.x, x.bounds.topRight.y]
             const r4 = [x.bounds.topLeft.x, x.bounds.topLeft.y]
             const rectPoints = [r1, r2, r3, r4, r1]
-            const labelPoints = [...getLabelRect(p, textWidth, fontSize), p]
+            const labelPoints = [
+                ...getCornerPointRect(p, textWidth, fontSize),
+                p,
+            ]
             const regions = regionsCache.filter((el) => el.id === x.id)
             // Check if a region of the country lies completely inside the label
             for (const region of regions) {
@@ -374,7 +456,7 @@ function getCandidateInfo(
             if (
                 canAvoidCountries === true &&
                 (rectIntersection(
-                    getLabelRect(p, textWidth, fontSize),
+                    getCornerPointRect(p, textWidth, fontSize),
                     rectPoints
                 ) ||
                     polygonContains(p, rectPoints))
@@ -383,7 +465,7 @@ function getCandidateInfo(
                 for (const region of regions) {
                     if (
                         rectIntersection(
-                            getLabelRect(p, textWidth, fontSize),
+                            getCornerPointRect(p, textWidth, fontSize),
                             region.points
                         ) ||
                         polygonContains(p, region.points)
@@ -776,8 +858,8 @@ function externalIncrement(
 }
 
 // Returns coordinates of rectangle with width = textWidth, height = fontSize,
-// starting at coordinate = point
-function getLabelRect(
+// with corner at coordinate = point
+function getCornerPointRect(
     point: Position,
     textWidth: number,
     fontSize: number
@@ -787,6 +869,21 @@ function getLabelRect(
         [point[0] + textWidth, point[1]],
         [point[0] + textWidth, point[1] - fontSize],
         [point[0], point[1] - fontSize],
+    ]
+}
+
+// Returns coordinates of rectangle with width = textWidth, height = fontSize,
+// with center at coordinate = point
+function getCenterPointRect(
+    point: Position,
+    textWidth: number,
+    fontSize: number
+): Position[] {
+    return [
+        [point[0] - textWidth / 2, point[1] + fontSize / 2],
+        [point[0] - textWidth / 2, point[1] - fontSize / 2],
+        [point[0] + textWidth / 2, point[1] - fontSize / 2],
+        [point[0] + textWidth / 2, point[1] + fontSize / 2],
     ]
 }
 

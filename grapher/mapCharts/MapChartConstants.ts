@@ -59,6 +59,8 @@ export interface MapChartManager extends ChartManager {
     endTime?: Time
 }
 
+//Annotation interfaces
+
 export enum ExternalDirections {
     right = "right",
     left = "left",
@@ -89,6 +91,8 @@ export interface Annotation {
 // regions: Cache of all distinct polygons (regions) of a country
 // internalInfo: Cache of the calculated poles of inaccessibility for internal annotations and the
 //               associated regional polygon for that country
+// internalAnnotation: Cache of internal annotation details for a country for a specified textWidth
+//                     of the label value. Stores the position and size of the label
 // allPoints: Dictionary of all countries' points on a map and the count of the coordinate's occurrence.
 //            Occurrence > 1 implies the point is shared by 2 or more nations
 // viewportScale: The viewportScale value. Used to invalidate cache and recalculate if viewport changes
@@ -97,6 +101,7 @@ export interface AnnotationsCache {
     candidateInfo: CandidateInfo[]
     regions: Region[]
     internalInfo: InternalInfo[]
+    internalAnnotations: InternalAnnotation[]
     allPoints: Record<string, number>
     viewportScale: number
 }
@@ -105,6 +110,13 @@ export interface InternalInfo {
     pole: number[]
     points: Position[]
     id: string
+}
+
+export interface InternalAnnotation {
+    id: string
+    position: PointVector
+    textWidth: number
+    size: number
 }
 
 export interface ExternalCandidates {
