@@ -432,7 +432,7 @@ describe("line chart to bar chart and bar chart race", () => {
             )
 
             expect(
-                isSubsetOf(linecolors, OwidDistinctColorScheme.colorSets[0])
+                isSubsetOf(linecolors, OwidDistinctColorScheme.colorSets[1])
             ).toBeTruthy()
             expect(
                 isSubsetOf(barColors, OwidDistinctColorScheme.colorSets[0])
