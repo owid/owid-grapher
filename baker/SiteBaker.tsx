@@ -147,7 +147,6 @@ export class SiteBaker {
     // This happens when posts have been saved in previous bakes but have been since then deleted, unpublished or renamed.
     // Among all existing slugs on the filesystem, some are not coming from WP. They are baked independently and should not
     // be deleted if WP does not list them (e.g. grapher/*).
-    // TODO(gdocs) - make sure this doesn't accidentally remove google docs posts
     private getPostSlugsToRemove(postSlugsFromDb: string[]) {
         const existingSlugs = glob
             .sync(`${this.bakedSiteDir}/**/*.html`)
