@@ -110,18 +110,22 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
             <main className="GdocsEditPage">
                 <Row
                     justify="space-between"
+                    align="middle"
+                    gutter={[16, 8]}
                     className={`p-3 admin-bar ${
                         gdoc.published ? "published" : "draft"
                     }`}
                 >
                     <Col flex={1}>
-                        <Space>
+                        <div className="d-flex align-items-center">
                             <Typography.Title
                                 editable={{
                                     onChange: (title) =>
                                         setGdoc({ ...gdoc, title }),
                                 }}
-                                style={{ marginBottom: 0 }}
+                                style={{
+                                    marginBottom: 0,
+                                }}
                                 level={4}
                             >
                                 {gdoc.title}
@@ -131,7 +135,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                             ) : (
                                 <Tag color="default">Draft</Tag>
                             )}
-                        </Space>
+                        </div>
                     </Col>
                     <Col>
                         <Space>
