@@ -34,7 +34,7 @@ const AdditionalInformation = ({
     variation: string
     defaultOpen: boolean
 }) => {
-    const [height, setHeight] = useState<number | string>(
+    const [height, setHeight] = useState<number | "auto">(
         defaultOpen ? "auto" : 0
     )
     const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen)
@@ -112,7 +112,7 @@ const AdditionalInformation = ({
                 <FontAwesomeIcon icon={faAngleRight} />
                 {title}
             </h3>
-            <AnimateHeight height={height} animateOpacity={true}>
+            <AnimateHeight height={height} animateOpacity={true} duration={250}>
                 {variation === VARIATION_MERGE_LEFT
                     ? renderMergeLeftVariation()
                     : renderFullWidthVariation()}

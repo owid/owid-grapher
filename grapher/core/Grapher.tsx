@@ -59,7 +59,7 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
 } from "../../clientUtils/OwidVariable.js"
-import * as Cookies from "js-cookie"
+import Cookies from "js-cookie"
 import {
     ChartDimension,
     LegacyDimensionsManager,
