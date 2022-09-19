@@ -19,17 +19,19 @@ import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { faRotate } from "@fortawesome/free-solid-svg-icons/faRotate"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
+import { isEqual } from "../clientUtils/Util.js"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
+    const [originalGdoc, setOriginalGdoc] = useState<OwidArticleType>()
     const [isSettingsOpen, setSettingsOpen] = useState(false)
     const [syncingError, setSyncingError] = React.useState(false)
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
 
     const { admin } = useContext(AdminAppContext)
 
-    const fetchGdoc = useCallback(async () => {
+    const updatePreview = useCallback(async () => {
         try {
             const draftGdoc = (await admin.requestJSON(
                 `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
@@ -47,13 +49,24 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
             console.log(e)
             setSyncingError(true)
         }
-    }, [id, admin])
+    }, [admin, id])
 
-    const hasErrors =
-        errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
+    useEffect(() => {
+        const fetchOriginalGdoc = async () => {
+            const originalGdoc = (await admin.getJSON(
+                `/api/gdocs/${id}`
+            )) as OwidArticleType
+            setOriginalGdoc(originalGdoc)
+        }
+        fetchOriginalGdoc()
+    }, [admin, id])
+
+    const hasChanges = useGdocsChanged(originalGdoc, gdoc)
     const hasWarnings =
         errors?.some((error) => error.type === ErrorMessageType.Warning) ??
         false
+    const hasErrors =
+        errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
 
     const onSubmit = async (
         e: React.MouseEvent<HTMLElement>,
@@ -78,12 +91,12 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
 
     // Fetch the gdoc on mount
     useEffect(() => {
-        fetchGdoc()
+        updatePreview()
         admin.loadingIndicatorSetting = "off"
-    }, [admin, fetchGdoc])
+    }, [admin, updatePreview])
 
     // Sync content every 5 seconds
-    useInterval(fetchGdoc, 5000)
+    useInterval(updatePreview, 5000)
 
     // Handle errors and validation status
     useEffect(() => {
@@ -145,6 +158,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                 published={gdoc.published}
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
+                                hasChanges={hasChanges}
                                 onSubmit={onSubmit}
                             />
                             <Button
@@ -192,6 +206,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                 published={gdoc.published}
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
+                                hasChanges={hasChanges}
                                 onSubmit={onSubmit}
                             />
                         }
@@ -203,4 +218,17 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
             </main>
         </AdminLayout>
     ) : null
+}
+
+export const useGdocsChanged = (
+    prevGdoc: OwidArticleType | undefined,
+    nextGdoc: OwidArticleType | undefined
+) => {
+    const [hasChanges, setHasChanges] = useState(false)
+
+    useEffect(() => {
+        setHasChanges(!isEqual(prevGdoc, nextGdoc))
+    }, [prevGdoc, nextGdoc])
+
+    return hasChanges
 }
