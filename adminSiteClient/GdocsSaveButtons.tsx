@@ -1,4 +1,5 @@
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import { faCircle } from "@fortawesome/free-solid-svg-icons/faCircle"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { Button, Space } from "antd"
 import React from "react"
@@ -8,11 +9,13 @@ export const GdocsSaveButtons = ({
     published,
     hasErrors,
     hasWarnings,
+    hasChanges,
     onSubmit,
 }: {
     published: boolean
     hasErrors: boolean
     hasWarnings: boolean
+    hasChanges: boolean
     onSubmit: (
         e: React.MouseEvent<HTMLElement>,
         overridePatch?: GdocsPatch[]
@@ -41,6 +44,19 @@ export const GdocsSaveButtons = ({
                             icon={faExclamationTriangle}
                             color="orange"
                             style={{ marginLeft: "0.5em" }}
+                        />
+                    </>
+                )}
+                {hasChanges && (
+                    <>
+                        <FontAwesomeIcon
+                            icon={faCircle}
+                            color="red"
+                            style={{
+                                position: "absolute",
+                                top: "-0.5em",
+                                right: "-0.5em",
+                            }}
                         />
                     </>
                 )}
