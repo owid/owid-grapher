@@ -31,7 +31,10 @@ import { MapConfig } from "../mapCharts/MapConfig.js"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
-import { OwidDistinctColorScheme } from "../color/CustomSchemes.js"
+import {
+    OwidDistinctColorScheme,
+    OwidDistinctLinesColorScheme,
+} from "../color/CustomSchemes.js"
 
 const TestGrapherConfig = (): {
     table: OwidTable
@@ -430,9 +433,12 @@ describe("line chart to bar chart and bar chart race", () => {
             const linecolors = orderBy(lineSeries, "seriesName").map(
                 (series) => series.color
             )
-
+            console.log("linecolors", linecolors)
             expect(
-                isSubsetOf(linecolors, OwidDistinctColorScheme.colorSets[1])
+                isSubsetOf(
+                    linecolors,
+                    OwidDistinctLinesColorScheme.colorSets[0]
+                )
             ).toBeTruthy()
             expect(
                 isSubsetOf(barColors, OwidDistinctColorScheme.colorSets[0])

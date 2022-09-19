@@ -153,15 +153,15 @@ describe(ColorScale, () => {
             hasNoDataBin: true,
             defaultNoDataColor: "#fff",
         })
-        expect(scale.getColor(0.5)).toEqual("#ccc")
-        expect(scale.getColor(undefined)).toEqual("#ccc")
-        expect(scale.getColor("test")).toEqual("#ccc")
-        expect(scale.noDataColor).toEqual("#ccc")
-        expect(scale.customNumericColors).toEqual(["#ccc", "#ccc", "#ccc"])
+        expect(scale.getColor(0.5)).toEqual("#111")
+        expect(scale.getColor(undefined)).toEqual("#fff")
+        expect(scale.getColor("test")).toEqual("#eee")
+        expect(scale.noDataColor).toEqual("#fff")
+        expect(scale.customNumericColors).toEqual(["#111", "#222", "#333"])
         expect(scale["customCategoryColors"]).toEqual({
-            test: "#ccc",
-            "No data": "#ccc",
+            test: "#eee",
+            "No data": "#fff",
         })
-        expect(scale["defaultNoDataColor"]).toEqual("#ccc")
+        expect(scale["defaultNoDataColor"]).toEqual("#fff")
     })
 })
