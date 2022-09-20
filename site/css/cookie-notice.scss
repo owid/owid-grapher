@@ -1,60 +1,47 @@
 .cookie-notice {
+    @include content-wrapper;
     background-color: $tertiary-color;
-    font-size: 0.9375rem;
-    line-height: 1.5;
-    padding: 1rem 0;
-    text-align: center;
-    margin-top: 2rem;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: $zindex-cookie-notice;
-    box-shadow: 0 0 30px rgba(#fff, 0.3);
-
-    // when closed
+    padding: 16px;
+    // to avoid flash before animation
     display: none;
-
-    @keyframes slide-in {
-        0% {
-            opacity: 0; // prevent flickering when animation starts
-            transform: translate(0, 100%);
-        }
-        1% {
-            opacity: 1;
-        }
-        100% {
-            transform: translate(0, 0);
-        }
-    }
 
     &.open {
         display: block;
         animation: 400ms ease slide-in forwards;
     }
 
-    @include md-up {
-        font-size: 1rem;
-        text-align: left;
-    }
-
-    .wrapper {
-        max-width: 65rem;
-    }
-
-    p {
+    .cookie-notice__inner {
         font-weight: 700;
-        margin: 0;
+        max-width: $lg;
+        margin: auto;
+        line-height: 1.5;
+        text-align: center;
+
+        @include lg-up {
+            display: flex;
+            justify-content: space-between;
+        }
+    }
+
+    .cookie-notice__text {
+        @include lg-up {
+            text-align: left;
+            margin: 0;
+        }
     }
 
     .actions {
-        white-space: nowrap;
         display: flex;
-        flex-direction: row;
-        align-items: center;
+        flex-wrap: wrap;
         justify-content: center;
-
-        margin-top: 1rem;
+        align-items: center;
+        white-space: nowrap;
+        margin-top: 16px;
 
         @include md-up {
             margin-top: 0;
@@ -62,33 +49,28 @@
     }
 
     .button {
-        font-size: inherit;
         font-weight: 700;
-        font-size: 0.9375rem;
-        display: block;
-        color: $text-color;
         line-height: 1.2;
-        margin: 0;
-        padding: 0.6rem 0.8rem;
+        padding: 10px 16px;
+        color: $text-color;
         cursor: pointer;
         border: 2px solid rgba($text-color, 0.2);
         transition: border-color 150ms linear;
-
-        flex: 1;
+        margin-top: 8px;
+        min-width: 196px;
 
         @include md-up {
             flex: 0;
             font-size: 1rem;
-        }
-
-        margin-left: 0.75rem;
-
-        &:first-child {
-            margin-left: 0;
+            margin-top: 0;
         }
 
         &:hover {
             border-color: rgba($text-color, 0.8);
+        }
+
+        &:not(:last-child) {
+            margin-right: 12px;
         }
 
         .icon {
@@ -106,5 +88,18 @@
             background-color: $primary-color-900;
             border-color: $primary-color-900;
         }
+    }
+}
+
+@keyframes slide-in {
+    0% {
+        opacity: 0; // prevent flickering when animation starts
+        transform: translate(0, 100%);
+    }
+    1% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0, 0);
     }
 }

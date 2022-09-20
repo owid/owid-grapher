@@ -8,6 +8,11 @@
     @include owid-link-90;
 }
 
+.article-content .ref {
+    color: $vermillion;
+    text-decoration: none;
+}
+
 /*******************************************************************************
  * Figures, images
  */
@@ -106,12 +111,6 @@
     height: $grapher-height;
 }
 
-@include sm-only {
-    .article-content figure[data-grapher-src] {
-        @include full-width;
-    }
-}
-
 figure[data-explorer-src] {
     position: relative;
 }
@@ -183,63 +182,41 @@ figure[data-explorer-src] {
 }
 
 /*******************************************************************************
- * Gutenberg (wordpress editor) blocks
+ * Columns
  */
 .page .wp-block-columns {
-    @include lg-up {
-        display: flex;
-        align-items: flex-start; // maintain columns original height to allow sticky positioning
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: 24px;
 
-        .wp-block-column {
+    // default is first column is full-width, second column should be empty
+    .wp-block-column {
+        grid-column: 1 / 13;
+        // necessary for Grapher resizing in all column-types
+        width: 100%;
+    }
+
+    @include lg-up {
+        &.is-style-sticky-right .wp-block-column,
+        &.is-style-sticky-left .wp-block-column {
             &:first-child {
-                margin-right: $padding-x-md * 0.5;
+                grid-column: 1 / 6;
             }
             &:last-child {
-                margin-left: $padding-x-md * 0.5;
+                grid-column: 6 / 13;
             }
-        }
-
-        &.is-style-sticky-right {
-            .wp-block-column {
-                &:first-child {
-                    @include text-column;
-                }
-                &:last-child {
-                    @include media-column;
-                }
-            }
-        }
-
-        &.is-style-sticky-left {
-            .wp-block-column {
-                &:first-child {
-                    @include media-column;
-                }
-                &:last-child {
-                    @include text-column;
-                }
+            .wp-sticky-container {
+                @include sticky-child;
             }
         }
     }
-    @include lg-only {
+    @include lg-up {
         &.is-style-side-by-side {
-            display: block;
-            margin: 0 auto;
-            width: $graph-max-content-width;
-            .wp-block-column {
-                flex: none;
-                max-width: $graph-max-content-width;
-                margin: 0;
+            .wp-block-column:first-child {
+                grid-column: 1 / 7;
             }
-        }
-    }
-    @include xlg-up {
-        &.is-style-side-by-side {
-            .wp-block-column {
-                flex: 0 0 ($text-max-content-width + $graph-max-content-width) *
-                    0.5;
-                max-width: ($text-max-content-width + $graph-max-content-width) *
-                    0.5; // forcing charts to behave when resizing up
+            .wp-block-column:last-child {
+                grid-column: 7 / 13;
             }
         }
     }

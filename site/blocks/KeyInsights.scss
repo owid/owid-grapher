@@ -1,11 +1,6 @@
-@use "sass:math";
-
 $slide-content-height: $grapher-height;
 
 .wp-block-owid-key-insights {
-    @include block-shadow;
-    background-color: $white;
-
     // Some of these styles are injected in the page through
     // react-horizontal-scrolling-menu's style-loader
     // (https://webpack.js.org/loaders/style-loader/). They are repeated here to
@@ -35,13 +30,14 @@ $slide-content-height: $grapher-height;
         align-items: center;
         justify-content: center;
         height: 100%;
-        background: $primary-color-30;
+        background: $white;
         border: none;
         font-size: 1.5rem;
         width: 3rem;
         padding: 0;
         transition: all 0.2s;
         cursor: pointer;
+        animation: fadeIn 500ms;
 
         &:hover {
             color: $primary-color-600;
@@ -49,50 +45,52 @@ $slide-content-height: $grapher-height;
 
         &.left {
             left: 0;
-            box-shadow: 0.5rem 0 0.5rem $primary-color-30;
+            @include lg-up {
+                left: -48px;
+            }
+            border-right: 1px solid $blue-10;
             clip-path: inset(0 -2.5rem 0 0);
         }
         &.right {
             right: 0;
-            box-shadow: -0.5rem 0 0.5rem $primary-color-30;
+            @include lg-up {
+                right: -48px;
+            }
+            border-left: 1px solid $blue-10;
             clip-path: inset(0 0 0 -2.5rem);
         }
     }
 
     .thumbs {
-        background-color: $primary-color-30;
-        border-bottom: 1px solid #efefef;
-        padding: 0 0.5rem;
+        padding-bottom: 24px;
     }
 
     .thumb {
-        @include block-shadow;
-
-        width: 16rem;
-        min-height: 5rem;
-        margin: 0.5rem;
-        padding: 0.5rem;
-        background-color: $white;
-        border: 1px solid $white;
-        border-radius: 2px;
+        width: 250px;
+        min-height: 104px;
+        margin-right: 8px;
+        padding: 16px 24px;
+        border: 1px solid $blue-10;
+        color: $blue-60;
         transition: background-color 0.2s;
+        background-color: $white;
+        text-align: left;
 
         &:hover {
             cursor: pointer;
-            background-color: $primary-color-30;
-            border: 1px solid $primary-color;
+            background-color: $gray-10;
+            border-color: $gray-10;
         }
 
         &[aria-selected="true"] {
-            background-color: $primary-color-100;
-            border-color: $primary-color;
+            background-color: $accent-pale-blue;
+            border-color: $accent-pale-blue;
             font-weight: 700;
+            color: $blue-90;
         }
     }
 
     .slides {
-        padding: 0.5rem 1rem;
-
         .slide {
             display: none;
             &[data-active="true"] {
@@ -100,8 +98,12 @@ $slide-content-height: $grapher-height;
             }
 
             h4 {
-                @include h4-style;
+                @include h2-bold;
                 margin: 0 0 $vertical-spacing;
+            }
+
+            p {
+                @include body-2-regular;
             }
         }
 
@@ -129,7 +131,9 @@ $slide-content-height: $grapher-height;
                     );
                     // Shifting margin to padding to make space for scrollbar
                     margin-right: 0;
-                    padding-right: math.div($padding-x-md, 2);
+                    padding-right: 16px;
+                    scrollbar-color: #ddd #0000;
+                    scrollbar-width: thin;
 
                     > *:first-child {
                         margin-top: 0;

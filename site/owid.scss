@@ -21,6 +21,7 @@
 @import "css/variables.scss";
 @import "css/colors.scss";
 @import "css/mixins.scss";
+@import "css/typography.scss";
 @import "css/category-coloring.scss";
 @import "css/util.scss";
 @import "css/layout.scss";
@@ -33,6 +34,7 @@
 @import "css/sidebar.scss";
 
 @import "css/homepage.scss";
+@import "css/topic-page.scss";
 @import "css/donate.scss";
 @import "css/faq.scss";
 @import "css/covid.scss";
@@ -488,7 +490,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     /* The CSS here is very precise so as not to interfere with any iframeless embeds */
 
     > p {
-        margin-bottom: 1em;
+        @include body-2-regular;
     }
 
     /* Subsections e.g. I.1 Historical perspective */
@@ -556,10 +558,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 .article-content .section-heading {
     .wrapper {
         @include content-wrapper;
-        @include lg-up {
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
-        }
     }
     @include full-width;
     padding-top: 2.5rem;
@@ -631,13 +629,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 }
 
 .with-sidebar .section-heading {
-    @include md-up {
-        // position: relative;
-        // width: calc(100vw - #{$sidebar-closed-drawer-width});
-        // left: $sidebar-closed-drawer-width;
-        // margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
-    }
-
     @include xxlg-up {
         position: relative;
         width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
@@ -649,7 +640,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 }
 
 hr {
-    color: lightgrey;
+    color: $blue-20;
     border-bottom: none;
     border-left: none;
     border-right: none;
@@ -679,6 +670,8 @@ hr {
 
     ol.endnotes {
         margin-top: 1em;
+        padding-bottom: 24px;
+        border-bottom: 1px solid $blue-20;
     }
 
     ol.endnotes > li {
@@ -758,7 +751,6 @@ iframe:not(:first-child) {
     .deep-link {
         width: 12px;
         height: 12px;
-        margin-left: -11px;
     }
 }
 

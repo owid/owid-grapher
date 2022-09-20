@@ -24,6 +24,7 @@
 
 @mixin cancel-link-styles {
     color: $primary-color-800;
+    text-decoration: none;
     &:visited {
         color: $primary-color-800;
     }
@@ -56,22 +57,22 @@
     }
 }
 
-@mixin text-column {
-    // set flex-shrink on text column to accomodate grapher
-    // resizing "slower" than it should during resizes
-    flex: 1 1 $text-min-content-width;
-    max-width: $text-max-content-width;
+@mixin sticky-child {
+    top: 24px;
+    position: sticky;
+    padding-top: 0;
 }
 
-@mixin media-column {
-    flex: 1 0 $graph-min-content-width;
-    max-width: $graph-max-content-width;
-    top: 0;
-    position: sticky;
+@mixin grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 24px;
+}
 
-    > *:first-child {
-        padding-top: 0;
-    }
+@mixin grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: 24px;
 }
 
 @mixin left-media-columns {
@@ -222,10 +223,6 @@
 
 @mixin content-wrapper {
     @include wrapper-x-spacing;
-    max-width: $content-max-width + 2 * $padding-x-sm;
-    @include md-up {
-        max-width: $content-max-width + 2 * $padding-x-md;
-    }
 }
 
 @mixin full-width {

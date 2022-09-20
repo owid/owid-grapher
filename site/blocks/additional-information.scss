@@ -9,9 +9,6 @@
         &:hover {
             cursor: pointer;
             background-color: $primary-color-100;
-            svg {
-                margin-right: $padding-x-md;
-            }
         }
         svg {
             margin-right: $padding-x-sm;
