@@ -263,6 +263,8 @@ CustomColorSchemes.push(OwidCategoricalEScheme)
 CustomColorSchemes.push({
     name: ColorSchemeName.stackedAreaDefault,
     displayName: "OWID 4 Color Gradient (=Owid Distinct)",
+    singleColorScale: false,
+    isDistinct: true,
     // TODO: this is now a copy of owid-distinct. After a data migration to get
     // rid of stackedAreaDefault in existing chart configs we should replace it with
     // owid-distinct
