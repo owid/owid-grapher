@@ -339,12 +339,15 @@ body {
         header {
             display: flex;
             color: #666;
+            align-items: center;
             text-align: center;
+            gap: 1em;
+            justify-content: space-between;
 
             > div {
-                &:not(:first-child) {
-                    margin-left: 4%;
-                }
+                display: flex;
+                align-items: center;
+                gap: 0.5em;
             }
         }
 
@@ -371,6 +374,12 @@ body {
         align-items: center;
         justify-content: center;
         color: #666;
+    }
+
+    .VariableSlots {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
     }
 }
 
@@ -613,8 +622,8 @@ body {
 }
 
 .ColorBox {
-    width: 32px;
-    height: 32px;
+    width: 2em;
+    height: 2em;
     cursor: pointer;
     position: relative;
     display: flex;
