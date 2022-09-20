@@ -21,7 +21,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
-import { orderBy } from "../../clientUtils/Util.js"
+import { isSubsetOf, orderBy } from "../../clientUtils/Util.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
 import { queryParamsToStr } from "../../clientUtils/urls/UrlUtils.js"
@@ -31,6 +31,10 @@ import { MapConfig } from "../mapCharts/MapConfig.js"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
+import {
+    OwidDistinctColorScheme,
+    OwidDistinctLinesColorScheme,
+} from "../color/CustomSchemes.js"
 
 const TestGrapherConfig = (): {
     table: OwidTable
@@ -421,7 +425,7 @@ describe("line chart to bar chart and bar chart race", () => {
             expect(grapher.hasTimeline).toBe(true)
         })
 
-        it("keeps same series colors when it switches from line chart to bar chart", () => {
+        it("color goes to monochrome when the chart switches from line chart to bar chart", () => {
             const barSeries = grapher.chartInstance.series
             const barColors = orderBy(barSeries, "seriesName").map(
                 (series) => series.color
@@ -429,7 +433,16 @@ describe("line chart to bar chart and bar chart race", () => {
             const linecolors = orderBy(lineSeries, "seriesName").map(
                 (series) => series.color
             )
-            expect(barColors).toEqual(linecolors)
+            expect(
+                isSubsetOf(
+                    linecolors,
+                    OwidDistinctLinesColorScheme.colorSets[0]
+                )
+            ).toBeTruthy()
+            expect(
+                isSubsetOf(barColors, OwidDistinctColorScheme.colorSets[0])
+            ).toBeTruthy()
+            expect(new Set(barColors).size).toEqual(1)
         })
     })
 

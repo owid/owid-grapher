@@ -2,106 +2,100 @@
  * Spacing
  */
 
-$padding-x-sm: 1.5rem;
-$padding-x-md: 2rem;
-$vertical-spacing: 1rem;
+$padding-x-sm: 24px;
+$padding-x-md: 80px;
+$vertical-spacing: 16px;
 
 /*******************************************************************************
 * Sizes
 */
 
-$mobile-header-wrapper-height: 3.5rem;
-$mobile-header-border-height: 0.25rem;
+$mobile-header-wrapper-height: 56px;
+$mobile-header-border-height: 4px;
 $mobile-header-height: $mobile-header-wrapper-height +
     $mobile-header-border-height;
 
-$content-max-width: 50rem;
-$sidebar-content-width: 14rem;
-$sidebar-padding-top: 2rem;
-$sidebar-toggle-width: 2rem;
+$content-max-width: 800px;
+$sidebar-content-width: 224px;
+$sidebar-padding-top: 32px;
+$sidebar-toggle-width: 32px;
 $sidebar-closed-drawer-width: 0;
-$text-min-content-width: 30rem;
-$text-max-content-width: 40rem;
+$text-min-content-width: 480px;
+$text-max-content-width: 640px;
 // NB: the side by side layout depends on
 // $graph-min-content-width < $text-max-content-width + $graph-max-content-width
-$graph-min-content-width: 44rem;
-$graph-max-content-width: 50rem;
+$graph-min-content-width: 700px;
+$graph-max-content-width: 800px;
 
 $wrapper-max-width: $text-min-content-width + $graph-min-content-width + 3 *
     $padding-x-md;
 
-$grid-card-min-width: 20rem;
+$grid-card-min-width: 320px;
 
 $grapher-height: 575px;
 /*******************************************************************************
 * Breakpoints
 */
 
-//md
-$md-min-width: 55rem;
-// lg: graphs and text shown side by side.
-$lg-min-width: $text-min-content-width + $graph-min-content-width + 3 *
-    $padding-x-md + $sidebar-closed-drawer-width;
-// xlg: md + graphs shown side by side
-$xlg-min-width: $text-max-content-width + $graph-max-content-width + 3 *
-    $padding-x-md + $sidebar-closed-drawer-width;
-// xxlg: xlg + permanent sidebar
-$xxlg-min-width: $text-max-content-width + $graph-max-content-width + 5 *
-    $padding-x-md + $sidebar-content-width;
+$sm: 768px;
+$md: 960px;
+$lg: 1280px;
+$xlg: 1440px;
+$xxlg: 1536px;
 
 @mixin sm-only {
-    @media (max-width: $md-min-width - 0.0625rem) {
+    @media (max-width: $sm) {
+        @content;
+    }
+}
+
+@mixin md-down {
+    @media (max-width: $md) {
         @content;
     }
 }
 
 @mixin md-up {
-    @media (min-width: $md-min-width) {
+    @media (min-width: $md) {
         @content;
     }
 }
 
 @mixin lg-down {
-    @media (max-width: $lg-min-width - 0.0625rem) {
+    @media (max-width: $lg) {
         @content;
     }
 }
 
 @mixin lg-up {
-    @media (min-width: $lg-min-width) {
+    @media (min-width: $lg) {
         @content;
     }
 }
 
 @mixin lg-only {
-    @media (min-width: $lg-min-width) and (max-width: $xlg-min-width - 0.0625rem) {
+    @media (min-width: $lg) and (max-width: $xlg) {
         @content;
     }
 }
 
 // Blocks are shown side-by-side from that breakpoint up (when applicable)
 
-@mixin xlg-only {
-    @media only screen and (min-width: $xlg-min-width) and (max-width: $xxlg-min-width - 0.0625rem) {
-        @content;
-    }
-}
-
 @mixin xlg-up {
-    @media only screen and (min-width: $xlg-min-width) {
+    @media only screen and (min-width: $xlg) {
         @content;
     }
 }
 
 @mixin xxlg-down {
-    @media only screen and (max-width: $xxlg-min-width - 0.0625rem) {
+    @media only screen and (max-width: $xxlg) {
         @content;
     }
 }
 
 // The sidebar is shown from that breakpoint up
 @mixin xxlg-up {
-    @media only screen and (min-width: $xxlg-min-width) {
+    @media only screen and (min-width: $xxlg) {
         @content;
     }
 }
@@ -133,7 +127,7 @@ $zindex-adminbar: 99999;
   * Coronavirus (COVID-19)
   */
 
-$max-width-covid-data-explorer: 75rem;
+$max-width-covid-data-explorer: 1200px;
 
 /*******************************************************************************
 * Icons

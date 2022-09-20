@@ -2,6 +2,83 @@ import { ColorSchemeName } from "./ColorConstants.js"
 import { CustomColorSchemes } from "./CustomSchemes.js"
 import { ColorBrewerSchemes } from "./ColorBrewerSchemes.js"
 import { ColorScheme } from "./ColorScheme.js"
+import { ChartTypeName } from "../core/GrapherConstants.js"
+import { match } from "ts-pattern"
+import { partition, fromPairs } from "../../clientUtils/Util.js"
+
+function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
+    // This function could also be a Map<ChartTypeName, ColorName[]> but
+    // by doing it as a function usign ts-pattern.match we get compile
+    // time safety that all enum cases in ChartTypeName are always handled here
+    return match(type)
+        .with(ChartTypeName.DiscreteBar, () => [
+            ColorSchemeName.SingleColorDenim,
+            ColorSchemeName.SingleColorDustyCoral,
+            ColorSchemeName.SingleColorPurple,
+            ColorSchemeName.SingleColorTeal,
+            ColorSchemeName.SingleColorDarkCopper,
+        ])
+        .with(ChartTypeName.LineChart, () => [
+            ColorSchemeName.OwidDistinctLines,
+        ])
+        .with(ChartTypeName.Marimekko, () => [
+            ColorSchemeName.continents,
+            ColorSchemeName.SingleColorDenim,
+            ColorSchemeName.SingleColorDustyCoral,
+            ColorSchemeName.SingleColorPurple,
+            ColorSchemeName.SingleColorTeal,
+            ColorSchemeName.SingleColorDarkCopper,
+            ColorSchemeName.OwidCategoricalA,
+            ColorSchemeName.OwidCategoricalB,
+            ColorSchemeName.OwidCategoricalC,
+            ColorSchemeName.OwidCategoricalD,
+            ColorSchemeName.OwidCategoricalE,
+        ])
+        .with(ChartTypeName.ScatterPlot, () => [
+            ColorSchemeName.continents,
+            ColorSchemeName.OwidDistinctLines,
+        ])
+        .with(ChartTypeName.SlopeChart, () => [
+            ColorSchemeName.continents,
+            ColorSchemeName.OwidDistinctLines,
+        ])
+        .with(ChartTypeName.StackedArea, () => [
+            ColorSchemeName["owid-distinct"],
+            ColorSchemeName.OwidCategoricalA,
+            ColorSchemeName.OwidCategoricalB,
+            ColorSchemeName.OwidCategoricalC,
+            ColorSchemeName.OwidCategoricalD,
+            ColorSchemeName.OwidCategoricalE,
+        ])
+        .with(ChartTypeName.StackedBar, () => [
+            ColorSchemeName["owid-distinct"],
+            ColorSchemeName.OwidCategoricalA,
+            ColorSchemeName.OwidCategoricalB,
+            ColorSchemeName.OwidCategoricalC,
+            ColorSchemeName.OwidCategoricalD,
+            ColorSchemeName.OwidCategoricalE,
+        ])
+        .with(ChartTypeName.StackedDiscreteBar, () => [
+            ColorSchemeName["owid-distinct"],
+            ColorSchemeName.OwidCategoricalA,
+            ColorSchemeName.OwidCategoricalB,
+            ColorSchemeName.OwidCategoricalC,
+            ColorSchemeName.OwidCategoricalD,
+            ColorSchemeName.OwidCategoricalE,
+        ])
+        .with(ChartTypeName.TimeScatter, () => [
+            ColorSchemeName.continents,
+            ColorSchemeName.OwidDistinctLines,
+        ])
+        .with(ChartTypeName.WorldMap, () => [
+            ColorSchemeName.BinaryMapPaletteA,
+            ColorSchemeName.BinaryMapPaletteB,
+            ColorSchemeName.BinaryMapPaletteC,
+            ColorSchemeName.BinaryMapPaletteD,
+            ColorSchemeName.BinaryMapPaletteE,
+        ])
+        .exhaustive()
+}
 
 const initAllSchemes = (): { [key in ColorSchemeName]: ColorScheme } => {
     const schemes = [...ColorBrewerSchemes, ...CustomColorSchemes]
@@ -21,3 +98,16 @@ const initAllSchemes = (): { [key in ColorSchemeName]: ColorScheme } => {
 }
 
 export const ColorSchemes = initAllSchemes()
+
+export function getColorSchemeForChartType(type: ChartTypeName): {
+    [key in ColorSchemeName]: ColorScheme
+} {
+    const preferred = new Set(getPreferredSchemesByType(type))
+    const [preferredSchemes, otherSchemes] = partition(
+        Object.entries(ColorSchemes) as [ColorSchemeName, ColorScheme][],
+        (schemeKeyValue) => preferred.has(schemeKeyValue[0])
+    )
+    return fromPairs([...preferredSchemes, ...otherSchemes]) as {
+        [key in ColorSchemeName]: ColorScheme
+    }
+}

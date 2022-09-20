@@ -102,6 +102,7 @@ import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
 import { getWindowUrl, setWindowUrl } from "../clientUtils/urls/Url.js"
+import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
 
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>
@@ -481,6 +482,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                     return colorScale ? (
                         <EditorColorScaleSection
                             scale={colorScale}
+                            chartType={ChartTypeName.WorldMap}
                             features={{
                                 visualScaling: true,
                                 legendDescription: false,
@@ -503,6 +505,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         return (
                             <EditorColorScaleSection
                                 scale={colorScale}
+                                chartType={grapher.type}
                                 features={{
                                     visualScaling: true,
                                     legendDescription: false,

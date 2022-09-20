@@ -20,6 +20,7 @@ import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
 import { LineChartManager } from "./LineChartConstants.js"
 import { ErrorValueTypes } from "../../coreTable/ErrorValues.js"
 import { BinningStrategy } from "../color/BinningStrategy.js"
+import { OwidNoDataGray } from "../color/ColorConstants.js"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -358,7 +359,7 @@ describe("color scale", () => {
             },
         }
         const chart = new LineChart({ manager })
-        const noDataColor = "#959595"
+        const noDataColor = OwidNoDataGray
 
         expect(chart.series).toHaveLength(1)
         expect(chart.series[0].color).toEqual(noDataColor)

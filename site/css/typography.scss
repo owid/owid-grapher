@@ -1,0 +1,233 @@
+/*******************************************************************************
+ * Mixins
+ */
+
+@mixin display-1-semibold {
+    font-family: $serif-font-stack;
+    font-size: 3.5rem;
+    line-height: 1.4;
+    font-weight: 600;
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.display-1-semibold {
+    @include display-1-semibold;
+}
+
+@mixin display-2-semibold {
+    font-family: $serif-font-stack;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    font-weight: 600;
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.display-2-semibold {
+    @include display-2-semibold;
+}
+
+@mixin h1-semibold {
+    font-family: $serif-font-stack;
+    font-size: 2rem;
+    line-height: 1.25;
+    font-weight: 600;
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.h1-semibold {
+    @include h1-semibold;
+}
+
+@mixin h1-bold-italic {
+    font-family: $serif-font-stack;
+    font-size: 2rem;
+    line-height: 1.25;
+    font-weight: 700;
+    font-style: italic;
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.h1-bold-italic {
+    @include h1-bold-italic;
+}
+
+@mixin h2-bold {
+    font-family: $serif-font-stack;
+    font-size: 1.5rem;
+    line-height: 1.33;
+    font-weight: 700;
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.h2-bold {
+    @include h2-bold;
+}
+
+@mixin h3-bold {
+    font-family: $serif-font-stack;
+    font-size: 1.125rem;
+    line-height: 1.33;
+    font-weight: 700;
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.h3-bold {
+    @include h3-bold;
+}
+
+@mixin h4-semibold {
+    font-family: $serif-font-stack;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 600;
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+.h4-semibold {
+    @include h4-semibold;
+}
+
+@mixin subtitle-1 {
+    font-family: $sans-serif-font-stack;
+    font-size: 1.5rem;
+    line-height: 1.33;
+    font-weight: 400;
+}
+
+.subtitle-1 {
+    @include subtitle-1;
+}
+
+@mixin overline-black-caps {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.75rem;
+    line-height: 1.33;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.overline-black-caps {
+    @include overline-black-caps;
+}
+
+@mixin body-1-regular {
+    font-family: $sans-serif-font-stack;
+    font-size: 1.125rem;
+    line-height: 1.33;
+    font-weight: 400;
+}
+
+.body-1-regular {
+    @include body-1-regular;
+}
+
+@mixin body-1-regular-underlined {
+    @include body-1-regular;
+    text-decoration: underline;
+}
+
+.body-1-regular-underlined {
+    @include body-1-regular-underlined;
+}
+
+@mixin body-1-regular-superscript {
+    @include body-1-regular;
+    font-size: 0.5625rem;
+    vertical-align: top;
+}
+
+.body-1-regular-superscript {
+    @include body-1-regular-superscript;
+}
+
+@mixin body-2-regular {
+    font-family: $sans-serif-font-stack;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 400;
+}
+
+.body-2-regular {
+    @include body-2-regular;
+}
+
+@mixin body-2-regular-underlined {
+    @include body-2-regular;
+    text-decoration: underline;
+}
+
+.body-2-regular-underlined {
+    @include body-2-regular-underlined;
+}
+
+@mixin body-2-regular-superscript {
+    @include body-2-regular;
+    font-size: 0.5rem;
+    vertical-align: top;
+}
+
+.body-2-regular-superscript {
+    @include body-2-regular-superscript;
+}
+
+@mixin body-2-semibold {
+    @include body-1-regular;
+    font-weight: 600;
+}
+
+.body-2-semibold {
+    @include body-2-semibold;
+}
+
+@mixin body-3-medium {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.body-3-medium {
+    @include body-3-medium;
+}
+
+@mixin body-3-medium-underlined {
+    @include body-3-medium;
+    text-decoration: underline;
+}
+
+.body-3-medium-underlined {
+    @include body-3-medium-underlined;
+}
+
+@mixin body-3-medium-italic {
+    @include body-3-medium;
+    font-style: italic;
+}
+
+.body-3-medium-italic {
+    @include body-3-medium-italic;
+}
+
+@mixin body-3-medium-italic-underlined {
+    @include body-3-medium;
+    text-decoration: underline;
+    font-style: italic;
+}
+
+.body-3-medium-italic-underlined {
+    @include body-3-medium-italic-underlined;
+}

@@ -11,6 +11,7 @@ import drop from "lodash/drop.js"
 import extend from "lodash/extend.js"
 import findIndex from "lodash/findIndex.js"
 import findLastIndex from "lodash/findLastIndex.js"
+import fromPairs from "lodash/fromPairs.js"
 import flatten from "lodash/flatten.js"
 import get from "lodash/get.js"
 import groupBy from "lodash/groupBy.js"
@@ -75,6 +76,7 @@ export {
     findIndex,
     findLastIndex,
     flatten,
+    fromPairs,
     get,
     groupBy,
     identity,
@@ -384,23 +386,6 @@ export const domainExtent = (
 // Compound annual growth rate
 // cagr = ((new_value - old_value) ** (1 / Δt)) - 1
 // see https://en.wikipedia.org/wiki/Compound_annual_growth_rate
-interface Point {
-    timeValue: Time
-    entityName?: string
-    x?: number
-    y?: number
-}
-// Todo: add unit tests
-const cagrFromPoints = (
-    startPoint: Point,
-    endPoint: Point,
-    property: "x" | "y"
-): number => {
-    const elapsed = endPoint.timeValue - startPoint.timeValue
-    if (!elapsed) return 0
-    return cagr(startPoint[property]!, endPoint[property]!, elapsed)
-}
-
 export const cagr = (
     startValue: number,
     endValue: number,
@@ -416,33 +401,6 @@ export const cagr = (
 
 export const makeAnnotationsSlug = (columnSlug: string): string =>
     `${columnSlug}-annotations`
-
-// Todo: add unit tests
-export const relativeMinAndMax = (
-    points: Point[],
-    property: "x" | "y"
-): [number, number] => {
-    let minChange = 0
-    let maxChange = 0
-
-    const filteredPoints = points.filter(
-        (point) => point.x !== 0 && point.y !== 0
-    )
-
-    for (let i = 0; i < filteredPoints.length; i++) {
-        const indexValue = filteredPoints[i]
-        for (let j = i + 1; j < filteredPoints.length; j++) {
-            const targetValue = filteredPoints[j]
-
-            if (targetValue.entityName !== indexValue.entityName) continue
-
-            const change = cagrFromPoints(indexValue, targetValue, property)
-            if (change < minChange) minChange = change
-            if (change > maxChange) maxChange = change
-        }
-    }
-    return [minChange, maxChange]
-}
 
 export const isVisible = (elm: HTMLElement | null): boolean => {
     if (!elm || !elm.getBoundingClientRect) return false
@@ -919,6 +877,17 @@ export const differenceOfSets = <T>(sets: Set<T>[]): Set<T> => {
         }
     })
     return diff
+}
+
+/** Tests whether the first argument is a strict subset of the second. The arguments do not have
+    to be sets yet, they can be any iterable. Sets will be created by the function internally */
+export function isSubsetOf<T>(
+    subsetIter: Iterable<T>,
+    supersetIter: Iterable<T>
+): boolean {
+    const subset = new Set(subsetIter)
+    const superset = new Set(supersetIter)
+    return intersectionOfSets([subset, superset]).size === subset.size
 }
 
 // ES6 is now significantly faster than lodash's intersection

@@ -13,6 +13,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const referenceDir = parsedArgs["r"] ?? "grapherSvgs"
         const outDir = parsedArgs["o"] ?? "differentGrapherSvgs"
         const verbose = parsedArgs["v"] ?? false
+        const suffix = parsedArgs["s"] ?? ""
         // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
         const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString()
 
@@ -37,6 +38,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             referenceDir,
             outDir,
             verbose,
+            suffix,
         }))
 
         const pool = workerpool.pool(__dirname + "/worker.js", {
@@ -87,6 +89,7 @@ Options:
     -o DIR         Output directory that will contain the svg files that were different [default: differentGrapherSvgs]
     -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
     -v             Verbose mode
+    -s SUFFIX      Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
     `)
     process.exit(0)
 } else {

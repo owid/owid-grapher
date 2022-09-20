@@ -14,5 +14,4 @@ export interface DiscreteBarChartManager extends ChartManager {
     isLineChart?: boolean
 }
 
-export const DEFAULT_BAR_COLOR = "#2E5778"
 export const BACKGROUND_COLOR = "#fff"

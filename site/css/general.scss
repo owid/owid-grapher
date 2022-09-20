@@ -6,6 +6,8 @@ html {
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
     word-wrap: break-word;
+    // stop .section-heading from overflowing on firefox
+    overflow-x: hidden;
 }
 
 body {

@@ -26,6 +26,7 @@ import { SectionHeading } from "./SectionHeading.js"
 export const GRAPHER_PREVIEW_CLASS = "grapherPreview"
 export const SUMMARY_CLASSNAME = "wp-block-owid-summary"
 export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
+export const KEY_INSIGHTS_H2_CLASSNAME = "key-insights-heading"
 
 export const formatUrls = (html: string) =>
     html
@@ -75,10 +76,25 @@ export const splitContentIntoSectionsAndColumns = (
         const emptyColumns = `<div class="wp-block-columns is-style-${style}"><div class="wp-block-column"></div><div class="wp-block-column"></div></div>`
         const cheerioEl = cheerio.load(emptyColumns)
         const $columns = cheerioEl("body").children().first()
+
+        let first = $columns.children().first()
+        let last = $columns.children().last()
+
+        // due to how CSS grid's implicit row height works, we need a div inside the sticky column that can move within it
+        const container = `<div class="wp-sticky-container"></div>`
+        if (style === WP_ColumnStyle.StickyLeft) {
+            first.append(container)
+            first = first.children().first()
+        }
+        if (style === WP_ColumnStyle.StickyRight) {
+            last.append(container)
+            last = last.children().first()
+        }
+
         return {
             wrapper: $columns,
-            first: $columns.children().first(),
-            last: $columns.children().last(),
+            first,
+            last,
         }
     }
 
@@ -377,6 +393,7 @@ const addTocToSections = (
         .filter(($el) => {
             return (
                 $el.closest(`.${SUMMARY_CLASSNAME}`).length === 0 &&
+                $el.closest(`.${KEY_INSIGHTS_H2_CLASSNAME}`).length === 0 &&
                 $el.closest(`.${RESEARCH_AND_WRITING_CLASSNAME}`).length === 0
             )
         })
@@ -429,6 +446,7 @@ const addPostHeader = (cheerioEl: CheerioStatic, post: FormattedPost) => {
 
 export const addContentFeatures = ({
     post,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     formattingOptions,
 }: {
     post: FormattedPost

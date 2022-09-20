@@ -15,10 +15,7 @@ import { LineChart } from "../lineCharts/LineChart.js"
 import classNames from "classnames"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { LineChartManager } from "../lineCharts/LineChartConstants.js"
-import {
-    darkenColorForHighContrastText,
-    darkenColorForLine,
-} from "../color/ColorUtils.js"
+import { darkenColorForHighContrastText } from "../color/ColorUtils.js"
 import { isNumber, AllKeysRequired } from "../../clientUtils/Util.js"
 import { checkIsVeryShortUnit } from "../../clientUtils/formatValue.js"
 
@@ -95,7 +92,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             defaultNoDataColor: oldManager.defaultNoDataColor,
             defaultBaseColorScheme: oldManager.defaultBaseColorScheme,
             colorScaleColumn: oldManager.colorScaleColumn,
-            transformColor: darkenColorForLine,
         }
         return new ColorScale(newManager)
     }

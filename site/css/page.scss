@@ -10,8 +10,7 @@
     .sticky-nav-container {
         @include content-wrapper;
         @include lg-up {
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
+            max-width: $xlg;
         }
     }
     @include sm-only {

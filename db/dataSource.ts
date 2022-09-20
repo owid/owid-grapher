@@ -1,12 +1,13 @@
-const {
+import { DataSource } from "typeorm"
+import {
     GRAPHER_DB_HOST,
     GRAPHER_DB_NAME,
     GRAPHER_DB_USER,
     GRAPHER_DB_PASS,
     GRAPHER_DB_PORT,
-} = require("./itsJustJavascript/settings/serverSettings")
+} from "../settings/serverSettings"
 
-module.exports = {
+export const dataSource = new DataSource({
     type: "mysql",
     host: GRAPHER_DB_HOST || "localhost",
     port: GRAPHER_DB_PORT || 3306,
@@ -16,8 +17,4 @@ module.exports = {
     entities: ["itsJustJavascript/db/model/**/*.js"],
     migrations: ["itsJustJavascript/db/migration/**/*.js"],
     charset: "utf8mb4",
-    cli: {
-        entitiesDir: "db/model",
-        migrationsDir: "db/migration",
-    },
-}
+})
