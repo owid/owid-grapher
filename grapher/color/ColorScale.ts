@@ -20,7 +20,7 @@ import { Color, CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { ColorSchemes } from "../color/ColorSchemes.js"
 import { ColorScheme } from "../color/ColorScheme.js"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin.js"
-import { ColorSchemeName } from "./ColorConstants.js"
+import { ColorSchemeName, OwidNoDataGray } from "./ColorConstants.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { getBinMaximums } from "./BinningStrategies.js"
 import { BinningStrategy } from "./BinningStrategy.js"
@@ -101,7 +101,9 @@ export class ColorScale {
     }
 
     @computed private get defaultNoDataColor(): Color {
-        return this.transformColor(this.manager.defaultNoDataColor ?? "#eee")
+        return this.transformColor(
+            this.manager.defaultNoDataColor ?? OwidNoDataGray
+        )
     }
 
     @computed get colorScaleColumn(): CoreColumn | undefined {

@@ -69,7 +69,7 @@ import {
     autoDetectYColumnSlugs,
     makeSelectionArray,
 } from "../chart/ChartUtils.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants.js"
 import {
     defaultIfErrorValue,
     isNotErrorValue,
@@ -709,7 +709,7 @@ export class ScatterPlotChart
     }
 
     defaultBaseColorScheme = ColorSchemeName.continents
-    defaultNoDataColor = "#959595"
+    defaultNoDataColor = OwidNoDataGray
 
     @computed get hasNoDataBin(): boolean {
         if (this.colorColumn.isMissing) return false

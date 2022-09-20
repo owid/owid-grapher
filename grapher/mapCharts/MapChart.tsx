@@ -40,6 +40,7 @@ import {
     BASE_FONT_SIZE,
     GrapherTabOption,
     SeriesName,
+    Patterns,
 } from "../core/GrapherConstants.js"
 import { ChartInterface } from "../chart/ChartInterface.js"
 import {
@@ -458,12 +459,19 @@ export class MapChart
                 (bin) => bin instanceof NumericBin && !bin.isHidden
             )
 
-        const bin = this.legendData.filter(
+        const bins: ColorScaleBin[] = this.legendData.filter(
             (bin) =>
                 (bin instanceof NumericBin || bin.value === "No data") &&
                 !bin.isHidden
         )
-        return flatten([bin[bin.length - 1], bin.slice(0, -1)])
+        for (const bin of bins)
+            if (bin instanceof CategoricalBin && bin.value === "No data")
+                bin.props = {
+                    ...bin.props,
+                    patternRef: Patterns.noDataPattern,
+                }
+
+        return flatten([bins[bins.length - 1], bins.slice(0, -1)])
     }
 
     @computed get hasNumeric(): boolean {
@@ -471,10 +479,17 @@ export class MapChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.legendData.filter(
+        const bins = this.legendData.filter(
             (bin): bin is CategoricalBin =>
                 bin instanceof CategoricalBin && !bin.isHidden
         )
+        for (const bin of bins)
+            if (bin.value === "No data")
+                bin.props = {
+                    ...bin.props,
+                    patternRef: Patterns.noDataPattern,
+                }
+        return bins
     }
 
     @computed get hasCategorical(): boolean {
@@ -909,6 +924,29 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
 
                     {featuresWithNoData.length && (
                         <g className="noDataFeatures">
+                            <defs>
+                                <pattern
+                                    // Ids should be unique per document (!) not just a grapher instance -
+                                    // we disregard this for other patterns that are defined the same everywhere
+                                    // because id collisions there are benign but here the pattern will be different
+                                    // depending on the projection so we include this in the id
+                                    id={`${Patterns.noDataPatternForMapChart}-${this.manager.projection}`}
+                                    key={Patterns.noDataPatternForMapChart}
+                                    patternUnits="userSpaceOnUse"
+                                    width="4"
+                                    height="4"
+                                    patternTransform={`rotate(-45 2 2) scale(${
+                                        1 / this.viewportScale
+                                    })`} // <-- This scale here is crucial and map specific
+                                >
+                                    <path
+                                        d="M -1,2 l 6,0"
+                                        stroke="#ccc"
+                                        strokeWidth="0.7"
+                                    />
+                                </pattern>
+                            </defs>
+
                             {featuresWithNoData.map((feature) => {
                                 const isFocus = this.hasFocus(feature.id)
                                 const outOfFocusBracket =
@@ -933,7 +971,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                         stroke={stroke}
                                         strokeOpacity={strokeOpacity}
                                         cursor="pointer"
-                                        fill={defaultFill}
+                                        fill={`url(#${Patterns.noDataPatternForMapChart}-${this.manager.projection})`}
                                         fillOpacity={fillOpacity}
                                         onClick={(ev: SVGMouseEvent): void =>
                                             this.manager.onClick(

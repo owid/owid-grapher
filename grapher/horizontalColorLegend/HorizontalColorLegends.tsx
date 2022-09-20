@@ -578,7 +578,11 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                                 y={bottomY - numericBinSize}
                                 width={positionedBin.width}
                                 height={numericBinSize}
-                                fill={bin.color}
+                                fill={
+                                    bin.patternRef
+                                        ? `url(#${bin.patternRef})`
+                                        : bin.color
+                                }
                                 opacity={manager.legendOpacity} // defaults to undefined which removes the prop
                                 stroke={isFocus ? FOCUS_BORDER_COLOR : stroke}
                                 strokeWidth={isFocus ? 2 : strokeWidth}
@@ -797,7 +801,11 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                                     y={this.categoryLegendY + mark.y}
                                     width={mark.rectSize}
                                     height={mark.rectSize}
-                                    fill={mark.bin.color}
+                                    fill={
+                                        mark.bin.patternRef
+                                            ? `url(#${mark.bin.patternRef})`
+                                            : mark.bin.color
+                                    }
                                     stroke={manager.categoricalBinStroke}
                                     strokeWidth={0.4}
                                     opacity={manager.legendOpacity} // defaults to undefined which removes the prop

@@ -54,7 +54,11 @@ import {
     ColorScaleConfig,
     ColorScaleConfigInterface,
 } from "../color/ColorScaleConfig.js"
-import { ColorSchemeName, OwidErrorColor } from "../color/ColorConstants.js"
+import {
+    ColorSchemeName,
+    OwidErrorColor,
+    OwidNoDataGray,
+} from "../color/ColorConstants.js"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
@@ -667,7 +671,7 @@ export class DiscreteBarChart
     }
 
     defaultBaseColorScheme = ColorSchemeName.SingleColorDenim
-    defaultNoDataColor = "#959595"
+    defaultNoDataColor = OwidNoDataGray
     transformColor = darkenColorForLine
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
