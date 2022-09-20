@@ -95,7 +95,7 @@
         line-height: 1.375;
         color: white;
         background-color: transparent;
-        border: 1px solid $blue-90;
+        border: 1px solid $blue-60;
         border-radius: 100px;
         padding: 0.3rem 1rem 0.3rem 2.25rem;
         display: block;
@@ -107,7 +107,7 @@
             transition: color 150ms ease;
         }
         &:focus::placeholder {
-            color: $blue-90;
+            color: $blue-60;
         }
     }
 
@@ -285,7 +285,7 @@
     font-size: 1.0625rem;
     line-height: 1.35;
     color: $blue-40;
-    border: 1px solid $blue-90;
+    border: 1px solid $blue-60;
     border-radius: 6px;
     background-color: transparent;
     outline: none;
