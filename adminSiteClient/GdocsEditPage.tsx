@@ -14,12 +14,12 @@ import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { useInterval } from "../site/hooks.js"
-import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { faCircle } from "@fortawesome/free-solid-svg-icons/faCircle"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { isEqual } from "../clientUtils/Util.js"
+import { ButtonBadge } from "./ButtonBadge.js"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
@@ -165,31 +165,15 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                 hasChanges={hasChanges}
                                 onSubmit={onSubmit}
                             />
-                            <Button
-                                onClick={() => setSettingsOpen(true)}
-                                className="settings-toggle"
-                            >
+                            <Button onClick={() => setSettingsOpen(true)}>
                                 <FontAwesomeIcon icon={faGear} />
-
                                 {hasErrors ? (
-                                    <FontAwesomeIcon
-                                        icon={faExclamationCircle}
-                                        color="red"
-                                        style={{
-                                            position: "absolute",
-                                            top: "-0.5em",
-                                            right: "-0.5em",
-                                        }}
+                                    <ButtonBadge
+                                        status={ErrorMessageType.Error}
                                     />
                                 ) : hasWarnings ? (
-                                    <FontAwesomeIcon
-                                        icon={faExclamationTriangle}
-                                        color="orange"
-                                        style={{
-                                            position: "absolute",
-                                            top: "-0.5em",
-                                            right: "-0.5em",
-                                        }}
+                                    <ButtonBadge
+                                        status={ErrorMessageType.Warning}
                                     />
                                 ) : null}
                             </Button>
