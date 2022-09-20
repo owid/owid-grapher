@@ -79,10 +79,7 @@ import {
     HorizontalAlign,
     PrimitiveType,
 } from "../../clientUtils/owidTypes.js"
-import {
-    darkenColorForHighContrastText,
-    darkenColorForLine,
-} from "../color/ColorUtils.js"
+import { darkenColorForHighContrastText } from "../color/ColorUtils.js"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
@@ -842,9 +839,8 @@ export class LineChart
         )
     }
 
-    defaultBaseColorScheme = ColorSchemeName.YlGnBu
+    defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
     defaultNoDataColor = OwidNoDataGray
-    transformColor = darkenColorForLine
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     private getColorScaleColor(value: CoreValueType | undefined): Color {
@@ -937,7 +933,7 @@ export class LineChart
         return (
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
-                : null) ?? ColorSchemes["owid-distinct"]
+                : null) ?? ColorSchemes[this.defaultBaseColorScheme]
         )
     }
 
