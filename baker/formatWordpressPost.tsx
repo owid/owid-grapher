@@ -60,6 +60,7 @@ import {
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
+import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -491,6 +492,11 @@ export const formatWordpressPost = async (
     ;(["left", "right"] as const).forEach((side) => {
         cheerioEl(`.wp-block-columns.is-style-sticky-${side}`).each(
             (_, columns) => {
+                // don't nest the columns when inside related-charts
+                const parentClassName = columns.parent.attribs.class
+                if (parentClassName === RELATED_CHARTS_CLASS_NAME) {
+                    return
+                }
                 nestStickyContainer(cheerioEl(columns), side)
             }
         )
