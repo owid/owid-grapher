@@ -17,7 +17,7 @@ import { useInterval } from "../site/hooks.js"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
-import { faRotate } from "@fortawesome/free-solid-svg-icons/faRotate"
+import { faCircle } from "@fortawesome/free-solid-svg-icons/faCircle"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { isEqual } from "../clientUtils/Util.js"
 
@@ -139,23 +139,23 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                     </Col>
                     <Col>
                         <Space>
-                            <span>
+                            <span className="mr-2">
                                 {syncingError ? (
-                                    <>
+                                    <span className="warning">
                                         <span>Syncing error, retrying...</span>{" "}
                                         <FontAwesomeIcon
                                             icon={faExclamationTriangle}
                                             color="orange"
                                         />
-                                    </>
+                                    </span>
                                 ) : (
-                                    <>
-                                        <span>Syncing content</span>{" "}
+                                    <span className="success">
+                                        Content syncing{" "}
                                         <FontAwesomeIcon
-                                            icon={faRotate}
-                                            color="green"
+                                            icon={faCircle}
+                                            size="xs"
                                         />
-                                    </>
+                                    </span>
                                 )}
                             </span>
                             <GdocsSaveButtons
