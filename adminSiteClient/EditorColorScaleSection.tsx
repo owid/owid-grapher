@@ -32,6 +32,7 @@ import {
 import { binningStrategyLabels } from "../grapher/color/BinningStrategies.js"
 import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
 import { BinningStrategy } from "../grapher/color/BinningStrategy.js"
+import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean
@@ -41,6 +42,7 @@ interface EditorColorScaleSectionFeatures {
 @observer
 export class EditorColorScaleSection extends React.Component<{
     scale: ColorScale
+    chartType: ChartTypeName
     features: EditorColorScaleSectionFeatures
     onChange?: () => void
 }> {
@@ -50,6 +52,7 @@ export class EditorColorScaleSection extends React.Component<{
                 <ColorsSection
                     scale={this.props.scale}
                     onChange={this.props.onChange}
+                    chartType={this.props.chartType}
                 />
                 <ColorLegendSection
                     scale={this.props.scale}
@@ -126,6 +129,7 @@ class ColorLegendSection extends React.Component<{
 @observer
 class ColorsSection extends React.Component<{
     scale: ColorScale
+    chartType: ChartTypeName
     onChange?: () => void
 }> {
     @action.bound onColorScheme(selected: ColorSchemeOption) {
@@ -206,6 +210,7 @@ class ColorsSection extends React.Component<{
                             value={this.currentColorScheme}
                             onChange={this.onColorScheme}
                             invertedColorScheme={!!config.colorSchemeInvert}
+                            chartType={this.props.chartType}
                             additionalOptions={[
                                 {
                                     colorScheme: undefined,

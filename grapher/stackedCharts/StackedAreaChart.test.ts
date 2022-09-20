@@ -69,7 +69,9 @@ describe("column charts", () => {
         const assignedColors = chart.series.map((series) => series.color)
         expect(assignedColors).toHaveLength(2)
         for (const color of assignedColors)
-            expect(color).toMatch(/^#[0-9a-f]{6}$/i) // valid hex color string
+            expect(color).toMatch(
+                /^#[0-9a-f]{6}$|^rgb\(\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/i
+            ) // valid hex color string or rgb() string
     })
 })
 

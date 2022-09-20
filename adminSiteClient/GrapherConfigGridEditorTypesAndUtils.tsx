@@ -48,8 +48,12 @@ import {
     ImmutableTree,
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
-import { excludeUndefined, isArray } from "../clientUtils/Util.js"
-import { isNil, isPlainObject } from "lodash"
+import {
+    excludeUndefined,
+    isArray,
+    checkIsPlainObjectWithGuard,
+} from "../clientUtils/Util.js"
+import { isNil } from "lodash"
 import {
     EditorOption,
     FieldDescription,
@@ -351,7 +355,7 @@ export function postprocessJsonLogicTree(filterTree: JsonTree | JsonItem) {
     if (filterTree.type === "group" && filterTree.children1) {
         if (
             isArray(filterTree.children1) ||
-            isPlainObject(filterTree.children1)
+            checkIsPlainObjectWithGuard(filterTree.children1)
         )
             for (const child of Object.values(filterTree.children1))
                 postprocessJsonLogicTree(child)
@@ -387,25 +391,12 @@ export function filterTreeToSExpression(
         )
 
         let children: Operation[] = []
-        // It looks like the children will never be an array
-        // and instead always be an object with UUIDs as keys
-        // but the type definition claims that this can be array
-        // so we handle this as well for now
-        if (isArray(filterTree.children1))
+        if (
+            isArray(filterTree.children1) ||
+            checkIsPlainObjectWithGuard(filterTree.children1)
+        )
             children = excludeUndefined(
-                filterTree.children1?.map((child) =>
-                    filterTreeToSExpression(
-                        child,
-                        context,
-                        readOnlyFieldNamesMap
-                    )
-                )
-            )
-        else if (isPlainObject(filterTree.children1))
-            children = excludeUndefined(
-                Object.values(
-                    filterTree.children1 as Record<string, JsonItem>
-                ).map((child) =>
+                Object.values(filterTree.children1).map((child) =>
                     filterTreeToSExpression(
                         child,
                         context,

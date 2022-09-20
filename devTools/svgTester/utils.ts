@@ -22,7 +22,7 @@ import { GrapherInterface } from "../../grapher/core/GrapherInterface.js"
 import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util.js"
 import _ from "lodash"
 
-const CONFIG_FILENAME: string = "config.json"
+export const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
 export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
 
@@ -441,6 +441,7 @@ export interface RenderJobDescription {
     referenceDir: string
     outDir: string
     verbose: boolean
+    suffix?: string
 }
 
 export async function renderAndVerifySvg({
@@ -449,6 +450,7 @@ export async function renderAndVerifySvg({
     referenceDir,
     outDir,
     verbose,
+    suffix,
 }: RenderJobDescription): Promise<VerifyResult> {
     try {
         if (!dir) throw "Dir was not defined"
@@ -470,7 +472,11 @@ export async function renderAndVerifySvg({
         switch (validationResult.kind) {
             case "difference":
                 logDifferencesToConsole(svgRecord, validationResult)
-                const outputPath = path.join(outDir, svgRecord.svgFilename)
+                const pathFragments = path.parse(svgRecord.svgFilename)
+                const outputPath = path.join(
+                    outDir,
+                    pathFragments.name + suffix + pathFragments.ext
+                )
                 const cleanedSvg = prepareSvgForComparision(svg)
                 await fs.writeFile(outputPath, cleanedSvg)
         }

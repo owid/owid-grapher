@@ -3,6 +3,7 @@ import { Color, CoreValueType } from "../../coreTable/CoreTableConstants.js"
 interface BinProps {
     color: Color
     label?: string
+    patternRef?: string
 }
 
 interface NumericBinProps extends BinProps {
@@ -29,6 +30,9 @@ abstract class AbstractColorScaleBin<T extends BinProps> {
     }
     get color(): string {
         return this.props.color
+    }
+    get patternRef(): string | undefined {
+        return this.props.patternRef
     }
     get label(): string | undefined {
         return this.props.label

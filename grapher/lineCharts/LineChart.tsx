@@ -69,7 +69,7 @@ import {
     ColorScaleConfigInterface,
 } from "../color/ColorScaleConfig.js"
 import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants.js"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline.js"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { EntityName } from "../../coreTable/OwidTableConstants.js"
@@ -79,10 +79,7 @@ import {
     HorizontalAlign,
     PrimitiveType,
 } from "../../clientUtils/owidTypes.js"
-import {
-    darkenColorForHighContrastText,
-    darkenColorForLine,
-} from "../color/ColorUtils.js"
+import { darkenColorForHighContrastText } from "../color/ColorUtils.js"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
@@ -842,9 +839,8 @@ export class LineChart
         )
     }
 
-    defaultBaseColorScheme = ColorSchemeName.YlGnBu
-    defaultNoDataColor = "#959595"
-    transformColor = darkenColorForLine
+    defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
+    defaultNoDataColor = OwidNoDataGray
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
 
     private getColorScaleColor(value: CoreValueType | undefined): Color {
@@ -937,7 +933,7 @@ export class LineChart
         return (
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
-                : null) ?? ColorSchemes["owid-distinct"]
+                : null) ?? ColorSchemes[this.defaultBaseColorScheme]
         )
     }
 

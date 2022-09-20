@@ -207,7 +207,9 @@ const svgoConfig: svgo.OptimizeOptions = {
 
 async function optimizeSvg(svgString: string): Promise<string> {
     const optimizedSvg = await svgo.optimize(svgString, svgoConfig)
-    return optimizedSvg.data
+    if (optimizedSvg.error)
+        throw new Error(`Error optimizing SVG: ${optimizedSvg.error}`)
+    return (optimizedSvg as svgo.OptimizedSvg).data
 }
 
 export async function grapherToSVG(

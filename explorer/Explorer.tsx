@@ -212,6 +212,23 @@ export class Explorer
         this.attachEventListeners()
     }
 
+    componentDidUpdate() {
+        this.maybeUpdatePageTitle()
+    }
+
+    private maybeUpdatePageTitle() {
+        // expose the title of the current view to the Google crawler on non-default views
+        // of opted-in standalone explorer pages
+        if (
+            this.props.isInStandalonePage &&
+            this.grapher &&
+            this.explorerProgram.indexViewsSeparately &&
+            document.location.search
+        ) {
+            document.title = `${this.grapher.displayTitle} - Our World in Data`
+        }
+    }
+
     private setCanonicalUrl() {
         // see https://developers.google.com/search/docs/advanced/javascript/javascript-seo-basics#properly-inject-canonical-links
         // Note that the URL is not updated when the user interacts with the explorer - this should be enough for Googlebot I hope.
@@ -597,6 +614,7 @@ export class Explorer
 
     render() {
         const { showExplorerControls, showHeaderElement } = this
+
         return (
             <div
                 className={classNames({
