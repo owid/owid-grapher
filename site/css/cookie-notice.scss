@@ -1,6 +1,6 @@
 .cookie-notice {
     @include content-wrapper;
-    background-color: $tertiary-color;
+    background-color: $amber;
     position: fixed;
     left: 0;
     right: 0;
@@ -79,14 +79,14 @@
     }
 
     .button.accept {
-        background-color: $primary-color;
-        border-color: $primary-color;
+        background-color: $oxford-blue;
+        border-color: $oxford-blue;
         color: #fff;
         transition: background-color 150ms linear, border-color 150ms linear;
 
         &:hover {
-            background-color: $primary-color-900;
-            border-color: $primary-color-900;
+            background-color: $oxford-blue;
+            border-color: $oxford-blue;
         }
     }
 }

@@ -93,7 +93,7 @@
             text-decoration: underline;
             transition: all 0.2s;
             &:hover {
-                color: $secondary-color;
+                color: $vermillion;
             }
         }
 
@@ -104,7 +104,7 @@
 
     &.large-banner {
         .offset-header {
-            background-color: $primary-color-100;
+            background-color: $blue-10;
         }
 
         .article-titles {

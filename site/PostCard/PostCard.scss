@@ -7,10 +7,10 @@
         transition: all 0.2s;
         color: inherit;
         background-color: $white;
-        border: 1px solid $primary-color-300;
+        border: 1px solid $blue-30;
 
         &:hover {
-            background-color: $primary-color-30;
+            background-color: $gray-10;
             @include block-shadow;
         }
     }

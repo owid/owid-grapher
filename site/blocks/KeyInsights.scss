@@ -40,11 +40,12 @@ $slide-content-height: $grapher-height;
         animation: fadeIn 500ms;
 
         &:hover {
-            color: $primary-color-600;
+            color: $blue-60;
         }
 
         &.left {
             left: 0;
+            box-shadow: 0.5rem 0 0.5rem $gray-10;
             @include lg-up {
                 left: -48px;
             }
@@ -53,6 +54,7 @@ $slide-content-height: $grapher-height;
         }
         &.right {
             right: 0;
+            box-shadow: -0.5rem 0 0.5rem $gray-10;
             @include lg-up {
                 right: -48px;
             }
@@ -62,6 +64,8 @@ $slide-content-height: $grapher-height;
     }
 
     .thumbs {
+        background-color: $gray-10;
+        border-bottom: 1px solid #efefef;
         padding-bottom: 24px;
     }
 

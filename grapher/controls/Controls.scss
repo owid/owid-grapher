@@ -296,7 +296,7 @@ $footerRowHeight: 32px; // keep in sync with Controls.tsx's footerRowHeight
         height: $footerRowHeight - 1;
         line-height: $footerRowHeight;
         border-bottom: 2px solid rgba(0, 0, 0, 0);
-        background-color: $primary-color-30;
+        background-color: $gray-10;
         transition: color 0.1s;
         padding: 0 0.6em;
     }
