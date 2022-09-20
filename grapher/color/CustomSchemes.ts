@@ -263,24 +263,14 @@ NonPriorityCustomColorSchemes.push(OwidCategoricalEScheme)
 
 NonPriorityCustomColorSchemes.push({
     name: ColorSchemeName.stackedAreaDefault,
-    displayName: "OWID 4 Color Gradient",
-    colorSets: [
-        ["#3360a9"],
-        ["#3360a9", "#34983f"],
-        ["#3360a9", "#34983f", "#ffd53e"],
-        ["#3360a9", "#ca2628", "#ffd53e", "#34983f"],
-        ["#3360a9", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"],
-        ["#3360a9", "#e6332e", "#ca2628", "#ffd53e", "#9ecc8a", "#34983f"],
-        [
-            "#3360a9",
-            "#2a939b",
-            "#e6332e",
-            "#ca2628",
-            "#ffd53e",
-            "#9ecc8a",
-            "#34983f",
-        ],
-    ],
+    displayName: "OWID 4 Color Gradient (=Owid Distinct)",
+    // TODO: this is now a copy of owid-distinct. After a data migration to get
+    // rid of stackedAreaDefault in existing chart configs we should replace it with
+    // owid-distinct
+    // We use the feature of ColorSchemes to use the Palette A permutation
+    // for 12 categories or less and the Palette C to reach up to 24 different
+    // colors
+    colorSets: [CategoricalColorsPaletteA, CategoricalColorsPaletteC],
 })
 
 export const ContinentColors = {
