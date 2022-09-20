@@ -87,6 +87,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
 
         await admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdocsPatches, "PATCH")
         setSettingsOpen(false)
+        setOriginalGdoc(gdoc)
     }
 
     // Fetch the gdoc on mount
