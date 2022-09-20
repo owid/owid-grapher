@@ -64,6 +64,7 @@ export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
                         <ColorSchemeDropdown
                             value={grapher.baseColorScheme || "default"}
                             onChange={this.onChange}
+                            chartType={this.props.grapher.type}
                             invertedColorScheme={!!grapher.invertColorScheme}
                             additionalOptions={[
                                 {
@@ -577,6 +578,7 @@ export class EditorCustomizeTab extends React.Component<{
                 {grapher.chartInstanceExceptMap.colorScale && (
                     <EditorColorScaleSection
                         scale={grapher.chartInstanceExceptMap.colorScale}
+                        chartType={grapher.type}
                         features={{
                             visualScaling: true,
                             legendDescription: true,
