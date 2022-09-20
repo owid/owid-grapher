@@ -1244,6 +1244,21 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     }
 }
 
+.GdocsEditPage,
+.GdocsSettingsForm {
+    .success {
+        color: #52c41a;
+    }
+
+    .warning {
+        color: #faad14;
+    }
+
+    .error {
+        color: #ff4d4f;
+    }
+}
+
 .GdocsEditPage {
     .admin-bar {
         position: sticky;
@@ -1269,5 +1284,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 
     .ant-typography-edit {
         margin-right: 12px;
+    }
+    .content-syncing {
+        svg {
+            vertical-align: middle;
+        }
     }
 }
