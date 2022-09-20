@@ -1,15 +1,5 @@
 import { Color } from "../../coreTable/CoreTableConstants.js"
 
-export const ContinentColors = {
-    Africa: "#923E8B",
-    Antarctica: "#5887A1",
-    Asia: "#2D8587",
-    Europe: "#4C5C78",
-    "North America": "#E04E4B",
-    Oceania: "#A8633C",
-    "South America": "#932834",
-}
-
 export interface ColorSchemeInterface {
     name: string
     colorSets: Color[][] // Different color sets depending on how many distinct colors you want
@@ -68,4 +58,17 @@ export enum ColorSchemeName {
     continents = "continents",
     stackedAreaDefault = "stackedAreaDefault",
     "owid-distinct" = "owid-distinct",
+    SingleColorDenim = "SingleColorDenim",
+    SingleColorTeal = "SingleColorTeal",
+    SingleColorPurple = "SingleColorPurple",
+    SingleColorDustyCoral = "SingleColorDustyCoral",
+    SingleColorDarkCopper = "SingleColorDarkCopper",
+    OwidCategoricalA = "OwidCategoricalA",
+    OwidCategoricalB = "OwidCategoricalB",
+    OwidCategoricalC = "OwidCategoricalC",
+    OwidCategoricalD = "OwidCategoricalD",
+    OwidCategoricalE = "OwidCategoricalE",
 }
+
+export const OwidNoDataGray = "#6e7581"
+export const OwidErrorColor = "ff0002"

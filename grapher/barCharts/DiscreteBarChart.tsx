@@ -27,7 +27,6 @@ import { ColorSchemes } from "../color/ColorSchemes.js"
 import { ChartInterface } from "../chart/ChartInterface.js"
 import {
     BACKGROUND_COLOR,
-    DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants.js"
@@ -50,13 +49,12 @@ import {
     HorizontalAlign,
     AxisAlign,
 } from "../../clientUtils/owidTypes.js"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
     ColorScaleConfig,
     ColorScaleConfigInterface,
 } from "../color/ColorScaleConfig.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { ColorSchemeName, OwidErrorColor } from "../color/ColorConstants.js"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { isNotErrorValue } from "../../coreTable/ErrorValues.js"
@@ -616,43 +614,24 @@ export class DiscreteBarChart
         return sortedSeries
     }
 
-    @computed private get colorScheme(): ColorScheme | undefined {
-        // If this DiscreteBarChart stems from a LineChart, we want to match its (default) color
-        // scheme OWID Distinct. Otherwise, use an all-blue color scheme (`undefined`) as default.
-        const defaultColorScheme = this.manager.isLineChart
-            ? ColorSchemes["owid-distinct"]
-            : undefined
-
-        return (
-            (this.manager.baseColorScheme
-                ? ColorSchemes[this.manager.baseColorScheme]
-                : undefined) ?? defaultColorScheme
-        )
+    @computed private get colorScheme(): ColorScheme {
+        // We used to choose owid-distinct here as the default if this is a collapsed line chart but
+        // as part of the color revamp in Autumn 2022 we decided to make bar charts always default to
+        // an all-blue color scheme (singleColorDenim).
+        const defaultColorScheme = this.defaultBaseColorScheme
+        const colorScheme = this.manager.baseColorScheme ?? defaultColorScheme
+        return this.manager.isLineChart
+            ? ColorSchemes[defaultColorScheme]
+            : ColorSchemes[colorScheme]
     }
 
-    @computed private get valuesToColorsMap(): Map<number, string> | undefined {
+    @computed private get valuesToColorsMap(): Map<number, string> {
         const { manager, colorScheme, sortedRawSeries } = this
 
-        return colorScheme?.getUniqValueColorMap(
+        return colorScheme.getUniqValueColorMap(
             uniq(sortedRawSeries.map((series) => series.value)),
             !manager.invertColorScheme // negate here to be consistent with how things worked before
         )
-    }
-
-    // Only used if it's a LineChart turned into DiscreteBar due to single-point timeline
-    @computed private get categoricalColorAssigner():
-        | CategoricalColorAssigner
-        | undefined {
-        if (!this.colorScheme) return undefined
-        return new CategoricalColorAssigner({
-            colorScheme: this.colorScheme,
-            invertColorScheme: this.manager.invertColorScheme,
-            colorMap:
-                this.seriesStrategy === SeriesStrategy.entity
-                    ? this.inputTable.entityNameColorIndex
-                    : this.inputTable.columnDisplayNameToColorMap,
-            autoColorMapCache: this.manager.seriesColorMap,
-        })
     }
 
     @computed private get hasColorScale(): boolean {
@@ -687,7 +666,7 @@ export class DiscreteBarChart
         )
     }
 
-    defaultBaseColorScheme = ColorSchemeName.YlGnBu
+    defaultBaseColorScheme = ColorSchemeName.SingleColorDenim
     defaultNoDataColor = "#959595"
     transformColor = darkenColorForLine
     colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
@@ -755,8 +734,6 @@ export class DiscreteBarChart
     // End of color legend props
 
     @computed get series(): DiscreteBarSeries[] {
-        const { manager } = this
-
         const series = this.sortedRawSeries.map((rawSeries) => {
             const { value, time, colorValue, seriesName, color } = rawSeries
             const series: DiscreteBarSeries = {
@@ -764,25 +741,15 @@ export class DiscreteBarChart
                 time,
                 colorValue,
                 seriesName,
+                // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
                 color:
                     color ??
-                    this.valuesToColorsMap?.get(value) ??
-                    DEFAULT_BAR_COLOR,
+                    this.valuesToColorsMap.get(value) ??
+                    OwidErrorColor,
             }
             return series
         })
 
-        if (
-            manager.isLineChart &&
-            !this.hasColorScale &&
-            this.categoricalColorAssigner
-        ) {
-            // For LineChart-based bar charts, we want to assign colors from the color scheme.
-            // This way we get consistent between the DiscreteBarChart and the LineChart (by using the same logic).
-            series.forEach((s) => {
-                s.color = this.categoricalColorAssigner!.assign(s.seriesName)
-            })
-        }
         return series
     }
 }

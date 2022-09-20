@@ -8,6 +8,7 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
+import { DefaultColorScheme } from "../color/CustomSchemes.js"
 import { MarimekkoChart } from "./MarimekkoChart.js"
 import {
     MarimekkoChartManager,
@@ -105,7 +106,7 @@ it("can display a Marimekko chart correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
@@ -119,7 +120,7 @@ it("can display a Marimekko chart correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
@@ -133,7 +134,7 @@ it("can display a Marimekko chart correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
@@ -239,13 +240,13 @@ it("can display two time series stacked correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[1],
                 },
                 {
                     kind: BarShape.Bar,
-                    color: "#B13507",
+                    color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[1],
                 },
@@ -259,13 +260,13 @@ it("can display two time series stacked correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[0],
                 },
                 {
                     kind: BarShape.Bar,
-                    color: "#B13507",
+                    color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[0],
                 },
@@ -279,13 +280,13 @@ it("can display two time series stacked correctly", () => {
             bars: [
                 {
                     kind: BarShape.Bar,
-                    color: "#3C4E66",
+                    color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[2],
                 },
                 {
                     kind: BarShape.Bar,
-                    color: "#B13507",
+                    color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[2],
                 },
@@ -369,7 +370,7 @@ it("can do sorting", () => {
                 bars: [
                     {
                         kind: BarShape.Bar,
-                        color: "#3C4E66",
+                        color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
                         yPoint: expectedYPoints[1],
                     },
@@ -385,7 +386,7 @@ it("can do sorting", () => {
                 bars: [
                     {
                         kind: BarShape.Bar,
-                        color: "#3C4E66",
+                        color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
                         yPoint: expectedYPoints[0],
                     },
@@ -401,7 +402,7 @@ it("can do sorting", () => {
                 bars: [
                     {
                         kind: BarShape.Bar,
-                        color: "#3C4E66",
+                        color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
                         yPoint: expectedYPoints[2],
                     },
