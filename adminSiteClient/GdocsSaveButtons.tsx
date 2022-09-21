@@ -23,7 +23,7 @@ export const GdocsSaveButtons = ({
     return (
         <Space>
             {!published && <Button onClick={onSubmit}>Save draft</Button>}
-            {hasChanges && (
+            {hasChanges ? (
                 <Button
                     disabled={hasErrors}
                     type="primary"
@@ -38,10 +38,12 @@ export const GdocsSaveButtons = ({
                     }
                 >
                     {published ? "Republish" : "Publish"}
-                    {hasWarnings && (
+                    {hasWarnings && !hasErrors && (
                         <ButtonBadge status={ErrorMessageType.Warning} />
                     )}
                 </Button>
+            ) : (
+                <span className="muted mx-2">No changes</span>
             )}
         </Space>
     )
