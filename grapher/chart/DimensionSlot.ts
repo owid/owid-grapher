@@ -1,7 +1,7 @@
 // todo: remove
 
 import { Grapher } from "../core/Grapher.js"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { ChartDimension } from "./ChartDimension.js"
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 
@@ -13,8 +13,8 @@ export class DimensionSlot {
             name: computed,
             allowMultiple: computed,
             isOptional: computed,
-            dimensions: computed
-        });
+            dimensions: computed,
+        })
 
         this.grapher = grapher
         this.property = property

@@ -1,5 +1,5 @@
 import { isEmpty, max, stripHTML, linkify } from "../../clientUtils/Util.js"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import React from "react"
 
@@ -23,7 +23,7 @@ interface WrapLine {
 }
 
 function startsWithNewline(text: string): boolean {
-    return /^\n/.test(text);
+    return /^\n/.test(text)
 }
 
 export const shortenForTargetWidth = (
@@ -62,8 +62,8 @@ export class TextWrap {
             lines: computed,
             height: computed,
             width: computed,
-            htmlStyle: computed
-        });
+            htmlStyle: computed,
+        })
 
         this.props = props
     }

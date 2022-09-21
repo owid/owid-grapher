@@ -43,309 +43,333 @@ import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { DetailsOnDemandPage } from "./DetailsOnDemand.js"
 
-const AdminErrorMessage = observer(class AdminErrorMessage extends React.Component<{ admin: Admin }> {
-    render(): JSX.Element | null {
-        const { admin } = this.props
-        const error = admin.errorMessage
+const AdminErrorMessage = observer(
+    class AdminErrorMessage extends React.Component<{ admin: Admin }> {
+        render(): JSX.Element | null {
+            const { admin } = this.props
+            const error = admin.errorMessage
 
-        return error ? (
-            <Modal
-                className="errorMessage"
-                onClose={action(() => {
-                    error.isFatal
-                        ? window.location.reload()
-                        : (admin.errorMessage = undefined)
-                })}
-            >
-                <div className="modal-header">
-                    <div>
-                        <h5
-                            className="modal-title"
-                            style={error.isFatal ? { color: "red" } : undefined}
-                        >
-                            {error.title}
-                        </h5>
-                        {error.isFatal && (
-                            <p>
-                                Please screenshot this error message and report
-                                it in{" "}
-                                <a href="https://owid.slack.com/messages/tech-issues/">
-                                    #tech-issues
-                                </a>
-                            </p>
-                        )}
+            return error ? (
+                <Modal
+                    className="errorMessage"
+                    onClose={action(() => {
+                        error.isFatal
+                            ? window.location.reload()
+                            : (admin.errorMessage = undefined)
+                    })}
+                >
+                    <div className="modal-header">
+                        <div>
+                            <h5
+                                className="modal-title"
+                                style={
+                                    error.isFatal ? { color: "red" } : undefined
+                                }
+                            >
+                                {error.title}
+                            </h5>
+                            {error.isFatal && (
+                                <p>
+                                    Please screenshot this error message and
+                                    report it in{" "}
+                                    <a href="https://owid.slack.com/messages/tech-issues/">
+                                        #tech-issues
+                                    </a>
+                                </p>
+                            )}
+                        </div>
                     </div>
-                </div>
-                <div className="modal-body">
-                    <pre dangerouslySetInnerHTML={{ __html: error.content }} />
-                </div>
-            </Modal>
-        ) : null
+                    <div className="modal-body">
+                        <pre
+                            dangerouslySetInnerHTML={{ __html: error.content }}
+                        />
+                    </div>
+                </Modal>
+            ) : null
+        }
     }
-});
+)
 
-const AdminLoader = observer(class AdminLoader extends React.Component<{ admin: Admin }> {
-    render(): JSX.Element | null {
-        const { admin } = this.props
-        return admin.showLoadingIndicator ? <LoadingBlocker /> : null
+const AdminLoader = observer(
+    class AdminLoader extends React.Component<{ admin: Admin }> {
+        render(): JSX.Element | null {
+            const { admin } = this.props
+            return admin.showLoadingIndicator ? <LoadingBlocker /> : null
+        }
     }
-});
+)
 
-export const AdminApp = observer(class AdminApp extends React.Component<{
-    admin: Admin
-    gitCmsBranchName: string
-}> {
-    get childContext() {
-        return { admin: this.props.admin }
-    }
+export const AdminApp = observer(
+    class AdminApp extends React.Component<{
+        admin: Admin
+        gitCmsBranchName: string
+    }> {
+        get childContext() {
+            return { admin: this.props.admin }
+        }
 
-    render(): JSX.Element {
-        const { admin, gitCmsBranchName } = this.props
+        render(): JSX.Element {
+            const { admin, gitCmsBranchName } = this.props
 
-        return (
-            <AdminAppContext.Provider value={this.childContext}>
-                <Router basename={admin.basePath}>
-                    <div className="AdminApp">
-                        <AdminErrorMessage admin={admin} />
-                        <AdminLoader admin={admin} />
-                        <Switch>
-                            <Route
-                                exact
-                                path="/charts/create/:config"
-                                render={({ match }) => (
-                                    <ChartEditorPage
-                                        grapherConfig={JSON.parse(
-                                            Base64.decode(match.params.config)
-                                        )}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/charts/create"
-                                component={ChartEditorPage}
-                            />
-                            <Route
-                                exact
-                                path="/charts/:chartId/edit"
-                                render={({ match }) => (
-                                    <ChartEditorPage
-                                        grapherId={parseInt(
-                                            match.params.chartId
-                                        )}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/charts/:chartId/edit/:config"
-                                render={({ match }) => (
-                                    <ChartEditorPage
-                                        grapherConfig={JSON.parse(
-                                            Base64.decode(match.params.config)
-                                        )}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/charts"
-                                component={ChartIndexPage}
-                            />
-                            <Route
-                                exact
-                                path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
-                                render={({ match }) => (
-                                    <AdminLayout title="Create Explorer">
-                                        <ExplorerCreatePage
-                                            slug={match.params.slug}
-                                            gitCmsBranchName={gitCmsBranchName}
-                                            manager={admin}
+            return (
+                <AdminAppContext.Provider value={this.childContext}>
+                    <Router basename={admin.basePath}>
+                        <div className="AdminApp">
+                            <AdminErrorMessage admin={admin} />
+                            <AdminLoader admin={admin} />
+                            <Switch>
+                                <Route
+                                    exact
+                                    path="/charts/create/:config"
+                                    render={({ match }) => (
+                                        <ChartEditorPage
+                                            grapherConfig={JSON.parse(
+                                                Base64.decode(
+                                                    match.params.config
+                                                )
+                                            )}
                                         />
-                                    </AdminLayout>
-                                )}
-                            />
-                            <Route
-                                exact
-                                path={`/${EXPLORERS_ROUTE_FOLDER}`}
-                                render={() => (
-                                    <AdminLayout title="Explorers">
-                                        <ExplorersIndexPage />
-                                    </AdminLayout>
-                                )}
-                            />
-                            <Route
-                                exact
-                                path={`/bulk-grapher-config-editor`}
-                                render={() => <BulkGrapherConfigEditorPage />}
-                            />
-                            <Route
-                                exact
-                                path={`/variable-annotations`}
-                                render={() => <VariablesAnnotationPage />}
-                            />
-                            <Route
-                                exact
-                                path="/users/:userId"
-                                render={({ match }) => (
-                                    <UserEditPage
-                                        userId={parseInt(match.params.userId)}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/users"
-                                component={UsersIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/import"
-                                component={ImportPage}
-                            />
-                            <Route
-                                exact
-                                path="/variables/:variableId"
-                                render={({ match }) => (
-                                    <VariableEditPage
-                                        variableId={parseInt(
-                                            match.params.variableId
-                                        )}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/variables"
-                                component={VariablesIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/datasets/:datasetId"
-                                render={({ match }) => (
-                                    <DatasetEditPage
-                                        datasetId={parseInt(
-                                            match.params.datasetId
-                                        )}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/details"
-                                component={DetailsOnDemandPage}
-                            />
-                            <Route
-                                exact
-                                path="/datasets"
-                                component={DatasetsIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/sources/:sourceId"
-                                render={({ match }) => (
-                                    <SourceEditPage
-                                        sourceId={parseInt(
-                                            match.params.sourceId
-                                        )}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/standardize"
-                                component={CountryStandardizerPage}
-                            />
-                            <Route
-                                exact
-                                path="/redirects"
-                                component={RedirectsIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/tags/:tagId"
-                                render={({ match }) => (
-                                    <TagEditPage
-                                        tagId={parseInt(match.params.tagId)}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/tags"
-                                component={TagsIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/posts"
-                                component={PostsIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/posts/:postId/edit"
-                                render={({ match }) => (
-                                    <PostEditorPage
-                                        postId={parseInt(match.params.postId)}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/test"
-                                component={TestIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/deploys"
-                                component={DeployStatusPage}
-                            />
-                            <Route
-                                exact
-                                path="/newsletter"
-                                component={NewsletterPage}
-                            />
-                            <Route
-                                exact
-                                path="/suggested-chart-revisions"
-                                component={SuggestedChartRevisionListPage}
-                            />
-                            <Route
-                                exact
-                                path="/suggested-chart-revisions/import"
-                                component={SuggestedChartRevisionImportPage}
-                            />
-                            <Route
-                                exact
-                                path="/suggested-chart-revisions/review"
-                                component={SuggestedChartRevisionApproverPage}
-                            />
-                            <Route
-                                exact
-                                path="/suggested-chart-revisions/review/:suggestedChartRevisionId"
-                                render={({ match }) => (
-                                    <SuggestedChartRevisionApproverPage
-                                        suggestedChartRevisionId={parseInt(
-                                            match.params
-                                                .suggestedChartRevisionId
-                                        )}
-                                    />
-                                )}
-                            />
-                            <Route
-                                exact
-                                path="/bulk-downloads"
-                                component={BulkDownloadPage}
-                            />
-                            <Route
-                                exact
-                                path="/"
-                                render={() => <Redirect to="/charts" />}
-                            />
-                            <Route component={NotFoundPage} />
-                        </Switch>
-                    </div>
-                </Router>
-            </AdminAppContext.Provider>
-        )
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/charts/create"
+                                    component={ChartEditorPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/charts/:chartId/edit"
+                                    render={({ match }) => (
+                                        <ChartEditorPage
+                                            grapherId={parseInt(
+                                                match.params.chartId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/charts/:chartId/edit/:config"
+                                    render={({ match }) => (
+                                        <ChartEditorPage
+                                            grapherConfig={JSON.parse(
+                                                Base64.decode(
+                                                    match.params.config
+                                                )
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/charts"
+                                    component={ChartIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path={`/${EXPLORERS_ROUTE_FOLDER}/:slug`}
+                                    render={({ match }) => (
+                                        <AdminLayout title="Create Explorer">
+                                            <ExplorerCreatePage
+                                                slug={match.params.slug}
+                                                gitCmsBranchName={
+                                                    gitCmsBranchName
+                                                }
+                                                manager={admin}
+                                            />
+                                        </AdminLayout>
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path={`/${EXPLORERS_ROUTE_FOLDER}`}
+                                    render={() => (
+                                        <AdminLayout title="Explorers">
+                                            <ExplorersIndexPage />
+                                        </AdminLayout>
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path={`/bulk-grapher-config-editor`}
+                                    render={() => (
+                                        <BulkGrapherConfigEditorPage />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path={`/variable-annotations`}
+                                    render={() => <VariablesAnnotationPage />}
+                                />
+                                <Route
+                                    exact
+                                    path="/users/:userId"
+                                    render={({ match }) => (
+                                        <UserEditPage
+                                            userId={parseInt(
+                                                match.params.userId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/users"
+                                    component={UsersIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/import"
+                                    component={ImportPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/variables/:variableId"
+                                    render={({ match }) => (
+                                        <VariableEditPage
+                                            variableId={parseInt(
+                                                match.params.variableId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/variables"
+                                    component={VariablesIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/datasets/:datasetId"
+                                    render={({ match }) => (
+                                        <DatasetEditPage
+                                            datasetId={parseInt(
+                                                match.params.datasetId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/details"
+                                    component={DetailsOnDemandPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/datasets"
+                                    component={DatasetsIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/sources/:sourceId"
+                                    render={({ match }) => (
+                                        <SourceEditPage
+                                            sourceId={parseInt(
+                                                match.params.sourceId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/standardize"
+                                    component={CountryStandardizerPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/redirects"
+                                    component={RedirectsIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/tags/:tagId"
+                                    render={({ match }) => (
+                                        <TagEditPage
+                                            tagId={parseInt(match.params.tagId)}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/tags"
+                                    component={TagsIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/posts"
+                                    component={PostsIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/posts/:postId/edit"
+                                    render={({ match }) => (
+                                        <PostEditorPage
+                                            postId={parseInt(
+                                                match.params.postId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/test"
+                                    component={TestIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/deploys"
+                                    component={DeployStatusPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/newsletter"
+                                    component={NewsletterPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/suggested-chart-revisions"
+                                    component={SuggestedChartRevisionListPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/suggested-chart-revisions/import"
+                                    component={SuggestedChartRevisionImportPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/suggested-chart-revisions/review"
+                                    component={
+                                        SuggestedChartRevisionApproverPage
+                                    }
+                                />
+                                <Route
+                                    exact
+                                    path="/suggested-chart-revisions/review/:suggestedChartRevisionId"
+                                    render={({ match }) => (
+                                        <SuggestedChartRevisionApproverPage
+                                            suggestedChartRevisionId={parseInt(
+                                                match.params
+                                                    .suggestedChartRevisionId
+                                            )}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    exact
+                                    path="/bulk-downloads"
+                                    component={BulkDownloadPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/"
+                                    render={() => <Redirect to="/charts" />}
+                                />
+                                <Route component={NotFoundPage} />
+                            </Switch>
+                        </div>
+                    </Router>
+                </AdminAppContext.Provider>
+            )
+        }
     }
-});
+)

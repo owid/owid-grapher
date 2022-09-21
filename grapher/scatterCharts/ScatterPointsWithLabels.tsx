@@ -16,7 +16,7 @@ import {
     isEmpty,
     guid,
 } from "../../clientUtils/Util.js"
-import { computed, action, makeObservable } from "mobx";
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { getElementWithHalo } from "./Halos.js"
@@ -48,9 +48,23 @@ export const ScatterPointsWithLabels = observer(
         base: React.RefObject<SVGGElement> = React.createRef()
 
         constructor(props: ScatterPointsWithLabelsProps) {
-            super(props);
+            super(props)
 
-            makeObservable<ScatterPointsWithLabels, "seriesArray" | "focusedSeriesNames" | "hoveredSeriesNames" | "isLayerMode" | "bounds" | "isSubtleForeground" | "colorScale" | "sizeScale" | "fontScale" | "hideConnectedScatterLines" | "initialRenderSeries" | "renderSeries">(this, {
+            makeObservable<
+                ScatterPointsWithLabels,
+                | "seriesArray"
+                | "focusedSeriesNames"
+                | "hoveredSeriesNames"
+                | "isLayerMode"
+                | "bounds"
+                | "isSubtleForeground"
+                | "colorScale"
+                | "sizeScale"
+                | "fontScale"
+                | "hideConnectedScatterLines"
+                | "initialRenderSeries"
+                | "renderSeries"
+            >(this, {
                 seriesArray: computed,
                 focusedSeriesNames: computed,
                 hoveredSeriesNames: computed,
@@ -68,8 +82,8 @@ export const ScatterPointsWithLabels = observer(
                 onClick: action.bound,
                 backgroundSeries: computed,
                 foregroundSeries: computed,
-                renderUid: computed
-            });
+                renderUid: computed,
+            })
         }
 
         private get seriesArray(): ScatterSeries[] {
@@ -104,7 +118,9 @@ export const ScatterPointsWithLabels = observer(
         private get isSubtleForeground(): boolean {
             return (
                 this.focusedSeriesNames.length > 1 &&
-                this.props.seriesArray.some((series) => series.points.length > 2)
+                this.props.seriesArray.some(
+                    (series) => series.points.length > 2
+                )
             )
         }
 
@@ -181,7 +197,9 @@ export const ScatterPointsWithLabels = observer(
                         displayKey: "key-" + makeSafeForCSS(series.seriesName),
                         color: series.color,
                         size: last(points)!.size,
-                        fontSize: this.getLabelFontSize(last(series.points)!.size),
+                        fontSize: this.getLabelFontSize(
+                            last(series.points)!.size
+                        ),
                         points,
                         text: series.label,
                         midLabels: [],
@@ -199,8 +217,12 @@ export const ScatterPointsWithLabels = observer(
             const renderData = this.initialRenderSeries
 
             for (const series of renderData) {
-                series.isHover = this.hoveredSeriesNames.includes(series.seriesName)
-                series.isFocus = this.focusedSeriesNames.includes(series.seriesName)
+                series.isHover = this.hoveredSeriesNames.includes(
+                    series.seriesName
+                )
+                series.isFocus = this.focusedSeriesNames.includes(
+                    series.seriesName
+                )
                 series.isForeground = series.isHover || series.isFocus
                 if (series.isHover) series.size += 1
             }
@@ -248,7 +270,9 @@ export const ScatterPointsWithLabels = observer(
 
         private hideUnselectedLabels(labelsByPriority: ScatterLabel[]): void {
             labelsByPriority
-                .filter((label) => !label.series.isFocus && !label.series.isHover)
+                .filter(
+                    (label) => !label.series.isFocus && !label.series.isHover
+                )
                 .forEach((label) => (label.isHidden = true))
         }
 
@@ -320,19 +344,24 @@ export const ScatterPointsWithLabels = observer(
 
         mouseFrame?: number
         onMouseLeave(): void {
-            if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
+            if (this.mouseFrame !== undefined)
+                cancelAnimationFrame(this.mouseFrame)
 
             if (this.props.onMouseLeave) this.props.onMouseLeave()
         }
 
         onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
-            if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
+            if (this.mouseFrame !== undefined)
+                cancelAnimationFrame(this.mouseFrame)
 
             const nativeEvent = ev.nativeEvent
 
             this.mouseFrame = requestAnimationFrame(() => {
                 if (this.base.current) {
-                    const mouse = getRelativeMouse(this.base.current, nativeEvent)
+                    const mouse = getRelativeMouse(
+                        this.base.current,
+                        nativeEvent
+                    )
 
                     const closestSeries = minBy(this.renderSeries, (series) => {
                         if (series.points.length > 1)
@@ -411,7 +440,9 @@ export const ScatterPointsWithLabels = observer(
                                         ).toFixed(2)}
                                         fontSize={label.fontSize.toFixed(2)}
                                         fontWeight={label.fontWeight}
-                                        fill={isLayerMode ? "#aaa" : label.color}
+                                        fill={
+                                            isLayerMode ? "#aaa" : label.color
+                                        }
                                     >
                                         {label.text}
                                     </text>
@@ -441,7 +472,9 @@ export const ScatterPointsWithLabels = observer(
                     lastPoint.size / 2
 
                 if (series.points.length === 1)
-                    return <ScatterPoint key={series.displayKey} series={series} />
+                    return (
+                        <ScatterPoint key={series.displayKey} series={series} />
+                    )
 
                 const firstValue = first(series.points)
                 const opacity = isSubtleForeground ? 0.9 : 1
@@ -520,9 +553,9 @@ export const ScatterPointsWithLabels = observer(
                             `${series.displayKey}-label-${index}`,
                             <text
                                 x={label.bounds.x.toFixed(2)}
-                                y={(label.bounds.y + label.bounds.height).toFixed(
-                                    2
-                                )}
+                                y={(
+                                    label.bounds.y + label.bounds.height
+                                ).toFixed(2)}
                                 fontSize={label.fontSize}
                                 fontWeight={label.fontWeight}
                                 fill={label.color}
@@ -614,4 +647,4 @@ export const ScatterPointsWithLabels = observer(
             )
         }
     }
-);
+)

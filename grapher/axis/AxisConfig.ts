@@ -4,7 +4,7 @@ import {
     ScaleType,
 } from "../core/GrapherConstants.js"
 import { extend, trimObject } from "../../clientUtils/Util.js"
-import { observable, computed, makeObservable } from "mobx";
+import { observable, computed, makeObservable } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis.js"
 import {
     deleteRuntimeAndUnchangedProps,
@@ -20,23 +20,23 @@ export interface FontSizeManager {
 }
 
 class AxisConfigDefaults implements AxisConfigInterface {
-    orient?: Position = undefined;
-    min?: number = undefined;
-    max?: number = undefined;
-    canChangeScaleType?: boolean = undefined;
-    removePointsOutsideDomain?: boolean = undefined;
-    minSize?: number = undefined;
-    hideAxis?: boolean = undefined;
-    hideGridlines?: boolean = undefined;
-    labelPadding?: number = undefined;
-    nice?: boolean = undefined;
-    maxTicks?: number = undefined;
-    tickFormattingOptions?: TickFormattingOptions = undefined;
-    scaleType?: ScaleType = ScaleType.linear;
-    facetDomain?: FacetAxisDomain = undefined;
-    ticks?: Tickmark[] = undefined;
-    singleValueAxisPointAlign?: AxisAlign = undefined;
-    label: string = "";
+    orient?: Position = undefined
+    min?: number = undefined
+    max?: number = undefined
+    canChangeScaleType?: boolean = undefined
+    removePointsOutsideDomain?: boolean = undefined
+    minSize?: number = undefined
+    hideAxis?: boolean = undefined
+    hideGridlines?: boolean = undefined
+    labelPadding?: number = undefined
+    nice?: boolean = undefined
+    maxTicks?: number = undefined
+    tickFormattingOptions?: TickFormattingOptions = undefined
+    scaleType?: ScaleType = ScaleType.linear
+    facetDomain?: FacetAxisDomain = undefined
+    ticks?: Tickmark[] = undefined
+    singleValueAxisPointAlign?: AxisAlign = undefined
+    label: string = ""
 
     constructor() {
         makeObservable(this, {
@@ -56,8 +56,8 @@ class AxisConfigDefaults implements AxisConfigInterface {
             facetDomain: observable.ref,
             ticks: observable.ref,
             singleValueAxisPointAlign: observable.ref,
-            label: observable.ref
-        });
+            label: observable.ref,
+        })
     }
 }
 
@@ -75,8 +75,8 @@ export class AxisConfig
             fontSize: computed,
             constrainedMin: computed,
             constrainedMax: computed,
-            domain: computed
-        });
+            domain: computed,
+        })
 
         this.updateFromObject(props)
         this.fontSizeManager = fontSizeManager

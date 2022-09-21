@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { union } from "../../clientUtils/Util.js"
 import {
     getSelectedEntityNamesParam,
@@ -23,148 +23,154 @@ export enum ProminentLinkStyles {
 
 export const WITH_IMAGE = "with-image"
 
-export const ProminentLink = observer(class ProminentLink extends React.Component<{
-    href: string
-    style: string | null
-    title: string | null
-    content?: string | null
-    image?: string | null
-    globalEntitySelection?: SelectionArray
-}> {
-    constructor(
-        props: {
+export const ProminentLink = observer(
+    class ProminentLink extends React.Component<{
+        href: string
+        style: string | null
+        title: string | null
+        content?: string | null
+        image?: string | null
+        globalEntitySelection?: SelectionArray
+    }> {
+        constructor(props: {
             href: string
             style: string | null
             title: string | null
             content?: string | null
             image?: string | null
             globalEntitySelection?: SelectionArray
-        }
-    ) {
-        super(props);
+        }) {
+            super(props)
 
-        makeObservable<ProminentLink, "originalSelectedEntities" | "entitiesInGlobalEntitySelection" | "updatedUrl" | "style">(this, {
-            originalUrl: computed,
-            originalSelectedEntities: computed,
-            entitiesInGlobalEntitySelection: computed,
-            updatedUrl: computed,
-            style: computed
-        });
-    }
-
-    get originalUrl(): Url {
-        return migrateSelectedEntityNamesParam(Url.fromURL(this.props.href))
-    }
-
-    private get originalSelectedEntities(): EntityName[] {
-        return getSelectedEntityNamesParam(this.originalUrl) ?? []
-    }
-
-    private get entitiesInGlobalEntitySelection(): EntityName[] {
-        return this.props.globalEntitySelection?.selectedEntityNames ?? []
-    }
-
-    private get updatedUrl(): Url {
-        const newEntityList = union(
-            this.originalSelectedEntities,
-            this.entitiesInGlobalEntitySelection
-        )
-        if (newEntityList.length === 0) return this.originalUrl
-
-        return setSelectedEntityNamesParam(this.originalUrl, newEntityList)
-    }
-
-    private get style(): string {
-        return this.props.style || ProminentLinkStyles.default
-    }
-
-    render() {
-        const classes = [
-            PROMINENT_LINK_CLASSNAME,
-            this.props.image ? WITH_IMAGE : null,
-        ]
-
-        const renderImage = () => {
-            return this.props.image ? (
-                <figure
-                    dangerouslySetInnerHTML={{
-                        __html: this.props.image,
-                    }}
-                />
-            ) : null
+            makeObservable<
+                ProminentLink,
+                | "originalSelectedEntities"
+                | "entitiesInGlobalEntitySelection"
+                | "updatedUrl"
+                | "style"
+            >(this, {
+                originalUrl: computed,
+                originalSelectedEntities: computed,
+                entitiesInGlobalEntitySelection: computed,
+                updatedUrl: computed,
+                style: computed,
+            })
         }
 
-        const renderContent = () => {
-            return this.props.content ? (
-                <div
-                    className="content"
-                    dangerouslySetInnerHTML={{
-                        __html: this.props.content,
-                    }}
-                />
-            ) : null
+        get originalUrl(): Url {
+            return migrateSelectedEntityNamesParam(Url.fromURL(this.props.href))
         }
 
-        const renderThinStyle = () => {
-            return (
-                <>
-                    {renderImage()}
-                    <div className="content-wrapper">
-                        {renderContent()}
+        private get originalSelectedEntities(): EntityName[] {
+            return getSelectedEntityNamesParam(this.originalUrl) ?? []
+        }
+
+        private get entitiesInGlobalEntitySelection(): EntityName[] {
+            return this.props.globalEntitySelection?.selectedEntityNames ?? []
+        }
+
+        private get updatedUrl(): Url {
+            const newEntityList = union(
+                this.originalSelectedEntities,
+                this.entitiesInGlobalEntitySelection
+            )
+            if (newEntityList.length === 0) return this.originalUrl
+
+            return setSelectedEntityNamesParam(this.originalUrl, newEntityList)
+        }
+
+        private get style(): string {
+            return this.props.style || ProminentLinkStyles.default
+        }
+
+        render() {
+            const classes = [
+                PROMINENT_LINK_CLASSNAME,
+                this.props.image ? WITH_IMAGE : null,
+            ]
+
+            const renderImage = () => {
+                return this.props.image ? (
+                    <figure
+                        dangerouslySetInnerHTML={{
+                            __html: this.props.image,
+                        }}
+                    />
+                ) : null
+            }
+
+            const renderContent = () => {
+                return this.props.content ? (
+                    <div
+                        className="content"
+                        dangerouslySetInnerHTML={{
+                            __html: this.props.content,
+                        }}
+                    />
+                ) : null
+            }
+
+            const renderThinStyle = () => {
+                return (
+                    <>
+                        {renderImage()}
+                        <div className="content-wrapper">
+                            {renderContent()}
+                            {this.props.title ? (
+                                <div className="title">
+                                    <span
+                                        dangerouslySetInnerHTML={{
+                                            __html: this.props.title,
+                                        }}
+                                    />
+                                    <FontAwesomeIcon icon={faArrowRight} />
+                                </div>
+                            ) : null}
+                        </div>
+                    </>
+                )
+            }
+
+            const renderDefaultStyle = () => {
+                return (
+                    <>
                         {this.props.title ? (
-                            <div className="title">
+                            <h3>
                                 <span
                                     dangerouslySetInnerHTML={{
                                         __html: this.props.title,
                                     }}
                                 />
                                 <FontAwesomeIcon icon={faArrowRight} />
-                            </div>
+                            </h3>
                         ) : null}
-                    </div>
-                </>
-            )
-        }
+                        <div className="content-wrapper">
+                            {renderImage()}
+                            {renderContent()}
+                        </div>
+                    </>
+                )
+            }
 
-        const renderDefaultStyle = () => {
+            const target = this.updatedUrl.isGrapher ? { target: "_blank" } : {}
+
             return (
-                <>
-                    {this.props.title ? (
-                        <h3>
-                            <span
-                                dangerouslySetInnerHTML={{
-                                    __html: this.props.title,
-                                }}
-                            />
-                            <FontAwesomeIcon icon={faArrowRight} />
-                        </h3>
-                    ) : null}
-                    <div className="content-wrapper">
-                        {renderImage()}
-                        {renderContent()}
-                    </div>
-                </>
+                <div
+                    className={classes.join(" ")}
+                    data-no-lightbox
+                    data-style={this.style}
+                    data-title={this.props.title}
+                >
+                    <a href={this.updatedUrl.fullUrl} {...target}>
+                        {this.style === ProminentLinkStyles.thin
+                            ? renderThinStyle()
+                            : renderDefaultStyle()}
+                    </a>
+                </div>
             )
         }
-
-        const target = this.updatedUrl.isGrapher ? { target: "_blank" } : {}
-
-        return (
-            <div
-                className={classes.join(" ")}
-                data-no-lightbox
-                data-style={this.style}
-                data-title={this.props.title}
-            >
-                <a href={this.updatedUrl.fullUrl} {...target}>
-                    {this.style === ProminentLinkStyles.thin
-                        ? renderThinStyle()
-                        : renderDefaultStyle()}
-                </a>
-            </div>
-        )
     }
-});
+)
 
 export const hydrateProminentLink = (
     globalEntitySelection?: SelectionArray

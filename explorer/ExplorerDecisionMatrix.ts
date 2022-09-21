@@ -1,4 +1,4 @@
-import { observable, computed, action, makeObservable } from "mobx";
+import { observable, computed, action, makeObservable } from "mobx"
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import { differenceObj, trimObject } from "../clientUtils/Util.js"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef.js"
@@ -79,9 +79,16 @@ const makeCheckBoxOption = (
 // allow the user to navigate amongst charts.
 export class DecisionMatrix {
     private table: CoreTable
-    currentParams: ExplorerChoiceParams = {};
+    currentParams: ExplorerChoiceParams = {}
     constructor(delimited: string, hash = "") {
-        makeObservable<DecisionMatrix, "diffBetweenUserSettingsAndConstrained" | "_setValue" | "choiceNames" | "allChoiceOptions" | "availableChoiceOptions">(this, {
+        makeObservable<
+            DecisionMatrix,
+            | "diffBetweenUserSettingsAndConstrained"
+            | "_setValue"
+            | "choiceNames"
+            | "allChoiceOptions"
+            | "availableChoiceOptions"
+        >(this, {
             currentParams: observable,
             diffBetweenUserSettingsAndConstrained: computed,
             setValueCommand: action.bound,
@@ -91,8 +98,8 @@ export class DecisionMatrix {
             allChoiceOptions: computed,
             availableChoiceOptions: computed,
             selectedRow: observable,
-            choicesWithAvailability: computed
-        });
+            choicesWithAvailability: computed,
+        })
 
         this.choices = makeChoicesMap(delimited)
         this.table = new CoreTable(parseDelimited(dropColumnTypes(delimited)), [
@@ -313,7 +320,7 @@ export class DecisionMatrix {
             : this.table.indexOf(this.firstMatch)
     }
 
-    selectedRow: any = {};
+    selectedRow: any = {}
 
     private toControlOption(
         choiceName: ChoiceName,

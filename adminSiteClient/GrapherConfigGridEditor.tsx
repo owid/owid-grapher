@@ -7,7 +7,14 @@ import {
     DropResult,
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
-import { observable, computed, action, runInAction, autorun, makeObservable } from "mobx";
+import {
+    observable,
+    computed,
+    action,
+    runInAction,
+    autorun,
+    makeObservable,
+} from "mobx"
 import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
 import {
@@ -152,53 +159,62 @@ export const GrapherConfigGridEditor = observer(
     class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
         static contextType = AdminAppContext
 
-        grapher = new Grapher(); // the grapher instance we keep around and update
-        grapherElement?: JSX.Element; // the JSX Element of the preview IF we want to display it currently
+        grapher = new Grapher() // the grapher instance we keep around and update
+        grapherElement?: JSX.Element // the JSX Element of the preview IF we want to display it currently
         numTotalRows: number | undefined = undefined
-        selectedRow: number | undefined = undefined;
-        selectionEndRow: number | undefined = undefined;
-        selectedColumn: number | undefined = undefined;
-        selectionEndColumn: number | undefined = undefined;
-        activeTab = Tabs.FilterTab;
-        currentColumnSet: ColumnSet;
-        columnFilter: string = "";
-        hasUncommitedRichEditorChanges: boolean = false;
+        selectedRow: number | undefined = undefined
+        selectionEndRow: number | undefined = undefined
+        selectedColumn: number | undefined = undefined
+        selectionEndColumn: number | undefined = undefined
+        activeTab = Tabs.FilterTab
+        currentColumnSet: ColumnSet
+        columnFilter: string = ""
+        hasUncommitedRichEditorChanges: boolean = false
 
-        columnSelection: ColumnInformation[] = [];
-        filterState: FilterPanelState | undefined = undefined;
+        columnSelection: ColumnInformation[] = []
+        filterState: FilterPanelState | undefined = undefined
 
         context!: AdminAppContextType
         /** This array contains a description for every column, information like which field
             to display, what editor control should be used, ... */
-        fieldDescriptions: FieldDescription[] | undefined = undefined;
+        fieldDescriptions: FieldDescription[] | undefined = undefined
 
         /** Rows of the query result to the /variable-annotations endpoint that include a parsed
             grapher object for the grapherConfig field */
-        richDataRows: VariableAnnotationsRow[] | undefined = undefined;
+        richDataRows: VariableAnnotationsRow[] | undefined = undefined
 
         /** Undo stack - not yet used - TODO: implement Undo/redo */
-        undoStack: Action[] = [];
+        undoStack: Action[] = []
         /** Redo stack - not yet used */
-        redoStack: Action[] = [];
+        redoStack: Action[] = []
 
-        keepEntitySelectionOnChartChange: boolean = false;
+        keepEntitySelectionOnChartChange: boolean = false
         /** This field stores the offset of what is currently displayed on screen */
-        currentPagingOffset: number = 0;
+        currentPagingOffset: number = 0
         /** This field stores the offset that the user requested. E.g. if the user clicks
             the "Next page" quickly twice then this field will be 2 paging offsets higher
             than currentPagingOffset until the request to retrieve that data is complete
             at which point they will be the same */
-        desiredPagingOffset: number = 0;
+        desiredPagingOffset: number = 0
         // Sorting fields - not yet used - TODO: implement sorting
-        sortByColumn: string = "id";
-        sortByAscending: boolean = false;
+        sortByColumn: string = "id"
+        sortByAscending: boolean = false
         readonly config: GrapherConfigGridEditorConfig
         disposers: Disposer[] = []
 
         constructor(props: GrapherConfigGridEditorProps) {
             super(props)
 
-            makeObservable<GrapherConfigGridEditor, "resetViewStateAfterFetch" | "loadGrapherJson" | "updatePreviewToRow" | "columnDataSource" | "currentColumnFieldDescription" | "onRichTextEditorChange" | "hotSettings">(this, {
+            makeObservable<
+                GrapherConfigGridEditor,
+                | "resetViewStateAfterFetch"
+                | "loadGrapherJson"
+                | "updatePreviewToRow"
+                | "columnDataSource"
+                | "currentColumnFieldDescription"
+                | "onRichTextEditorChange"
+                | "hotSettings"
+            >(this, {
                 grapher: observable.ref,
                 grapherElement: observable.ref,
                 selectedRow: observable,
@@ -256,8 +272,8 @@ export const GrapherConfigGridEditor = observer(
                 updateFilterState: action.bound,
                 filterSExpression: computed,
                 filterPanelConfigFields: computed,
-                FilterPanelConfig: computed
-            });
+                FilterPanelConfig: computed,
+            })
 
             this.config = props.config
             this.currentColumnSet = this.config.columnSet[0]
@@ -325,16 +341,18 @@ export const GrapherConfigGridEditor = observer(
                         selector: (response) => response.json(),
                     }).pipe(
                         // catch errors and report them the way the admin UI expects it
-                        catchError((err: any /*, caught: Observable<any> */) => {
-                            this.context.admin.setErrorMessage({
-                                title: `Failed to fetch variable annotations`,
-                                content:
-                                    stringifyUnkownError(err) ??
-                                    "unexpected error value in setErrorMessage",
-                                isFatal: false,
-                            })
-                            return [undefined]
-                        })
+                        catchError(
+                            (err: any /*, caught: Observable<any> */) => {
+                                this.context.admin.setErrorMessage({
+                                    title: `Failed to fetch variable annotations`,
+                                    content:
+                                        stringifyUnkownError(err) ??
+                                        "unexpected error value in setErrorMessage",
+                                    isFatal: false,
+                                })
+                                return [undefined]
+                            }
+                        )
                     )
                 })
             )
@@ -400,16 +418,18 @@ export const GrapherConfigGridEditor = observer(
             // merge it with the necessary partial information (e.g. variableId field)
             // to get a config that actually works in all cases
             const grapherConfig = selectedRowContent.config
-            const finalConfigLayer = this.config.finalVariableLayerModificationFn(
-                selectedRowContent.id
-            )
+            const finalConfigLayer =
+                this.config.finalVariableLayerModificationFn(
+                    selectedRowContent.id
+                )
 
             const mergedConfig = merge(grapherConfig, finalConfigLayer)
             this.loadGrapherJson(mergedConfig)
         }
 
         private get columnDataSource(): ColumnDataSource | undefined {
-            const { selectedRowContent, columnDataSources, selectedColumn } = this
+            const { selectedRowContent, columnDataSources, selectedColumn } =
+                this
             if (selectedRowContent === undefined) return undefined
             if (
                 selectedColumn === undefined ||
@@ -433,7 +453,11 @@ export const GrapherConfigGridEditor = observer(
                 .otherwise(() => undefined)
         }
 
-        private onRichTextEditorChange(editor: codemirror.Editor, data: codemirror.EditorChange, value: string) {
+        private onRichTextEditorChange(
+            editor: codemirror.Editor,
+            data: codemirror.EditorChange,
+            value: string
+        ) {
             if (data.origin !== undefined) {
                 // origin seems to be +input when editing and undefined when we change the value programmatically
                 const { currentColumnFieldDescription, grapher } = this
@@ -457,8 +481,11 @@ export const GrapherConfigGridEditor = observer(
         }
 
         commitOrCancelRichEditorChanges(performCommit: boolean) {
-            const { selectedRowContent, currentColumnFieldDescription, grapher } =
-                this
+            const {
+                selectedRowContent,
+                currentColumnFieldDescription,
+                grapher,
+            } = this
             if (
                 selectedRowContent === undefined ||
                 currentColumnFieldDescription === undefined
@@ -500,8 +527,11 @@ export const GrapherConfigGridEditor = observer(
         }
 
         get editControl(): JSX.Element | undefined {
-            const { currentColumnFieldDescription, grapher, selectedRowContent } =
-                this
+            const {
+                currentColumnFieldDescription,
+                grapher,
+                selectedRowContent,
+            } = this
             if (
                 currentColumnFieldDescription === undefined ||
                 selectedRowContent === undefined
@@ -519,7 +549,11 @@ export const GrapherConfigGridEditor = observer(
                         undefined
                 )
                 .with(EditorOption.colorEditor, () => {
-                    if (currentColumnFieldDescription?.pointer.startsWith("/map")) {
+                    if (
+                        currentColumnFieldDescription?.pointer.startsWith(
+                            "/map"
+                        )
+                    ) {
                         // TODO: remove this hack once map is more similar to other charts
                         const mapChart = new MapChart({ manager: this.grapher })
                         const colorScale = mapChart.colorScale
@@ -595,7 +629,9 @@ export const GrapherConfigGridEditor = observer(
 
         /** Used to send the inverse of a patch to undo a change that has previously been performed
          */
-        async sendReversedPatches(patches: GrapherConfigPatch[]): Promise<void> {
+        async sendReversedPatches(
+            patches: GrapherConfigPatch[]
+        ): Promise<void> {
             const reversedPatches = patches.map((patch) => ({
                 ...patch,
                 newValue: patch.oldValue,
@@ -613,7 +649,9 @@ export const GrapherConfigGridEditor = observer(
             this.undoStack.push(action)
 
             for (const patch of action.patches) {
-                const rowId = richDataRows.findIndex((row) => row.id === patch.id)
+                const rowId = richDataRows.findIndex(
+                    (row) => row.id === patch.id
+                )
                 if (rowId === -1)
                     console.error("Could not find row id in do step!", rowId)
                 else {
@@ -705,7 +743,10 @@ export const GrapherConfigGridEditor = observer(
                                 row.config != undefined
                                     ? cloneDeep(
                                           fieldDesc.getter(
-                                              row.config as Record<string, unknown>
+                                              row.config as Record<
+                                                  string,
+                                                  unknown
+                                              >
                                           )
                                       )
                                     : undefined,
@@ -765,7 +806,8 @@ export const GrapherConfigGridEditor = observer(
                         settings={{
                             title: name,
                             readOnly:
-                                desc.editor === EditorOption.primitiveListEditor ||
+                                desc.editor ===
+                                    EditorOption.primitiveListEditor ||
                                 desc.editor === EditorOption.mappingEditor,
                             type: type,
                             source: desc.enumOptions,
@@ -782,7 +824,10 @@ export const GrapherConfigGridEditor = observer(
                 return []
             const readOnlyColumns = this.config.readonlyColumns
             const fieldDescriptionsMap = new Map(
-                fieldDescriptions.map((fieldDesc) => [fieldDesc.pointer, fieldDesc])
+                fieldDescriptions.map((fieldDesc) => [
+                    fieldDesc.pointer,
+                    fieldDesc,
+                ])
             )
             const columns: ColumnDataSource[] = columnSelection.map(
                 (columnInformation) => {
@@ -842,14 +887,18 @@ export const GrapherConfigGridEditor = observer(
                             <HotColumn
                                 key={columnDataSource.readOnlyColumn.key}
                                 settings={{
-                                    title: columnDataSource.readOnlyColumn.label,
+                                    title: columnDataSource.readOnlyColumn
+                                        .label,
                                     readOnly: true,
                                     data: columnDataSource.readOnlyColumn.key,
                                 }}
                             />
                         )
                     )
-                    .with({ kind: ColumnDataSourceType.Unkown }, () => undefined)
+                    .with(
+                        { kind: ColumnDataSourceType.Unkown },
+                        () => undefined
+                    )
                     .exhaustive()
             )
             const definedColumns = excludeUndefined(columns)
@@ -859,12 +908,21 @@ export const GrapherConfigGridEditor = observer(
                     item.kind === ColumnDataSourceType.Unkown
             )
             if (!isEmpty(undefinedColumns))
-                console.error("Some columns could not be found!", undefinedColumns)
+                console.error(
+                    "Some columns could not be found!",
+                    undefinedColumns
+                )
             return definedColumns
         }
 
-        updateSelection(row1: number, column1: number, row2: number, column2: number): void {
-            if (this.hasUncommitedRichEditorChanges) this.cancelRichEditorChanges()
+        updateSelection(
+            row1: number,
+            column1: number,
+            row2: number,
+            column2: number
+        ): void {
+            if (this.hasUncommitedRichEditorChanges)
+                this.cancelRichEditorChanges()
             if (row1 !== this.selectedRow) {
                 this.hasUncommitedRichEditorChanges = false
                 this.selectedRow = row1
@@ -895,7 +953,10 @@ export const GrapherConfigGridEditor = observer(
                 },
                 beforeKeyDown: (
                     event // TODO: check if this works ok with normal editing delete key use
-                ) => (event.key === "Delete" ? this.clearCellContent() : undefined),
+                ) =>
+                    event.key === "Delete"
+                        ? this.clearCellContent()
+                        : undefined,
                 modifyColWidth: (width) => {
                     if (width > 350) {
                         return 300
@@ -951,13 +1012,17 @@ export const GrapherConfigGridEditor = observer(
                 return
 
             const selectedRows = range(selectedRow, selectionEndRow + 1)
-            const selectedColumns = range(selectedColumn, selectionEndColumn + 1)
+            const selectedColumns = range(
+                selectedColumn,
+                selectionEndColumn + 1
+            )
             const patches: GrapherConfigPatch[] = []
 
             for (const column of selectedColumns) {
                 const columnDataSource = columnDataSources[column]
                 if (
-                    columnDataSource.kind === ColumnDataSourceType.FieldDescription
+                    columnDataSource.kind ===
+                    ColumnDataSourceType.FieldDescription
                 ) {
                     const pointer = columnDataSource.description.pointer
                     for (const row of selectedRows) {
@@ -973,7 +1038,8 @@ export const GrapherConfigGridEditor = observer(
                             oldValueIsEquivalentToNullOrUndefined:
                                 columnDataSource.description.default !==
                                     undefined &&
-                                columnDataSource.description.default === prevVal,
+                                columnDataSource.description.default ===
+                                    prevVal,
                         }
                         patches.push(patch)
                     }
@@ -1094,7 +1160,8 @@ export const GrapherConfigGridEditor = observer(
                     isArray(fieldDesc?.type) &&
                     fieldDesc?.type.find(
                         (type) =>
-                            type === FieldType.number || type === FieldType.integer
+                            type === FieldType.number ||
+                            type === FieldType.integer
                     ) &&
                     !Number.isNaN(Number.parseFloat(newVal))
                 )
@@ -1183,7 +1250,8 @@ export const GrapherConfigGridEditor = observer(
 
                 // Now set the remaining filter fields from the parsed query string
                 this.sortByColumn = fetchParamsFromQueryParams.sortByColumn
-                this.sortByAscending = fetchParamsFromQueryParams.sortByAscending
+                this.sortByAscending =
+                    fetchParamsFromQueryParams.sortByAscending
                 this.desiredPagingOffset = fetchParamsFromQueryParams.offset
             })
 
@@ -1203,7 +1271,8 @@ export const GrapherConfigGridEditor = observer(
                 // Only store non-default values in the query params
                 const nonDefaultValues = omitBy(
                     fetchParamsFromQueryParamsAsStrings,
-                    (value, key) => (defaultValuesAsStrings as any)[key] === value
+                    (value, key) =>
+                        (defaultValuesAsStrings as any)[key] === value
                 )
                 const url = getWindowUrl()
                 const newUrl = url.setQueryParams(nonDefaultValues)
@@ -1244,7 +1313,9 @@ export const GrapherConfigGridEditor = observer(
             )
             // Now check what is selected in currentColumnSet. If we should just show all then create that sequence,
             // otherwise use the list of column ids that we are supposed to show in this order with visible true
-            const columnFieldIdsToMakeVisibleAndShowFirst = match(currentColumnSet)
+            const columnFieldIdsToMakeVisibleAndShowFirst = match(
+                currentColumnSet
+            )
                 .with({ kind: "allColumns" }, () =>
                     allReorderItems.map((item) => item.key)
                 )
@@ -1366,15 +1437,18 @@ export const GrapherConfigGridEditor = observer(
                 (this.numTotalRows ?? 0) > PAGEING_SIZE &&
                 this.desiredPagingOffset >= PAGEING_SIZE
             )
-                this.desiredPagingOffset = this.desiredPagingOffset - PAGEING_SIZE
+                this.desiredPagingOffset =
+                    this.desiredPagingOffset - PAGEING_SIZE
         }
 
         pageToNextPage(): void {
             if (
                 (this.numTotalRows ?? 0) > PAGEING_SIZE &&
-                this.desiredPagingOffset + PAGEING_SIZE < (this.numTotalRows ?? 0)
+                this.desiredPagingOffset + PAGEING_SIZE <
+                    (this.numTotalRows ?? 0)
             ) {
-                this.desiredPagingOffset = this.desiredPagingOffset + PAGEING_SIZE
+                this.desiredPagingOffset =
+                    this.desiredPagingOffset + PAGEING_SIZE
             }
         }
 
@@ -1437,10 +1511,10 @@ export const GrapherConfigGridEditor = observer(
                             />
                         )}
                         <small className="form-text text-muted">
-                            Note that default values like empty string, "LineChart"
-                            for type or the default checkbox state are often stored
-                            as null. To find these you have to use the "is null"
-                            operator.
+                            Note that default values like empty string,
+                            "LineChart" for type or the default checkbox state
+                            are often stored as null. To find these you have to
+                            use the "is null" operator.
                         </small>
                         {
                             // Uncomment below to see the generated S-expression
@@ -1461,7 +1535,11 @@ export const GrapherConfigGridEditor = observer(
             this.columnSelection = newColumnSelection
         }
 
-        columnListEyeIconClicked(columnSelection: ColumnInformation[], itemKey: string, newState: boolean) {
+        columnListEyeIconClicked(
+            columnSelection: ColumnInformation[],
+            itemKey: string,
+            newState: boolean
+        ) {
             // Set the state of the targeted item and if it becomes visible and it is after
             // what was previously the last visible item then move it to after the last currently visible item
             // so that it is easier to find in the list
@@ -1521,7 +1599,10 @@ export const GrapherConfigGridEditor = observer(
                                     ...columnDataSource.columnInformation,
                                     visible:
                                         columnDataSource.description.getter(
-                                            row.config as Record<string, unknown>
+                                            row.config as Record<
+                                                string,
+                                                unknown
+                                            >
                                         ) !== undefined,
                                 })
                             )
@@ -1552,7 +1633,9 @@ export const GrapherConfigGridEditor = observer(
             const columnSets = this.config.columnSet
             const filteredColumnSelection = columnFilter
                 ? columnSelection.filter((column) =>
-                      column.key.toLowerCase().includes(columnFilter.toLowerCase())
+                      column.key
+                          .toLowerCase()
+                          .includes(columnFilter.toLowerCase())
                   )
                 : columnSelection
             return (
@@ -1570,7 +1653,9 @@ export const GrapherConfigGridEditor = observer(
                         />
                         <button
                             className="btn btn-secondary"
-                            onClick={this.onShowOnlyColumnsWithValuesInCurrentRow}
+                            onClick={
+                                this.onShowOnlyColumnsWithValuesInCurrentRow
+                            }
                             title="Show only columns where the current row has a set value"
                             disabled={this.selectedRow === undefined}
                         >
@@ -1602,7 +1687,9 @@ export const GrapherConfigGridEditor = observer(
                                                 >
                                                     {(provided, snapshot) => (
                                                         <div
-                                                            ref={provided.innerRef}
+                                                            ref={
+                                                                provided.innerRef
+                                                            }
                                                             {...provided.draggableProps}
                                                             {...provided.dragHandleProps}
                                                             style={getItemStyle(
@@ -1622,7 +1709,9 @@ export const GrapherConfigGridEditor = observer(
                                                                     isOn={
                                                                         item.visible
                                                                     }
-                                                                    onIcon={faEye}
+                                                                    onIcon={
+                                                                        faEye
+                                                                    }
                                                                     offIcon={
                                                                         faEyeSlash
                                                                     }
@@ -1816,4 +1905,4 @@ export const GrapherConfigGridEditor = observer(
             return config
         }
     }
-);
+)

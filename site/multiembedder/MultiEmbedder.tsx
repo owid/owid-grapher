@@ -25,7 +25,7 @@ import {
     migrateSelectedEntityNamesParam,
 } from "../../grapher/core/EntityUrlBuilder.js"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector.js"
-import { action, makeObservable } from "mobx";
+import { action, makeObservable } from "mobx"
 import { Annotation } from "../../clientUtils/owidTypes.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 
@@ -58,8 +58,8 @@ class MultiEmbedder {
 
     constructor() {
         makeObservable(this, {
-            renderInteractiveFigure: action.bound
-        });
+            renderInteractiveFigure: action.bound,
+        })
 
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
             this.figuresObserver = new IntersectionObserver(

@@ -1,5 +1,12 @@
 import React from "react"
-import { action, computed, observable, runInAction, reaction, makeObservable } from "mobx";
+import {
+    action,
+    computed,
+    observable,
+    runInAction,
+    reaction,
+    makeObservable,
+} from "mobx"
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
@@ -55,572 +62,618 @@ interface EntityOptionWithMetricValue {
 /** Modulo that wraps negative numbers too */
 const mod = (n: number, m: number): number => ((n % m) + m) % m
 
-export const EntityPicker = observer(class EntityPicker extends React.Component<{
-    manager: EntityPickerManager
-    isDropdownMenu?: boolean
-}> {
-    constructor(
-        props: {
+export const EntityPicker = observer(
+    class EntityPicker extends React.Component<{
+        manager: EntityPickerManager
+        isDropdownMenu?: boolean
+    }> {
+        constructor(props: {
             manager: EntityPickerManager
             isDropdownMenu?: boolean
+        }) {
+            super(props)
+
+            makeObservable<
+                EntityPicker,
+                | "analyticsNamespace"
+                | "searchInput"
+                | "searchInputRef"
+                | "focusIndex"
+                | "focusRef"
+                | "scrollFocusedIntoViewOnUpdate"
+                | "blockOptionHover"
+                | "scrollContainerRef"
+                | "isOpen"
+                | "isDropdownMenu"
+                | "selectEntity"
+                | "manager"
+                | "metric"
+                | "sortOrder"
+                | "pickerColumnDefs"
+                | "metricOptions"
+                | "activePickerMetricColumn"
+                | "availableEntitiesForCurrentView"
+                | "entitiesWithMetricValue"
+                | "grapherTable"
+                | "pickerTable"
+                | "fuzzy"
+                | "searchResults"
+                | "focusedOption"
+                | "showDoneButton"
+                | "focusOptionDirection"
+                | "clearSearchInput"
+                | "onKeyDown"
+                | "onSearchFocus"
+                | "onSearchBlur"
+                | "onHover"
+                | "blockHover"
+                | "unblockHover"
+                | "onMenuMouseDown"
+                | "barScale"
+                | "updateMetric"
+            >(this, {
+                analyticsNamespace: computed,
+                searchInput: observable,
+                searchInputRef: observable,
+                focusIndex: observable,
+                focusRef: observable,
+                scrollFocusedIntoViewOnUpdate: observable,
+                blockOptionHover: observable,
+                scrollContainerRef: observable,
+                isOpen: observable,
+                isDropdownMenu: computed,
+                selectEntity: action.bound,
+                manager: computed,
+                metric: computed,
+                sortOrder: computed,
+                pickerColumnDefs: computed,
+                metricOptions: computed,
+                activePickerMetricColumn: computed,
+                availableEntitiesForCurrentView: computed,
+                entitiesWithMetricValue: computed,
+                grapherTable: computed,
+                pickerTable: computed,
+                selection: computed,
+                selectionSet: computed,
+                fuzzy: computed,
+                searchResults: computed,
+                focusedOption: computed,
+                showDoneButton: computed,
+                focusOptionDirection: action.bound,
+                clearSearchInput: action.bound,
+                onKeyDown: action.bound,
+                onSearchFocus: action.bound,
+                onSearchBlur: action.bound,
+                onHover: action.bound,
+                blockHover: action.bound,
+                unblockHover: action.bound,
+                onMenuMouseDown: action.bound,
+                barScale: computed,
+                updateMetric: action,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable<EntityPicker, "analyticsNamespace" | "searchInput" | "searchInputRef" | "focusIndex" | "focusRef" | "scrollFocusedIntoViewOnUpdate" | "blockOptionHover" | "scrollContainerRef" | "isOpen" | "isDropdownMenu" | "selectEntity" | "manager" | "metric" | "sortOrder" | "pickerColumnDefs" | "metricOptions" | "activePickerMetricColumn" | "availableEntitiesForCurrentView" | "entitiesWithMetricValue" | "grapherTable" | "pickerTable" | "fuzzy" | "searchResults" | "focusedOption" | "showDoneButton" | "focusOptionDirection" | "clearSearchInput" | "onKeyDown" | "onSearchFocus" | "onSearchBlur" | "onHover" | "blockHover" | "unblockHover" | "onMenuMouseDown" | "barScale" | "updateMetric">(this, {
-            analyticsNamespace: computed,
-            searchInput: observable,
-            searchInputRef: observable,
-            focusIndex: observable,
-            focusRef: observable,
-            scrollFocusedIntoViewOnUpdate: observable,
-            blockOptionHover: observable,
-            scrollContainerRef: observable,
-            isOpen: observable,
-            isDropdownMenu: computed,
-            selectEntity: action.bound,
-            manager: computed,
-            metric: computed,
-            sortOrder: computed,
-            pickerColumnDefs: computed,
-            metricOptions: computed,
-            activePickerMetricColumn: computed,
-            availableEntitiesForCurrentView: computed,
-            entitiesWithMetricValue: computed,
-            grapherTable: computed,
-            pickerTable: computed,
-            selection: computed,
-            selectionSet: computed,
-            fuzzy: computed,
-            searchResults: computed,
-            focusedOption: computed,
-            showDoneButton: computed,
-            focusOptionDirection: action.bound,
-            clearSearchInput: action.bound,
-            onKeyDown: action.bound,
-            onSearchFocus: action.bound,
-            onSearchBlur: action.bound,
-            onHover: action.bound,
-            blockHover: action.bound,
-            unblockHover: action.bound,
-            onMenuMouseDown: action.bound,
-            barScale: computed,
-            updateMetric: action
-        });
-    }
-
-    private get analyticsNamespace(): string {
-        return this.manager.analyticsNamespace ?? ""
-    }
-
-    private searchInput?: string;
-    private searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
-
-    private focusIndex?: number;
-    private focusRef: React.RefObject<HTMLLabelElement> = React.createRef();
-    private scrollFocusedIntoViewOnUpdate = false;
-
-    private blockOptionHover = false;
-
-    private scrollContainerRef: React.RefObject<HTMLDivElement> = React.createRef();
-
-    private isOpen = false;
-
-    private get isDropdownMenu(): boolean {
-        return !!this.props.isDropdownMenu
-    }
-
-    private selectEntity(name: EntityName, checked?: boolean): void {
-        this.manager.selection.toggleSelection(name)
-        // Clear search input
-        this.searchInput = ""
-        this.manager.analytics?.logEntityPickerEvent(
-            this.analyticsNamespace,
-            checked ? "select" : "deselect",
-            name
-        )
-    }
-
-    private get manager(): EntityPickerManager {
-        return this.props.manager
-    }
-
-    private get metric(): string | undefined {
-        return this.manager.entityPickerMetric
-    }
-
-    private get sortOrder(): SortOrder {
-        // On mobile, only allow sorting by entityName (ascending)
-        if (this.isDropdownMenu) return SortOrder.asc
-        return this.manager.entityPickerSort ?? SortOrder.asc
-    }
-
-    private get pickerColumnDefs(): CoreColumnDef[] {
-        return this.manager.entityPickerColumnDefs ?? []
-    }
-
-    private get metricOptions(): { label: string; value: string }[] {
-        return this.pickerColumnDefs.map(
-            (
-                col
-            ): {
-                label: string
-                value: string
-            } => {
-                return {
-                    label: col.name || col.slug,
-                    value: col.slug,
-                }
-            }
-        )
-    }
-
-    private getColumn(slug: ColumnSlug | undefined): CoreColumn | undefined {
-        if (slug === undefined) return undefined
-        return this.manager.entityPickerTable?.get(slug)
-    }
-
-    private get activePickerMetricColumn(): CoreColumn | undefined {
-        return this.getColumn(this.metric)
-    }
-
-    private get availableEntitiesForCurrentView(): Set<string> {
-        if (!this.grapherTable) return this.selection.availableEntityNameSet
-        if (!this.manager.requiredColumnSlugs?.length)
-            return this.grapherTable.availableEntityNameSet
-        return this.grapherTable.entitiesWith(this.manager.requiredColumnSlugs)
-    }
-
-    private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
-        const { pickerTable, selection } = this
-        const col = this.activePickerMetricColumn
-        const entityNames = selection.availableEntityNames.slice().sort()
-        return entityNames.map((entityName) => {
-            const plotValue =
-                col && pickerTable
-                    ? (pickerTable.getLatestValueForEntity(
-                          entityName,
-                          col.slug
-                      ) as string | number)
-                    : undefined
-
-            const formattedValue =
-                plotValue !== undefined
-                    ? col?.formatValueShortWithAbbreviations(plotValue)
-                    : undefined
-            return {
-                entityName,
-                plotValue,
-                formattedValue,
-            }
-        })
-    }
-
-    private get grapherTable(): OwidTable | undefined {
-        return this.manager.grapherTable
-    }
-
-    private get pickerTable(): OwidTable | undefined {
-        return this.manager.entityPickerTable
-    }
-
-    get selection(): SelectionArray {
-        return this.manager.selection
-    }
-
-    get selectionSet(): Set<string> {
-        return new Set(this.selection.selectedEntityNames)
-    }
-
-    private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
-        return new FuzzySearch(
-            this.entitiesWithMetricValue,
-            OwidTableSlugs.entityName
-        )
-    }
-
-    private get searchResults(): EntityOptionWithMetricValue[] {
-        if (this.searchInput) return this.fuzzy.search(this.searchInput)
-        const { selectionSet } = this
-        // Show the selected up top and in order.
-        const [selected, unselected] = partition(
-            sortByUndefinedLast(
-                this.entitiesWithMetricValue,
-                (option) => option.plotValue,
-                this.sortOrder
-            ),
-            (option: EntityOptionWithMetricValue): boolean =>
-                selectionSet.has(option.entityName)
-        )
-        return [...selected, ...unselected]
-    }
-
-    private normalizeFocusIndex(index: number): number | undefined {
-        if (this.searchResults.length === 0) return undefined
-        return mod(index, this.searchResults.length)
-    }
-
-    private get focusedOption(): string | undefined {
-        return this.focusIndex !== undefined
-            ? this.searchResults[this.focusIndex].entityName
-            : undefined
-    }
-
-    private get showDoneButton(): boolean {
-        return this.isDropdownMenu && this.isOpen
-    }
-
-    private focusOptionDirection(direction: FocusDirection): void {
-        if (direction === FocusDirection.first)
-            this.focusIndex = this.normalizeFocusIndex(0)
-        else if (direction === FocusDirection.last)
-            this.focusIndex = this.normalizeFocusIndex(-1)
-        else if (direction === FocusDirection.up) {
-            const newIndex =
-                this.focusIndex === undefined ? -1 : this.focusIndex - 1
-            this.focusIndex = this.normalizeFocusIndex(newIndex)
-        } else if (direction === FocusDirection.down) {
-            const newIndex =
-                this.focusIndex === undefined ? 0 : this.focusIndex + 1
-            this.focusIndex = this.normalizeFocusIndex(newIndex)
-        } else return // Exit without updating scroll
-        this.scrollFocusedIntoViewOnUpdate = true
-    }
-
-    private clearSearchInput(): void {
-        if (this.searchInput) this.searchInput = ""
-    }
-
-    private onKeyDown(event: React.KeyboardEvent<HTMLDivElement>): void {
-        // We want to block hover if a key is pressed.
-        // The hover will be unblocked iff the user moves the mouse (relative to the menu).
-        this.blockHover()
-        switch (event.key) {
-            case "Enter":
-                if (event.keyCode === 229) {
-                    // ignore the keydown event from an Input Method Editor(IME)
-                    // ref. https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode
-                    break
-                }
-                if (!this.focusedOption) return
-                const name = this.focusedOption
-                this.selectEntity(name)
-                this.clearSearchInput()
-                this.manager.analytics?.logEntityPickerEvent(
-                    this.analyticsNamespace,
-                    "enter",
-                    name
-                )
-                break
-            case "ArrowUp":
-                this.focusOptionDirection(FocusDirection.up)
-                break
-            case "ArrowDown":
-                this.focusOptionDirection(FocusDirection.down)
-                break
-            default:
-                return
+        private get analyticsNamespace(): string {
+            return this.manager.analyticsNamespace ?? ""
         }
-        event.preventDefault()
-    }
 
-    @bind private focusSearch(): void {
-        this.searchInputRef.current?.focus()
-    }
+        private searchInput?: string
+        private searchInputRef: React.RefObject<HTMLInputElement> =
+            React.createRef()
 
-    private onSearchFocus(): void {
-        this.isOpen = true
-        if (this.focusIndex === undefined)
-            this.focusOptionDirection(FocusDirection.first)
-    }
+        private focusIndex?: number
+        private focusRef: React.RefObject<HTMLLabelElement> = React.createRef()
+        private scrollFocusedIntoViewOnUpdate = false
 
-    private onSearchBlur(): void {
-        // Do not allow focus on elements inside menu; shift focus back to search input.
-        if (
-            this.scrollContainerRef.current &&
-            this.scrollContainerRef.current.contains(document.activeElement)
-        ) {
-            this.focusSearch()
-            return
+        private blockOptionHover = false
+
+        private scrollContainerRef: React.RefObject<HTMLDivElement> =
+            React.createRef()
+
+        private isOpen = false
+
+        private get isDropdownMenu(): boolean {
+            return !!this.props.isDropdownMenu
         }
-        this.isOpen = false
-        this.focusIndex = undefined
-    }
 
-    private onHover(index: number): void {
-        if (!this.blockOptionHover) this.focusIndex = index
-    }
-
-    private blockHover(): void {
-        this.blockOptionHover = true
-    }
-
-    private unblockHover(): void {
-        this.blockOptionHover = false
-    }
-
-    private onMenuMouseDown(event: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-        event.stopPropagation()
-        event.preventDefault()
-        this.focusSearch()
-    }
-
-    @bind private highlightLabel(label: string): string | JSX.Element {
-        if (!this.searchInput) return label
-
-        const result = this.fuzzy.single(this.searchInput, label)
-        if (!result) return label
-
-        const tokens: { match: boolean; text: string }[] = []
-        for (let i = 0; i < result.target.length; i++) {
-            const currentToken = last(tokens)
-            const match = result.indexes.includes(i)
-            const char = result.target[i]
-            if (!currentToken || currentToken.match !== match) {
-                tokens.push({
-                    match,
-                    text: char,
-                })
-            } else currentToken.text += char
-        }
-        return (
-            <span translate="no">
-                {tokens.map((token, i) =>
-                    token.match ? (
-                        <mark key={i}>{token.text}</mark>
-                    ) : (
-                        <span key={i}>{token.text}</span>
-                    )
-                )}
-            </span>
-        )
-    }
-
-    private get barScale(): ScaleLinear<number, number> {
-        const maxValue = max(
-            this.entitiesWithMetricValue
-                .map((option) => option.plotValue)
-                .filter(isNumber)
-        )
-        return scaleLinear()
-            .domain([0, maxValue ?? 1])
-            .range([0, 1])
-    }
-
-    componentDidMount(): void {
-        // Whenever the search term changes, shift focus to first option in the list
-        reaction(
-            () => this.searchInput,
-            () => this.focusOptionDirection(FocusDirection.first)
-        )
-    }
-
-    componentDidUpdate(): void {
-        if (
-            this.focusIndex !== undefined &&
-            this.scrollFocusedIntoViewOnUpdate &&
-            this.scrollContainerRef.current &&
-            this.focusRef.current
-        ) {
-            scrollIntoViewIfNeeded(
-                this.scrollContainerRef.current,
-                this.focusRef.current
+        private selectEntity(name: EntityName, checked?: boolean): void {
+            this.manager.selection.toggleSelection(name)
+            // Clear search input
+            this.searchInput = ""
+            this.manager.analytics?.logEntityPickerEvent(
+                this.analyticsNamespace,
+                checked ? "select" : "deselect",
+                name
             )
-            runInAction(() => (this.scrollFocusedIntoViewOnUpdate = false))
         }
-    }
 
-    private updateMetric(columnSlug: ColumnSlug): void {
-        const col = this.getColumn(columnSlug)
+        private get manager(): EntityPickerManager {
+            return this.props.manager
+        }
 
-        this.manager.setEntityPicker?.({
-            metric: columnSlug,
-            sort: this.isColumnTypeNumeric(col)
-                ? SortOrder.desc
-                : SortOrder.asc,
-        })
-        this.manager.analytics?.logEntityPickerEvent(
-            this.analyticsNamespace,
-            "sortBy",
-            columnSlug
-        )
-    }
+        private get metric(): string | undefined {
+            return this.manager.entityPickerMetric
+        }
 
-    private isColumnTypeNumeric(col: CoreColumn | undefined): boolean {
-        // If the column is currently missing (not loaded yet), assume it is numeric.
-        return (
-            col === undefined ||
-            col.isMissing ||
-            col instanceof ColumnTypeMap.Numeric
-        )
-    }
+        private get sortOrder(): SortOrder {
+            // On mobile, only allow sorting by entityName (ascending)
+            if (this.isDropdownMenu) return SortOrder.asc
+            return this.manager.entityPickerSort ?? SortOrder.asc
+        }
 
-    private get pickerMenu(): JSX.Element | null {
-        if (
-            this.isDropdownMenu ||
-            !this.manager.entityPickerColumnDefs ||
-            this.manager.entityPickerColumnDefs.length === 0
-        )
-            return null
-        return (
-            <div className="MetricSettings">
-                <span className="mainLabel">Sort by</span>
-                <Select
-                    className="metricDropdown"
-                    options={this.metricOptions}
-                    value={this.metricOptions.find(
-                        (option) => option.value === this.metric
-                    )}
-                    onChange={(option): void => {
-                        if (option) this.updateMetric(option.value)
-                    }}
-                    menuPlacement="bottom"
-                    components={{
-                        IndicatorSeparator: null,
-                    }}
-                    styles={getStylesForTargetHeight(26)}
-                    isSearchable={false}
-                    isLoading={this.manager.entityPickerTableIsLoading}
-                />
-                <span
-                    className="sort"
-                    onClick={(): void => {
-                        const sortOrder = toggleSort(this.sortOrder)
-                        this.manager.setEntityPicker?.({ sort: sortOrder })
-                        this.manager.analytics?.logEntityPickerEvent(
-                            this.analyticsNamespace,
-                            "sortOrder",
-                            sortOrder
+        private get pickerColumnDefs(): CoreColumnDef[] {
+            return this.manager.entityPickerColumnDefs ?? []
+        }
+
+        private get metricOptions(): { label: string; value: string }[] {
+            return this.pickerColumnDefs.map(
+                (
+                    col
+                ): {
+                    label: string
+                    value: string
+                } => {
+                    return {
+                        label: col.name || col.slug,
+                        value: col.slug,
+                    }
+                }
+            )
+        }
+
+        private getColumn(
+            slug: ColumnSlug | undefined
+        ): CoreColumn | undefined {
+            if (slug === undefined) return undefined
+            return this.manager.entityPickerTable?.get(slug)
+        }
+
+        private get activePickerMetricColumn(): CoreColumn | undefined {
+            return this.getColumn(this.metric)
+        }
+
+        private get availableEntitiesForCurrentView(): Set<string> {
+            if (!this.grapherTable) return this.selection.availableEntityNameSet
+            if (!this.manager.requiredColumnSlugs?.length)
+                return this.grapherTable.availableEntityNameSet
+            return this.grapherTable.entitiesWith(
+                this.manager.requiredColumnSlugs
+            )
+        }
+
+        private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
+            const { pickerTable, selection } = this
+            const col = this.activePickerMetricColumn
+            const entityNames = selection.availableEntityNames.slice().sort()
+            return entityNames.map((entityName) => {
+                const plotValue =
+                    col && pickerTable
+                        ? (pickerTable.getLatestValueForEntity(
+                              entityName,
+                              col.slug
+                          ) as string | number)
+                        : undefined
+
+                const formattedValue =
+                    plotValue !== undefined
+                        ? col?.formatValueShortWithAbbreviations(plotValue)
+                        : undefined
+                return {
+                    entityName,
+                    plotValue,
+                    formattedValue,
+                }
+            })
+        }
+
+        private get grapherTable(): OwidTable | undefined {
+            return this.manager.grapherTable
+        }
+
+        private get pickerTable(): OwidTable | undefined {
+            return this.manager.entityPickerTable
+        }
+
+        get selection(): SelectionArray {
+            return this.manager.selection
+        }
+
+        get selectionSet(): Set<string> {
+            return new Set(this.selection.selectedEntityNames)
+        }
+
+        private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
+            return new FuzzySearch(
+                this.entitiesWithMetricValue,
+                OwidTableSlugs.entityName
+            )
+        }
+
+        private get searchResults(): EntityOptionWithMetricValue[] {
+            if (this.searchInput) return this.fuzzy.search(this.searchInput)
+            const { selectionSet } = this
+            // Show the selected up top and in order.
+            const [selected, unselected] = partition(
+                sortByUndefinedLast(
+                    this.entitiesWithMetricValue,
+                    (option) => option.plotValue,
+                    this.sortOrder
+                ),
+                (option: EntityOptionWithMetricValue): boolean =>
+                    selectionSet.has(option.entityName)
+            )
+            return [...selected, ...unselected]
+        }
+
+        private normalizeFocusIndex(index: number): number | undefined {
+            if (this.searchResults.length === 0) return undefined
+            return mod(index, this.searchResults.length)
+        }
+
+        private get focusedOption(): string | undefined {
+            return this.focusIndex !== undefined
+                ? this.searchResults[this.focusIndex].entityName
+                : undefined
+        }
+
+        private get showDoneButton(): boolean {
+            return this.isDropdownMenu && this.isOpen
+        }
+
+        private focusOptionDirection(direction: FocusDirection): void {
+            if (direction === FocusDirection.first)
+                this.focusIndex = this.normalizeFocusIndex(0)
+            else if (direction === FocusDirection.last)
+                this.focusIndex = this.normalizeFocusIndex(-1)
+            else if (direction === FocusDirection.up) {
+                const newIndex =
+                    this.focusIndex === undefined ? -1 : this.focusIndex - 1
+                this.focusIndex = this.normalizeFocusIndex(newIndex)
+            } else if (direction === FocusDirection.down) {
+                const newIndex =
+                    this.focusIndex === undefined ? 0 : this.focusIndex + 1
+                this.focusIndex = this.normalizeFocusIndex(newIndex)
+            } else return // Exit without updating scroll
+            this.scrollFocusedIntoViewOnUpdate = true
+        }
+
+        private clearSearchInput(): void {
+            if (this.searchInput) this.searchInput = ""
+        }
+
+        private onKeyDown(event: React.KeyboardEvent<HTMLDivElement>): void {
+            // We want to block hover if a key is pressed.
+            // The hover will be unblocked iff the user moves the mouse (relative to the menu).
+            this.blockHover()
+            switch (event.key) {
+                case "Enter":
+                    if (event.keyCode === 229) {
+                        // ignore the keydown event from an Input Method Editor(IME)
+                        // ref. https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode
+                        break
+                    }
+                    if (!this.focusedOption) return
+                    const name = this.focusedOption
+                    this.selectEntity(name)
+                    this.clearSearchInput()
+                    this.manager.analytics?.logEntityPickerEvent(
+                        this.analyticsNamespace,
+                        "enter",
+                        name
+                    )
+                    break
+                case "ArrowUp":
+                    this.focusOptionDirection(FocusDirection.up)
+                    break
+                case "ArrowDown":
+                    this.focusOptionDirection(FocusDirection.down)
+                    break
+                default:
+                    return
+            }
+            event.preventDefault()
+        }
+
+        @bind private focusSearch(): void {
+            this.searchInputRef.current?.focus()
+        }
+
+        private onSearchFocus(): void {
+            this.isOpen = true
+            if (this.focusIndex === undefined)
+                this.focusOptionDirection(FocusDirection.first)
+        }
+
+        private onSearchBlur(): void {
+            // Do not allow focus on elements inside menu; shift focus back to search input.
+            if (
+                this.scrollContainerRef.current &&
+                this.scrollContainerRef.current.contains(document.activeElement)
+            ) {
+                this.focusSearch()
+                return
+            }
+            this.isOpen = false
+            this.focusIndex = undefined
+        }
+
+        private onHover(index: number): void {
+            if (!this.blockOptionHover) this.focusIndex = index
+        }
+
+        private blockHover(): void {
+            this.blockOptionHover = true
+        }
+
+        private unblockHover(): void {
+            this.blockOptionHover = false
+        }
+
+        private onMenuMouseDown(
+            event: React.MouseEvent<HTMLDivElement, MouseEvent>
+        ): void {
+            event.stopPropagation()
+            event.preventDefault()
+            this.focusSearch()
+        }
+
+        @bind private highlightLabel(label: string): string | JSX.Element {
+            if (!this.searchInput) return label
+
+            const result = this.fuzzy.single(this.searchInput, label)
+            if (!result) return label
+
+            const tokens: { match: boolean; text: string }[] = []
+            for (let i = 0; i < result.target.length; i++) {
+                const currentToken = last(tokens)
+                const match = result.indexes.includes(i)
+                const char = result.target[i]
+                if (!currentToken || currentToken.match !== match) {
+                    tokens.push({
+                        match,
+                        text: char,
+                    })
+                } else currentToken.text += char
+            }
+            return (
+                <span translate="no">
+                    {tokens.map((token, i) =>
+                        token.match ? (
+                            <mark key={i}>{token.text}</mark>
+                        ) : (
+                            <span key={i}>{token.text}</span>
                         )
-                    }}
-                >
-                    <SortIcon
-                        type={
-                            this.isColumnTypeNumeric(
-                                this.activePickerMetricColumn
-                            )
-                                ? "numeric"
-                                : "text"
-                        }
-                        order={this.sortOrder}
-                    />
-                </span>
-            </div>
-        )
-    }
-
-    render(): JSX.Element {
-        const { selection } = this
-        const entities = this.searchResults
-        const selectedEntityNames = selection.selectedEntityNames
-        const availableEntities = this.availableEntitiesForCurrentView
-
-        const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
-
-        const entityType = selection.entityType
-        return (
-            <div className="EntityPicker" onKeyDown={this.onKeyDown}>
-                <div className="EntityPickerSearchInput">
-                    <input
-                        className={classnames("input-field", {
-                            "with-done-button": this.showDoneButton,
-                        })}
-                        type="text"
-                        placeholder={`Type to add a ${entityType}...`}
-                        value={this.searchInput ?? ""}
-                        onChange={(e): string =>
-                            (this.searchInput = e.currentTarget.value)
-                        }
-                        onFocus={this.onSearchFocus}
-                        onBlur={this.onSearchBlur}
-                        ref={this.searchInputRef}
-                        data-track-note={`${this.analyticsNamespace}-picker-search-input`}
-                    />
-                    <div className="search-icon">
-                        <FontAwesomeIcon icon={faSearch} />
-                    </div>
-                    {this.showDoneButton && (
-                        <div className="done">
-                            <button>Done</button>
-                        </div>
                     )}
+                </span>
+            )
+        }
+
+        private get barScale(): ScaleLinear<number, number> {
+            const maxValue = max(
+                this.entitiesWithMetricValue
+                    .map((option) => option.plotValue)
+                    .filter(isNumber)
+            )
+            return scaleLinear()
+                .domain([0, maxValue ?? 1])
+                .range([0, 1])
+        }
+
+        componentDidMount(): void {
+            // Whenever the search term changes, shift focus to first option in the list
+            reaction(
+                () => this.searchInput,
+                () => this.focusOptionDirection(FocusDirection.first)
+            )
+        }
+
+        componentDidUpdate(): void {
+            if (
+                this.focusIndex !== undefined &&
+                this.scrollFocusedIntoViewOnUpdate &&
+                this.scrollContainerRef.current &&
+                this.focusRef.current
+            ) {
+                scrollIntoViewIfNeeded(
+                    this.scrollContainerRef.current,
+                    this.focusRef.current
+                )
+                runInAction(() => (this.scrollFocusedIntoViewOnUpdate = false))
+            }
+        }
+
+        private updateMetric(columnSlug: ColumnSlug): void {
+            const col = this.getColumn(columnSlug)
+
+            this.manager.setEntityPicker?.({
+                metric: columnSlug,
+                sort: this.isColumnTypeNumeric(col)
+                    ? SortOrder.desc
+                    : SortOrder.asc,
+            })
+            this.manager.analytics?.logEntityPickerEvent(
+                this.analyticsNamespace,
+                "sortBy",
+                columnSlug
+            )
+        }
+
+        private isColumnTypeNumeric(col: CoreColumn | undefined): boolean {
+            // If the column is currently missing (not loaded yet), assume it is numeric.
+            return (
+                col === undefined ||
+                col.isMissing ||
+                col instanceof ColumnTypeMap.Numeric
+            )
+        }
+
+        private get pickerMenu(): JSX.Element | null {
+            if (
+                this.isDropdownMenu ||
+                !this.manager.entityPickerColumnDefs ||
+                this.manager.entityPickerColumnDefs.length === 0
+            )
+                return null
+            return (
+                <div className="MetricSettings">
+                    <span className="mainLabel">Sort by</span>
+                    <Select
+                        className="metricDropdown"
+                        options={this.metricOptions}
+                        value={this.metricOptions.find(
+                            (option) => option.value === this.metric
+                        )}
+                        onChange={(option): void => {
+                            if (option) this.updateMetric(option.value)
+                        }}
+                        menuPlacement="bottom"
+                        components={{
+                            IndicatorSeparator: null,
+                        }}
+                        styles={getStylesForTargetHeight(26)}
+                        isSearchable={false}
+                        isLoading={this.manager.entityPickerTableIsLoading}
+                    />
+                    <span
+                        className="sort"
+                        onClick={(): void => {
+                            const sortOrder = toggleSort(this.sortOrder)
+                            this.manager.setEntityPicker?.({ sort: sortOrder })
+                            this.manager.analytics?.logEntityPickerEvent(
+                                this.analyticsNamespace,
+                                "sortOrder",
+                                sortOrder
+                            )
+                        }}
+                    >
+                        <SortIcon
+                            type={
+                                this.isColumnTypeNumeric(
+                                    this.activePickerMetricColumn
+                                )
+                                    ? "numeric"
+                                    : "text"
+                            }
+                            order={this.sortOrder}
+                        />
+                    </span>
                 </div>
-                {this.pickerMenu}
-                <div className="EntityListContainer">
-                    {(!this.isDropdownMenu || this.isOpen) && (
-                        <div
-                            className={classnames("EntityList", {
-                                isDropdown: this.isDropdownMenu,
+            )
+        }
+
+        render(): JSX.Element {
+            const { selection } = this
+            const entities = this.searchResults
+            const selectedEntityNames = selection.selectedEntityNames
+            const availableEntities = this.availableEntitiesForCurrentView
+
+            const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
+
+            const entityType = selection.entityType
+            return (
+                <div className="EntityPicker" onKeyDown={this.onKeyDown}>
+                    <div className="EntityPickerSearchInput">
+                        <input
+                            className={classnames("input-field", {
+                                "with-done-button": this.showDoneButton,
                             })}
-                            onMouseDown={this.onMenuMouseDown}
-                        >
-                            <VerticalScrollContainer
-                                scrollingShadows={true}
-                                scrollLock={true}
-                                className="EntitySearchResults"
-                                contentsId={entities
-                                    .map((c) => c.entityName)
-                                    .join(",")}
-                                onMouseMove={this.unblockHover}
-                                ref={this.scrollContainerRef}
+                            type="text"
+                            placeholder={`Type to add a ${entityType}...`}
+                            value={this.searchInput ?? ""}
+                            onChange={(e): string =>
+                                (this.searchInput = e.currentTarget.value)
+                            }
+                            onFocus={this.onSearchFocus}
+                            onBlur={this.onSearchBlur}
+                            ref={this.searchInputRef}
+                            data-track-note={`${this.analyticsNamespace}-picker-search-input`}
+                        />
+                        <div className="search-icon">
+                            <FontAwesomeIcon icon={faSearch} />
+                        </div>
+                        {this.showDoneButton && (
+                            <div className="done">
+                                <button>Done</button>
+                            </div>
+                        )}
+                    </div>
+                    {this.pickerMenu}
+                    <div className="EntityListContainer">
+                        {(!this.isDropdownMenu || this.isOpen) && (
+                            <div
+                                className={classnames("EntityList", {
+                                    isDropdown: this.isDropdownMenu,
+                                })}
+                                onMouseDown={this.onMenuMouseDown}
                             >
-                                <Flipper
-                                    spring={{
-                                        stiffness: 300,
-                                        damping: 33,
-                                    }}
-                                    // We only want to animate when the selection changes, but not on changes due to
-                                    // searching
-                                    flipKey={selectedEntityNames.join(",")}
+                                <VerticalScrollContainer
+                                    scrollingShadows={true}
+                                    scrollLock={true}
+                                    className="EntitySearchResults"
+                                    contentsId={entities
+                                        .map((c) => c.entityName)
+                                        .join(",")}
+                                    onMouseMove={this.unblockHover}
+                                    ref={this.scrollContainerRef}
                                 >
-                                    {entities.map((option, index) => (
-                                        <PickerOption
-                                            key={index}
-                                            hasDataForActiveMetric={availableEntities.has(
-                                                option.entityName
-                                            )}
-                                            optionWithMetricValue={option}
-                                            highlight={this.highlightLabel}
-                                            barScale={this.barScale}
-                                            onChange={this.selectEntity}
-                                            onHover={(): void =>
-                                                this.onHover(index)
-                                            }
-                                            isSelected={this.selectionSet.has(
-                                                option.entityName
-                                            )}
-                                            isFocused={
-                                                this.focusIndex === index
-                                            }
-                                            innerRef={
-                                                this.focusIndex === index
-                                                    ? this.focusRef
-                                                    : undefined
-                                            }
-                                        />
-                                    ))}
-                                </Flipper>
-                            </VerticalScrollContainer>
-                            <div>
-                                <div
-                                    title={selectedDebugMessage}
-                                    className="ClearSelectionButton"
-                                    data-track-note={`${this.analyticsNamespace}-clear-selection`}
-                                    onClick={(): void =>
-                                        selection.clearSelection()
-                                    }
-                                >
-                                    <FontAwesomeIcon icon={faTimes} /> Clear
-                                    selection
+                                    <Flipper
+                                        spring={{
+                                            stiffness: 300,
+                                            damping: 33,
+                                        }}
+                                        // We only want to animate when the selection changes, but not on changes due to
+                                        // searching
+                                        flipKey={selectedEntityNames.join(",")}
+                                    >
+                                        {entities.map((option, index) => (
+                                            <PickerOption
+                                                key={index}
+                                                hasDataForActiveMetric={availableEntities.has(
+                                                    option.entityName
+                                                )}
+                                                optionWithMetricValue={option}
+                                                highlight={this.highlightLabel}
+                                                barScale={this.barScale}
+                                                onChange={this.selectEntity}
+                                                onHover={(): void =>
+                                                    this.onHover(index)
+                                                }
+                                                isSelected={this.selectionSet.has(
+                                                    option.entityName
+                                                )}
+                                                isFocused={
+                                                    this.focusIndex === index
+                                                }
+                                                innerRef={
+                                                    this.focusIndex === index
+                                                        ? this.focusRef
+                                                        : undefined
+                                                }
+                                            />
+                                        ))}
+                                    </Flipper>
+                                </VerticalScrollContainer>
+                                <div>
+                                    <div
+                                        title={selectedDebugMessage}
+                                        className="ClearSelectionButton"
+                                        data-track-note={`${this.analyticsNamespace}-clear-selection`}
+                                        onClick={(): void =>
+                                            selection.clearSelection()
+                                        }
+                                    >
+                                        <FontAwesomeIcon icon={faTimes} /> Clear
+                                        selection
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
-            </div>
-        )
+            )
+        }
     }
-});
+)
 
 interface PickerOptionProps {
     optionWithMetricValue: EntityOptionWithMetricValue

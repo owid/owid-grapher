@@ -1,15 +1,15 @@
 import React from "react"
 import { TimelineComponent } from "./TimelineComponent.js"
-import { action, computed, observable, makeObservable } from "mobx";
+import { action, computed, observable, makeObservable } from "mobx"
 import { range } from "../../clientUtils/Util.js"
 import { TimelineController, TimelineManager } from "./TimelineController.js"
 
 class TimelineManagerMock implements TimelineManager {
-    isPlaying = false;
-    userHasSetTimeline = true;
-    times = range(1900, 2021);
+    isPlaying = false
+    userHasSetTimeline = true
+    times = range(1900, 2021)
 
-    protected _endTime = 2020;
+    protected _endTime = 2020
 
     constructor() {
         makeObservable<TimelineManagerMock, "_endTime" | "_startTime">(this, {
@@ -22,8 +22,8 @@ class TimelineManagerMock implements TimelineManager {
             _startTime: observable,
             startHandleTimeBound: computed,
             updateStartTime: action.bound,
-            disablePlay: observable
-        });
+            disablePlay: observable,
+        })
     }
 
     set endHandleTimeBound(num: number) {
@@ -37,7 +37,7 @@ class TimelineManagerMock implements TimelineManager {
         this._endTime = num
     }
 
-    protected _startTime = 1950;
+    protected _startTime = 1950
     set startHandleTimeBound(num: number) {
         this.updateStartTime(num)
     }
@@ -49,7 +49,7 @@ class TimelineManagerMock implements TimelineManager {
         this._startTime = num
     }
 
-    disablePlay = false;
+    disablePlay = false
 }
 
 export default {
@@ -60,13 +60,13 @@ export default {
 class SingleYearManager extends TimelineManagerMock {
     constructor() {
         // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super();
+        super()
 
         makeObservable<SingleYearManager, "_endTime">(this, {
             updateEndTime: action.bound,
             updateStartTime: action.bound,
-            _endTime: observable
-        });
+            _endTime: observable,
+        })
     }
 
     updateEndTime(num: number): void {
@@ -78,7 +78,7 @@ class SingleYearManager extends TimelineManagerMock {
         this._endTime = num
         this._startTime = num
     }
-    protected _endTime = 1950;
+    protected _endTime = 1950
 }
 
 export const Default = (): JSX.Element => {

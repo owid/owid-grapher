@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, computed, makeObservable } from "mobx";
+import { observable, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ScaleLinear } from "d3-scale"
@@ -28,111 +28,113 @@ export interface CovidTableRowProps {
     onHighlightDate: (date: Date | undefined) => void
 }
 
-export const CovidTableRow = observer(class CovidTableRow extends React.Component<CovidTableRowProps> {
-    static defaultProps = {
-        onHighlightDate: () => undefined,
-    }
-
-    highlightDate: Date | undefined = undefined;
-
-    constructor(props: CovidTableRowProps) {
-        super(props);
-
-        makeObservable(this, {
-            highlightDate: observable.ref,
-            data: computed,
-            xDomain: computed,
-            currentX: computed,
-            hightlightedX: computed,
-            cellProps: computed
-        });
-    }
-
-    get data() {
-        const d = this.props.datum
-        const [start, end] = this.props.transform.dateRange
-        return d.series.filter((d) => d.date >= start && d.date <= end)
-    }
-
-    @bind dateToIndex(date: Date): number {
-        return dateDiffInDays(date, this.props.transform.dateRange[0])
-    }
-
-    @bind dateFromIndex(index: number): Date {
-        return addDays(this.props.transform.dateRange[0], index)
-    }
-
-    get xDomain(): [number, number] {
-        const [start, end] = this.props.transform.dateRange
-        return [0, dateDiffInDays(end, start)]
-    }
-
-    get currentX(): number | undefined {
-        const { datum } = this.props
-        if (datum.latest) {
-            return this.x(datum.latest)
+export const CovidTableRow = observer(
+    class CovidTableRow extends React.Component<CovidTableRowProps> {
+        static defaultProps = {
+            onHighlightDate: () => undefined,
         }
-        return undefined
-    }
 
-    get hightlightedX(): number | undefined {
-        const { state } = this.props
-        if (!state.isMobile && this.highlightDate) {
-            return this.dateToIndex(this.highlightDate)
+        highlightDate: Date | undefined = undefined
+
+        constructor(props: CovidTableRowProps) {
+            super(props)
+
+            makeObservable(this, {
+                highlightDate: observable.ref,
+                data: computed,
+                xDomain: computed,
+                currentX: computed,
+                hightlightedX: computed,
+                cellProps: computed,
+            })
         }
-        return undefined
-    }
 
-    @bind x(d: CovidDatum): number {
-        return this.dateToIndex(d.date)
-    }
-
-    @bind onBarHover(d: CovidDatum | undefined, i: number | undefined) {
-        let date
-        if (d !== undefined) {
-            date = d.date
-        } else if (i !== undefined) {
-            date = this.dateFromIndex(i)
-        } else {
-            date = undefined
+        get data() {
+            const d = this.props.datum
+            const [start, end] = this.props.transform.dateRange
+            return d.series.filter((d) => d.date >= start && d.date <= end)
         }
-        this.highlightDate = date
-    }
 
-    get cellProps(): CovidTableCellSpec {
-        return {
-            datum: this.props.datum,
-            isMobile: this.props.state.isMobile,
-            bars: {
-                data: this.data,
-                xDomain: this.xDomain,
-                x: this.x,
-                currentX: this.currentX,
-                highlightedX: this.hightlightedX,
-                onHover: this.onBarHover,
-            },
-            totalTestsBarScale: this.props.transform.totalTestsBarScale,
-            countryColors: this.props.transform.countryColors,
-            baseRowSpan: this.props.extraRow ? 2 : 1,
+        @bind dateToIndex(date: Date): number {
+            return dateDiffInDays(date, this.props.transform.dateRange[0])
         }
-    }
 
-    render() {
-        return (
-            <React.Fragment>
-                <tr className={this.props.className}>
-                    {this.props.columns.map((key) => (
-                        <React.Fragment key={key}>
-                            {columns[key].cell(this.cellProps)}
-                        </React.Fragment>
-                    ))}
-                </tr>
-                {this.props.extraRow ? (
+        @bind dateFromIndex(index: number): Date {
+            return addDays(this.props.transform.dateRange[0], index)
+        }
+
+        get xDomain(): [number, number] {
+            const [start, end] = this.props.transform.dateRange
+            return [0, dateDiffInDays(end, start)]
+        }
+
+        get currentX(): number | undefined {
+            const { datum } = this.props
+            if (datum.latest) {
+                return this.x(datum.latest)
+            }
+            return undefined
+        }
+
+        get hightlightedX(): number | undefined {
+            const { state } = this.props
+            if (!state.isMobile && this.highlightDate) {
+                return this.dateToIndex(this.highlightDate)
+            }
+            return undefined
+        }
+
+        @bind x(d: CovidDatum): number {
+            return this.dateToIndex(d.date)
+        }
+
+        @bind onBarHover(d: CovidDatum | undefined, i: number | undefined) {
+            let date
+            if (d !== undefined) {
+                date = d.date
+            } else if (i !== undefined) {
+                date = this.dateFromIndex(i)
+            } else {
+                date = undefined
+            }
+            this.highlightDate = date
+        }
+
+        get cellProps(): CovidTableCellSpec {
+            return {
+                datum: this.props.datum,
+                isMobile: this.props.state.isMobile,
+                bars: {
+                    data: this.data,
+                    xDomain: this.xDomain,
+                    x: this.x,
+                    currentX: this.currentX,
+                    highlightedX: this.hightlightedX,
+                    onHover: this.onBarHover,
+                },
+                totalTestsBarScale: this.props.transform.totalTestsBarScale,
+                countryColors: this.props.transform.countryColors,
+                baseRowSpan: this.props.extraRow ? 2 : 1,
+            }
+        }
+
+        render() {
+            return (
+                <React.Fragment>
                     <tr className={this.props.className}>
-                        {this.props.extraRow(this.cellProps)}
+                        {this.props.columns.map((key) => (
+                            <React.Fragment key={key}>
+                                {columns[key].cell(this.cellProps)}
+                            </React.Fragment>
+                        ))}
                     </tr>
-                ) : undefined}
-            </React.Fragment>
-        )
+                    {this.props.extraRow ? (
+                        <tr className={this.props.className}>
+                            {this.props.extraRow(this.cellProps)}
+                        </tr>
+                    ) : undefined}
+                </React.Fragment>
+            )
+        }
     }
-});
+)

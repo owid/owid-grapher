@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, runInAction, makeObservable } from "mobx";
+import { observable, runInAction, makeObservable } from "mobx"
 
 import { LoadingBlocker, BindString } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -28,42 +28,44 @@ class PostEditor extends React.Component<{ post: Post }> {
     }
 }
 
-export const PostEditorPage = observer(class PostEditorPage extends React.Component<{ postId?: number }> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+export const PostEditorPage = observer(
+    class PostEditorPage extends React.Component<{ postId?: number }> {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    post?: Post;
+        post?: Post
 
-    constructor(props: { postId?: number }) {
-        super(props);
+        constructor(props: { postId?: number }) {
+            super(props)
 
-        makeObservable(this, {
-            post: observable.ref
-        });
+            makeObservable(this, {
+                post: observable.ref,
+            })
+        }
+
+        async fetchPost() {
+            const { postId } = this.props
+            const { admin } = this.context
+            const json = await admin.getJSON(`/api/posts/${postId}.json`)
+            runInAction(() => (this.post = json as Post))
+        }
+
+        componentDidMount() {
+            this.fetchPost()
+        }
+
+        render() {
+            return (
+                <AdminLayout>
+                    <main className="PostEditorPage">
+                        {this.post ? (
+                            <PostEditor post={this.post} />
+                        ) : (
+                            <LoadingBlocker />
+                        )}
+                    </main>
+                </AdminLayout>
+            )
+        }
     }
-
-    async fetchPost() {
-        const { postId } = this.props
-        const { admin } = this.context
-        const json = await admin.getJSON(`/api/posts/${postId}.json`)
-        runInAction(() => (this.post = json as Post))
-    }
-
-    componentDidMount() {
-        this.fetchPost()
-    }
-
-    render() {
-        return (
-            <AdminLayout>
-                <main className="PostEditorPage">
-                    {this.post ? (
-                        <PostEditor post={this.post} />
-                    ) : (
-                        <LoadingBlocker />
-                    )}
-                </main>
-            </AdminLayout>
-        )
-    }
-});
+)

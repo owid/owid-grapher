@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, computed, action, makeObservable } from "mobx";
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import { TextWrap } from "../text/TextWrap.js"
@@ -10,295 +10,317 @@ import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { FooterManager } from "./FooterManager.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
-export const Footer = observer(class Footer extends React.Component<{
-    manager: FooterManager
-    maxWidth?: number
-}> {
-    constructor(
-        props: {
-            manager: FooterManager
-            maxWidth?: number
+export const Footer = observer(
+    class Footer extends React.Component<{
+        manager: FooterManager
+        maxWidth?: number
+    }> {
+        constructor(props: { manager: FooterManager; maxWidth?: number }) {
+            super(props)
+
+            makeObservable<
+                Footer,
+                | "maxWidth"
+                | "manager"
+                | "sourcesText"
+                | "noteText"
+                | "ccSvg"
+                | "originUrlWithProtocol"
+                | "finalUrl"
+                | "finalUrlText"
+                | "licenseSvg"
+                | "fontSize"
+                | "sources"
+                | "note"
+                | "license"
+                | "isCompact"
+                | "paraMargin"
+                | "onMouseMove"
+            >(this, {
+                maxWidth: computed,
+                manager: computed,
+                sourcesText: computed,
+                noteText: computed,
+                ccSvg: computed,
+                originUrlWithProtocol: computed,
+                finalUrl: computed,
+                finalUrlText: computed,
+                licenseSvg: computed,
+                fontSize: computed,
+                sources: computed,
+                note: computed,
+                license: computed,
+                isCompact: computed,
+                paraMargin: computed,
+                height: computed,
+                tooltipTarget: observable.ref,
+                onMouseMove: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable<Footer, "maxWidth" | "manager" | "sourcesText" | "noteText" | "ccSvg" | "originUrlWithProtocol" | "finalUrl" | "finalUrlText" | "licenseSvg" | "fontSize" | "sources" | "note" | "license" | "isCompact" | "paraMargin" | "onMouseMove">(this, {
-            maxWidth: computed,
-            manager: computed,
-            sourcesText: computed,
-            noteText: computed,
-            ccSvg: computed,
-            originUrlWithProtocol: computed,
-            finalUrl: computed,
-            finalUrlText: computed,
-            licenseSvg: computed,
-            fontSize: computed,
-            sources: computed,
-            note: computed,
-            license: computed,
-            isCompact: computed,
-            paraMargin: computed,
-            height: computed,
-            tooltipTarget: observable.ref,
-            onMouseMove: action.bound
-        });
-    }
+        private get maxWidth(): number {
+            return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+        }
 
-    private get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
-    }
+        private get manager(): FooterManager {
+            return this.props.manager
+        }
 
-    private get manager(): FooterManager {
-        return this.props.manager
-    }
+        private get sourcesText(): string {
+            const sourcesLine = this.manager.sourcesLine
+            return sourcesLine ? `Source: ${sourcesLine}` : ""
+        }
 
-    private get sourcesText(): string {
-        const sourcesLine = this.manager.sourcesLine
-        return sourcesLine ? `Source: ${sourcesLine}` : ""
-    }
+        private get noteText(): string {
+            return this.manager.note ? `Note: ${this.manager.note}` : ""
+        }
 
-    private get noteText(): string {
-        return this.manager.note ? `Note: ${this.manager.note}` : ""
-    }
+        private get ccSvg(): string {
+            if (this.manager.hasOWIDLogo)
+                return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
 
-    private get ccSvg(): string {
-        if (this.manager.hasOWIDLogo)
-            return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
+            return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
+        }
 
-        return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
-    }
+        private get originUrlWithProtocol(): string {
+            return this.manager.originUrlWithProtocol ?? "http://localhost"
+        }
 
-    private get originUrlWithProtocol(): string {
-        return this.manager.originUrlWithProtocol ?? "http://localhost"
-    }
+        private get finalUrl(): string {
+            const originUrl = this.originUrlWithProtocol
+            const url = parseUrl(originUrl)
+            return `https://${url.hostname}${url.pathname}`
+        }
 
-    private get finalUrl(): string {
-        const originUrl = this.originUrlWithProtocol
-        const url = parseUrl(originUrl)
-        return `https://${url.hostname}${url.pathname}`
-    }
+        private get finalUrlText(): string | undefined {
+            const originUrl = this.originUrlWithProtocol
 
-    private get finalUrlText(): string | undefined {
-        const originUrl = this.originUrlWithProtocol
+            // Make sure the link back to OWID is consistent
+            // And don't show the full url if there isn't enough room
+            if (
+                !originUrl ||
+                !originUrl.toLowerCase().match(/^https?:\/\/./) ||
+                this.manager.shouldLinkToOwid
+            )
+                return undefined
 
-        // Make sure the link back to OWID is consistent
-        // And don't show the full url if there isn't enough room
-        if (
-            !originUrl ||
-            !originUrl.toLowerCase().match(/^https?:\/\/./) ||
-            this.manager.shouldLinkToOwid
-        )
-            return undefined
+            const url = parseUrl(originUrl)
+            const finalUrlText = `${url.hostname}${url.pathname}`.replace(
+                "ourworldindata.org",
+                "OurWorldInData.org"
+            )
+            if (
+                Bounds.forText(finalUrlText, { fontSize: this.fontSize })
+                    .width >
+                0.7 * this.maxWidth
+            )
+                return undefined
+            return finalUrlText
+        }
 
-        const url = parseUrl(originUrl)
-        const finalUrlText = `${url.hostname}${url.pathname}`.replace(
-            "ourworldindata.org",
-            "OurWorldInData.org"
-        )
-        if (
-            Bounds.forText(finalUrlText, { fontSize: this.fontSize }).width >
-            0.7 * this.maxWidth
-        )
-            return undefined
-        return finalUrlText
-    }
+        private get licenseSvg(): string {
+            const { finalUrl, finalUrlText, ccSvg } = this
+            if (!finalUrlText) return ccSvg
 
-    private get licenseSvg(): string {
-        const { finalUrl, finalUrlText, ccSvg } = this
-        if (!finalUrlText) return ccSvg
+            return `*data-entry* • ${ccSvg}`.replace(
+                /\*data-entry\*/,
+                "<a target='_blank' style='fill: #777;' href='" +
+                    finalUrl +
+                    "'>" +
+                    finalUrlText +
+                    "</a>"
+            )
+        }
 
-        return `*data-entry* • ${ccSvg}`.replace(
-            /\*data-entry\*/,
-            "<a target='_blank' style='fill: #777;' href='" +
-                finalUrl +
-                "'>" +
-                finalUrlText +
-                "</a>"
-        );
-    }
+        private get fontSize(): number {
+            return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        }
 
-    private get fontSize(): number {
-        return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
-    }
+        private get sources(): TextWrap {
+            const { maxWidth, fontSize, sourcesText } = this
+            return new TextWrap({
+                maxWidth,
+                fontSize,
+                text: sourcesText,
+                linkifyText: true,
+            })
+        }
 
-    private get sources(): TextWrap {
-        const { maxWidth, fontSize, sourcesText } = this
-        return new TextWrap({
-            maxWidth,
-            fontSize,
-            text: sourcesText,
-            linkifyText: true,
-        })
-    }
+        private get note(): MarkdownTextWrap {
+            const { maxWidth, fontSize, noteText } = this
+            return new MarkdownTextWrap({
+                maxWidth,
+                fontSize,
+                text: noteText,
+                detailsOrderedByReference:
+                    this.manager.detailsOrderedByReference,
+            })
+        }
 
-    private get note(): MarkdownTextWrap {
-        const { maxWidth, fontSize, noteText } = this
-        return new MarkdownTextWrap({
-            maxWidth,
-            fontSize,
-            text: noteText,
-            detailsOrderedByReference: this.manager.detailsOrderedByReference,
-        })
-    }
+        private get license(): TextWrap {
+            const { maxWidth, fontSize, licenseSvg } = this
+            return new TextWrap({
+                maxWidth: maxWidth * 3,
+                fontSize,
+                text: licenseSvg,
+                rawHtml: true,
+            })
+        }
 
-    private get license(): TextWrap {
-        const { maxWidth, fontSize, licenseSvg } = this
-        return new TextWrap({
-            maxWidth: maxWidth * 3,
-            fontSize,
-            text: licenseSvg,
-            rawHtml: true,
-        })
-    }
+        // Put the license stuff to the side if there's room
+        private get isCompact(): boolean {
+            return this.maxWidth - this.sources.width - 5 > this.license.width
+        }
 
-    // Put the license stuff to the side if there's room
-    private get isCompact(): boolean {
-        return this.maxWidth - this.sources.width - 5 > this.license.width
-    }
+        private get paraMargin(): number {
+            return 2
+        }
 
-    private get paraMargin(): number {
-        return 2
-    }
+        get height(): number {
+            if (this.manager.isMediaCard) return 0
 
-    get height(): number {
-        if (this.manager.isMediaCard) return 0
+            const { sources, note, license, isCompact, paraMargin } = this
+            return (
+                sources.height +
+                (note.height ? paraMargin + note.height : 0) +
+                (isCompact ? 0 : paraMargin + license.height)
+            )
+        }
 
-        const { sources, note, license, isCompact, paraMargin } = this
-        return (
-            sources.height +
-            (note.height ? paraMargin + note.height : 0) +
-            (isCompact ? 0 : paraMargin + license.height)
-        )
-    }
+        renderStatic(targetX: number, targetY: number): JSX.Element | null {
+            if (this.manager.isMediaCard) return null
 
-    renderStatic(targetX: number, targetY: number): JSX.Element | null {
-        if (this.manager.isMediaCard) return null
+            const { sources, note, license, maxWidth, isCompact, paraMargin } =
+                this
 
-        const { sources, note, license, maxWidth, isCompact, paraMargin } = this
-
-        return (
-            <g className="SourcesFooter" style={{ fill: "#777" }}>
-                <g style={{ fill: "#777" }}>
-                    {sources.render(targetX, targetY)}
+            return (
+                <g className="SourcesFooter" style={{ fill: "#777" }}>
+                    <g style={{ fill: "#777" }}>
+                        {sources.render(targetX, targetY)}
+                    </g>
+                    {note.renderSVG(
+                        targetX,
+                        targetY + sources.height + paraMargin
+                    )}
+                    {isCompact
+                        ? license.render(
+                              targetX + maxWidth - license.width,
+                              targetY
+                          )
+                        : license.render(
+                              targetX,
+                              targetY +
+                                  sources.height +
+                                  paraMargin +
+                                  (note.height ? note.height + paraMargin : 0)
+                          )}
                 </g>
-                {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
-                {isCompact
-                    ? license.render(
-                          targetX + maxWidth - license.width,
-                          targetY
-                      )
-                    : license.render(
-                          targetX,
-                          targetY +
-                              sources.height +
-                              paraMargin +
-                              (note.height ? note.height + paraMargin : 0)
-                      )}
-            </g>
-        )
+            )
+        }
+
+        base: React.RefObject<HTMLDivElement> = React.createRef()
+        tooltipTarget?: { x: number; y: number }
+
+        private onMouseMove(e: MouseEvent): void {
+            const cc = this.base.current!.querySelector(".cclogo")
+            if (cc && cc.matches(":hover")) {
+                const div = this.base.current as HTMLDivElement
+                const grapher = div.closest(".GrapherComponent")
+                if (grapher) {
+                    const mouse = getRelativeMouse(grapher, e)
+                    this.tooltipTarget = { x: mouse.x, y: mouse.y }
+                } else console.error("Grapher was falsy")
+            } else this.tooltipTarget = undefined
+        }
+
+        componentDidMount(): void {
+            window.addEventListener("mousemove", this.onMouseMove)
+        }
+
+        componentWillUnmount(): void {
+            window.removeEventListener("mousemove", this.onMouseMove)
+        }
+
+        render(): JSX.Element {
+            const { tooltipTarget } = this
+
+            const license = (
+                <div
+                    className="license"
+                    style={{
+                        fontSize: this.license.fontSize,
+                        lineHeight: this.sources.lineHeight,
+                    }}
+                >
+                    {this.finalUrlText && (
+                        <a href={this.finalUrl} target="_blank" rel="noopener">
+                            {this.finalUrlText} •{" "}
+                        </a>
+                    )}
+                    {this.manager.hasOWIDLogo ? (
+                        <a
+                            className="cclogo"
+                            href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            CC BY
+                        </a>
+                    ) : (
+                        <a
+                            href="https://ourworldindata.org"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Powered by ourworldindata.org
+                        </a>
+                    )}
+                </div>
+            )
+
+            return (
+                <footer
+                    className={
+                        "SourcesFooterHTML" + (this.isCompact ? " compact" : "")
+                    }
+                    ref={this.base}
+                    style={{ color: "#777" }}
+                >
+                    {this.isCompact && license}
+                    <p style={this.sources.htmlStyle}>
+                        {this.sources.renderHTML()}
+                    </p>
+                    {this.note && (
+                        <p style={this.note.style}>{this.note.renderHTML()}</p>
+                    )}
+                    {!this.isCompact && license}
+                    {tooltipTarget && (
+                        <Tooltip
+                            id="footer"
+                            tooltipManager={this.manager}
+                            x={tooltipTarget.x}
+                            y={tooltipTarget.y}
+                            style={{
+                                textAlign: "center",
+                                maxWidth: "300px",
+                                whiteSpace: "inherit",
+                                padding: "10px",
+                                fontSize: "0.8em",
+                            }}
+                        >
+                            <p>
+                                Our World in Data charts are licensed under
+                                Creative Commons; you are free to use, share,
+                                and adapt this material. Click through to the CC
+                                BY page for more information. Please bear in
+                                mind that the underlying source data for all our
+                                charts might be subject to different license
+                                terms from third-party authors.
+                            </p>
+                        </Tooltip>
+                    )}
+                </footer>
+            )
+        }
     }
-
-    base: React.RefObject<HTMLDivElement> = React.createRef()
-    tooltipTarget?: { x: number; y: number };
-
-    private onMouseMove(e: MouseEvent): void {
-        const cc = this.base.current!.querySelector(".cclogo")
-        if (cc && cc.matches(":hover")) {
-            const div = this.base.current as HTMLDivElement
-            const grapher = div.closest(".GrapherComponent")
-            if (grapher) {
-                const mouse = getRelativeMouse(grapher, e)
-                this.tooltipTarget = { x: mouse.x, y: mouse.y }
-            } else console.error("Grapher was falsy")
-        } else this.tooltipTarget = undefined
-    }
-
-    componentDidMount(): void {
-        window.addEventListener("mousemove", this.onMouseMove)
-    }
-
-    componentWillUnmount(): void {
-        window.removeEventListener("mousemove", this.onMouseMove)
-    }
-
-    render(): JSX.Element {
-        const { tooltipTarget } = this
-
-        const license = (
-            <div
-                className="license"
-                style={{
-                    fontSize: this.license.fontSize,
-                    lineHeight: this.sources.lineHeight,
-                }}
-            >
-                {this.finalUrlText && (
-                    <a href={this.finalUrl} target="_blank" rel="noopener">
-                        {this.finalUrlText} •{" "}
-                    </a>
-                )}
-                {this.manager.hasOWIDLogo ? (
-                    <a
-                        className="cclogo"
-                        href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        CC BY
-                    </a>
-                ) : (
-                    <a
-                        href="https://ourworldindata.org"
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        Powered by ourworldindata.org
-                    </a>
-                )}
-            </div>
-        )
-
-        return (
-            <footer
-                className={
-                    "SourcesFooterHTML" + (this.isCompact ? " compact" : "")
-                }
-                ref={this.base}
-                style={{ color: "#777" }}
-            >
-                {this.isCompact && license}
-                <p style={this.sources.htmlStyle}>
-                    {this.sources.renderHTML()}
-                </p>
-                {this.note && (
-                    <p style={this.note.style}>{this.note.renderHTML()}</p>
-                )}
-                {!this.isCompact && license}
-                {tooltipTarget && (
-                    <Tooltip
-                        id="footer"
-                        tooltipManager={this.manager}
-                        x={tooltipTarget.x}
-                        y={tooltipTarget.y}
-                        style={{
-                            textAlign: "center",
-                            maxWidth: "300px",
-                            whiteSpace: "inherit",
-                            padding: "10px",
-                            fontSize: "0.8em",
-                        }}
-                    >
-                        <p>
-                            Our World in Data charts are licensed under Creative
-                            Commons; you are free to use, share, and adapt this
-                            material. Click through to the CC BY page for more
-                            information. Please bear in mind that the underlying
-                            source data for all our charts might be subject to
-                            different license terms from third-party authors.
-                        </p>
-                    </Tooltip>
-                )}
-            </footer>
-        )
-    }
-});
+)

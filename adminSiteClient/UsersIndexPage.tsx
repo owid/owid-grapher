@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction, makeObservable } from "mobx";
+import { observable, action, runInAction, makeObservable } from "mobx"
 
 import { Modal, Timeago } from "./Forms.js"
 import { Link } from "./Link.js"
@@ -12,225 +12,233 @@ interface UserIndexMetaWithLastSeen extends UserIndexMeta {
     lastSeen: Date
 }
 
-const InviteModal = observer(class InviteModal extends React.Component<{ onClose: () => void }> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+const InviteModal = observer(
+    class InviteModal extends React.Component<{ onClose: () => void }> {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    email: string = "";
-    fullName: string = "";
-    responseSuccess: boolean = false;
+        email: string = ""
+        fullName: string = ""
+        responseSuccess: boolean = false
 
-    constructor(props: { onClose: () => void }) {
-        super(props);
+        constructor(props: { onClose: () => void }) {
+            super(props)
 
-        makeObservable(this, {
-            email: observable,
-            fullName: observable,
-            responseSuccess: observable,
-            onSubmit: action.bound
-        });
-    }
+            makeObservable(this, {
+                email: observable,
+                fullName: observable,
+                responseSuccess: observable,
+                onSubmit: action.bound,
+            })
+        }
 
-    async submit() {
-        runInAction(() => (this.responseSuccess = false))
-        if (this.email) {
-            const resp = await this.context.admin.requestJSON(
-                "/api/users/add",
-                { email: this.email, fullName: this.fullName },
-                "POST"
-            )
-            console.log(resp)
-            if (resp.success) {
-                runInAction(() => (this.responseSuccess = true))
+        async submit() {
+            runInAction(() => (this.responseSuccess = false))
+            if (this.email) {
+                const resp = await this.context.admin.requestJSON(
+                    "/api/users/add",
+                    { email: this.email, fullName: this.fullName },
+                    "POST"
+                )
+                console.log(resp)
+                if (resp.success) {
+                    runInAction(() => (this.responseSuccess = true))
+                }
             }
         }
-    }
 
-    onSubmit(event: React.FormEvent) {
-        event.preventDefault()
-        this.submit()
-    }
-
-    render() {
-        return (
-            <Modal onClose={this.props.onClose}>
-                <form onSubmit={this.onSubmit}>
-                    <div className="modal-header">
-                        <h5 className="modal-title">Add a user</h5>
-                    </div>
-                    <div className="modal-body">
-                        <div className="form-group">
-                            <label>Full name</label>
-                            <input
-                                type="string"
-                                className="form-control"
-                                onChange={(e) =>
-                                    (this.fullName = e.currentTarget.value)
-                                }
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Email</label>
-                            <input
-                                type="email"
-                                className="form-control"
-                                onChange={(e) =>
-                                    (this.email = e.currentTarget.value)
-                                }
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className="modal-footer">
-                        <input
-                            type="submit"
-                            className="btn btn-primary"
-                            value="Add user"
-                        />
-                    </div>
-                    {this.responseSuccess && (
-                        <div className="alert alert-success" role="alert">
-                            User added! They can now log in with their G Suite
-                            account.
-                        </div>
-                    )}
-                </form>
-            </Modal>
-        )
-    }
-});
-
-export const UsersIndexPage = observer(class UsersIndexPage extends React.Component {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-
-    users: UserIndexMetaWithLastSeen[] = [];
-    isInviteModal: boolean = false;
-
-    constructor(props) {
-        super(props);
-
-        makeObservable(this, {
-            users: observable,
-            isInviteModal: observable,
-            onDelete: action.bound
-        });
-    }
-
-    async onDelete(user: UserIndexMetaWithLastSeen) {
-        if (
-            !window.confirm(
-                `Delete the user ${user.fullName}? This action cannot be undone!`
-            )
-        )
-            return
-
-        const json = await this.context.admin.requestJSON(
-            `/api/users/${user.id}`,
-            {},
-            "DELETE"
-        )
-
-        if (json.success) {
-            runInAction(() => this.users.splice(this.users.indexOf(user), 1))
+        onSubmit(event: React.FormEvent) {
+            event.preventDefault()
+            this.submit()
         }
-    }
 
-    render() {
-        const { users } = this
-        const { isSuperuser } = this.context.admin
-        return (
-            <AdminLayout title="Users">
-                <main className="UsersIndexPage">
-                    {this.isInviteModal && (
-                        <InviteModal
-                            onClose={action(() => (this.isInviteModal = false))}
-                        />
-                    )}
-                    <div className="topbar">
-                        <h2>Users</h2>
-                        {isSuperuser && (
-                            <button
-                                onClick={action(
-                                    () => (this.isInviteModal = true)
-                                )}
+        render() {
+            return (
+                <Modal onClose={this.props.onClose}>
+                    <form onSubmit={this.onSubmit}>
+                        <div className="modal-header">
+                            <h5 className="modal-title">Add a user</h5>
+                        </div>
+                        <div className="modal-body">
+                            <div className="form-group">
+                                <label>Full name</label>
+                                <input
+                                    type="string"
+                                    className="form-control"
+                                    onChange={(e) =>
+                                        (this.fullName = e.currentTarget.value)
+                                    }
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Email</label>
+                                <input
+                                    type="email"
+                                    className="form-control"
+                                    onChange={(e) =>
+                                        (this.email = e.currentTarget.value)
+                                    }
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <input
+                                type="submit"
                                 className="btn btn-primary"
-                            >
-                                Add a user
-                            </button>
+                                value="Add user"
+                            />
+                        </div>
+                        {this.responseSuccess && (
+                            <div className="alert alert-success" role="alert">
+                                User added! They can now log in with their G
+                                Suite account.
+                            </div>
                         )}
-                    </div>
-                    <table className="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th>Name</th>
-                                <th>Last Seen</th>
-                                <th>Joined</th>
-                                {isSuperuser && <th>Status</th>}
-                                {isSuperuser && <th></th>}
-                                {isSuperuser && <th></th>}
-                            </tr>
-                            {users.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{user.fullName}</td>
-                                    <td>
-                                        <Timeago time={user.lastSeen} />
-                                    </td>
-                                    <td>
-                                        <Timeago time={user.createdAt} />
-                                    </td>
-                                    {isSuperuser && (
-                                        <td>
-                                            {user.isActive
-                                                ? "active"
-                                                : "disabled"}
-                                        </td>
-                                    )}
-                                    {isSuperuser && (
-                                        <td>
-                                            <Link
-                                                to={`/users/${user.id}`}
-                                                className="btn btn-primary"
-                                            >
-                                                Edit
-                                            </Link>
-                                        </td>
-                                    )}
-                                    {isSuperuser && (
-                                        <td>
-                                            <button
-                                                className="btn btn-danger"
-                                                onClick={() =>
-                                                    this.onDelete(user)
-                                                }
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </main>
-            </AdminLayout>
-        )
+                    </form>
+                </Modal>
+            )
+        }
     }
+)
 
-    async getData() {
-        const { admin } = this.context
+export const UsersIndexPage = observer(
+    class UsersIndexPage extends React.Component {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-        const json = (await admin.getJSON("/api/users.json")) as {
-            users: UserIndexMetaWithLastSeen[]
+        users: UserIndexMetaWithLastSeen[] = []
+        isInviteModal: boolean = false
+
+        constructor(props) {
+            super(props)
+
+            makeObservable(this, {
+                users: observable,
+                isInviteModal: observable,
+                onDelete: action.bound,
+            })
         }
 
-        runInAction(() => {
-            this.users = json.users
-        })
-    }
+        async onDelete(user: UserIndexMetaWithLastSeen) {
+            if (
+                !window.confirm(
+                    `Delete the user ${user.fullName}? This action cannot be undone!`
+                )
+            )
+                return
 
-    componentDidMount() {
-        this.getData()
+            const json = await this.context.admin.requestJSON(
+                `/api/users/${user.id}`,
+                {},
+                "DELETE"
+            )
+
+            if (json.success) {
+                runInAction(() =>
+                    this.users.splice(this.users.indexOf(user), 1)
+                )
+            }
+        }
+
+        render() {
+            const { users } = this
+            const { isSuperuser } = this.context.admin
+            return (
+                <AdminLayout title="Users">
+                    <main className="UsersIndexPage">
+                        {this.isInviteModal && (
+                            <InviteModal
+                                onClose={action(
+                                    () => (this.isInviteModal = false)
+                                )}
+                            />
+                        )}
+                        <div className="topbar">
+                            <h2>Users</h2>
+                            {isSuperuser && (
+                                <button
+                                    onClick={action(
+                                        () => (this.isInviteModal = true)
+                                    )}
+                                    className="btn btn-primary"
+                                >
+                                    Add a user
+                                </button>
+                            )}
+                        </div>
+                        <table className="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Last Seen</th>
+                                    <th>Joined</th>
+                                    {isSuperuser && <th>Status</th>}
+                                    {isSuperuser && <th></th>}
+                                    {isSuperuser && <th></th>}
+                                </tr>
+                                {users.map((user) => (
+                                    <tr key={user.id}>
+                                        <td>{user.fullName}</td>
+                                        <td>
+                                            <Timeago time={user.lastSeen} />
+                                        </td>
+                                        <td>
+                                            <Timeago time={user.createdAt} />
+                                        </td>
+                                        {isSuperuser && (
+                                            <td>
+                                                {user.isActive
+                                                    ? "active"
+                                                    : "disabled"}
+                                            </td>
+                                        )}
+                                        {isSuperuser && (
+                                            <td>
+                                                <Link
+                                                    to={`/users/${user.id}`}
+                                                    className="btn btn-primary"
+                                                >
+                                                    Edit
+                                                </Link>
+                                            </td>
+                                        )}
+                                        {isSuperuser && (
+                                            <td>
+                                                <button
+                                                    className="btn btn-danger"
+                                                    onClick={() =>
+                                                        this.onDelete(user)
+                                                    }
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </main>
+                </AdminLayout>
+            )
+        }
+
+        async getData() {
+            const { admin } = this.context
+
+            const json = (await admin.getJSON("/api/users.json")) as {
+                users: UserIndexMetaWithLastSeen[]
+            }
+
+            runInAction(() => {
+                this.users = json.users
+            })
+        }
+
+        componentDidMount() {
+            this.getData()
+        }
     }
-});
+)

@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { observable, action, toJS, computed, makeObservable } from "mobx";
+import { observable, action, toJS, computed, makeObservable } from "mobx"
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
@@ -32,9 +32,9 @@ const sendFeedback = async (feedback: Feedback) => {
 }
 
 class Feedback {
-    name: string = "";
-    email: string = "";
-    message: string = "";
+    name: string = ""
+    email: string = ""
+    message: string = ""
     environment: string = ""
 
     constructor() {
@@ -42,8 +42,8 @@ class Feedback {
             name: observable,
             email: observable,
             message: observable,
-            clear: action.bound
-        });
+            clear: action.bound,
+        })
     }
 
     clear() {
@@ -126,261 +126,265 @@ const topicNotices = new Map<SpecialFeedbackTopic, JSX.Element>([
     [SpecialFeedbackTopic.Translation, translateNotice],
 ])
 
-export const FeedbackForm = observer(class FeedbackForm extends React.Component<{
-    onClose?: () => void
-    autofocus?: boolean
-}> {
-    feedback: Feedback = new Feedback()
-    loading: boolean = false;
-    done: boolean = false;
-    error: string | undefined;
+export const FeedbackForm = observer(
+    class FeedbackForm extends React.Component<{
+        onClose?: () => void
+        autofocus?: boolean
+    }> {
+        feedback: Feedback = new Feedback()
+        loading: boolean = false
+        done: boolean = false
+        error: string | undefined
 
-    constructor(
-        props: {
-            onClose?: () => void
-            autofocus?: boolean
+        constructor(props: { onClose?: () => void; autofocus?: boolean }) {
+            super(props)
+
+            makeObservable<FeedbackForm, "specialTopic">(this, {
+                loading: observable,
+                done: observable,
+                error: observable,
+                onSubmit: action.bound,
+                onName: action.bound,
+                onEmail: action.bound,
+                onMessage: action.bound,
+                onClose: action.bound,
+                specialTopic: computed,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable<FeedbackForm, "specialTopic">(this, {
-            loading: observable,
-            done: observable,
-            error: observable,
-            onSubmit: action.bound,
-            onName: action.bound,
-            onEmail: action.bound,
-            onMessage: action.bound,
-            onClose: action.bound,
-            specialTopic: computed
-        });
-    }
-
-    async submit() {
-        try {
-            await sendFeedback(this.feedback)
-            this.feedback.clear()
-            this.done = true
-        } catch (err) {
-            this.error = stringifyUnkownError(err)
-        } finally {
-            this.loading = false
+        async submit() {
+            try {
+                await sendFeedback(this.feedback)
+                this.feedback.clear()
+                this.done = true
+            } catch (err) {
+                this.error = stringifyUnkownError(err)
+            } finally {
+                this.loading = false
+            }
         }
-    }
 
-    onSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault()
-        this.done = false
-        this.error = undefined
-        this.loading = true
-        this.submit()
-    }
-
-    onName(e: React.ChangeEvent<HTMLInputElement>) {
-        this.feedback.name = e.currentTarget.value
-    }
-
-    onEmail(e: React.ChangeEvent<HTMLInputElement>) {
-        this.feedback.email = e.currentTarget.value
-    }
-
-    onMessage(e: React.ChangeEvent<HTMLTextAreaElement>) {
-        this.feedback.message = e.currentTarget.value
-    }
-
-    onClose() {
-        if (this.props.onClose) {
-            this.props.onClose()
+        onSubmit(e: React.FormEvent<HTMLFormElement>) {
+            e.preventDefault()
+            this.done = false
+            this.error = undefined
+            this.loading = true
+            this.submit()
         }
-        // Clear the form after closing, in case the user has a 2nd message to send later.
-        this.done = false
-    }
 
-    private get specialTopic(): SpecialFeedbackTopic | undefined {
-        const { message } = this.feedback
-        return topicMatchers.find((matcher) => matcher.regex.test(message))
-            ?.topic
-    }
+        onName(e: React.ChangeEvent<HTMLInputElement>) {
+            this.feedback.name = e.currentTarget.value
+        }
 
-    renderBody() {
-        const { loading, done, specialTopic } = this
-        const autofocus = this.props.autofocus ?? true
+        onEmail(e: React.ChangeEvent<HTMLInputElement>) {
+            this.feedback.email = e.currentTarget.value
+        }
 
-        if (done) {
-            return (
-                <div className="doneMessage">
-                    <div className="icon">
-                        <FontAwesomeIcon icon={faPaperPlane} />
+        onMessage(e: React.ChangeEvent<HTMLTextAreaElement>) {
+            this.feedback.message = e.currentTarget.value
+        }
+
+        onClose() {
+            if (this.props.onClose) {
+                this.props.onClose()
+            }
+            // Clear the form after closing, in case the user has a 2nd message to send later.
+            this.done = false
+        }
+
+        private get specialTopic(): SpecialFeedbackTopic | undefined {
+            const { message } = this.feedback
+            return topicMatchers.find((matcher) => matcher.regex.test(message))
+                ?.topic
+        }
+
+        renderBody() {
+            const { loading, done, specialTopic } = this
+            const autofocus = this.props.autofocus ?? true
+
+            if (done) {
+                return (
+                    <div className="doneMessage">
+                        <div className="icon">
+                            <FontAwesomeIcon icon={faPaperPlane} />
+                        </div>
+                        <div className="message">
+                            <h3>Thank you for your feedback</h3>
+                            <p>
+                                We read all feedback, but due to a high volume
+                                of messages we are not able to reply to all.
+                            </p>
+                        </div>
+                        <div className="actions">
+                            <button onClick={this.onClose}>Close</button>
+                        </div>
                     </div>
-                    <div className="message">
-                        <h3>Thank you for your feedback</h3>
+                )
+            }
+
+            const notices = specialTopic
+                ? topicNotices.get(specialTopic)
+                : undefined
+            return (
+                <React.Fragment>
+                    <div className="header">Leave us feedback</div>
+                    <div className="notice">
                         <p>
-                            We read all feedback, but due to a high volume of
-                            messages we are not able to reply to all.
+                            <strong>Have a question?</strong> You may find an
+                            answer in:
+                            <br />
+                            <a
+                                href={`${BAKED_BASE_URL}/faqs`}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <strong>General FAQ</strong>
+                            </a>{" "}
+                            or{" "}
+                            <a
+                                href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <strong>Vaccinations FAQ</strong>
+                            </a>
                         </p>
                     </div>
-                    <div className="actions">
-                        <button onClick={this.onClose}>Close</button>
+                    <div className="formBody">
+                        <div className="formSection formSectionExpand">
+                            <label htmlFor="feedback.message">Message</label>
+                            <textarea
+                                id="feedback.message"
+                                onChange={this.onMessage}
+                                rows={5}
+                                minLength={30}
+                                required
+                                disabled={loading}
+                            />
+                            {notices ? (
+                                <div className="topic-notice">
+                                    Your question may be answered in{" "}
+                                    <strong>{notices}</strong>.
+                                </div>
+                            ) : null}
+                        </div>
+                        <div className="formSection">
+                            <label htmlFor="feedback.name">Your name</label>
+                            <input
+                                id="feedback.name"
+                                onChange={this.onName}
+                                autoFocus={autofocus}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="formSection">
+                            <label htmlFor="feedback.email">
+                                Email address
+                            </label>
+                            <input
+                                id="feedback.email"
+                                onChange={this.onEmail}
+                                type="email"
+                                required
+                                disabled={loading}
+                            />
+                        </div>
+                        {this.error ? (
+                            <div style={{ color: "red" }}>{this.error}</div>
+                        ) : undefined}
+                        {this.done ? (
+                            <div style={{ color: "green" }}>
+                                Thanks for your feedback!
+                            </div>
+                        ) : undefined}
                     </div>
-                </div>
+                    <div className="footer">
+                        <button type="submit" disabled={loading}>
+                            Send message
+                        </button>
+                    </div>
+                </React.Fragment>
             )
         }
 
-        const notices = specialTopic
-            ? topicNotices.get(specialTopic)
-            : undefined
-        return (
-            <React.Fragment>
-                <div className="header">Leave us feedback</div>
-                <div className="notice">
-                    <p>
-                        <strong>Have a question?</strong> You may find an answer
-                        in:
-                        <br />
-                        <a
-                            href={`${BAKED_BASE_URL}/faqs`}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            <strong>General FAQ</strong>
-                        </a>{" "}
-                        or{" "}
-                        <a
-                            href={`${BAKED_BASE_URL}/covid-vaccinations#frequently-asked-questions`}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            <strong>Vaccinations FAQ</strong>
-                        </a>
-                    </p>
-                </div>
-                <div className="formBody">
-                    <div className="formSection formSectionExpand">
-                        <label htmlFor="feedback.message">Message</label>
-                        <textarea
-                            id="feedback.message"
-                            onChange={this.onMessage}
-                            rows={5}
-                            minLength={30}
-                            required
-                            disabled={loading}
-                        />
-                        {notices ? (
-                            <div className="topic-notice">
-                                Your question may be answered in{" "}
-                                <strong>{notices}</strong>.
-                            </div>
-                        ) : null}
-                    </div>
-                    <div className="formSection">
-                        <label htmlFor="feedback.name">Your name</label>
-                        <input
-                            id="feedback.name"
-                            onChange={this.onName}
-                            autoFocus={autofocus}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="formSection">
-                        <label htmlFor="feedback.email">Email address</label>
-                        <input
-                            id="feedback.email"
-                            onChange={this.onEmail}
-                            type="email"
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-                    {this.error ? (
-                        <div style={{ color: "red" }}>{this.error}</div>
-                    ) : undefined}
-                    {this.done ? (
-                        <div style={{ color: "green" }}>
-                            Thanks for your feedback!
-                        </div>
-                    ) : undefined}
-                </div>
-                <div className="footer">
-                    <button type="submit" disabled={loading}>
-                        Send message
-                    </button>
-                </div>
-            </React.Fragment>
-        )
+        render() {
+            return (
+                <form
+                    className={classnames("FeedbackForm", {
+                        loading: this.loading,
+                    })}
+                    onSubmit={this.onSubmit}
+                >
+                    {this.renderBody()}
+                </form>
+            )
+        }
     }
+)
 
-    render() {
-        return (
-            <form
-                className={classnames("FeedbackForm", {
-                    loading: this.loading,
-                })}
-                onSubmit={this.onSubmit}
-            >
-                {this.renderBody()}
-            </form>
-        )
-    }
-});
+export const FeedbackPrompt = observer(
+    class FeedbackPrompt extends React.Component {
+        isOpen: boolean = false
 
-export const FeedbackPrompt = observer(class FeedbackPrompt extends React.Component {
-    isOpen: boolean = false;
+        constructor(props) {
+            super(props)
 
-    constructor(props) {
-        super(props);
+            makeObservable(this, {
+                isOpen: observable,
+                toggleOpen: action.bound,
+                onClose: action.bound,
+                onClickOutside: action.bound,
+            })
+        }
 
-        makeObservable(this, {
-            isOpen: observable,
-            toggleOpen: action.bound,
-            onClose: action.bound,
-            onClickOutside: action.bound
-        });
-    }
+        toggleOpen() {
+            this.isOpen = !this.isOpen
+        }
 
-    toggleOpen() {
-        this.isOpen = !this.isOpen
-    }
+        onClose() {
+            this.isOpen = false
+        }
 
-    onClose() {
-        this.isOpen = false
-    }
+        onClickOutside() {
+            this.onClose()
+        }
 
-    onClickOutside() {
-        this.onClose()
-    }
-
-    render() {
-        return (
-            <div
-                className={`feedbackPromptContainer${
-                    this.isOpen ? " active" : ""
-                }`}
-            >
-                {/* We are keeping the form always rendered to avoid wiping all contents
+        render() {
+            return (
+                <div
+                    className={`feedbackPromptContainer${
+                        this.isOpen ? " active" : ""
+                    }`}
+                >
+                    {/* We are keeping the form always rendered to avoid wiping all contents
                 when a user accidentally closes the form */}
-                <div style={{ display: this.isOpen ? "block" : "none" }}>
-                    <div className="overlay" onClick={this.onClickOutside} />
-                    <div className="box">
-                        <FeedbackForm onClose={this.onClose} />
+                    <div style={{ display: this.isOpen ? "block" : "none" }}>
+                        <div
+                            className="overlay"
+                            onClick={this.onClickOutside}
+                        />
+                        <div className="box">
+                            <FeedbackForm onClose={this.onClose} />
+                        </div>
                     </div>
+                    {this.isOpen ? (
+                        <button className="prompt" onClick={this.toggleOpen}>
+                            <FontAwesomeIcon icon={faTimes} /> Close
+                        </button>
+                    ) : (
+                        <button
+                            className="prompt"
+                            data-track-note="page-open-feedback"
+                            onClick={this.toggleOpen}
+                        >
+                            <FontAwesomeIcon icon={faCommentAlt} /> Feedback
+                        </button>
+                    )}
                 </div>
-                {this.isOpen ? (
-                    <button className="prompt" onClick={this.toggleOpen}>
-                        <FontAwesomeIcon icon={faTimes} /> Close
-                    </button>
-                ) : (
-                    <button
-                        className="prompt"
-                        data-track-note="page-open-feedback"
-                        onClick={this.toggleOpen}
-                    >
-                        <FontAwesomeIcon icon={faCommentAlt} /> Feedback
-                    </button>
-                )}
-            </div>
-        )
+            )
+        }
     }
-});
+)
 
 export function runFeedbackPage() {
     ReactDOM.render(

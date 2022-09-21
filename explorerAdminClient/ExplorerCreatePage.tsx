@@ -1,7 +1,7 @@
 import { observer } from "mobx-react"
 import React from "react"
 import { HotTable } from "@handsontable/react"
-import { action, observable, computed, makeObservable } from "mobx";
+import { action, observable, computed, makeObservable } from "mobx"
 import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
@@ -40,285 +40,309 @@ const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don
 // Register all Handsontable modules
 registerAllModules()
 
-export const ExplorerCreatePage = observer(class ExplorerCreatePage extends React.Component<{
-    slug: string
-    gitCmsBranchName: string
-    manager?: AdminManager
-    doNotFetch?: boolean // for testing
-}> {
-    disposers: Array<() => void> = []
+export const ExplorerCreatePage = observer(
+    class ExplorerCreatePage extends React.Component<{
+        slug: string
+        gitCmsBranchName: string
+        manager?: AdminManager
+        doNotFetch?: boolean // for testing
+    }> {
+        disposers: Array<() => void> = []
 
-    constructor(
-        props: {
+        constructor(props: {
             slug: string
             gitCmsBranchName: string
             manager?: AdminManager
             doNotFetch?: boolean // for testing
+        }) {
+            super(props)
+
+            makeObservable<
+                ExplorerCreatePage,
+                | "manager"
+                | "loadingModalOff"
+                | "loadingModalOn"
+                | "resetLoadingModal"
+                | "startPollingLocalStorageForPreviewChanges"
+                | "fetchExplorerProgramOnLoad"
+                | "setProgram"
+                | "programOnDisk"
+                | "program"
+                | "_save"
+                | "saveAs"
+                | "clearChanges"
+                | "save"
+                | "onSave"
+            >(this, {
+                manager: computed,
+                loadingModalOff: action.bound,
+                loadingModalOn: action.bound,
+                resetLoadingModal: action.bound,
+                componentDidMount: action,
+                startPollingLocalStorageForPreviewChanges: action.bound,
+                isReady: observable,
+                componentWillUnmount: action,
+                fetchExplorerProgramOnLoad: action.bound,
+                setProgram: action.bound,
+                programOnDisk: observable.ref,
+                program: observable.ref,
+                _save: action.bound,
+                saveAs: action.bound,
+                clearChanges: action.bound,
+                save: action.bound,
+                isModified: computed,
+                gitCmsBranchName: observable,
+                onSave: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable<ExplorerCreatePage, "manager" | "loadingModalOff" | "loadingModalOn" | "resetLoadingModal" | "startPollingLocalStorageForPreviewChanges" | "fetchExplorerProgramOnLoad" | "setProgram" | "programOnDisk" | "program" | "_save" | "saveAs" | "clearChanges" | "save" | "onSave">(this, {
-            manager: computed,
-            loadingModalOff: action.bound,
-            loadingModalOn: action.bound,
-            resetLoadingModal: action.bound,
-            componentDidMount: action,
-            startPollingLocalStorageForPreviewChanges: action.bound,
-            isReady: observable,
-            componentWillUnmount: action,
-            fetchExplorerProgramOnLoad: action.bound,
-            setProgram: action.bound,
-            programOnDisk: observable.ref,
-            program: observable.ref,
-            _save: action.bound,
-            saveAs: action.bound,
-            clearChanges: action.bound,
-            save: action.bound,
-            isModified: computed,
-            gitCmsBranchName: observable,
-            onSave: action.bound
-        });
-    }
+        private get manager() {
+            return this.props.manager ?? {}
+        }
 
-    private get manager() {
-        return this.props.manager ?? {}
-    }
+        private loadingModalOff() {
+            this.manager.loadingIndicatorSetting = "off"
+        }
 
-    private loadingModalOff() {
-        this.manager.loadingIndicatorSetting = "off"
-    }
+        private loadingModalOn() {
+            this.manager.loadingIndicatorSetting = "loading"
+        }
 
-    private loadingModalOn() {
-        this.manager.loadingIndicatorSetting = "loading"
-    }
+        private resetLoadingModal() {
+            this.manager.loadingIndicatorSetting = "default"
+        }
 
-    private resetLoadingModal() {
-        this.manager.loadingIndicatorSetting = "default"
-    }
+        componentDidMount() {
+            this.loadingModalOff()
+            exposeInstanceOnWindow(this, "explorerEditor")
 
-    componentDidMount() {
-        this.loadingModalOff()
-        exposeInstanceOnWindow(this, "explorerEditor")
+            if (this.props.doNotFetch) return
 
-        if (this.props.doNotFetch) return
+            this.fetchExplorerProgramOnLoad()
+            this.startPollingLocalStorageForPreviewChanges()
+        }
 
-        this.fetchExplorerProgramOnLoad()
-        this.startPollingLocalStorageForPreviewChanges()
-    }
-
-    private startPollingLocalStorageForPreviewChanges() {
-        const intervalId = setInterval(() => {
-            const savedQueryParamsJSON = localStorage.getItem(
-                `${UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS}${this.program.slug}`
-            )
-            if (typeof savedQueryParamsJSON === "string")
-                this.program.decisionMatrix.setValuesFromChoiceParams(
-                    JSON.parse(savedQueryParamsJSON) as ExplorerChoiceParams
+        private startPollingLocalStorageForPreviewChanges() {
+            const intervalId = setInterval(() => {
+                const savedQueryParamsJSON = localStorage.getItem(
+                    `${UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS}${this.program.slug}`
                 )
-        }, 1000)
-        this.disposers.push(() => clearInterval(intervalId))
-    }
+                if (typeof savedQueryParamsJSON === "string")
+                    this.program.decisionMatrix.setValuesFromChoiceParams(
+                        JSON.parse(savedQueryParamsJSON) as ExplorerChoiceParams
+                    )
+            }, 1000)
+            this.disposers.push(() => clearInterval(intervalId))
+        }
 
-    isReady = false;
+        isReady = false
 
-    componentWillUnmount() {
-        this.resetLoadingModal()
-        this.disposers.forEach((disposer) => disposer())
-    }
+        componentWillUnmount() {
+            this.resetLoadingModal()
+            this.disposers.forEach((disposer) => disposer())
+        }
 
-    private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
+        private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
 
-    private async fetchExplorerProgramOnLoad() {
-        const { slug } = this.props
-        const response = await this.gitCmsClient.readRemoteFile({
-            filepath: makeFullPath(slug),
-        })
-        this.programOnDisk = new ExplorerProgram("", response.content ?? "")
-        this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
-        this.isReady = true
-        if (this.isModified)
-            alert(
-                `Your browser has a changed draft of '${slug}'. If you want to clear your local changes, click the "Clear Changes" button in the top right.`
+        private async fetchExplorerProgramOnLoad() {
+            const { slug } = this.props
+            const response = await this.gitCmsClient.readRemoteFile({
+                filepath: makeFullPath(slug),
+            })
+            this.programOnDisk = new ExplorerProgram("", response.content ?? "")
+            this.setProgram(this.draftIfAny ?? this.programOnDisk.toString())
+            this.isReady = true
+            if (this.isModified)
+                alert(
+                    `Your browser has a changed draft of '${slug}'. If you want to clear your local changes, click the "Clear Changes" button in the top right.`
+                )
+        }
+
+        private setProgram(code: string) {
+            this.program = new ExplorerProgram(this.program.slug, code)
+            this.saveDraft(code)
+        }
+
+        private saveDraft(code: string) {
+            localStorage.setItem(
+                UNSAVED_EXPLORER_DRAFT + this.program.slug,
+                code
             )
-    }
-
-    private setProgram(code: string) {
-        this.program = new ExplorerProgram(this.program.slug, code)
-        this.saveDraft(code)
-    }
-
-    private saveDraft(code: string) {
-        localStorage.setItem(UNSAVED_EXPLORER_DRAFT + this.program.slug, code)
-    }
-
-    get draftIfAny() {
-        return localStorage.getItem(UNSAVED_EXPLORER_DRAFT + this.program.slug)
-    }
-
-    private clearDraft() {
-        localStorage.removeItem(UNSAVED_EXPLORER_DRAFT + this.program.slug)
-    }
-
-    private programOnDisk = new ExplorerProgram("", "");
-
-    private program = new ExplorerProgram(this.props.slug, "");
-
-    private async _save(slug: string, commitMessage: string) {
-        this.loadingModalOn()
-        this.program.slug = slug
-        const res = await this.gitCmsClient.writeRemoteFile({
-            filepath: this.program.fullPath,
-            content: this.program.toString(),
-            commitMessage,
-        })
-        if (!res.success) {
-            alert(`Saving the explorer failed!\n\n${res.error}`)
-            return
         }
 
-        this.loadingModalOff()
-        this.programOnDisk = new ExplorerProgram("", this.program.toString())
-        this.setProgram(this.programOnDisk.toString())
-        this.clearDraft()
-    }
-
-    private async saveAs() {
-        const userSlug = prompt(
-            `Create a slug (URL friendly name) for this explorer. Your new file will be pushed to the '${this.props.gitCmsBranchName}' branch on GitHub.`,
-            this.program.slug
-        )
-        if (!userSlug) return
-        const slug = slugify(userSlug)
-        if (!slug) {
-            alert(`'${slug}' is not a valid slug`)
-            return
-        }
-        if (new Set(RESERVED_NAMES).has(slug.toLowerCase())) {
-            alert(
-                `Cannot save '${userSlug}' because that is one of the reserved names: ${RESERVED_NAMES.join(
-                    ", "
-                )}`
+        get draftIfAny() {
+            return localStorage.getItem(
+                UNSAVED_EXPLORER_DRAFT + this.program.slug
             )
-            return
         }
-        await this._save(slug, `Saving ${this.program.slug} as ${slug}`)
-        window.location.href = slug
-    }
 
-    private clearChanges() {
-        if (!confirm("Are you sure you want to clear your local changes?"))
-            return
+        private clearDraft() {
+            localStorage.removeItem(UNSAVED_EXPLORER_DRAFT + this.program.slug)
+        }
 
-        this.setProgram(this.programOnDisk.toString())
-        this.clearDraft()
-    }
+        private programOnDisk = new ExplorerProgram("", "")
 
-    private async save() {
-        const commitMessage = prompt(
-            `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
-            `Updated ${this.program.slug}`
-        )
-        if (!commitMessage) return
-        await this._save(this.program.slug, commitMessage)
-    }
+        private program = new ExplorerProgram(this.props.slug, "")
 
-    get isModified() {
-        return this.programOnDisk.toString() !== this.program.toString()
-    }
+        private async _save(slug: string, commitMessage: string) {
+            this.loadingModalOn()
+            this.program.slug = slug
+            const res = await this.gitCmsClient.writeRemoteFile({
+                filepath: this.program.fullPath,
+                content: this.program.toString(),
+                commitMessage,
+            })
+            if (!res.success) {
+                alert(`Saving the explorer failed!\n\n${res.error}`)
+                return
+            }
 
-    gitCmsBranchName = this.props.gitCmsBranchName;
+            this.loadingModalOff()
+            this.programOnDisk = new ExplorerProgram(
+                "",
+                this.program.toString()
+            )
+            this.setProgram(this.programOnDisk.toString())
+            this.clearDraft()
+        }
 
-    private onSave() {
-        if (this.program.isNewFile) this.saveAs()
-        else if (this.isModified) this.save()
-    }
+        private async saveAs() {
+            const userSlug = prompt(
+                `Create a slug (URL friendly name) for this explorer. Your new file will be pushed to the '${this.props.gitCmsBranchName}' branch on GitHub.`,
+                this.program.slug
+            )
+            if (!userSlug) return
+            const slug = slugify(userSlug)
+            if (!slug) {
+                alert(`'${slug}' is not a valid slug`)
+                return
+            }
+            if (new Set(RESERVED_NAMES).has(slug.toLowerCase())) {
+                alert(
+                    `Cannot save '${userSlug}' because that is one of the reserved names: ${RESERVED_NAMES.join(
+                        ", "
+                    )}`
+                )
+                return
+            }
+            await this._save(slug, `Saving ${this.program.slug} as ${slug}`)
+            window.location.href = slug
+        }
 
-    render() {
-        if (!this.isReady) return <LoadingIndicator />
+        private clearChanges() {
+            if (!confirm("Are you sure you want to clear your local changes?"))
+                return
 
-        const { program, isModified } = this
-        const { isNewFile, slug } = program
-        const previewLink = `/admin/${EXPLORERS_PREVIEW_ROUTE}/${slug}`
+            this.setProgram(this.programOnDisk.toString())
+            this.clearDraft()
+        }
 
-        const buttons = []
+        private async save() {
+            const commitMessage = prompt(
+                `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
+                `Updated ${this.program.slug}`
+            )
+            if (!commitMessage) return
+            await this._save(this.program.slug, commitMessage)
+        }
 
-        buttons.push(
-            <button
-                key="save"
-                disabled={!isModified && !isNewFile}
-                className={classNames("btn", "btn-primary")}
-                onClick={this.onSave}
-                title="Saves file to disk, commits and pushes to GitHub"
-            >
-                Save
-            </button>
-        )
+        get isModified() {
+            return this.programOnDisk.toString() !== this.program.toString()
+        }
 
-        buttons.push(
-            <button
-                key="saveAs"
-                disabled={isNewFile}
-                title={
-                    isNewFile
-                        ? "You need to save this file first."
-                        : "Saves file to disk, commits and pushes to GitHub"
-                }
-                className={classNames("btn", "btn-secondary")}
-                onClick={this.saveAs}
-            >
-                Save As
-            </button>
-        )
+        gitCmsBranchName = this.props.gitCmsBranchName
 
-        buttons.push(
-            <button
-                key="clear"
-                disabled={!isModified}
-                title={isModified ? "" : "No changes"}
-                className={classNames("btn", "btn-secondary")}
-                onClick={this.clearChanges}
-            >
-                Clear Changes
-            </button>
-        )
+        private onSave() {
+            if (this.program.isNewFile) this.saveAs()
+            else if (this.isModified) this.save()
+        }
 
-        const modifiedMessage = isModified
-            ? "Are you sure you want to leave? You have unsaved changes."
-            : "" // todo: provide an explanation of how many cells are modified.
+        render() {
+            if (!this.isReady) return <LoadingIndicator />
 
-        return (
-            <>
-                <Prompt when={isModified} message={modifiedMessage} />
-                <main
-                    style={{
-                        padding: 0,
-                        position: "relative",
-                    }}
+            const { program, isModified } = this
+            const { isNewFile, slug } = program
+            const previewLink = `/admin/${EXPLORERS_PREVIEW_ROUTE}/${slug}`
+
+            const buttons = []
+
+            buttons.push(
+                <button
+                    key="save"
+                    disabled={!isModified && !isNewFile}
+                    className={classNames("btn", "btn-primary")}
+                    onClick={this.onSave}
+                    title="Saves file to disk, commits and pushes to GitHub"
                 >
-                    <div className="ExplorerCreatePageHeader">
-                        <div>
-                            <TemplatesComponent
-                                onChange={this.setProgram}
-                                isNewFile={isNewFile}
-                            />
+                    Save
+                </button>
+            )
+
+            buttons.push(
+                <button
+                    key="saveAs"
+                    disabled={isNewFile}
+                    title={
+                        isNewFile
+                            ? "You need to save this file first."
+                            : "Saves file to disk, commits and pushes to GitHub"
+                    }
+                    className={classNames("btn", "btn-secondary")}
+                    onClick={this.saveAs}
+                >
+                    Save As
+                </button>
+            )
+
+            buttons.push(
+                <button
+                    key="clear"
+                    disabled={!isModified}
+                    title={isModified ? "" : "No changes"}
+                    className={classNames("btn", "btn-secondary")}
+                    onClick={this.clearChanges}
+                >
+                    Clear Changes
+                </button>
+            )
+
+            const modifiedMessage = isModified
+                ? "Are you sure you want to leave? You have unsaved changes."
+                : "" // todo: provide an explanation of how many cells are modified.
+
+            return (
+                <>
+                    <Prompt when={isModified} message={modifiedMessage} />
+                    <main
+                        style={{
+                            padding: 0,
+                            position: "relative",
+                        }}
+                    >
+                        <div className="ExplorerCreatePageHeader">
+                            <div>
+                                <TemplatesComponent
+                                    onChange={this.setProgram}
+                                    isNewFile={isNewFile}
+                                />
+                            </div>
+                            <div style={{ textAlign: "right" }}>{buttons}</div>
                         </div>
-                        <div style={{ textAlign: "right" }}>{buttons}</div>
-                    </div>
-                    <HotEditor
-                        onChange={this.setProgram}
-                        program={program}
-                        programOnDisk={this.programOnDisk}
-                    />
-                    <PictureInPicture previewLink={previewLink} />
-                    <a className="PreviewLink" href={previewLink}>
-                        Visit preview
-                    </a>
-                </main>
-            </>
-        )
+                        <HotEditor
+                            onChange={this.setProgram}
+                            program={program}
+                            programOnDisk={this.programOnDisk}
+                        />
+                        <PictureInPicture previewLink={previewLink} />
+                        <a className="PreviewLink" href={previewLink}>
+                            Visit preview
+                        </a>
+                    </main>
+                </>
+            )
+        }
     }
-});
+)
 
 class HotEditor extends React.Component<{
     onChange: (code: string) => void
@@ -327,20 +351,21 @@ class HotEditor extends React.Component<{
 }> {
     private hotTableComponent = React.createRef<HotTable>()
 
-    constructor(
-        props: {
-            onChange: (code: string) => void
-            program: ExplorerProgram
-            programOnDisk: ExplorerProgram
-        }
-    ) {
-        super(props);
+    constructor(props: {
+        onChange: (code: string) => void
+        program: ExplorerProgram
+        programOnDisk: ExplorerProgram
+    }) {
+        super(props)
 
-        makeObservable<HotEditor, "program" | "programOnDisk" | "updateProgramFromHot">(this, {
+        makeObservable<
+            HotEditor,
+            "program" | "programOnDisk" | "updateProgramFromHot"
+        >(this, {
             program: computed,
             programOnDisk: computed,
-            updateProgramFromHot: action.bound
-        });
+            updateProgramFromHot: action.bound,
+        })
     }
 
     private get program() {
@@ -499,19 +524,20 @@ class TemplatesComponent extends React.Component<{
     isNewFile: boolean
     onChange: (code: string) => void
 }> {
-    constructor(
-        props: {
-            isNewFile: boolean
-            onChange: (code: string) => void
-        }
-    ) {
-        super(props);
+    constructor(props: {
+        isNewFile: boolean
+        onChange: (code: string) => void
+    }) {
+        super(props)
 
-        makeObservable<TemplatesComponent, "loadTemplate" | "fetchTemplatesOnLoad">(this, {
+        makeObservable<
+            TemplatesComponent,
+            "loadTemplate" | "fetchTemplatesOnLoad"
+        >(this, {
             loadTemplate: action.bound,
             templates: observable.ref,
-            fetchTemplatesOnLoad: action.bound
-        });
+            fetchTemplatesOnLoad: action.bound,
+        })
     }
 
     private loadTemplate(filename: string) {
@@ -521,7 +547,7 @@ class TemplatesComponent extends React.Component<{
         )
     }
 
-    templates: GitCmsFile[] = [];
+    templates: GitCmsFile[] = []
 
     componentDidMount() {
         if (this.props.isNewFile) this.fetchTemplatesOnLoad()

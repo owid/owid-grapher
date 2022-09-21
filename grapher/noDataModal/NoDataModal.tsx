@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed, makeObservable } from "mobx";
+import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -13,69 +13,71 @@ export interface NoDataModalManager {
     entityType?: string
 }
 
-export const NoDataModal = observer(class NoDataModal extends React.Component<{
-    bounds?: Bounds
-    message?: string
-    manager: NoDataModalManager
-}> {
-    constructor(
-        props: {
+export const NoDataModal = observer(
+    class NoDataModal extends React.Component<{
+        bounds?: Bounds
+        message?: string
+        manager: NoDataModalManager
+    }> {
+        constructor(props: {
             bounds?: Bounds
             message?: string
             manager: NoDataModalManager
+        }) {
+            super(props)
+
+            makeObservable<NoDataModal, "onDataSelect" | "bounds">(this, {
+                onDataSelect: action.bound,
+                bounds: computed,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable<NoDataModal, "onDataSelect" | "bounds">(this, {
-            onDataSelect: action.bound,
-            bounds: computed
-        });
-    }
+        private onDataSelect(): void {
+            this.props.manager.isSelectingData = true
+        }
 
-    private onDataSelect(): void {
-        this.props.manager.isSelectingData = true
-    }
+        private get bounds(): Bounds {
+            return this.props.bounds ?? DEFAULT_BOUNDS
+        }
 
-    private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
-    }
-
-    render(): JSX.Element {
-        const { message, manager } = this.props
-        const entityType = manager.entityType
-        const { bounds } = this
-        return (
-            <foreignObject
-                x={bounds.left}
-                y={bounds.top}
-                width={bounds.width}
-                height={bounds.height}
-            >
-                <div className="NoData">
-                    <p className="message">{message || "No available data"}</p>
-                    <div className="actions">
-                        {manager.canAddData && (
-                            <button
-                                className="action"
-                                onClick={this.onDataSelect}
-                            >
-                                <FontAwesomeIcon icon={faPlus} /> Add{" "}
-                                {entityType}
-                            </button>
-                        )}
-                        {manager.canChangeEntity && (
-                            <button
-                                className="action"
-                                onClick={this.onDataSelect}
-                            >
-                                <FontAwesomeIcon icon={faRightLeft} /> Change{" "}
-                                {entityType}
-                            </button>
-                        )}
+        render(): JSX.Element {
+            const { message, manager } = this.props
+            const entityType = manager.entityType
+            const { bounds } = this
+            return (
+                <foreignObject
+                    x={bounds.left}
+                    y={bounds.top}
+                    width={bounds.width}
+                    height={bounds.height}
+                >
+                    <div className="NoData">
+                        <p className="message">
+                            {message || "No available data"}
+                        </p>
+                        <div className="actions">
+                            {manager.canAddData && (
+                                <button
+                                    className="action"
+                                    onClick={this.onDataSelect}
+                                >
+                                    <FontAwesomeIcon icon={faPlus} /> Add{" "}
+                                    {entityType}
+                                </button>
+                            )}
+                            {manager.canChangeEntity && (
+                                <button
+                                    className="action"
+                                    onClick={this.onDataSelect}
+                                >
+                                    <FontAwesomeIcon icon={faRightLeft} />{" "}
+                                    Change {entityType}
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </div>
-            </foreignObject>
-        )
+                </foreignObject>
+            )
+        }
     }
-});
+)

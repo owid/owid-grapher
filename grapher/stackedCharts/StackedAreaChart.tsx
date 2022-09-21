@@ -10,7 +10,7 @@ import {
     excludeUndefined,
     isMobile,
 } from "../../clientUtils/Util.js"
-import { computed, action, observable, makeObservable } from "mobx";
+import { computed, action, observable, makeObservable } from "mobx"
 import { SeriesName } from "../core/GrapherConstants.js"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews.js"
@@ -40,128 +40,159 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 
 const BLUR_COLOR = "#ddd"
 
-const Areas = observer(class Areas extends React.Component<AreasProps> {
-    constructor(props: AreasProps) {
-        super(props);
+const Areas = observer(
+    class Areas extends React.Component<AreasProps> {
+        constructor(props: AreasProps) {
+            super(props)
 
-        makeObservable<Areas, "areas" | "borders">(this, {
-            areas: computed,
-            borders: computed
-        });
-    }
+            makeObservable<Areas, "areas" | "borders">(this, {
+                areas: computed,
+                borders: computed,
+            })
+        }
 
-    private seriesIsBlur(series: StackedSeries<Time>): boolean {
-        return (
-            this.props.focusedSeriesNames.length > 0 &&
-            !this.props.focusedSeriesNames.includes(series.seriesName)
-        )
-    }
+        private seriesIsBlur(series: StackedSeries<Time>): boolean {
+            return (
+                this.props.focusedSeriesNames.length > 0 &&
+                !this.props.focusedSeriesNames.includes(series.seriesName)
+            )
+        }
 
-    private get areas(): JSX.Element[] {
-        const { dualAxis, seriesArr } = this.props
-        const { horizontalAxis, verticalAxis } = dualAxis
-        const xBottomLeft = [horizontalAxis.range[0], verticalAxis.range[0]]
-        const xBottomRight = [horizontalAxis.range[1], verticalAxis.range[0]]
+        private get areas(): JSX.Element[] {
+            const { dualAxis, seriesArr } = this.props
+            const { horizontalAxis, verticalAxis } = dualAxis
+            const xBottomLeft = [horizontalAxis.range[0], verticalAxis.range[0]]
+            const xBottomRight = [
+                horizontalAxis.range[1],
+                verticalAxis.range[0],
+            ]
 
-        // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
-        let prevPoints = [xBottomLeft, xBottomRight]
-        return seriesArr.map((series) => {
-            let mainPoints: [number, number][] = []
-            if (series.points.length > 1) {
-                mainPoints = series.points.map(
+            // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
+            let prevPoints = [xBottomLeft, xBottomRight]
+            return seriesArr.map((series) => {
+                let mainPoints: [number, number][] = []
+                if (series.points.length > 1) {
+                    mainPoints = series.points.map(
+                        (point) =>
+                            [
+                                horizontalAxis.place(point.position),
+                                verticalAxis.place(
+                                    point.value + point.valueOffset
+                                ),
+                            ] as [number, number]
+                    )
+                } else if (series.points.length === 1) {
+                    // We only have one point, so make it so it stretches out over the whole x axis range
+                    const point = series.points[0]
+                    const y = verticalAxis.place(
+                        point.value + point.valueOffset
+                    )
+                    mainPoints = [
+                        [horizontalAxis.range[0], y],
+                        [horizontalAxis.range[1], y],
+                    ]
+                }
+                const points = mainPoints.concat(
+                    reverse(clone(prevPoints)) as any
+                )
+                prevPoints = mainPoints
+
+                return (
+                    <path
+                        className={makeSafeForCSS(series.seriesName) + "-area"}
+                        key={series.seriesName + "-area"}
+                        strokeLinecap="round"
+                        d={pointsToPath(points)}
+                        fill={
+                            this.seriesIsBlur(series)
+                                ? BLUR_COLOR
+                                : series.color
+                        }
+                        fillOpacity={0.7}
+                        clipPath={this.props.clipPath}
+                    />
+                )
+            })
+        }
+
+        private get borders(): JSX.Element[] {
+            const { dualAxis, seriesArr } = this.props
+            const { horizontalAxis, verticalAxis } = dualAxis
+
+            // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
+            return seriesArr.map((series) => {
+                const points = series.points.map(
                     (point) =>
                         [
                             horizontalAxis.place(point.position),
                             verticalAxis.place(point.value + point.valueOffset),
                         ] as [number, number]
                 )
-            } else if (series.points.length === 1) {
-                // We only have one point, so make it so it stretches out over the whole x axis range
-                const point = series.points[0]
-                const y = verticalAxis.place(point.value + point.valueOffset)
-                mainPoints = [
-                    [horizontalAxis.range[0], y],
-                    [horizontalAxis.range[1], y],
-                ]
-            }
-            const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
-            prevPoints = mainPoints
+
+                return (
+                    <path
+                        className={
+                            makeSafeForCSS(series.seriesName) + "-border"
+                        }
+                        key={series.seriesName + "-border"}
+                        strokeLinecap="round"
+                        d={pointsToPath(points)}
+                        stroke={rgb(
+                            this.seriesIsBlur(series)
+                                ? BLUR_COLOR
+                                : series.color
+                        )
+                            .darker(0.5)
+                            .toString()}
+                        strokeOpacity={0.7}
+                        strokeWidth={0.5}
+                        fill="none"
+                        clipPath={this.props.clipPath}
+                    />
+                )
+            })
+        }
+
+        render(): JSX.Element {
+            const { dualAxis } = this.props
+            const { horizontalAxis, verticalAxis } = dualAxis
 
             return (
-                <path
-                    className={makeSafeForCSS(series.seriesName) + "-area"}
-                    key={series.seriesName + "-area"}
-                    strokeLinecap="round"
-                    d={pointsToPath(points)}
-                    fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
-                    fillOpacity={0.7}
-                    clipPath={this.props.clipPath}
-                />
+                <g className="Areas">
+                    <rect
+                        x={horizontalAxis.range[0]}
+                        y={verticalAxis.range[1]}
+                        width={
+                            horizontalAxis.range[1] - horizontalAxis.range[0]
+                        }
+                        height={verticalAxis.range[0] - verticalAxis.range[1]}
+                        opacity={0}
+                        fill="rgba(255,255,255,0)"
+                    />
+                    {this.areas}
+                    {this.borders}
+                </g>
             )
-        })
+        }
     }
-
-    private get borders(): JSX.Element[] {
-        const { dualAxis, seriesArr } = this.props
-        const { horizontalAxis, verticalAxis } = dualAxis
-
-        // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
-        return seriesArr.map((series) => {
-            const points = series.points.map(
-                (point) =>
-                    [
-                        horizontalAxis.place(point.position),
-                        verticalAxis.place(point.value + point.valueOffset),
-                    ] as [number, number]
-            )
-
-            return (
-                <path
-                    className={makeSafeForCSS(series.seriesName) + "-border"}
-                    key={series.seriesName + "-border"}
-                    strokeLinecap="round"
-                    d={pointsToPath(points)}
-                    stroke={rgb(
-                        this.seriesIsBlur(series) ? BLUR_COLOR : series.color
-                    )
-                        .darker(0.5)
-                        .toString()}
-                    strokeOpacity={0.7}
-                    strokeWidth={0.5}
-                    fill="none"
-                    clipPath={this.props.clipPath}
-                />
-            )
-        })
-    }
-
-    render(): JSX.Element {
-        const { dualAxis } = this.props
-        const { horizontalAxis, verticalAxis } = dualAxis
-
-        return (
-            <g className="Areas">
-                <rect
-                    x={horizontalAxis.range[0]}
-                    y={verticalAxis.range[1]}
-                    width={horizontalAxis.range[1] - horizontalAxis.range[0]}
-                    height={verticalAxis.range[0] - verticalAxis.range[1]}
-                    opacity={0}
-                    fill="rgba(255,255,255,0)"
-                />
-                {this.areas}
-                {this.borders}
-            </g>
-        )
-    }
-});
+)
 
 export const StackedAreaChart = observer(
-    class StackedAreaChart extends AbstractStackedChart implements LineLegendManager {
+    class StackedAreaChart
+        extends AbstractStackedChart
+        implements LineLegendManager
+    {
         constructor(props: AbstractStackedChartProps) {
             super(props)
 
-            makeObservable<StackedAreaChart, "paddingForLegend" | "onCursorMove" | "onCursorLeave" | "activeXVerticalLine" | "tooltip">(this, {
+            makeObservable<
+                StackedAreaChart,
+                | "paddingForLegend"
+                | "onCursorMove"
+                | "onCursorLeave"
+                | "activeXVerticalLine"
+                | "tooltip"
+            >(this, {
                 midpoints: computed,
                 labelSeries: computed,
                 maxLineLegendWidth: computed,
@@ -179,8 +210,8 @@ export const StackedAreaChart = observer(
                 activeXVerticalLine: computed,
                 tooltip: computed,
                 lineLegendX: computed,
-                series: computed
-            });
+                series: computed,
+            })
         }
 
         get midpoints(): number[] {
@@ -217,9 +248,9 @@ export const StackedAreaChart = observer(
             return new LineLegend({ manager: this })
         }
 
-        hoveredPointIndex?: number;
+        hoveredPointIndex?: number
 
-        hoverSeriesName?: SeriesName;
+        hoverSeriesName?: SeriesName
         onLineLegendClick(): void {
             if (this.manager.startSelectingWhenLineClicked)
                 this.manager.isSelectingData = true
@@ -265,7 +296,9 @@ export const StackedAreaChart = observer(
             )
         }
 
-        private onCursorMove(ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>): void {
+        private onCursorMove(
+            ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
+        ): void {
             if (!this.base.current) return
             const { dualAxis, series } = this
 
@@ -281,7 +314,9 @@ export const StackedAreaChart = observer(
 
             if (boundedBox.contains(mouse)) {
                 const closestPoint = minBy(series[0].points, (d) =>
-                    Math.abs(dualAxis.horizontalAxis.place(d.position) - mouse.x)
+                    Math.abs(
+                        dualAxis.horizontalAxis.place(d.position) - mouse.x
+                    )
                 )
                 if (closestPoint) {
                     const index = series[0].points.indexOf(closestPoint)
@@ -308,7 +343,8 @@ export const StackedAreaChart = observer(
                 <g className="hoverIndicator">
                     {series.map((series) => {
                         const point = series.points[hoveredPointIndex]
-                        return this.seriesIsBlur(series) || point.fake ? null : (
+                        return this.seriesIsBlur(series) ||
+                            point.fake ? null : (
                             <circle
                                 key={series.seriesName}
                                 cx={horizontalAxis.place(point.position)}
@@ -356,7 +392,8 @@ export const StackedAreaChart = observer(
             }
 
             const lastStackedPoint = last(series)!.points[hoveredPointIndex]
-            const totalValue = lastStackedPoint.value + lastStackedPoint.valueOffset
+            const totalValue =
+                lastStackedPoint.value + lastStackedPoint.valueOffset
 
             const yColumn = this.yColumns[0] // Assumes same type for all columns.
 
@@ -364,7 +401,9 @@ export const StackedAreaChart = observer(
                 <Tooltip
                     id={this.renderUid}
                     tooltipManager={this.props.manager}
-                    x={dualAxis.horizontalAxis.place(bottomSeriesPoint.position)}
+                    x={dualAxis.horizontalAxis.place(
+                        bottomSeriesPoint.position
+                    )}
                     y={
                         dualAxis.verticalAxis.rangeMin +
                         dualAxis.verticalAxis.rangeSize / 2
@@ -388,7 +427,8 @@ export const StackedAreaChart = observer(
                                 .slice()
                                 .reverse()
                                 .map((series) => {
-                                    const point = series.points[hoveredPointIndex]
+                                    const point =
+                                        series.points[hoveredPointIndex]
                                     const isBlur = this.seriesIsBlur(series)
                                     const textColor = isBlur ? "#ddd" : "#333"
                                     const blockColor = isBlur
@@ -408,7 +448,8 @@ export const StackedAreaChart = observer(
                                                 <div
                                                     style={{
                                                         ...legendBlockStyle,
-                                                        backgroundColor: blockColor,
+                                                        backgroundColor:
+                                                            blockColor,
                                                     }}
                                                 />{" "}
                                                 {series.seriesName}
@@ -418,7 +459,10 @@ export const StackedAreaChart = observer(
                                                     ? "No data"
                                                     : yColumn.formatValueLong(
                                                           point.value,
-                                                          { trailingZeroes: true }
+                                                          {
+                                                              trailingZeroes:
+                                                                  true,
+                                                          }
                                                       )}
                                             </td>
                                         </tr>
@@ -491,7 +535,10 @@ export const StackedAreaChart = observer(
                         whole charting area, including the axis, the entity labels, and the whitespace next to them.
                         We need these to be able to show the tooltip for the first/last year even if the mouse is outside the charting area. */}
                     </rect>
-                    <DualAxisComponent dualAxis={dualAxis} showTickMarks={true} />
+                    <DualAxisComponent
+                        dualAxis={dualAxis}
+                        showTickMarks={true}
+                    />
                     <g clipPath={clipPath.id}>
                         {showLegend && <LineLegend manager={this} />}
                         <Areas
@@ -520,4 +567,4 @@ export const StackedAreaChart = observer(
             return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
         }
     }
-);
+)

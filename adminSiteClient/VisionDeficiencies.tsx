@@ -2,7 +2,7 @@ import React from "react"
 import Select, { GroupBase, components, OptionProps } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
-import { computed, action, makeObservable } from "mobx";
+import { computed, action, makeObservable } from "mobx"
 import { groupBy } from "../clientUtils/Util.js"
 import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
 
@@ -180,12 +180,12 @@ export const VisionDeficiencyDropdown = observer(
         }
 
         constructor(props: VisionDeficiencyDropdownProps) {
-            super(props);
+            super(props)
 
             makeObservable(this, {
                 options: computed,
-                onChange: action.bound
-            });
+                onChange: action.bound,
+            })
         }
 
         get options(): GroupBase<VisionDeficiencyEntity>[] {
@@ -194,7 +194,10 @@ export const VisionDeficiencyDropdown = observer(
                 value: deficiency.id,
                 deficiency,
             }))
-            const grouped = groupBy(options, (option) => option.deficiency.group)
+            const grouped = groupBy(
+                options,
+                (option) => option.deficiency.group
+            )
             const selectGroups = Object.entries(grouped).map(
                 ([label, options]) => ({ label, options })
             )
@@ -227,4 +230,4 @@ export const VisionDeficiencyDropdown = observer(
             )
         }
     }
-);
+)

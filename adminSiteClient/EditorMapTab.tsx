@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, action, makeObservable } from "mobx";
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { isEmpty } from "../clientUtils/Util.js"
 import {
@@ -21,196 +21,202 @@ import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
 import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
 
-const VariableSection = observer(class VariableSection extends React.Component<{
-    mapConfig: MapConfig
-    filledDimensions: ChartDimension[]
-}> {
-    constructor(
-        props: {
+const VariableSection = observer(
+    class VariableSection extends React.Component<{
+        mapConfig: MapConfig
+        filledDimensions: ChartDimension[]
+    }> {
+        constructor(props: {
             mapConfig: MapConfig
             filledDimensions: ChartDimension[]
+        }) {
+            super(props)
+
+            makeObservable(this, {
+                onVariableId: action.bound,
+                onProjection: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            onVariableId: action.bound,
-            onProjection: action.bound
-        });
-    }
+        onVariableId(variableId: OwidVariableId) {
+            this.props.mapConfig.columnSlug = variableId.toString()
+        }
 
-    onVariableId(variableId: OwidVariableId) {
-        this.props.mapConfig.columnSlug = variableId.toString()
-    }
+        onProjection(projection: string | undefined) {
+            this.props.mapConfig.projection = projection as MapProjectionName
+        }
 
-    onProjection(projection: string | undefined) {
-        this.props.mapConfig.projection = projection as MapProjectionName
-    }
+        render() {
+            const { mapConfig, filledDimensions } = this.props
 
-    render() {
-        const { mapConfig, filledDimensions } = this.props
+            if (isEmpty(filledDimensions))
+                return (
+                    <section>
+                        <h2>Add some variables on data tab first</h2>
+                    </section>
+                )
 
-        if (isEmpty(filledDimensions))
+            // const projections = Object.keys(MapProjectionLabels)
+            // const labels = Object.values(MapProjectionLabels)
+
             return (
-                <section>
-                    <h2>Add some variables on data tab first</h2>
-                </section>
+                <Section name="Map">
+                    <NumericSelectField
+                        label="Variable"
+                        value={
+                            mapConfig.columnSlug
+                                ? parseInt(mapConfig.columnSlug)
+                                : undefined
+                        }
+                        options={filledDimensions.map((d) => ({
+                            value: d.variableId,
+                            label: d.column.displayName,
+                        }))}
+                        onValue={this.onVariableId}
+                    />
+                    <SelectField
+                        label="Region"
+                        value={mapConfig.projection}
+                        options={Object.entries(MapProjectionLabels).map(
+                            ([key, val]) => ({ value: key, label: val })
+                        )}
+                        onValue={this.onProjection}
+                    />
+                </Section>
             )
+        }
+    }
+)
 
-        // const projections = Object.keys(MapProjectionLabels)
-        // const labels = Object.values(MapProjectionLabels)
+const TimelineSection = observer(
+    class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
+        constructor(props: { mapConfig: MapConfig }) {
+            super(props)
 
-        return (
-            <Section name="Map">
-                <NumericSelectField
-                    label="Variable"
-                    value={
-                        mapConfig.columnSlug
-                            ? parseInt(mapConfig.columnSlug)
-                            : undefined
-                    }
-                    options={filledDimensions.map((d) => ({
-                        value: d.variableId,
-                        label: d.column.displayName,
-                    }))}
-                    onValue={this.onVariableId}
-                />
-                <SelectField
-                    label="Region"
-                    value={mapConfig.projection}
-                    options={Object.entries(MapProjectionLabels).map(
-                        ([key, val]) => ({ value: key, label: val })
+            makeObservable(this, {
+                onToggleHideTimeline: action.bound,
+                setMapTime: action.bound,
+                onTolerance: action.bound,
+            })
+        }
+
+        onToggleHideTimeline(value: boolean) {
+            this.props.mapConfig.hideTimeline = value || undefined
+        }
+
+        setMapTime(time: number | undefined) {
+            this.props.mapConfig.time = time
+        }
+
+        onTolerance(tolerance: number | undefined) {
+            this.props.mapConfig.timeTolerance = tolerance
+        }
+
+        render() {
+            const { mapConfig } = this.props
+            return (
+                <Section name="Timeline">
+                    <NumberField
+                        label="Target year"
+                        value={mapConfig.time}
+                        onValue={this.setMapTime}
+                        allowNegative
+                    />
+                    <Toggle
+                        label="Hide timeline"
+                        value={!!mapConfig.hideTimeline}
+                        onValue={this.onToggleHideTimeline}
+                    />
+                    <NumberField
+                        label="Tolerance of data"
+                        value={mapConfig.timeTolerance}
+                        onValue={this.onTolerance}
+                        helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."
+                    />
+                </Section>
+            )
+        }
+    }
+)
+
+const TooltipSection = observer(
+    class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
+        constructor(props: { mapConfig: MapConfig }) {
+            super(props)
+
+            makeObservable(this, {
+                onTooltipUseCustomLabels: action.bound,
+            })
+        }
+
+        onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
+            this.props.mapConfig.tooltipUseCustomLabels = tooltipUseCustomLabels
+                ? true
+                : undefined
+        }
+
+        render() {
+            const { mapConfig } = this.props
+            return (
+                <Section name="Tooltip">
+                    <Toggle
+                        label={
+                            "Show custom label in the tooltip, instead of the numeric value"
+                        }
+                        value={!!mapConfig.tooltipUseCustomLabels}
+                        onValue={this.onTooltipUseCustomLabels}
+                    />
+                </Section>
+            )
+        }
+    }
+)
+
+export const EditorMapTab = observer(
+    class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
+        constructor(props: { editor: ChartEditor }) {
+            super(props)
+
+            makeObservable(this, {
+                grapher: computed,
+            })
+        }
+
+        get grapher() {
+            return this.props.editor.grapher
+        }
+
+        render() {
+            const { grapher } = this
+            const mapConfig = grapher.map
+            const { mapColumnSlug } = grapher
+            const mapChart = new MapChart({ manager: this.grapher })
+            const colorScale = mapChart.colorScale
+
+            const isReady = !!mapColumnSlug && grapher.table.has(mapColumnSlug)
+
+            return (
+                <div className="EditorMapTab tab-pane">
+                    <VariableSection
+                        mapConfig={mapConfig}
+                        filledDimensions={grapher.filledDimensions}
+                    />
+                    {isReady && (
+                        <React.Fragment>
+                            <TimelineSection mapConfig={mapConfig} />
+                            <EditorColorScaleSection
+                                scale={colorScale}
+                                chartType={ChartTypeName.WorldMap}
+                                features={{
+                                    visualScaling: true,
+                                    legendDescription: false,
+                                }}
+                            />
+                            <TooltipSection mapConfig={mapConfig} />
+                        </React.Fragment>
                     )}
-                    onValue={this.onProjection}
-                />
-            </Section>
-        )
+                </div>
+            )
+        }
     }
-});
-
-const TimelineSection = observer(class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
-    constructor(props: { mapConfig: MapConfig }) {
-        super(props);
-
-        makeObservable(this, {
-            onToggleHideTimeline: action.bound,
-            setMapTime: action.bound,
-            onTolerance: action.bound
-        });
-    }
-
-    onToggleHideTimeline(value: boolean) {
-        this.props.mapConfig.hideTimeline = value || undefined
-    }
-
-    setMapTime(time: number | undefined) {
-        this.props.mapConfig.time = time
-    }
-
-    onTolerance(tolerance: number | undefined) {
-        this.props.mapConfig.timeTolerance = tolerance
-    }
-
-    render() {
-        const { mapConfig } = this.props
-        return (
-            <Section name="Timeline">
-                <NumberField
-                    label="Target year"
-                    value={mapConfig.time}
-                    onValue={this.setMapTime}
-                    allowNegative
-                />
-                <Toggle
-                    label="Hide timeline"
-                    value={!!mapConfig.hideTimeline}
-                    onValue={this.onToggleHideTimeline}
-                />
-                <NumberField
-                    label="Tolerance of data"
-                    value={mapConfig.timeTolerance}
-                    onValue={this.onTolerance}
-                    helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."
-                />
-            </Section>
-        )
-    }
-});
-
-const TooltipSection = observer(class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
-    constructor(props: { mapConfig: MapConfig }) {
-        super(props);
-
-        makeObservable(this, {
-            onTooltipUseCustomLabels: action.bound
-        });
-    }
-
-    onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
-        this.props.mapConfig.tooltipUseCustomLabels = tooltipUseCustomLabels
-            ? true
-            : undefined
-    }
-
-    render() {
-        const { mapConfig } = this.props
-        return (
-            <Section name="Tooltip">
-                <Toggle
-                    label={
-                        "Show custom label in the tooltip, instead of the numeric value"
-                    }
-                    value={!!mapConfig.tooltipUseCustomLabels}
-                    onValue={this.onTooltipUseCustomLabels}
-                />
-            </Section>
-        )
-    }
-});
-
-export const EditorMapTab = observer(class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
-    constructor(props: { editor: ChartEditor }) {
-        super(props);
-
-        makeObservable(this, {
-            grapher: computed
-        });
-    }
-
-    get grapher() {
-        return this.props.editor.grapher
-    }
-
-    render() {
-        const { grapher } = this
-        const mapConfig = grapher.map
-        const { mapColumnSlug } = grapher
-        const mapChart = new MapChart({ manager: this.grapher })
-        const colorScale = mapChart.colorScale
-
-        const isReady = !!mapColumnSlug && grapher.table.has(mapColumnSlug)
-
-        return (
-            <div className="EditorMapTab tab-pane">
-                <VariableSection
-                    mapConfig={mapConfig}
-                    filledDimensions={grapher.filledDimensions}
-                />
-                {isReady && (
-                    <React.Fragment>
-                        <TimelineSection mapConfig={mapConfig} />
-                        <EditorColorScaleSection
-                            scale={colorScale}
-                            chartType={ChartTypeName.WorldMap}
-                            features={{
-                                visualScaling: true,
-                                legendDescription: false,
-                            }}
-                        />
-                        <TooltipSection mapConfig={mapConfig} />
-                    </React.Fragment>
-                )}
-            </div>
-        )
-    }
-});
+)

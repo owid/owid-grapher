@@ -7,29 +7,31 @@ export interface AddEntityButtonManager {
     entityType?: string
 }
 
-export const AddEntityButton = observer(class AddEntityButton extends React.Component<{
-    manager: AddEntityButtonManager
-}> {
-    render(): JSX.Element {
-        return (
-            <button
-                className="addEntityButton clickable"
-                onClick={(): boolean =>
-                    runInAction(
-                        () => (this.props.manager.isSelectingData = true)
-                    )
-                }
-                data-track-note="chart-add-entity"
-            >
-                <span className="icon">
-                    <svg width={16} height={16}>
-                        <path d="M3,8 h10 m-5,-5 v10" />
-                    </svg>
-                </span>
-                <span className="label">{`Add ${
-                    this.props.manager.entityType || "data"
-                }`}</span>
-            </button>
-        )
+export const AddEntityButton = observer(
+    class AddEntityButton extends React.Component<{
+        manager: AddEntityButtonManager
+    }> {
+        render(): JSX.Element {
+            return (
+                <button
+                    className="addEntityButton clickable"
+                    onClick={(): boolean =>
+                        runInAction(
+                            () => (this.props.manager.isSelectingData = true)
+                        )
+                    }
+                    data-track-note="chart-add-entity"
+                >
+                    <span className="icon">
+                        <svg width={16} height={16}>
+                            <path d="M3,8 h10 m-5,-5 v10" />
+                        </svg>
+                    </span>
+                    <span className="label">{`Add ${
+                        this.props.manager.entityType || "data"
+                    }`}</span>
+                </button>
+            )
+        }
     }
-});
+)

@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap } from "../text/TextWrap.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
@@ -35,7 +35,17 @@ const MIN_FONT_SIZE = 9
 export class ScatterSizeLegend {
     manager: ScatterSizeLegendManager
     constructor(manager: ScatterSizeLegendManager) {
-        makeObservable<ScatterSizeLegend, "baseFontSize" | "maxWidth" | "ticks" | "fontSizeFromRadius" | "legendSize" | "label" | "title" | "highlight">(this, {
+        makeObservable<
+            ScatterSizeLegend,
+            | "baseFontSize"
+            | "maxWidth"
+            | "ticks"
+            | "fontSizeFromRadius"
+            | "legendSize"
+            | "label"
+            | "title"
+            | "highlight"
+        >(this, {
             baseFontSize: computed,
             maxWidth: computed,
             ticks: computed,
@@ -45,8 +55,8 @@ export class ScatterSizeLegend {
             title: computed,
             width: computed,
             height: computed,
-            highlight: computed
-        });
+            highlight: computed,
+        })
 
         this.manager = manager
     }

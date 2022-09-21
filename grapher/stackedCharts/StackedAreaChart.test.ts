@@ -8,7 +8,7 @@ import {
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
 import { ChartManager } from "../chart/ChartManager.js"
-import { observable, makeObservable } from "mobx";
+import { observable, makeObservable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"
@@ -21,13 +21,13 @@ class MockManager implements ChartManager {
     })
     yColumnSlugs = [SampleColumnSlugs.GDP]
     yAxisConfig = new AxisConfig({ min: 0, max: 200 })
-    isRelativeMode = false;
+    isRelativeMode = false
     selection = new SelectionArray()
 
     constructor() {
         makeObservable(this, {
-            isRelativeMode: observable
-        });
+            isRelativeMode: observable,
+        })
     }
 }
 

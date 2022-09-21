@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction, makeObservable } from "mobx";
+import { observable, computed, action, runInAction, makeObservable } from "mobx"
 import { Link } from "react-router-dom"
 import { Base64 } from "js-base64"
 import Select from "react-select"
@@ -42,940 +42,845 @@ import {
 } from "./VisionDeficiencies.js"
 import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
 
-export const SuggestedChartRevisionApproverPage = observer(class SuggestedChartRevisionApproverPage extends React.Component<{
-    suggestedChartRevisionId?: number
-}> {
-    suggestedChartRevision?: SuggestedChartRevisionSerialized;
-    originalGrapherElement?: JSX.Element;
-    suggestedGrapherElement?: JSX.Element;
-    existingGrapherElement?: JSX.Element;
-    chartReferences: PostReference[] = [];
+export const SuggestedChartRevisionApproverPage = observer(
+    class SuggestedChartRevisionApproverPage extends React.Component<{
+        suggestedChartRevisionId?: number
+    }> {
+        suggestedChartRevision?: SuggestedChartRevisionSerialized
+        originalGrapherElement?: JSX.Element
+        suggestedGrapherElement?: JSX.Element
+        existingGrapherElement?: JSX.Element
+        chartReferences: PostReference[] = []
 
-    rowNum: number = 1;
-    numTotalRows: number = 0;
-    decisionReasonInput?: string = "";
+        rowNum: number = 1
+        numTotalRows: number = 0
+        decisionReasonInput?: string = ""
 
-    showReadme: boolean = false;
-    showSettings: boolean = false;
+        showReadme: boolean = false
+        showSettings: boolean = false
 
-    showPendingOnly: boolean = true;
-    showExistingChart: boolean = false;
-    previewMode: string = "desktop";
-    desktopPreviewSize: string = "normal";
-    sortBy: string = "updatedAt";
-    sortOrder: SortOrder = SortOrder.desc;
-    previewSvgOrJson: string = "svg";
-    simulateVisionDeficiency?: VisionDeficiency;
+        showPendingOnly: boolean = true
+        showExistingChart: boolean = false
+        previewMode: string = "desktop"
+        desktopPreviewSize: string = "normal"
+        sortBy: string = "updatedAt"
+        sortOrder: SortOrder = SortOrder.desc
+        previewSvgOrJson: string = "svg"
+        simulateVisionDeficiency?: VisionDeficiency
 
-    private _isGraphersSet = false;
+        private _isGraphersSet = false
 
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    constructor(
-        props: {
-            suggestedChartRevisionId?: number
+        constructor(props: { suggestedChartRevisionId?: number }) {
+            super(props)
+
+            makeObservable<
+                SuggestedChartRevisionApproverPage,
+                "_isGraphersSet"
+            >(this, {
+                suggestedChartRevision: observable.ref,
+                originalGrapherElement: observable.ref,
+                suggestedGrapherElement: observable.ref,
+                existingGrapherElement: observable.ref,
+                chartReferences: observable.ref,
+                rowNum: observable,
+                numTotalRows: observable,
+                decisionReasonInput: observable,
+                showReadme: observable,
+                showSettings: observable,
+                showPendingOnly: observable,
+                showExistingChart: observable,
+                previewMode: observable,
+                desktopPreviewSize: observable,
+                sortBy: observable,
+                sortOrder: observable,
+                previewSvgOrJson: observable,
+                simulateVisionDeficiency: observable,
+                _isGraphersSet: observable,
+                admin: computed,
+                offset: computed,
+                prevBtnIsDisabled: computed,
+                nextBtnIsDisabled: computed,
+                randomBtnIsDisabled: computed,
+                grapherBounds: computed,
+                rowNumValid: computed,
+                updateButtonsIsDisabled: computed,
+                approveButtonIsDisabled: computed,
+                rejectButtonIsDisabled: computed,
+                flagButtonIsDisabled: computed,
+                listMode: computed,
+                refresh: action.bound,
+                fetchGraphers: action.bound,
+                rerenderGraphers: action.bound,
+                fetchRefs: action.bound,
+                onApproveSuggestedChartRevision: action.bound,
+                onRejectSuggestedChartRevision: action.bound,
+                onFlagSuggestedChartRevision: action.bound,
+                updateSuggestedChartRevision: action.bound,
+                onFirst: action.bound,
+                onPrev: action.bound,
+                onNext: action.bound,
+                onLast: action.bound,
+                onRandom: action.bound,
+                onDecisionReasonInput: action.bound,
+                clearDecisionReasonInput: action.bound,
+                onRowNumInput: action.bound,
+                onChangeDesktopPreviewSize: action.bound,
+                onChangePreviewSvgOrJson: action.bound,
+                onSortByChange: action.bound,
+                onSortOrderChange: action.bound,
+                onToggleShowPendingOnly: action.bound,
+                onToggleShowExistingChart: action.bound,
+                onToggleShowReadme: action.bound,
+                onToggleShowSettings: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable<SuggestedChartRevisionApproverPage, "_isGraphersSet">(this, {
-            suggestedChartRevision: observable.ref,
-            originalGrapherElement: observable.ref,
-            suggestedGrapherElement: observable.ref,
-            existingGrapherElement: observable.ref,
-            chartReferences: observable.ref,
-            rowNum: observable,
-            numTotalRows: observable,
-            decisionReasonInput: observable,
-            showReadme: observable,
-            showSettings: observable,
-            showPendingOnly: observable,
-            showExistingChart: observable,
-            previewMode: observable,
-            desktopPreviewSize: observable,
-            sortBy: observable,
-            sortOrder: observable,
-            previewSvgOrJson: observable,
-            simulateVisionDeficiency: observable,
-            _isGraphersSet: observable,
-            admin: computed,
-            offset: computed,
-            prevBtnIsDisabled: computed,
-            nextBtnIsDisabled: computed,
-            randomBtnIsDisabled: computed,
-            grapherBounds: computed,
-            rowNumValid: computed,
-            updateButtonsIsDisabled: computed,
-            approveButtonIsDisabled: computed,
-            rejectButtonIsDisabled: computed,
-            flagButtonIsDisabled: computed,
-            listMode: computed,
-            refresh: action.bound,
-            fetchGraphers: action.bound,
-            rerenderGraphers: action.bound,
-            fetchRefs: action.bound,
-            onApproveSuggestedChartRevision: action.bound,
-            onRejectSuggestedChartRevision: action.bound,
-            onFlagSuggestedChartRevision: action.bound,
-            updateSuggestedChartRevision: action.bound,
-            onFirst: action.bound,
-            onPrev: action.bound,
-            onNext: action.bound,
-            onLast: action.bound,
-            onRandom: action.bound,
-            onDecisionReasonInput: action.bound,
-            clearDecisionReasonInput: action.bound,
-            onRowNumInput: action.bound,
-            onChangeDesktopPreviewSize: action.bound,
-            onChangePreviewSvgOrJson: action.bound,
-            onSortByChange: action.bound,
-            onSortOrderChange: action.bound,
-            onToggleShowPendingOnly: action.bound,
-            onToggleShowExistingChart: action.bound,
-            onToggleShowReadme: action.bound,
-            onToggleShowSettings: action.bound
-        });
-    }
+        get admin() {
+            return this.context.admin
+        }
 
-    get admin() {
-        return this.context.admin
-    }
+        get offset() {
+            return this.rowNumValid - 1
+        }
 
-    get offset() {
-        return this.rowNumValid - 1
-    }
+        get prevBtnIsDisabled() {
+            return !this._isGraphersSet || this.rowNumValid <= 1
+        }
 
-    get prevBtnIsDisabled() {
-        return !this._isGraphersSet || this.rowNumValid <= 1
-    }
+        get nextBtnIsDisabled() {
+            return !this._isGraphersSet || this.rowNumValid >= this.numTotalRows
+        }
 
-    get nextBtnIsDisabled() {
-        return !this._isGraphersSet || this.rowNumValid >= this.numTotalRows
-    }
+        get randomBtnIsDisabled() {
+            return !this._isGraphersSet || this.numTotalRows <= 1
+        }
 
-    get randomBtnIsDisabled() {
-        return !this._isGraphersSet || this.numTotalRows <= 1
-    }
-
-    get grapherBounds() {
-        let bounds
-        if (this.previewMode === "mobile") {
-            bounds = new Bounds(0, 0, 360, 500)
-        } else {
-            if (this.desktopPreviewSize === "small") {
-                bounds = new Bounds(0, 0, 600, 450)
+        get grapherBounds() {
+            let bounds
+            if (this.previewMode === "mobile") {
+                bounds = new Bounds(0, 0, 360, 500)
             } else {
-                bounds = new Bounds(0, 0, 800, 600)
+                if (this.desktopPreviewSize === "small") {
+                    bounds = new Bounds(0, 0, 600, 450)
+                } else {
+                    bounds = new Bounds(0, 0, 800, 600)
+                }
             }
+            return bounds
         }
-        return bounds
-    }
 
-    get rowNumValid() {
-        return Math.max(Math.min(this.rowNum, this.numTotalRows), 1)
-    }
+        get rowNumValid() {
+            return Math.max(Math.min(this.rowNum, this.numTotalRows), 1)
+        }
 
-    get updateButtonsIsDisabled() {
-        return !this._isGraphersSet
-    }
+        get updateButtonsIsDisabled() {
+            return !this._isGraphersSet
+        }
 
-    get approveButtonIsDisabled() {
-        return (
-            this.updateButtonsIsDisabled ||
-            (this.suggestedChartRevision &&
-                !this.suggestedChartRevision.canApprove)
-        )
-    }
-
-    get rejectButtonIsDisabled() {
-        return (
-            this.updateButtonsIsDisabled ||
-            (this.suggestedChartRevision &&
-                !this.suggestedChartRevision.canReject)
-        )
-    }
-
-    get flagButtonIsDisabled() {
-        return (
-            this.updateButtonsIsDisabled ||
-            (this.suggestedChartRevision &&
-                !this.suggestedChartRevision.canFlag)
-        )
-    }
-
-    get listMode() {
-        const { suggestedChartRevisionId } = this.props
-        return !suggestedChartRevisionId
-    }
-
-    async refresh() {
-        this.clearDecisionReasonInput()
-        await this.fetchGraphers()
-        await this.fetchRefs()
-    }
-
-    async fetchGraphers() {
-        const { admin } = this.context
-        const { suggestedChartRevisionId } = this.props
-        if (suggestedChartRevisionId === undefined) {
-            const json = await admin.getJSON("/api/suggested-chart-revisions", {
-                limit: 1,
-                offset: this.offset,
-                status:
-                    this.listMode && this.showPendingOnly
-                        ? SuggestedChartRevisionStatus.pending
-                        : null,
-                sortBy: this.sortBy,
-                sortOrder: this.sortOrder,
-            })
-            runInAction(() => {
-                this.numTotalRows = json.numTotalRows as number
-                this.suggestedChartRevision = json
-                    .suggestedChartRevisions[0] as SuggestedChartRevisionSerialized
-            })
-        } else {
-            const json = await admin.getJSON(
-                `/api/suggested-chart-revisions/${suggestedChartRevisionId}`
+        get approveButtonIsDisabled() {
+            return (
+                this.updateButtonsIsDisabled ||
+                (this.suggestedChartRevision &&
+                    !this.suggestedChartRevision.canApprove)
             )
-            this.suggestedChartRevision = json.suggestedChartRevision
         }
-        this.decisionReasonInput = this.suggestedChartRevision
-            ? this.suggestedChartRevision.decisionReason ?? ""
-            : ""
-        this.rerenderGraphers()
-    }
 
-    async rerenderGraphers() {
-        this._isGraphersSet = false
-        setTimeout(() => {
-            if (this.suggestedChartRevision) {
-                this._isGraphersSet = true
+        get rejectButtonIsDisabled() {
+            return (
+                this.updateButtonsIsDisabled ||
+                (this.suggestedChartRevision &&
+                    !this.suggestedChartRevision.canReject)
+            )
+        }
+
+        get flagButtonIsDisabled() {
+            return (
+                this.updateButtonsIsDisabled ||
+                (this.suggestedChartRevision &&
+                    !this.suggestedChartRevision.canFlag)
+            )
+        }
+
+        get listMode() {
+            const { suggestedChartRevisionId } = this.props
+            return !suggestedChartRevisionId
+        }
+
+        async refresh() {
+            this.clearDecisionReasonInput()
+            await this.fetchGraphers()
+            await this.fetchRefs()
+        }
+
+        async fetchGraphers() {
+            const { admin } = this.context
+            const { suggestedChartRevisionId } = this.props
+            if (suggestedChartRevisionId === undefined) {
+                const json = await admin.getJSON(
+                    "/api/suggested-chart-revisions",
+                    {
+                        limit: 1,
+                        offset: this.offset,
+                        status:
+                            this.listMode && this.showPendingOnly
+                                ? SuggestedChartRevisionStatus.pending
+                                : null,
+                        sortBy: this.sortBy,
+                        sortOrder: this.sortOrder,
+                    }
+                )
+                runInAction(() => {
+                    this.numTotalRows = json.numTotalRows as number
+                    this.suggestedChartRevision = json
+                        .suggestedChartRevisions[0] as SuggestedChartRevisionSerialized
+                })
+            } else {
+                const json = await admin.getJSON(
+                    `/api/suggested-chart-revisions/${suggestedChartRevisionId}`
+                )
+                this.suggestedChartRevision = json.suggestedChartRevision
             }
-        }, 0)
-    }
-
-    async fetchRefs() {
-        const chartId = this.suggestedChartRevision?.chartId
-        const { admin } = this.context
-        const json =
-            chartId === undefined
-                ? []
-                : await admin.getJSON(`/api/charts/${chartId}.references.json`)
-        this.chartReferences = json.references || []
-    }
-
-    onApproveSuggestedChartRevision() {
-        this.updateSuggestedChartRevision(
-            SuggestedChartRevisionStatus.approved,
-            this.decisionReasonInput
-        )
-    }
-
-    onRejectSuggestedChartRevision() {
-        this.updateSuggestedChartRevision(
-            SuggestedChartRevisionStatus.rejected,
-            this.decisionReasonInput
-        )
-    }
-
-    onFlagSuggestedChartRevision() {
-        this.updateSuggestedChartRevision(
-            SuggestedChartRevisionStatus.flagged,
-            this.decisionReasonInput
-        )
-    }
-
-    async updateSuggestedChartRevision(status: SuggestedChartRevisionStatus, decisionReason: string | undefined) {
-        this._isGraphersSet = false
-        if (!this.suggestedChartRevision) return
-        const { admin } = this.context
-        const data = { status, decisionReason }
-        await admin.requestJSON(
-            `/api/suggested-chart-revisions/${this.suggestedChartRevision.id}/update`,
-            data,
-            "POST"
-        )
-        // KLUDGE to prevent error that otherwise occurs when this.refresh() is
-        // called when the user is viewing the very last suggested revision.
-        if (status !== SuggestedChartRevisionStatus.pending) {
-            this.numTotalRows -= 1
+            this.decisionReasonInput = this.suggestedChartRevision
+                ? this.suggestedChartRevision.decisionReason ?? ""
+                : ""
+            this.rerenderGraphers()
         }
-        this.refresh()
-    }
 
-    onFirst() {
-        if (!this.prevBtnIsDisabled) {
-            this.rowNum = 1
+        async rerenderGraphers() {
+            this._isGraphersSet = false
+            setTimeout(() => {
+                if (this.suggestedChartRevision) {
+                    this._isGraphersSet = true
+                }
+            }, 0)
+        }
+
+        async fetchRefs() {
+            const chartId = this.suggestedChartRevision?.chartId
+            const { admin } = this.context
+            const json =
+                chartId === undefined
+                    ? []
+                    : await admin.getJSON(
+                          `/api/charts/${chartId}.references.json`
+                      )
+            this.chartReferences = json.references || []
+        }
+
+        onApproveSuggestedChartRevision() {
+            this.updateSuggestedChartRevision(
+                SuggestedChartRevisionStatus.approved,
+                this.decisionReasonInput
+            )
+        }
+
+        onRejectSuggestedChartRevision() {
+            this.updateSuggestedChartRevision(
+                SuggestedChartRevisionStatus.rejected,
+                this.decisionReasonInput
+            )
+        }
+
+        onFlagSuggestedChartRevision() {
+            this.updateSuggestedChartRevision(
+                SuggestedChartRevisionStatus.flagged,
+                this.decisionReasonInput
+            )
+        }
+
+        async updateSuggestedChartRevision(
+            status: SuggestedChartRevisionStatus,
+            decisionReason: string | undefined
+        ) {
+            this._isGraphersSet = false
+            if (!this.suggestedChartRevision) return
+            const { admin } = this.context
+            const data = { status, decisionReason }
+            await admin.requestJSON(
+                `/api/suggested-chart-revisions/${this.suggestedChartRevision.id}/update`,
+                data,
+                "POST"
+            )
+            // KLUDGE to prevent error that otherwise occurs when this.refresh() is
+            // called when the user is viewing the very last suggested revision.
+            if (status !== SuggestedChartRevisionStatus.pending) {
+                this.numTotalRows -= 1
+            }
             this.refresh()
         }
-    }
 
-    onPrev() {
-        if (!this.prevBtnIsDisabled) {
-            this.rowNum = this.rowNumValid - 1
+        onFirst() {
+            if (!this.prevBtnIsDisabled) {
+                this.rowNum = 1
+                this.refresh()
+            }
+        }
+
+        onPrev() {
+            if (!this.prevBtnIsDisabled) {
+                this.rowNum = this.rowNumValid - 1
+                this.refresh()
+            }
+        }
+
+        onNext() {
+            if (!this.nextBtnIsDisabled) {
+                this.rowNum = this.rowNumValid + 1
+                this.refresh()
+            }
+        }
+
+        onLast() {
+            if (!this.nextBtnIsDisabled) {
+                this.rowNum = this.numTotalRows
+                this.refresh()
+            }
+        }
+
+        onRandom() {
+            if (!this.randomBtnIsDisabled) {
+                this.rowNum = Math.floor(Math.random() * this.numTotalRows + 1)
+                this.refresh()
+            }
+        }
+
+        onDecisionReasonInput(input: string) {
+            this.decisionReasonInput = input
+        }
+
+        clearDecisionReasonInput() {
+            this.decisionReasonInput = ""
+        }
+
+        onRowNumInput(input: number | undefined) {
+            if (input === undefined || input === null) {
+                return
+            }
+            this.rowNum = input
+            setTimeout(() => {
+                this.refresh()
+            }, 100)
+        }
+
+        onChangeDesktopPreviewSize(value: string) {
+            this.desktopPreviewSize = value
+            this.rerenderGraphers()
+        }
+
+        onChangePreviewSvgOrJson(value: string) {
+            this.previewSvgOrJson = value
+            this.rerenderGraphers()
+        }
+
+        onSortByChange(selected: any) {
+            this.sortBy = selected.value
             this.refresh()
         }
-    }
 
-    onNext() {
-        if (!this.nextBtnIsDisabled) {
-            this.rowNum = this.rowNumValid + 1
+        onSortOrderChange(value: SortOrder) {
+            this.sortOrder = value
             this.refresh()
         }
-    }
 
-    onLast() {
-        if (!this.nextBtnIsDisabled) {
-            this.rowNum = this.numTotalRows
+        onToggleShowPendingOnly(value: boolean) {
+            this.showPendingOnly = value
             this.refresh()
         }
-    }
 
-    onRandom() {
-        if (!this.randomBtnIsDisabled) {
-            this.rowNum = Math.floor(Math.random() * this.numTotalRows + 1)
-            this.refresh()
+        onToggleShowExistingChart(value: boolean) {
+            this.showExistingChart = value
+            // this.refresh()
         }
-    }
 
-    onDecisionReasonInput(input: string) {
-        this.decisionReasonInput = input
-    }
-
-    clearDecisionReasonInput() {
-        this.decisionReasonInput = ""
-    }
-
-    onRowNumInput(input: number | undefined) {
-        if (input === undefined || input === null) {
-            return
+        onToggleShowReadme() {
+            this.showReadme = !this.showReadme
         }
-        this.rowNum = input
-        setTimeout(() => {
-            this.refresh()
-        }, 100)
-    }
 
-    onChangeDesktopPreviewSize(value: string) {
-        this.desktopPreviewSize = value
-        this.rerenderGraphers()
-    }
+        onToggleShowSettings() {
+            this.showSettings = !this.showSettings
+        }
 
-    onChangePreviewSvgOrJson(value: string) {
-        this.previewSvgOrJson = value
-        this.rerenderGraphers()
-    }
+        componentDidMount() {
+            this.refresh().then(() => {
+                this.admin.loadingIndicatorSetting = "off"
+            })
+        }
 
-    onSortByChange(selected: any) {
-        this.sortBy = selected.value
-        this.refresh()
-    }
+        render() {
+            return (
+                <AdminLayout
+                    title="Approval tool for suggested chart revisions"
+                    noSidebar
+                >
+                    <main className="SuggestedChartRevisionApproverPage">
+                        <h3>
+                            Approval tool for suggested chart revisions
+                            <Link
+                                className="btn btn-outline-primary"
+                                to="/suggested-chart-revisions"
+                                style={{ marginLeft: "10px" }}
+                            >
+                                View all revisions
+                            </Link>
+                            <Link
+                                className="btn btn-outline-primary"
+                                to="/suggested-chart-revisions/import"
+                                style={{ marginLeft: "10px" }}
+                            >
+                                Upload revisions
+                            </Link>
+                        </h3>
+                        <p>
+                            Use this tool to approve or reject chart revisions
+                            that have been suggested by an automated bulk update
+                            script. The purpose of this tool is to provide a
+                            layer of quality assurance for our charts that are
+                            updated by automated scripts. This tool is a work in
+                            progress. Start a thread in{" "}
+                            <a
+                                href="https://owid.slack.com/messages/tech-issues/"
+                                rel="noreferrer"
+                                target="_blank"
+                            >
+                                #tech-issues
+                            </a>{" "}
+                            if you find a bug, want to request a feature, or
+                            have other feedback.
+                        </p>
+                        <p className="text-danger">
+                            WARNING: This tool is new and may contain bugs that
+                            cause unexpected behavior. Use with caution.
+                        </p>
+                        {this.renderReadme()}
+                        {this.renderSettings()}
 
-    onSortOrderChange(value: SortOrder) {
-        this.sortOrder = value
-        this.refresh()
-    }
-
-    onToggleShowPendingOnly(value: boolean) {
-        this.showPendingOnly = value
-        this.refresh()
-    }
-
-    onToggleShowExistingChart(value: boolean) {
-        this.showExistingChart = value
-        // this.refresh()
-    }
-
-    onToggleShowReadme() {
-        this.showReadme = !this.showReadme
-    }
-
-    onToggleShowSettings() {
-        this.showSettings = !this.showSettings
-    }
-
-    componentDidMount() {
-        this.refresh().then(() => {
-            this.admin.loadingIndicatorSetting = "off"
-        })
-    }
-
-    render() {
-        return (
-            <AdminLayout
-                title="Approval tool for suggested chart revisions"
-                noSidebar
-            >
-                <main className="SuggestedChartRevisionApproverPage">
-                    <h3>
-                        Approval tool for suggested chart revisions
-                        <Link
-                            className="btn btn-outline-primary"
-                            to="/suggested-chart-revisions"
-                            style={{ marginLeft: "10px" }}
-                        >
-                            View all revisions
-                        </Link>
-                        <Link
-                            className="btn btn-outline-primary"
-                            to="/suggested-chart-revisions/import"
-                            style={{ marginLeft: "10px" }}
-                        >
-                            Upload revisions
-                        </Link>
-                    </h3>
-                    <p>
-                        Use this tool to approve or reject chart revisions that
-                        have been suggested by an automated bulk update script.
-                        The purpose of this tool is to provide a layer of
-                        quality assurance for our charts that are updated by
-                        automated scripts. This tool is a work in progress.
-                        Start a thread in{" "}
-                        <a
-                            href="https://owid.slack.com/messages/tech-issues/"
-                            rel="noreferrer"
-                            target="_blank"
-                        >
-                            #tech-issues
-                        </a>{" "}
-                        if you find a bug, want to request a feature, or have
-                        other feedback.
-                    </p>
-                    <p className="text-danger">
-                        WARNING: This tool is new and may contain bugs that
-                        cause unexpected behavior. Use with caution.
-                    </p>
-                    {this.renderReadme()}
-                    {this.renderSettings()}
-
-                    {this.numTotalRows > 0 || !this.listMode ? (
-                        this.renderApprovalTool()
-                    ) : (
-                        <div style={{ paddingBottom: 20 }}>
-                            0 pending chart revisions found. All suggested chart
-                            revisions have already been approved, flagged, or
-                            rejected. If you wish to see all suggested chart
-                            revisions, either uncheck the{" "}
-                            <i>Show "pending" revisions only</i> box in the
-                            Settings tab or{" "}
-                            <Link to="/suggested-chart-revisions">
-                                click here
-                            </Link>{" "}
-                            to view a complete list of suggested chart
-                            revisions.
-                        </div>
-                    )}
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    renderApprovalTool() {
-        const status =
-            this.suggestedChartRevision && this.suggestedChartRevision.status
-        return (
-            <React.Fragment>
-                {this.renderControls()}
-                <h3>
-                    Suggested revision{" "}
-                    {this.suggestedChartRevision
-                        ? this.suggestedChartRevision.id
-                        : ""}
-                    <span
-                        className={classNames({
-                            "text-primary":
-                                status ===
-                                SuggestedChartRevisionStatus.approved,
-                            "text-danger":
-                                status ===
-                                SuggestedChartRevisionStatus.rejected,
-                            "text-warning":
-                                status === SuggestedChartRevisionStatus.flagged,
-                            "text-secondary":
-                                status === SuggestedChartRevisionStatus.pending,
-                        })}
-                        style={{ marginLeft: "20px" }}
-                    >
-                        {status ? (
-                            <>
-                                <SuggestedChartRevisionStatusIcon
-                                    status={status}
-                                />{" "}
-                                <i>
-                                    {status.charAt(0).toUpperCase() +
-                                        status.slice(1)}
-                                </i>
-                            </>
+                        {this.numTotalRows > 0 || !this.listMode ? (
+                            this.renderApprovalTool()
                         ) : (
-                            ""
-                        )}
-                    </span>
-                </h3>
-                {this.renderGraphers()}
-                {this.renderMeta()}
-            </React.Fragment>
-        )
-    }
-
-    renderReadme() {
-        return (
-            <div className="collapsible">
-                <h3>
-                    README
-                    <button
-                        className="btn btn-outline-dark"
-                        type="button"
-                        onClick={this.onToggleShowReadme}
-                        aria-expanded={this.showReadme}
-                        title="Show/hide README"
-                        style={{ marginLeft: "10px" }}
-                    >
-                        {this.showReadme ? "Hide" : "Show"}
-                    </button>
-                </h3>
-                <div
-                    className={`readme ${
-                        this.showReadme ? "show" : "collapse"
-                    }`}
-                >
-                    <h5>Terminology</h5>
-                    <ul>
-                        <li>
-                            <b>Suggested chart revision.</b> A suggested chart
-                            revision is simply an amended OWID chart, but where
-                            the amendments have not yet been applied to the
-                            chart in question. A suggested chart revision is
-                            housed in the <code>suggested_chart_revisions</code>{" "}
-                            table in <code>MySQL</code>. If the suggested chart
-                            revision gets approved, then the amendments are
-                            applied to the chart (which overwrites and
-                            republishes the chart).
-                        </li>
-                        <li>
-                            <b>Original chart.</b> The chart as it originally
-                            was when the suggested chart revision was created.
-                        </li>
-                        <li>
-                            <b>Existing chart.</b> The chart as it currently
-                            exists on the OWID website.
-                        </li>
-                    </ul>
-                    <h5>How to use</h5>
-                    <p>
-                        You are shown one suggested chart revision at a time,
-                        alongside the corresponding original chart as it was
-                        when the suggested chart revision was created.
-                    </p>
-                    <p>
-                        For each suggested revision, choose one of the following
-                        actions:
-                    </p>
-                    <ol>
-                        <li>
-                            <b>Approve the revision</b> by clicking{" "}
-                            <button
-                                className="btn btn-outline-primary"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.approved
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Approve
-                            </button>
-                            . This approves the suggestion, replacing the
-                            original chart with the suggested chart (also
-                            republishes the chart). Note: if a chart has been
-                            edited since the suggested revision was created, you
-                            will not be allowed to approve the suggested
-                            revision.
-                        </li>
-                        <li>
-                            <b>Reject the suggested revision</b> by clicking{" "}
-                            <button
-                                className="btn btn-outline-danger btn"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.rejected
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Reject
-                            </button>
-                            . This rejects the suggestion, keeping the original
-                            chart as it is.
-                        </li>
-                        <li>
-                            <b>Flag the suggested revision</b> for further
-                            inspection by clicking{" "}
-                            <button
-                                className="btn btn-outline-warning btn"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.flagged
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Flag
-                            </button>
-                            .
-                        </li>
-                        <li>
-                            <b>Edit the original chart</b> by clicking{" "}
-                            <Link
-                                className="btn btn-outline-secondary"
-                                to=""
-                                style={{ pointerEvents: "none" }}
-                            >
-                                Edit{" "}
-                                <FontAwesomeIcon icon={faExternalLinkAlt} />
-                            </Link>
-                            . This opens the original chart in the chart editor.
-                            If you save your changes to the original chart
-                            within the chart editor, you will no longer have the
-                            option to approve the suggested revision.
-                        </li>
-                        <li>
-                            <b>
-                                Edit the suggested chart revision as the
-                                original chart
-                            </b>{" "}
-                            by clicking{" "}
-                            <Link
-                                className="btn btn-outline-secondary"
-                                to=""
-                                style={{ pointerEvents: "none" }}
-                            >
-                                Edit as chart [chartId]{" "}
-                                <FontAwesomeIcon icon={faExternalLinkAlt} />
-                            </Link>
-                            . This opens the suggested chart revision in the
-                            chart editor. If you make and save changes to the
-                            chart within the chart editor,{" "}
-                            <i>
-                                your config and data changes will be applied to
-                                the original chart, equivalent to approving it.
-                            </i>{" "}
-                            Currently, the suggestion is not updated and the
-                            approval is left as pending, but you will no longer
-                            be able to approve it (since the chart has changed).
-                            Because it has actually been applied, you can now
-                            reject it.
-                        </li>
-                    </ol>
-                    <h5>Other useful information</h5>
-                    <ul>
-                        <li>
-                            When you click the{" "}
-                            <button
-                                className="btn btn-outline-primary"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.approved
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Approve
-                            </button>{" "}
-                            ,{" "}
-                            <button
-                                className="btn btn-outline-danger btn"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.rejected
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Reject
-                            </button>{" "}
-                            or{" "}
-                            <button
-                                className="btn btn-outline-warning btn"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.flagged
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Flag
-                            </button>{" "}
-                            button, anything you write in the "Notes" text field
-                            will be saved. You can view these saved notes in the
-                            "Decision reason" column{" "}
-                            <Link to="/suggested-chart-revisions">here</Link>.
-                            If you reject or flag a suggested chart revision, it
-                            is <i>strongly recommended</i> that you describe
-                            your reasoning in the "Notes" field.
-                        </li>
-                        <li>
-                            If a suggested revision has been approved and the
-                            chart has not changed since the revision was
-                            approved, then you can undo the revision by clicking
-                            the{" "}
-                            <button
-                                className="btn btn-outline-danger btn"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.rejected
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Reject
-                            </button>{" "}
-                            button.
-                        </li>
-                        <li>
-                            If a suggested revision has been rejected and the
-                            chart has not changed since the revision was
-                            rejected, then you can still approve the revision by
-                            clicking the{" "}
-                            <button
-                                className="btn btn-outline-primary btn"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.approved
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Approve
-                            </button>{" "}
-                            button.
-                        </li>
-                        <li>
-                            If one or more of the{" "}
-                            <button
-                                className="btn btn-outline-primary"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.approved
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Approve
-                            </button>{" "}
-                            ,{" "}
-                            <button
-                                className="btn btn-outline-danger btn"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.rejected
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Reject
-                            </button>{" "}
-                            or{" "}
-                            <button
-                                className="btn btn-outline-warning btn"
-                                style={{ pointerEvents: "none" }}
-                                disabled={true}
-                            >
-                                <SuggestedChartRevisionStatusIcon
-                                    status={
-                                        SuggestedChartRevisionStatus.flagged
-                                    }
-                                    setColor={false}
-                                />{" "}
-                                Flag
-                            </button>{" "}
-                            buttons are disabled, this is because these actions
-                            are not allowed for the suggested revision in
-                            question. For example, if a chart has changed since
-                            the suggested revision was created, you will not be
-                            allowed to approve the revision.
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        )
-    }
-
-    renderSettings() {
-        return (
-            <div className="collapsible">
-                <h3>
-                    Settings
-                    <button
-                        className="btn btn-outline-dark"
-                        type="button"
-                        aria-expanded={this.showSettings}
-                        onClick={this.onToggleShowSettings}
-                        title="Show/hide settings"
-                        style={{ marginLeft: "10px" }}
-                    >
-                        {this.showSettings ? "Hide" : "Show"}
-                    </button>
-                </h3>
-                <div
-                    className={`settings ${
-                        this.showSettings ? "show" : "collapse"
-                    }`}
-                >
-                    {this.listMode && (
-                        <div>
-                            <Toggle
-                                value={this.showPendingOnly}
-                                onValue={this.onToggleShowPendingOnly}
-                                label='Show "pending" revisions only'
-                            />
-                        </div>
-                    )}
-                    <div>
-                        <Toggle
-                            value={this.showExistingChart}
-                            onValue={this.onToggleShowExistingChart}
-                            label="Show existing chart (as it appears on the OWID site)"
-                        />
-                    </div>
-                    <div className="flex-row">
-                        <div style={{ marginRight: "20px" }}>
-                            Preview mode:
-                            <br />
-                            <div
-                                className="btn-group"
-                                data-toggle="buttons"
-                                style={{ whiteSpace: "nowrap" }}
-                            >
-                                <label
-                                    className={
-                                        "btn btn-light" +
-                                        (this.previewMode === "mobile"
-                                            ? " active"
-                                            : "")
-                                    }
-                                    title="Mobile preview"
-                                >
-                                    <input
-                                        type="radio"
-                                        onChange={action(() => {
-                                            this.previewMode = "mobile"
-                                            this.rerenderGraphers()
-                                        })}
-                                        name="previewSize"
-                                        id="mobile"
-                                        checked={this.previewMode === "mobile"}
-                                    />{" "}
-                                    <FontAwesomeIcon icon={faMobile} />
-                                </label>
-                                <label
-                                    className={
-                                        "btn btn-light" +
-                                        (this.previewMode === "desktop"
-                                            ? " active"
-                                            : "")
-                                    }
-                                    title="Desktop preview"
-                                >
-                                    <input
-                                        onChange={action(() => {
-                                            this.previewMode = "desktop"
-                                            this.rerenderGraphers()
-                                        })}
-                                        type="radio"
-                                        name="previewSize"
-                                        id="desktop"
-                                        checked={this.previewMode === "desktop"}
-                                    />{" "}
-                                    <FontAwesomeIcon icon={faDesktop} />
-                                </label>
+                            <div style={{ paddingBottom: 20 }}>
+                                0 pending chart revisions found. All suggested
+                                chart revisions have already been approved,
+                                flagged, or rejected. If you wish to see all
+                                suggested chart revisions, either uncheck the{" "}
+                                <i>Show "pending" revisions only</i> box in the
+                                Settings tab or{" "}
+                                <Link to="/suggested-chart-revisions">
+                                    click here
+                                </Link>{" "}
+                                to view a complete list of suggested chart
+                                revisions.
                             </div>
-                        </div>
-                        <div>
-                            Preview size (desktop only):
-                            <RadioGroup
-                                options={[
-                                    { label: "Small", value: "small" },
-                                    { label: "Normal", value: "normal" },
-                                ]}
-                                value={this.desktopPreviewSize}
-                                onChange={this.onChangeDesktopPreviewSize}
-                            />
-                        </div>
+                        )}
+                    </main>
+                </AdminLayout>
+            )
+        }
+
+        renderApprovalTool() {
+            const status =
+                this.suggestedChartRevision &&
+                this.suggestedChartRevision.status
+            return (
+                <React.Fragment>
+                    {this.renderControls()}
+                    <h3>
+                        Suggested revision{" "}
+                        {this.suggestedChartRevision
+                            ? this.suggestedChartRevision.id
+                            : ""}
+                        <span
+                            className={classNames({
+                                "text-primary":
+                                    status ===
+                                    SuggestedChartRevisionStatus.approved,
+                                "text-danger":
+                                    status ===
+                                    SuggestedChartRevisionStatus.rejected,
+                                "text-warning":
+                                    status ===
+                                    SuggestedChartRevisionStatus.flagged,
+                                "text-secondary":
+                                    status ===
+                                    SuggestedChartRevisionStatus.pending,
+                            })}
+                            style={{ marginLeft: "20px" }}
+                        >
+                            {status ? (
+                                <>
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={status}
+                                    />{" "}
+                                    <i>
+                                        {status.charAt(0).toUpperCase() +
+                                            status.slice(1)}
+                                    </i>
+                                </>
+                            ) : (
+                                ""
+                            )}
+                        </span>
+                    </h3>
+                    {this.renderGraphers()}
+                    {this.renderMeta()}
+                </React.Fragment>
+            )
+        }
+
+        renderReadme() {
+            return (
+                <div className="collapsible">
+                    <h3>
+                        README
+                        <button
+                            className="btn btn-outline-dark"
+                            type="button"
+                            onClick={this.onToggleShowReadme}
+                            aria-expanded={this.showReadme}
+                            title="Show/hide README"
+                            style={{ marginLeft: "10px" }}
+                        >
+                            {this.showReadme ? "Hide" : "Show"}
+                        </button>
+                    </h3>
+                    <div
+                        className={`readme ${
+                            this.showReadme ? "show" : "collapse"
+                        }`}
+                    >
+                        <h5>Terminology</h5>
+                        <ul>
+                            <li>
+                                <b>Suggested chart revision.</b> A suggested
+                                chart revision is simply an amended OWID chart,
+                                but where the amendments have not yet been
+                                applied to the chart in question. A suggested
+                                chart revision is housed in the{" "}
+                                <code>suggested_chart_revisions</code> table in{" "}
+                                <code>MySQL</code>. If the suggested chart
+                                revision gets approved, then the amendments are
+                                applied to the chart (which overwrites and
+                                republishes the chart).
+                            </li>
+                            <li>
+                                <b>Original chart.</b> The chart as it
+                                originally was when the suggested chart revision
+                                was created.
+                            </li>
+                            <li>
+                                <b>Existing chart.</b> The chart as it currently
+                                exists on the OWID website.
+                            </li>
+                        </ul>
+                        <h5>How to use</h5>
+                        <p>
+                            You are shown one suggested chart revision at a
+                            time, alongside the corresponding original chart as
+                            it was when the suggested chart revision was
+                            created.
+                        </p>
+                        <p>
+                            For each suggested revision, choose one of the
+                            following actions:
+                        </p>
+                        <ol>
+                            <li>
+                                <b>Approve the revision</b> by clicking{" "}
+                                <button
+                                    className="btn btn-outline-primary"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.approved
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Approve
+                                </button>
+                                . This approves the suggestion, replacing the
+                                original chart with the suggested chart (also
+                                republishes the chart). Note: if a chart has
+                                been edited since the suggested revision was
+                                created, you will not be allowed to approve the
+                                suggested revision.
+                            </li>
+                            <li>
+                                <b>Reject the suggested revision</b> by clicking{" "}
+                                <button
+                                    className="btn btn-outline-danger btn"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.rejected
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Reject
+                                </button>
+                                . This rejects the suggestion, keeping the
+                                original chart as it is.
+                            </li>
+                            <li>
+                                <b>Flag the suggested revision</b> for further
+                                inspection by clicking{" "}
+                                <button
+                                    className="btn btn-outline-warning btn"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.flagged
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Flag
+                                </button>
+                                .
+                            </li>
+                            <li>
+                                <b>Edit the original chart</b> by clicking{" "}
+                                <Link
+                                    className="btn btn-outline-secondary"
+                                    to=""
+                                    style={{ pointerEvents: "none" }}
+                                >
+                                    Edit{" "}
+                                    <FontAwesomeIcon icon={faExternalLinkAlt} />
+                                </Link>
+                                . This opens the original chart in the chart
+                                editor. If you save your changes to the original
+                                chart within the chart editor, you will no
+                                longer have the option to approve the suggested
+                                revision.
+                            </li>
+                            <li>
+                                <b>
+                                    Edit the suggested chart revision as the
+                                    original chart
+                                </b>{" "}
+                                by clicking{" "}
+                                <Link
+                                    className="btn btn-outline-secondary"
+                                    to=""
+                                    style={{ pointerEvents: "none" }}
+                                >
+                                    Edit as chart [chartId]{" "}
+                                    <FontAwesomeIcon icon={faExternalLinkAlt} />
+                                </Link>
+                                . This opens the suggested chart revision in the
+                                chart editor. If you make and save changes to
+                                the chart within the chart editor,{" "}
+                                <i>
+                                    your config and data changes will be applied
+                                    to the original chart, equivalent to
+                                    approving it.
+                                </i>{" "}
+                                Currently, the suggestion is not updated and the
+                                approval is left as pending, but you will no
+                                longer be able to approve it (since the chart
+                                has changed). Because it has actually been
+                                applied, you can now reject it.
+                            </li>
+                        </ol>
+                        <h5>Other useful information</h5>
+                        <ul>
+                            <li>
+                                When you click the{" "}
+                                <button
+                                    className="btn btn-outline-primary"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.approved
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Approve
+                                </button>{" "}
+                                ,{" "}
+                                <button
+                                    className="btn btn-outline-danger btn"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.rejected
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Reject
+                                </button>{" "}
+                                or{" "}
+                                <button
+                                    className="btn btn-outline-warning btn"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.flagged
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Flag
+                                </button>{" "}
+                                button, anything you write in the "Notes" text
+                                field will be saved. You can view these saved
+                                notes in the "Decision reason" column{" "}
+                                <Link to="/suggested-chart-revisions">
+                                    here
+                                </Link>
+                                . If you reject or flag a suggested chart
+                                revision, it is <i>strongly recommended</i> that
+                                you describe your reasoning in the "Notes"
+                                field.
+                            </li>
+                            <li>
+                                If a suggested revision has been approved and
+                                the chart has not changed since the revision was
+                                approved, then you can undo the revision by
+                                clicking the{" "}
+                                <button
+                                    className="btn btn-outline-danger btn"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.rejected
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Reject
+                                </button>{" "}
+                                button.
+                            </li>
+                            <li>
+                                If a suggested revision has been rejected and
+                                the chart has not changed since the revision was
+                                rejected, then you can still approve the
+                                revision by clicking the{" "}
+                                <button
+                                    className="btn btn-outline-primary btn"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.approved
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Approve
+                                </button>{" "}
+                                button.
+                            </li>
+                            <li>
+                                If one or more of the{" "}
+                                <button
+                                    className="btn btn-outline-primary"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.approved
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Approve
+                                </button>{" "}
+                                ,{" "}
+                                <button
+                                    className="btn btn-outline-danger btn"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.rejected
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Reject
+                                </button>{" "}
+                                or{" "}
+                                <button
+                                    className="btn btn-outline-warning btn"
+                                    style={{ pointerEvents: "none" }}
+                                    disabled={true}
+                                >
+                                    <SuggestedChartRevisionStatusIcon
+                                        status={
+                                            SuggestedChartRevisionStatus.flagged
+                                        }
+                                        setColor={false}
+                                    />{" "}
+                                    Flag
+                                </button>{" "}
+                                buttons are disabled, this is because these
+                                actions are not allowed for the suggested
+                                revision in question. For example, if a chart
+                                has changed since the suggested revision was
+                                created, you will not be allowed to approve the
+                                revision.
+                            </li>
+                        </ul>
                     </div>
-                    {this.listMode && (
-                        <div className="flex-row">
-                            <div style={{ width: 250, marginRight: "10px" }}>
-                                Sort by:{" "}
-                                <Select
-                                    options={[
-                                        {
-                                            value: "id",
-                                            label: "Suggestion ID",
-                                        },
-                                        {
-                                            value: "updatedAt",
-                                            label: "Date suggestion last updated",
-                                        },
-                                        {
-                                            value: "createdAt",
-                                            label: "Date suggestion created",
-                                        },
-                                        {
-                                            value: "status",
-                                            label: "Suggestion status",
-                                        },
-                                        {
-                                            value: "suggestedReason",
-                                            label: "Reason suggested",
-                                        },
-                                        {
-                                            value: "chartUpdatedAt",
-                                            label: "Date chart last updated",
-                                        },
-                                        {
-                                            value: "chartCreatedAt",
-                                            label: "Date chart created",
-                                        },
-                                        {
-                                            value: "chartId",
-                                            label: "Chart ID",
-                                        },
-                                        {
-                                            value: "variableId",
-                                            label: "Variable ID",
-                                        },
-                                    ]}
-                                    onChange={this.onSortByChange}
-                                    defaultValue={{
-                                        value: "updatedAt",
-                                        label: "Date suggestion last updated",
-                                    }}
-                                    menuPlacement="top"
-                                    styles={getStylesForTargetHeight(30)}
+                </div>
+            )
+        }
+
+        renderSettings() {
+            return (
+                <div className="collapsible">
+                    <h3>
+                        Settings
+                        <button
+                            className="btn btn-outline-dark"
+                            type="button"
+                            aria-expanded={this.showSettings}
+                            onClick={this.onToggleShowSettings}
+                            title="Show/hide settings"
+                            style={{ marginLeft: "10px" }}
+                        >
+                            {this.showSettings ? "Hide" : "Show"}
+                        </button>
+                    </h3>
+                    <div
+                        className={`settings ${
+                            this.showSettings ? "show" : "collapse"
+                        }`}
+                    >
+                        {this.listMode && (
+                            <div>
+                                <Toggle
+                                    value={this.showPendingOnly}
+                                    onValue={this.onToggleShowPendingOnly}
+                                    label='Show "pending" revisions only'
                                 />
                             </div>
-                            <div>
+                        )}
+                        <div>
+                            <Toggle
+                                value={this.showExistingChart}
+                                onValue={this.onToggleShowExistingChart}
+                                label="Show existing chart (as it appears on the OWID site)"
+                            />
+                        </div>
+                        <div className="flex-row">
+                            <div style={{ marginRight: "20px" }}>
+                                Preview mode:
                                 <br />
                                 <div
                                     className="btn-group"
@@ -985,134 +890,215 @@ export const SuggestedChartRevisionApproverPage = observer(class SuggestedChartR
                                     <label
                                         className={
                                             "btn btn-light" +
-                                            (this.sortOrder === SortOrder.asc
+                                            (this.previewMode === "mobile"
                                                 ? " active"
                                                 : "")
                                         }
-                                        title="Sort ascending"
+                                        title="Mobile preview"
                                     >
                                         <input
                                             type="radio"
-                                            onChange={() =>
-                                                this.onSortOrderChange(
-                                                    SortOrder.asc
-                                                )
-                                            }
-                                            name="sortOrder"
-                                            id="asc"
+                                            onChange={action(() => {
+                                                this.previewMode = "mobile"
+                                                this.rerenderGraphers()
+                                            })}
+                                            name="previewSize"
+                                            id="mobile"
                                             checked={
-                                                this.sortOrder === SortOrder.asc
+                                                this.previewMode === "mobile"
                                             }
                                         />{" "}
-                                        <FontAwesomeIcon
-                                            icon={faSortAlphaDown}
-                                        />
+                                        <FontAwesomeIcon icon={faMobile} />
                                     </label>
                                     <label
                                         className={
                                             "btn btn-light" +
-                                            (this.sortOrder === SortOrder.desc
+                                            (this.previewMode === "desktop"
                                                 ? " active"
                                                 : "")
                                         }
-                                        title="Sort descending"
+                                        title="Desktop preview"
                                     >
                                         <input
-                                            onChange={() =>
-                                                this.onSortOrderChange(
-                                                    SortOrder.desc
-                                                )
-                                            }
+                                            onChange={action(() => {
+                                                this.previewMode = "desktop"
+                                                this.rerenderGraphers()
+                                            })}
                                             type="radio"
-                                            name="sortOrder"
-                                            id="desc"
+                                            name="previewSize"
+                                            id="desktop"
                                             checked={
-                                                this.sortOrder ===
-                                                SortOrder.desc
+                                                this.previewMode === "desktop"
                                             }
                                         />{" "}
-                                        <FontAwesomeIcon
-                                            icon={faSortAlphaUpAlt}
-                                        />
+                                        <FontAwesomeIcon icon={faDesktop} />
                                     </label>
                                 </div>
                             </div>
+                            <div>
+                                Preview size (desktop only):
+                                <RadioGroup
+                                    options={[
+                                        { label: "Small", value: "small" },
+                                        { label: "Normal", value: "normal" },
+                                    ]}
+                                    value={this.desktopPreviewSize}
+                                    onChange={this.onChangeDesktopPreviewSize}
+                                />
+                            </div>
                         </div>
-                    )}
-                    <div>
-                        View SVG or JSON?
-                        <RadioGroup
-                            options={[
-                                { label: "SVG", value: "svg" },
-                                { label: "JSON", value: "json" },
-                            ]}
-                            value={this.previewSvgOrJson}
-                            onChange={this.onChangePreviewSvgOrJson}
-                        />
-                    </div>
-                    <div style={{ width: 250 }}>
-                        Emulate vision deficiency:{" "}
-                        <VisionDeficiencyDropdown
-                            onChange={action(
-                                (option: VisionDeficiencyEntity) =>
-                                    (this.simulateVisionDeficiency =
-                                        option.deficiency)
-                            )}
-                        />
-                        <VisionDeficiencySvgFilters />
+                        {this.listMode && (
+                            <div className="flex-row">
+                                <div
+                                    style={{ width: 250, marginRight: "10px" }}
+                                >
+                                    Sort by:{" "}
+                                    <Select
+                                        options={[
+                                            {
+                                                value: "id",
+                                                label: "Suggestion ID",
+                                            },
+                                            {
+                                                value: "updatedAt",
+                                                label: "Date suggestion last updated",
+                                            },
+                                            {
+                                                value: "createdAt",
+                                                label: "Date suggestion created",
+                                            },
+                                            {
+                                                value: "status",
+                                                label: "Suggestion status",
+                                            },
+                                            {
+                                                value: "suggestedReason",
+                                                label: "Reason suggested",
+                                            },
+                                            {
+                                                value: "chartUpdatedAt",
+                                                label: "Date chart last updated",
+                                            },
+                                            {
+                                                value: "chartCreatedAt",
+                                                label: "Date chart created",
+                                            },
+                                            {
+                                                value: "chartId",
+                                                label: "Chart ID",
+                                            },
+                                            {
+                                                value: "variableId",
+                                                label: "Variable ID",
+                                            },
+                                        ]}
+                                        onChange={this.onSortByChange}
+                                        defaultValue={{
+                                            value: "updatedAt",
+                                            label: "Date suggestion last updated",
+                                        }}
+                                        menuPlacement="top"
+                                        styles={getStylesForTargetHeight(30)}
+                                    />
+                                </div>
+                                <div>
+                                    <br />
+                                    <div
+                                        className="btn-group"
+                                        data-toggle="buttons"
+                                        style={{ whiteSpace: "nowrap" }}
+                                    >
+                                        <label
+                                            className={
+                                                "btn btn-light" +
+                                                (this.sortOrder ===
+                                                SortOrder.asc
+                                                    ? " active"
+                                                    : "")
+                                            }
+                                            title="Sort ascending"
+                                        >
+                                            <input
+                                                type="radio"
+                                                onChange={() =>
+                                                    this.onSortOrderChange(
+                                                        SortOrder.asc
+                                                    )
+                                                }
+                                                name="sortOrder"
+                                                id="asc"
+                                                checked={
+                                                    this.sortOrder ===
+                                                    SortOrder.asc
+                                                }
+                                            />{" "}
+                                            <FontAwesomeIcon
+                                                icon={faSortAlphaDown}
+                                            />
+                                        </label>
+                                        <label
+                                            className={
+                                                "btn btn-light" +
+                                                (this.sortOrder ===
+                                                SortOrder.desc
+                                                    ? " active"
+                                                    : "")
+                                            }
+                                            title="Sort descending"
+                                        >
+                                            <input
+                                                onChange={() =>
+                                                    this.onSortOrderChange(
+                                                        SortOrder.desc
+                                                    )
+                                                }
+                                                type="radio"
+                                                name="sortOrder"
+                                                id="desc"
+                                                checked={
+                                                    this.sortOrder ===
+                                                    SortOrder.desc
+                                                }
+                                            />{" "}
+                                            <FontAwesomeIcon
+                                                icon={faSortAlphaUpAlt}
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div>
+                            View SVG or JSON?
+                            <RadioGroup
+                                options={[
+                                    { label: "SVG", value: "svg" },
+                                    { label: "JSON", value: "json" },
+                                ]}
+                                value={this.previewSvgOrJson}
+                                onChange={this.onChangePreviewSvgOrJson}
+                            />
+                        </div>
+                        <div style={{ width: 250 }}>
+                            Emulate vision deficiency:{" "}
+                            <VisionDeficiencyDropdown
+                                onChange={action(
+                                    (option: VisionDeficiencyEntity) =>
+                                        (this.simulateVisionDeficiency =
+                                            option.deficiency)
+                                )}
+                            />
+                            <VisionDeficiencySvgFilters />
+                        </div>
                     </div>
                 </div>
-            </div>
-        )
-    }
+            )
+        }
 
-    renderGraphers() {
-        return (
-            <React.Fragment>
-                <div className="charts-view">
-                    <div
-                        className="chart-view"
-                        style={{
-                            height: this.grapherBounds.height + 100,
-                            width: this.grapherBounds.width,
-                        }}
-                    >
-                        {this.suggestedChartRevision && (
-                            <React.Fragment>
-                                <div className="header">
-                                    <h5>Original chart</h5>
-                                    <span className="text-muted">
-                                        {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.originalConfig.version})`}
-                                    </span>
-                                    <Link
-                                        className="btn btn-outline-secondary"
-                                        to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        title="Edit original chart in a new tab"
-                                    >
-                                        Edit{" "}
-                                        <FontAwesomeIcon
-                                            icon={faExternalLinkAlt}
-                                        />
-                                    </Link>
-                                </div>
-                                <p
-                                    className="text-muted"
-                                    style={{ fontWeight: 300 }}
-                                >
-                                    This is what the chart looked like when the
-                                    suggested revision was created.
-                                </p>
-                            </React.Fragment>
-                        )}
-                        {this._isGraphersSet &&
-                            this.suggestedChartRevision &&
-                            this.renderGrapher(
-                                this.suggestedChartRevision.originalConfig
-                            )}
-                    </div>
-                    {this.showExistingChart && (
+        renderGraphers() {
+            return (
+                <React.Fragment>
+                    <div className="charts-view">
                         <div
                             className="chart-view"
                             style={{
@@ -1123,16 +1109,16 @@ export const SuggestedChartRevisionApproverPage = observer(class SuggestedChartR
                             {this.suggestedChartRevision && (
                                 <React.Fragment>
                                     <div className="header">
-                                        <h5>Existing chart</h5>
+                                        <h5>Original chart</h5>
                                         <span className="text-muted">
-                                            {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.existingConfig.version})`}
+                                            {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.originalConfig.version})`}
                                         </span>
                                         <Link
                                             className="btn btn-outline-secondary"
                                             to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
                                             target="_blank"
                                             rel="noreferrer"
-                                            title="Edit existing chart in a new tab"
+                                            title="Edit original chart in a new tab"
                                         >
                                             Edit{" "}
                                             <FontAwesomeIcon
@@ -1144,365 +1130,430 @@ export const SuggestedChartRevisionApproverPage = observer(class SuggestedChartR
                                         className="text-muted"
                                         style={{ fontWeight: 300 }}
                                     >
-                                        This is what the chart looks like right
-                                        now on the OWID website.
+                                        This is what the chart looked like when
+                                        the suggested revision was created.
                                     </p>
                                 </React.Fragment>
                             )}
                             {this._isGraphersSet &&
                                 this.suggestedChartRevision &&
                                 this.renderGrapher(
-                                    this.suggestedChartRevision.existingConfig
+                                    this.suggestedChartRevision.originalConfig
                                 )}
                         </div>
-                    )}
-                    <div
-                        className="chart-view"
-                        style={{
-                            height: this.grapherBounds.height + 100,
-                            width: this.grapherBounds.width,
-                        }}
-                    >
-                        {this.suggestedChartRevision && (
-                            <React.Fragment>
-                                <div className="header">
-                                    <h5>Suggested chart</h5>
-                                    <span className="text-muted">
-                                        {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.suggestedConfig.version})`}
-                                    </span>
-                                    <Link
-                                        className="btn btn-outline-secondary"
-                                        to={`/charts/${
-                                            this.suggestedChartRevision.chartId
-                                        }/edit/${Base64.encode(
-                                            JSON.stringify(
+                        {this.showExistingChart && (
+                            <div
+                                className="chart-view"
+                                style={{
+                                    height: this.grapherBounds.height + 100,
+                                    width: this.grapherBounds.width,
+                                }}
+                            >
+                                {this.suggestedChartRevision && (
+                                    <React.Fragment>
+                                        <div className="header">
+                                            <h5>Existing chart</h5>
+                                            <span className="text-muted">
+                                                {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.existingConfig.version})`}
+                                            </span>
+                                            <Link
+                                                className="btn btn-outline-secondary"
+                                                to={`/charts/${this.suggestedChartRevision.chartId}/edit`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                title="Edit existing chart in a new tab"
+                                            >
+                                                Edit{" "}
+                                                <FontAwesomeIcon
+                                                    icon={faExternalLinkAlt}
+                                                />
+                                            </Link>
+                                        </div>
+                                        <p
+                                            className="text-muted"
+                                            style={{ fontWeight: 300 }}
+                                        >
+                                            This is what the chart looks like
+                                            right now on the OWID website.
+                                        </p>
+                                    </React.Fragment>
+                                )}
+                                {this._isGraphersSet &&
+                                    this.suggestedChartRevision &&
+                                    this.renderGrapher(
+                                        this.suggestedChartRevision
+                                            .existingConfig
+                                    )}
+                            </div>
+                        )}
+                        <div
+                            className="chart-view"
+                            style={{
+                                height: this.grapherBounds.height + 100,
+                                width: this.grapherBounds.width,
+                            }}
+                        >
+                            {this.suggestedChartRevision && (
+                                <React.Fragment>
+                                    <div className="header">
+                                        <h5>Suggested chart</h5>
+                                        <span className="text-muted">
+                                            {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.suggestedConfig.version})`}
+                                        </span>
+                                        <Link
+                                            className="btn btn-outline-secondary"
+                                            to={`/charts/${
                                                 this.suggestedChartRevision
-                                                    .suggestedConfig
-                                            )
-                                        )}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        title="Edit chart in a new tab"
+                                                    .chartId
+                                            }/edit/${Base64.encode(
+                                                JSON.stringify(
+                                                    this.suggestedChartRevision
+                                                        .suggestedConfig
+                                                )
+                                            )}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            title="Edit chart in a new tab"
+                                        >
+                                            Edit as chart{" "}
+                                            {
+                                                this.suggestedChartRevision
+                                                    .chartId
+                                            }{" "}
+                                            <FontAwesomeIcon
+                                                icon={faExternalLinkAlt}
+                                            />
+                                        </Link>
+                                    </div>
+                                    <p
+                                        className="text-muted"
+                                        style={{ fontWeight: 300 }}
                                     >
-                                        Edit as chart{" "}
-                                        {this.suggestedChartRevision.chartId}{" "}
-                                        <FontAwesomeIcon
-                                            icon={faExternalLinkAlt}
-                                        />
-                                    </Link>
-                                </div>
-                                <p
-                                    className="text-muted"
-                                    style={{ fontWeight: 300 }}
+                                        This is what the chart will look like if
+                                        the suggested revision is approved.
+                                    </p>
+                                </React.Fragment>
+                            )}
+                            {this._isGraphersSet &&
+                                this.suggestedChartRevision &&
+                                this.renderGrapher(
+                                    this.suggestedChartRevision.suggestedConfig
+                                )}
+                        </div>
+                    </div>
+                </React.Fragment>
+            )
+        }
+
+        renderMeta() {
+            return (
+                <React.Fragment>
+                    <div>
+                        <h5>Metadata</h5>
+                        <ul className="meta">
+                            <li>
+                                <b>Suggested revision ID:</b>{" "}
+                                {this.suggestedChartRevision
+                                    ? this.suggestedChartRevision.id
+                                    : ""}
+                            </li>
+                            <li>
+                                <b>Chart ID:</b>{" "}
+                                {this.suggestedChartRevision
+                                    ? this.suggestedChartRevision.chartId
+                                    : ""}
+                            </li>
+                            <li>
+                                <b>Suggested revision created:</b>{" "}
+                                {this.suggestedChartRevision && (
+                                    <Timeago
+                                        time={
+                                            this.suggestedChartRevision
+                                                .createdAt
+                                        }
+                                        by={
+                                            this.suggestedChartRevision
+                                                .createdByFullName
+                                        }
+                                    />
+                                )}
+                            </li>
+
+                            <li>
+                                <b>Suggested revision last updated:</b>{" "}
+                                {this.suggestedChartRevision?.updatedAt && (
+                                    <Timeago
+                                        time={
+                                            this.suggestedChartRevision
+                                                .updatedAt
+                                        }
+                                        by={
+                                            this.suggestedChartRevision
+                                                .updatedByFullName ??
+                                            this.suggestedChartRevision
+                                                .createdByFullName
+                                        }
+                                    />
+                                )}
+                            </li>
+                            <li>
+                                <b>Reason for suggested revision:</b>{" "}
+                                {this.suggestedChartRevision &&
+                                this.suggestedChartRevision.suggestedReason
+                                    ? this.suggestedChartRevision
+                                          .suggestedReason
+                                    : "None provided."}
+                            </li>
+                        </ul>
+                    </div>
+                    <div className="references">
+                        <h5>References to original chart</h5>
+                        {this.renderReferences()}
+                    </div>
+                </React.Fragment>
+            )
+        }
+
+        renderGrapher(grapherConfig: any) {
+            return (
+                <div>
+                    {this.previewSvgOrJson === "json" ? (
+                        <div
+                            className="json-view"
+                            style={{
+                                height: this.grapherBounds.height * 0.9,
+                                maxWidth: this.grapherBounds.width,
+                            }}
+                        >
+                            <pre>
+                                <code>
+                                    {JSON.stringify(grapherConfig, null, 2)}
+                                </code>
+                            </pre>
+                        </div>
+                    ) : (
+                        <figure
+                            data-grapher-src
+                            style={{
+                                filter:
+                                    this.simulateVisionDeficiency &&
+                                    `url(#${this.simulateVisionDeficiency.id})`,
+                            }}
+                        >
+                            <Grapher
+                                {...{
+                                    ...grapherConfig,
+                                    bounds: this.grapherBounds,
+                                    dataApiUrlForAdmin:
+                                        this.context.admin.settings
+                                            .DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
+                                }}
+                            />
+                        </figure>
+                    )}
+                </div>
+            )
+        }
+
+        renderControls() {
+            return (
+                <div className="controls">
+                    {this.listMode && (
+                        <div className="row-input">
+                            <span>Suggested revision</span>
+                            <NumberField
+                                value={this.rowNumValid}
+                                onValue={this.onRowNumInput}
+                            />
+                            <span>
+                                of {this.numTotalRows}
+                                {this.showPendingOnly ? " remaining" : ""} (
+                                <Link to="/suggested-chart-revisions">
+                                    View all
+                                </Link>
+                                )
+                            </span>
+                        </div>
+                    )}
+                    <div className="buttons">
+                        {this.listMode && (
+                            <React.Fragment>
+                                <button
+                                    className="btn btn-outline-dark"
+                                    onClick={this.onFirst}
+                                    title="Go to first suggestion"
+                                    disabled={this.prevBtnIsDisabled}
+                                    aria-disabled={this.prevBtnIsDisabled}
+                                    style={{
+                                        pointerEvents: this.prevBtnIsDisabled
+                                            ? "none"
+                                            : undefined,
+                                    }}
                                 >
-                                    This is what the chart will look like if the
-                                    suggested revision is approved.
-                                </p>
+                                    <FontAwesomeIcon icon={faAngleDoubleLeft} />
+                                </button>
+                                <button
+                                    className="btn btn-outline-dark"
+                                    onClick={this.onPrev}
+                                    title="Go to previous suggestion"
+                                    disabled={this.prevBtnIsDisabled}
+                                    aria-disabled={this.prevBtnIsDisabled}
+                                    style={{
+                                        pointerEvents: this.prevBtnIsDisabled
+                                            ? "none"
+                                            : undefined,
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={faAngleLeft} />
+                                </button>
                             </React.Fragment>
                         )}
-                        {this._isGraphersSet &&
-                            this.suggestedChartRevision &&
-                            this.renderGrapher(
-                                this.suggestedChartRevision.suggestedConfig
-                            )}
-                    </div>
-                </div>
-            </React.Fragment>
-        )
-    }
-
-    renderMeta() {
-        return (
-            <React.Fragment>
-                <div>
-                    <h5>Metadata</h5>
-                    <ul className="meta">
-                        <li>
-                            <b>Suggested revision ID:</b>{" "}
-                            {this.suggestedChartRevision
-                                ? this.suggestedChartRevision.id
-                                : ""}
-                        </li>
-                        <li>
-                            <b>Chart ID:</b>{" "}
-                            {this.suggestedChartRevision
-                                ? this.suggestedChartRevision.chartId
-                                : ""}
-                        </li>
-                        <li>
-                            <b>Suggested revision created:</b>{" "}
-                            {this.suggestedChartRevision && (
-                                <Timeago
-                                    time={this.suggestedChartRevision.createdAt}
-                                    by={
-                                        this.suggestedChartRevision
-                                            .createdByFullName
-                                    }
-                                />
-                            )}
-                        </li>
-
-                        <li>
-                            <b>Suggested revision last updated:</b>{" "}
-                            {this.suggestedChartRevision?.updatedAt && (
-                                <Timeago
-                                    time={this.suggestedChartRevision.updatedAt}
-                                    by={
-                                        this.suggestedChartRevision
-                                            .updatedByFullName ??
-                                        this.suggestedChartRevision
-                                            .createdByFullName
-                                    }
-                                />
-                            )}
-                        </li>
-                        <li>
-                            <b>Reason for suggested revision:</b>{" "}
-                            {this.suggestedChartRevision &&
-                            this.suggestedChartRevision.suggestedReason
-                                ? this.suggestedChartRevision.suggestedReason
-                                : "None provided."}
-                        </li>
-                    </ul>
-                </div>
-                <div className="references">
-                    <h5>References to original chart</h5>
-                    {this.renderReferences()}
-                </div>
-            </React.Fragment>
-        )
-    }
-
-    renderGrapher(grapherConfig: any) {
-        return (
-            <div>
-                {this.previewSvgOrJson === "json" ? (
-                    <div
-                        className="json-view"
-                        style={{
-                            height: this.grapherBounds.height * 0.9,
-                            maxWidth: this.grapherBounds.width,
-                        }}
-                    >
-                        <pre>
-                            <code>
-                                {JSON.stringify(grapherConfig, null, 2)}
-                            </code>
-                        </pre>
-                    </div>
-                ) : (
-                    <figure
-                        data-grapher-src
-                        style={{
-                            filter:
-                                this.simulateVisionDeficiency &&
-                                `url(#${this.simulateVisionDeficiency.id})`,
-                        }}
-                    >
-                        <Grapher
-                            {...{
-                                ...grapherConfig,
-                                bounds: this.grapherBounds,
-                                dataApiUrlForAdmin:
-                                    this.context.admin.settings
-                                        .DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
+                        <button
+                            className="btn btn-outline-danger"
+                            onClick={this.onRejectSuggestedChartRevision}
+                            title="Reject the suggestion, keeping the original chart as it is"
+                            disabled={this.rejectButtonIsDisabled}
+                            aria-disabled={this.rejectButtonIsDisabled}
+                            style={{
+                                pointerEvents: this.rejectButtonIsDisabled
+                                    ? "none"
+                                    : undefined,
                             }}
-                        />
-                    </figure>
-                )}
-            </div>
-        )
-    }
-
-    renderControls() {
-        return (
-            <div className="controls">
-                {this.listMode && (
-                    <div className="row-input">
-                        <span>Suggested revision</span>
-                        <NumberField
-                            value={this.rowNumValid}
-                            onValue={this.onRowNumInput}
-                        />
-                        <span>
-                            of {this.numTotalRows}
-                            {this.showPendingOnly ? " remaining" : ""} (
-                            <Link to="/suggested-chart-revisions">
-                                View all
-                            </Link>
-                            )
-                        </span>
+                        >
+                            <SuggestedChartRevisionStatusIcon
+                                status={SuggestedChartRevisionStatus.rejected}
+                                setColor={false}
+                            />{" "}
+                            Reject
+                        </button>
+                        <button
+                            className="btn btn-outline-warning"
+                            onClick={this.onFlagSuggestedChartRevision}
+                            title="Flag the suggestion for further inspection, keeping the original chart as it is"
+                            disabled={this.flagButtonIsDisabled}
+                            aria-disabled={this.flagButtonIsDisabled}
+                            style={{
+                                pointerEvents: this.flagButtonIsDisabled
+                                    ? "none"
+                                    : undefined,
+                            }}
+                        >
+                            <SuggestedChartRevisionStatusIcon
+                                status={SuggestedChartRevisionStatus.flagged}
+                                setColor={false}
+                            />{" "}
+                            Flag
+                        </button>
+                        <button
+                            className="btn btn-outline-primary"
+                            onClick={this.onApproveSuggestedChartRevision}
+                            title="Approve the suggestion, replacing the original chart with the suggested chart (also republishes the chart)"
+                            disabled={this.approveButtonIsDisabled}
+                            aria-disabled={this.approveButtonIsDisabled}
+                            style={{
+                                pointerEvents: this.approveButtonIsDisabled
+                                    ? "none"
+                                    : undefined,
+                            }}
+                        >
+                            <SuggestedChartRevisionStatusIcon
+                                status={SuggestedChartRevisionStatus.approved}
+                                setColor={false}
+                            />{" "}
+                            Approve
+                        </button>
+                        {this.listMode && (
+                            <React.Fragment>
+                                <button
+                                    className="btn btn-outline-dark"
+                                    onClick={this.onNext}
+                                    title="Go to next suggestion"
+                                    disabled={this.nextBtnIsDisabled}
+                                    aria-disabled={this.nextBtnIsDisabled}
+                                    style={{
+                                        pointerEvents: this.nextBtnIsDisabled
+                                            ? "none"
+                                            : undefined,
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={faAngleRight} />
+                                </button>
+                                <button
+                                    className="btn btn-outline-dark"
+                                    onClick={this.onLast}
+                                    title="Go to last suggestion"
+                                    disabled={this.nextBtnIsDisabled}
+                                    aria-disabled={this.nextBtnIsDisabled}
+                                    style={{
+                                        pointerEvents: this.nextBtnIsDisabled
+                                            ? "none"
+                                            : undefined,
+                                    }}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faAngleDoubleRight}
+                                    />
+                                </button>
+                                <button
+                                    className="btn btn-outline-dark"
+                                    onClick={this.onRandom}
+                                    title="Go to random suggestion"
+                                    disabled={this.randomBtnIsDisabled}
+                                    aria-disabled={this.randomBtnIsDisabled}
+                                    style={{
+                                        pointerEvents: this.randomBtnIsDisabled
+                                            ? "none"
+                                            : undefined,
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={faRandom} />
+                                </button>
+                            </React.Fragment>
+                        )}
                     </div>
-                )}
-                <div className="buttons">
-                    {this.listMode && (
-                        <React.Fragment>
-                            <button
-                                className="btn btn-outline-dark"
-                                onClick={this.onFirst}
-                                title="Go to first suggestion"
-                                disabled={this.prevBtnIsDisabled}
-                                aria-disabled={this.prevBtnIsDisabled}
-                                style={{
-                                    pointerEvents: this.prevBtnIsDisabled
-                                        ? "none"
-                                        : undefined,
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faAngleDoubleLeft} />
-                            </button>
-                            <button
-                                className="btn btn-outline-dark"
-                                onClick={this.onPrev}
-                                title="Go to previous suggestion"
-                                disabled={this.prevBtnIsDisabled}
-                                aria-disabled={this.prevBtnIsDisabled}
-                                style={{
-                                    pointerEvents: this.prevBtnIsDisabled
-                                        ? "none"
-                                        : undefined,
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faAngleLeft} />
-                            </button>
-                        </React.Fragment>
-                    )}
-                    <button
-                        className="btn btn-outline-danger"
-                        onClick={this.onRejectSuggestedChartRevision}
-                        title="Reject the suggestion, keeping the original chart as it is"
-                        disabled={this.rejectButtonIsDisabled}
-                        aria-disabled={this.rejectButtonIsDisabled}
-                        style={{
-                            pointerEvents: this.rejectButtonIsDisabled
-                                ? "none"
-                                : undefined,
-                        }}
-                    >
-                        <SuggestedChartRevisionStatusIcon
-                            status={SuggestedChartRevisionStatus.rejected}
-                            setColor={false}
-                        />{" "}
-                        Reject
-                    </button>
-                    <button
-                        className="btn btn-outline-warning"
-                        onClick={this.onFlagSuggestedChartRevision}
-                        title="Flag the suggestion for further inspection, keeping the original chart as it is"
-                        disabled={this.flagButtonIsDisabled}
-                        aria-disabled={this.flagButtonIsDisabled}
-                        style={{
-                            pointerEvents: this.flagButtonIsDisabled
-                                ? "none"
-                                : undefined,
-                        }}
-                    >
-                        <SuggestedChartRevisionStatusIcon
-                            status={SuggestedChartRevisionStatus.flagged}
-                            setColor={false}
-                        />{" "}
-                        Flag
-                    </button>
-                    <button
-                        className="btn btn-outline-primary"
-                        onClick={this.onApproveSuggestedChartRevision}
-                        title="Approve the suggestion, replacing the original chart with the suggested chart (also republishes the chart)"
-                        disabled={this.approveButtonIsDisabled}
-                        aria-disabled={this.approveButtonIsDisabled}
-                        style={{
-                            pointerEvents: this.approveButtonIsDisabled
-                                ? "none"
-                                : undefined,
-                        }}
-                    >
-                        <SuggestedChartRevisionStatusIcon
-                            status={SuggestedChartRevisionStatus.approved}
-                            setColor={false}
-                        />{" "}
-                        Approve
-                    </button>
-                    {this.listMode && (
-                        <React.Fragment>
-                            <button
-                                className="btn btn-outline-dark"
-                                onClick={this.onNext}
-                                title="Go to next suggestion"
-                                disabled={this.nextBtnIsDisabled}
-                                aria-disabled={this.nextBtnIsDisabled}
-                                style={{
-                                    pointerEvents: this.nextBtnIsDisabled
-                                        ? "none"
-                                        : undefined,
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faAngleRight} />
-                            </button>
-                            <button
-                                className="btn btn-outline-dark"
-                                onClick={this.onLast}
-                                title="Go to last suggestion"
-                                disabled={this.nextBtnIsDisabled}
-                                aria-disabled={this.nextBtnIsDisabled}
-                                style={{
-                                    pointerEvents: this.nextBtnIsDisabled
-                                        ? "none"
-                                        : undefined,
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faAngleDoubleRight} />
-                            </button>
-                            <button
-                                className="btn btn-outline-dark"
-                                onClick={this.onRandom}
-                                title="Go to random suggestion"
-                                disabled={this.randomBtnIsDisabled}
-                                aria-disabled={this.randomBtnIsDisabled}
-                                style={{
-                                    pointerEvents: this.randomBtnIsDisabled
-                                        ? "none"
-                                        : undefined,
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faRandom} />
-                            </button>
-                        </React.Fragment>
-                    )}
+                    <TextAreaField
+                        label="Notes"
+                        placeholder="e.g. why are you rejecting this suggested revision?"
+                        value={this.decisionReasonInput}
+                        onValue={this.onDecisionReasonInput}
+                        disabled={!this._isGraphersSet}
+                    />
                 </div>
-                <TextAreaField
-                    label="Notes"
-                    placeholder="e.g. why are you rejecting this suggested revision?"
-                    value={this.decisionReasonInput}
-                    onValue={this.onDecisionReasonInput}
-                    disabled={!this._isGraphersSet}
-                />
-            </div>
-        )
-    }
+            )
+        }
 
-    renderReferences() {
-        return (
-            <React.Fragment>
-                {this.chartReferences.length ? (
-                    <React.Fragment>
-                        <p>Public pages that embed or reference this chart:</p>
-                        <ul className="list-group">
-                            {this.chartReferences.map((post: PostReference) => (
-                                <li key={post.id} className="list-group-item">
-                                    <a
-                                        href={post.url}
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
-                                        <strong>{post.title}</strong>
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </React.Fragment>
-                ) : (
-                    <p>No public posts reference the original chart.</p>
-                )}
-            </React.Fragment>
-        )
+        renderReferences() {
+            return (
+                <React.Fragment>
+                    {this.chartReferences.length ? (
+                        <React.Fragment>
+                            <p>
+                                Public pages that embed or reference this chart:
+                            </p>
+                            <ul className="list-group">
+                                {this.chartReferences.map(
+                                    (post: PostReference) => (
+                                        <li
+                                            key={post.id}
+                                            className="list-group-item"
+                                        >
+                                            <a
+                                                href={post.url}
+                                                target="_blank"
+                                                rel="noopener"
+                                            >
+                                                <strong>{post.title}</strong>
+                                            </a>
+                                        </li>
+                                    )
+                                )}
+                            </ul>
+                        </React.Fragment>
+                    ) : (
+                        <p>No public posts reference the original chart.</p>
+                    )}
+                </React.Fragment>
+            )
+        }
     }
-});
+)

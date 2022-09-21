@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis.js"
@@ -22,105 +22,107 @@ const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
 const SOLID_TICK_COLOR = "#999"
 
-export const VerticalAxisGridLines = observer(class VerticalAxisGridLines extends React.Component<{
-    verticalAxis: VerticalAxis
-    bounds: Bounds
-}> {
-    render(): JSX.Element {
-        const { bounds, verticalAxis } = this.props
-        const axis = verticalAxis.clone()
-        axis.range = bounds.yRange()
+export const VerticalAxisGridLines = observer(
+    class VerticalAxisGridLines extends React.Component<{
+        verticalAxis: VerticalAxis
+        bounds: Bounds
+    }> {
+        render(): JSX.Element {
+            const { bounds, verticalAxis } = this.props
+            const axis = verticalAxis.clone()
+            axis.range = bounds.yRange()
 
-        return (
-            <g className={classNames("AxisGridLines", "horizontalLines")}>
-                {axis.getTickValues().map((t, i) => {
-                    const color = t.faint
-                        ? FAINT_TICK_COLOR
-                        : t.solid
-                        ? SOLID_TICK_COLOR
-                        : TICK_COLOR
+            return (
+                <g className={classNames("AxisGridLines", "horizontalLines")}>
+                    {axis.getTickValues().map((t, i) => {
+                        const color = t.faint
+                            ? FAINT_TICK_COLOR
+                            : t.solid
+                            ? SOLID_TICK_COLOR
+                            : TICK_COLOR
 
-                    return (
-                        <line
-                            key={i}
-                            x1={bounds.left.toFixed(2)}
-                            y1={axis.place(t.value)}
-                            x2={bounds.right.toFixed(2)}
-                            y2={axis.place(t.value)}
-                            stroke={color}
-                            strokeDasharray={
-                                t.solid
-                                    ? undefined
-                                    : dasharrayFromFontSize(
-                                          verticalAxis.tickFontSize
-                                      )
-                            }
-                        />
-                    )
-                })}
-            </g>
-        )
+                        return (
+                            <line
+                                key={i}
+                                x1={bounds.left.toFixed(2)}
+                                y1={axis.place(t.value)}
+                                x2={bounds.right.toFixed(2)}
+                                y2={axis.place(t.value)}
+                                stroke={color}
+                                strokeDasharray={
+                                    t.solid
+                                        ? undefined
+                                        : dasharrayFromFontSize(
+                                              verticalAxis.tickFontSize
+                                          )
+                                }
+                            />
+                        )
+                    })}
+                </g>
+            )
+        }
     }
-});
+)
 
-export const HorizontalAxisGridLines = observer(class HorizontalAxisGridLines extends React.Component<{
-    horizontalAxis: HorizontalAxis
-    bounds?: Bounds
-}> {
-    constructor(
-        props: {
+export const HorizontalAxisGridLines = observer(
+    class HorizontalAxisGridLines extends React.Component<{
+        horizontalAxis: HorizontalAxis
+        bounds?: Bounds
+    }> {
+        constructor(props: {
             horizontalAxis: HorizontalAxis
             bounds?: Bounds
+        }) {
+            super(props)
+
+            makeObservable(this, {
+                bounds: computed,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            bounds: computed
-        });
+        get bounds(): Bounds {
+            return this.props.bounds ?? DEFAULT_BOUNDS
+        }
+
+        render(): JSX.Element {
+            const { horizontalAxis } = this.props
+            const { bounds } = this
+            const axis = horizontalAxis.clone()
+            axis.range = bounds.xRange()
+
+            return (
+                <g className={classNames("AxisGridLines", "verticalLines")}>
+                    {axis.getTickValues().map((t, i) => {
+                        const color = t.faint
+                            ? FAINT_TICK_COLOR
+                            : t.solid
+                            ? SOLID_TICK_COLOR
+                            : TICK_COLOR
+
+                        return (
+                            <line
+                                key={i}
+                                x1={axis.place(t.value)}
+                                y1={bounds.bottom.toFixed(2)}
+                                x2={axis.place(t.value)}
+                                y2={bounds.top.toFixed(2)}
+                                stroke={color}
+                                strokeDasharray={
+                                    t.solid
+                                        ? undefined
+                                        : dasharrayFromFontSize(
+                                              horizontalAxis.tickFontSize
+                                          )
+                                }
+                            />
+                        )
+                    })}
+                </g>
+            )
+        }
     }
-
-    get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
-    }
-
-    render(): JSX.Element {
-        const { horizontalAxis } = this.props
-        const { bounds } = this
-        const axis = horizontalAxis.clone()
-        axis.range = bounds.xRange()
-
-        return (
-            <g className={classNames("AxisGridLines", "verticalLines")}>
-                {axis.getTickValues().map((t, i) => {
-                    const color = t.faint
-                        ? FAINT_TICK_COLOR
-                        : t.solid
-                        ? SOLID_TICK_COLOR
-                        : TICK_COLOR
-
-                    return (
-                        <line
-                            key={i}
-                            x1={axis.place(t.value)}
-                            y1={bounds.bottom.toFixed(2)}
-                            x2={axis.place(t.value)}
-                            y2={bounds.top.toFixed(2)}
-                            stroke={color}
-                            strokeDasharray={
-                                t.solid
-                                    ? undefined
-                                    : dasharrayFromFontSize(
-                                          horizontalAxis.tickFontSize
-                                      )
-                            }
-                        />
-                    )
-                })}
-            </g>
-        )
-    }
-});
+)
 
 interface DualAxisViewProps {
     dualAxis: DualAxis
@@ -128,95 +130,100 @@ interface DualAxisViewProps {
     showTickMarks?: boolean
 }
 
-export const DualAxisComponent = observer(class DualAxisComponent extends React.Component<DualAxisViewProps> {
-    render(): JSX.Element {
-        const { dualAxis, showTickMarks } = this.props
-        const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
+export const DualAxisComponent = observer(
+    class DualAxisComponent extends React.Component<DualAxisViewProps> {
+        render(): JSX.Element {
+            const { dualAxis, showTickMarks } = this.props
+            const { bounds, horizontalAxis, verticalAxis, innerBounds } =
+                dualAxis
 
-        const verticalGridlines = verticalAxis.hideGridlines ? null : (
-            <VerticalAxisGridLines
-                verticalAxis={verticalAxis}
-                bounds={innerBounds}
-            />
-        )
+            const verticalGridlines = verticalAxis.hideGridlines ? null : (
+                <VerticalAxisGridLines
+                    verticalAxis={verticalAxis}
+                    bounds={innerBounds}
+                />
+            )
 
-        const horizontalGridlines = horizontalAxis.hideGridlines ? null : (
-            <HorizontalAxisGridLines
-                horizontalAxis={horizontalAxis}
-                bounds={innerBounds}
-            />
-        )
+            const horizontalGridlines = horizontalAxis.hideGridlines ? null : (
+                <HorizontalAxisGridLines
+                    horizontalAxis={horizontalAxis}
+                    bounds={innerBounds}
+                />
+            )
 
-        const verticalAxisComponent = verticalAxis.hideAxis ? null : (
-            <VerticalAxisComponent
-                bounds={bounds}
-                verticalAxis={verticalAxis}
-            />
-        )
+            const verticalAxisComponent = verticalAxis.hideAxis ? null : (
+                <VerticalAxisComponent
+                    bounds={bounds}
+                    verticalAxis={verticalAxis}
+                />
+            )
 
-        const horizontalAxisComponent = horizontalAxis.hideAxis ? null : (
-            <HorizontalAxisComponent
-                bounds={bounds}
-                axis={horizontalAxis}
-                showTickMarks={showTickMarks}
-                preferredAxisPosition={innerBounds.bottom}
-            />
-        )
+            const horizontalAxisComponent = horizontalAxis.hideAxis ? null : (
+                <HorizontalAxisComponent
+                    bounds={bounds}
+                    axis={horizontalAxis}
+                    showTickMarks={showTickMarks}
+                    preferredAxisPosition={innerBounds.bottom}
+                />
+            )
 
-        return (
-            <g className="DualAxisView">
-                {horizontalAxisComponent}
-                {verticalAxisComponent}
-                {verticalGridlines}
-                {horizontalGridlines}
-            </g>
-        )
+            return (
+                <g className="DualAxisView">
+                    {horizontalAxisComponent}
+                    {verticalAxisComponent}
+                    {verticalGridlines}
+                    {horizontalGridlines}
+                </g>
+            )
+        }
     }
-});
+)
 
-export const VerticalAxisComponent = observer(class VerticalAxisComponent extends React.Component<{
-    bounds: Bounds
-    verticalAxis: VerticalAxis
-}> {
-    render(): JSX.Element {
-        const { bounds, verticalAxis } = this.props
-        const { tickLabels, labelTextWrap } = verticalAxis
-        const textColor = "#666"
+export const VerticalAxisComponent = observer(
+    class VerticalAxisComponent extends React.Component<{
+        bounds: Bounds
+        verticalAxis: VerticalAxis
+    }> {
+        render(): JSX.Element {
+            const { bounds, verticalAxis } = this.props
+            const { tickLabels, labelTextWrap } = verticalAxis
+            const textColor = "#666"
 
-        return (
-            <g className="VerticalAxis">
-                {labelTextWrap &&
-                    labelTextWrap.render(
-                        -bounds.centerY - labelTextWrap.width / 2,
-                        bounds.left,
-                        { transform: "rotate(-90)" }
-                    )}
-                {tickLabels.map((label, i) => {
-                    const { y, xAlign, yAlign, formattedValue } = label
-                    return (
-                        <text
-                            key={i}
-                            x={(
-                                bounds.left +
-                                verticalAxis.width -
-                                verticalAxis.labelPadding
-                            ).toFixed(2)}
-                            y={y}
-                            dy={dyFromAlign(yAlign ?? VerticalAlign.middle)}
-                            textAnchor={textAnchorFromAlign(
-                                xAlign ?? HorizontalAlign.right
-                            )}
-                            fill={textColor}
-                            fontSize={verticalAxis.tickFontSize}
-                        >
-                            {formattedValue}
-                        </text>
-                    )
-                })}
-            </g>
-        )
+            return (
+                <g className="VerticalAxis">
+                    {labelTextWrap &&
+                        labelTextWrap.render(
+                            -bounds.centerY - labelTextWrap.width / 2,
+                            bounds.left,
+                            { transform: "rotate(-90)" }
+                        )}
+                    {tickLabels.map((label, i) => {
+                        const { y, xAlign, yAlign, formattedValue } = label
+                        return (
+                            <text
+                                key={i}
+                                x={(
+                                    bounds.left +
+                                    verticalAxis.width -
+                                    verticalAxis.labelPadding
+                                ).toFixed(2)}
+                                y={y}
+                                dy={dyFromAlign(yAlign ?? VerticalAlign.middle)}
+                                textAnchor={textAnchorFromAlign(
+                                    xAlign ?? HorizontalAlign.right
+                                )}
+                                fill={textColor}
+                                fontSize={verticalAxis.tickFontSize}
+                            >
+                                {formattedValue}
+                            </text>
+                        )
+                    })}
+                </g>
+            )
+        }
     }
-});
+)
 
 export class HorizontalAxisComponent extends React.Component<{
     bounds: Bounds
@@ -224,20 +231,18 @@ export class HorizontalAxisComponent extends React.Component<{
     showTickMarks?: boolean
     preferredAxisPosition?: number
 }> {
-    constructor(
-        props: {
-            bounds: Bounds
-            axis: HorizontalAxis
-            showTickMarks?: boolean
-            preferredAxisPosition?: number
-        }
-    ) {
-        super(props);
+    constructor(props: {
+        bounds: Bounds
+        axis: HorizontalAxis
+        showTickMarks?: boolean
+        preferredAxisPosition?: number
+    }) {
+        super(props)
 
         makeObservable(this, {
             scaleType: computed,
-            bounds: computed
-        });
+            bounds: computed,
+        })
     }
 
     get scaleType(): ScaleType {

@@ -1,5 +1,5 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { observable, computed, makeObservable } from "mobx";
+import { observable, computed, makeObservable } from "mobx"
 import {
     rollingMap,
     min,
@@ -60,15 +60,23 @@ const boundsFromLabelPlacement = (label: TickLabelPlacement): Bounds => {
 abstract class AbstractAxis {
     config: AxisConfig
 
-    domain: ValueRange;
-    formatColumn?: CoreColumn; // Pass the column purely for formatting reasons. Might be a better way to do this.
-    hideFractionalTicks = false;
-    range: ValueRange = [0, 0];
-    private _scaleType?: ScaleType;
-    private _label?: string;
+    domain: ValueRange
+    formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
+    hideFractionalTicks = false
+    range: ValueRange = [0, 0]
+    private _scaleType?: ScaleType
+    private _label?: string
 
     constructor(config: AxisConfig) {
-        makeObservable<AbstractAxis, "_scaleType" | "_label" | "maxTicks" | "d3_scale" | "totalTicksTarget" | "baseTicks">(this, {
+        makeObservable<
+            AbstractAxis,
+            | "_scaleType"
+            | "_label"
+            | "maxTicks"
+            | "d3_scale"
+            | "totalTicksTarget"
+            | "baseTicks"
+        >(this, {
             domain: observable.ref,
             formatColumn: observable,
             hideFractionalTicks: observable,
@@ -93,8 +101,8 @@ abstract class AbstractAxis {
             baseTicks: computed,
             tickLabels: computed,
             labelFontSize: computed,
-            labelTextWrap: computed
-        });
+            labelTextWrap: computed,
+        })
 
         this.config = config
         this.domain = [config.domain[0], config.domain[1]]
@@ -475,7 +483,7 @@ abstract class AbstractAxis {
 export class HorizontalAxis extends AbstractAxis {
     constructor() {
         // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super();
+        super()
 
         makeObservable<HorizontalAxis, "baseTicks">(this, {
             orient: computed,
@@ -483,8 +491,8 @@ export class HorizontalAxis extends AbstractAxis {
             labelWidth: computed,
             height: computed,
             size: computed,
-            baseTicks: computed
-        });
+            baseTicks: computed,
+        })
     }
 
     clone(): HorizontalAxis {
@@ -595,7 +603,7 @@ export class HorizontalAxis extends AbstractAxis {
 export class VerticalAxis extends AbstractAxis {
     constructor() {
         // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super();
+        super()
 
         makeObservable(this, {
             orient: computed,
@@ -603,8 +611,8 @@ export class VerticalAxis extends AbstractAxis {
             labelOffset: computed,
             width: computed,
             height: computed,
-            size: computed
-        });
+            size: computed,
+        })
     }
 
     clone(): VerticalAxis {
@@ -677,14 +685,17 @@ interface DualAxisProps {
 export class DualAxis {
     private props: DualAxisProps
     constructor(props: DualAxisProps) {
-        makeObservable<DualAxis, "horizontalAxisSize" | "verticalAxisSize">(this, {
-            horizontalAxis: computed,
-            verticalAxis: computed,
-            horizontalAxisSize: computed,
-            verticalAxisSize: computed,
-            innerBounds: computed,
-            bounds: computed
-        });
+        makeObservable<DualAxis, "horizontalAxisSize" | "verticalAxisSize">(
+            this,
+            {
+                horizontalAxis: computed,
+                verticalAxis: computed,
+                horizontalAxisSize: computed,
+                verticalAxisSize: computed,
+                innerBounds: computed,
+                bounds: computed,
+            }
+        )
 
         this.props = props
     }

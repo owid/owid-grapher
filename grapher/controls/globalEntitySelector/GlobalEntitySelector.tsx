@@ -1,6 +1,13 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { action, observable, IReactionDisposer, reaction, computed, makeObservable } from "mobx";
+import {
+    action,
+    observable,
+    IReactionDisposer,
+    reaction,
+    computed,
+    makeObservable,
+} from "mobx"
 import { observer } from "mobx-react"
 import Select, {
     components,
@@ -138,297 +145,325 @@ function SelectedItems(props: {
     )
 }
 
-export const GlobalEntitySelector = observer(class GlobalEntitySelector extends React.Component<{
-    selection: SelectionArray
-    graphersAndExplorersToUpdate?: Set<SelectionArray>
-    environment?: string
-}> {
-    refContainer: React.RefObject<HTMLDivElement> = React.createRef()
-    disposers: IReactionDisposer[] = []
+export const GlobalEntitySelector = observer(
+    class GlobalEntitySelector extends React.Component<{
+        selection: SelectionArray
+        graphersAndExplorersToUpdate?: Set<SelectionArray>
+        environment?: string
+    }> {
+        refContainer: React.RefObject<HTMLDivElement> = React.createRef()
+        disposers: IReactionDisposer[] = []
 
-    mode = GlobalEntitySelectionModes.none;
+        mode = GlobalEntitySelectionModes.none
 
-    private isNarrow = true;
-    private isOpen = false;
-    private localEntityName: EntityName | undefined;
+        private isNarrow = true
+        private isOpen = false
+        private localEntityName: EntityName | undefined
 
-    selection = this.props.selection
+        selection = this.props.selection
 
-    private optionGroups: GroupBase<DropdownEntity>[] = [];
+        private optionGroups: GroupBase<DropdownEntity>[] = []
 
-    constructor(
-        props: {
+        constructor(props: {
             selection: SelectionArray
             graphersAndExplorersToUpdate?: Set<SelectionArray>
             environment?: string
+        }) {
+            super(props)
+
+            makeObservable<
+                GlobalEntitySelector,
+                | "isNarrow"
+                | "isOpen"
+                | "localEntityName"
+                | "optionGroups"
+                | "onResize"
+                | "prepareOptionGroups"
+                | "updateURL"
+                | "onChange"
+                | "updateAllGraphersAndExplorersOnPage"
+                | "onRemove"
+                | "onMenuOpen"
+                | "onMenuClose"
+                | "onButtonOpen"
+                | "onButtonClose"
+                | "selectedOptions"
+            >(this, {
+                mode: observable,
+                isNarrow: observable,
+                isOpen: observable,
+                localEntityName: observable,
+                optionGroups: observable.ref,
+                onResize: action.bound,
+                populateLocalEntity: action.bound,
+                prepareOptionGroups: action.bound,
+                updateURL: action.bound,
+                updateSelection: action.bound,
+                onChange: action.bound,
+                updateAllGraphersAndExplorersOnPage: action.bound,
+                onRemove: action.bound,
+                onMenuOpen: action.bound,
+                onMenuClose: action.bound,
+                onButtonOpen: action.bound,
+                onButtonClose: action.bound,
+                selectedOptions: computed,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable<GlobalEntitySelector, "isNarrow" | "isOpen" | "localEntityName" | "optionGroups" | "onResize" | "prepareOptionGroups" | "updateURL" | "onChange" | "updateAllGraphersAndExplorersOnPage" | "onRemove" | "onMenuOpen" | "onMenuClose" | "onButtonOpen" | "onButtonClose" | "selectedOptions">(this, {
-            mode: observable,
-            isNarrow: observable,
-            isOpen: observable,
-            localEntityName: observable,
-            optionGroups: observable.ref,
-            onResize: action.bound,
-            populateLocalEntity: action.bound,
-            prepareOptionGroups: action.bound,
-            updateURL: action.bound,
-            updateSelection: action.bound,
-            onChange: action.bound,
-            updateAllGraphersAndExplorersOnPage: action.bound,
-            onRemove: action.bound,
-            onMenuOpen: action.bound,
-            onMenuClose: action.bound,
-            onButtonOpen: action.bound,
-            onButtonClose: action.bound,
-            selectedOptions: computed
-        });
-    }
-
-    componentDidMount(): void {
-        this.onResize()
-        window.addEventListener("resize", this.onResizeThrottled)
-        this.disposers.push(
-            reaction(
-                () => this.isOpen,
-                () => this.prepareOptionGroups()
+        componentDidMount(): void {
+            this.onResize()
+            window.addEventListener("resize", this.onResizeThrottled)
+            this.disposers.push(
+                reaction(
+                    () => this.isOpen,
+                    () => this.prepareOptionGroups()
+                )
             )
-        )
-        this.populateLocalEntity()
-    }
-
-    componentWillUnmount(): void {
-        window.removeEventListener("resize", this.onResizeThrottled)
-        this.disposers.forEach((dispose): void => dispose())
-    }
-
-    private onResizeThrottled = throttle(this.onResize, 200)
-    private onResize(): void {
-        const container = this.refContainer.current
-        if (container) this.isNarrow = container.offsetWidth <= 640
-    }
-
-    async populateLocalEntity(): Promise<void> {
-        try {
-            const localCountryCode = await getCountryCodeFromNetlifyRedirect()
-            if (!localCountryCode) return
-
-            const country = allEntities.find(
-                (entity): boolean => entity.code === localCountryCode
-            )
-            if (country) this.localEntityName = country.name
-        } catch (err) {}
-    }
-
-    private prepareOptionGroups(): GroupBase<DropdownEntity>[] {
-        let optionGroups: GroupBase<DropdownEntity>[] = []
-        // We want to include the local country, but not if it's already selected, it adds
-        // unnecessary duplication.
-        if (
-            this.localEntityName &&
-            !this.selection.selectedSet.has(this.localEntityName)
-        ) {
-            optionGroups = optionGroups.concat([
-                {
-                    label: "Suggestions",
-                    options: [entityNameToOption(this.localEntityName)],
-                },
-            ])
+            this.populateLocalEntity()
         }
-        if (this.selection.hasSelection) {
-            optionGroups = optionGroups.concat([
-                {
-                    label: "Selected",
-                    options:
-                        this.selection.selectedEntityNames.map(
-                            entityNameToOption
-                        ),
-                },
-            ])
+
+        componentWillUnmount(): void {
+            window.removeEventListener("resize", this.onResizeThrottled)
+            this.disposers.forEach((dispose): void => dispose())
         }
-        optionGroups = optionGroups.concat([
-            {
-                label: "All countries",
-                options: allEntities
-                    .map((entity) => entity.name)
-                    .map(entityNameToOption),
-            },
-        ])
-        this.optionGroups = optionGroups
-        return optionGroups
-    }
 
-    private analytics = new GrapherAnalytics(
-        this.props.environment ?? "development"
-    )
+        private onResizeThrottled = throttle(this.onResize, 200)
+        private onResize(): void {
+            const container = this.refContainer.current
+            if (container) this.isNarrow = container.offsetWidth <= 640
+        }
 
-    private updateURL(): void {
-        setWindowUrl(
-            setSelectedEntityNamesParam(
-                getWindowUrl(),
-                this.selection.selectedEntityNames
-            )
-        )
-    }
+        async populateLocalEntity(): Promise<void> {
+            try {
+                const localCountryCode =
+                    await getCountryCodeFromNetlifyRedirect()
+                if (!localCountryCode) return
 
-    updateSelection(newSelectedEntities: string[]): void {
-        this.selection.setSelectedEntities(newSelectedEntities)
-        this.updateAllGraphersAndExplorersOnPage()
-        this.updateURL()
-    }
+                const country = allEntities.find(
+                    (entity): boolean => entity.code === localCountryCode
+                )
+                if (country) this.localEntityName = country.name
+            } catch (err) {}
+        }
 
-    private onChange(options: readonly DropdownEntity[]): void {
-        this.updateSelection(
-            options.map((option: DropdownEntity) => option.label)
-        )
-
-        this.analytics.logGlobalEntitySelector(
-            "change",
-            this.selection.selectedEntityNames.join(",")
-        )
-    }
-
-    private updateAllGraphersAndExplorersOnPage(): void {
-        if (!this.props.graphersAndExplorersToUpdate) return
-        Array.from(this.props.graphersAndExplorersToUpdate.values()).forEach(
-            (value) => {
-                value.setSelectedEntities(this.selection.selectedEntityNames)
+        private prepareOptionGroups(): GroupBase<DropdownEntity>[] {
+            let optionGroups: GroupBase<DropdownEntity>[] = []
+            // We want to include the local country, but not if it's already selected, it adds
+            // unnecessary duplication.
+            if (
+                this.localEntityName &&
+                !this.selection.selectedSet.has(this.localEntityName)
+            ) {
+                optionGroups = optionGroups.concat([
+                    {
+                        label: "Suggestions",
+                        options: [entityNameToOption(this.localEntityName)],
+                    },
+                ])
             }
+            if (this.selection.hasSelection) {
+                optionGroups = optionGroups.concat([
+                    {
+                        label: "Selected",
+                        options:
+                            this.selection.selectedEntityNames.map(
+                                entityNameToOption
+                            ),
+                    },
+                ])
+            }
+            optionGroups = optionGroups.concat([
+                {
+                    label: "All countries",
+                    options: allEntities
+                        .map((entity) => entity.name)
+                        .map(entityNameToOption),
+                },
+            ])
+            this.optionGroups = optionGroups
+            return optionGroups
+        }
+
+        private analytics = new GrapherAnalytics(
+            this.props.environment ?? "development"
         )
-    }
 
-    private onRemove(option: EntityName): void {
-        this.selection.toggleSelection(option)
-        this.updateAllGraphersAndExplorersOnPage()
-        this.updateURL()
-    }
+        private updateURL(): void {
+            setWindowUrl(
+                setSelectedEntityNamesParam(
+                    getWindowUrl(),
+                    this.selection.selectedEntityNames
+                )
+            )
+        }
 
-    private onMenuOpen(): void {
-        this.isOpen = true
-    }
+        updateSelection(newSelectedEntities: string[]): void {
+            this.selection.setSelectedEntities(newSelectedEntities)
+            this.updateAllGraphersAndExplorersOnPage()
+            this.updateURL()
+        }
 
-    private onMenuClose(): void {
-        this.isOpen = false
-    }
+        private onChange(options: readonly DropdownEntity[]): void {
+            this.updateSelection(
+                options.map((option: DropdownEntity) => option.label)
+            )
 
-    private onButtonOpen(event: React.MouseEvent<HTMLButtonElement>): void {
-        this.analytics.logGlobalEntitySelector(
-            "open",
-            event.currentTarget.innerText
-        )
-        this.onMenuOpen()
-    }
+            this.analytics.logGlobalEntitySelector(
+                "change",
+                this.selection.selectedEntityNames.join(",")
+            )
+        }
 
-    private onButtonClose(event: React.MouseEvent<HTMLButtonElement>): void {
-        this.analytics.logGlobalEntitySelector(
-            "close",
-            event.currentTarget.innerText
-        )
-        this.onMenuClose()
-    }
+        private updateAllGraphersAndExplorersOnPage(): void {
+            if (!this.props.graphersAndExplorersToUpdate) return
+            Array.from(
+                this.props.graphersAndExplorersToUpdate.values()
+            ).forEach((value) => {
+                value.setSelectedEntities(this.selection.selectedEntityNames)
+            })
+        }
 
-    private get selectedOptions(): DropdownEntity[] {
-        return this.selection.selectedEntityNames.map(entityNameToOption)
-    }
+        private onRemove(option: EntityName): void {
+            this.selection.toggleSelection(option)
+            this.updateAllGraphersAndExplorersOnPage()
+            this.updateURL()
+        }
 
-    private renderNarrow(): JSX.Element {
-        return (
-            <>
-                <div
-                    className={classnames("narrow-summary", {
-                        "narrow-summary-selected-items": !this.isOpen,
-                    })}
-                >
-                    {this.isOpen ? (
+        private onMenuOpen(): void {
+            this.isOpen = true
+        }
+
+        private onMenuClose(): void {
+            this.isOpen = false
+        }
+
+        private onButtonOpen(event: React.MouseEvent<HTMLButtonElement>): void {
+            this.analytics.logGlobalEntitySelector(
+                "open",
+                event.currentTarget.innerText
+            )
+            this.onMenuOpen()
+        }
+
+        private onButtonClose(
+            event: React.MouseEvent<HTMLButtonElement>
+        ): void {
+            this.analytics.logGlobalEntitySelector(
+                "close",
+                event.currentTarget.innerText
+            )
+            this.onMenuClose()
+        }
+
+        private get selectedOptions(): DropdownEntity[] {
+            return this.selection.selectedEntityNames.map(entityNameToOption)
+        }
+
+        private renderNarrow(): JSX.Element {
+            return (
+                <>
+                    <div
+                        className={classnames("narrow-summary", {
+                            "narrow-summary-selected-items": !this.isOpen,
+                        })}
+                    >
+                        {this.isOpen ? (
+                            <Select
+                                {...SelectOptions}
+                                options={this.optionGroups}
+                                value={this.selectedOptions}
+                                onChange={this.onChange}
+                                menuIsOpen={this.isOpen}
+                                autoFocus={true}
+                            />
+                        ) : (
+                            <div>
+                                {!this.selection.hasSelection
+                                    ? "None selected"
+                                    : this.selection.selectedEntityNames
+                                          .map((entityName) => (
+                                              <span
+                                                  className="narrow-summary-selected-item"
+                                                  key={entityName}
+                                              >
+                                                  {entityName}
+                                              </span>
+                                          ))
+                                          .reduce(
+                                              (acc, item) =>
+                                                  acc.length === 0
+                                                      ? [item]
+                                                      : [...acc, ", ", item],
+                                              [] as (JSX.Element | string)[]
+                                          )}
+                            </div>
+                        )}
+                    </div>
+                    <div className="narrow-actions">
+                        {this.isOpen ? (
+                            <button
+                                className="button"
+                                onClick={this.onButtonClose}
+                            >
+                                Done
+                            </button>
+                        ) : (
+                            <button
+                                className="button"
+                                onClick={this.onButtonOpen}
+                            >
+                                {!this.selection.hasSelection
+                                    ? "Select countries"
+                                    : "Edit"}
+                            </button>
+                        )}
+                    </div>
+                </>
+            )
+        }
+
+        private renderWide(): JSX.Element {
+            return (
+                <>
+                    <div className="select-dropdown-container">
                         <Select
                             {...SelectOptions}
                             options={this.optionGroups}
-                            value={this.selectedOptions}
                             onChange={this.onChange}
-                            menuIsOpen={this.isOpen}
-                            autoFocus={true}
+                            value={this.selectedOptions}
+                            onMenuOpen={this.onMenuOpen}
+                            onMenuClose={this.onMenuClose}
                         />
-                    ) : (
-                        <div>
-                            {!this.selection.hasSelection
-                                ? "None selected"
-                                : this.selection.selectedEntityNames
-                                      .map((entityName) => (
-                                          <span
-                                              className="narrow-summary-selected-item"
-                                              key={entityName}
-                                          >
-                                              {entityName}
-                                          </span>
-                                      ))
-                                      .reduce(
-                                          (acc, item) =>
-                                              acc.length === 0
-                                                  ? [item]
-                                                  : [...acc, ", ", item],
-                                          [] as (JSX.Element | string)[]
-                                      )}
-                        </div>
-                    )}
-                </div>
-                <div className="narrow-actions">
-                    {this.isOpen ? (
-                        <button className="button" onClick={this.onButtonClose}>
-                            Done
-                        </button>
-                    ) : (
-                        <button className="button" onClick={this.onButtonOpen}>
-                            {!this.selection.hasSelection
-                                ? "Select countries"
-                                : "Edit"}
-                        </button>
-                    )}
-                </div>
-            </>
-        )
-    }
-
-    private renderWide(): JSX.Element {
-        return (
-            <>
-                <div className="select-dropdown-container">
-                    <Select
-                        {...SelectOptions}
-                        options={this.optionGroups}
-                        onChange={this.onChange}
-                        value={this.selectedOptions}
-                        onMenuOpen={this.onMenuOpen}
-                        onMenuClose={this.onMenuClose}
+                    </div>
+                    <SelectedItems
+                        selectedEntityNames={this.selection.selectedEntityNames}
+                        onRemove={this.onRemove}
+                        emptyLabel="Select countries to show on all charts"
                     />
-                </div>
-                <SelectedItems
-                    selectedEntityNames={this.selection.selectedEntityNames}
-                    onRemove={this.onRemove}
-                    emptyLabel="Select countries to show on all charts"
-                />
-            </>
-        )
-    }
+                </>
+            )
+        }
 
-    render(): JSX.Element {
-        return (
-            <div
-                className={classnames("global-entity-control", {
-                    "is-narrow": this.isNarrow,
-                    "is-wide": !this.isNarrow,
-                })}
-                ref={this.refContainer}
-                onClick={
-                    this.isNarrow && !this.isOpen ? this.onMenuOpen : undefined
-                }
-            >
-                {this.isNarrow ? this.renderNarrow() : this.renderWide()}
-            </div>
-        )
+        render(): JSX.Element {
+            return (
+                <div
+                    className={classnames("global-entity-control", {
+                        "is-narrow": this.isNarrow,
+                        "is-wide": !this.isNarrow,
+                    })}
+                    ref={this.refContainer}
+                    onClick={
+                        this.isNarrow && !this.isOpen
+                            ? this.onMenuOpen
+                            : undefined
+                    }
+                >
+                    {this.isNarrow ? this.renderNarrow() : this.renderWide()}
+                </div>
+            )
+        }
     }
-});
+)
 
 export const hydrateGlobalEntitySelectorIfAny = (
     selection: SelectionArray,

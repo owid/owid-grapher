@@ -10,7 +10,7 @@ import {
     runInAction,
     IReactionDisposer,
     makeObservable,
-} from "mobx";
+} from "mobx"
 import { observer } from "mobx-react"
 import { Redirect } from "react-router-dom"
 
@@ -22,16 +22,16 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 class EditableVariable {
-    name: string = "";
-    unit: string = "";
-    description: string = "";
-    coverage: string = "";
-    timespan: string = "";
+    name: string = ""
+    unit: string = ""
+    description: string = ""
+    coverage: string = ""
+    timespan: string = ""
 
     // Existing variable to be overwritten by this one
-    overwriteId?: number;
+    overwriteId?: number
 
-    values: string[] = [];
+    values: string[] = []
 
     constructor() {
         makeObservable(this, {
@@ -41,8 +41,8 @@ class EditableVariable {
             coverage: observable,
             timespan: observable,
             overwriteId: observable,
-            values: observable
-        });
+            values: observable,
+        })
     }
 }
 
@@ -61,13 +61,13 @@ interface ExistingDataset {
 }
 
 class EditableDataset {
-    id?: number;
-    name: string = "";
-    description: string = "";
-    existingVariables: ExistingVariable[] = [];
-    newVariables: EditableVariable[] = [];
-    years: number[] = [];
-    entities: string[] = [];
+    id?: number
+    name: string = ""
+    description: string = ""
+    existingVariables: ExistingVariable[] = []
+    newVariables: EditableVariable[] = []
+    years: number[] = []
+    entities: string[] = []
 
     source: {
         name: string
@@ -83,7 +83,7 @@ class EditableDataset {
         link: "",
         retrievedDate: "",
         additionalInfo: "",
-    };
+    }
 
     constructor() {
         makeObservable(this, {
@@ -95,8 +95,8 @@ class EditableDataset {
             years: observable,
             entities: observable,
             source: observable,
-            isLoading: computed
-        });
+            isLoading: computed,
+        })
     }
 
     update(json: any) {
@@ -113,118 +113,128 @@ class EditableDataset {
 // https://stackoverflow.com/questions/638565/parsing-scientific-notation-sensibly
 const reValidNumber = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?$/
 
-const DataPreview = observer(class DataPreview extends React.Component<{ csv: CSV }> {
-    rowOffset: number = 0;
-    visibleRows: number = 10;
+const DataPreview = observer(
+    class DataPreview extends React.Component<{ csv: CSV }> {
+        rowOffset: number = 0
+        visibleRows: number = 10
 
-    constructor(props: { csv: CSV }) {
-        super(props);
+        constructor(props: { csv: CSV }) {
+            super(props)
 
-        makeObservable(this, {
-            rowOffset: observable,
-            visibleRows: observable,
-            numRows: computed,
-            onScroll: action.bound
-        });
-    }
+            makeObservable(this, {
+                rowOffset: observable,
+                visibleRows: observable,
+                numRows: computed,
+                onScroll: action.bound,
+            })
+        }
 
-    get numRows(): number {
-        return this.props.csv.rows.length
-    }
+        get numRows(): number {
+            return this.props.csv.rows.length
+        }
 
-    onScroll(ev: React.UIEvent<Element>) {
-        const { scrollTop, scrollHeight } = ev.currentTarget
-        const { numRows } = this
+        onScroll(ev: React.UIEvent<Element>) {
+            const { scrollTop, scrollHeight } = ev.currentTarget
+            const { numRows } = this
 
-        const rowOffset = Math.round((scrollTop / scrollHeight) * numRows)
-        ev.currentTarget.scrollTop = Math.round(
-            (rowOffset / numRows) * scrollHeight
-        )
+            const rowOffset = Math.round((scrollTop / scrollHeight) * numRows)
+            ev.currentTarget.scrollTop = Math.round(
+                (rowOffset / numRows) * scrollHeight
+            )
 
-        this.rowOffset = rowOffset
-    }
+            this.rowOffset = rowOffset
+        }
 
-    render() {
-        const { rows } = this.props.csv
-        const { rowOffset, visibleRows, numRows } = this
-        const height = 50
+        render() {
+            const { rows } = this.props.csv
+            const { rowOffset, visibleRows, numRows } = this
+            const height = 50
 
-        return (
-            <div
-                style={{ height: height * visibleRows, overflowY: "scroll" }}
-                onScroll={this.onScroll}
-            >
+            return (
                 <div
                     style={{
-                        height: height * numRows,
-                        paddingTop: height * rowOffset,
+                        height: height * visibleRows,
+                        overflowY: "scroll",
                     }}
+                    onScroll={this.onScroll}
                 >
-                    <table className="table" style={{ background: "white" }}>
-                        <tbody>
-                            {rows
-                                .slice(rowOffset, rowOffset + visibleRows)
-                                .map((row, i) => (
-                                    <tr key={i}>
-                                        <td>{rowOffset + i + 1}</td>
-                                        {row.map((cell, j) => (
-                                            <td
-                                                key={j}
-                                                style={{ height: height }}
-                                            >
-                                                {cell}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        )
-    }
-});
-
-const EditVariable = observer(class EditVariable extends React.Component<{
-    variable: EditableVariable
-    dataset: EditableDataset
-}> {
-    render() {
-        const { variable, dataset } = this.props
-
-        return (
-            <li className="EditVariable">
-                <FieldsRow>
-                    <BindString store={variable} field="name" label="" />
-                    <select
-                        onChange={(e) => {
-                            variable.overwriteId = e.target.value
-                                ? parseInt(e.target.value)
-                                : undefined
+                    <div
+                        style={{
+                            height: height * numRows,
+                            paddingTop: height * rowOffset,
                         }}
-                        value={variable.overwriteId || ""}
                     >
-                        <option value="">Create new variable</option>
-                        {dataset.existingVariables.map((v) => (
-                            <option key={v.id} value={v.id}>
-                                Overwrite {v.name}
-                            </option>
-                        ))}
-                    </select>
-                </FieldsRow>
-            </li>
-        )
+                        <table
+                            className="table"
+                            style={{ background: "white" }}
+                        >
+                            <tbody>
+                                {rows
+                                    .slice(rowOffset, rowOffset + visibleRows)
+                                    .map((row, i) => (
+                                        <tr key={i}>
+                                            <td>{rowOffset + i + 1}</td>
+                                            {row.map((cell, j) => (
+                                                <td
+                                                    key={j}
+                                                    style={{ height: height }}
+                                                >
+                                                    {cell}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )
+        }
     }
-});
+)
+
+const EditVariable = observer(
+    class EditVariable extends React.Component<{
+        variable: EditableVariable
+        dataset: EditableDataset
+    }> {
+        render() {
+            const { variable, dataset } = this.props
+
+            return (
+                <li className="EditVariable">
+                    <FieldsRow>
+                        <BindString store={variable} field="name" label="" />
+                        <select
+                            onChange={(e) => {
+                                variable.overwriteId = e.target.value
+                                    ? parseInt(e.target.value)
+                                    : undefined
+                            }}
+                            value={variable.overwriteId || ""}
+                        >
+                            <option value="">Create new variable</option>
+                            {dataset.existingVariables.map((v) => (
+                                <option key={v.id} value={v.id}>
+                                    Overwrite {v.name}
+                                </option>
+                            ))}
+                        </select>
+                    </FieldsRow>
+                </li>
+            )
+        }
+    }
+)
 
 const EditVariables = observer(
     class EditVariables extends React.Component<{ dataset: EditableDataset }> {
         constructor(props: { dataset: EditableDataset }) {
-            super(props);
+            super(props)
 
             makeObservable(this, {
-                deletingVariables: computed
-            });
+                deletingVariables: computed,
+            })
         }
 
         get deletingVariables() {
@@ -232,7 +242,9 @@ const EditVariables = observer(
             const deletingVariables: ExistingVariable[] = []
             for (const variable of dataset.existingVariables) {
                 if (
-                    !dataset.newVariables.some((v) => v.overwriteId === variable.id)
+                    !dataset.newVariables.some(
+                        (v) => v.overwriteId === variable.id
+                    )
                 ) {
                     deletingVariables.push(variable)
                 }
@@ -261,16 +273,18 @@ const EditVariables = observer(
                     </ol>
                     {this.deletingVariables.length > 0 && (
                         <div className="alert alert-danger">
-                            Some existing variables are not selected to overwrite
-                            and will be deleted:{" "}
-                            {this.deletingVariables.map((v) => v.name).join(",")}
+                            Some existing variables are not selected to
+                            overwrite and will be deleted:{" "}
+                            {this.deletingVariables
+                                .map((v) => v.name)
+                                .join(",")}
                         </div>
                     )}
                 </section>
             )
         }
     }
-);
+)
 
 interface ValidationResults {
     results: { class: string; message: string }[]
@@ -300,7 +314,7 @@ class CSV {
     existingEntities: string[]
 
     get basename() {
-        return (this.filename.match(/(.*?)(.csv)?$/) || [])[1];
+        return (this.filename.match(/(.*?)(.csv)?$/) || [])[1]
     }
 
     get data() {
@@ -438,8 +452,8 @@ class CSV {
             basename: computed,
             data: computed,
             validation: computed,
-            isValid: computed
-        });
+            isValid: computed,
+        })
 
         this.filename = filename
         this.rows = rows
@@ -447,332 +461,341 @@ class CSV {
     }
 }
 
-const ValidationView = observer(class ValidationView extends React.Component<{
-    validation: ValidationResults
-}> {
-    render() {
-        const { validation } = this.props
+const ValidationView = observer(
+    class ValidationView extends React.Component<{
+        validation: ValidationResults
+    }> {
+        render() {
+            const { validation } = this.props
 
-        return (
-            <section className="ValidationView">
-                {validation.results.map((v, index: number) => (
-                    <div key={index} className={`alert alert-${v.class}`}>
-                        {v.message}
-                    </div>
-                ))}
-            </section>
-        )
+            return (
+                <section className="ValidationView">
+                    {validation.results.map((v, index: number) => (
+                        <div key={index} className={`alert alert-${v.class}`}>
+                            {v.message}
+                        </div>
+                    ))}
+                </section>
+            )
+        }
     }
-});
+)
 
-const CSVSelector = observer(class CSVSelector extends React.Component<{
-    existingEntities: string[]
-    onCSV: (csv: CSV) => void
-}> {
-    csv?: CSV;
-    fileInput?: HTMLInputElement
+const CSVSelector = observer(
+    class CSVSelector extends React.Component<{
+        existingEntities: string[]
+        onCSV: (csv: CSV) => void
+    }> {
+        csv?: CSV
+        fileInput?: HTMLInputElement
 
-    constructor(
-        props: {
+        constructor(props: {
             existingEntities: string[]
             onCSV: (csv: CSV) => void
-        }
-    ) {
-        super(props);
+        }) {
+            super(props)
 
-        makeObservable(this, {
-            csv: observable,
-            onChooseCSV: action.bound
-        });
-    }
-
-    onChooseCSV({ target }: { target: HTMLInputElement }) {
-        const { existingEntities } = this.props
-        const file = target.files && target.files[0]
-        if (!file) return
-
-        const reader = new FileReader()
-        reader.onload = (e) => {
-            const csv = e?.target?.result
-            if (csv && typeof csv === "string") {
-                const res = Papa.parse<string[]>(csv, {
-                    delimiter: ",",
-                    skipEmptyLines: true,
-                })
-
-                if (res.errors.length)
-                    console.error("CSV parse error", res.errors)
-                let rows = res.data
-                if (rows[0][0].toLowerCase() === "year")
-                    rows = CSV.transformSingleLayout(rows, file.name)
-                this.csv = new CSV({
-                    filename: file.name,
-                    rows,
-                    existingEntities,
-                } as any)
-                this.props.onCSV(this.csv as any)
-            } else console.error("CSV was falsy")
-        }
-        reader.readAsText(file)
-    }
-
-    render() {
-        const { csv } = this
-
-        return (
-            <section>
-                <input
-                    type="file"
-                    onChange={this.onChooseCSV}
-                    ref={(e) => (this.fileInput = e as HTMLInputElement)}
-                />
-                {csv && <DataPreview csv={csv} />}
-                {csv && <ValidationView validation={csv.validation} />}
-            </section>
-        )
-    }
-
-    componentDidMount() {
-        if (this.fileInput) this.fileInput.value = ""
-    }
-});
-
-const Importer = observer(class Importer extends React.Component<ImportPageData> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-
-    csv?: CSV;
-    dataset = new EditableDataset();
-
-    existingDataset?: ExistingDataset;
-    postImportDatasetId?: number;
-
-    constructor(props: ImportPageData) {
-        super(props);
-
-        makeObservable(this, {
-            csv: observable,
-            dataset: observable.ref,
-            existingDataset: observable,
-            postImportDatasetId: observable,
-            onCSV: action.bound,
-            onChooseDataset: action.bound,
-            initializeDataset: action.bound,
-            onSubmit: action.bound
-        });
-    }
-
-    // First step is user selecting a CSV file
-    onCSV(csv: CSV) {
-        this.csv = csv
-
-        // Look for an existing dataset that matches this csv filename
-        const existingDataset = this.props.datasets.find(
-            (d) => d.name === csv.basename
-        )
-
-        if (existingDataset) {
-            this.getExistingDataset(existingDataset.id)
-        }
-    }
-
-    onChooseDataset(datasetId: number) {
-        if (datasetId === -1) this.existingDataset = undefined
-        else this.getExistingDataset(datasetId)
-    }
-
-    // Grab existing dataset info to compare against what we are importing
-    async getExistingDataset(datasetId: number) {
-        const json = await this.context.admin.getJSON(
-            `/api/importData/datasets/${datasetId}.json`
-        )
-        runInAction(() => (this.existingDataset = json.dataset))
-    }
-
-    // When we have the csv and have matched against an existing dataset (or decided not to), we can
-    // then initialize the dataset model for user customization
-    initializeDataset() {
-        const { csv, existingDataset } = this
-        if (!csv) return
-
-        const dataset = new EditableDataset()
-
-        if (existingDataset) {
-            dataset.name = existingDataset.name
-            dataset.description = existingDataset.description
-            dataset.existingVariables = existingDataset.variables
+            makeObservable(this, {
+                csv: observable,
+                onChooseCSV: action.bound,
+            })
         }
 
-        if (!dataset.name) dataset.name = csv.basename
+        onChooseCSV({ target }: { target: HTMLInputElement }) {
+            const { existingEntities } = this.props
+            const file = target.files && target.files[0]
+            if (!file) return
 
-        dataset.newVariables = csv.data.variables.map(clone)
-        dataset.entities = csv.data.entities
-        dataset.years = csv.data.years
-
-        if (existingDataset) {
-            // Match new variables to existing variables
-            dataset.newVariables.forEach((variable) => {
-                const match = dataset.existingVariables.filter(
-                    (v) => v.name === variable.name
-                )[0]
-                if (match) {
-                    Object.keys(match).forEach((key) => {
-                        if (key === "id") variable.overwriteId = match[key]
-                        else (variable as any)[key] = (match as any)[key]
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                const csv = e?.target?.result
+                if (csv && typeof csv === "string") {
+                    const res = Papa.parse<string[]>(csv, {
+                        delimiter: ",",
+                        skipEmptyLines: true,
                     })
-                }
-            })
+
+                    if (res.errors.length)
+                        console.error("CSV parse error", res.errors)
+                    let rows = res.data
+                    if (rows[0][0].toLowerCase() === "year")
+                        rows = CSV.transformSingleLayout(rows, file.name)
+                    this.csv = new CSV({
+                        filename: file.name,
+                        rows,
+                        existingEntities,
+                    } as any)
+                    this.props.onCSV(this.csv as any)
+                } else console.error("CSV was falsy")
+            }
+            reader.readAsText(file)
         }
 
-        this.dataset = dataset
-    }
+        render() {
+            const { csv } = this
 
-    onSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault()
-        this.saveDataset()
-    }
-
-    // Commit the import!
-    saveDataset() {
-        const { newVariables, entities, years } = this.dataset
-
-        const requestData = {
-            dataset: {
-                id: this.existingDataset ? this.existingDataset.id : undefined,
-                name: this.dataset.name,
-                description: this.dataset.description,
-            },
-            years,
-            entities,
-            variables: newVariables,
-        }
-        this.context.admin
-            .requestJSON("/api/importDataset", requestData, "POST")
-            .then((json: any) => {
-                runInAction(() => {
-                    this.postImportDatasetId = json.datasetId
-                })
-            })
-    }
-
-    disposers: IReactionDisposer[] = []
-    componentDidMount() {
-        this.disposers.push(
-            reaction(
-                () => [this.csv, this.existingDataset],
-                () => this.initializeDataset()
+            return (
+                <section>
+                    <input
+                        type="file"
+                        onChange={this.onChooseCSV}
+                        ref={(e) => (this.fileInput = e as HTMLInputElement)}
+                    />
+                    {csv && <DataPreview csv={csv} />}
+                    {csv && <ValidationView validation={csv.validation} />}
+                </section>
             )
-        )
+        }
+
+        componentDidMount() {
+            if (this.fileInput) this.fileInput.value = ""
+        }
     }
+)
 
-    componentWillUnmount() {
-        for (const dispose of this.disposers) dispose()
-    }
+const Importer = observer(
+    class Importer extends React.Component<ImportPageData> {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    render() {
-        const { csv, dataset, existingDataset } = this
-        const { datasets, existingEntities } = this.props
+        csv?: CSV
+        dataset = new EditableDataset()
 
-        return (
-            <form className="Importer" onSubmit={this.onSubmit}>
-                <h2>Import CSV file</h2>
-                <p>
-                    Examples of valid layouts:{" "}
-                    <a href="http://ourworldindata.org/uploads/2016/02/ourworldindata_single-var.png">
-                        single variable
-                    </a>
-                    ,{" "}
-                    <a href="http://ourworldindata.org/uploads/2016/02/ourworldindata_multi-var.png">
-                        multiple variables
-                    </a>
-                    .{" "}
-                    <span className="form-section-desc">
-                        CSV files only:{" "}
-                        <a href="https://ourworldindata.org/how-to-our-world-in-data-guide/#1-2-single-variable-datasets">
-                            csv file format guide
+        existingDataset?: ExistingDataset
+        postImportDatasetId?: number
+
+        constructor(props: ImportPageData) {
+            super(props)
+
+            makeObservable(this, {
+                csv: observable,
+                dataset: observable.ref,
+                existingDataset: observable,
+                postImportDatasetId: observable,
+                onCSV: action.bound,
+                onChooseDataset: action.bound,
+                initializeDataset: action.bound,
+                onSubmit: action.bound,
+            })
+        }
+
+        // First step is user selecting a CSV file
+        onCSV(csv: CSV) {
+            this.csv = csv
+
+            // Look for an existing dataset that matches this csv filename
+            const existingDataset = this.props.datasets.find(
+                (d) => d.name === csv.basename
+            )
+
+            if (existingDataset) {
+                this.getExistingDataset(existingDataset.id)
+            }
+        }
+
+        onChooseDataset(datasetId: number) {
+            if (datasetId === -1) this.existingDataset = undefined
+            else this.getExistingDataset(datasetId)
+        }
+
+        // Grab existing dataset info to compare against what we are importing
+        async getExistingDataset(datasetId: number) {
+            const json = await this.context.admin.getJSON(
+                `/api/importData/datasets/${datasetId}.json`
+            )
+            runInAction(() => (this.existingDataset = json.dataset))
+        }
+
+        // When we have the csv and have matched against an existing dataset (or decided not to), we can
+        // then initialize the dataset model for user customization
+        initializeDataset() {
+            const { csv, existingDataset } = this
+            if (!csv) return
+
+            const dataset = new EditableDataset()
+
+            if (existingDataset) {
+                dataset.name = existingDataset.name
+                dataset.description = existingDataset.description
+                dataset.existingVariables = existingDataset.variables
+            }
+
+            if (!dataset.name) dataset.name = csv.basename
+
+            dataset.newVariables = csv.data.variables.map(clone)
+            dataset.entities = csv.data.entities
+            dataset.years = csv.data.years
+
+            if (existingDataset) {
+                // Match new variables to existing variables
+                dataset.newVariables.forEach((variable) => {
+                    const match = dataset.existingVariables.filter(
+                        (v) => v.name === variable.name
+                    )[0]
+                    if (match) {
+                        Object.keys(match).forEach((key) => {
+                            if (key === "id") variable.overwriteId = match[key]
+                            else (variable as any)[key] = (match as any)[key]
+                        })
+                    }
+                })
+            }
+
+            this.dataset = dataset
+        }
+
+        onSubmit(e: React.FormEvent<HTMLFormElement>) {
+            e.preventDefault()
+            this.saveDataset()
+        }
+
+        // Commit the import!
+        saveDataset() {
+            const { newVariables, entities, years } = this.dataset
+
+            const requestData = {
+                dataset: {
+                    id: this.existingDataset
+                        ? this.existingDataset.id
+                        : undefined,
+                    name: this.dataset.name,
+                    description: this.dataset.description,
+                },
+                years,
+                entities,
+                variables: newVariables,
+            }
+            this.context.admin
+                .requestJSON("/api/importDataset", requestData, "POST")
+                .then((json: any) => {
+                    runInAction(() => {
+                        this.postImportDatasetId = json.datasetId
+                    })
+                })
+        }
+
+        disposers: IReactionDisposer[] = []
+        componentDidMount() {
+            this.disposers.push(
+                reaction(
+                    () => [this.csv, this.existingDataset],
+                    () => this.initializeDataset()
+                )
+            )
+        }
+
+        componentWillUnmount() {
+            for (const dispose of this.disposers) dispose()
+        }
+
+        render() {
+            const { csv, dataset, existingDataset } = this
+            const { datasets, existingEntities } = this.props
+
+            return (
+                <form className="Importer" onSubmit={this.onSubmit}>
+                    <h2>Import CSV file</h2>
+                    <p>
+                        Examples of valid layouts:{" "}
+                        <a href="http://ourworldindata.org/uploads/2016/02/ourworldindata_single-var.png">
+                            single variable
                         </a>
-                        . Maximum file size: 10MB{" "}
-                    </span>
-                </p>
-                <CSVSelector
-                    onCSV={this.onCSV}
-                    existingEntities={existingEntities}
-                />
+                        ,{" "}
+                        <a href="http://ourworldindata.org/uploads/2016/02/ourworldindata_multi-var.png">
+                            multiple variables
+                        </a>
+                        .{" "}
+                        <span className="form-section-desc">
+                            CSV files only:{" "}
+                            <a href="https://ourworldindata.org/how-to-our-world-in-data-guide/#1-2-single-variable-datasets">
+                                csv file format guide
+                            </a>
+                            . Maximum file size: 10MB{" "}
+                        </span>
+                    </p>
+                    <CSVSelector
+                        onCSV={this.onCSV}
+                        existingEntities={existingEntities}
+                    />
 
-                {csv && csv.isValid && (
-                    <section>
-                        <p
-                            style={{
-                                opacity: dataset.id !== undefined ? 1 : 0,
-                            }}
-                            className="updateWarning"
-                        >
-                            Overwriting existing dataset
-                        </p>
-                        <NumericSelectField
-                            value={existingDataset ? existingDataset.id : -1}
-                            onValue={this.onChooseDataset}
-                            options={[
-                                { value: -1, label: "Create new dataset" },
-                            ].concat(
-                                datasets.map((d) => ({
-                                    value: d.id,
-                                    label: d.name,
-                                }))
-                            )}
-                        />
-                        <hr />
-
-                        <h3>
-                            {existingDataset
-                                ? `Updating existing dataset`
-                                : `Creating new dataset`}
-                        </h3>
-                        {!existingDataset && (
-                            <p>
-                                Your data will be validated and stored in the
-                                database for visualization. After creating the
-                                dataset, please fill out the metadata fields and
-                                then mark the dataset as "publishable" if it
-                                should be reused by others.
+                    {csv && csv.isValid && (
+                        <section>
+                            <p
+                                style={{
+                                    opacity: dataset.id !== undefined ? 1 : 0,
+                                }}
+                                className="updateWarning"
+                            >
+                                Overwriting existing dataset
                             </p>
-                        )}
-                        <BindString
-                            field="name"
-                            store={dataset}
-                            helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}
-                        />
-
-                        {dataset.isLoading && (
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                        )}
-                        {!dataset.isLoading && [
-                            <EditVariables
-                                key="editVariables"
-                                dataset={dataset}
-                            />,
-                            <input
-                                key="submit"
-                                type="submit"
-                                className="btn btn-success"
+                            <NumericSelectField
                                 value={
-                                    existingDataset
-                                        ? "Update dataset"
-                                        : "Create dataset"
+                                    existingDataset ? existingDataset.id : -1
                                 }
-                            />,
-                        ]}
-                        {this.postImportDatasetId && (
-                            <Redirect
-                                to={`/datasets/${this.postImportDatasetId}`}
+                                onValue={this.onChooseDataset}
+                                options={[
+                                    { value: -1, label: "Create new dataset" },
+                                ].concat(
+                                    datasets.map((d) => ({
+                                        value: d.id,
+                                        label: d.name,
+                                    }))
+                                )}
                             />
-                        )}
-                    </section>
-                )}
-            </form>
-        )
+                            <hr />
+
+                            <h3>
+                                {existingDataset
+                                    ? `Updating existing dataset`
+                                    : `Creating new dataset`}
+                            </h3>
+                            {!existingDataset && (
+                                <p>
+                                    Your data will be validated and stored in
+                                    the database for visualization. After
+                                    creating the dataset, please fill out the
+                                    metadata fields and then mark the dataset as
+                                    "publishable" if it should be reused by
+                                    others.
+                                </p>
+                            )}
+                            <BindString
+                                field="name"
+                                store={dataset}
+                                helpText={`Dataset name should include a basic description of the variables, followed by the source and year. For example: "Government Revenue Data – ICTD (2016)"`}
+                            />
+
+                            {dataset.isLoading && (
+                                <FontAwesomeIcon icon={faSpinner} spin />
+                            )}
+                            {!dataset.isLoading && [
+                                <EditVariables
+                                    key="editVariables"
+                                    dataset={dataset}
+                                />,
+                                <input
+                                    key="submit"
+                                    type="submit"
+                                    className="btn btn-success"
+                                    value={
+                                        existingDataset
+                                            ? "Update dataset"
+                                            : "Create dataset"
+                                    }
+                                />,
+                            ]}
+                            {this.postImportDatasetId && (
+                                <Redirect
+                                    to={`/datasets/${this.postImportDatasetId}`}
+                                />
+                            )}
+                        </section>
+                    )}
+                </form>
+            )
+        }
     }
-});
+)
 
 interface ImportPageData {
     datasets: {
@@ -787,36 +810,40 @@ interface ImportPageData {
     existingEntities: string[]
 }
 
-export const ImportPage = observer(class ImportPage extends React.Component {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+export const ImportPage = observer(
+    class ImportPage extends React.Component {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    importData?: ImportPageData;
+        importData?: ImportPageData
 
-    constructor(props) {
-        super(props);
+        constructor(props) {
+            super(props)
 
-        makeObservable(this, {
-            importData: observable
-        });
+            makeObservable(this, {
+                importData: observable,
+            })
+        }
+
+        async getData() {
+            const json = await this.context.admin.getJSON(
+                "/api/importData.json"
+            )
+            runInAction(() => (this.importData = json as ImportPageData))
+        }
+
+        componentDidMount() {
+            this.getData()
+        }
+
+        render() {
+            return (
+                <AdminLayout>
+                    <main className="ImportPage">
+                        {this.importData && <Importer {...this.importData} />}
+                    </main>
+                </AdminLayout>
+            )
+        }
     }
-
-    async getData() {
-        const json = await this.context.admin.getJSON("/api/importData.json")
-        runInAction(() => (this.importData = json as ImportPageData))
-    }
-
-    componentDidMount() {
-        this.getData()
-    }
-
-    render() {
-        return (
-            <AdminLayout>
-                <main className="ImportPage">
-                    {this.importData && <Importer {...this.importData} />}
-                </main>
-            </AdminLayout>
-        )
-    }
-});
+)

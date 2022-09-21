@@ -1,6 +1,6 @@
 import { observer } from "mobx-react"
 import React from "react"
-import { computed, action, makeObservable } from "mobx";
+import { computed, action, makeObservable } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
@@ -29,247 +29,248 @@ interface ShareMenuState {
     copied: boolean
 }
 
-export const ShareMenu = observer(class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
-    dismissable = true
+export const ShareMenu = observer(
+    class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
+        dismissable = true
 
-    constructor(props: ShareMenuProps) {
-        super(props)
+        constructor(props: ShareMenuProps) {
+            super(props)
 
-        makeObservable(this, {
-            manager: computed,
-            title: computed,
-            isDisabled: computed,
-            canonicalUrl: computed,
-            dismiss: action.bound,
-            onClickSomewhere: action.bound,
-            onEmbed: action.bound,
-            onNavigatorShare: action.bound,
-            onCopyUrl: action.bound,
-            twitterHref: computed,
-            facebookHref: computed
-        });
+            makeObservable(this, {
+                manager: computed,
+                title: computed,
+                isDisabled: computed,
+                canonicalUrl: computed,
+                dismiss: action.bound,
+                onClickSomewhere: action.bound,
+                onEmbed: action.bound,
+                onNavigatorShare: action.bound,
+                onCopyUrl: action.bound,
+                twitterHref: computed,
+                facebookHref: computed,
+            })
 
-        this.state = {
-            copied: false,
-        }
-    }
-
-    get manager(): ShareMenuManager {
-        return this.props.manager
-    }
-
-    get title(): string {
-        return this.manager.currentTitle ?? ""
-    }
-
-    get isDisabled(): boolean {
-        return !this.manager.slug
-    }
-
-    get canonicalUrl(): string | undefined {
-        return this.manager.canonicalUrl
-    }
-
-    dismiss(): void {
-        this.props.onDismiss()
-    }
-
-    onClickSomewhere(): void {
-        if (this.dismissable) this.dismiss()
-        else this.dismissable = true
-    }
-
-    componentDidMount(): void {
-        document.addEventListener("click", this.onClickSomewhere)
-    }
-
-    componentWillUnmount(): void {
-        document.removeEventListener("click", this.onClickSomewhere)
-    }
-
-    onEmbed(): void {
-        if (!this.canonicalUrl) return
-
-        this.manager.addPopup(
-            <EmbedMenu key="EmbedMenu" manager={this.manager} />
-        )
-        this.dismiss()
-    }
-
-    async onNavigatorShare(): Promise<void> {
-        if (!this.canonicalUrl || !navigator.share) return
-
-        const shareData = {
-            title: this.title,
-            url: this.canonicalUrl,
+            this.state = {
+                copied: false,
+            }
         }
 
-        try {
-            await navigator.share(shareData)
-        } catch (err) {
-            console.error("couldn't share using navigator.share", err)
+        get manager(): ShareMenuManager {
+            return this.props.manager
         }
-    }
 
-    onCopyUrl(): void {
-        if (!this.canonicalUrl) return
+        get title(): string {
+            return this.manager.currentTitle ?? ""
+        }
 
-        try {
-            navigator.clipboard.writeText(this.canonicalUrl)
-            this.setState({ copied: true })
-        } catch (err) {
-            console.error(
-                "couldn't copy to clipboard using navigator.clipboard",
-                err
+        get isDisabled(): boolean {
+            return !this.manager.slug
+        }
+
+        get canonicalUrl(): string | undefined {
+            return this.manager.canonicalUrl
+        }
+
+        dismiss(): void {
+            this.props.onDismiss()
+        }
+
+        onClickSomewhere(): void {
+            if (this.dismissable) this.dismiss()
+            else this.dismissable = true
+        }
+
+        componentDidMount(): void {
+            document.addEventListener("click", this.onClickSomewhere)
+        }
+
+        componentWillUnmount(): void {
+            document.removeEventListener("click", this.onClickSomewhere)
+        }
+
+        onEmbed(): void {
+            if (!this.canonicalUrl) return
+
+            this.manager.addPopup(
+                <EmbedMenu key="EmbedMenu" manager={this.manager} />
             )
+            this.dismiss()
         }
-    }
 
-    get twitterHref(): string {
-        let href =
-            "https://twitter.com/intent/tweet/?text=" +
-            encodeURIComponent(this.title)
-        if (this.canonicalUrl)
-            href += "&url=" + encodeURIComponent(this.canonicalUrl)
-        return href
-    }
+        async onNavigatorShare(): Promise<void> {
+            if (!this.canonicalUrl || !navigator.share) return
 
-    get facebookHref(): string {
-        let href =
-            "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page"
-        if (this.canonicalUrl)
-            href += "&href=" + encodeURIComponent(this.canonicalUrl)
-        return href
-    }
+            const shareData = {
+                title: this.title,
+                url: this.canonicalUrl,
+            }
 
-    render(): JSX.Element {
-        const { twitterHref, facebookHref, isDisabled, manager } = this
-        const { editUrl } = manager
+            try {
+                await navigator.share(shareData)
+            } catch (err) {
+                console.error("couldn't share using navigator.share", err)
+            }
+        }
 
-        return (
-            <div
-                className={"ShareMenu" + (isDisabled ? " disabled" : "")}
-                onClick={action(() => (this.dismissable = false))}
-            >
-                <h2>Share</h2>
-                <a
-                    className="btn"
-                    target="_blank"
-                    title="Tweet a link"
-                    data-track-note="chart-share-twitter"
-                    href={twitterHref}
-                    rel="noopener"
+        onCopyUrl(): void {
+            if (!this.canonicalUrl) return
+
+            try {
+                navigator.clipboard.writeText(this.canonicalUrl)
+                this.setState({ copied: true })
+            } catch (err) {
+                console.error(
+                    "couldn't copy to clipboard using navigator.clipboard",
+                    err
+                )
+            }
+        }
+
+        get twitterHref(): string {
+            let href =
+                "https://twitter.com/intent/tweet/?text=" +
+                encodeURIComponent(this.title)
+            if (this.canonicalUrl)
+                href += "&url=" + encodeURIComponent(this.canonicalUrl)
+            return href
+        }
+
+        get facebookHref(): string {
+            let href =
+                "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page"
+            if (this.canonicalUrl)
+                href += "&href=" + encodeURIComponent(this.canonicalUrl)
+            return href
+        }
+
+        render(): JSX.Element {
+            const { twitterHref, facebookHref, isDisabled, manager } = this
+            const { editUrl } = manager
+
+            return (
+                <div
+                    className={"ShareMenu" + (isDisabled ? " disabled" : "")}
+                    onClick={action(() => (this.dismissable = false))}
                 >
-                    <FontAwesomeIcon icon={faTwitter} /> Twitter
-                </a>
-                <a
-                    className="btn"
-                    target="_blank"
-                    title="Share on Facebook"
-                    data-track-note="chart-share-facebook"
-                    href={facebookHref}
-                    rel="noopener"
-                >
-                    <FontAwesomeIcon icon={faFacebook} /> Facebook
-                </a>
-                <a
-                    className="btn"
-                    title="Embed this visualization in another HTML document"
-                    data-track-note="chart-share-embed"
-                    onClick={this.onEmbed}
-                >
-                    <FontAwesomeIcon icon={faCode} /> Embed
-                </a>
-                {"share" in navigator && (
-                    <a
-                        className="btn"
-                        title="Share this visualization with an app on your device"
-                        data-track-note="chart-share-navigator"
-                        onClick={this.onNavigatorShare}
-                    >
-                        <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
-                    </a>
-                )}
-                {"clipboard" in navigator && (
-                    <a
-                        className="btn"
-                        title="Copy link to clipboard"
-                        data-track-note="chart-share-copylink"
-                        onClick={this.onCopyUrl}
-                    >
-                        <FontAwesomeIcon icon={faCopy} />
-                        {this.state.copied ? "Copied!" : "Copy link"}
-                    </a>
-                )}
-                {editUrl && (
+                    <h2>Share</h2>
                     <a
                         className="btn"
                         target="_blank"
-                        title="Edit chart"
-                        href={editUrl}
+                        title="Tweet a link"
+                        data-track-note="chart-share-twitter"
+                        href={twitterHref}
                         rel="noopener"
                     >
-                        <FontAwesomeIcon icon={faEdit} /> Edit
+                        <FontAwesomeIcon icon={faTwitter} /> Twitter
                     </a>
-                )}
-            </div>
-        )
-    }
-});
-
-const EmbedMenu = observer(class EmbedMenu extends React.Component<{
-    manager: ShareMenuManager
-}> {
-    dismissable = true
-
-    constructor(
-        props: {
-            manager: ShareMenuManager
+                    <a
+                        className="btn"
+                        target="_blank"
+                        title="Share on Facebook"
+                        data-track-note="chart-share-facebook"
+                        href={facebookHref}
+                        rel="noopener"
+                    >
+                        <FontAwesomeIcon icon={faFacebook} /> Facebook
+                    </a>
+                    <a
+                        className="btn"
+                        title="Embed this visualization in another HTML document"
+                        data-track-note="chart-share-embed"
+                        onClick={this.onEmbed}
+                    >
+                        <FontAwesomeIcon icon={faCode} /> Embed
+                    </a>
+                    {"share" in navigator && (
+                        <a
+                            className="btn"
+                            title="Share this visualization with an app on your device"
+                            data-track-note="chart-share-navigator"
+                            onClick={this.onNavigatorShare}
+                        >
+                            <FontAwesomeIcon icon={faShareAlt} /> Share
+                            via&hellip;
+                        </a>
+                    )}
+                    {"clipboard" in navigator && (
+                        <a
+                            className="btn"
+                            title="Copy link to clipboard"
+                            data-track-note="chart-share-copylink"
+                            onClick={this.onCopyUrl}
+                        >
+                            <FontAwesomeIcon icon={faCopy} />
+                            {this.state.copied ? "Copied!" : "Copy link"}
+                        </a>
+                    )}
+                    {editUrl && (
+                        <a
+                            className="btn"
+                            target="_blank"
+                            title="Edit chart"
+                            href={editUrl}
+                            rel="noopener"
+                        >
+                            <FontAwesomeIcon icon={faEdit} /> Edit
+                        </a>
+                    )}
+                </div>
+            )
         }
-    ) {
-        super(props);
-
-        makeObservable(this, {
-            onClickSomewhere: action.bound,
-            manager: computed,
-            onClick: action.bound
-        });
     }
+)
 
-    onClickSomewhere(): void {
-        if (this.dismissable) this.manager.removePopup(EmbedMenu)
-        else this.dismissable = true
-    }
+const EmbedMenu = observer(
+    class EmbedMenu extends React.Component<{
+        manager: ShareMenuManager
+    }> {
+        dismissable = true
 
-    get manager(): ShareMenuManager {
-        return this.props.manager
-    }
+        constructor(props: { manager: ShareMenuManager }) {
+            super(props)
 
-    onClick(): void {
-        this.dismissable = false
-    }
+            makeObservable(this, {
+                onClickSomewhere: action.bound,
+                manager: computed,
+                onClick: action.bound,
+            })
+        }
 
-    componentDidMount(): void {
-        document.addEventListener("click", this.onClickSomewhere)
-    }
+        onClickSomewhere(): void {
+            if (this.dismissable) this.manager.removePopup(EmbedMenu)
+            else this.dismissable = true
+        }
 
-    componentWillUnmount(): void {
-        document.removeEventListener("click", this.onClickSomewhere)
-    }
+        get manager(): ShareMenuManager {
+            return this.props.manager
+        }
 
-    render(): JSX.Element {
-        const url = this.manager.embedUrl ?? this.manager.canonicalUrl
-        return (
-            <div className="embedMenu" onClick={this.onClick}>
-                <h2>Embed</h2>
-                <p>Paste this into any HTML page:</p>
-                <textarea
-                    readOnly={true}
-                    onFocus={(evt): void => evt.currentTarget.select()}
-                    value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
-                />
-                {this.manager.embedDialogAdditionalElements}
-            </div>
-        )
+        onClick(): void {
+            this.dismissable = false
+        }
+
+        componentDidMount(): void {
+            document.addEventListener("click", this.onClickSomewhere)
+        }
+
+        componentWillUnmount(): void {
+            document.removeEventListener("click", this.onClickSomewhere)
+        }
+
+        render(): JSX.Element {
+            const url = this.manager.embedUrl ?? this.manager.canonicalUrl
+            return (
+                <div className="embedMenu" onClick={this.onClick}>
+                    <h2>Embed</h2>
+                    <p>Paste this into any HTML page:</p>
+                    <textarea
+                        readOnly={true}
+                        onFocus={(evt): void => evt.currentTarget.select()}
+                        value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
+                    />
+                    {this.manager.embedDialogAdditionalElements}
+                </div>
+            )
+        }
     }
-});
+)

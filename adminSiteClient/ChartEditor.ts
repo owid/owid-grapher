@@ -5,7 +5,7 @@
  *
  */
 
-import { observable, computed, runInAction, when, makeObservable } from "mobx";
+import { observable, computed, runInAction, when, makeObservable } from "mobx"
 import { Grapher } from "../grapher/core/Grapher.js"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
@@ -62,16 +62,16 @@ export interface NamespaceData {
 }
 
 export class EditorDatabase {
-    namespaces: Namespace[];
-    variableUsageCounts: Map<number, number> = new Map();
-    dataByNamespace: Map<string, NamespaceData> = new Map();
+    namespaces: Namespace[]
+    variableUsageCounts: Map<number, number> = new Map()
+    dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
         makeObservable(this, {
             namespaces: observable.ref,
             variableUsageCounts: observable.ref,
-            dataByNamespace: observable
-        });
+            dataByNamespace: observable,
+        })
 
         this.namespaces = json.namespaces
     }
@@ -97,15 +97,15 @@ interface VariableIdUsageRecord {
 export class ChartEditor {
     manager: ChartEditorManager
     // Whether the current chart state is saved or not
-    currentRequest: Promise<any> | undefined;
-    tab: EditorTab = "basic";
-    errorMessage?: { title: string; content: string };
-    previewMode: "mobile" | "desktop";
-    savedGrapherJson: string = "";
+    currentRequest: Promise<any> | undefined
+    tab: EditorTab = "basic"
+    errorMessage?: { title: string; content: string }
+    previewMode: "mobile" | "desktop"
+    savedGrapherJson: string = ""
 
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
-    newChartId?: number;
+    newChartId?: number
 
     constructor(props: { manager: ChartEditorManager }) {
         makeObservable(this, {
@@ -125,8 +125,8 @@ export class ChartEditor {
             details: computed,
             availableTabs: computed,
             isNewGrapher: computed,
-            features: computed
-        });
+            features: computed,
+        })
 
         this.manager = props.manager
         this.previewMode =

@@ -9,7 +9,7 @@ import {
     sumBy,
     flatten,
 } from "../../clientUtils/Util.js"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "../text/TextWrap.js"
 import { VerticalAxis } from "../axis/Axis.js"
@@ -72,77 +72,81 @@ function stackGroupVertically(
     return group
 }
 
-const Label = observer(class Label extends React.Component<{
-    series: PlacedSeries
-    manager: LineLegend
-    isFocus?: boolean
-    needsLines?: boolean
-    onMouseOver: () => void
-    onClick: () => void
-    onMouseLeave?: () => void
-}> {
-    render(): JSX.Element {
-        const {
-            series,
-            manager,
-            isFocus,
-            needsLines,
-            onMouseOver,
-            onMouseLeave,
-            onClick,
-        } = this.props
-        const x = series.origBounds.x
-        const markerX1 = x + MARKER_MARGIN
-        const markerX2 = x + manager.leftPadding - MARKER_MARGIN
-        const step = (markerX2 - markerX1) / (series.totalLevels + 1)
-        const markerXMid = markerX1 + step + series.level * step
-        const lineColor = isFocus ? "#999" : "#eee"
-        const textColor = isFocus ? darkenColorForText(series.color) : "#ddd"
-        const annotationColor = isFocus ? "#333" : "#ddd"
-        return (
-            <g
-                className="legendMark"
-                onMouseOver={onMouseOver}
-                onMouseLeave={onMouseLeave}
-                onClick={onClick}
-            >
-                {needsLines && (
-                    <g className="indicator">
-                        <path
-                            d={`M${markerX1},${series.origBounds.centerY} H${markerXMid} V${series.bounds.centerY} H${markerX2}`}
-                            stroke={lineColor}
-                            strokeWidth={0.5}
-                            fill="none"
-                        />
-                    </g>
-                )}
-                <rect
-                    x={x}
-                    y={series.bounds.y}
-                    width={series.bounds.width}
-                    height={series.bounds.height}
-                    fill="#fff"
-                    opacity={0}
-                />
-                {series.textWrap.render(
-                    needsLines ? markerX2 + MARKER_MARGIN : markerX1,
-                    series.bounds.y,
-                    { fill: textColor }
-                )}
-                {series.annotationTextWrap &&
-                    series.annotationTextWrap.render(
-                        needsLines ? markerX2 + MARKER_MARGIN : markerX1,
-                        series.bounds.y + series.textWrap.height,
-                        {
-                            fill: annotationColor,
-                            className: "textAnnotation",
-                            style: { fontWeight: "lighter" },
-                        }
+const Label = observer(
+    class Label extends React.Component<{
+        series: PlacedSeries
+        manager: LineLegend
+        isFocus?: boolean
+        needsLines?: boolean
+        onMouseOver: () => void
+        onClick: () => void
+        onMouseLeave?: () => void
+    }> {
+        render(): JSX.Element {
+            const {
+                series,
+                manager,
+                isFocus,
+                needsLines,
+                onMouseOver,
+                onMouseLeave,
+                onClick,
+            } = this.props
+            const x = series.origBounds.x
+            const markerX1 = x + MARKER_MARGIN
+            const markerX2 = x + manager.leftPadding - MARKER_MARGIN
+            const step = (markerX2 - markerX1) / (series.totalLevels + 1)
+            const markerXMid = markerX1 + step + series.level * step
+            const lineColor = isFocus ? "#999" : "#eee"
+            const textColor = isFocus
+                ? darkenColorForText(series.color)
+                : "#ddd"
+            const annotationColor = isFocus ? "#333" : "#ddd"
+            return (
+                <g
+                    className="legendMark"
+                    onMouseOver={onMouseOver}
+                    onMouseLeave={onMouseLeave}
+                    onClick={onClick}
+                >
+                    {needsLines && (
+                        <g className="indicator">
+                            <path
+                                d={`M${markerX1},${series.origBounds.centerY} H${markerXMid} V${series.bounds.centerY} H${markerX2}`}
+                                stroke={lineColor}
+                                strokeWidth={0.5}
+                                fill="none"
+                            />
+                        </g>
                     )}
-            </g>
-        )
+                    <rect
+                        x={x}
+                        y={series.bounds.y}
+                        width={series.bounds.width}
+                        height={series.bounds.height}
+                        fill="#fff"
+                        opacity={0}
+                    />
+                    {series.textWrap.render(
+                        needsLines ? markerX2 + MARKER_MARGIN : markerX1,
+                        series.bounds.y,
+                        { fill: textColor }
+                    )}
+                    {series.annotationTextWrap &&
+                        series.annotationTextWrap.render(
+                            needsLines ? markerX2 + MARKER_MARGIN : markerX1,
+                            series.bounds.y + series.textWrap.height,
+                            {
+                                fill: annotationColor,
+                                className: "textAnnotation",
+                                style: { fontWeight: "lighter" },
+                            }
+                        )}
+                </g>
+            )
+        }
     }
-});
+)
 
 export interface LineLegendManager {
     startSelectingWhenLineClicked?: boolean
@@ -161,333 +165,355 @@ export interface LineLegendManager {
     lineLegendX?: number
 }
 
-export const LineLegend = observer(class LineLegend extends React.Component<{
-    manager: LineLegendManager
-}> {
-    leftPadding = 35
+export const LineLegend = observer(
+    class LineLegend extends React.Component<{
+        manager: LineLegendManager
+    }> {
+        leftPadding = 35
 
-    constructor(
-        props: {
-            manager: LineLegendManager
-        }
-    ) {
-        super(props);
+        constructor(props: { manager: LineLegendManager }) {
+            super(props)
 
-        makeObservable<LineLegend, "fontSize" | "fontWeight" | "maxWidth" | "initialSeries" | "backgroundSeries" | "focusedSeries" | "needsLines">(this, {
-            fontSize: computed,
-            fontWeight: computed,
-            maxWidth: computed,
-            sizedLabels: computed.struct,
-            width: computed,
-            onMouseOver: computed,
-            onMouseLeave: computed,
-            onClick: computed,
-            isFocusMode: computed,
-            legendX: computed,
-            initialSeries: computed,
-            standardPlacement: computed,
-            overlappingPlacement: computed,
-            placedSeries: computed,
-            backgroundSeries: computed,
-            focusedSeries: computed,
-            needsLines: computed,
-            manager: computed
-        });
-    }
-
-    private get fontSize(): number {
-        return 0.75 * (this.manager.fontSize ?? BASE_FONT_SIZE)
-    }
-
-    private get fontWeight(): number {
-        return this.manager.fontWeight ?? DEFAULT_FONT_WEIGHT
-    }
-
-    private get maxWidth(): number {
-        return this.manager.maxLineLegendWidth ?? 300
-    }
-
-    get sizedLabels(): SizedSeries[] {
-        const { fontSize, fontWeight, leftPadding, maxWidth } = this
-        const maxTextWidth = maxWidth - leftPadding
-        const maxAnnotationWidth = Math.min(maxTextWidth, 150)
-
-        return this.manager.labelSeries.map((label) => {
-            const annotationTextWrap = label.annotation
-                ? new TextWrap({
-                      text: label.annotation,
-                      maxWidth: maxAnnotationWidth,
-                      fontSize: fontSize * 0.9,
-                      lineHeight: 1,
-                  })
-                : undefined
-            const textWrap = new TextWrap({
-                text: label.label,
-                maxWidth: maxTextWidth,
-                fontSize,
-                fontWeight,
-                lineHeight: 1,
+            makeObservable<
+                LineLegend,
+                | "fontSize"
+                | "fontWeight"
+                | "maxWidth"
+                | "initialSeries"
+                | "backgroundSeries"
+                | "focusedSeries"
+                | "needsLines"
+            >(this, {
+                fontSize: computed,
+                fontWeight: computed,
+                maxWidth: computed,
+                sizedLabels: computed.struct,
+                width: computed,
+                onMouseOver: computed,
+                onMouseLeave: computed,
+                onClick: computed,
+                isFocusMode: computed,
+                legendX: computed,
+                initialSeries: computed,
+                standardPlacement: computed,
+                overlappingPlacement: computed,
+                placedSeries: computed,
+                backgroundSeries: computed,
+                focusedSeries: computed,
+                needsLines: computed,
+                manager: computed,
             })
-            return {
-                ...label,
-                textWrap,
-                annotationTextWrap,
-                width:
-                    leftPadding +
-                    Math.max(
-                        textWrap.width,
-                        annotationTextWrap ? annotationTextWrap.width : 0
-                    ),
-                height:
-                    textWrap.height +
-                    (annotationTextWrap ? annotationTextWrap.height : 0),
-            }
-        })
-    }
+        }
 
-    get width(): number {
-        if (this.sizedLabels.length === 0) return 0
-        return max(this.sizedLabels.map((d) => d.width)) ?? 0
-    }
+        private get fontSize(): number {
+            return 0.75 * (this.manager.fontSize ?? BASE_FONT_SIZE)
+        }
 
-    get onMouseOver(): any {
-        return this.manager.onLineLegendMouseOver ?? noop
-    }
-    get onMouseLeave(): any {
-        return this.manager.onLineLegendMouseLeave ?? noop
-    }
-    get onClick(): any {
-        return this.manager.onLineLegendClick ?? noop
-    }
+        private get fontWeight(): number {
+            return this.manager.fontWeight ?? DEFAULT_FONT_WEIGHT
+        }
 
-    get isFocusMode(): boolean {
-        return this.sizedLabels.some((label) =>
-            this.manager.focusedSeriesNames.includes(label.seriesName)
-        )
-    }
+        private get maxWidth(): number {
+            return this.manager.maxLineLegendWidth ?? 300
+        }
 
-    get legendX(): number {
-        return this.manager.lineLegendX ?? 0
-    }
+        get sizedLabels(): SizedSeries[] {
+            const { fontSize, fontWeight, leftPadding, maxWidth } = this
+            const maxTextWidth = maxWidth - leftPadding
+            const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
-    // Naive initial placement of each mark at the target height, before collision detection
-    private get initialSeries(): PlacedSeries[] {
-        const { yAxis } = this.manager
-        const { legendX } = this
-
-        return sortBy(
-            this.sizedLabels.map((label) => {
-                // place vertically centered at Y value
-                const initialY = yAxis.place(label.yValue) - label.height / 2
-                const origBounds = new Bounds(
-                    legendX,
-                    initialY,
-                    label.width,
-                    label.height
-                )
-
-                // ensure label doesn't go beyond the top or bottom of the chart
-                const y = Math.min(
-                    Math.max(initialY, yAxis.rangeMin),
-                    yAxis.rangeMax - label.height
-                )
-                const bounds = new Bounds(legendX, y, label.width, label.height)
-
+            return this.manager.labelSeries.map((label) => {
+                const annotationTextWrap = label.annotation
+                    ? new TextWrap({
+                          text: label.annotation,
+                          maxWidth: maxAnnotationWidth,
+                          fontSize: fontSize * 0.9,
+                          lineHeight: 1,
+                      })
+                    : undefined
+                const textWrap = new TextWrap({
+                    text: label.label,
+                    maxWidth: maxTextWidth,
+                    fontSize,
+                    fontWeight,
+                    lineHeight: 1,
+                })
                 return {
                     ...label,
-                    y,
-                    origBounds,
-                    bounds,
-                    isOverlap: false,
-                    repositions: 0,
-                    level: 0,
-                    totalLevels: 0,
+                    textWrap,
+                    annotationTextWrap,
+                    width:
+                        leftPadding +
+                        Math.max(
+                            textWrap.width,
+                            annotationTextWrap ? annotationTextWrap.width : 0
+                        ),
+                    height:
+                        textWrap.height +
+                        (annotationTextWrap ? annotationTextWrap.height : 0),
                 }
+            })
+        }
 
-                // Ensure list is sorted by the visual position in ascending order
-            }),
-            (label) => yAxis.place(label.yValue)
-        )
-    }
+        get width(): number {
+            if (this.sizedLabels.length === 0) return 0
+            return max(this.sizedLabels.map((d) => d.width)) ?? 0
+        }
 
-    get standardPlacement(): PlacedSeries[] {
-        const { yAxis } = this.manager
+        get onMouseOver(): any {
+            return this.manager.onLineLegendMouseOver ?? noop
+        }
+        get onMouseLeave(): any {
+            return this.manager.onLineLegendMouseLeave ?? noop
+        }
+        get onClick(): any {
+            return this.manager.onLineLegendClick ?? noop
+        }
 
-        const groups: PlacedSeries[][] = cloneDeep(this.initialSeries).map(
-            (mark) => [mark]
-        )
+        get isFocusMode(): boolean {
+            return this.sizedLabels.some((label) =>
+                this.manager.focusedSeriesNames.includes(label.seriesName)
+            )
+        }
 
-        let hasOverlap
+        get legendX(): number {
+            return this.manager.lineLegendX ?? 0
+        }
 
-        do {
-            hasOverlap = false
-            for (let i = 0; i < groups.length - 1; i++) {
-                const topGroup = groups[i]
-                const bottomGroup = groups[i + 1]
-                const topBounds = groupBounds(topGroup)
-                const bottomBounds = groupBounds(bottomGroup)
-                if (topBounds.intersects(bottomBounds)) {
-                    const overlapHeight =
-                        topBounds.bottom -
-                        bottomBounds.top +
-                        LEGEND_ITEM_MIN_SPACING
-                    const newHeight =
-                        topBounds.height +
-                        LEGEND_ITEM_MIN_SPACING +
-                        bottomBounds.height
-                    const targetY =
-                        topBounds.top -
-                        overlapHeight *
-                            (bottomGroup.length /
-                                (topGroup.length + bottomGroup.length))
-                    const overflowTop = Math.max(yAxis.rangeMin - targetY, 0)
-                    const overflowBottom = Math.max(
-                        targetY + newHeight - yAxis.rangeMax,
-                        0
+        // Naive initial placement of each mark at the target height, before collision detection
+        private get initialSeries(): PlacedSeries[] {
+            const { yAxis } = this.manager
+            const { legendX } = this
+
+            return sortBy(
+                this.sizedLabels.map((label) => {
+                    // place vertically centered at Y value
+                    const initialY =
+                        yAxis.place(label.yValue) - label.height / 2
+                    const origBounds = new Bounds(
+                        legendX,
+                        initialY,
+                        label.width,
+                        label.height
                     )
-                    const newY = targetY + overflowTop - overflowBottom
-                    const newGroup = [...topGroup, ...bottomGroup]
-                    stackGroupVertically(newGroup, newY)
-                    groups.splice(i, 2, newGroup)
-                    hasOverlap = true
-                    break
-                }
-            }
-        } while (hasOverlap && groups.length > 1)
 
-        for (const group of groups) {
-            let currentLevel = 0
-            let prevSign = 0
-            for (const series of group) {
-                const currentSign = Math.sign(
-                    series.bounds.y - series.origBounds.y
-                )
-                if (prevSign === currentSign) {
-                    currentLevel -= currentSign
-                }
-                series.level = currentLevel
-                prevSign = currentSign
-            }
-            const minLevel = min(group.map((mark) => mark.level)) as number
-            const maxLevel = max(group.map((mark) => mark.level)) as number
-            for (const mark of group) {
-                mark.level -= minLevel
-                mark.totalLevels = maxLevel - minLevel + 1
-            }
+                    // ensure label doesn't go beyond the top or bottom of the chart
+                    const y = Math.min(
+                        Math.max(initialY, yAxis.rangeMin),
+                        yAxis.rangeMax - label.height
+                    )
+                    const bounds = new Bounds(
+                        legendX,
+                        y,
+                        label.width,
+                        label.height
+                    )
+
+                    return {
+                        ...label,
+                        y,
+                        origBounds,
+                        bounds,
+                        isOverlap: false,
+                        repositions: 0,
+                        level: 0,
+                        totalLevels: 0,
+                    }
+
+                    // Ensure list is sorted by the visual position in ascending order
+                }),
+                (label) => yAxis.place(label.yValue)
+            )
         }
 
-        return flatten(groups)
-    }
+        get standardPlacement(): PlacedSeries[] {
+            const { yAxis } = this.manager
 
-    // Overlapping placement, for when we really can't find a solution without overlaps.
-    get overlappingPlacement(): PlacedSeries[] {
-        const series = cloneDeep(this.initialSeries)
-        for (let i = 0; i < series.length; i++) {
-            const m1 = series[i]
+            const groups: PlacedSeries[][] = cloneDeep(this.initialSeries).map(
+                (mark) => [mark]
+            )
 
-            for (let j = i + 1; j < series.length; j++) {
-                const m2 = series[j]
-                const isOverlap =
-                    !m1.isOverlap && m1.bounds.intersects(m2.bounds)
-                if (isOverlap) m2.isOverlap = true
+            let hasOverlap
+
+            do {
+                hasOverlap = false
+                for (let i = 0; i < groups.length - 1; i++) {
+                    const topGroup = groups[i]
+                    const bottomGroup = groups[i + 1]
+                    const topBounds = groupBounds(topGroup)
+                    const bottomBounds = groupBounds(bottomGroup)
+                    if (topBounds.intersects(bottomBounds)) {
+                        const overlapHeight =
+                            topBounds.bottom -
+                            bottomBounds.top +
+                            LEGEND_ITEM_MIN_SPACING
+                        const newHeight =
+                            topBounds.height +
+                            LEGEND_ITEM_MIN_SPACING +
+                            bottomBounds.height
+                        const targetY =
+                            topBounds.top -
+                            overlapHeight *
+                                (bottomGroup.length /
+                                    (topGroup.length + bottomGroup.length))
+                        const overflowTop = Math.max(
+                            yAxis.rangeMin - targetY,
+                            0
+                        )
+                        const overflowBottom = Math.max(
+                            targetY + newHeight - yAxis.rangeMax,
+                            0
+                        )
+                        const newY = targetY + overflowTop - overflowBottom
+                        const newGroup = [...topGroup, ...bottomGroup]
+                        stackGroupVertically(newGroup, newY)
+                        groups.splice(i, 2, newGroup)
+                        hasOverlap = true
+                        break
+                    }
+                }
+            } while (hasOverlap && groups.length > 1)
+
+            for (const group of groups) {
+                let currentLevel = 0
+                let prevSign = 0
+                for (const series of group) {
+                    const currentSign = Math.sign(
+                        series.bounds.y - series.origBounds.y
+                    )
+                    if (prevSign === currentSign) {
+                        currentLevel -= currentSign
+                    }
+                    series.level = currentLevel
+                    prevSign = currentSign
+                }
+                const minLevel = min(group.map((mark) => mark.level)) as number
+                const maxLevel = max(group.map((mark) => mark.level)) as number
+                for (const mark of group) {
+                    mark.level -= minLevel
+                    mark.totalLevels = maxLevel - minLevel + 1
+                }
             }
+
+            return flatten(groups)
         }
-        return series
+
+        // Overlapping placement, for when we really can't find a solution without overlaps.
+        get overlappingPlacement(): PlacedSeries[] {
+            const series = cloneDeep(this.initialSeries)
+            for (let i = 0; i < series.length; i++) {
+                const m1 = series[i]
+
+                for (let j = i + 1; j < series.length; j++) {
+                    const m2 = series[j]
+                    const isOverlap =
+                        !m1.isOverlap && m1.bounds.intersects(m2.bounds)
+                    if (isOverlap) m2.isOverlap = true
+                }
+            }
+            return series
+        }
+
+        get placedSeries(): PlacedSeries[] {
+            const nonOverlappingMinHeight =
+                sumBy(this.initialSeries, (series) => series.bounds.height) +
+                this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
+            const availableHeight = this.manager.canAddData
+                ? this.manager.yAxis.rangeSize - ADD_BUTTON_HEIGHT
+                : this.manager.yAxis.rangeSize
+
+            // Need to be careful here – the controls overlay will automatically add padding if
+            // needed to fit the floating 'Add country' button, therefore decreasing the space
+            // available to render the legend.
+            // At a certain height, this ends up infinitely toggling between the two placement
+            // modes. The overlapping placement allows the button to float without additional
+            // padding, which then frees up space, causing the legend to render with
+            // standardPlacement.
+            // This is why we need to take into account the height of the 'Add country' button.
+            if (nonOverlappingMinHeight > availableHeight)
+                return this.overlappingPlacement
+
+            return this.standardPlacement
+        }
+
+        private get backgroundSeries(): PlacedSeries[] {
+            const { focusedSeriesNames } = this.manager
+            const { isFocusMode } = this
+            return this.placedSeries.filter((mark) =>
+                isFocusMode
+                    ? !focusedSeriesNames.includes(mark.seriesName)
+                    : mark.isOverlap
+            )
+        }
+
+        private get focusedSeries(): PlacedSeries[] {
+            const { focusedSeriesNames } = this.manager
+            const { isFocusMode } = this
+            return this.placedSeries.filter((mark) =>
+                isFocusMode
+                    ? focusedSeriesNames.includes(mark.seriesName)
+                    : !mark.isOverlap
+            )
+        }
+
+        // Does this placement need line markers or is the position of the labels already clear?
+        private get needsLines(): boolean {
+            return this.placedSeries.some((series) => series.totalLevels > 1)
+        }
+
+        private renderBackground(): JSX.Element[] {
+            return this.backgroundSeries.map((series, index) => (
+                <Label
+                    key={`background-${index}-` + series.seriesName}
+                    series={series}
+                    manager={this}
+                    needsLines={this.needsLines}
+                    onMouseOver={(): void =>
+                        this.onMouseOver(series.seriesName)
+                    }
+                    onClick={(): void => this.onClick(series.seriesName)}
+                />
+            ))
+        }
+
+        // All labels are focused by default, moved to background when mouseover of other label
+        private renderFocus(): JSX.Element[] {
+            return this.focusedSeries.map((series, index) => (
+                <Label
+                    key={`focus-${index}-` + series.seriesName}
+                    series={series}
+                    manager={this}
+                    isFocus={true}
+                    needsLines={this.needsLines}
+                    onMouseOver={(): void =>
+                        this.onMouseOver(series.seriesName)
+                    }
+                    onClick={(): void => this.onClick(series.seriesName)}
+                    onMouseLeave={(): void =>
+                        this.onMouseLeave(series.seriesName)
+                    }
+                />
+            ))
+        }
+
+        get manager(): LineLegendManager {
+            return this.props.manager
+        }
+
+        render(): JSX.Element {
+            return (
+                <g
+                    className="LineLabels"
+                    style={{
+                        cursor: this.manager.startSelectingWhenLineClicked
+                            ? "pointer"
+                            : "default",
+                    }}
+                >
+                    {this.renderBackground()}
+                    {this.renderFocus()}
+                </g>
+            )
+        }
     }
-
-    get placedSeries(): PlacedSeries[] {
-        const nonOverlappingMinHeight =
-            sumBy(this.initialSeries, (series) => series.bounds.height) +
-            this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
-        const availableHeight = this.manager.canAddData
-            ? this.manager.yAxis.rangeSize - ADD_BUTTON_HEIGHT
-            : this.manager.yAxis.rangeSize
-
-        // Need to be careful here – the controls overlay will automatically add padding if
-        // needed to fit the floating 'Add country' button, therefore decreasing the space
-        // available to render the legend.
-        // At a certain height, this ends up infinitely toggling between the two placement
-        // modes. The overlapping placement allows the button to float without additional
-        // padding, which then frees up space, causing the legend to render with
-        // standardPlacement.
-        // This is why we need to take into account the height of the 'Add country' button.
-        if (nonOverlappingMinHeight > availableHeight)
-            return this.overlappingPlacement
-
-        return this.standardPlacement
-    }
-
-    private get backgroundSeries(): PlacedSeries[] {
-        const { focusedSeriesNames } = this.manager
-        const { isFocusMode } = this
-        return this.placedSeries.filter((mark) =>
-            isFocusMode
-                ? !focusedSeriesNames.includes(mark.seriesName)
-                : mark.isOverlap
-        )
-    }
-
-    private get focusedSeries(): PlacedSeries[] {
-        const { focusedSeriesNames } = this.manager
-        const { isFocusMode } = this
-        return this.placedSeries.filter((mark) =>
-            isFocusMode
-                ? focusedSeriesNames.includes(mark.seriesName)
-                : !mark.isOverlap
-        )
-    }
-
-    // Does this placement need line markers or is the position of the labels already clear?
-    private get needsLines(): boolean {
-        return this.placedSeries.some((series) => series.totalLevels > 1)
-    }
-
-    private renderBackground(): JSX.Element[] {
-        return this.backgroundSeries.map((series, index) => (
-            <Label
-                key={`background-${index}-` + series.seriesName}
-                series={series}
-                manager={this}
-                needsLines={this.needsLines}
-                onMouseOver={(): void => this.onMouseOver(series.seriesName)}
-                onClick={(): void => this.onClick(series.seriesName)}
-            />
-        ))
-    }
-
-    // All labels are focused by default, moved to background when mouseover of other label
-    private renderFocus(): JSX.Element[] {
-        return this.focusedSeries.map((series, index) => (
-            <Label
-                key={`focus-${index}-` + series.seriesName}
-                series={series}
-                manager={this}
-                isFocus={true}
-                needsLines={this.needsLines}
-                onMouseOver={(): void => this.onMouseOver(series.seriesName)}
-                onClick={(): void => this.onClick(series.seriesName)}
-                onMouseLeave={(): void => this.onMouseLeave(series.seriesName)}
-            />
-        ))
-    }
-
-    get manager(): LineLegendManager {
-        return this.props.manager
-    }
-
-    render(): JSX.Element {
-        return (
-            <g
-                className="LineLabels"
-                style={{
-                    cursor: this.manager.startSelectingWhenLineClicked
-                        ? "pointer"
-                        : "default",
-                }}
-            >
-                {this.renderBackground()}
-                {this.renderFocus()}
-            </g>
-        )
-    }
-});
+)

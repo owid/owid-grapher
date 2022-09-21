@@ -7,7 +7,7 @@
 import React from "react"
 import * as lodash from "lodash"
 import { bind } from "decko"
-import { observable, action, makeObservable } from "mobx";
+import { observable, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 
 import { pick, capitalize } from "../clientUtils/Util.js"
@@ -437,11 +437,11 @@ interface ToggleProps {
 
 export class Toggle extends React.Component<ToggleProps> {
     constructor(props: ToggleProps) {
-        super(props);
+        super(props)
 
         makeObservable(this, {
-            onChange: action.bound
-        });
+            onChange: action.bound,
+        })
     }
 
     onChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -502,54 +502,58 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
     }
 }
 
-export const ColorBox = observer(class ColorBox extends React.Component<{
-    color: string | undefined
-    onColor: (color: string | undefined) => void
-}> {
-    render() {
-        const { color } = this.props
+export const ColorBox = observer(
+    class ColorBox extends React.Component<{
+        color: string | undefined
+        onColor: (color: string | undefined) => void
+    }> {
+        render() {
+            const { color } = this.props
 
-        const style =
-            color !== undefined ? { backgroundColor: color } : undefined
+            const style =
+                color !== undefined ? { backgroundColor: color } : undefined
 
-        return (
-            <Tippy
-                content={
-                    <>
-                        <Colorpicker
-                            color={color}
-                            onColor={this.props.onColor}
-                        />
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                flexDirection: "column",
-                            }}
-                        >
-                            <Button
-                                onClick={() => this.props.onColor(undefined)}
+            return (
+                <Tippy
+                    content={
+                        <>
+                            <Colorpicker
+                                color={color}
+                                onColor={this.props.onColor}
+                            />
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    flexDirection: "column",
+                                }}
                             >
-                                Reset to color scheme default
-                            </Button>
-                        </div>
-                    </>
-                }
-                placement="right"
-                interactive={true}
-                trigger="click"
-                appendTo={() => document.body}
-                className="colorpicker-tooltip"
-            >
-                <div className="ColorBox" style={style}>
-                    {color === undefined && (
-                        <FontAwesomeIcon icon={faPaintbrush} />
-                    )}
-                </div>
-            </Tippy>
-        )
+                                <Button
+                                    onClick={() =>
+                                        this.props.onColor(undefined)
+                                    }
+                                >
+                                    Reset to color scheme default
+                                </Button>
+                            </div>
+                        </>
+                    }
+                    placement="right"
+                    interactive={true}
+                    trigger="click"
+                    appendTo={() => document.body}
+                    className="colorpicker-tooltip"
+                >
+                    <div className="ColorBox" style={style}>
+                        {color === undefined && (
+                            <FontAwesomeIcon icon={faPaintbrush} />
+                        )}
+                    </div>
+                </Tippy>
+            )
+        }
     }
-});
+)
 
 export class Section extends React.Component<{ name: string }> {
     render() {
@@ -578,95 +582,103 @@ const ErrorMessage = ({ message }: { message: string }) => (
     <div style={{ color: "red" }}>{message}</div>
 )
 
-const SoftCharacterLimit = observer(class SoftCharacterLimit extends React.Component<{
-    text: string
-    limit: number
-}> {
-    render() {
-        const { text, limit } = this.props
-        return (
-            <div
-                style={
-                    text.length > limit
-                        ? { color: "#D17D05" }
-                        : { color: "rgba(0,0,0,0.3)" }
-                }
-            >
-                {text.length} / {limit}
-                {text.length > limit && (
-                    <p>
-                        <FontAwesomeIcon icon={faExclamationTriangle} /> This
-                        text is long and may cause rendering issues in smaller
-                        viewports.
-                    </p>
-                )}
-            </div>
-        )
-    }
-});
-
-export const AutoTextField = observer(class AutoTextField extends React.Component<AutoTextFieldProps> {
-    render() {
-        const { props } = this
-
-        return (
-            <div className="form-group AutoTextField">
-                {props.label && <label>{props.label}</label>}
-                <div className="input-group mb-2 mb-sm-0">
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={props.value}
-                        placeholder={props.placeholder}
-                        onChange={(e) => props.onValue(e.currentTarget.value)}
-                        onBlur={props.onBlur}
-                    />
-                    <div
-                        className="input-group-addon"
-                        onClick={() => props.onToggleAuto(!props.isAuto)}
-                        title={
-                            props.isAuto ? "Automatic default" : "Manual input"
-                        }
-                    >
-                        {props.isAuto ? (
-                            <FontAwesomeIcon icon={faLink} />
-                        ) : (
-                            <FontAwesomeIcon icon={faUnlink} />
-                        )}
-                    </div>
+const SoftCharacterLimit = observer(
+    class SoftCharacterLimit extends React.Component<{
+        text: string
+        limit: number
+    }> {
+        render() {
+            const { text, limit } = this.props
+            return (
+                <div
+                    style={
+                        text.length > limit
+                            ? { color: "#D17D05" }
+                            : { color: "rgba(0,0,0,0.3)" }
+                    }
+                >
+                    {text.length} / {limit}
+                    {text.length > limit && (
+                        <p>
+                            <FontAwesomeIcon icon={faExclamationTriangle} />{" "}
+                            This text is long and may cause rendering issues in
+                            smaller viewports.
+                        </p>
+                    )}
                 </div>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-                {props.softCharacterLimit && props.value && (
-                    <SoftCharacterLimit
-                        text={props.value}
-                        limit={props.softCharacterLimit}
-                    />
-                )}
-            </div>
-        )
+            )
+        }
     }
-});
+)
 
-export const BindString = observer(class BindString extends React.Component<{
-    field: string
-    store: Record<string, any>
-    label?: string
-    placeholder?: string
-    helpText?: string
-    textarea?: boolean
-    softCharacterLimit?: number
-    disabled?: boolean
-    rows?: number
-    errorMessage?: string
-    buttonText?: string
-    onButtonClick?: () => void
-}> {
-    constructor(
-        props: {
+export const AutoTextField = observer(
+    class AutoTextField extends React.Component<AutoTextFieldProps> {
+        render() {
+            const { props } = this
+
+            return (
+                <div className="form-group AutoTextField">
+                    {props.label && <label>{props.label}</label>}
+                    <div className="input-group mb-2 mb-sm-0">
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={props.value}
+                            placeholder={props.placeholder}
+                            onChange={(e) =>
+                                props.onValue(e.currentTarget.value)
+                            }
+                            onBlur={props.onBlur}
+                        />
+                        <div
+                            className="input-group-addon"
+                            onClick={() => props.onToggleAuto(!props.isAuto)}
+                            title={
+                                props.isAuto
+                                    ? "Automatic default"
+                                    : "Manual input"
+                            }
+                        >
+                            {props.isAuto ? (
+                                <FontAwesomeIcon icon={faLink} />
+                            ) : (
+                                <FontAwesomeIcon icon={faUnlink} />
+                            )}
+                        </div>
+                    </div>
+                    {props.helpText && (
+                        <small className="form-text text-muted">
+                            {props.helpText}
+                        </small>
+                    )}
+                    {props.softCharacterLimit && props.value && (
+                        <SoftCharacterLimit
+                            text={props.value}
+                            limit={props.softCharacterLimit}
+                        />
+                    )}
+                </div>
+            )
+        }
+    }
+)
+
+export const BindString = observer(
+    class BindString extends React.Component<{
+        field: string
+        store: Record<string, any>
+        label?: string
+        placeholder?: string
+        helpText?: string
+        textarea?: boolean
+        softCharacterLimit?: number
+        disabled?: boolean
+        rows?: number
+        errorMessage?: string
+        buttonText?: string
+        onButtonClick?: () => void
+    }> {
+        constructor(props: {
             field: string
             store: Record<string, any>
             label?: string
@@ -679,65 +691,65 @@ export const BindString = observer(class BindString extends React.Component<{
             errorMessage?: string
             buttonText?: string
             onButtonClick?: () => void
+        }) {
+            super(props)
+
+            makeObservable(this, {
+                onValue: action.bound,
+                onBlur: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            onValue: action.bound,
-            onBlur: action.bound
-        });
+        onValue(value: string = "") {
+            this.props.store[this.props.field] = value
+        }
+
+        onBlur() {
+            const trimmedValue = this.props.store[this.props.field]?.trim()
+            this.props.store[this.props.field] = trimmedValue
+        }
+
+        render() {
+            const { field, store, label, textarea, ...rest } = this.props
+            const value = store[field] as string | undefined
+            if (textarea)
+                return (
+                    <TextAreaField
+                        label={label === undefined ? capitalize(field) : label}
+                        value={value || ""}
+                        onValue={this.onValue}
+                        onBlur={this.onBlur}
+                        {...rest}
+                    />
+                )
+            else
+                return (
+                    <TextField
+                        label={label === undefined ? capitalize(field) : label}
+                        value={value || ""}
+                        onValue={this.onValue}
+                        onBlur={this.onBlur}
+                        {...rest}
+                    />
+                )
+        }
     }
+)
 
-    onValue(value: string = "") {
-        this.props.store[this.props.field] = value
-    }
-
-    onBlur() {
-        const trimmedValue = this.props.store[this.props.field]?.trim()
-        this.props.store[this.props.field] = trimmedValue
-    }
-
-    render() {
-        const { field, store, label, textarea, ...rest } = this.props
-        const value = store[field] as string | undefined
-        if (textarea)
-            return (
-                <TextAreaField
-                    label={label === undefined ? capitalize(field) : label}
-                    value={value || ""}
-                    onValue={this.onValue}
-                    onBlur={this.onBlur}
-                    {...rest}
-                />
-            )
-        else
-            return (
-                <TextField
-                    label={label === undefined ? capitalize(field) : label}
-                    value={value || ""}
-                    onValue={this.onValue}
-                    onBlur={this.onBlur}
-                    {...rest}
-                />
-            )
-    }
-});
-
-export const BindAutoString = observer(class BindAutoString<
-    T extends { [field: string]: any },
-    K extends keyof T
-> extends React.Component<{
-    field: K
-    store: T
-    auto: string
-    label?: string
-    helpText?: string
-    softCharacterLimit?: number
-    onBlur?: () => void
-}> {
-    constructor(
-        props: {
+export const BindAutoString = observer(
+    class BindAutoString<
+        T extends { [field: string]: any },
+        K extends keyof T
+    > extends React.Component<{
+        field: K
+        store: T
+        auto: string
+        label?: string
+        helpText?: string
+        softCharacterLimit?: number
+        onBlur?: () => void
+    }> {
+        constructor(props: {
             field: K
             store: T
             auto: string
@@ -745,50 +757,50 @@ export const BindAutoString = observer(class BindAutoString<
             helpText?: string
             softCharacterLimit?: number
             onBlur?: () => void
+        }) {
+            super(props)
+
+            makeObservable(this, {
+                onValue: action.bound,
+                onToggleAuto: action.bound,
+                onBlur: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            onValue: action.bound,
-            onToggleAuto: action.bound,
-            onBlur: action.bound
-        });
+        onValue(value: string) {
+            this.props.store[this.props.field] = value as any
+        }
+
+        onToggleAuto(value: boolean) {
+            this.props.store[this.props.field] = (
+                value ? undefined : this.props.auto
+            ) as any
+        }
+
+        onBlur() {
+            const trimmedValue = this.props.store[this.props.field]?.trim()
+            this.props.store[this.props.field] = trimmedValue
+        }
+
+        render() {
+            const { field, store, label, auto, ...rest } = this.props
+
+            const value = store[field] as string | undefined
+
+            return (
+                <AutoTextField
+                    label={label || capitalize(field)}
+                    value={value === undefined ? auto : value}
+                    isAuto={value === undefined}
+                    onValue={this.onValue}
+                    onBlur={this.onBlur}
+                    onToggleAuto={this.onToggleAuto}
+                    {...rest}
+                />
+            )
+        }
     }
-
-    onValue(value: string) {
-        this.props.store[this.props.field] = value as any
-    }
-
-    onToggleAuto(value: boolean) {
-        this.props.store[this.props.field] = (
-            value ? undefined : this.props.auto
-        ) as any
-    }
-
-    onBlur() {
-        const trimmedValue = this.props.store[this.props.field]?.trim()
-        this.props.store[this.props.field] = trimmedValue
-    }
-
-    render() {
-        const { field, store, label, auto, ...rest } = this.props
-
-        const value = store[field] as string | undefined
-
-        return (
-            <AutoTextField
-                label={label || capitalize(field)}
-                value={value === undefined ? auto : value}
-                isAuto={value === undefined}
-                onValue={this.onValue}
-                onBlur={this.onBlur}
-                onToggleAuto={this.onToggleAuto}
-                {...rest}
-            />
-        )
-    }
-});
+)
 
 interface AutoFloatFieldProps {
     label?: string
@@ -843,189 +855,200 @@ class FloatField extends React.Component<FloatFieldProps> {
     }
 }
 
-export const BindFloat = observer(class BindFloat<
-    T extends { [field: string]: any },
-    K extends keyof T
-> extends React.Component<{
-    field: K
-    store: T
-    label?: string
-    helpText?: string
-}> {
-    constructor(
-        props: {
+export const BindFloat = observer(
+    class BindFloat<
+        T extends { [field: string]: any },
+        K extends keyof T
+    > extends React.Component<{
+        field: K
+        store: T
+        label?: string
+        helpText?: string
+    }> {
+        constructor(props: {
             field: K
             store: T
             label?: string
             helpText?: string
+        }) {
+            super(props)
+
+            makeObservable(this, {
+                onValue: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            onValue: action.bound
-        });
+        onValue(value: number | undefined) {
+            this.props.store[this.props.field] = value as any
+        }
+
+        render() {
+            const { field, store, label, ...rest } = this.props
+
+            const value = store[field] as number | undefined
+
+            return (
+                <FloatField
+                    label={label || capitalize(field)}
+                    value={value}
+                    onValue={this.onValue}
+                    {...rest}
+                />
+            )
+        }
     }
+)
 
-    onValue(value: number | undefined) {
-        this.props.store[this.props.field] = value as any
-    }
-
-    render() {
-        const { field, store, label, ...rest } = this.props
-
-        const value = store[field] as number | undefined
-
-        return (
-            <FloatField
-                label={label || capitalize(field)}
-                value={value}
-                onValue={this.onValue}
-                {...rest}
-            />
-        )
-    }
-});
-
-export const BindAutoFloat = observer(class BindAutoFloat<
-    T extends { [field: string]: any },
-    K extends keyof T
-> extends React.Component<{
-    field: K
-    store: T
-    auto: number
-    label?: string
-    helpText?: string
-    onBlur?: () => void
-}> {
-    constructor(
-        props: {
+export const BindAutoFloat = observer(
+    class BindAutoFloat<
+        T extends { [field: string]: any },
+        K extends keyof T
+    > extends React.Component<{
+        field: K
+        store: T
+        auto: number
+        label?: string
+        helpText?: string
+        onBlur?: () => void
+    }> {
+        constructor(props: {
             field: K
             store: T
             auto: number
             label?: string
             helpText?: string
             onBlur?: () => void
+        }) {
+            super(props)
+
+            makeObservable(this, {
+                onValue: action.bound,
+                onToggleAuto: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            onValue: action.bound,
-            onToggleAuto: action.bound
-        });
-    }
-
-    onValue(value: number | undefined) {
-        this.props.store[this.props.field] = value as any
-    }
-
-    onToggleAuto(value: boolean) {
-        this.props.store[this.props.field] = (
-            value ? undefined : this.props.auto
-        ) as any
-    }
-
-    render() {
-        const { field, store, label, auto, ...rest } = this.props
-
-        const value = store[field] as number | undefined
-
-        return (
-            <AutoFloatField
-                label={label || capitalize(field)}
-                value={value === undefined ? auto : value}
-                isAuto={value === undefined}
-                onValue={this.onValue}
-                onToggleAuto={this.onToggleAuto}
-                {...rest}
-            />
-        )
-    }
-});
-
-export const Modal = observer(class Modal extends React.Component<{
-    className?: string
-    onClose: () => void
-}> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
-    dismissable: boolean = true
-
-    constructor(
-        props: {
-            className?: string
-            onClose: () => void
+        onValue(value: number | undefined) {
+            this.props.store[this.props.field] = value as any
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            onClickOutside: action.bound
-        });
+        onToggleAuto(value: boolean) {
+            this.props.store[this.props.field] = (
+                value ? undefined : this.props.auto
+            ) as any
+        }
+
+        render() {
+            const { field, store, label, auto, ...rest } = this.props
+
+            const value = store[field] as number | undefined
+
+            return (
+                <AutoFloatField
+                    label={label || capitalize(field)}
+                    value={value === undefined ? auto : value}
+                    isAuto={value === undefined}
+                    onValue={this.onValue}
+                    onToggleAuto={this.onToggleAuto}
+                    {...rest}
+                />
+            )
+        }
     }
+)
 
-    onClickOutside() {
-        if (this.dismissable) this.props.onClose()
-    }
+export const Modal = observer(
+    class Modal extends React.Component<{
+        className?: string
+        onClose: () => void
+    }> {
+        base: React.RefObject<HTMLDivElement> = React.createRef()
+        dismissable: boolean = true
 
-    componentDidMount() {
-        // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
-        this.base.current!.addEventListener("click", () => {
-            this.dismissable = false
-            setTimeout(() => (this.dismissable = true), 100)
-        })
-        setTimeout(
-            () => document.body.addEventListener("click", this.onClickOutside),
-            0
-        )
-    }
+        constructor(props: { className?: string; onClose: () => void }) {
+            super(props)
 
-    componentWillUnmount() {
-        document.body.removeEventListener("click", this.onClickOutside)
-    }
+            makeObservable(this, {
+                onClickOutside: action.bound,
+            })
+        }
 
-    render() {
-        const { props } = this
-        return (
-            <div
-                className={
-                    "modal" + (props.className ? ` ${props.className}` : "")
-                }
-                style={{ display: "block" }}
-            >
-                <div ref={this.base} className="modal-dialog" role="document">
-                    <div className="modal-content">{this.props.children}</div>
+        onClickOutside() {
+            if (this.dismissable) this.props.onClose()
+        }
+
+        componentDidMount() {
+            // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
+            this.base.current!.addEventListener("click", () => {
+                this.dismissable = false
+                setTimeout(() => (this.dismissable = true), 100)
+            })
+            setTimeout(
+                () =>
+                    document.body.addEventListener(
+                        "click",
+                        this.onClickOutside
+                    ),
+                0
+            )
+        }
+
+        componentWillUnmount() {
+            document.body.removeEventListener("click", this.onClickOutside)
+        }
+
+        render() {
+            const { props } = this
+            return (
+                <div
+                    className={
+                        "modal" + (props.className ? ` ${props.className}` : "")
+                    }
+                    style={{ display: "block" }}
+                >
+                    <div
+                        ref={this.base}
+                        className="modal-dialog"
+                        role="document"
+                    >
+                        <div className="modal-content">
+                            {this.props.children}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        )
+            )
+        }
     }
-});
+)
 
-export const LoadingBlocker = observer(class LoadingBlocker extends React.Component {
-    render() {
-        return (
-            <div className="LoadingBlocker">
-                <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x" />
-            </div>
-        )
+export const LoadingBlocker = observer(
+    class LoadingBlocker extends React.Component {
+        render() {
+            return (
+                <div className="LoadingBlocker">
+                    <FontAwesomeIcon icon={faCog} spin fixedWidth size="3x" />
+                </div>
+            )
+        }
     }
-});
+)
 
 import dayjs from "../clientUtils/dayjs.js"
 
-export const Timeago = observer(class Timeago extends React.Component<{
-    time: dayjs.ConfigType
-    by?: string | JSX.Element | null | undefined
-}> {
-    render() {
-        return (
-            <>
-                {this.props.time && dayjs(this.props.time).fromNow()}
-                {this.props.by != null && <> by {this.props.by}</>}
-            </>
-        )
+export const Timeago = observer(
+    class Timeago extends React.Component<{
+        time: dayjs.ConfigType
+        by?: string | JSX.Element | null | undefined
+    }> {
+        render() {
+            return (
+                <>
+                    {this.props.time && dayjs(this.props.time).fromNow()}
+                    {this.props.by != null && <> by {this.props.by}</>}
+                </>
+            )
+        }
     }
-});
+)
 
 import { TagBadge, Tag } from "./TagBadge.js"
 
@@ -1033,195 +1056,197 @@ import ReactTags from "react-tag-autocomplete"
 import { Tippy } from "../grapher/chart/Tippy.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
-const EditTags = observer(class EditTags extends React.Component<{
-    tags: Tag[]
-    suggestions: Tag[]
-    onDelete: (index: number) => void
-    onAdd: (tag: Tag) => void
-    onSave: () => void
-}> {
-    dismissable: boolean = true
+const EditTags = observer(
+    class EditTags extends React.Component<{
+        tags: Tag[]
+        suggestions: Tag[]
+        onDelete: (index: number) => void
+        onAdd: (tag: Tag) => void
+        onSave: () => void
+    }> {
+        dismissable: boolean = true
 
-    constructor(
-        props: {
+        constructor(props: {
             tags: Tag[]
             suggestions: Tag[]
             onDelete: (index: number) => void
             onAdd: (tag: Tag) => void
             onSave: () => void
+        }) {
+            super(props)
+
+            makeObservable(this, {
+                onClickSomewhere: action.bound,
+                onClick: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            onClickSomewhere: action.bound,
-            onClick: action.bound
-        });
-    }
+        onClickSomewhere() {
+            if (this.dismissable) this.props.onSave()
+            this.dismissable = true
+        }
 
-    onClickSomewhere() {
-        if (this.dismissable) this.props.onSave()
-        this.dismissable = true
-    }
+        onClick() {
+            this.dismissable = false
+        }
 
-    onClick() {
-        this.dismissable = false
-    }
+        componentDidMount() {
+            document.addEventListener("click", this.onClickSomewhere)
+        }
 
-    componentDidMount() {
-        document.addEventListener("click", this.onClickSomewhere)
-    }
+        componentWillUnmount() {
+            document.removeEventListener("click", this.onClickSomewhere)
+        }
 
-    componentWillUnmount() {
-        document.removeEventListener("click", this.onClickSomewhere)
+        render() {
+            const { tags, suggestions } = this.props
+            return (
+                <div className="EditTags" onClick={this.onClick}>
+                    <ReactTags
+                        tags={tags}
+                        suggestions={suggestions}
+                        onAddition={this.props.onAdd}
+                        onDelete={this.props.onDelete}
+                        minQueryLength={1}
+                    />
+                </div>
+            )
+        }
     }
-
-    render() {
-        const { tags, suggestions } = this.props
-        return (
-            <div className="EditTags" onClick={this.onClick}>
-                <ReactTags
-                    tags={tags}
-                    suggestions={suggestions}
-                    onAddition={this.props.onAdd}
-                    onDelete={this.props.onDelete}
-                    minQueryLength={1}
-                />
-            </div>
-        )
-    }
-});
+)
 
 const filterUncategorizedTag = (t: Tag) => t.name !== "Uncategorized"
 
-export const EditableTags = observer(class EditableTags extends React.Component<{
-    tags: Tag[]
-    suggestions: Tag[]
-    onSave: (tags: Tag[]) => void
-    disabled?: boolean
-    hasKeyChartSupport?: boolean
-}> {
-    isEditing: boolean = false;
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+export const EditableTags = observer(
+    class EditableTags extends React.Component<{
+        tags: Tag[]
+        suggestions: Tag[]
+        onSave: (tags: Tag[]) => void
+        disabled?: boolean
+        hasKeyChartSupport?: boolean
+    }> {
+        isEditing: boolean = false
+        base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    tags: Tag[] = lodash.clone(this.props.tags);
+        tags: Tag[] = lodash.clone(this.props.tags)
 
-    constructor(
-        props: {
+        constructor(props: {
             tags: Tag[]
             suggestions: Tag[]
             onSave: (tags: Tag[]) => void
             disabled?: boolean
             hasKeyChartSupport?: boolean
+        }) {
+            super(props)
+
+            makeObservable(this, {
+                isEditing: observable,
+                tags: observable,
+                onAddTag: action.bound,
+                onRemoveTag: action.bound,
+                onToggleKey: action.bound,
+                ensureUncategorized: action.bound,
+                onToggleEdit: action.bound,
+            })
         }
-    ) {
-        super(props);
 
-        makeObservable(this, {
-            isEditing: observable,
-            tags: observable,
-            onAddTag: action.bound,
-            onRemoveTag: action.bound,
-            onToggleKey: action.bound,
-            ensureUncategorized: action.bound,
-            onToggleEdit: action.bound
-        });
-    }
+        onAddTag(tag: Tag) {
+            this.tags.push(tag)
+            this.tags = lodash
+                .uniqBy(this.tags, (t) => t.id)
+                .filter(filterUncategorizedTag)
 
-    onAddTag(tag: Tag) {
-        this.tags.push(tag)
-        this.tags = lodash
-            .uniqBy(this.tags, (t) => t.id)
-            .filter(filterUncategorizedTag)
-
-        this.ensureUncategorized()
-    }
-
-    onRemoveTag(index: number) {
-        this.tags.splice(index, 1)
-        this.ensureUncategorized()
-    }
-
-    onToggleKey(index: number) {
-        this.tags[index].isKey = !this.tags[index].isKey
-        this.props.onSave(this.tags.filter(filterUncategorizedTag))
-    }
-
-    ensureUncategorized() {
-        if (this.tags.length === 0) {
-            const uncategorized = this.props.suggestions.find(
-                (t) => t.name === "Uncategorized"
-            )
-            if (uncategorized) this.tags.push(uncategorized)
+            this.ensureUncategorized()
         }
-    }
 
-    onToggleEdit() {
-        if (this.isEditing) {
+        onRemoveTag(index: number) {
+            this.tags.splice(index, 1)
+            this.ensureUncategorized()
+        }
+
+        onToggleKey(index: number) {
+            this.tags[index].isKey = !this.tags[index].isKey
             this.props.onSave(this.tags.filter(filterUncategorizedTag))
         }
-        this.isEditing = !this.isEditing
-    }
 
-    componentDidMount() {
-        this.componentDidUpdate()
-    }
+        ensureUncategorized() {
+            if (this.tags.length === 0) {
+                const uncategorized = this.props.suggestions.find(
+                    (t) => t.name === "Uncategorized"
+                )
+                if (uncategorized) this.tags.push(uncategorized)
+            }
+        }
 
-    componentDidUpdate() {
-        this.ensureUncategorized()
-    }
+        onToggleEdit() {
+            if (this.isEditing) {
+                this.props.onSave(this.tags.filter(filterUncategorizedTag))
+            }
+            this.isEditing = !this.isEditing
+        }
 
-    render() {
-        const { disabled, hasKeyChartSupport } = this.props
-        const { tags } = this
+        componentDidMount() {
+            this.componentDidUpdate()
+        }
 
-        return (
-            <div className="EditableTags">
-                {this.isEditing ? (
-                    <EditTags
-                        tags={this.tags}
-                        onAdd={this.onAddTag}
-                        onDelete={this.onRemoveTag}
-                        onSave={this.onToggleEdit}
-                        suggestions={this.props.suggestions}
-                    />
-                ) : (
-                    <div>
-                        {tags.map((t, i) => (
-                            <TagBadge
-                                onToggleKey={
-                                    hasKeyChartSupport
-                                        ? () => this.onToggleKey(i)
-                                        : undefined
-                                }
-                                key={t.id}
-                                tag={t}
-                            />
-                        ))}
-                        {!disabled && (
-                            <button
-                                className="btn btn-link"
-                                onClick={this.onToggleEdit}
-                            >
-                                Edit Tags
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
-        )
-    }
-});
+        componentDidUpdate() {
+            this.ensureUncategorized()
+        }
 
-export const Button = observer(class Button extends React.Component<{
-    children: any
-    onClick: () => void
-}> {
-    render() {
-        return (
-            <button className="btn btn-link" onClick={this.props.onClick}>
-                {this.props.children}
-            </button>
-        )
+        render() {
+            const { disabled, hasKeyChartSupport } = this.props
+            const { tags } = this
+
+            return (
+                <div className="EditableTags">
+                    {this.isEditing ? (
+                        <EditTags
+                            tags={this.tags}
+                            onAdd={this.onAddTag}
+                            onDelete={this.onRemoveTag}
+                            onSave={this.onToggleEdit}
+                            suggestions={this.props.suggestions}
+                        />
+                    ) : (
+                        <div>
+                            {tags.map((t, i) => (
+                                <TagBadge
+                                    onToggleKey={
+                                        hasKeyChartSupport
+                                            ? () => this.onToggleKey(i)
+                                            : undefined
+                                    }
+                                    key={t.id}
+                                    tag={t}
+                                />
+                            ))}
+                            {!disabled && (
+                                <button
+                                    className="btn btn-link"
+                                    onClick={this.onToggleEdit}
+                                >
+                                    Edit Tags
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )
+        }
     }
-});
+)
+
+export const Button = observer(
+    class Button extends React.Component<{
+        children: any
+        onClick: () => void
+    }> {
+        render() {
+            return (
+                <button className="btn btn-link" onClick={this.props.onClick}>
+                    {this.props.children}
+                </button>
+            )
+        }
+    }
+)

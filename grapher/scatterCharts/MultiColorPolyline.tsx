@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 
 import { last } from "../../clientUtils/Util.js"
@@ -94,11 +94,11 @@ type MultiColorPolylineProps = Omit<
 export const MultiColorPolyline = observer(
     class MultiColorPolyline extends React.Component<MultiColorPolylineProps> {
         constructor(props: MultiColorPolylineProps) {
-            super(props);
+            super(props)
 
             makeObservable(this, {
-                segments: computed
-            });
+                segments: computed,
+            })
         }
 
         get segments(): Segment[] {
@@ -131,4 +131,4 @@ export const MultiColorPolyline = observer(
             )
         }
     }
-);
+)

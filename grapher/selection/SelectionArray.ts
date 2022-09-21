@@ -5,7 +5,7 @@ import {
 } from "../../coreTable/OwidTableConstants.js"
 import { difference, mapBy } from "../../clientUtils/Util.js"
 import { isPresent } from "../../clientUtils/isPresent.js"
-import { action, computed, observable, makeObservable } from "mobx";
+import { action, computed, observable, makeObservable } from "mobx"
 
 export interface Entity {
     entityName: EntityName
@@ -44,17 +44,17 @@ export class SelectionArray {
             numAvailableEntityNames: computed,
             selectEntity: action.bound,
             selectSample: action.bound,
-            deselectEntity: action.bound
-        });
+            deselectEntity: action.bound,
+        })
 
         this.selectedEntityNames = selectedEntityNames.slice()
         this.availableEntities = availableEntities.slice()
         this.entityType = entityType
     }
 
-    entityType: string;
-    selectedEntityNames: EntityName[];
-    private availableEntities: Entity[];
+    entityType: string
+    selectedEntityNames: EntityName[]
+    private availableEntities: Entity[]
 
     get availableEntityNames(): string[] {
         return this.availableEntities.map((entity) => entity.entityName)

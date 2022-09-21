@@ -1,6 +1,6 @@
 import React from "react"
 import { clone } from "../clientUtils/Util.js"
-import { computed, action, observable, makeObservable } from "mobx";
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher.js"
 import {
@@ -24,213 +24,221 @@ interface EntityItemProps extends EditableListItemProps {
     onRemove?: () => void
 }
 
-const EntityItem = observer(class EntityItem extends React.Component<EntityItemProps> {
-    isChoosingColor: boolean = false;
+const EntityItem = observer(
+    class EntityItem extends React.Component<EntityItemProps> {
+        isChoosingColor: boolean = false
 
-    constructor(props: EntityItemProps) {
-        super(props);
+        constructor(props: EntityItemProps) {
+            super(props)
 
-        makeObservable(this, {
-            isChoosingColor: observable.ref,
-            table: computed,
-            color: computed,
-            onColor: action.bound,
-            onRemove: action.bound
-        });
-    }
-
-    get table() {
-        return this.props.grapher.table
-    }
-
-    get color() {
-        return this.table.getColorForEntityName(this.props.entityName)
-    }
-
-    onColor(color: string | undefined) {
-        const { grapher } = this.props
-        grapher.selectedEntityColors[this.props.entityName] = color
-        grapher.legacyConfigAsAuthored.selectedEntityColors = {
-            ...grapher.legacyConfigAsAuthored.selectedEntityColors,
-            [this.props.entityName]: color,
+            makeObservable(this, {
+                isChoosingColor: observable.ref,
+                table: computed,
+                color: computed,
+                onColor: action.bound,
+                onRemove: action.bound,
+            })
         }
 
-        grapher.seriesColorMap?.clear()
-        grapher.rebuildInputOwidTable()
-    }
+        get table() {
+            return this.props.grapher.table
+        }
 
-    onRemove() {
-        this.props.onRemove?.()
-    }
+        get color() {
+            return this.table.getColorForEntityName(this.props.entityName)
+        }
 
-    render() {
-        const { props, color } = this
-        const { entityName, ...rest } = props
+        onColor(color: string | undefined) {
+            const { grapher } = this.props
+            grapher.selectedEntityColors[this.props.entityName] = color
+            grapher.legacyConfigAsAuthored.selectedEntityColors = {
+                ...grapher.legacyConfigAsAuthored.selectedEntityColors,
+                [this.props.entityName]: color,
+            }
 
-        return (
-            <EditableListItem
-                className="EditableListItem"
-                key={entityName}
-                {...rest}
-            >
-                <div>
+            grapher.seriesColorMap?.clear()
+            grapher.rebuildInputOwidTable()
+        }
+
+        onRemove() {
+            this.props.onRemove?.()
+        }
+
+        render() {
+            const { props, color } = this
+            const { entityName, ...rest } = props
+
+            return (
+                <EditableListItem
+                    className="EditableListItem"
+                    key={entityName}
+                    {...rest}
+                >
                     <div>
-                        <FontAwesomeIcon icon={faArrowsAltV} />
+                        <div>
+                            <FontAwesomeIcon icon={faArrowsAltV} />
+                        </div>
+                        <ColorBox color={color} onColor={this.onColor} />
+                        {entityName}
                     </div>
-                    <ColorBox color={color} onColor={this.onColor} />
-                    {entityName}
-                </div>
-                <div className="clickable" onClick={this.onRemove}>
-                    <FontAwesomeIcon icon={faTimes} />
-                </div>
-            </EditableListItem>
-        )
+                    <div className="clickable" onClick={this.onRemove}>
+                        <FontAwesomeIcon icon={faTimes} />
+                    </div>
+                </EditableListItem>
+            )
+        }
     }
-});
+)
 
-export const KeysSection = observer(class KeysSection extends React.Component<{ grapher: Grapher }> {
-    dragKey?: EntityName;
+export const KeysSection = observer(
+    class KeysSection extends React.Component<{ grapher: Grapher }> {
+        dragKey?: EntityName
 
-    constructor(props: { grapher: Grapher }) {
-        super(props);
+        constructor(props: { grapher: Grapher }) {
+            super(props)
 
-        makeObservable(this, {
-            dragKey: observable.ref,
-            onAddKey: action.bound,
-            onStartDrag: action.bound,
-            onMouseEnter: action.bound
-        });
-    }
+            makeObservable(this, {
+                dragKey: observable.ref,
+                onAddKey: action.bound,
+                onStartDrag: action.bound,
+                onMouseEnter: action.bound,
+            })
+        }
 
-    onAddKey(entityName: EntityName) {
-        this.props.grapher.selection.selectEntity(entityName)
-    }
+        onAddKey(entityName: EntityName) {
+            this.props.grapher.selection.selectEntity(entityName)
+        }
 
-    onStartDrag(key: EntityName) {
-        this.dragKey = key
+        onStartDrag(key: EntityName) {
+            this.dragKey = key
 
-        const onDrag = action(() => {
-            this.dragKey = undefined
-            window.removeEventListener("mouseup", onDrag)
-        })
+            const onDrag = action(() => {
+                this.dragKey = undefined
+                window.removeEventListener("mouseup", onDrag)
+            })
 
-        window.addEventListener("mouseup", onDrag)
-    }
+            window.addEventListener("mouseup", onDrag)
+        }
 
-    onMouseEnter(targetKey: EntityName) {
-        if (!this.dragKey || targetKey === this.dragKey) return
+        onMouseEnter(targetKey: EntityName) {
+            if (!this.dragKey || targetKey === this.dragKey) return
 
-        const selectedKeys = clone(
-            this.props.grapher.selection.selectedEntityNames
-        )
-        const dragIndex = selectedKeys.indexOf(this.dragKey)
-        const targetIndex = selectedKeys.indexOf(targetKey)
-        selectedKeys.splice(dragIndex, 1)
-        selectedKeys.splice(targetIndex, 0, this.dragKey)
-        this.props.grapher.selection.setSelectedEntities(selectedKeys)
-    }
+            const selectedKeys = clone(
+                this.props.grapher.selection.selectedEntityNames
+            )
+            const dragIndex = selectedKeys.indexOf(this.dragKey)
+            const targetIndex = selectedKeys.indexOf(targetKey)
+            selectedKeys.splice(dragIndex, 1)
+            selectedKeys.splice(targetIndex, 0, this.dragKey)
+            this.props.grapher.selection.setSelectedEntities(selectedKeys)
+        }
 
-    render() {
-        const { grapher } = this.props
-        const { selection } = grapher
-        const { unselectedEntityNames, selectedEntityNames } = selection
+        render() {
+            const { grapher } = this.props
+            const { selection } = grapher
+            const { unselectedEntityNames, selectedEntityNames } = selection
 
-        return (
-            <Section name="Data to show">
-                <SelectField
-                    onValue={this.onAddKey}
-                    value="Select data"
-                    options={["Select data"]
-                        .concat(unselectedEntityNames)
-                        .map((key) => ({ value: key }))}
-                />
-                <EditableList>
-                    {selectedEntityNames.map((entityName) => (
-                        <EntityItem
-                            key={entityName}
-                            grapher={grapher}
-                            entityName={entityName}
-                            onRemove={() =>
-                                selection.deselectEntity(entityName)
-                            }
-                            onMouseDown={() => this.onStartDrag(entityName)}
-                            onMouseEnter={() => this.onMouseEnter(entityName)}
-                        />
-                    ))}
-                </EditableList>
-            </Section>
-        )
-    }
-});
-
-export const EditorDataTab = observer(class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
-    render() {
-        const { editor } = this.props
-        const { grapher } = editor
-
-        return (
-            <div className="EditorDataTab">
-                <Section name="Can user add/change data?">
-                    <div className="form-check">
-                        <label className="form-check-label">
-                            <input
-                                className="form-check-input"
-                                type="radio"
-                                name="add-country-mode"
-                                value={EntitySelectionMode.MultipleEntities}
-                                checked={
-                                    grapher.addCountryMode ===
-                                    EntitySelectionMode.MultipleEntities
+            return (
+                <Section name="Data to show">
+                    <SelectField
+                        onValue={this.onAddKey}
+                        value="Select data"
+                        options={["Select data"]
+                            .concat(unselectedEntityNames)
+                            .map((key) => ({ value: key }))}
+                    />
+                    <EditableList>
+                        {selectedEntityNames.map((entityName) => (
+                            <EntityItem
+                                key={entityName}
+                                grapher={grapher}
+                                entityName={entityName}
+                                onRemove={() =>
+                                    selection.deselectEntity(entityName)
                                 }
-                                onChange={() =>
-                                    (grapher.addCountryMode =
-                                        EntitySelectionMode.MultipleEntities)
+                                onMouseDown={() => this.onStartDrag(entityName)}
+                                onMouseEnter={() =>
+                                    this.onMouseEnter(entityName)
                                 }
                             />
-                            User can add and remove data
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <label className="form-check-label">
-                            <input
-                                className="form-check-input"
-                                type="radio"
-                                name="add-country-mode"
-                                value={EntitySelectionMode.SingleEntity}
-                                checked={
-                                    grapher.addCountryMode ===
-                                    EntitySelectionMode.SingleEntity
-                                }
-                                onChange={() =>
-                                    (grapher.addCountryMode =
-                                        EntitySelectionMode.SingleEntity)
-                                }
-                            />
-                            User can change entity
-                        </label>
-                    </div>
-                    <div className="form-check">
-                        <label className="form-check-label">
-                            <input
-                                className="form-check-input"
-                                type="radio"
-                                name="add-country-mode"
-                                value={EntitySelectionMode.Disabled}
-                                checked={
-                                    grapher.addCountryMode ===
-                                    EntitySelectionMode.Disabled
-                                }
-                                onChange={() =>
-                                    (grapher.addCountryMode =
-                                        EntitySelectionMode.Disabled)
-                                }
-                            />
-                            User cannot change/add data
-                        </label>
-                    </div>
+                        ))}
+                    </EditableList>
                 </Section>
-                <KeysSection grapher={editor.grapher} />
-            </div>
-        )
+            )
+        }
     }
-});
+)
+
+export const EditorDataTab = observer(
+    class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
+        render() {
+            const { editor } = this.props
+            const { grapher } = editor
+
+            return (
+                <div className="EditorDataTab">
+                    <Section name="Can user add/change data?">
+                        <div className="form-check">
+                            <label className="form-check-label">
+                                <input
+                                    className="form-check-input"
+                                    type="radio"
+                                    name="add-country-mode"
+                                    value={EntitySelectionMode.MultipleEntities}
+                                    checked={
+                                        grapher.addCountryMode ===
+                                        EntitySelectionMode.MultipleEntities
+                                    }
+                                    onChange={() =>
+                                        (grapher.addCountryMode =
+                                            EntitySelectionMode.MultipleEntities)
+                                    }
+                                />
+                                User can add and remove data
+                            </label>
+                        </div>
+                        <div className="form-check">
+                            <label className="form-check-label">
+                                <input
+                                    className="form-check-input"
+                                    type="radio"
+                                    name="add-country-mode"
+                                    value={EntitySelectionMode.SingleEntity}
+                                    checked={
+                                        grapher.addCountryMode ===
+                                        EntitySelectionMode.SingleEntity
+                                    }
+                                    onChange={() =>
+                                        (grapher.addCountryMode =
+                                            EntitySelectionMode.SingleEntity)
+                                    }
+                                />
+                                User can change entity
+                            </label>
+                        </div>
+                        <div className="form-check">
+                            <label className="form-check-label">
+                                <input
+                                    className="form-check-input"
+                                    type="radio"
+                                    name="add-country-mode"
+                                    value={EntitySelectionMode.Disabled}
+                                    checked={
+                                        grapher.addCountryMode ===
+                                        EntitySelectionMode.Disabled
+                                    }
+                                    onChange={() =>
+                                        (grapher.addCountryMode =
+                                            EntitySelectionMode.Disabled)
+                                    }
+                                />
+                                User cannot change/add data
+                            </label>
+                        </div>
+                    </Section>
+                    <KeysSection grapher={editor.grapher} />
+                </div>
+            )
+        }
+    }
+)

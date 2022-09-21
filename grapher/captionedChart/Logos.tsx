@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { OWID_LOGO_SVG, CORE_LOGO_SVG, GV_LOGO_SVG } from "./LogosSVG.js"
 
 export enum LogoOption {
@@ -51,8 +51,8 @@ export class Logo {
             spec: computed,
             scale: computed,
             width: computed,
-            height: computed
-        });
+            height: computed,
+        })
 
         this.props = props
     }

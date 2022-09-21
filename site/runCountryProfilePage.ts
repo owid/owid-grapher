@@ -1,6 +1,6 @@
 import fuzzysort from "fuzzysort"
 import { keyBy } from "../clientUtils/Util.js"
-import { observable, computed, action, autorun, makeObservable } from "mobx";
+import { observable, computed, action, autorun, makeObservable } from "mobx"
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 interface ChartItem {
@@ -10,11 +10,11 @@ interface ChartItem {
 }
 
 function encodeHashSafe(s: string) {
-    return encodeURIComponent(s.replace(/ /g, "-"));
+    return encodeURIComponent(s.replace(/ /g, "-"))
 }
 
 function decodeHashSafe(s: string) {
-    return decodeURIComponent(s).replace(/-/g, " ");
+    return decodeURIComponent(s).replace(/-/g, " ")
 }
 
 class ChartFilter {
@@ -25,7 +25,7 @@ class ChartFilter {
     results: any[] = []
     sections: HTMLDivElement[] = []
 
-    query: string = "";
+    query: string = ""
 
     get searchStrings(): (Fuzzysort.Prepared | undefined)[] {
         return this.chartItems.map((c) => fuzzysort.prepare(c.title))
@@ -47,8 +47,8 @@ class ChartFilter {
             resultsByTitle: computed,
             logSearchQuery: action.bound,
             onSearchInput: action.bound,
-            run: action.bound
-        });
+            run: action.bound,
+        })
 
         this.searchInput = document.querySelector(
             ".chartsSearchInput"

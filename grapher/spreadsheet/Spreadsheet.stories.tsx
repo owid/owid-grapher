@@ -4,7 +4,7 @@ import {
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
 import { Spreadsheet } from "./Spreadsheet.js"
-import { action, computed, observable, makeObservable } from "mobx";
+import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { ChartTypeName } from "../core/GrapherConstants.js"
@@ -35,10 +35,10 @@ const getRandomTable = (): OwidTable =>
         .sortColumns([OwidTableSlugs.entityName, OwidTableSlugs.year])
 
 class Editor extends React.Component {
-    table = getRandomTable();
+    table = getRandomTable()
 
     constructor(props) {
-        super(props);
+        super(props)
 
         makeObservable<Editor, "shuffleTable" | "changeChartType">(this, {
             table: observable.ref,
@@ -47,8 +47,8 @@ class Editor extends React.Component {
             xColumnSlug: computed,
             chartTypeName: observable,
             selection: computed,
-            changeChartType: action.bound
-        });
+            changeChartType: action.bound,
+        })
     }
 
     private shuffleTable(): void {
@@ -63,7 +63,7 @@ class Editor extends React.Component {
         return this.table.timeColumn?.slug
     }
 
-    chartTypeName = ChartTypeName.LineChart;
+    chartTypeName = ChartTypeName.LineChart
 
     get selection(): any[] {
         return this.table.availableEntityNames

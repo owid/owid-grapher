@@ -7,7 +7,7 @@ import {
     autorun,
     IReactionDisposer,
     makeObservable,
-} from "mobx";
+} from "mobx"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
@@ -40,12 +40,12 @@ class VariableEditable
             "id" | "values" | "years" | "entities"
         >
 {
-    name = "";
-    unit = "";
-    shortUnit = "";
-    description = "";
-    entityAnnotationsMap = "";
-    display = new OwidVariableDisplayConfig();
+    name = ""
+    unit = ""
+    shortUnit = ""
+    description = ""
+    entityAnnotationsMap = ""
+    display = new OwidVariableDisplayConfig()
 
     constructor(json: any) {
         makeObservable(this, {
@@ -54,8 +54,8 @@ class VariableEditable
             shortUnit: observable,
             description: observable,
             entityAnnotationsMap: observable,
-            display: observable
-        });
+            display: observable,
+        })
 
         for (const key in this) {
             if (key === "display") lodash.extend(this.display, json.display)
@@ -66,20 +66,22 @@ class VariableEditable
 
 // XXX refactor with DatasetEditPage
 const VariableEditor = observer(
-    class VariableEditor extends React.Component<{ variable: VariablePageData }> {
-        newVariable: VariableEditable;
-        isDeleted: boolean = false;
+    class VariableEditor extends React.Component<{
+        variable: VariablePageData
+    }> {
+        newVariable: VariableEditable
+        isDeleted: boolean = false
 
         constructor(props: { variable: VariablePageData }) {
-            super(props);
+            super(props)
 
             makeObservable<VariableEditor, "grapherConfig">(this, {
                 newVariable: observable,
                 isDeleted: observable,
                 grapher: observable.ref,
                 isModified: computed,
-                grapherConfig: computed
-            });
+                grapherConfig: computed,
+            })
         }
 
         // Store the original dataset to determine when it is modified
@@ -94,7 +96,7 @@ const VariableEditor = observer(
         static contextType = AdminAppContext
         context!: AdminAppContextType
 
-        grapher?: Grapher;
+        grapher?: Grapher
 
         get isModified(): boolean {
             return (
@@ -146,7 +148,9 @@ const VariableEditor = observer(
                                 {variable.datasetName}
                             </Link>
                         </li>
-                        <li className="breadcrumb-item active">{variable.name}</li>
+                        <li className="breadcrumb-item active">
+                            {variable.name}
+                        </li>
                     </ol>
                     <div className="row">
                         <div className="col">
@@ -161,13 +165,14 @@ const VariableEditor = observer(
                                     {isBulkImport ? (
                                         <p>
                                             This variable came from an automated
-                                            import, so we can't change the original
-                                            metadata manually.
+                                            import, so we can't change the
+                                            original metadata manually.
                                         </p>
                                     ) : (
                                         <p>
-                                            The core metadata for the variable. It's
-                                            important to keep this consistent.
+                                            The core metadata for the variable.
+                                            It's important to keep this
+                                            consistent.
                                         </p>
                                     )}
                                     <BindString
@@ -212,8 +217,8 @@ const VariableEditor = observer(
                                     <FieldsRow>
                                         <Toggle
                                             value={
-                                                newVariable.display.yearIsDay ===
-                                                true
+                                                newVariable.display
+                                                    .yearIsDay === true
                                             }
                                             onValue={(value) =>
                                                 (newVariable.display.yearIsDay =
@@ -342,43 +347,47 @@ const VariableEditor = observer(
             this.dispose()
         }
     }
-);
+)
 
-export const VariableEditPage = observer(class VariableEditPage extends React.Component<{ variableId: number }> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+export const VariableEditPage = observer(
+    class VariableEditPage extends React.Component<{ variableId: number }> {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    variable?: VariablePageData;
+        variable?: VariablePageData
 
-    constructor(props: { variableId: number }) {
-        super(props);
+        constructor(props: { variableId: number }) {
+            super(props)
 
-        makeObservable(this, {
-            variable: observable
-        });
+            makeObservable(this, {
+                variable: observable,
+            })
+        }
+
+        render() {
+            return (
+                <AdminLayout>
+                    {this.variable && (
+                        <VariableEditor variable={this.variable} />
+                    )}
+                </AdminLayout>
+            )
+        }
+
+        async getData() {
+            const json = await this.context.admin.getJSON(
+                `/api/variables/${this.props.variableId}.json`
+            )
+            runInAction(() => {
+                this.variable = json.variable as VariablePageData
+            })
+        }
+
+        componentDidMount() {
+            this.UNSAFE_componentWillReceiveProps()
+        }
+        UNSAFE_componentWillReceiveProps() {
+            this.getData()
+        }
     }
-
-    render() {
-        return (
-            <AdminLayout>
-                {this.variable && <VariableEditor variable={this.variable} />}
-            </AdminLayout>
-        )
-    }
-
-    async getData() {
-        const json = await this.context.admin.getJSON(
-            `/api/variables/${this.props.variableId}.json`
-        )
-        runInAction(() => {
-            this.variable = json.variable as VariablePageData
-        })
-    }
-
-    componentDidMount() {
-        this.UNSAFE_componentWillReceiveProps()
-    }
-    UNSAFE_componentWillReceiveProps() {
-        this.getData()
-    }
-});
+)

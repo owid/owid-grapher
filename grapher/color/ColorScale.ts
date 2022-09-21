@@ -1,4 +1,4 @@
-import { computed, toJS, makeObservable } from "mobx";
+import { computed, toJS, makeObservable } from "mobx"
 import { mean, deviation } from "d3-array"
 import {
     ColorScaleConfig,
@@ -35,7 +35,23 @@ export interface ColorScaleManager {
 export class ColorScale {
     private manager: Readonly<ColorScaleManager>
     constructor(manager: ColorScaleManager = {}) {
-        makeObservable<ColorScale, "customCategoryLabels" | "defaultColorScheme" | "defaultNoDataColor" | "hasNoDataBin" | "minPossibleValue" | "maxPossibleValue" | "categoricalValues" | "colorScheme" | "minBinValue" | "manualBinMaximums" | "bucketMaximums" | "customCategoryColors" | "sortedNumericBinningValues" | "numericLegendBins">(this, {
+        makeObservable<
+            ColorScale,
+            | "customCategoryLabels"
+            | "defaultColorScheme"
+            | "defaultNoDataColor"
+            | "hasNoDataBin"
+            | "minPossibleValue"
+            | "maxPossibleValue"
+            | "categoricalValues"
+            | "colorScheme"
+            | "minBinValue"
+            | "manualBinMaximums"
+            | "bucketMaximums"
+            | "customCategoryColors"
+            | "sortedNumericBinningValues"
+            | "numericLegendBins"
+        >(this, {
             config: computed,
             customNumericValues: computed,
             customNumericColorsActive: computed,
@@ -71,8 +87,8 @@ export class ColorScale {
             sortedNumericBinningValues: computed,
             numericLegendBins: computed,
             legendBins: computed,
-            categoricalLegendBins: computed
-        });
+            categoricalLegendBins: computed,
+        })
 
         this.manager = manager
     }

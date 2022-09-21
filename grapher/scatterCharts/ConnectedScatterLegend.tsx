@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { Triangle } from "./Triangle.js"
 import { TextWrap } from "../text/TextWrap.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
@@ -22,8 +22,8 @@ export class ConnectedScatterLegend {
             startLabel: computed,
             endLabel: computed,
             width: computed,
-            height: computed
-        });
+            height: computed,
+        })
 
         this.manager = manager
     }

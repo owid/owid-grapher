@@ -1,5 +1,5 @@
 import React, { createRef } from "react"
-import { action, computed, observable, makeObservable } from "mobx";
+import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { MarkdownTextWrap, parsimmonToTextTokens } from "./MarkdownTextWrap.js"
 import { IRToken } from "./MarkdownTextWrap.js"
@@ -12,8 +12,8 @@ export default {
 
 class MarkdownViewer extends React.Component {
     ref = createRef<HTMLDivElement>()
-    width: number = 200;
-    isLocked: boolean = false;
+    width: number = 200
+    isLocked: boolean = false
     markdown: string = `Hello _**world!**_
 
 Testing this somewhat long line. **I am bold-_and-italic_. And the formatting extends into
@@ -27,10 +27,10 @@ These DoDs won't render on hover because there's no data for them, but they'll d
 [links can contain _formatting_ too](http://ourworldindata.org). Averylongtokenthatcantbesplitbutshouldbeincludedanyway.**Canhavebold**withoutlinebreak.
 
 _THE END_
-`;
+`
 
     constructor(props) {
-        super(props);
+        super(props)
 
         makeObservable(this, {
             width: observable,
@@ -39,8 +39,8 @@ _THE END_
             onChangeMarkdown: action.bound,
             onMouseMove: action.bound,
             onClick: action.bound,
-            tokens: computed
-        });
+            tokens: computed,
+        })
     }
 
     onChangeMarkdown(event: React.ChangeEvent<HTMLTextAreaElement>): void {

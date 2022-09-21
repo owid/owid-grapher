@@ -1,4 +1,4 @@
-import { action, makeObservable } from "mobx";
+import { action, makeObservable } from "mobx"
 
 export interface SlideShowManager<SlideData> {
     setSlide: (slide: SlideData) => void
@@ -14,8 +14,8 @@ export class SlideShowController<SlideData> {
         makeObservable<SlideShowController, "playIndexCommand">(this, {
             playIndexCommand: action.bound,
             playNext: action.bound,
-            playPrevious: action.bound
-        });
+            playPrevious: action.bound,
+        })
 
         this.currentIndex = currentIndex
         this.slides = slides

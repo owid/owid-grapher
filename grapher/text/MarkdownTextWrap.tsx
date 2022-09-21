@@ -1,5 +1,5 @@
 import React, { CSSProperties } from "react"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
@@ -507,7 +507,7 @@ type MarkdownTextWrapProps = {
 
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     constructor(props: MarkdownTextWrapProps) {
-        super(props);
+        super(props)
 
         makeObservable(this, {
             maxWidth: computed,
@@ -520,8 +520,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             htmlLines: computed,
             svgLines: computed,
             height: computed,
-            style: computed
-        });
+            style: computed,
+        })
     }
 
     get maxWidth(): number {

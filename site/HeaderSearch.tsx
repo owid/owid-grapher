@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, action, runInAction, makeObservable } from "mobx";
+import { observable, action, runInAction, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { SearchResults } from "./SearchResults.js"
 import { SiteSearchResults, siteSearch } from "./searchClient.js"
@@ -22,56 +22,58 @@ class HeaderSearchResults extends React.Component<{
     }
 }
 
-export const HeaderSearch = observer(class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
-    results?: SiteSearchResults;
-    lastQuery?: string
+export const HeaderSearch = observer(
+    class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
+        results?: SiteSearchResults
+        lastQuery?: string
 
-    constructor(props: { autoFocus?: boolean }) {
-        super(props);
+        constructor(props: { autoFocus?: boolean }) {
+            super(props)
 
-        makeObservable(this, {
-            results: observable.ref,
-            onSearch: action.bound
-        });
-    }
-
-    async runSearch(query: string) {
-        const results = await siteSearch(query)
-
-        if (this.lastQuery !== query) {
-            // Don't need this result anymore
-            return
+            makeObservable(this, {
+                results: observable.ref,
+                onSearch: action.bound,
+            })
         }
 
-        runInAction(() => (this.results = results))
-    }
+        async runSearch(query: string) {
+            const results = await siteSearch(query)
 
-    onSearch(e: React.ChangeEvent<HTMLInputElement>) {
-        const value = e.currentTarget.value
-        this.lastQuery = value
-        if (value) {
-            this.runSearch(value)
-        } else {
-            this.results = undefined
+            if (this.lastQuery !== query) {
+                // Don't need this result anymore
+                return
+            }
+
+            runInAction(() => (this.results = results))
+        }
+
+        onSearch(e: React.ChangeEvent<HTMLInputElement>) {
+            const value = e.currentTarget.value
+            this.lastQuery = value
+            if (value) {
+                this.runSearch(value)
+            } else {
+                this.results = undefined
+            }
+        }
+
+        render() {
+            const { results } = this
+            return (
+                <form action="/search" method="GET" className="HeaderSearch">
+                    <input
+                        type="search"
+                        name="q"
+                        onChange={(e) => this.onSearch(e)}
+                        placeholder="Search..."
+                        autoFocus={this.props.autoFocus}
+                    />
+                    <div className="icon">
+                        <FontAwesomeIcon icon={faSearch} />
+                    </div>
+                    {results && <HeaderSearchResults results={results} />}
+                </form>
+            )
         }
     }
-
-    render() {
-        const { results } = this
-        return (
-            <form action="/search" method="GET" className="HeaderSearch">
-                <input
-                    type="search"
-                    name="q"
-                    onChange={(e) => this.onSearch(e)}
-                    placeholder="Search..."
-                    autoFocus={this.props.autoFocus}
-                />
-                <div className="icon">
-                    <FontAwesomeIcon icon={faSearch} />
-                </div>
-                {results && <HeaderSearchResults results={results} />}
-            </form>
-        )
-    }
-});
+)

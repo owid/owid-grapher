@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed, makeObservable } from "mobx";
+import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     getRelativeMouse,
@@ -102,14 +102,22 @@ const MINIMUM_LABEL_DISTANCE = 5
 export abstract class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
 }> {
-    constructor(
-        props: {
-            manager: HorizontalColorLegendManager
-        }
-    ) {
-        super(props);
+    constructor(props: { manager: HorizontalColorLegendManager }) {
+        super(props)
 
-        makeObservable<HorizontalColorLegend, "manager" | "legendX" | "categoryLegendY" | "numericLegendY" | "legendMaxWidth" | "legendHeight" | "legendAlign" | "fontSize" | "legendTextColor" | "legendTickSize">(this, {
+        makeObservable<
+            HorizontalColorLegend,
+            | "manager"
+            | "legendX"
+            | "categoryLegendY"
+            | "numericLegendY"
+            | "legendMaxWidth"
+            | "legendHeight"
+            | "legendAlign"
+            | "fontSize"
+            | "legendTextColor"
+            | "legendTickSize"
+        >(this, {
             manager: computed,
             legendX: computed,
             categoryLegendY: computed,
@@ -119,8 +127,8 @@ export abstract class HorizontalColorLegend extends React.Component<{
             legendAlign: computed,
             fontSize: computed,
             legendTextColor: computed,
-            legendTickSize: computed
-        });
+            legendTickSize: computed,
+        })
     }
 
     protected get manager(): HorizontalColorLegendManager {
@@ -168,521 +176,581 @@ export abstract class HorizontalColorLegend extends React.Component<{
     abstract get width(): number
 }
 
-export const HorizontalNumericColorLegend = observer(class HorizontalNumericColorLegend extends HorizontalColorLegend {
-    base: React.RefObject<SVGGElement> = React.createRef()
+export const HorizontalNumericColorLegend = observer(
+    class HorizontalNumericColorLegend extends HorizontalColorLegend {
+        base: React.RefObject<SVGGElement> = React.createRef()
 
-    constructor() {
-        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super();
+        constructor() {
+            // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
+            super()
 
-        makeObservable<HorizontalNumericColorLegend, "numericLegendData" | "visibleBins" | "numericBins" | "numericBinSize" | "numericBinStroke" | "numericBinStrokeWidth" | "tickFontSize" | "itemMargin" | "minValue" | "maxValue" | "rangeSize" | "maxWidth" | "totalCategoricalWidth" | "isAutoWidth" | "idealNumericWidth" | "availableNumericWidth" | "x" | "positionedBins" | "legendTitleFontSize" | "legendTitle" | "legendTitleWidth" | "numericLabels" | "bounds" | "onMouseMove">(this, {
-            numericLegendData: computed,
-            visibleBins: computed,
-            numericBins: computed,
-            numericBinSize: computed,
-            numericBinStroke: computed,
-            numericBinStrokeWidth: computed,
-            tickFontSize: computed,
-            itemMargin: computed,
-            minValue: computed,
-            maxValue: computed,
-            rangeSize: computed,
-            maxWidth: computed,
-            totalCategoricalWidth: computed,
-            isAutoWidth: computed,
-            idealNumericWidth: computed,
-            width: computed,
-            availableNumericWidth: computed,
-            x: computed,
-            positionedBins: computed,
-            legendTitleFontSize: computed,
-            legendTitle: computed,
-            legendTitleWidth: computed,
-            numericLabels: computed,
-            height: computed,
-            bounds: computed,
-            onMouseMove: action.bound
-        });
-    }
-
-    private get numericLegendData(): ColorScaleBin[] {
-        return this.manager.numericLegendData ?? []
-    }
-
-    private get visibleBins(): ColorScaleBin[] {
-        return this.numericLegendData.filter((bin) => !bin.isHidden)
-    }
-
-    private get numericBins(): NumericBin[] {
-        return this.visibleBins.filter(
-            (bin): bin is NumericBin => bin instanceof NumericBin
-        )
-    }
-
-    private get numericBinSize(): number {
-        return this.props.manager.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
-    }
-
-    private get numericBinStroke(): Color {
-        return this.props.manager.numericBinStroke ?? DEFAULT_NUMERIC_BIN_STROKE
-    }
-
-    private get numericBinStrokeWidth(): number {
-        return (
-            this.props.manager.numericBinStrokeWidth ??
-            DEFAULT_NUMERIC_BIN_STROKE_WIDTH
-        )
-    }
-
-    private get tickFontSize(): number {
-        return 0.75 * this.fontSize
-    }
-
-    private get itemMargin(): number {
-        return Math.round(this.fontSize * 1.125)
-    }
-
-    // NumericColorLegend wants to map a range to a width. However, sometimes we are given
-    // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
-    private get minValue(): number {
-        return min(this.numericBins.map((bin) => bin.min)) as number
-    }
-    private get maxValue(): number {
-        return max(this.numericBins.map((bin) => bin.max)) as number
-    }
-    private get rangeSize(): number {
-        return this.maxValue - this.minValue
-    }
-
-    private get maxWidth(): number {
-        return this.manager.legendMaxWidth ?? this.manager.legendWidth ?? 200
-    }
-
-    private getTickLabelWidth(label: string): number {
-        return Bounds.forText(label, {
-            fontSize: this.tickFontSize,
-        }).width
-    }
-
-    private getCategoricalBinWidth(bin: ColorScaleBin): number {
-        return Math.max(
-            this.getTickLabelWidth(bin.text),
-            CATEGORICAL_BIN_MIN_WIDTH
-        )
-    }
-
-    private get totalCategoricalWidth(): number {
-        const { visibleBins, itemMargin } = this
-        const widths = visibleBins.map((bin) =>
-            bin instanceof CategoricalBin && !bin.isHidden
-                ? this.getCategoricalBinWidth(bin) + itemMargin
-                : 0
-        )
-        return sum(widths)
-    }
-
-    private get isAutoWidth(): boolean {
-        return (
-            this.manager.legendWidth === undefined &&
-            this.manager.legendMaxWidth !== undefined
-        )
-    }
-
-    private getNumericLabelMinWidth(bin: NumericBin): number {
-        if (bin.text) {
-            const tickLabelWidth = this.getTickLabelWidth(bin.text)
-            return tickLabelWidth + MINIMUM_LABEL_DISTANCE
-        } else {
-            const combinedLabelWidths = sum(
-                [bin.minText, bin.maxText].map(
-                    (text) =>
-                        // because labels are center-aligned, only half the label space is required
-                        this.getTickLabelWidth(text) / 2
-                )
-            )
-            return combinedLabelWidths + MINIMUM_LABEL_DISTANCE * 2
-        }
-    }
-
-    // Overstretched legends don't look good.
-    // If the manager provides `legendMaxWidth`, then we calculate an _ideal_ width for the legend.
-    private get idealNumericWidth(): number {
-        const binCount = this.numericBins.length
-        const spaceRequirements = this.numericBins.map((bin) => ({
-            labelSpace: this.getNumericLabelMinWidth(bin),
-            shareOfTotal: (bin.max - bin.min) / this.rangeSize,
-        }))
-        // Make sure the legend is big enough to avoid overlapping labels (including `raisedMode`)
-        if (this.manager.equalSizeBins) {
-            // Try to keep the minimum close to the size of the "No data" bin,
-            // so they look visually balanced somewhat.
-            const minBinWidth = this.fontSize * 3.25
-            const maxBinWidth =
-                max(
-                    spaceRequirements.map(({ labelSpace }) =>
-                        Math.max(labelSpace, minBinWidth)
-                    )
-                ) ?? 0
-            return Math.round(maxBinWidth * binCount)
-        } else {
-            const minBinWidth = this.fontSize * 2
-            const maxTotalWidth =
-                max(
-                    spaceRequirements.map(({ labelSpace, shareOfTotal }) =>
-                        Math.max(labelSpace / shareOfTotal, minBinWidth)
-                    )
-                ) ?? 0
-            return Math.round(maxTotalWidth)
-        }
-    }
-
-    get width(): number {
-        if (this.isAutoWidth) {
-            return Math.min(
-                this.maxWidth,
-                this.legendTitleWidth +
-                    this.totalCategoricalWidth +
-                    this.idealNumericWidth
-            )
-        } else {
-            return this.maxWidth
-        }
-    }
-
-    private get availableNumericWidth(): number {
-        return this.width - this.totalCategoricalWidth - this.legendTitleWidth
-    }
-
-    // Since we calculate the width automatically in some cases (when `isAutoWidth` is true),
-    // we need to shift X to align the legend horizontally (`legendAlign`).
-    private get x(): number {
-        const { width, maxWidth, legendAlign, legendX } = this
-        const widthDiff = maxWidth - width
-        if (legendAlign === HorizontalAlign.center) {
-            return legendX + widthDiff / 2
-        } else if (legendAlign === HorizontalAlign.right) {
-            return legendX + widthDiff
-        } else {
-            return legendX // left align
-        }
-    }
-
-    private get positionedBins(): PositionedBin[] {
-        const {
-            manager,
-            rangeSize,
-            availableNumericWidth,
-            visibleBins,
-            numericBins,
-            legendTitleWidth,
-            x,
-        } = this
-
-        let xOffset = x + legendTitleWidth
-        let prevBin: ColorScaleBin | undefined
-
-        return visibleBins.map((bin, index) => {
-            const isFirst = index === 0
-            let width: number = this.getCategoricalBinWidth(bin)
-            let marginLeft: number = isFirst ? 0 : this.itemMargin
-
-            if (bin instanceof NumericBin) {
-                if (manager.equalSizeBins) {
-                    width = availableNumericWidth / numericBins.length
-                } else {
-                    width =
-                        ((bin.max - bin.min) / rangeSize) *
-                        availableNumericWidth
-                }
-                // Don't add any margin between numeric bins
-                if (prevBin instanceof NumericBin) {
-                    marginLeft = 0
-                }
-            }
-
-            const x = xOffset + marginLeft
-            xOffset = x + width
-            prevBin = bin
-
-            return {
-                x,
-                width,
-                bin,
-            }
-        })
-    }
-
-    private get legendTitleFontSize(): number {
-        return this.fontSize * 0.85
-    }
-
-    private get legendTitle(): TextWrap | undefined {
-        const { legendTitle } = this.manager
-        return legendTitle
-            ? new TextWrap({
-                  text: legendTitle,
-                  fontSize: this.legendTitleFontSize,
-                  fontWeight: 700,
-                  maxWidth: this.maxWidth / 3,
-                  lineHeight: 1,
-              })
-            : undefined
-    }
-
-    private get legendTitleWidth(): number {
-        return this.legendTitle ? this.legendTitle.width + this.itemMargin : 0
-    }
-
-    private get numericLabels(): NumericLabel[] {
-        const { numericBinSize, positionedBins, tickFontSize } = this
-
-        const makeBoundaryLabel = (
-            bin: PositionedBin,
-            minOrMax: "min" | "max",
-            text: string
-        ): NumericLabel => {
-            const labelBounds = Bounds.forText(text, { fontSize: tickFontSize })
-            const x =
-                bin.x +
-                (minOrMax === "min" ? 0 : bin.width) -
-                labelBounds.width / 2
-            const y = -numericBinSize - labelBounds.height - this.legendTickSize
-
-            return {
-                text: text,
-                fontSize: tickFontSize,
-                bounds: labelBounds.set({ x: x, y: y }),
-                hidden: false,
-                raised: false,
-            }
-        }
-
-        const makeRangeLabel = (bin: PositionedBin): NumericLabel => {
-            const labelBounds = Bounds.forText(bin.bin.text, {
-                fontSize: tickFontSize,
+            makeObservable<
+                HorizontalNumericColorLegend,
+                | "numericLegendData"
+                | "visibleBins"
+                | "numericBins"
+                | "numericBinSize"
+                | "numericBinStroke"
+                | "numericBinStrokeWidth"
+                | "tickFontSize"
+                | "itemMargin"
+                | "minValue"
+                | "maxValue"
+                | "rangeSize"
+                | "maxWidth"
+                | "totalCategoricalWidth"
+                | "isAutoWidth"
+                | "idealNumericWidth"
+                | "availableNumericWidth"
+                | "x"
+                | "positionedBins"
+                | "legendTitleFontSize"
+                | "legendTitle"
+                | "legendTitleWidth"
+                | "numericLabels"
+                | "bounds"
+                | "onMouseMove"
+            >(this, {
+                numericLegendData: computed,
+                visibleBins: computed,
+                numericBins: computed,
+                numericBinSize: computed,
+                numericBinStroke: computed,
+                numericBinStrokeWidth: computed,
+                tickFontSize: computed,
+                itemMargin: computed,
+                minValue: computed,
+                maxValue: computed,
+                rangeSize: computed,
+                maxWidth: computed,
+                totalCategoricalWidth: computed,
+                isAutoWidth: computed,
+                idealNumericWidth: computed,
+                width: computed,
+                availableNumericWidth: computed,
+                x: computed,
+                positionedBins: computed,
+                legendTitleFontSize: computed,
+                legendTitle: computed,
+                legendTitleWidth: computed,
+                numericLabels: computed,
+                height: computed,
+                bounds: computed,
+                onMouseMove: action.bound,
             })
-            const x = bin.x + bin.width / 2 - labelBounds.width / 2
-            const y = -numericBinSize - labelBounds.height - this.legendTickSize
-
-            return {
-                text: bin.bin.text,
-                fontSize: tickFontSize,
-                bounds: labelBounds.set({ x: x, y: y }),
-                priority: true,
-                hidden: false,
-                raised: false,
-            }
         }
 
-        let labels: NumericLabel[] = []
-        for (const bin of positionedBins) {
-            if (bin.bin.text) labels.push(makeRangeLabel(bin))
-            else if (bin.bin instanceof NumericBin) {
-                if (bin.bin.minText)
-                    labels.push(makeBoundaryLabel(bin, "min", bin.bin.minText))
-                if (bin === last(positionedBins) && bin.bin.maxText)
-                    labels.push(makeBoundaryLabel(bin, "max", bin.bin.maxText))
-            }
+        private get numericLegendData(): ColorScaleBin[] {
+            return this.manager.numericLegendData ?? []
         }
 
-        for (let index = 0; index < labels.length; index++) {
-            const l1 = labels[index]
-            if (l1.hidden) continue
+        private get visibleBins(): ColorScaleBin[] {
+            return this.numericLegendData.filter((bin) => !bin.isHidden)
+        }
 
-            for (let j = index + 1; j < labels.length; j++) {
-                const l2 = labels[j]
-                if (
-                    l1.bounds.right + MINIMUM_LABEL_DISTANCE >
-                        l2.bounds.centerX ||
-                    (l2.bounds.left - MINIMUM_LABEL_DISTANCE <
-                        l1.bounds.centerX &&
-                        !l2.priority)
+        private get numericBins(): NumericBin[] {
+            return this.visibleBins.filter(
+                (bin): bin is NumericBin => bin instanceof NumericBin
+            )
+        }
+
+        private get numericBinSize(): number {
+            return this.props.manager.numericBinSize ?? DEFAULT_NUMERIC_BIN_SIZE
+        }
+
+        private get numericBinStroke(): Color {
+            return (
+                this.props.manager.numericBinStroke ??
+                DEFAULT_NUMERIC_BIN_STROKE
+            )
+        }
+
+        private get numericBinStrokeWidth(): number {
+            return (
+                this.props.manager.numericBinStrokeWidth ??
+                DEFAULT_NUMERIC_BIN_STROKE_WIDTH
+            )
+        }
+
+        private get tickFontSize(): number {
+            return 0.75 * this.fontSize
+        }
+
+        private get itemMargin(): number {
+            return Math.round(this.fontSize * 1.125)
+        }
+
+        // NumericColorLegend wants to map a range to a width. However, sometimes we are given
+        // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
+        private get minValue(): number {
+            return min(this.numericBins.map((bin) => bin.min)) as number
+        }
+        private get maxValue(): number {
+            return max(this.numericBins.map((bin) => bin.max)) as number
+        }
+        private get rangeSize(): number {
+            return this.maxValue - this.minValue
+        }
+
+        private get maxWidth(): number {
+            return (
+                this.manager.legendMaxWidth ?? this.manager.legendWidth ?? 200
+            )
+        }
+
+        private getTickLabelWidth(label: string): number {
+            return Bounds.forText(label, {
+                fontSize: this.tickFontSize,
+            }).width
+        }
+
+        private getCategoricalBinWidth(bin: ColorScaleBin): number {
+            return Math.max(
+                this.getTickLabelWidth(bin.text),
+                CATEGORICAL_BIN_MIN_WIDTH
+            )
+        }
+
+        private get totalCategoricalWidth(): number {
+            const { visibleBins, itemMargin } = this
+            const widths = visibleBins.map((bin) =>
+                bin instanceof CategoricalBin && !bin.isHidden
+                    ? this.getCategoricalBinWidth(bin) + itemMargin
+                    : 0
+            )
+            return sum(widths)
+        }
+
+        private get isAutoWidth(): boolean {
+            return (
+                this.manager.legendWidth === undefined &&
+                this.manager.legendMaxWidth !== undefined
+            )
+        }
+
+        private getNumericLabelMinWidth(bin: NumericBin): number {
+            if (bin.text) {
+                const tickLabelWidth = this.getTickLabelWidth(bin.text)
+                return tickLabelWidth + MINIMUM_LABEL_DISTANCE
+            } else {
+                const combinedLabelWidths = sum(
+                    [bin.minText, bin.maxText].map(
+                        (text) =>
+                            // because labels are center-aligned, only half the label space is required
+                            this.getTickLabelWidth(text) / 2
+                    )
                 )
-                    l2.hidden = true
+                return combinedLabelWidths + MINIMUM_LABEL_DISTANCE * 2
             }
         }
 
-        labels = labels.filter((label) => !label.hidden)
-
-        // If labels overlap, first we try alternating raised labels
-        let raisedMode = false
-        for (let index = 1; index < labels.length; index++) {
-            const l1 = labels[index - 1],
-                l2 = labels[index]
-            if (l1.bounds.right + MINIMUM_LABEL_DISTANCE > l2.bounds.left) {
-                raisedMode = true
-                break
-            }
-        }
-
-        if (raisedMode) {
-            for (let index = 1; index < labels.length; index++) {
-                const label = labels[index]
-                if (index % 2 !== 0) {
-                    label.bounds = label.bounds.set({
-                        y: label.bounds.y - label.bounds.height - 1,
-                    })
-                    label.raised = true
-                }
-            }
-        }
-
-        return labels
-    }
-
-    get height(): number {
-        return Math.abs(
-            min(this.numericLabels.map((label) => label.bounds.y)) ?? 0
-        )
-    }
-
-    private get bounds(): Bounds {
-        return new Bounds(this.x, this.numericLegendY, this.width, this.height)
-    }
-
-    private onMouseMove(ev: MouseEvent | TouchEvent): void {
-        const { manager, base, positionedBins } = this
-        const { numericFocusBracket } = manager
-        if (base.current) {
-            const mouse = getRelativeMouse(base.current, ev)
-
-            // We implement onMouseMove and onMouseLeave in a custom way, without attaching them to
-            // specific SVG elements, in order to allow continuous transition between bins as the user
-            // moves their cursor across (even if their cursor is in the empty area above the
-            // legend, where the labels are).
-            // We could achieve the same by rendering invisible rectangles over the areas and attaching
-            // event handlers to those.
-
-            // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
-            if (!this.bounds.contains(mouse)) {
-                if (numericFocusBracket && manager.onLegendMouseLeave)
-                    return manager.onLegendMouseLeave()
-                return
-            }
-
-            // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
-            let newFocusBracket: ColorScaleBin | undefined
-            positionedBins.forEach((bin) => {
-                if (mouse.x >= bin.x && mouse.x <= bin.x + bin.width)
-                    newFocusBracket = bin.bin
-            })
-
-            if (newFocusBracket && manager.onLegendMouseOver)
-                manager.onLegendMouseOver(newFocusBracket)
-        }
-    }
-
-    componentDidMount(): void {
-        document.documentElement.addEventListener("mousemove", this.onMouseMove)
-        document.documentElement.addEventListener("touchmove", this.onMouseMove)
-    }
-
-    componentWillUnmount(): void {
-        document.documentElement.removeEventListener(
-            "mousemove",
-            this.onMouseMove
-        )
-        document.documentElement.removeEventListener(
-            "touchmove",
-            this.onMouseMove
-        )
-    }
-
-    render(): JSX.Element {
-        const {
-            manager,
-            numericLabels,
-            numericBinSize,
-            positionedBins,
-            height,
-        } = this
-        const { numericFocusBracket } = manager
-
-        const stroke = this.numericBinStroke
-        const strokeWidth = this.numericBinStrokeWidth
-        const bottomY = this.numericLegendY + height
-
-        return (
-            <g ref={this.base} className="numericColorLegend">
-                {numericLabels.map((label, index) => (
-                    <line
-                        key={index}
-                        x1={label.bounds.x + label.bounds.width / 2}
-                        y1={bottomY - numericBinSize}
-                        x2={label.bounds.x + label.bounds.width / 2}
-                        y2={bottomY + label.bounds.y + label.bounds.height}
-                        // if we use a light color for stroke (e.g. white), we want it to stay
-                        // "invisible", except for raised labels, where we want *some* contrast.
-                        stroke={
-                            label.raised ? darkenColorForLine(stroke) : stroke
-                        }
-                        strokeWidth={strokeWidth}
-                    />
-                ))}
-                {sortBy(
-                    positionedBins.map((positionedBin, index) => {
-                        const bin = positionedBin.bin
-                        const isFocus =
-                            numericFocusBracket &&
-                            bin.equals(numericFocusBracket)
-                        return (
-                            <NumericBinRect
-                                key={index}
-                                x={positionedBin.x}
-                                y={bottomY - numericBinSize}
-                                width={positionedBin.width}
-                                height={numericBinSize}
-                                fill={
-                                    bin.patternRef
-                                        ? `url(#${bin.patternRef})`
-                                        : bin.color
-                                }
-                                opacity={manager.legendOpacity} // defaults to undefined which removes the prop
-                                stroke={isFocus ? FOCUS_BORDER_COLOR : stroke}
-                                strokeWidth={isFocus ? 2 : strokeWidth}
-                                isOpenLeft={
-                                    bin instanceof NumericBin
-                                        ? bin.props.isOpenLeft
-                                        : false
-                                }
-                                isOpenRight={
-                                    bin instanceof NumericBin
-                                        ? bin.props.isOpenRight
-                                        : false
-                                }
-                            />
+        // Overstretched legends don't look good.
+        // If the manager provides `legendMaxWidth`, then we calculate an _ideal_ width for the legend.
+        private get idealNumericWidth(): number {
+            const binCount = this.numericBins.length
+            const spaceRequirements = this.numericBins.map((bin) => ({
+                labelSpace: this.getNumericLabelMinWidth(bin),
+                shareOfTotal: (bin.max - bin.min) / this.rangeSize,
+            }))
+            // Make sure the legend is big enough to avoid overlapping labels (including `raisedMode`)
+            if (this.manager.equalSizeBins) {
+                // Try to keep the minimum close to the size of the "No data" bin,
+                // so they look visually balanced somewhat.
+                const minBinWidth = this.fontSize * 3.25
+                const maxBinWidth =
+                    max(
+                        spaceRequirements.map(({ labelSpace }) =>
+                            Math.max(labelSpace, minBinWidth)
                         )
-                    }),
-                    (rect) => rect.props["strokeWidth"]
-                )}
-                {numericLabels.map((label, index) => (
-                    <text
-                        key={index}
-                        x={label.bounds.x}
-                        y={bottomY + label.bounds.y}
-                        // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
-                        // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
-                        // do with some rough positioning.
-                        dy={dyFromAlign(VerticalAlign.bottom)}
-                        fontSize={label.fontSize}
-                        fill={this.legendTextColor}
-                    >
-                        {label.text}
-                    </text>
-                ))}
-                {this.legendTitle?.render(
-                    this.x,
-                    // Align legend title baseline with bottom of color bins
-                    this.numericLegendY +
-                        height -
-                        this.legendTitle.height +
-                        this.legendTitleFontSize * 0.2,
-                    { fill: this.legendTextColor }
-                )}
-            </g>
-        )
+                    ) ?? 0
+                return Math.round(maxBinWidth * binCount)
+            } else {
+                const minBinWidth = this.fontSize * 2
+                const maxTotalWidth =
+                    max(
+                        spaceRequirements.map(({ labelSpace, shareOfTotal }) =>
+                            Math.max(labelSpace / shareOfTotal, minBinWidth)
+                        )
+                    ) ?? 0
+                return Math.round(maxTotalWidth)
+            }
+        }
+
+        get width(): number {
+            if (this.isAutoWidth) {
+                return Math.min(
+                    this.maxWidth,
+                    this.legendTitleWidth +
+                        this.totalCategoricalWidth +
+                        this.idealNumericWidth
+                )
+            } else {
+                return this.maxWidth
+            }
+        }
+
+        private get availableNumericWidth(): number {
+            return (
+                this.width - this.totalCategoricalWidth - this.legendTitleWidth
+            )
+        }
+
+        // Since we calculate the width automatically in some cases (when `isAutoWidth` is true),
+        // we need to shift X to align the legend horizontally (`legendAlign`).
+        private get x(): number {
+            const { width, maxWidth, legendAlign, legendX } = this
+            const widthDiff = maxWidth - width
+            if (legendAlign === HorizontalAlign.center) {
+                return legendX + widthDiff / 2
+            } else if (legendAlign === HorizontalAlign.right) {
+                return legendX + widthDiff
+            } else {
+                return legendX // left align
+            }
+        }
+
+        private get positionedBins(): PositionedBin[] {
+            const {
+                manager,
+                rangeSize,
+                availableNumericWidth,
+                visibleBins,
+                numericBins,
+                legendTitleWidth,
+                x,
+            } = this
+
+            let xOffset = x + legendTitleWidth
+            let prevBin: ColorScaleBin | undefined
+
+            return visibleBins.map((bin, index) => {
+                const isFirst = index === 0
+                let width: number = this.getCategoricalBinWidth(bin)
+                let marginLeft: number = isFirst ? 0 : this.itemMargin
+
+                if (bin instanceof NumericBin) {
+                    if (manager.equalSizeBins) {
+                        width = availableNumericWidth / numericBins.length
+                    } else {
+                        width =
+                            ((bin.max - bin.min) / rangeSize) *
+                            availableNumericWidth
+                    }
+                    // Don't add any margin between numeric bins
+                    if (prevBin instanceof NumericBin) {
+                        marginLeft = 0
+                    }
+                }
+
+                const x = xOffset + marginLeft
+                xOffset = x + width
+                prevBin = bin
+
+                return {
+                    x,
+                    width,
+                    bin,
+                }
+            })
+        }
+
+        private get legendTitleFontSize(): number {
+            return this.fontSize * 0.85
+        }
+
+        private get legendTitle(): TextWrap | undefined {
+            const { legendTitle } = this.manager
+            return legendTitle
+                ? new TextWrap({
+                      text: legendTitle,
+                      fontSize: this.legendTitleFontSize,
+                      fontWeight: 700,
+                      maxWidth: this.maxWidth / 3,
+                      lineHeight: 1,
+                  })
+                : undefined
+        }
+
+        private get legendTitleWidth(): number {
+            return this.legendTitle
+                ? this.legendTitle.width + this.itemMargin
+                : 0
+        }
+
+        private get numericLabels(): NumericLabel[] {
+            const { numericBinSize, positionedBins, tickFontSize } = this
+
+            const makeBoundaryLabel = (
+                bin: PositionedBin,
+                minOrMax: "min" | "max",
+                text: string
+            ): NumericLabel => {
+                const labelBounds = Bounds.forText(text, {
+                    fontSize: tickFontSize,
+                })
+                const x =
+                    bin.x +
+                    (minOrMax === "min" ? 0 : bin.width) -
+                    labelBounds.width / 2
+                const y =
+                    -numericBinSize - labelBounds.height - this.legendTickSize
+
+                return {
+                    text: text,
+                    fontSize: tickFontSize,
+                    bounds: labelBounds.set({ x: x, y: y }),
+                    hidden: false,
+                    raised: false,
+                }
+            }
+
+            const makeRangeLabel = (bin: PositionedBin): NumericLabel => {
+                const labelBounds = Bounds.forText(bin.bin.text, {
+                    fontSize: tickFontSize,
+                })
+                const x = bin.x + bin.width / 2 - labelBounds.width / 2
+                const y =
+                    -numericBinSize - labelBounds.height - this.legendTickSize
+
+                return {
+                    text: bin.bin.text,
+                    fontSize: tickFontSize,
+                    bounds: labelBounds.set({ x: x, y: y }),
+                    priority: true,
+                    hidden: false,
+                    raised: false,
+                }
+            }
+
+            let labels: NumericLabel[] = []
+            for (const bin of positionedBins) {
+                if (bin.bin.text) labels.push(makeRangeLabel(bin))
+                else if (bin.bin instanceof NumericBin) {
+                    if (bin.bin.minText)
+                        labels.push(
+                            makeBoundaryLabel(bin, "min", bin.bin.minText)
+                        )
+                    if (bin === last(positionedBins) && bin.bin.maxText)
+                        labels.push(
+                            makeBoundaryLabel(bin, "max", bin.bin.maxText)
+                        )
+                }
+            }
+
+            for (let index = 0; index < labels.length; index++) {
+                const l1 = labels[index]
+                if (l1.hidden) continue
+
+                for (let j = index + 1; j < labels.length; j++) {
+                    const l2 = labels[j]
+                    if (
+                        l1.bounds.right + MINIMUM_LABEL_DISTANCE >
+                            l2.bounds.centerX ||
+                        (l2.bounds.left - MINIMUM_LABEL_DISTANCE <
+                            l1.bounds.centerX &&
+                            !l2.priority)
+                    )
+                        l2.hidden = true
+                }
+            }
+
+            labels = labels.filter((label) => !label.hidden)
+
+            // If labels overlap, first we try alternating raised labels
+            let raisedMode = false
+            for (let index = 1; index < labels.length; index++) {
+                const l1 = labels[index - 1],
+                    l2 = labels[index]
+                if (l1.bounds.right + MINIMUM_LABEL_DISTANCE > l2.bounds.left) {
+                    raisedMode = true
+                    break
+                }
+            }
+
+            if (raisedMode) {
+                for (let index = 1; index < labels.length; index++) {
+                    const label = labels[index]
+                    if (index % 2 !== 0) {
+                        label.bounds = label.bounds.set({
+                            y: label.bounds.y - label.bounds.height - 1,
+                        })
+                        label.raised = true
+                    }
+                }
+            }
+
+            return labels
+        }
+
+        get height(): number {
+            return Math.abs(
+                min(this.numericLabels.map((label) => label.bounds.y)) ?? 0
+            )
+        }
+
+        private get bounds(): Bounds {
+            return new Bounds(
+                this.x,
+                this.numericLegendY,
+                this.width,
+                this.height
+            )
+        }
+
+        private onMouseMove(ev: MouseEvent | TouchEvent): void {
+            const { manager, base, positionedBins } = this
+            const { numericFocusBracket } = manager
+            if (base.current) {
+                const mouse = getRelativeMouse(base.current, ev)
+
+                // We implement onMouseMove and onMouseLeave in a custom way, without attaching them to
+                // specific SVG elements, in order to allow continuous transition between bins as the user
+                // moves their cursor across (even if their cursor is in the empty area above the
+                // legend, where the labels are).
+                // We could achieve the same by rendering invisible rectangles over the areas and attaching
+                // event handlers to those.
+
+                // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
+                if (!this.bounds.contains(mouse)) {
+                    if (numericFocusBracket && manager.onLegendMouseLeave)
+                        return manager.onLegendMouseLeave()
+                    return
+                }
+
+                // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
+                let newFocusBracket: ColorScaleBin | undefined
+                positionedBins.forEach((bin) => {
+                    if (mouse.x >= bin.x && mouse.x <= bin.x + bin.width)
+                        newFocusBracket = bin.bin
+                })
+
+                if (newFocusBracket && manager.onLegendMouseOver)
+                    manager.onLegendMouseOver(newFocusBracket)
+            }
+        }
+
+        componentDidMount(): void {
+            document.documentElement.addEventListener(
+                "mousemove",
+                this.onMouseMove
+            )
+            document.documentElement.addEventListener(
+                "touchmove",
+                this.onMouseMove
+            )
+        }
+
+        componentWillUnmount(): void {
+            document.documentElement.removeEventListener(
+                "mousemove",
+                this.onMouseMove
+            )
+            document.documentElement.removeEventListener(
+                "touchmove",
+                this.onMouseMove
+            )
+        }
+
+        render(): JSX.Element {
+            const {
+                manager,
+                numericLabels,
+                numericBinSize,
+                positionedBins,
+                height,
+            } = this
+            const { numericFocusBracket } = manager
+
+            const stroke = this.numericBinStroke
+            const strokeWidth = this.numericBinStrokeWidth
+            const bottomY = this.numericLegendY + height
+
+            return (
+                <g ref={this.base} className="numericColorLegend">
+                    {numericLabels.map((label, index) => (
+                        <line
+                            key={index}
+                            x1={label.bounds.x + label.bounds.width / 2}
+                            y1={bottomY - numericBinSize}
+                            x2={label.bounds.x + label.bounds.width / 2}
+                            y2={bottomY + label.bounds.y + label.bounds.height}
+                            // if we use a light color for stroke (e.g. white), we want it to stay
+                            // "invisible", except for raised labels, where we want *some* contrast.
+                            stroke={
+                                label.raised
+                                    ? darkenColorForLine(stroke)
+                                    : stroke
+                            }
+                            strokeWidth={strokeWidth}
+                        />
+                    ))}
+                    {sortBy(
+                        positionedBins.map((positionedBin, index) => {
+                            const bin = positionedBin.bin
+                            const isFocus =
+                                numericFocusBracket &&
+                                bin.equals(numericFocusBracket)
+                            return (
+                                <NumericBinRect
+                                    key={index}
+                                    x={positionedBin.x}
+                                    y={bottomY - numericBinSize}
+                                    width={positionedBin.width}
+                                    height={numericBinSize}
+                                    fill={
+                                        bin.patternRef
+                                            ? `url(#${bin.patternRef})`
+                                            : bin.color
+                                    }
+                                    opacity={manager.legendOpacity} // defaults to undefined which removes the prop
+                                    stroke={
+                                        isFocus ? FOCUS_BORDER_COLOR : stroke
+                                    }
+                                    strokeWidth={isFocus ? 2 : strokeWidth}
+                                    isOpenLeft={
+                                        bin instanceof NumericBin
+                                            ? bin.props.isOpenLeft
+                                            : false
+                                    }
+                                    isOpenRight={
+                                        bin instanceof NumericBin
+                                            ? bin.props.isOpenRight
+                                            : false
+                                    }
+                                />
+                            )
+                        }),
+                        (rect) => rect.props["strokeWidth"]
+                    )}
+                    {numericLabels.map((label, index) => (
+                        <text
+                            key={index}
+                            x={label.bounds.x}
+                            y={bottomY + label.bounds.y}
+                            // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
+                            // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
+                            // do with some rough positioning.
+                            dy={dyFromAlign(VerticalAlign.bottom)}
+                            fontSize={label.fontSize}
+                            fill={this.legendTextColor}
+                        >
+                            {label.text}
+                        </text>
+                    ))}
+                    {this.legendTitle?.render(
+                        this.x,
+                        // Align legend title baseline with bottom of color bins
+                        this.numericLegendY +
+                            height -
+                            this.legendTitle.height +
+                            this.legendTitleFontSize * 0.2,
+                        { fill: this.legendTextColor }
+                    )}
+                </g>
+            )
+        }
     }
-});
+)
 
 interface NumericBinRectProps extends React.SVGAttributes<SVGElement> {
     x: number
@@ -727,178 +795,195 @@ const NumericBinRect = (props: NumericBinRectProps) => {
     }
 }
 
-export const HorizontalCategoricalColorLegend = observer(class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
-    constructor() {
-        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super();
+export const HorizontalCategoricalColorLegend = observer(
+    class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
+        constructor() {
+            // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
+            super()
 
-        makeObservable<HorizontalCategoricalColorLegend, "categoricalLegendData" | "visibleCategoricalBins" | "markLines" | "contentWidth" | "containerWidth" | "marks">(this, {
-            width: computed,
-            categoricalLegendData: computed,
-            visibleCategoricalBins: computed,
-            markLines: computed,
-            contentWidth: computed,
-            containerWidth: computed,
-            marks: computed,
-            height: computed
-        });
-    }
+            makeObservable<
+                HorizontalCategoricalColorLegend,
+                | "categoricalLegendData"
+                | "visibleCategoricalBins"
+                | "markLines"
+                | "contentWidth"
+                | "containerWidth"
+                | "marks"
+            >(this, {
+                width: computed,
+                categoricalLegendData: computed,
+                visibleCategoricalBins: computed,
+                markLines: computed,
+                contentWidth: computed,
+                containerWidth: computed,
+                marks: computed,
+                height: computed,
+            })
+        }
 
-    get width(): number {
-        return this.manager.legendWidth ?? this.manager.legendMaxWidth ?? 200
-    }
+        get width(): number {
+            return (
+                this.manager.legendWidth ?? this.manager.legendMaxWidth ?? 200
+            )
+        }
 
-    private get categoricalLegendData(): CategoricalBin[] {
-        return this.manager.categoricalLegendData ?? []
-    }
+        private get categoricalLegendData(): CategoricalBin[] {
+            return this.manager.categoricalLegendData ?? []
+        }
 
-    private get visibleCategoricalBins(): CategoricalBin[] {
-        return this.categoricalLegendData.filter((bin) => !bin.isHidden)
-    }
+        private get visibleCategoricalBins(): CategoricalBin[] {
+            return this.categoricalLegendData.filter((bin) => !bin.isHidden)
+        }
 
-    private get markLines(): MarkLine[] {
-        const fontSize = this.fontSize * 0.8
-        const rectSize = this.fontSize * 0.75
-        const rectPadding = 5
-        const markPadding = 5
+        private get markLines(): MarkLine[] {
+            const fontSize = this.fontSize * 0.8
+            const rectSize = this.fontSize * 0.75
+            const rectPadding = 5
+            const markPadding = 5
 
-        const lines: MarkLine[] = []
-        let marks: CategoricalMark[] = []
-        let xOffset = 0
-        let yOffset = 0
-        this.visibleCategoricalBins.forEach((bin) => {
-            const labelBounds = Bounds.forText(bin.text, { fontSize })
-            const markWidth =
-                rectSize + rectPadding + labelBounds.width + markPadding
+            const lines: MarkLine[] = []
+            let marks: CategoricalMark[] = []
+            let xOffset = 0
+            let yOffset = 0
+            this.visibleCategoricalBins.forEach((bin) => {
+                const labelBounds = Bounds.forText(bin.text, { fontSize })
+                const markWidth =
+                    rectSize + rectPadding + labelBounds.width + markPadding
 
-            if (xOffset + markWidth > this.width && marks.length > 0) {
-                lines.push({ totalWidth: xOffset - markPadding, marks: marks })
-                marks = []
-                xOffset = 0
-                yOffset += rectSize + rectPadding
-            }
+                if (xOffset + markWidth > this.width && marks.length > 0) {
+                    lines.push({
+                        totalWidth: xOffset - markPadding,
+                        marks: marks,
+                    })
+                    marks = []
+                    xOffset = 0
+                    yOffset += rectSize + rectPadding
+                }
 
-            const markX = xOffset
-            const markY = yOffset
+                const markX = xOffset
+                const markY = yOffset
 
-            const label = {
-                text: bin.text,
-                bounds: labelBounds.set({
-                    x: markX + rectSize + rectPadding,
-                    y: markY + rectSize / 2,
-                }),
-                fontSize,
-            }
+                const label = {
+                    text: bin.text,
+                    bounds: labelBounds.set({
+                        x: markX + rectSize + rectPadding,
+                        y: markY + rectSize / 2,
+                    }),
+                    fontSize,
+                }
 
-            marks.push({
-                x: markX,
-                y: markY,
-                rectSize,
-                label,
-                bin,
+                marks.push({
+                    x: markX,
+                    y: markY,
+                    rectSize,
+                    label,
+                    bin,
+                })
+
+                xOffset += markWidth + SPACE_BETWEEN_CATEGORICAL_BINS
             })
 
-            xOffset += markWidth + SPACE_BETWEEN_CATEGORICAL_BINS
-        })
+            if (marks.length > 0)
+                lines.push({ totalWidth: xOffset - markPadding, marks: marks })
 
-        if (marks.length > 0)
-            lines.push({ totalWidth: xOffset - markPadding, marks: marks })
+            return lines
+        }
 
-        return lines
-    }
+        private get contentWidth(): number {
+            return max(this.markLines.map((l) => l.totalWidth)) as number
+        }
 
-    private get contentWidth(): number {
-        return max(this.markLines.map((l) => l.totalWidth)) as number
-    }
+        private get containerWidth(): number {
+            return this.width ?? this.contentWidth
+        }
 
-    private get containerWidth(): number {
-        return this.width ?? this.contentWidth
-    }
+        private get marks(): CategoricalMark[] {
+            const lines = this.markLines
+            const align = this.legendAlign
+            const width = this.containerWidth
 
-    private get marks(): CategoricalMark[] {
-        const lines = this.markLines
-        const align = this.legendAlign
-        const width = this.containerWidth
-
-        // Center each line
-        lines.forEach((line) => {
-            // TODO abstract this
-            const xShift =
-                align === HorizontalAlign.center
-                    ? (width - line.totalWidth) / 2
-                    : align === HorizontalAlign.right
-                    ? width - line.totalWidth
-                    : 0
-            line.marks.forEach((mark) => {
-                mark.x += xShift
-                mark.label.bounds = mark.label.bounds.set({
-                    x: mark.label.bounds.x + xShift,
+            // Center each line
+            lines.forEach((line) => {
+                // TODO abstract this
+                const xShift =
+                    align === HorizontalAlign.center
+                        ? (width - line.totalWidth) / 2
+                        : align === HorizontalAlign.right
+                        ? width - line.totalWidth
+                        : 0
+                line.marks.forEach((mark) => {
+                    mark.x += xShift
+                    mark.label.bounds = mark.label.bounds.set({
+                        x: mark.label.bounds.x + xShift,
+                    })
                 })
             })
-        })
 
-        return flatten(lines.map((l) => l.marks))
-    }
+            return flatten(lines.map((l) => l.marks))
+        }
 
-    get height(): number {
-        return max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
-    }
+        get height(): number {
+            return max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
+        }
 
-    render(): JSX.Element {
-        const { manager, marks } = this
+        render(): JSX.Element {
+            const { manager, marks } = this
 
-        return (
-            <g>
-                <g className="categoricalColorLegend">
-                    {marks.map((mark, index) => {
-                        return (
-                            <g
-                                key={index}
-                                onMouseOver={(): void =>
-                                    manager.onLegendMouseOver
-                                        ? manager.onLegendMouseOver(mark.bin)
-                                        : undefined
-                                }
-                                onMouseLeave={(): void =>
-                                    manager.onLegendMouseLeave
-                                        ? manager.onLegendMouseLeave()
-                                        : undefined
-                                }
-                            >
-                                <rect
-                                    x={this.legendX + mark.x}
-                                    y={this.categoryLegendY + mark.y}
-                                    width={mark.rectSize}
-                                    height={mark.rectSize}
-                                    fill={
-                                        mark.bin.patternRef
-                                            ? `url(#${mark.bin.patternRef})`
-                                            : mark.bin.color
+            return (
+                <g>
+                    <g className="categoricalColorLegend">
+                        {marks.map((mark, index) => {
+                            return (
+                                <g
+                                    key={index}
+                                    onMouseOver={(): void =>
+                                        manager.onLegendMouseOver
+                                            ? manager.onLegendMouseOver(
+                                                  mark.bin
+                                              )
+                                            : undefined
                                     }
-                                    stroke={manager.categoricalBinStroke}
-                                    strokeWidth={0.4}
-                                    opacity={manager.legendOpacity} // defaults to undefined which removes the prop
-                                />
-                                ,
-                                <text
-                                    x={this.legendX + mark.label.bounds.x}
-                                    y={
-                                        this.categoryLegendY +
-                                        mark.label.bounds.y
+                                    onMouseLeave={(): void =>
+                                        manager.onLegendMouseLeave
+                                            ? manager.onLegendMouseLeave()
+                                            : undefined
                                     }
-                                    // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
-                                    // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
-                                    // do with some rough positioning.
-                                    dy={dyFromAlign(VerticalAlign.middle)}
-                                    fontSize={mark.label.fontSize}
                                 >
-                                    {mark.label.text}
-                                </text>
-                            </g>
-                        )
-                    })}
+                                    <rect
+                                        x={this.legendX + mark.x}
+                                        y={this.categoryLegendY + mark.y}
+                                        width={mark.rectSize}
+                                        height={mark.rectSize}
+                                        fill={
+                                            mark.bin.patternRef
+                                                ? `url(#${mark.bin.patternRef})`
+                                                : mark.bin.color
+                                        }
+                                        stroke={manager.categoricalBinStroke}
+                                        strokeWidth={0.4}
+                                        opacity={manager.legendOpacity} // defaults to undefined which removes the prop
+                                    />
+                                    ,
+                                    <text
+                                        x={this.legendX + mark.label.bounds.x}
+                                        y={
+                                            this.categoryLegendY +
+                                            mark.label.bounds.y
+                                        }
+                                        // we can't use dominant-baseline to do proper alignment since our svg-to-png library Sharp
+                                        // doesn't support that (https://github.com/lovell/sharp/issues/1996), so we'll have to make
+                                        // do with some rough positioning.
+                                        dy={dyFromAlign(VerticalAlign.middle)}
+                                        fontSize={mark.label.fontSize}
+                                    >
+                                        {mark.label.text}
+                                    </text>
+                                </g>
+                            )
+                        })}
+                    </g>
                 </g>
-            </g>
-        )
+            )
+        }
     }
-});
+)

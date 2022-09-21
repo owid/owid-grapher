@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, action, makeObservable } from "mobx";
+import { computed, action, makeObservable } from "mobx"
 import Select from "react-select"
 import { getColorSchemeForChartType } from "../grapher/color/ColorSchemes.js"
 import { observer } from "mobx-react"
@@ -32,15 +32,15 @@ export const ColorSchemeDropdown = observer(
         }
 
         constructor(props: ColorSchemeDropdownProps) {
-            super(props);
+            super(props)
 
             makeObservable(this, {
                 additionalOptions: computed,
                 gradientColorCount: computed,
                 colorSchemeOptions: computed,
                 allOptions: computed,
-                onChange: action.bound
-            });
+                onChange: action.bound,
+            })
         }
 
         get additionalOptions() {
@@ -52,7 +52,9 @@ export const ColorSchemeDropdown = observer(
         }
 
         get colorSchemeOptions() {
-            return Object.entries(getColorSchemeForChartType(this.props.chartType))
+            return Object.entries(
+                getColorSchemeForChartType(this.props.chartType)
+            )
                 .filter(([, v]) => v !== undefined)
                 .map(([key, scheme]) => {
                     return {
@@ -78,7 +80,8 @@ export const ColorSchemeDropdown = observer(
 
             const step = 100 / count
             const gradientEntries = colors.map(
-                (color, i) => `${color} ${i * step}%, ${color} ${(i + 1) * step}%`
+                (color, i) =>
+                    `${color} ${i * step}%, ${color} ${(i + 1) * step}%`
             )
 
             return `linear-gradient(90deg, ${gradientEntries.join(", ")})`
@@ -145,4 +148,4 @@ export const ColorSchemeDropdown = observer(
             )
         }
     }
-);
+)

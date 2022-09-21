@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import * as lodash from "lodash"
-import { observable, computed, action, makeObservable } from "mobx";
+import { observable, computed, action, makeObservable } from "mobx"
 import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp.js"
@@ -25,7 +25,7 @@ interface ErrorMessage {
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export class Admin {
-    errorMessage?: ErrorMessage;
+    errorMessage?: ErrorMessage
     basePath: string
     username: string
     isSuperuser: boolean
@@ -43,8 +43,8 @@ export class Admin {
             loadingIndicatorSetting: observable,
             setErrorMessage: action.bound,
             addRequest: action.bound,
-            removeRequest: action.bound
-        });
+            removeRequest: action.bound,
+        })
 
         this.basePath = "/admin"
         this.username = props.username
@@ -52,7 +52,7 @@ export class Admin {
         this.settings = props.settings
     }
 
-    currentRequests: Promise<Response>[] = [];
+    currentRequests: Promise<Response>[] = []
 
     get showLoadingIndicator(): boolean {
         return this.loadingIndicatorSetting === "default"
@@ -60,7 +60,7 @@ export class Admin {
             : this.loadingIndicatorSetting === "loading"
     }
 
-    loadingIndicatorSetting: "loading" | "off" | "default" = "default";
+    loadingIndicatorSetting: "loading" | "off" | "default" = "default"
 
     start(containerNode: HTMLElement, gitCmsBranchName: string): void {
         ReactDOM.render(

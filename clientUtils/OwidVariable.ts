@@ -1,6 +1,6 @@
 // todo: remove file
 
-import { observable, makeObservable } from "mobx";
+import { observable, makeObservable } from "mobx"
 import {
     Persistable,
     updatePersistables,
@@ -14,19 +14,19 @@ import {
 } from "./OwidVariableDisplayConfigInterface.js"
 
 class OwidVariableDisplayConfigDefaults {
-    name?: string = undefined;
-    unit?: string = undefined;
-    shortUnit?: string = undefined;
-    isProjection?: boolean = undefined;
-    conversionFactor?: number = undefined;
-    numDecimalPlaces?: number = undefined;
-    tolerance?: number = undefined;
-    yearIsDay?: boolean = undefined;
-    zeroDay?: string = undefined;
-    entityAnnotationsMap?: string = undefined;
-    includeInTable? = true;
-    tableDisplay?: OwidVariableDataTableConfigInteface;
-    color?: string = undefined;
+    name?: string = undefined
+    unit?: string = undefined
+    shortUnit?: string = undefined
+    isProjection?: boolean = undefined
+    conversionFactor?: number = undefined
+    numDecimalPlaces?: number = undefined
+    tolerance?: number = undefined
+    yearIsDay?: boolean = undefined
+    zeroDay?: string = undefined
+    entityAnnotationsMap?: string = undefined
+    includeInTable? = true
+    tableDisplay?: OwidVariableDataTableConfigInteface
+    color?: string = undefined
 
     constructor() {
         makeObservable(this, {
@@ -42,8 +42,8 @@ class OwidVariableDisplayConfigDefaults {
             entityAnnotationsMap: observable,
             includeInTable: observable,
             tableDisplay: observable,
-            color: observable
-        });
+            color: observable,
+        })
     }
 }
 

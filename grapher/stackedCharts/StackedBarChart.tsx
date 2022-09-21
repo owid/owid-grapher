@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, action, observable, makeObservable } from "mobx";
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { uniq, makeSafeForCSS, sum } from "../../clientUtils/Util.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
@@ -51,76 +51,88 @@ interface TickmarkPlacement {
     isHidden: boolean
 }
 
-const StackedBarSegment = observer(class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
-    base: React.RefObject<SVGRectElement> = React.createRef()
+const StackedBarSegment = observer(
+    class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
+        base: React.RefObject<SVGRectElement> = React.createRef()
 
-    mouseOver: boolean = false;
+        mouseOver: boolean = false
 
-    constructor(props: StackedBarSegmentProps) {
-        super(props);
+        constructor(props: StackedBarSegmentProps) {
+            super(props)
 
-        makeObservable(this, {
-            mouseOver: observable,
-            yPos: computed,
-            barHeight: computed,
-            trueOpacity: computed,
-            onBarMouseOver: action.bound,
-            onBarMouseLeave: action.bound
-        });
+            makeObservable(this, {
+                mouseOver: observable,
+                yPos: computed,
+                barHeight: computed,
+                trueOpacity: computed,
+                onBarMouseOver: action.bound,
+                onBarMouseLeave: action.bound,
+            })
+        }
+
+        get yPos(): number {
+            const { bar, yAxis } = this.props
+            return yAxis.place(bar.value + bar.valueOffset)
+        }
+
+        get barHeight(): number {
+            const { bar, yAxis } = this.props
+            return yAxis.place(bar.valueOffset) - this.yPos
+        }
+
+        get trueOpacity(): number {
+            return this.mouseOver ? 1 : this.props.opacity
+        }
+
+        onBarMouseOver(): void {
+            this.mouseOver = true
+            this.props.onBarMouseOver(this.props.bar, this.props.series)
+        }
+
+        onBarMouseLeave(): void {
+            this.mouseOver = false
+            this.props.onBarMouseLeave()
+        }
+
+        render(): JSX.Element {
+            const { color, xOffset, barWidth } = this.props
+            const { yPos, barHeight, trueOpacity } = this
+
+            return (
+                <rect
+                    ref={this.base}
+                    x={xOffset}
+                    y={yPos}
+                    width={barWidth}
+                    height={barHeight}
+                    fill={color}
+                    opacity={trueOpacity}
+                    onMouseOver={this.onBarMouseOver}
+                    onMouseLeave={this.onBarMouseLeave}
+                />
+            )
+        }
     }
-
-    get yPos(): number {
-        const { bar, yAxis } = this.props
-        return yAxis.place(bar.value + bar.valueOffset)
-    }
-
-    get barHeight(): number {
-        const { bar, yAxis } = this.props
-        return yAxis.place(bar.valueOffset) - this.yPos
-    }
-
-    get trueOpacity(): number {
-        return this.mouseOver ? 1 : this.props.opacity
-    }
-
-    onBarMouseOver(): void {
-        this.mouseOver = true
-        this.props.onBarMouseOver(this.props.bar, this.props.series)
-    }
-
-    onBarMouseLeave(): void {
-        this.mouseOver = false
-        this.props.onBarMouseLeave()
-    }
-
-    render(): JSX.Element {
-        const { color, xOffset, barWidth } = this.props
-        const { yPos, barHeight, trueOpacity } = this
-
-        return (
-            <rect
-                ref={this.base}
-                x={xOffset}
-                y={yPos}
-                width={barWidth}
-                height={barHeight}
-                fill={color}
-                opacity={trueOpacity}
-                onMouseOver={this.onBarMouseOver}
-                onMouseLeave={this.onBarMouseLeave}
-            />
-        )
-    }
-});
+)
 
 export const StackedBarChart = observer(
-    class StackedBarChart extends AbstractStackedChart implements VerticalColorLegendManager, ColorScaleManager {
+    class StackedBarChart
+        extends AbstractStackedChart
+        implements VerticalColorLegendManager, ColorScaleManager
+    {
         readonly minBarSpacing = 4
 
         constructor(props: AbstractStackedChartProps) {
             super(props)
 
-            makeObservable<StackedBarChart, "baseFontSize" | "paddingForLegend" | "legendDimensions" | "tickPlacements" | "xValues">(this, {
+            makeObservable<
+                StackedBarChart,
+                | "baseFontSize"
+                | "paddingForLegend"
+                | "legendDimensions"
+                | "tickPlacements"
+                | "xValues"
+            >(this, {
                 hoverColor: observable,
                 hoverBar: observable,
                 hoverSeries: observable,
@@ -150,15 +162,15 @@ export const StackedBarChart = observer(
                 legendX: computed,
                 xValues: computed,
                 colorScaleConfig: computed,
-                series: computed
-            });
+                series: computed,
+            })
         }
 
         // currently hovered legend color
-        hoverColor?: string;
+        hoverColor?: string
         // current hovered individual bar
-        hoverBar?: StackedPoint<Time>;
-        hoverSeries?: StackedSeries<Time>;
+        hoverBar?: StackedPoint<Time>
+        hoverSeries?: StackedSeries<Time>
 
         private get baseFontSize(): number {
             return this.manager.baseFontSize ?? BASE_FONT_SIZE
@@ -282,7 +294,9 @@ export const StackedBarChart = observer(
                     (bar) => bar.position === hoverBar.position
                 ),
             }))
-            const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
+            const totalValue = sum(
+                seriesRows.map((bar) => bar.point?.value ?? 0)
+            )
             const showTotalValue: boolean = seriesRows.length > 1
             return (
                 <Tooltip
@@ -332,9 +346,12 @@ export const StackedBarChart = observer(
                                                 paddingLeft: "0.8em",
                                             }}
                                         >
-                                            {yColumn.formatValueLong(point?.value, {
-                                                trailingZeroes: true,
-                                            })}
+                                            {yColumn.formatValueLong(
+                                                point?.value,
+                                                {
+                                                    trailingZeroes: true,
+                                                }
+                                            )}
                                         </td>
                                     </tr>
                                 )
@@ -384,7 +401,9 @@ export const StackedBarChart = observer(
                 const text = horizontalAxis.formatTick(x)
                 const xPos = mapXValueToOffset.get(x) as number
 
-                const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
+                const bounds = Bounds.forText(text, {
+                    fontSize: this.tickFontSize,
+                })
                 return {
                     text,
                     bounds: bounds.set({
@@ -408,7 +427,8 @@ export const StackedBarChart = observer(
 
                     if (t1.bounds.intersects(t2.bounds.padWidth(-5))) {
                         if (i === 0) t2.isHidden = true
-                        else if (j === tickPlacements.length - 1) t1.isHidden = true
+                        else if (j === tickPlacements.length - 1)
+                            t1.isHidden = true
                         else t2.isHidden = true
                     }
                 }
@@ -425,7 +445,10 @@ export const StackedBarChart = observer(
             this.hoverColor = undefined
         }
 
-        onBarMouseOver(bar: StackedPoint<Time>, series: StackedSeries<Time>): void {
+        onBarMouseOver(
+            bar: StackedPoint<Time>,
+            series: StackedSeries<Time>
+        ): void {
             this.hoverBar = bar
             this.hoverSeries = series
         }
@@ -543,7 +566,9 @@ export const StackedBarChart = observer(
                                                 opacity={barOpacity}
                                                 yAxis={verticalAxis}
                                                 series={series}
-                                                onBarMouseOver={this.onBarMouseOver}
+                                                onBarMouseOver={
+                                                    this.onBarMouseOver
+                                                }
                                                 onBarMouseLeave={
                                                     this.onBarMouseLeave
                                                 }
@@ -586,4 +611,4 @@ export const StackedBarChart = observer(
             return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
         }
     }
-);
+)

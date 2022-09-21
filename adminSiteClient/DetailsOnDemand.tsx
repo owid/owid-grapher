@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed, observable, makeObservable } from "mobx";
+import { action, computed, observable, makeObservable } from "mobx"
 import { bind } from "decko"
 import { observer } from "mobx-react"
 import { AdminLayout } from "./AdminLayout.js"
@@ -34,127 +34,255 @@ interface DetailRowProps {
     deleteDetail: (id: number) => Promise<void>
 }
 
-const DetailRow = observer(class DetailRow extends React.Component<DetailRowProps> {
-    isEditing: boolean = false;
-    isDeleting: boolean = false;
-    deleteButtonRef = React.createRef<HTMLButtonElement>()
+const DetailRow = observer(
+    class DetailRow extends React.Component<DetailRowProps> {
+        isEditing: boolean = false
+        isDeleting: boolean = false
+        deleteButtonRef = React.createRef<HTMLButtonElement>()
 
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    constructor(props: DetailRowProps) {
-        super(props);
+        constructor(props: DetailRowProps) {
+            super(props)
 
-        makeObservable(this, {
-            isEditing: observable,
-            isDeleting: observable,
-            handleEdit: action.bound,
-            handleClickOff: action.bound,
-            handleDelete: action.bound,
-            doesDetailConflict: computed,
-            isDetailValid: computed
-        });
+            makeObservable(this, {
+                isEditing: observable,
+                isDeleting: observable,
+                handleEdit: action.bound,
+                handleClickOff: action.bound,
+                handleDelete: action.bound,
+                doesDetailConflict: computed,
+                isDetailValid: computed,
+            })
+        }
+
+        async handleEdit() {
+            if (this.isEditing) {
+                try {
+                    await this.context.admin.requestJSON(
+                        `/api/details/${this.props.detail.id}`,
+                        this.props.detail,
+                        "PUT",
+                        { onFailure: "continue" }
+                    )
+                    this.isEditing = false
+                } catch (error) {
+                    console.error(error)
+                    this.context.admin.setErrorMessage({
+                        title: "Unable to update detail",
+                        content:
+                            stringifyUnkownError(error) ||
+                            "Check the developer console for more information.",
+                    })
+                }
+            } else {
+                this.isEditing = true
+            }
+        }
+
+        handleClickOff(event: Event) {
+            const target = (
+                event as unknown as React.MouseEvent<HTMLBodyElement>
+            ).target
+
+            if (!this.deleteButtonRef?.current?.contains(target as Node)) {
+                document.body.removeEventListener("click", this.handleClickOff)
+                this.isDeleting = false
+            }
+        }
+
+        async handleDelete() {
+            if (this.isDeleting) {
+                await this.props.deleteDetail(this.props.detail.id)
+                this.isDeleting = false
+                document.body.removeEventListener("click", this.handleClickOff)
+            } else {
+                document.body.addEventListener("click", this.handleClickOff)
+                this.isDeleting = true
+            }
+        }
+
+        get doesDetailConflict(): boolean {
+            if (!this.isEditing) return false
+
+            const { category, term } = this.props.detail
+            return (
+                this.props.details.filter(
+                    (other) =>
+                        other.category === category && other.term === term
+                ).length > 1
+            )
+        }
+
+        get isDetailValid(): boolean {
+            if (!this.isEditing) return true
+
+            const { category, term, title, content } = this.props.detail
+            return Boolean(category && term && title && content)
+        }
+
+        render() {
+            return (
+                <tr>
+                    {detailKeys.map((key) => {
+                        if (this.isEditing) {
+                            return (
+                                <td key={key}>
+                                    <Controlled
+                                        options={{
+                                            lineWrapping: true,
+                                            extraKeys: {
+                                                Tab: false,
+                                                "Shift-Tab": false,
+                                            },
+                                        }}
+                                        className="details__codemirror"
+                                        onBeforeChange={(_, __, value) => {
+                                            this.props.detail[key] =
+                                                validation[key](value)
+                                        }}
+                                        value={this.props.detail[key]}
+                                    />
+                                </td>
+                            )
+                        }
+                        return (
+                            <td key={key}>
+                                <span>{this.props.detail[key]}</span>
+                            </td>
+                        )
+                    })}
+                    <td>
+                        <div className="d-flex justify-content-between">
+                            <button
+                                disabled={
+                                    this.isDeleting ||
+                                    this.doesDetailConflict ||
+                                    !this.isDetailValid
+                                }
+                                title={
+                                    this.doesDetailConflict
+                                        ? "A detail with this category::term combination already exists"
+                                        : ""
+                                }
+                                className="btn btn-primary"
+                                onClick={() => this.handleEdit()}
+                            >
+                                {this.isEditing ? "Save" : "Edit"}
+                            </button>
+                            <button
+                                ref={this.deleteButtonRef}
+                                className="btn btn-danger"
+                                onClick={() => this.handleDelete()}
+                            >
+                                {this.isDeleting ? "Are you sure?" : "Delete"}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            )
+        }
     }
+)
 
-    async handleEdit() {
-        if (this.isEditing) {
+const NewDetail = observer(
+    class NewDetail extends React.Component<{
+        details: Detail[]
+    }> {
+        detail: DraftDetail = {
+            category: "",
+            term: "",
+            title: "",
+            content: "",
+        }
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
+
+        constructor(props: { details: Detail[] }) {
+            super(props)
+
+            makeObservable(this, {
+                detail: observable.deep,
+                doesDetailConflict: computed,
+                handleSubmit: action.bound,
+                isDetailValid: computed,
+            })
+        }
+
+        get doesDetailConflict(): boolean {
+            const { category, term } = this.detail
+            return (
+                this.props.details.filter(
+                    (other) =>
+                        other.category === category && other.term === term
+                ).length > 0
+            )
+        }
+
+        async handleSubmit() {
             try {
-                await this.context.admin.requestJSON(
-                    `/api/details/${this.props.detail.id}`,
-                    this.props.detail,
-                    "PUT",
+                const { id } = await this.context.admin.requestJSON(
+                    "/api/details",
+                    this.detail,
+                    "POST",
                     { onFailure: "continue" }
                 )
-                this.isEditing = false
+
+                this.props.details.push({
+                    ...this.detail,
+                    id,
+                })
+
+                this.detail = {
+                    category: "",
+                    term: "",
+                    title: "",
+                    content: "",
+                }
             } catch (error) {
                 console.error(error)
                 this.context.admin.setErrorMessage({
-                    title: "Unable to update detail",
+                    title: "Unable to save detail",
                     content:
                         stringifyUnkownError(error) ||
                         "Check the developer console for more information.",
                 })
             }
-        } else {
-            this.isEditing = true
         }
-    }
 
-    handleClickOff(event: Event) {
-        const target = (event as unknown as React.MouseEvent<HTMLBodyElement>)
-            .target
-
-        if (!this.deleteButtonRef?.current?.contains(target as Node)) {
-            document.body.removeEventListener("click", this.handleClickOff)
-            this.isDeleting = false
+        get isDetailValid(): boolean {
+            const { category, term, title, content } = this.detail
+            return Boolean(category && term && title && content)
         }
-    }
 
-    async handleDelete() {
-        if (this.isDeleting) {
-            await this.props.deleteDetail(this.props.detail.id)
-            this.isDeleting = false
-            document.body.removeEventListener("click", this.handleClickOff)
-        } else {
-            document.body.addEventListener("click", this.handleClickOff)
-            this.isDeleting = true
-        }
-    }
-
-    get doesDetailConflict(): boolean {
-        if (!this.isEditing) return false
-
-        const { category, term } = this.props.detail
-        return (
-            this.props.details.filter(
-                (other) => other.category === category && other.term === term
-            ).length > 1
-        )
-    }
-
-    get isDetailValid(): boolean {
-        if (!this.isEditing) return true
-
-        const { category, term, title, content } = this.props.detail
-        return Boolean(category && term && title && content)
-    }
-
-    render() {
-        return (
-            <tr>
-                {detailKeys.map((key) => {
-                    if (this.isEditing) {
-                        return (
-                            <td key={key}>
-                                <Controlled
-                                    options={{
-                                        lineWrapping: true,
-                                        extraKeys: {
-                                            Tab: false,
-                                            "Shift-Tab": false,
-                                        },
-                                    }}
-                                    className="details__codemirror"
-                                    onBeforeChange={(_, __, value) => {
-                                        this.props.detail[key] =
-                                            validation[key](value)
-                                    }}
-                                    value={this.props.detail[key]}
-                                />
-                            </td>
-                        )
-                    }
-                    return (
+        render() {
+            return (
+                <tr>
+                    {detailKeys.map((key) => (
                         <td key={key}>
-                            <span>{this.props.detail[key]}</span>
+                            <Controlled
+                                options={{
+                                    lineWrapping: true,
+                                    extraKeys: {
+                                        Tab: false,
+                                        "Shift-Tab": false,
+                                    },
+                                }}
+                                className="details__codemirror"
+                                onBeforeChange={(_, __, value) => {
+                                    this.detail[key] = validation[key](value)
+                                }}
+                                value={this.detail[key]}
+                            />
                         </td>
-                    )
-                })}
-                <td>
-                    <div className="d-flex justify-content-between">
+                    ))}
+                    <td>
                         <button
+                            className="btn btn-primary"
+                            onClick={() => this.handleSubmit()}
                             disabled={
-                                this.isDeleting ||
+                                !every(this.detail) ||
                                 this.doesDetailConflict ||
                                 !this.isDetailValid
                             }
@@ -163,222 +291,103 @@ const DetailRow = observer(class DetailRow extends React.Component<DetailRowProp
                                     ? "A detail with this category::term combination already exists"
                                     : ""
                             }
-                            className="btn btn-primary"
-                            onClick={() => this.handleEdit()}
                         >
-                            {this.isEditing ? "Save" : "Edit"}
+                            Submit
                         </button>
-                        <button
-                            ref={this.deleteButtonRef}
-                            className="btn btn-danger"
-                            onClick={() => this.handleDelete()}
-                        >
-                            {this.isDeleting ? "Are you sure?" : "Delete"}
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        )
-    }
-});
-
-const NewDetail = observer(class NewDetail extends React.Component<{
-    details: Detail[]
-}> {
-    detail: DraftDetail = {
-        category: "",
-        term: "",
-        title: "",
-        content: "",
-    };
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-
-    constructor(
-        props: {
-            details: Detail[]
-        }
-    ) {
-        super(props);
-
-        makeObservable(this, {
-            detail: observable.deep,
-            doesDetailConflict: computed,
-            handleSubmit: action.bound,
-            isDetailValid: computed
-        });
-    }
-
-    get doesDetailConflict(): boolean {
-        const { category, term } = this.detail
-        return (
-            this.props.details.filter(
-                (other) => other.category === category && other.term === term
-            ).length > 0
-        )
-    }
-
-    async handleSubmit() {
-        try {
-            const { id } = await this.context.admin.requestJSON(
-                "/api/details",
-                this.detail,
-                "POST",
-                { onFailure: "continue" }
-            )
-
-            this.props.details.push({
-                ...this.detail,
-                id,
-            })
-
-            this.detail = {
-                category: "",
-                term: "",
-                title: "",
-                content: "",
-            }
-        } catch (error) {
-            console.error(error)
-            this.context.admin.setErrorMessage({
-                title: "Unable to save detail",
-                content:
-                    stringifyUnkownError(error) ||
-                    "Check the developer console for more information.",
-            })
-        }
-    }
-
-    get isDetailValid(): boolean {
-        const { category, term, title, content } = this.detail
-        return Boolean(category && term && title && content)
-    }
-
-    render() {
-        return (
-            <tr>
-                {detailKeys.map((key) => (
-                    <td key={key}>
-                        <Controlled
-                            options={{
-                                lineWrapping: true,
-                                extraKeys: { Tab: false, "Shift-Tab": false },
-                            }}
-                            className="details__codemirror"
-                            onBeforeChange={(_, __, value) => {
-                                this.detail[key] = validation[key](value)
-                            }}
-                            value={this.detail[key]}
-                        />
                     </td>
-                ))}
-                <td>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => this.handleSubmit()}
-                        disabled={
-                            !every(this.detail) ||
-                            this.doesDetailConflict ||
-                            !this.isDetailValid
-                        }
-                        title={
-                            this.doesDetailConflict
-                                ? "A detail with this category::term combination already exists"
-                                : ""
-                        }
-                    >
-                        Submit
-                    </button>
-                </td>
-            </tr>
-        )
-    }
-});
-
-export const DetailsOnDemandPage = observer(class DetailsOnDemandPage extends React.Component {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-    details: Array<Detail> = [];
-    sortKey: keyof Detail = "id"
-
-    constructor(props) {
-        super(props);
-
-        makeObservable(this, {
-            details: observable.deep
-        });
-    }
-
-    @bind async getDetails() {
-        const json = await this.context.admin.getJSON("/api/details")
-        this.details = json.details
-    }
-
-    @bind async deleteDetail(id: number) {
-        try {
-            await this.context.admin.requestJSON(
-                `/api/details/${id}`,
-                {},
-                "DELETE",
-                { onFailure: "continue" }
+                </tr>
             )
-            this.details = this.details.filter((detail) => detail.id !== id)
-        } catch (error) {
-            console.error(error)
-            this.context.admin.setErrorMessage({
-                title: "Unable to delete detail",
-                content:
-                    stringifyUnkownError(error) ||
-                    "Check the developer console for more information.",
+        }
+    }
+)
+
+export const DetailsOnDemandPage = observer(
+    class DetailsOnDemandPage extends React.Component {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
+        details: Array<Detail> = []
+        sortKey: keyof Detail = "id"
+
+        constructor(props) {
+            super(props)
+
+            makeObservable(this, {
+                details: observable.deep,
             })
         }
-    }
 
-    componentDidMount() {
-        this.getDetails()
-    }
+        @bind async getDetails() {
+            const json = await this.context.admin.getJSON("/api/details")
+            this.details = json.details
+        }
 
-    sortBy(key: keyof Detail) {
-        if (key === this.sortKey) this.details = this.details.slice().reverse()
-        else {
-            this.sortKey = key
-            this.details = sortBy(this.details, (detail) => detail[key])
+        @bind async deleteDetail(id: number) {
+            try {
+                await this.context.admin.requestJSON(
+                    `/api/details/${id}`,
+                    {},
+                    "DELETE",
+                    { onFailure: "continue" }
+                )
+                this.details = this.details.filter((detail) => detail.id !== id)
+            } catch (error) {
+                console.error(error)
+                this.context.admin.setErrorMessage({
+                    title: "Unable to delete detail",
+                    content:
+                        stringifyUnkownError(error) ||
+                        "Check the developer console for more information.",
+                })
+            }
+        }
+
+        componentDidMount() {
+            this.getDetails()
+        }
+
+        sortBy(key: keyof Detail) {
+            if (key === this.sortKey)
+                this.details = this.details.slice().reverse()
+            else {
+                this.sortKey = key
+                this.details = sortBy(this.details, (detail) => detail[key])
+            }
+        }
+
+        render() {
+            return (
+                <AdminLayout title="Details on Demand">
+                    <table className="table table-bordered dod-table">
+                        <thead>
+                            <tr>
+                                {detailKeys.map((key) => (
+                                    <th
+                                        key={key}
+                                        className={`dod-table-header--${key}`}
+                                        onClick={() => this.sortBy(key)}
+                                    >
+                                        {key}
+                                    </th>
+                                ))}
+                                <th className="dod-table-header--actions">
+                                    actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {this.details.map((detail) => (
+                                <DetailRow
+                                    details={this.details}
+                                    detail={detail}
+                                    deleteDetail={this.deleteDetail}
+                                    key={detail.id}
+                                />
+                            ))}
+                            <NewDetail details={this.details} />
+                        </tbody>
+                    </table>
+                </AdminLayout>
+            )
         }
     }
-
-    render() {
-        return (
-            <AdminLayout title="Details on Demand">
-                <table className="table table-bordered dod-table">
-                    <thead>
-                        <tr>
-                            {detailKeys.map((key) => (
-                                <th
-                                    key={key}
-                                    className={`dod-table-header--${key}`}
-                                    onClick={() => this.sortBy(key)}
-                                >
-                                    {key}
-                                </th>
-                            ))}
-                            <th className="dod-table-header--actions">
-                                actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.details.map((detail) => (
-                            <DetailRow
-                                details={this.details}
-                                detail={detail}
-                                deleteDetail={this.deleteDetail}
-                                key={detail.id}
-                            />
-                        ))}
-                        <NewDetail details={this.details} />
-                    </tbody>
-                </table>
-            </AdminLayout>
-        )
-    }
-});
+)

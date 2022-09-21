@@ -1,78 +1,82 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, runInAction, makeObservable } from "mobx";
+import { observable, runInAction, makeObservable } from "mobx"
 import { BindString, Toggle } from "./Forms.js"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { UserIndexMeta } from "./UserMeta.js"
 
-export const UserEditPage = observer(class UserEditPage extends React.Component<{ userId: number }> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+export const UserEditPage = observer(
+    class UserEditPage extends React.Component<{ userId: number }> {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    user?: UserIndexMeta;
-    isSaved: boolean = false;
+        user?: UserIndexMeta
+        isSaved: boolean = false
 
-    constructor(props: { userId: number }) {
-        super(props);
+        constructor(props: { userId: number }) {
+            super(props)
 
-        makeObservable(this, {
-            user: observable,
-            isSaved: observable
-        });
-    }
+            makeObservable(this, {
+                user: observable,
+                isSaved: observable,
+            })
+        }
 
-    render() {
-        const { user, isSaved } = this
-        if (!user) return null
-        else if (isSaved) return <Redirect to="/users" />
+        render() {
+            const { user, isSaved } = this
+            if (!user) return null
+            else if (isSaved) return <Redirect to="/users" />
 
-        return (
-            <AdminLayout>
-                <main className="UserEditPage">
-                    <BindString
-                        label="Full Name"
-                        field="fullName"
-                        store={user}
-                    />
-                    <Toggle
-                        label="User has access"
-                        value={user.isActive}
-                        onValue={(v) => (user.isActive = v)}
-                    />
-                    <button
-                        className="btn btn-success"
-                        onClick={() => this.save()}
-                    >
-                        Update user
-                    </button>
-                </main>
-            </AdminLayout>
-        )
-    }
-
-    async save() {
-        if (this.user) {
-            await this.context.admin.requestJSON(
-                `/api/users/${this.props.userId}`,
-                this.user,
-                "PUT"
+            return (
+                <AdminLayout>
+                    <main className="UserEditPage">
+                        <BindString
+                            label="Full Name"
+                            field="fullName"
+                            store={user}
+                        />
+                        <Toggle
+                            label="User has access"
+                            value={user.isActive}
+                            onValue={(v) => (user.isActive = v)}
+                        />
+                        <button
+                            className="btn btn-success"
+                            onClick={() => this.save()}
+                        >
+                            Update user
+                        </button>
+                    </main>
+                </AdminLayout>
             )
-            this.isSaved = true
+        }
+
+        async save() {
+            if (this.user) {
+                await this.context.admin.requestJSON(
+                    `/api/users/${this.props.userId}`,
+                    this.user,
+                    "PUT"
+                )
+                this.isSaved = true
+            }
+        }
+
+        async getData() {
+            const { admin } = this.context
+
+            const json = await admin.getJSON(
+                `/api/users/${this.props.userId}.json`
+            )
+            runInAction(() => {
+                this.user = json.user
+            })
+        }
+
+        componentDidMount() {
+            this.getData()
         }
     }
-
-    async getData() {
-        const { admin } = this.context
-
-        const json = await admin.getJSON(`/api/users/${this.props.userId}.json`)
-        runInAction(() => {
-            this.user = json.user
-        })
-    }
-
-    componentDidMount() {
-        this.getData()
-    }
-});
+)

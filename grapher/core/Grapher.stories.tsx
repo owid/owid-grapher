@@ -10,7 +10,7 @@ import {
     GrapherTabOption,
 } from "./GrapherConstants.js"
 import { BlankOwidTable } from "../../coreTable/OwidTable.js"
-import { action, observable, makeObservable } from "mobx";
+import { action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher.js"
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
@@ -133,14 +133,14 @@ export const WithAuthorTimeFilter = (): JSX.Element => {
 
 class PerfGrapher extends React.Component {
     constructor(props) {
-        super(props);
+        super(props)
 
         makeObservable<PerfGrapher, "changeChartType">(this, {
             loadBigTable: action.bound,
             table: observable.ref,
             changeChartType: action.bound,
-            chartTypeName: observable
-        });
+            chartTypeName: observable,
+        })
     }
 
     loadBigTable(): void {
@@ -150,13 +150,13 @@ class PerfGrapher extends React.Component {
         })
     }
 
-    table = basics.table!;
+    table = basics.table!
 
     private changeChartType(type: ChartTypeName): void {
         this.chartTypeName = type
     }
 
-    chartTypeName = ChartTypeName.LineChart;
+    chartTypeName = ChartTypeName.LineChart
 
     render(): JSX.Element {
         const key = Math.random() // I do this hack to force a rerender until can re-add the grapher model/grapher view that we used to have. @breck 10/29/2020

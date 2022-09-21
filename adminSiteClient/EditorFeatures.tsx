@@ -1,5 +1,5 @@
 import { EntitySelectionMode } from "../grapher/core/GrapherConstants.js"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { ChartEditor } from "./ChartEditor.js"
 
 // Responsible for determining what parts of the editor should be shown, based on the
@@ -26,8 +26,8 @@ export class EditorFeatures {
             comparisonLine: computed,
             canSpecifySortOrder: computed,
             canSortByColumn: computed,
-            canHideTotalValueLabel: computed
-        });
+            canHideTotalValueLabel: computed,
+        })
 
         this.editor = editor
     }

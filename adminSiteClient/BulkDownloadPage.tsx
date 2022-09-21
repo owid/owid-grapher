@@ -3,21 +3,23 @@ import { observer } from "mobx-react"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
-export const BulkDownloadPage = observer(class BulkDownloadPage extends React.Component {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
+export const BulkDownloadPage = observer(
+    class BulkDownloadPage extends React.Component {
+        static contextType = AdminAppContext
+        context!: AdminAppContextType
 
-    render() {
-        return (
-            <AdminLayout>
-                <main className="BulkDownloadPage">
-                    <h2>Bulk CSV downloads</h2>
-                    <DownloadChartsSection />
-                </main>
-            </AdminLayout>
-        )
+        render() {
+            return (
+                <AdminLayout>
+                    <main className="BulkDownloadPage">
+                        <h2>Bulk CSV downloads</h2>
+                        <DownloadChartsSection />
+                    </main>
+                </AdminLayout>
+            )
+        }
     }
-});
+)
 
 export class DownloadChartsSection extends React.Component {
     render() {

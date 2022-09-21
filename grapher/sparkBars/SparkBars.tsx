@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
 import { bind } from "decko"
@@ -32,96 +32,100 @@ export interface SparkBarsDatum {
     value: number
 }
 
-export const SparkBars = observer(class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
-    static defaultProps = {
-        onHover: (): undefined => undefined,
-        className: "spark-bars",
-    }
-
-    constructor(props: SparkBarsProps<T>) {
-        super(props);
-
-        makeObservable(this, {
-            maxY: computed,
-            barHeightScale: computed,
-            bars: computed
-        });
-    }
-
-    get maxY(): number | undefined {
-        return max(this.bars.map((d) => (d ? this.props.y(d) ?? 0 : 0)))
-    }
-
-    get barHeightScale(): ScaleLinear<number, number> {
-        const maxY = this.maxY
-        return scaleLinear()
-            .domain([0, maxY !== undefined && maxY > 0 ? maxY : 1])
-            .range([0, 1])
-    }
-
-    @bind barHeight(d: T | undefined): string {
-        if (d !== undefined) {
-            const value = this.props.y(d)
-            if (value !== undefined) {
-                const ratio = this.barHeightScale(value)
-                return `${ratio * 100}%`
-            }
+export const SparkBars = observer(
+    class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
+        static defaultProps = {
+            onHover: (): undefined => undefined,
+            className: "spark-bars",
         }
-        return "0%"
-    }
 
-    @bind barState(d: number): BarState {
-        if (d === this.props.highlightedX) return BarState.highlighted
-        if (d === this.props.currentX) return BarState.current
-        if (this.props.highlightedX !== undefined) return BarState.faint
-        return BarState.normal
-    }
+        constructor(props: SparkBarsProps<T>) {
+            super(props)
 
-    get bars(): (T | undefined)[] {
-        const indexed = keyBy(this.props.data, this.props.x)
-        const [start, end] = this.props.xDomain
-        const result = []
-        for (let i = start; i <= end; i++) {
-            result.push(indexed[i])
+            makeObservable(this, {
+                maxY: computed,
+                barHeightScale: computed,
+                bars: computed,
+            })
         }
-        return result
-    }
 
-    render(): JSX.Element {
-        return (
-            <div
-                className={this.props.className}
-                onMouseLeave={(): void =>
-                    this.props.onHover?.(undefined, undefined)
+        get maxY(): number | undefined {
+            return max(this.bars.map((d) => (d ? this.props.y(d) ?? 0 : 0)))
+        }
+
+        get barHeightScale(): ScaleLinear<number, number> {
+            const maxY = this.maxY
+            return scaleLinear()
+                .domain([0, maxY !== undefined && maxY > 0 ? maxY : 1])
+                .range([0, 1])
+        }
+
+        @bind barHeight(d: T | undefined): string {
+            if (d !== undefined) {
+                const value = this.props.y(d)
+                if (value !== undefined) {
+                    const ratio = this.barHeightScale(value)
+                    return `${ratio * 100}%`
                 }
-            >
-                {this.bars.map((d, i) => (
-                    <div
-                        key={i}
-                        className="bar-wrapper"
-                        onMouseEnter={(): void => this.props.onHover?.(d, i)}
-                    >
-                        {this.props.highlightedX === i &&
-                            d !== undefined &&
-                            this.props.renderValue && (
-                                <div className="hanging-value highlighted highlighted-color">
-                                    {this.props.renderValue(d)}
-                                </div>
-                            )}
+            }
+            return "0%"
+        }
+
+        @bind barState(d: number): BarState {
+            if (d === this.props.highlightedX) return BarState.highlighted
+            if (d === this.props.currentX) return BarState.current
+            if (this.props.highlightedX !== undefined) return BarState.faint
+            return BarState.normal
+        }
+
+        get bars(): (T | undefined)[] {
+            const indexed = keyBy(this.props.data, this.props.x)
+            const [start, end] = this.props.xDomain
+            const result = []
+            for (let i = start; i <= end; i++) {
+                result.push(indexed[i])
+            }
+            return result
+        }
+
+        render(): JSX.Element {
+            return (
+                <div
+                    className={this.props.className}
+                    onMouseLeave={(): void =>
+                        this.props.onHover?.(undefined, undefined)
+                    }
+                >
+                    {this.bars.map((d, i) => (
                         <div
-                            className={`bar ${
-                                d
-                                    ? this.barState(this.props.x(d))
-                                    : BarState.normal
-                            }`}
-                            style={{
-                                height: this.barHeight(d),
-                                backgroundColor: this.props.color,
-                            }}
-                        ></div>
-                    </div>
-                ))}
-            </div>
-        )
+                            key={i}
+                            className="bar-wrapper"
+                            onMouseEnter={(): void =>
+                                this.props.onHover?.(d, i)
+                            }
+                        >
+                            {this.props.highlightedX === i &&
+                                d !== undefined &&
+                                this.props.renderValue && (
+                                    <div className="hanging-value highlighted highlighted-color">
+                                        {this.props.renderValue(d)}
+                                    </div>
+                                )}
+                            <div
+                                className={`bar ${
+                                    d
+                                        ? this.barState(this.props.x(d))
+                                        : BarState.normal
+                                }`}
+                                style={{
+                                    height: this.barHeight(d),
+                                    backgroundColor: this.props.color,
+                                }}
+                            ></div>
+                        </div>
+                    ))}
+                </div>
+            )
+        }
     }
-});
+)
