@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, computed } from "mobx"
+import { action, computed, makeObservable } from "mobx";
 import Select, { components, SingleValueProps } from "react-select"
 import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
 import {
@@ -103,13 +103,28 @@ const ExplorerDropdown = (props: {
     )
 }
 
-@observer
-export class ExplorerControlPanel extends React.Component<{
+export const ExplorerControlPanel = observer(class ExplorerControlPanel extends React.Component<{
     choice: ExplorerChoice
     explorerSlug?: string
     onChange?: (value: string) => void
     isMobile: boolean
 }> {
+    constructor(
+        props: {
+            choice: ExplorerChoice
+            explorerSlug?: string
+            onChange?: (value: string) => void
+            isMobile: boolean
+        }
+    ) {
+        super(props);
+
+        makeObservable<ExplorerControlPanel, "options" | "customOnChange">(this, {
+            options: computed,
+            customOnChange: action.bound
+        });
+    }
+
     private renderCheckboxOrRadio(option: ExplorerChoiceOption, index: number) {
         const { explorerSlug, choice } = this.props
         const { title, type, value } = choice
@@ -155,7 +170,7 @@ export class ExplorerControlPanel extends React.Component<{
         )
     }
 
-    @computed private get options() {
+    private get options() {
         return this.props.choice.options ?? []
     }
 
@@ -182,7 +197,7 @@ export class ExplorerControlPanel extends React.Component<{
         )
     }
 
-    @action.bound private customOnChange(value: string) {
+    private customOnChange(value: string) {
         if (this.props.onChange) this.props.onChange(value)
     }
 
@@ -220,4 +235,4 @@ export class ExplorerControlPanel extends React.Component<{
             )
         return this.renderColumn(title, type === ExplorerControlType.Checkbox)
     }
-}
+});

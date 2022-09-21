@@ -1,4 +1,4 @@
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import { differenceObj, trimObject } from "../clientUtils/Util.js"
 import { ColumnTypeNames } from "../coreTable/CoreColumnDef.js"
@@ -79,8 +79,21 @@ const makeCheckBoxOption = (
 // allow the user to navigate amongst charts.
 export class DecisionMatrix {
     private table: CoreTable
-    @observable currentParams: ExplorerChoiceParams = {}
+    currentParams: ExplorerChoiceParams = {};
     constructor(delimited: string, hash = "") {
+        makeObservable<DecisionMatrix, "diffBetweenUserSettingsAndConstrained" | "_setValue" | "choiceNames" | "allChoiceOptions" | "availableChoiceOptions">(this, {
+            currentParams: observable,
+            diffBetweenUserSettingsAndConstrained: computed,
+            setValueCommand: action.bound,
+            _setValue: action.bound,
+            setValuesFromChoiceParams: action.bound,
+            choiceNames: computed,
+            allChoiceOptions: computed,
+            availableChoiceOptions: computed,
+            selectedRow: observable,
+            choicesWithAvailability: computed
+        });
+
         this.choices = makeChoicesMap(delimited)
         this.table = new CoreTable(parseDelimited(dropColumnTypes(delimited)), [
             // todo: remove col def?
@@ -149,7 +162,6 @@ export class DecisionMatrix {
         return settings
     }
 
-    @computed
     private get diffBetweenUserSettingsAndConstrained(): ExplorerChoiceParams {
         return differenceObj(
             this.toConstrainedOptions(),
@@ -157,7 +169,7 @@ export class DecisionMatrix {
         ) as ExplorerChoiceParams
     }
 
-    @action.bound setValueCommand(choiceName: ChoiceName, value: ChoiceValue) {
+    setValueCommand(choiceName: ChoiceName, value: ChoiceValue) {
         this._setValue(choiceName, value)
         const invalidState = this.diffBetweenUserSettingsAndConstrained
         Object.keys(invalidState).forEach((key) => {
@@ -183,10 +195,7 @@ export class DecisionMatrix {
         })
     }
 
-    @action.bound private _setValue(
-        choiceName: ChoiceName,
-        value: ChoiceValue
-    ) {
+    private _setValue(choiceName: ChoiceName, value: ChoiceValue) {
         if (value === "") delete this.currentParams[choiceName]
         else this.currentParams[choiceName] = value
         this.selectedRow = trimAndParseObject(
@@ -195,9 +204,7 @@ export class DecisionMatrix {
         )
     }
 
-    @action.bound setValuesFromChoiceParams(
-        choiceParams: ExplorerChoiceParams = {}
-    ) {
+    setValuesFromChoiceParams(choiceParams: ExplorerChoiceParams = {}) {
         this.choiceNames.forEach((choiceName) => {
             const choiceValue =
                 choiceParams[choiceName] ?? this.defaultSettings[choiceName]
@@ -212,11 +219,11 @@ export class DecisionMatrix {
         return this
     }
 
-    @computed private get choiceNames(): ChoiceName[] {
+    private get choiceNames(): ChoiceName[] {
         return Array.from(this.choices.keys())
     }
 
-    @computed private get allChoiceOptions(): ChoiceMap {
+    private get allChoiceOptions(): ChoiceMap {
         const choiceMap: ChoiceMap = {}
         this.choiceNames.forEach((choiceName) => {
             choiceMap[choiceName] = this.table
@@ -226,7 +233,7 @@ export class DecisionMatrix {
         return choiceMap
     }
 
-    @computed private get availableChoiceOptions(): ChoiceMap {
+    private get availableChoiceOptions(): ChoiceMap {
         const result: ChoiceMap = {}
         this.choiceNames.forEach((choiceName) => {
             result[choiceName] = this.allChoiceOptions[choiceName].filter(
@@ -306,7 +313,7 @@ export class DecisionMatrix {
             : this.table.indexOf(this.firstMatch)
     }
 
-    @observable selectedRow: any = {}
+    selectedRow: any = {};
 
     private toControlOption(
         choiceName: ChoiceName,
@@ -327,7 +334,7 @@ export class DecisionMatrix {
         }
     }
 
-    @computed get choicesWithAvailability(): ExplorerChoice[] {
+    get choicesWithAvailability(): ExplorerChoice[] {
         const selectedRow = this.selectedRow
         const constrainedOptions = this.toConstrainedOptions()
         return this.choiceNames.map((title) => {
