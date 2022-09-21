@@ -7,7 +7,8 @@ import {
     runInAction,
     reaction,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import { debounce, orderBy } from "../clientUtils/Util.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { SerializedGridProgram } from "../clientUtils/owidTypes.js"
@@ -31,8 +32,7 @@ import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.j
 import { AdminManager } from "./AdminManager.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
-@observer
-class ExplorerRow extends React.Component<{
+const ExplorerRow = observer(class ExplorerRow extends React.Component<{
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
     gitCmsBranchName: string
@@ -147,10 +147,9 @@ class ExplorerRow extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-class ExplorerList extends React.Component<{
+const ExplorerList = observer(class ExplorerList extends React.Component<{
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
@@ -184,21 +183,47 @@ class ExplorerList extends React.Component<{
             </table>
         )
     }
-}
+});
 
-@observer
-export class ExplorersIndexPage extends React.Component<{
+export const ExplorersIndexPage = observer(class ExplorersIndexPage extends React.Component<{
     manager?: AdminManager
 }> {
-    @observable explorers: ExplorerProgram[] = []
-    @observable needsPull = false
-    @observable maxVisibleRows = 50
-    @observable numTotalRows?: number
-    @observable searchInput?: string
-    @observable highlightSearch?: string
+    explorers: ExplorerProgram[] = [];
+    needsPull = false;
+    maxVisibleRows = 50;
+    numTotalRows?: number;
+    searchInput?: string;
+    highlightSearch?: string;
     private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
 
-    @computed get explorersToShow(): ExplorerProgram[] {
+    constructor(
+        props: {
+            manager?: AdminManager
+        }
+    ) {
+        super(props);
+
+        makeObservable<ExplorersIndexPage, "pullFromGithub" | "manager" | "loadingModalOn" | "resetLoadingModal">(this, {
+            explorers: observable,
+            needsPull: observable,
+            maxVisibleRows: observable,
+            numTotalRows: observable,
+            searchInput: observable,
+            highlightSearch: observable,
+            explorersToShow: computed,
+            onShowMore: action.bound,
+            pullFromGithub: action.bound,
+            gitCmsBranchName: observable,
+            isReady: observable,
+            manager: computed,
+            loadingModalOn: action.bound,
+            resetLoadingModal: action.bound,
+            togglePublishedStatus: action.bound,
+            deleteFile: action.bound
+        });
+    }
+
+    get explorersToShow(): ExplorerProgram[] {
         return orderBy(
             this.explorers,
             (program) => dayjs(program.lastCommit?.date).unix(),
@@ -206,11 +231,11 @@ export class ExplorersIndexPage extends React.Component<{
         )
     }
 
-    @action.bound onShowMore() {
+    onShowMore() {
         this.maxVisibleRows += 100
     }
 
-    @action.bound private async pullFromGithub() {
+    private async pullFromGithub() {
         const result = await this.gitCmsClient.pullFromGithub()
         alert(JSON.stringify(result))
         window.location.reload()
@@ -278,9 +303,9 @@ export class ExplorersIndexPage extends React.Component<{
         )
     }
 
-    @observable gitCmsBranchName = GIT_CMS_DEFAULT_BRANCH
+    gitCmsBranchName = GIT_CMS_DEFAULT_BRANCH;
 
-    @observable isReady = false
+    isReady = false;
 
     private async fetchAllExplorers() {
         const { searchInput } = this
@@ -303,19 +328,19 @@ export class ExplorersIndexPage extends React.Component<{
         })
     }
 
-    @computed private get manager() {
+    private get manager() {
         return this.props.manager ?? {}
     }
 
-    @action.bound private loadingModalOn() {
+    private loadingModalOn() {
         this.manager.loadingIndicatorSetting = "loading"
     }
 
-    @action.bound private resetLoadingModal() {
+    private resetLoadingModal() {
         this.manager.loadingIndicatorSetting = "default"
     }
 
-    @action.bound async togglePublishedStatus(filename: string) {
+    async togglePublishedStatus(filename: string) {
         const explorer = this.explorers.find(
             (exp) => exp.filename === filename
         )!
@@ -331,7 +356,7 @@ export class ExplorersIndexPage extends React.Component<{
         this.fetchAllExplorers()
     }
 
-    @action.bound async deleteFile(filename: string) {
+    async deleteFile(filename: string) {
         if (!confirm(`Are you sure you want to delete "${filename}"?`)) return
 
         this.loadingModalOn()
@@ -354,4 +379,4 @@ export class ExplorersIndexPage extends React.Component<{
     componentWillUnmount() {
         this.dispose()
     }
-}
+});

@@ -1,7 +1,7 @@
 import { observer } from "mobx-react"
 import React from "react"
 import { HotTable } from "@handsontable/react"
-import { action, observable, computed } from "mobx"
+import { action, observable, computed, makeObservable } from "mobx";
 import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
@@ -40,8 +40,7 @@ const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don
 // Register all Handsontable modules
 registerAllModules()
 
-@observer
-export class ExplorerCreatePage extends React.Component<{
+export const ExplorerCreatePage = observer(class ExplorerCreatePage extends React.Component<{
     slug: string
     gitCmsBranchName: string
     manager?: AdminManager
@@ -49,23 +48,56 @@ export class ExplorerCreatePage extends React.Component<{
 }> {
     disposers: Array<() => void> = []
 
-    @computed private get manager() {
+    constructor(
+        props: {
+            slug: string
+            gitCmsBranchName: string
+            manager?: AdminManager
+            doNotFetch?: boolean // for testing
+        }
+    ) {
+        super(props);
+
+        makeObservable<ExplorerCreatePage, "manager" | "loadingModalOff" | "loadingModalOn" | "resetLoadingModal" | "startPollingLocalStorageForPreviewChanges" | "fetchExplorerProgramOnLoad" | "setProgram" | "programOnDisk" | "program" | "_save" | "saveAs" | "clearChanges" | "save" | "onSave">(this, {
+            manager: computed,
+            loadingModalOff: action.bound,
+            loadingModalOn: action.bound,
+            resetLoadingModal: action.bound,
+            componentDidMount: action,
+            startPollingLocalStorageForPreviewChanges: action.bound,
+            isReady: observable,
+            componentWillUnmount: action,
+            fetchExplorerProgramOnLoad: action.bound,
+            setProgram: action.bound,
+            programOnDisk: observable.ref,
+            program: observable.ref,
+            _save: action.bound,
+            saveAs: action.bound,
+            clearChanges: action.bound,
+            save: action.bound,
+            isModified: computed,
+            gitCmsBranchName: observable,
+            onSave: action.bound
+        });
+    }
+
+    private get manager() {
         return this.props.manager ?? {}
     }
 
-    @action.bound private loadingModalOff() {
+    private loadingModalOff() {
         this.manager.loadingIndicatorSetting = "off"
     }
 
-    @action.bound private loadingModalOn() {
+    private loadingModalOn() {
         this.manager.loadingIndicatorSetting = "loading"
     }
 
-    @action.bound private resetLoadingModal() {
+    private resetLoadingModal() {
         this.manager.loadingIndicatorSetting = "default"
     }
 
-    @action componentDidMount() {
+    componentDidMount() {
         this.loadingModalOff()
         exposeInstanceOnWindow(this, "explorerEditor")
 
@@ -75,7 +107,7 @@ export class ExplorerCreatePage extends React.Component<{
         this.startPollingLocalStorageForPreviewChanges()
     }
 
-    @action.bound private startPollingLocalStorageForPreviewChanges() {
+    private startPollingLocalStorageForPreviewChanges() {
         const intervalId = setInterval(() => {
             const savedQueryParamsJSON = localStorage.getItem(
                 `${UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS}${this.program.slug}`
@@ -88,16 +120,16 @@ export class ExplorerCreatePage extends React.Component<{
         this.disposers.push(() => clearInterval(intervalId))
     }
 
-    @observable isReady = false
+    isReady = false;
 
-    @action componentWillUnmount() {
+    componentWillUnmount() {
         this.resetLoadingModal()
         this.disposers.forEach((disposer) => disposer())
     }
 
     private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
 
-    @action.bound private async fetchExplorerProgramOnLoad() {
+    private async fetchExplorerProgramOnLoad() {
         const { slug } = this.props
         const response = await this.gitCmsClient.readRemoteFile({
             filepath: makeFullPath(slug),
@@ -111,7 +143,7 @@ export class ExplorerCreatePage extends React.Component<{
             )
     }
 
-    @action.bound private setProgram(code: string) {
+    private setProgram(code: string) {
         this.program = new ExplorerProgram(this.program.slug, code)
         this.saveDraft(code)
     }
@@ -128,11 +160,11 @@ export class ExplorerCreatePage extends React.Component<{
         localStorage.removeItem(UNSAVED_EXPLORER_DRAFT + this.program.slug)
     }
 
-    @observable.ref private programOnDisk = new ExplorerProgram("", "")
+    private programOnDisk = new ExplorerProgram("", "");
 
-    @observable.ref private program = new ExplorerProgram(this.props.slug, "")
+    private program = new ExplorerProgram(this.props.slug, "");
 
-    @action.bound private async _save(slug: string, commitMessage: string) {
+    private async _save(slug: string, commitMessage: string) {
         this.loadingModalOn()
         this.program.slug = slug
         const res = await this.gitCmsClient.writeRemoteFile({
@@ -151,7 +183,7 @@ export class ExplorerCreatePage extends React.Component<{
         this.clearDraft()
     }
 
-    @action.bound private async saveAs() {
+    private async saveAs() {
         const userSlug = prompt(
             `Create a slug (URL friendly name) for this explorer. Your new file will be pushed to the '${this.props.gitCmsBranchName}' branch on GitHub.`,
             this.program.slug
@@ -174,7 +206,7 @@ export class ExplorerCreatePage extends React.Component<{
         window.location.href = slug
     }
 
-    @action.bound private clearChanges() {
+    private clearChanges() {
         if (!confirm("Are you sure you want to clear your local changes?"))
             return
 
@@ -182,7 +214,7 @@ export class ExplorerCreatePage extends React.Component<{
         this.clearDraft()
     }
 
-    @action.bound private async save() {
+    private async save() {
         const commitMessage = prompt(
             `Enter a message describing this change. Your change will be pushed to the '${this.props.gitCmsBranchName}' on GitHub.`,
             `Updated ${this.program.slug}`
@@ -191,13 +223,13 @@ export class ExplorerCreatePage extends React.Component<{
         await this._save(this.program.slug, commitMessage)
     }
 
-    @computed get isModified() {
+    get isModified() {
         return this.programOnDisk.toString() !== this.program.toString()
     }
 
-    @observable gitCmsBranchName = this.props.gitCmsBranchName
+    gitCmsBranchName = this.props.gitCmsBranchName;
 
-    @action.bound private onSave() {
+    private onSave() {
         if (this.program.isNewFile) this.saveAs()
         else if (this.isModified) this.save()
     }
@@ -286,7 +318,7 @@ export class ExplorerCreatePage extends React.Component<{
             </>
         )
     }
-}
+});
 
 class HotEditor extends React.Component<{
     onChange: (code: string) => void
@@ -295,15 +327,31 @@ class HotEditor extends React.Component<{
 }> {
     private hotTableComponent = React.createRef<HotTable>()
 
-    @computed private get program() {
+    constructor(
+        props: {
+            onChange: (code: string) => void
+            program: ExplorerProgram
+            programOnDisk: ExplorerProgram
+        }
+    ) {
+        super(props);
+
+        makeObservable<HotEditor, "program" | "programOnDisk" | "updateProgramFromHot">(this, {
+            program: computed,
+            programOnDisk: computed,
+            updateProgramFromHot: action.bound
+        });
+    }
+
+    private get program() {
         return this.props.program
     }
 
-    @computed private get programOnDisk() {
+    private get programOnDisk() {
         return this.props.programOnDisk
     }
 
-    @action.bound private updateProgramFromHot() {
+    private updateProgramFromHot() {
         const newVersion =
             this.hotTableComponent.current?.hotInstance?.getData() as CoreMatrix
         if (!newVersion) return
@@ -451,14 +499,29 @@ class TemplatesComponent extends React.Component<{
     isNewFile: boolean
     onChange: (code: string) => void
 }> {
-    @action.bound private loadTemplate(filename: string) {
+    constructor(
+        props: {
+            isNewFile: boolean
+            onChange: (code: string) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable<TemplatesComponent, "loadTemplate" | "fetchTemplatesOnLoad">(this, {
+            loadTemplate: action.bound,
+            templates: observable.ref,
+            fetchTemplatesOnLoad: action.bound
+        });
+    }
+
+    private loadTemplate(filename: string) {
         this.props.onChange(
             this.templates.find((template) => template.filename === filename)!
                 .content
         )
     }
 
-    @observable.ref templates: GitCmsFile[] = []
+    templates: GitCmsFile[] = [];
 
     componentDidMount() {
         if (this.props.isNewFile) this.fetchTemplatesOnLoad()
@@ -466,7 +529,7 @@ class TemplatesComponent extends React.Component<{
 
     private gitCmsClient = new GitCmsClient(GIT_CMS_BASE_ROUTE)
 
-    @action.bound private async fetchTemplatesOnLoad() {
+    private async fetchTemplatesOnLoad() {
         const response = await this.gitCmsClient.readRemoteFiles({
             glob: "*template*",
             folder: "explorers",
