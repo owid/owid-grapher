@@ -6,7 +6,8 @@ import {
     reaction,
     runInAction,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch.js"
 import classnames from "classnames"
@@ -29,23 +30,48 @@ import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ENV } from "../settings/clientSettings.js"
 
 const analytics = new SiteAnalytics(ENV)
-@observer
-class Header extends React.Component<{
+
+const Header = observer(class Header extends React.Component<{
     categories: CategoryWithEntries[]
     baseUrl: string
 }> {
-    @observable.ref dropdownIsOpen = false
+    dropdownIsOpen = false;
 
     dropdownOpenTimeoutId?: number // ID of the timeout that will set isOpen to true
     dropdownCloseTimeoutId?: number // ID of the timeout that will set isOpen to false
     dropdownLastOpened?: number // Timestamp of the last time isOpen was set to true
 
     // Mobile menu toggles
-    @observable showSearch = false
-    @observable showCategories = false
-    @observable showNewsletterSubscription = false
+    showSearch = false;
+    showCategories = false;
+    showNewsletterSubscription = false;
 
     dispose!: IReactionDisposer
+
+    constructor(
+        props: {
+            categories: CategoryWithEntries[]
+            baseUrl: string
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            dropdownIsOpen: observable.ref,
+            showSearch: observable,
+            showCategories: observable,
+            showNewsletterSubscription: observable,
+            onToggleSearch: action.bound,
+            onToggleCategories: action.bound,
+            onToggleNewsletterSubscription: action.bound,
+            setOpen: action.bound,
+            scheduleOpenTimeout: action.bound,
+            scheduleCloseTimeout: action.bound,
+            clearOpenTimeout: action.bound,
+            clearCloseTimeout: action.bound,
+            onDropdownButtonClick: action.bound
+        });
+    }
 
     componentDidMount() {
         this.dispose = reaction(
@@ -60,25 +86,25 @@ class Header extends React.Component<{
         this.dispose()
     }
 
-    @action.bound onToggleSearch() {
+    onToggleSearch() {
         this.showSearch = !this.showSearch
     }
 
-    @action.bound onToggleCategories() {
+    onToggleCategories() {
         this.showCategories = !this.showCategories
     }
 
-    @action.bound onToggleNewsletterSubscription() {
+    onToggleNewsletterSubscription() {
         this.showNewsletterSubscription = !this.showNewsletterSubscription
     }
 
-    @action.bound setOpen(open: boolean) {
+    setOpen(open: boolean) {
         this.dropdownIsOpen = open
         this.clearOpenTimeout()
         this.clearCloseTimeout()
     }
 
-    @action.bound scheduleOpenTimeout(delay: number) {
+    scheduleOpenTimeout(delay: number) {
         this.dropdownOpenTimeoutId = window.setTimeout(() => {
             this.setOpen(true)
             analytics.logSiteClick("header-open-menu", "Articles by topic")
@@ -86,7 +112,7 @@ class Header extends React.Component<{
         this.clearCloseTimeout()
     }
 
-    @action.bound scheduleCloseTimeout(delay: number) {
+    scheduleCloseTimeout(delay: number) {
         this.dropdownCloseTimeoutId = window.setTimeout(
             () => this.setOpen(false),
             delay
@@ -94,23 +120,21 @@ class Header extends React.Component<{
         this.clearOpenTimeout()
     }
 
-    @action.bound clearOpenTimeout() {
+    clearOpenTimeout() {
         if (this.dropdownOpenTimeoutId) {
             clearTimeout(this.dropdownOpenTimeoutId)
             this.dropdownOpenTimeoutId = undefined
         }
     }
 
-    @action.bound clearCloseTimeout() {
+    clearCloseTimeout() {
         if (this.dropdownCloseTimeoutId) {
             clearTimeout(this.dropdownCloseTimeoutId)
             this.dropdownCloseTimeoutId = undefined
         }
     }
 
-    @action.bound onDropdownButtonClick(
-        event: React.MouseEvent<HTMLAnchorElement>
-    ) {
+    onDropdownButtonClick(event: React.MouseEvent<HTMLAnchorElement>) {
         event.preventDefault()
         // Only close the menu if it's been open for a while, to avoid accidentally closing it while it's appearing.
         if (
@@ -297,7 +321,7 @@ class Header extends React.Component<{
             </>
         )
     }
-}
+});
 
 const renderEntry = (entry: EntryMeta): JSX.Element => {
     return (
@@ -323,17 +347,32 @@ const allEntries = (category: CategoryWithEntries): EntryMeta[] => {
     ]
 }
 
-@observer
-class DesktopTopicsMenu extends React.Component<{
+const DesktopTopicsMenu = observer(class DesktopTopicsMenu extends React.Component<{
     categories: CategoryWithEntries[]
     isOpen: boolean
     onMouseEnter: (ev: React.MouseEvent<HTMLDivElement>) => void
     onMouseLeave: (ev: React.MouseEvent<HTMLDivElement>) => void
 }> {
-    @observable.ref private activeCategory?: CategoryWithEntries
+    private activeCategory?: CategoryWithEntries;
     private submenuRef: React.RefObject<HTMLUListElement> = React.createRef()
 
-    @action.bound private setCategory(category?: CategoryWithEntries) {
+    constructor(
+        props: {
+            categories: CategoryWithEntries[]
+            isOpen: boolean
+            onMouseEnter: (ev: React.MouseEvent<HTMLDivElement>) => void
+            onMouseLeave: (ev: React.MouseEvent<HTMLDivElement>) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable<DesktopTopicsMenu, "activeCategory" | "setCategory">(this, {
+            activeCategory: observable.ref,
+            setCategory: action.bound
+        });
+    }
+
+    private setCategory(category?: CategoryWithEntries) {
         this.activeCategory = category
     }
 
@@ -448,15 +487,27 @@ class DesktopTopicsMenu extends React.Component<{
             </div>
         )
     }
-}
+});
 
-@observer
-class MobileTopicsMenu extends React.Component<{
+const MobileTopicsMenu = observer(class MobileTopicsMenu extends React.Component<{
     categories: CategoryWithEntries[]
 }> {
-    @observable.ref private activeCategory?: CategoryWithEntries
+    private activeCategory?: CategoryWithEntries;
 
-    @action.bound private toggleCategory(category: CategoryWithEntries) {
+    constructor(
+        props: {
+            categories: CategoryWithEntries[]
+        }
+    ) {
+        super(props);
+
+        makeObservable<MobileTopicsMenu, "activeCategory" | "toggleCategory">(this, {
+            activeCategory: observable.ref,
+            toggleCategory: action.bound
+        });
+    }
+
+    private toggleCategory(category: CategoryWithEntries) {
         if (this.activeCategory === category) this.activeCategory = undefined
         else this.activeCategory = category
     }
@@ -546,14 +597,23 @@ class MobileTopicsMenu extends React.Component<{
             </div>
         )
     }
-}
+});
 
-@observer
-class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
-    @observable private width!: number
-    @observable.ref private categories: CategoryWithEntries[] = []
+const SiteHeaderMenus = observer(class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
+    private width: number;
+    private categories: CategoryWithEntries[] = [];
 
-    @action.bound private onResize() {
+    constructor(props: { baseUrl: string }) {
+        super(props);
+
+        makeObservable<SiteHeaderMenus, "width" | "categories" | "onResize">(this, {
+            width: observable,
+            categories: observable.ref,
+            onResize: action.bound
+        });
+    }
+
+    private onResize() {
         this.width = window.innerWidth
     }
 
@@ -584,7 +644,7 @@ class SiteHeaderMenus extends React.Component<{ baseUrl: string }> {
             <Header categories={this.categories} baseUrl={this.props.baseUrl} />
         )
     }
-}
+});
 
 export const runHeaderMenus = (baseUrl: string) => {
     ReactDOM.render(

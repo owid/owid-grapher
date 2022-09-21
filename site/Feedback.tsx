@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCommentAlt } from "@fortawesome/free-solid-svg-icons/faCommentAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { observable, action, toJS, computed } from "mobx"
+import { observable, action, toJS, computed, makeObservable } from "mobx";
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
@@ -32,12 +32,21 @@ const sendFeedback = async (feedback: Feedback) => {
 }
 
 class Feedback {
-    @observable name: string = ""
-    @observable email: string = ""
-    @observable message: string = ""
+    name: string = "";
+    email: string = "";
+    message: string = "";
     environment: string = ""
 
-    @action.bound clear() {
+    constructor() {
+        makeObservable(this, {
+            name: observable,
+            email: observable,
+            message: observable,
+            clear: action.bound
+        });
+    }
+
+    clear() {
         this.name = ""
         this.email = ""
         this.message = ""
@@ -117,15 +126,35 @@ const topicNotices = new Map<SpecialFeedbackTopic, JSX.Element>([
     [SpecialFeedbackTopic.Translation, translateNotice],
 ])
 
-@observer
-export class FeedbackForm extends React.Component<{
+export const FeedbackForm = observer(class FeedbackForm extends React.Component<{
     onClose?: () => void
     autofocus?: boolean
 }> {
     feedback: Feedback = new Feedback()
-    @observable loading: boolean = false
-    @observable done: boolean = false
-    @observable error: string | undefined
+    loading: boolean = false;
+    done: boolean = false;
+    error: string | undefined;
+
+    constructor(
+        props: {
+            onClose?: () => void
+            autofocus?: boolean
+        }
+    ) {
+        super(props);
+
+        makeObservable<FeedbackForm, "specialTopic">(this, {
+            loading: observable,
+            done: observable,
+            error: observable,
+            onSubmit: action.bound,
+            onName: action.bound,
+            onEmail: action.bound,
+            onMessage: action.bound,
+            onClose: action.bound,
+            specialTopic: computed
+        });
+    }
 
     async submit() {
         try {
@@ -139,7 +168,7 @@ export class FeedbackForm extends React.Component<{
         }
     }
 
-    @action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         this.done = false
         this.error = undefined
@@ -147,19 +176,19 @@ export class FeedbackForm extends React.Component<{
         this.submit()
     }
 
-    @action.bound onName(e: React.ChangeEvent<HTMLInputElement>) {
+    onName(e: React.ChangeEvent<HTMLInputElement>) {
         this.feedback.name = e.currentTarget.value
     }
 
-    @action.bound onEmail(e: React.ChangeEvent<HTMLInputElement>) {
+    onEmail(e: React.ChangeEvent<HTMLInputElement>) {
         this.feedback.email = e.currentTarget.value
     }
 
-    @action.bound onMessage(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    onMessage(e: React.ChangeEvent<HTMLTextAreaElement>) {
         this.feedback.message = e.currentTarget.value
     }
 
-    @action.bound onClose() {
+    onClose() {
         if (this.props.onClose) {
             this.props.onClose()
         }
@@ -167,7 +196,7 @@ export class FeedbackForm extends React.Component<{
         this.done = false
     }
 
-    @computed private get specialTopic(): SpecialFeedbackTopic | undefined {
+    private get specialTopic(): SpecialFeedbackTopic | undefined {
         const { message } = this.feedback
         return topicMatchers.find((matcher) => matcher.regex.test(message))
             ?.topic
@@ -292,21 +321,31 @@ export class FeedbackForm extends React.Component<{
             </form>
         )
     }
-}
+});
 
-@observer
-export class FeedbackPrompt extends React.Component {
-    @observable isOpen: boolean = false
+export const FeedbackPrompt = observer(class FeedbackPrompt extends React.Component {
+    isOpen: boolean = false;
 
-    @action.bound toggleOpen() {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            isOpen: observable,
+            toggleOpen: action.bound,
+            onClose: action.bound,
+            onClickOutside: action.bound
+        });
+    }
+
+    toggleOpen() {
         this.isOpen = !this.isOpen
     }
 
-    @action.bound onClose() {
+    onClose() {
         this.isOpen = false
     }
 
-    @action.bound onClickOutside() {
+    onClickOutside() {
         this.onClose()
     }
 
@@ -341,7 +380,7 @@ export class FeedbackPrompt extends React.Component {
             </div>
         )
     }
-}
+});
 
 export function runFeedbackPage() {
     ReactDOM.render(

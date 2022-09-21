@@ -5,7 +5,7 @@ import {
     ArticleHit,
 } from "./searchClient.js"
 import { observer } from "mobx-react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import React from "react"
 import { EmbedChart } from "./EmbedChart.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
@@ -18,11 +18,26 @@ class ChartResult extends React.Component<{
     hit: ChartHit
     queryCountries: Country[]
 }> {
-    @computed get entities() {
+    constructor(
+        props: {
+            hit: ChartHit
+            queryCountries: Country[]
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            entities: computed,
+            slug: computed,
+            title: computed
+        });
+    }
+
+    get entities() {
         return pickEntitiesForChart(this.props.hit, this.props.queryCountries)
     }
 
-    @computed get slug(): string {
+    get slug(): string {
         const { hit } = this.props
         const { entities } = this
         if (!entities.length) return hit.slug
@@ -35,7 +50,7 @@ class ChartResult extends React.Component<{
             ).fullUrl
     }
 
-    @computed get title() {
+    get title() {
         const { hit } = this.props
         const { entities } = this
         if (!entities.length) return hit.title
@@ -124,32 +139,47 @@ function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
     return uniq(entities)
 }
 
-@observer
-export class SearchResults extends React.Component<{
+export const SearchResults = observer(class SearchResults extends React.Component<{
     results: SiteSearchResults
 }> {
-    @computed get bestChartHit(): ChartHit | undefined {
+    constructor(
+        props: {
+            results: SiteSearchResults
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            bestChartHit: computed,
+            entries: computed,
+            blogposts: computed,
+            bestChartEntities: computed,
+            bestChartSlug: computed
+        });
+    }
+
+    get bestChartHit(): ChartHit | undefined {
         return this.props.results.charts.length
             ? this.props.results.charts[0]
             : undefined
     }
 
-    @computed get entries() {
+    get entries() {
         return this.props.results.pages.filter((p) => p.type === "page")
     }
 
-    @computed get blogposts() {
+    get blogposts() {
         return this.props.results.pages.filter((p) => p.type === "post")
     }
 
-    @computed get bestChartEntities() {
+    get bestChartEntities() {
         const hit = this.bestChartHit
         if (!hit) return []
 
         return pickEntitiesForChart(hit, this.props.results.countries)
     }
 
-    @computed get bestChartSlug() {
+    get bestChartSlug() {
         const { bestChartHit, bestChartEntities } = this
         if (!bestChartHit) return undefined
 
@@ -239,4 +269,4 @@ export class SearchResults extends React.Component<{
             </div>
         )
     }
-}
+});

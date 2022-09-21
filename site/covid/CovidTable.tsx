@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, action, computed } from "mobx"
+import { observable, action, computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { scaleLinear } from "d3-scale"
@@ -43,13 +43,21 @@ import {
 import { fetchJHUData } from "./CovidFetch.js"
 
 export class CovidTableState {
-    @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases
-    @observable.ref sortOrder: SortOrder = SortOrder.desc
-    @observable.ref isMobile: boolean = false
-    @observable.ref truncate: boolean = false
-    @observable.ref truncateLength: number = 12
+    sortKey: CovidSortKey = CovidSortKey.totalCases;
+    sortOrder: SortOrder = SortOrder.desc;
+    isMobile: boolean = false;
+    truncate: boolean = false;
+    truncateLength: number = 12;
 
     constructor(state: Partial<CovidTableState>) {
+        makeObservable(this, {
+            sortKey: observable.ref,
+            sortOrder: observable.ref,
+            isMobile: observable.ref,
+            truncate: observable.ref,
+            truncateLength: observable.ref
+        });
+
         extend(this, state)
     }
 }
@@ -65,8 +73,7 @@ export interface CovidTableProps {
     footer?: JSX.Element
 }
 
-@observer
-export class CovidTable extends React.Component<CovidTableProps> {
+export const CovidTable = observer(class CovidTable extends React.Component<CovidTableProps> {
     static defaultProps: CovidTableProps = {
         columns: [],
         mobileColumns: [],
@@ -75,14 +82,37 @@ export class CovidTable extends React.Component<CovidTableProps> {
         defaultState: {},
     }
 
-    @observable.ref data: CovidSeries | undefined =
-        this.props.preloadData ?? undefined
+    data: CovidSeries | undefined = this.props.preloadData ?? undefined;
 
-    @observable.ref isLoaded: boolean = !!this.props.preloadData
-    @observable.ref isLoading: boolean = false
-    @observable.ref error: string | undefined = undefined
+    isLoaded: boolean = !!this.props.preloadData;
+    isLoading: boolean = false;
+    error: string | undefined = undefined;
 
-    @observable tableState = new CovidTableState(this.props.defaultState)
+    tableState = new CovidTableState(this.props.defaultState);
+
+    constructor(props: CovidTableProps) {
+        super(props);
+
+        makeObservable(this, {
+            data: observable.ref,
+            isLoaded: observable.ref,
+            isLoading: observable.ref,
+            error: observable.ref,
+            tableState: observable,
+            onResize: action.bound,
+            countrySeries: computed,
+            rowData: computed,
+            isTruncated: computed,
+            dateRange: computed,
+            lastUpdated: computed,
+            totalTestsBarScale: computed,
+            columns: computed,
+            onSort: action.bound,
+            headerCellProps: computed,
+            countryColors: computed,
+            onShowMore: action.bound
+        });
+    }
 
     componentDidMount() {
         if (!this.props.preloadData) {
@@ -101,7 +131,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
 
     onResizeThrottled?: () => void
 
-    @action.bound onResize() {
+    onResize() {
         this.tableState.isMobile = window.innerWidth <= 680
     }
 
@@ -117,7 +147,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         this.isLoading = false
     }
 
-    @computed get countrySeries(): CovidCountrySeries {
+    get countrySeries(): CovidCountrySeries {
         if (this.data) {
             return Object.entries(groupBy(this.data, (d) => d.location)).map(
                 ([location, series]) => {
@@ -149,7 +179,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return []
     }
 
-    @computed get rowData() {
+    get rowData() {
         const { sortKey, sortOrder, truncate, truncateLength } = this.tableState
         const accessor = sortAccessors[sortKey]
         const sortedSeries = orderBy(
@@ -185,11 +215,11 @@ export class CovidTable extends React.Component<CovidTableProps> {
         }
     }
 
-    @computed get isTruncated() {
+    get isTruncated() {
         return this.rowData.truncated.length > 0
     }
 
-    @computed get dateRange(): DateRange {
+    get dateRange(): DateRange {
         const difference = this.tableState.isMobile ? 13 : 20 // inclusive, so 21 days technically
         if (this.data !== undefined && this.data.length > 0) {
             const maxDate = max(this.data.map((d) => d.date)) as Date
@@ -199,24 +229,24 @@ export class CovidTable extends React.Component<CovidTableProps> {
         return [addDays(new Date(), -difference), new Date()]
     }
 
-    @computed get lastUpdated(): Date | undefined {
+    get lastUpdated(): Date | undefined {
         return this.dateRange[1]
     }
 
-    @computed get totalTestsBarScale() {
+    get totalTestsBarScale() {
         const maxTests = max(this.data?.map((d) => d.tests?.totalTests))
         return scaleLinear()
             .domain([0, maxTests ?? 1])
             .range([0, 1])
     }
 
-    @computed get columns(): CovidTableColumnKey[] {
+    get columns(): CovidTableColumnKey[] {
         return this.tableState.isMobile
             ? this.props.mobileColumns
             : this.props.columns
     }
 
-    @action.bound onSort(newKey: CovidSortKey) {
+    onSort(newKey: CovidSortKey) {
         const { sortKey, sortOrder } = this.tableState
         this.tableState.sortOrder =
             sortKey === newKey && sortOrder === DEFAULT_SORT_ORDER
@@ -225,7 +255,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         this.tableState.sortKey = newKey
     }
 
-    @computed get headerCellProps(): CovidTableHeaderSpec {
+    get headerCellProps(): CovidTableHeaderSpec {
         const { sortKey, sortOrder, isMobile } = this.tableState
         return {
             currentSortKey: sortKey,
@@ -236,13 +266,13 @@ export class CovidTable extends React.Component<CovidTableProps> {
         }
     }
 
-    @computed get countryColors(): Map<string, string> {
+    get countryColors(): Map<string, string> {
         const locations = uniq((this.data || []).map((d) => d.location))
         const colors = schemeCategory10
         return new Map(locations.map((l, i) => [l, colors[i % colors.length]]))
     }
 
-    @action.bound onShowMore() {
+    onShowMore() {
         this.tableState.truncate = false
     }
 
@@ -318,4 +348,4 @@ export class CovidTable extends React.Component<CovidTableProps> {
             </div>
         )
     }
-}
+});

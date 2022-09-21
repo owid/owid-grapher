@@ -4,14 +4,24 @@ import { getWindowQueryParams } from "../clientUtils/urls/UrlUtils.js"
 import { siteSearch, SiteSearchResults } from "./searchClient.js"
 import { SearchResults } from "../site/SearchResults.js"
 import { observer } from "mobx-react"
-import { action, observable, runInAction } from "mobx"
+import { action, observable, runInAction, makeObservable } from "mobx";
 
-@observer
-export class SearchPageMain extends React.Component {
-    @observable query: string = getWindowQueryParams().q || ""
+export const SearchPageMain = observer(class SearchPageMain extends React.Component {
+    query: string = getWindowQueryParams().q || "";
     lastQuery?: string
 
-    @observable.ref results?: SiteSearchResults
+    results?: SiteSearchResults;
+
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            query: observable,
+            results: observable.ref,
+            onSearch: action.bound,
+            onSearchInput: action.bound
+        });
+    }
 
     async runSearch(query: string) {
         const results = await siteSearch(query)
@@ -24,7 +34,7 @@ export class SearchPageMain extends React.Component {
         runInAction(() => (this.results = results))
     }
 
-    @action.bound onSearch(query: string) {
+    onSearch(query: string) {
         this.lastQuery = query
         if (query) {
             this.runSearch(query)
@@ -51,7 +61,7 @@ export class SearchPageMain extends React.Component {
     //     if (this.dispose) this.dispose()
     // }
 
-    @action.bound onSearchInput(e: React.ChangeEvent<HTMLInputElement>) {
+    onSearchInput(e: React.ChangeEvent<HTMLInputElement>) {
         this.query = e.currentTarget.value
     }
 
@@ -62,7 +72,7 @@ export class SearchPageMain extends React.Component {
             </React.Fragment>
         )
     }
-}
+});
 
 export function runSearchPage() {
     ReactDOM.render(

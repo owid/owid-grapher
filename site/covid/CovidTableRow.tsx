@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, computed } from "mobx"
+import { observable, computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ScaleLinear } from "d3-scale"
@@ -28,15 +28,27 @@ export interface CovidTableRowProps {
     onHighlightDate: (date: Date | undefined) => void
 }
 
-@observer
-export class CovidTableRow extends React.Component<CovidTableRowProps> {
+export const CovidTableRow = observer(class CovidTableRow extends React.Component<CovidTableRowProps> {
     static defaultProps = {
         onHighlightDate: () => undefined,
     }
 
-    @observable.ref highlightDate: Date | undefined = undefined
+    highlightDate: Date | undefined = undefined;
 
-    @computed get data() {
+    constructor(props: CovidTableRowProps) {
+        super(props);
+
+        makeObservable(this, {
+            highlightDate: observable.ref,
+            data: computed,
+            xDomain: computed,
+            currentX: computed,
+            hightlightedX: computed,
+            cellProps: computed
+        });
+    }
+
+    get data() {
         const d = this.props.datum
         const [start, end] = this.props.transform.dateRange
         return d.series.filter((d) => d.date >= start && d.date <= end)
@@ -50,12 +62,12 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
         return addDays(this.props.transform.dateRange[0], index)
     }
 
-    @computed get xDomain(): [number, number] {
+    get xDomain(): [number, number] {
         const [start, end] = this.props.transform.dateRange
         return [0, dateDiffInDays(end, start)]
     }
 
-    @computed get currentX(): number | undefined {
+    get currentX(): number | undefined {
         const { datum } = this.props
         if (datum.latest) {
             return this.x(datum.latest)
@@ -63,7 +75,7 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
         return undefined
     }
 
-    @computed get hightlightedX(): number | undefined {
+    get hightlightedX(): number | undefined {
         const { state } = this.props
         if (!state.isMobile && this.highlightDate) {
             return this.dateToIndex(this.highlightDate)
@@ -87,7 +99,7 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
         this.highlightDate = date
     }
 
-    @computed get cellProps(): CovidTableCellSpec {
+    get cellProps(): CovidTableCellSpec {
         return {
             datum: this.props.datum,
             isMobile: this.props.state.isMobile,
@@ -123,4 +135,4 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
             </React.Fragment>
         )
     }
-}
+});

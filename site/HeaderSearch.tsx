@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, action, runInAction } from "mobx"
+import { observable, action, runInAction, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { SearchResults } from "./SearchResults.js"
 import { SiteSearchResults, siteSearch } from "./searchClient.js"
@@ -22,10 +22,18 @@ class HeaderSearchResults extends React.Component<{
     }
 }
 
-@observer
-export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
-    @observable.ref results?: SiteSearchResults
+export const HeaderSearch = observer(class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
+    results?: SiteSearchResults;
     lastQuery?: string
+
+    constructor(props: { autoFocus?: boolean }) {
+        super(props);
+
+        makeObservable(this, {
+            results: observable.ref,
+            onSearch: action.bound
+        });
+    }
 
     async runSearch(query: string) {
         const results = await siteSearch(query)
@@ -38,7 +46,7 @@ export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
         runInAction(() => (this.results = results))
     }
 
-    @action.bound onSearch(e: React.ChangeEvent<HTMLInputElement>) {
+    onSearch(e: React.ChangeEvent<HTMLInputElement>) {
         const value = e.currentTarget.value
         this.lastQuery = value
         if (value) {
@@ -66,4 +74,4 @@ export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
             </form>
         )
     }
-}
+});

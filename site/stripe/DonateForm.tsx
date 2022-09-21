@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import classnames from "classnames"
-import { observable, action, computed, runInAction } from "mobx"
+import { observable, action, computed, runInAction, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import Recaptcha from "react-recaptcha"
@@ -43,27 +43,54 @@ const SUPPORTED_CURRENCY_CODES = [
     CurrencyCode.EUR,
 ]
 
-@observer
-export class DonateForm extends React.Component {
-    @observable interval: Interval = "once"
-    @observable presetAmount?: number =
-        ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX]
-    @observable customAmount: string = ""
-    @observable isCustom: boolean = false
-    @observable name: string = ""
-    @observable showOnList: boolean = true
-    @observable errorMessage?: string
-    @observable isSubmitting: boolean = false
-    @observable isLoading: boolean = true
-    @observable currencyCode: CurrencyCode = CurrencyCode.USD
+export const DonateForm = observer(class DonateForm extends React.Component {
+    interval: Interval = "once";
+    presetAmount?: number = ONETIME_DONATION_AMOUNTS[ONETIME_DEFAULT_INDEX];
+    customAmount: string = "";
+    isCustom: boolean = false;
+    name: string = "";
+    showOnList: boolean = true;
+    errorMessage?: string;
+    isSubmitting: boolean = false;
+    isLoading: boolean = true;
+    currencyCode: CurrencyCode = CurrencyCode.USD;
 
     captchaInstance?: Recaptcha | null
-    @observable.ref captchaPromiseHandlers?: {
+    captchaPromiseHandlers?: {
         resolve: (value: any) => void
         reject: (value: any) => void
+    };
+
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            interval: observable,
+            presetAmount: observable,
+            customAmount: observable,
+            isCustom: observable,
+            name: observable,
+            showOnList: observable,
+            errorMessage: observable,
+            isSubmitting: observable,
+            isLoading: observable,
+            currencyCode: observable,
+            captchaPromiseHandlers: observable.ref,
+            setInterval: action.bound,
+            setPresetAmount: action.bound,
+            setCustomAmount: action.bound,
+            setIsCustom: action.bound,
+            setName: action.bound,
+            setShowOnList: action.bound,
+            setErrorMessage: action.bound,
+            setCurrency: action.bound,
+            amount: computed,
+            intervalAmounts: computed,
+            currencySymbol: computed
+        });
     }
 
-    @action.bound setInterval(interval: Interval) {
+    setInterval(interval: Interval) {
         this.interval = interval
         this.presetAmount =
             this.intervalAmounts[
@@ -73,49 +100,49 @@ export class DonateForm extends React.Component {
             ]
     }
 
-    @action.bound setPresetAmount(amount?: number) {
+    setPresetAmount(amount?: number) {
         this.presetAmount = amount
         this.isCustom = false
     }
 
-    @action.bound setCustomAmount(amount: string) {
+    setCustomAmount(amount: string) {
         this.customAmount = amount
         this.isCustom = true
     }
 
-    @action.bound setIsCustom(isCustom: boolean) {
+    setIsCustom(isCustom: boolean) {
         this.isCustom = isCustom
     }
 
-    @action.bound setName(name: string) {
+    setName(name: string) {
         this.name = name
     }
 
-    @action.bound setShowOnList(showOnList: boolean) {
+    setShowOnList(showOnList: boolean) {
         this.showOnList = showOnList
     }
 
-    @action.bound setErrorMessage(message?: string) {
+    setErrorMessage(message?: string) {
         this.errorMessage = message
     }
 
-    @action.bound setCurrency(currency: CurrencyCode) {
+    setCurrency(currency: CurrencyCode) {
         this.currencyCode = currency
     }
 
-    @computed get amount(): number | undefined {
+    get amount(): number | undefined {
         return this.isCustom
             ? parseFloat(this.customAmount || "")
             : this.presetAmount
     }
 
-    @computed get intervalAmounts(): number[] {
+    get intervalAmounts(): number[] {
         return this.interval === "monthly"
             ? MONTHLY_DONATION_AMOUNTS
             : ONETIME_DONATION_AMOUNTS
     }
 
-    @computed get currencySymbol(): string {
+    get currencySymbol(): string {
         return currencySymbolByCode[this.currencyCode]
     }
 
@@ -393,7 +420,7 @@ export class DonateForm extends React.Component {
             </form>
         )
     }
-}
+});
 
 export class DonateFormRunner {
     async run() {

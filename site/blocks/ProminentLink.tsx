@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { union } from "../../clientUtils/Util.js"
 import {
     getSelectedEntityNamesParam,
@@ -23,8 +23,7 @@ export enum ProminentLinkStyles {
 
 export const WITH_IMAGE = "with-image"
 
-@observer
-export class ProminentLink extends React.Component<{
+export const ProminentLink = observer(class ProminentLink extends React.Component<{
     href: string
     style: string | null
     title: string | null
@@ -32,19 +31,40 @@ export class ProminentLink extends React.Component<{
     image?: string | null
     globalEntitySelection?: SelectionArray
 }> {
-    @computed get originalUrl(): Url {
+    constructor(
+        props: {
+            href: string
+            style: string | null
+            title: string | null
+            content?: string | null
+            image?: string | null
+            globalEntitySelection?: SelectionArray
+        }
+    ) {
+        super(props);
+
+        makeObservable<ProminentLink, "originalSelectedEntities" | "entitiesInGlobalEntitySelection" | "updatedUrl" | "style">(this, {
+            originalUrl: computed,
+            originalSelectedEntities: computed,
+            entitiesInGlobalEntitySelection: computed,
+            updatedUrl: computed,
+            style: computed
+        });
+    }
+
+    get originalUrl(): Url {
         return migrateSelectedEntityNamesParam(Url.fromURL(this.props.href))
     }
 
-    @computed private get originalSelectedEntities(): EntityName[] {
+    private get originalSelectedEntities(): EntityName[] {
         return getSelectedEntityNamesParam(this.originalUrl) ?? []
     }
 
-    @computed private get entitiesInGlobalEntitySelection(): EntityName[] {
+    private get entitiesInGlobalEntitySelection(): EntityName[] {
         return this.props.globalEntitySelection?.selectedEntityNames ?? []
     }
 
-    @computed private get updatedUrl(): Url {
+    private get updatedUrl(): Url {
         const newEntityList = union(
             this.originalSelectedEntities,
             this.entitiesInGlobalEntitySelection
@@ -54,7 +74,7 @@ export class ProminentLink extends React.Component<{
         return setSelectedEntityNamesParam(this.originalUrl, newEntityList)
     }
 
-    @computed private get style(): string {
+    private get style(): string {
         return this.props.style || ProminentLinkStyles.default
     }
 
@@ -144,7 +164,7 @@ export class ProminentLink extends React.Component<{
             </div>
         )
     }
-}
+});
 
 export const hydrateProminentLink = (
     globalEntitySelection?: SelectionArray

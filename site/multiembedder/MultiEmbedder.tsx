@@ -25,7 +25,7 @@ import {
     migrateSelectedEntityNamesParam,
 } from "../../grapher/core/EntityUrlBuilder.js"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector.js"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx";
 import { Annotation } from "../../clientUtils/owidTypes.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 
@@ -57,6 +57,10 @@ class MultiEmbedder {
     graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
     constructor() {
+        makeObservable(this, {
+            renderInteractiveFigure: action.bound
+        });
+
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
             this.figuresObserver = new IntersectionObserver(
                 this.onIntersecting.bind(this),
@@ -108,7 +112,6 @@ class MultiEmbedder {
         })
     }
 
-    @action.bound
     async renderInteractiveFigure(figure: Element, annotation?: Annotation) {
         const isExplorer = figure.hasAttribute(
             EXPLORER_EMBEDDED_FIGURE_SELECTOR

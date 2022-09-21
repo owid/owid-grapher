@@ -1,17 +1,25 @@
 import React from "react"
-import { observable, action } from "mobx"
+import { observable, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 
 import { Bounds } from "../clientUtils/Bounds.js"
 import { Grapher } from "../grapher/core/Grapher.js"
 
 // Wrapper for Grapher that uses css on figure element to determine the bounds
-@observer
-export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
+export const GrapherFigureView = observer(class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    @observable.ref bounds?: Bounds
+    bounds?: Bounds;
 
-    @action.bound calcBounds() {
+    constructor(props: { grapher: Grapher }) {
+        super(props);
+
+        makeObservable(this, {
+            bounds: observable.ref,
+            calcBounds: action.bound
+        });
+    }
+
+    calcBounds() {
         this.bounds = Bounds.fromRect(
             this.base.current!.getBoundingClientRect()
         )
@@ -42,4 +50,4 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
             </figure>
         )
     }
-}
+});

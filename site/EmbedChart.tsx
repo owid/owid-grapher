@@ -6,24 +6,35 @@ import {
     runInAction,
     autorun,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import { Grapher } from "../grapher/core/Grapher.js"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
 import { Url } from "../clientUtils/urls/Url.js"
 
-@observer
-export class EmbedChart extends React.Component<{ src: string }> {
-    @computed private get url(): Url {
+export const EmbedChart = observer(class EmbedChart extends React.Component<{ src: string }> {
+    constructor(props: { src: string }) {
+        super(props);
+
+        makeObservable<EmbedChart, "url" | "configUrl" | "queryStr" | "grapher">(this, {
+            url: computed,
+            configUrl: computed,
+            queryStr: computed,
+            grapher: observable
+        });
+    }
+
+    private get url(): Url {
         return Url.fromURL(this.props.src)
     }
-    @computed private get configUrl() {
+    private get configUrl() {
         return this.url.originAndPath
     }
-    @computed private get queryStr() {
+    private get queryStr() {
         return this.url.queryStr
     }
-    @observable private grapher?: Grapher
+    private grapher?: Grapher;
 
     private async loadConfig() {
         const { configUrl } = this
@@ -61,4 +72,4 @@ export class EmbedChart extends React.Component<{ src: string }> {
             <figure data-grapher-src={this.props.src} />
         )
     }
-}
+});

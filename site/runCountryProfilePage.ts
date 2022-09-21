@@ -1,6 +1,6 @@
 import fuzzysort from "fuzzysort"
 import { keyBy } from "../clientUtils/Util.js"
-import { observable, computed, action, autorun } from "mobx"
+import { observable, computed, action, autorun, makeObservable } from "mobx";
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 interface ChartItem {
@@ -10,11 +10,11 @@ interface ChartItem {
 }
 
 function encodeHashSafe(s: string) {
-    return encodeURIComponent(s.replace(/ /g, "-"))
+    return encodeURIComponent(s.replace(/ /g, "-"));
 }
 
 function decodeHashSafe(s: string) {
-    return decodeURIComponent(s).replace(/-/g, " ")
+    return decodeURIComponent(s).replace(/-/g, " ");
 }
 
 class ChartFilter {
@@ -25,21 +25,31 @@ class ChartFilter {
     results: any[] = []
     sections: HTMLDivElement[] = []
 
-    @observable query: string = ""
+    query: string = "";
 
-    @computed get searchStrings(): (Fuzzysort.Prepared | undefined)[] {
+    get searchStrings(): (Fuzzysort.Prepared | undefined)[] {
         return this.chartItems.map((c) => fuzzysort.prepare(c.title))
     }
 
-    @computed get searchResults(): Fuzzysort.Results {
+    get searchResults(): Fuzzysort.Results {
         return fuzzysort.go(this.query, this.searchStrings, { threshold: -150 })
     }
 
-    @computed get resultsByTitle(): { [key: string]: Fuzzysort.Result } {
+    get resultsByTitle(): { [key: string]: Fuzzysort.Result } {
         return keyBy(this.searchResults, "target")
     }
 
     constructor() {
+        makeObservable(this, {
+            query: observable,
+            searchStrings: computed,
+            searchResults: computed,
+            resultsByTitle: computed,
+            logSearchQuery: action.bound,
+            onSearchInput: action.bound,
+            run: action.bound
+        });
+
         this.searchInput = document.querySelector(
             ".chartsSearchInput"
         ) as HTMLInputElement
@@ -63,12 +73,12 @@ class ChartFilter {
 
     analytics = new SiteAnalytics()
 
-    @action.bound logSearchQuery() {
+    logSearchQuery() {
         this.analytics.logChartsPageSearchQuery(this.query)
     }
 
     timeout?: NodeJS.Timeout
-    @action.bound onSearchInput() {
+    onSearchInput() {
         this.query = this.searchInput.value
 
         if (this.timeout !== undefined) {
@@ -135,7 +145,7 @@ class ChartFilter {
         }
     }
 
-    @action.bound run() {
+    run() {
         this.searchInput.addEventListener("input", this.onSearchInput)
         //this.searchInput.addEventListener('keydown', this.onKeydown)
 
