@@ -1,6 +1,6 @@
 // todo: remove file
 
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx";
 import {
     Persistable,
     updatePersistables,
@@ -14,19 +14,37 @@ import {
 } from "./OwidVariableDisplayConfigInterface.js"
 
 class OwidVariableDisplayConfigDefaults {
-    @observable name?: string = undefined
-    @observable unit?: string = undefined
-    @observable shortUnit?: string = undefined
-    @observable isProjection?: boolean = undefined
-    @observable conversionFactor?: number = undefined
-    @observable numDecimalPlaces?: number = undefined
-    @observable tolerance?: number = undefined
-    @observable yearIsDay?: boolean = undefined
-    @observable zeroDay?: string = undefined
-    @observable entityAnnotationsMap?: string = undefined
-    @observable includeInTable? = true
-    @observable tableDisplay?: OwidVariableDataTableConfigInteface
-    @observable color?: string = undefined
+    name?: string = undefined;
+    unit?: string = undefined;
+    shortUnit?: string = undefined;
+    isProjection?: boolean = undefined;
+    conversionFactor?: number = undefined;
+    numDecimalPlaces?: number = undefined;
+    tolerance?: number = undefined;
+    yearIsDay?: boolean = undefined;
+    zeroDay?: string = undefined;
+    entityAnnotationsMap?: string = undefined;
+    includeInTable? = true;
+    tableDisplay?: OwidVariableDataTableConfigInteface;
+    color?: string = undefined;
+
+    constructor() {
+        makeObservable(this, {
+            name: observable,
+            unit: observable,
+            shortUnit: observable,
+            isProjection: observable,
+            conversionFactor: observable,
+            numDecimalPlaces: observable,
+            tolerance: observable,
+            yearIsDay: observable,
+            zeroDay: observable,
+            entityAnnotationsMap: observable,
+            includeInTable: observable,
+            tableDisplay: observable,
+            color: observable
+        });
+    }
 }
 
 export class OwidVariableDisplayConfig

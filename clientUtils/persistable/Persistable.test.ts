@@ -6,7 +6,7 @@ import {
     updatePersistables,
     deleteRuntimeAndUnchangedProps,
 } from "./Persistable.js"
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx";
 
 interface CharacterInterface {
     name: string
@@ -14,11 +14,21 @@ interface CharacterInterface {
 }
 
 class GameBoyGameDefaults {
-    @observable title?: string
-    @observable players?: number = 2
-    @observable relatedGames?: GameBoyGameDefaults[]
-    @observable characters?: CharacterInterface[]
-    @observable mainCharacter?: CharacterInterface
+    title?: string;
+    players?: number = 2;
+    relatedGames?: GameBoyGameDefaults[];
+    characters?: CharacterInterface[];
+    mainCharacter?: CharacterInterface;
+
+    constructor() {
+        makeObservable(this, {
+            title: observable,
+            players: observable,
+            relatedGames: observable,
+            characters: observable,
+            mainCharacter: observable
+        });
+    }
 }
 
 type GameBoyGameInterface = GameBoyGameDefaults
@@ -26,6 +36,11 @@ type GameBoyGameInterface = GameBoyGameDefaults
 class GameBoyGame extends GameBoyGameDefaults implements Persistable {
     constructor(obj?: GameBoyGameInterface) {
         super()
+
+        makeObservable(this, {
+            someRuntimeProp: observable
+        });
+
         if (obj) this.updateFromObject(obj)
     }
 
@@ -45,12 +60,19 @@ class GameBoyGame extends GameBoyGameDefaults implements Persistable {
         return deleteRuntimeAndUnchangedProps(obj, new GameBoyGame())
     }
 
-    @observable someRuntimeProp = 5
+    someRuntimeProp = 5;
 }
 
 class CharacterDefaults {
-    @observable name = ""
-    @observable country = ""
+    name = "";
+    country = "";
+
+    constructor() {
+        makeObservable(this, {
+            name: observable,
+            country: observable
+        });
+    }
 }
 
 class Character
