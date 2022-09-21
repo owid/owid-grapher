@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 import { ChartEditor } from "./ChartEditor.js"
@@ -19,8 +19,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "../coreTable/OwidTable.js"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 
-@observer
-export class DimensionCard extends React.Component<{
+export const DimensionCard = observer(class DimensionCard extends React.Component<{
     dimension: ChartDimension
     editor: ChartEditor
     onChange: (dimension: ChartDimension) => void
@@ -29,27 +28,51 @@ export class DimensionCard extends React.Component<{
     onMouseEnter?: () => void
     onMouseDown?: () => void
 }> {
-    @observable.ref isExpanded: boolean = false
+    isExpanded: boolean = false;
 
-    @computed get table(): OwidTable {
+    constructor(
+        props: {
+            dimension: ChartDimension
+            editor: ChartEditor
+            onChange: (dimension: ChartDimension) => void
+            onEdit?: () => void
+            onRemove?: () => void
+            onMouseEnter?: () => void
+            onMouseDown?: () => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            isExpanded: observable.ref,
+            table: computed,
+            onToggleExpand: action.bound,
+            onIsProjection: action.bound,
+            onColor: action.bound,
+            color: computed,
+            onChange: action.bound
+        });
+    }
+
+    get table(): OwidTable {
         return this.props.editor.grapher.table
     }
 
-    @action.bound onToggleExpand() {
+    onToggleExpand() {
         this.isExpanded = !this.isExpanded
     }
 
-    @action.bound onIsProjection(value: boolean) {
+    onIsProjection(value: boolean) {
         this.props.dimension.display.isProjection = value
         this.onChange()
     }
 
-    @action.bound onColor(color: string | undefined) {
+    onColor(color: string | undefined) {
         this.props.dimension.display.color = color
         this.onChange()
     }
 
-    @computed get color() {
+    get color() {
         return this.props.dimension.column.def.color
     }
 
@@ -81,7 +104,7 @@ export class DimensionCard extends React.Component<{
         )
     }
 
-    @action.bound onChange() {
+    onChange() {
         this.props.onChange(this.props.dimension)
     }
 
@@ -202,4 +225,4 @@ export class DimensionCard extends React.Component<{
             </EditableListItem>
         )
     }
-}
+});

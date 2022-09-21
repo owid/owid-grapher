@@ -14,8 +14,7 @@ export interface VariableListItem {
     nonRedistributable?: boolean
 }
 
-@observer
-class VariableRow extends React.Component<{
+const VariableRow = observer(class VariableRow extends React.Component<{
     variable: VariableListItem
     searchHighlight?: (text: string) => string | JSX.Element
 }> {
@@ -54,10 +53,9 @@ class VariableRow extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-export class VariableList extends React.Component<{
+export const VariableList = observer(class VariableList extends React.Component<{
     variables: VariableListItem[]
     searchHighlight?: (text: string) => string | JSX.Element
 }> {
@@ -88,4 +86,4 @@ export class VariableList extends React.Component<{
             </table>
         )
     }
-}
+});

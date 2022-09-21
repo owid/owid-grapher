@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, runInAction } from "mobx"
+import { action, observable, runInAction, makeObservable } from "mobx";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
@@ -15,13 +15,22 @@ const statusLabel: Record<DeployStatus, string> = {
     [DeployStatus.pending]: "Deploying",
 }
 
-@observer
-export class DeployStatusPage extends React.Component {
+export const DeployStatusPage = observer(class DeployStatusPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable deploys: Deploy[] = []
-    @observable canManuallyDeploy = true
+    deploys: Deploy[] = [];
+    canManuallyDeploy = true;
+
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            deploys: observable,
+            canManuallyDeploy: observable,
+            triggerDeploy: action.bound
+        });
+    }
 
     render() {
         return (
@@ -103,7 +112,7 @@ export class DeployStatusPage extends React.Component {
         )
     }
 
-    @action.bound async triggerDeploy() {
+    async triggerDeploy() {
         const { admin } = this.context
         await admin.rawRequest("/api/deploy", undefined, "PUT")
     }
@@ -123,4 +132,4 @@ export class DeployStatusPage extends React.Component {
     componentDidMount() {
         this.getData()
     }
-}
+});

@@ -8,7 +8,8 @@ import {
     autorun,
     runInAction,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
@@ -40,41 +41,76 @@ interface Variable {
     usageCount: number
 }
 
-@observer
-export class VariableSelector extends React.Component<VariableSelectorProps> {
-    @observable.ref chosenNamespace: Namespace | undefined
-    @observable.ref searchInput?: string
-    @observable.ref isProjection?: boolean
-    @observable.ref tolerance?: number
-    @observable.ref chosenVariables: Variable[] = []
+export const VariableSelector = observer(class VariableSelector extends React.Component<VariableSelectorProps> {
+    chosenNamespace: Namespace | undefined;
+    searchInput?: string;
+    isProjection?: boolean;
+    tolerance?: number;
+    chosenVariables: Variable[] = [];
     searchField!: HTMLInputElement
     scrollElement!: HTMLDivElement
 
-    @observable rowOffset: number = 0
-    @observable numVisibleRows: number = 15
-    @observable rowHeight: number = 32
+    rowOffset: number = 0;
+    numVisibleRows: number = 15;
+    rowHeight: number = 32;
 
-    @computed get database() {
+    constructor(props: VariableSelectorProps) {
+        super(props);
+
+        makeObservable<VariableSelector, "initChosenVariables">(this, {
+            chosenNamespace: observable.ref,
+            searchInput: observable.ref,
+            isProjection: observable.ref,
+            tolerance: observable.ref,
+            chosenVariables: observable.ref,
+            rowOffset: observable,
+            numVisibleRows: observable,
+            rowHeight: observable,
+            database: computed,
+            currentNamespace: computed,
+            searchWords: computed,
+            editorData: computed,
+            datasets: computed,
+            datasetsByName: computed,
+            availableVariables: computed,
+            searchResults: computed,
+            resultsByDataset: computed,
+            searchResultRows: computed,
+            numTotalRows: computed,
+            onScroll: action.bound,
+            onNamespace: action.bound,
+            onSearchInput: action.bound,
+            selectVariable: action.bound,
+            unselectVariable: action.bound,
+            toggleVariable: action.bound,
+            onSearchEnter: action.bound,
+            onDismiss: action.bound,
+            initChosenVariables: action.bound,
+            onComplete: action.bound
+        });
+    }
+
+    get database() {
         return this.props.editor.database
     }
 
-    @computed get currentNamespace() {
+    get currentNamespace() {
         return (
             this.chosenNamespace ??
             this.database.namespaces.find((n) => n.name === "owid")!
         )
     }
 
-    @computed get searchWords(): SearchWord[] {
+    get searchWords(): SearchWord[] {
         const { searchInput } = this
         return buildSearchWordsFromSearchString(searchInput)
     }
 
-    @computed get editorData() {
+    get editorData() {
         return this.database.dataByNamespace.get(this.currentNamespace.name)
     }
 
-    @computed get datasets() {
+    get datasets() {
         if (!this.editorData) return []
 
         const datasets = this.editorData.datasets
@@ -87,11 +123,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         }
     }
 
-    @computed get datasetsByName(): lodash.Dictionary<Dataset> {
+    get datasetsByName(): lodash.Dictionary<Dataset> {
         return lodash.keyBy(this.datasets, (d) => d.name)
     }
 
-    @computed get availableVariables(): Variable[] {
+    get availableVariables(): Variable[] {
         const { variableUsageCounts } = this.database
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
@@ -112,7 +148,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return variables
     }
 
-    @computed get searchResults(): Variable[] {
+    get searchResults(): Variable[] {
         let results: Variable[] | undefined
         const { searchWords } = this
         if (searchWords.length > 0) {
@@ -127,7 +163,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             : []
     }
 
-    @computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
+    get resultsByDataset(): { [datasetName: string]: Variable[] } {
         const { searchResults, searchWords, availableVariables } = this
         let datasetListToUse = searchResults
         if (searchWords.length == 0) {
@@ -136,7 +172,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return groupBy(datasetListToUse, (d) => d.datasetName)
     }
 
-    @computed get searchResultRows() {
+    get searchResultRows() {
         const { resultsByDataset } = this
 
         const rows: Array<string | Variable[]> = []
@@ -158,7 +194,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return rows
     }
 
-    @computed get numTotalRows(): number {
+    get numTotalRows(): number {
         return this.searchResultRows.length
     }
 
@@ -384,7 +420,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         )
     }
 
-    @action.bound onScroll(ev: React.UIEvent<HTMLDivElement>) {
+    onScroll(ev: React.UIEvent<HTMLDivElement>) {
         const { scrollTop, scrollHeight } = ev.currentTarget
         const { numTotalRows } = this
 
@@ -396,29 +432,29 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.rowOffset = rowOffset
     }
 
-    @action.bound onNamespace(selected: Namespace | null) {
+    onNamespace(selected: Namespace | null) {
         if (selected) this.chosenNamespace = selected
     }
 
-    @action.bound onSearchInput(input: string) {
+    onSearchInput(input: string) {
         this.searchInput = input
         this.rowOffset = 0
         this.scrollElement.scrollTop = 0
     }
 
-    @action.bound selectVariable(variable: Variable) {
+    selectVariable(variable: Variable) {
         if (this.props.slot.allowMultiple)
             this.chosenVariables = this.chosenVariables.concat(variable)
         else this.chosenVariables = [variable]
     }
 
-    @action.bound unselectVariable(variable: Variable) {
+    unselectVariable(variable: Variable) {
         this.chosenVariables = this.chosenVariables.filter(
             (v) => v.id !== variable.id
         )
     }
 
-    @action.bound toggleVariable(variable: Variable) {
+    toggleVariable(variable: Variable) {
         if (this.chosenVariables.includes(variable)) {
             this.unselectVariable(variable)
         } else {
@@ -426,13 +462,13 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         }
     }
 
-    @action.bound onSearchEnter() {
+    onSearchEnter() {
         if (this.searchResults.length > 0) {
             this.selectVariable(this.searchResults[0])
         }
     }
 
-    @action.bound onDismiss() {
+    onDismiss() {
         this.props.onDismiss()
     }
 
@@ -450,7 +486,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.initChosenVariables()
     }
 
-    @action.bound private initChosenVariables() {
+    private initChosenVariables() {
         const { variableUsageCounts } = this.database
         this.chosenVariables = this.props.slot.dimensions.map((d) => ({
             name: d.column.displayName,
@@ -464,7 +500,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.dispose()
     }
 
-    @action.bound onComplete() {
+    onComplete() {
         this.props.onComplete(this.chosenVariables.map((v) => v.id))
     }
-}
+});

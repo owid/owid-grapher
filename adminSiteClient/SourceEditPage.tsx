@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, runInAction } from "mobx"
+import { observable, computed, runInAction, makeObservable } from "mobx";
 import { Prompt } from "react-router-dom"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -24,16 +24,21 @@ interface SourcePageData {
 }
 
 class SourceEditable {
-    @observable name: string = ""
-    @observable description = {
+    name: string = "";
+    description = {
         dataPublishedBy: undefined,
         dataPublisherSource: undefined,
         link: undefined,
         retrievedDate: undefined,
         additionalInfo: undefined,
-    }
+    };
 
     constructor(json: SourcePageData) {
+        makeObservable(this, {
+            name: observable,
+            description: observable
+        });
+
         for (const key in this) {
             if (key === "description")
                 Object.assign(this.description, json.description)
@@ -42,10 +47,19 @@ class SourceEditable {
     }
 }
 
-@observer
-class SourceEditor extends React.Component<{ source: SourcePageData }> {
-    @observable newSource!: SourceEditable
-    @observable isDeleted: boolean = false
+const SourceEditor = observer(class SourceEditor extends React.Component<{ source: SourcePageData }> {
+    newSource: SourceEditable;
+    isDeleted: boolean = false;
+
+    constructor(props: { source: SourcePageData }) {
+        super(props);
+
+        makeObservable(this, {
+            newSource: observable,
+            isDeleted: observable,
+            isModified: computed
+        });
+    }
 
     // Store the original source to determine when it is modified
     UNSAFE_componentWillMount() {
@@ -56,7 +70,7 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
         this.isDeleted = false
     }
 
-    @computed get isModified(): boolean {
+    get isModified(): boolean {
         return (
             JSON.stringify(this.newSource) !==
             JSON.stringify(new SourceEditable(this.props.source))
@@ -159,14 +173,21 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
             </main>
         )
     }
-}
+});
 
-@observer
-export class SourceEditPage extends React.Component<{ sourceId: number }> {
+export const SourceEditPage = observer(class SourceEditPage extends React.Component<{ sourceId: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable source?: SourcePageData
+    source?: SourcePageData;
+
+    constructor(props: { sourceId: number }) {
+        super(props);
+
+        makeObservable(this, {
+            source: observable
+        });
+    }
 
     render() {
         return (
@@ -191,4 +212,4 @@ export class SourceEditPage extends React.Component<{ sourceId: number }> {
     UNSAFE_componentWillReceiveProps() {
         this.getData()
     }
-}
+});

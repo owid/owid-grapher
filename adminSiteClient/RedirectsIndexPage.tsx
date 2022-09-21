@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction } from "mobx"
+import { observable, action, runInAction, makeObservable } from "mobx";
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow } from "./Forms.js"
 import { Link } from "./Link.js"
@@ -13,8 +13,7 @@ interface RedirectListItem {
     chartSlug: string
 }
 
-@observer
-class RedirectRow extends React.Component<{
+const RedirectRow = observer(class RedirectRow extends React.Component<{
     redirect: RedirectListItem
     onDelete: (redirect: RedirectListItem) => void
 }> {
@@ -43,16 +42,24 @@ class RedirectRow extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-export class RedirectsIndexPage extends React.Component {
+export const RedirectsIndexPage = observer(class RedirectsIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable redirects: RedirectListItem[] = []
+    redirects: RedirectListItem[] = [];
 
-    @action.bound async onDelete(redirect: RedirectListItem) {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            redirects: observable,
+            onDelete: action.bound
+        });
+    }
+
+    async onDelete(redirect: RedirectListItem) {
         if (
             !window.confirm(
                 `Delete the redirect from ${redirect.slug}? This action may break existing embeds!`
@@ -117,4 +124,4 @@ export class RedirectsIndexPage extends React.Component {
     componentDidMount() {
         this.getData()
     }
-}
+});

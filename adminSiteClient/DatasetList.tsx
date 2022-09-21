@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, action } from "mobx"
+import { observable, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import * as lodash from "lodash"
 import { bind } from "decko"
@@ -23,14 +23,27 @@ export interface DatasetListItem {
     nonRedistributable: boolean
 }
 
-@observer
-class DatasetRow extends React.Component<{
+const DatasetRow = observer(class DatasetRow extends React.Component<{
     dataset: DatasetListItem
     availableTags: Tag[]
     searchHighlight?: (text: string) => string | JSX.Element
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
+
+    constructor(
+        props: {
+            dataset: DatasetListItem
+            availableTags: Tag[]
+            searchHighlight?: (text: string) => string | JSX.Element
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onSaveTags: action.bound
+        });
+    }
 
     async saveTags(tags: Tag[]) {
         const { dataset } = this.props
@@ -44,7 +57,7 @@ class DatasetRow extends React.Component<{
         }
     }
 
-    @action.bound onSaveTags(tags: Tag[]) {
+    onSaveTags(tags: Tag[]) {
         this.saveTags(tags)
     }
 
@@ -88,17 +101,29 @@ class DatasetRow extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-export class DatasetList extends React.Component<{
+export const DatasetList = observer(class DatasetList extends React.Component<{
     datasets: DatasetListItem[]
     searchHighlight?: (text: string) => string | JSX.Element
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable availableTags: Tag[] = []
+    availableTags: Tag[] = [];
+
+    constructor(
+        props: {
+            datasets: DatasetListItem[]
+            searchHighlight?: (text: string) => string | JSX.Element
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            availableTags: observable
+        });
+    }
 
     @bind async getTags() {
         const json = await this.context.admin.getJSON("/api/tags.json")
@@ -135,4 +160,4 @@ export class DatasetList extends React.Component<{
             </table>
         )
     }
-}
+});

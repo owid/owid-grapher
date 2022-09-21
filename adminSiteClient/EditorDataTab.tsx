@@ -1,6 +1,6 @@
 import React from "react"
 import { clone } from "../clientUtils/Util.js"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher.js"
 import {
@@ -24,19 +24,30 @@ interface EntityItemProps extends EditableListItemProps {
     onRemove?: () => void
 }
 
-@observer
-class EntityItem extends React.Component<EntityItemProps> {
-    @observable.ref isChoosingColor: boolean = false
+const EntityItem = observer(class EntityItem extends React.Component<EntityItemProps> {
+    isChoosingColor: boolean = false;
 
-    @computed get table() {
+    constructor(props: EntityItemProps) {
+        super(props);
+
+        makeObservable(this, {
+            isChoosingColor: observable.ref,
+            table: computed,
+            color: computed,
+            onColor: action.bound,
+            onRemove: action.bound
+        });
+    }
+
+    get table() {
         return this.props.grapher.table
     }
 
-    @computed get color() {
+    get color() {
         return this.table.getColorForEntityName(this.props.entityName)
     }
 
-    @action.bound onColor(color: string | undefined) {
+    onColor(color: string | undefined) {
         const { grapher } = this.props
         grapher.selectedEntityColors[this.props.entityName] = color
         grapher.legacyConfigAsAuthored.selectedEntityColors = {
@@ -48,7 +59,7 @@ class EntityItem extends React.Component<EntityItemProps> {
         grapher.rebuildInputOwidTable()
     }
 
-    @action.bound onRemove() {
+    onRemove() {
         this.props.onRemove?.()
     }
 
@@ -75,17 +86,27 @@ class EntityItem extends React.Component<EntityItemProps> {
             </EditableListItem>
         )
     }
-}
+});
 
-@observer
-export class KeysSection extends React.Component<{ grapher: Grapher }> {
-    @observable.ref dragKey?: EntityName
+export const KeysSection = observer(class KeysSection extends React.Component<{ grapher: Grapher }> {
+    dragKey?: EntityName;
 
-    @action.bound onAddKey(entityName: EntityName) {
+    constructor(props: { grapher: Grapher }) {
+        super(props);
+
+        makeObservable(this, {
+            dragKey: observable.ref,
+            onAddKey: action.bound,
+            onStartDrag: action.bound,
+            onMouseEnter: action.bound
+        });
+    }
+
+    onAddKey(entityName: EntityName) {
         this.props.grapher.selection.selectEntity(entityName)
     }
 
-    @action.bound onStartDrag(key: EntityName) {
+    onStartDrag(key: EntityName) {
         this.dragKey = key
 
         const onDrag = action(() => {
@@ -96,7 +117,7 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
         window.addEventListener("mouseup", onDrag)
     }
 
-    @action.bound onMouseEnter(targetKey: EntityName) {
+    onMouseEnter(targetKey: EntityName) {
         if (!this.dragKey || targetKey === this.dragKey) return
 
         const selectedKeys = clone(
@@ -140,10 +161,9 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
             </Section>
         )
     }
-}
+});
 
-@observer
-export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
+export const EditorDataTab = observer(class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
         const { grapher } = editor
@@ -213,4 +233,4 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
             </div>
         )
     }
-}
+});

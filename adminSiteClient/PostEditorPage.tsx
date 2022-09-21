@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, runInAction } from "mobx"
+import { observable, runInAction, makeObservable } from "mobx";
 
 import { LoadingBlocker, BindString } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -28,12 +28,19 @@ class PostEditor extends React.Component<{ post: Post }> {
     }
 }
 
-@observer
-export class PostEditorPage extends React.Component<{ postId?: number }> {
+export const PostEditorPage = observer(class PostEditorPage extends React.Component<{ postId?: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref post?: Post
+    post?: Post;
+
+    constructor(props: { postId?: number }) {
+        super(props);
+
+        makeObservable(this, {
+            post: observable.ref
+        });
+    }
 
     async fetchPost() {
         const { postId } = this.props
@@ -59,4 +66,4 @@ export class PostEditorPage extends React.Component<{ postId?: number }> {
             </AdminLayout>
         )
     }
-}
+});

@@ -2,8 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { AdminLayout } from "./AdminLayout.js"
 
-@observer
-export class NotFoundPage extends React.Component {
+export const NotFoundPage = observer(class NotFoundPage extends React.Component {
     render() {
         return (
             <AdminLayout>
@@ -13,4 +12,4 @@ export class NotFoundPage extends React.Component {
             </AdminLayout>
         )
     }
-}
+});

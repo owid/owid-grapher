@@ -3,8 +3,7 @@ import { observer } from "mobx-react"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
-@observer
-export class BulkDownloadPage extends React.Component {
+export const BulkDownloadPage = observer(class BulkDownloadPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -18,7 +17,7 @@ export class BulkDownloadPage extends React.Component {
             </AdminLayout>
         )
     }
-}
+});
 
 export class DownloadChartsSection extends React.Component {
     render() {

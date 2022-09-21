@@ -43,8 +43,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { DetailsOnDemandPage } from "./DetailsOnDemand.js"
 
-@observer
-class AdminErrorMessage extends React.Component<{ admin: Admin }> {
+const AdminErrorMessage = observer(class AdminErrorMessage extends React.Component<{ admin: Admin }> {
     render(): JSX.Element | null {
         const { admin } = this.props
         const error = admin.errorMessage
@@ -83,18 +82,16 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
             </Modal>
         ) : null
     }
-}
+});
 
-@observer
-class AdminLoader extends React.Component<{ admin: Admin }> {
+const AdminLoader = observer(class AdminLoader extends React.Component<{ admin: Admin }> {
     render(): JSX.Element | null {
         const { admin } = this.props
         return admin.showLoadingIndicator ? <LoadingBlocker /> : null
     }
-}
+});
 
-@observer
-export class AdminApp extends React.Component<{
+export const AdminApp = observer(class AdminApp extends React.Component<{
     admin: Admin
     gitCmsBranchName: string
 }> {
@@ -351,4 +348,4 @@ export class AdminApp extends React.Component<{
             </AdminAppContext.Provider>
         )
     }
-}
+});

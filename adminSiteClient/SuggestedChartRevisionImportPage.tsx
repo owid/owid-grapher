@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, action, runInAction, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Link } from "react-router-dom"
 import Papa from "papaparse"
@@ -14,22 +14,38 @@ interface ResponseMessage {
     text: string
 }
 
-@observer
-export class SuggestedChartRevisionImportPage extends React.Component {
+export const SuggestedChartRevisionImportPage = observer(class SuggestedChartRevisionImportPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable csv?: CSV
-    @observable suggestedReason?: string
-    @observable messages?: ResponseMessage[]
-    @observable submitted: boolean = false
+    csv?: CSV;
+    suggestedReason?: string;
+    messages?: ResponseMessage[];
+    submitted: boolean = false;
 
-    @action.bound onCSV(csv: CSV) {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            csv: observable,
+            suggestedReason: observable,
+            messages: observable,
+            submitted: observable,
+            onCSV: action.bound,
+            suggestedConfigs: computed,
+            canSubmit: computed,
+            onSuggestedReasonInput: action.bound,
+            onSubmit: action.bound,
+            save: action.bound
+        });
+    }
+
+    onCSV(csv: CSV) {
         this.csv = csv
         this.messages = []
     }
 
-    @computed get suggestedConfigs(): GrapherInterface[] | undefined {
+    get suggestedConfigs(): GrapherInterface[] | undefined {
         const { csv } = this
         if (!csv) return
 
@@ -47,7 +63,7 @@ export class SuggestedChartRevisionImportPage extends React.Component {
         return suggestedConfigs
     }
 
-    @computed get canSubmit(): boolean {
+    get canSubmit(): boolean {
         return (
             !!this.csv &&
             !!this.suggestedConfigs &&
@@ -55,11 +71,11 @@ export class SuggestedChartRevisionImportPage extends React.Component {
         )
     }
 
-    @action.bound onSuggestedReasonInput(input: string) {
+    onSuggestedReasonInput(input: string) {
         this.suggestedReason = input
     }
 
-    @action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         if (this.canSubmit) {
             this.save()
@@ -67,7 +83,7 @@ export class SuggestedChartRevisionImportPage extends React.Component {
         }
     }
 
-    @action.bound save() {
+    save() {
         const requestData = {
             suggestedConfigs: this.suggestedConfigs,
             suggestedReason: this.suggestedReason,
@@ -193,13 +209,21 @@ export class SuggestedChartRevisionImportPage extends React.Component {
             </section>
         )
     }
-}
+});
 
-@observer
-class Readme extends React.Component {
-    @observable expanded: boolean = false
+const Readme = observer(class Readme extends React.Component {
+    expanded: boolean = false;
 
-    @action.bound onToggleExpanded() {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            expanded: observable,
+            onToggleExpanded: action.bound
+        });
+    }
+
+    onToggleExpanded() {
         this.expanded = !this.expanded
     }
 
@@ -408,15 +432,26 @@ class Readme extends React.Component {
             </div>
         )
     }
-}
+});
 
-@observer
-class CSVSelector extends React.Component<{
+const CSVSelector = observer(class CSVSelector extends React.Component<{
     onCSV: (csv: CSV) => void
 }> {
     fileInput?: HTMLInputElement
 
-    @action.bound onChooseCSV({ target }: { target: HTMLInputElement }) {
+    constructor(
+        props: {
+            onCSV: (csv: CSV) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onChooseCSV: action.bound
+        });
+    }
+
+    onChooseCSV({ target }: { target: HTMLInputElement }) {
         const file = target.files && target.files[0]
         if (!file) return
 
@@ -465,7 +500,7 @@ class CSVSelector extends React.Component<{
     componentDidMount() {
         if (this.fileInput) this.fileInput.value = ""
     }
-}
+});
 
 class CSV {
     filename: string
@@ -477,12 +512,22 @@ class CSV {
     }
 }
 
-@observer
-class CSVPreview extends React.Component<{ csv: CSV }> {
+const CSVPreview = observer(class CSVPreview extends React.Component<{ csv: CSV }> {
     // @observable maxVisibleRows: number = 11
-    @observable maxRenderRows: number = 1001
+    maxRenderRows: number = 1001;
 
-    @computed get numRows(): number {
+    constructor(props: { csv: CSV }) {
+        super(props);
+
+        makeObservable(this, {
+            maxRenderRows: observable,
+            numRows: computed,
+            numRenderRows: computed,
+            numDataRows: computed
+        });
+    }
+
+    get numRows(): number {
         return this.props.csv.rows.length
     }
 
@@ -490,12 +535,12 @@ class CSVPreview extends React.Component<{ csv: CSV }> {
     //     return Math.min(this.numRows, this.maxVisibleRows)
     // }
 
-    @computed get numRenderRows(): number {
+    get numRenderRows(): number {
         return Math.min(this.numRows, this.maxRenderRows)
     }
 
     // number of rows of data, excluding heading row
-    @computed get numDataRows(): number {
+    get numDataRows(): number {
         return Math.max(0, this.numRows - 1)
     }
 
@@ -554,7 +599,7 @@ class CSVPreview extends React.Component<{ csv: CSV }> {
             </section>
         )
     }
-}
+});
 
 class ResponseMessages extends React.Component<{
     messages?: ResponseMessage[]

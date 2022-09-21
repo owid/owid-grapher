@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { isEmpty } from "../clientUtils/Util.js"
 import {
@@ -21,16 +21,29 @@ import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
 import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
 
-@observer
-class VariableSection extends React.Component<{
+const VariableSection = observer(class VariableSection extends React.Component<{
     mapConfig: MapConfig
     filledDimensions: ChartDimension[]
 }> {
-    @action.bound onVariableId(variableId: OwidVariableId) {
+    constructor(
+        props: {
+            mapConfig: MapConfig
+            filledDimensions: ChartDimension[]
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onVariableId: action.bound,
+            onProjection: action.bound
+        });
+    }
+
+    onVariableId(variableId: OwidVariableId) {
         this.props.mapConfig.columnSlug = variableId.toString()
     }
 
-    @action.bound onProjection(projection: string | undefined) {
+    onProjection(projection: string | undefined) {
         this.props.mapConfig.projection = projection as MapProjectionName
     }
 
@@ -73,19 +86,28 @@ class VariableSection extends React.Component<{
             </Section>
         )
     }
-}
+});
 
-@observer
-class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
-    @action.bound onToggleHideTimeline(value: boolean) {
+const TimelineSection = observer(class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
+    constructor(props: { mapConfig: MapConfig }) {
+        super(props);
+
+        makeObservable(this, {
+            onToggleHideTimeline: action.bound,
+            setMapTime: action.bound,
+            onTolerance: action.bound
+        });
+    }
+
+    onToggleHideTimeline(value: boolean) {
         this.props.mapConfig.hideTimeline = value || undefined
     }
 
-    @action.bound setMapTime(time: number | undefined) {
+    setMapTime(time: number | undefined) {
         this.props.mapConfig.time = time
     }
 
-    @action.bound onTolerance(tolerance: number | undefined) {
+    onTolerance(tolerance: number | undefined) {
         this.props.mapConfig.timeTolerance = tolerance
     }
 
@@ -113,11 +135,18 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
             </Section>
         )
     }
-}
+});
 
-@observer
-class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
-    @action.bound onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
+const TooltipSection = observer(class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
+    constructor(props: { mapConfig: MapConfig }) {
+        super(props);
+
+        makeObservable(this, {
+            onTooltipUseCustomLabels: action.bound
+        });
+    }
+
+    onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
         this.props.mapConfig.tooltipUseCustomLabels = tooltipUseCustomLabels
             ? true
             : undefined
@@ -137,11 +166,18 @@ class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
             </Section>
         )
     }
-}
+});
 
-@observer
-export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
-    @computed get grapher() {
+export const EditorMapTab = observer(class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            grapher: computed
+        });
+    }
+
+    get grapher() {
         return this.props.editor.grapher
     }
 
@@ -177,4 +213,4 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
             </div>
         )
     }
-}
+});

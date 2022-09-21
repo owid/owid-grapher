@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction } from "mobx"
+import { observable, action, runInAction, makeObservable } from "mobx";
 
 import { Modal, Timeago } from "./Forms.js"
 import { Link } from "./Link.js"
@@ -12,14 +12,24 @@ interface UserIndexMetaWithLastSeen extends UserIndexMeta {
     lastSeen: Date
 }
 
-@observer
-class InviteModal extends React.Component<{ onClose: () => void }> {
+const InviteModal = observer(class InviteModal extends React.Component<{ onClose: () => void }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable email: string = ""
-    @observable fullName: string = ""
-    @observable responseSuccess: boolean = false
+    email: string = "";
+    fullName: string = "";
+    responseSuccess: boolean = false;
+
+    constructor(props: { onClose: () => void }) {
+        super(props);
+
+        makeObservable(this, {
+            email: observable,
+            fullName: observable,
+            responseSuccess: observable,
+            onSubmit: action.bound
+        });
+    }
 
     async submit() {
         runInAction(() => (this.responseSuccess = false))
@@ -36,7 +46,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
         }
     }
 
-    @action.bound onSubmit(event: React.FormEvent) {
+    onSubmit(event: React.FormEvent) {
         event.preventDefault()
         this.submit()
     }
@@ -89,17 +99,26 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
             </Modal>
         )
     }
-}
+});
 
-@observer
-export class UsersIndexPage extends React.Component {
+export const UsersIndexPage = observer(class UsersIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable users: UserIndexMetaWithLastSeen[] = []
-    @observable isInviteModal: boolean = false
+    users: UserIndexMetaWithLastSeen[] = [];
+    isInviteModal: boolean = false;
 
-    @action.bound async onDelete(user: UserIndexMetaWithLastSeen) {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            users: observable,
+            isInviteModal: observable,
+            onDelete: action.bound
+        });
+    }
+
+    async onDelete(user: UserIndexMetaWithLastSeen) {
         if (
             !window.confirm(
                 `Delete the user ${user.fullName}? This action cannot be undone!`
@@ -214,4 +233,4 @@ export class UsersIndexPage extends React.Component {
     componentDidMount() {
         this.getData()
     }
-}
+});

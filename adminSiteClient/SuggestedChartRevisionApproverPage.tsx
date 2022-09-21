@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, action, runInAction, makeObservable } from "mobx";
 import { Link } from "react-router-dom"
 import { Base64 } from "js-base64"
 import Select from "react-select"
@@ -42,58 +42,123 @@ import {
 } from "./VisionDeficiencies.js"
 import { SuggestedChartRevisionSerialized } from "./SuggestedChartRevision.js"
 
-@observer
-export class SuggestedChartRevisionApproverPage extends React.Component<{
+export const SuggestedChartRevisionApproverPage = observer(class SuggestedChartRevisionApproverPage extends React.Component<{
     suggestedChartRevisionId?: number
 }> {
-    @observable.ref suggestedChartRevision?: SuggestedChartRevisionSerialized
-    @observable.ref originalGrapherElement?: JSX.Element
-    @observable.ref suggestedGrapherElement?: JSX.Element
-    @observable.ref existingGrapherElement?: JSX.Element
-    @observable.ref chartReferences: PostReference[] = []
+    suggestedChartRevision?: SuggestedChartRevisionSerialized;
+    originalGrapherElement?: JSX.Element;
+    suggestedGrapherElement?: JSX.Element;
+    existingGrapherElement?: JSX.Element;
+    chartReferences: PostReference[] = [];
 
-    @observable rowNum: number = 1
-    @observable numTotalRows: number = 0
-    @observable decisionReasonInput?: string = ""
+    rowNum: number = 1;
+    numTotalRows: number = 0;
+    decisionReasonInput?: string = "";
 
-    @observable showReadme: boolean = false
-    @observable showSettings: boolean = false
+    showReadme: boolean = false;
+    showSettings: boolean = false;
 
-    @observable showPendingOnly: boolean = true
-    @observable showExistingChart: boolean = false
-    @observable previewMode: string = "desktop"
-    @observable desktopPreviewSize: string = "normal"
-    @observable sortBy: string = "updatedAt"
-    @observable sortOrder: SortOrder = SortOrder.desc
-    @observable previewSvgOrJson: string = "svg"
-    @observable simulateVisionDeficiency?: VisionDeficiency
+    showPendingOnly: boolean = true;
+    showExistingChart: boolean = false;
+    previewMode: string = "desktop";
+    desktopPreviewSize: string = "normal";
+    sortBy: string = "updatedAt";
+    sortOrder: SortOrder = SortOrder.desc;
+    previewSvgOrJson: string = "svg";
+    simulateVisionDeficiency?: VisionDeficiency;
 
-    @observable private _isGraphersSet = false
+    private _isGraphersSet = false;
 
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @computed get admin() {
+    constructor(
+        props: {
+            suggestedChartRevisionId?: number
+        }
+    ) {
+        super(props);
+
+        makeObservable<SuggestedChartRevisionApproverPage, "_isGraphersSet">(this, {
+            suggestedChartRevision: observable.ref,
+            originalGrapherElement: observable.ref,
+            suggestedGrapherElement: observable.ref,
+            existingGrapherElement: observable.ref,
+            chartReferences: observable.ref,
+            rowNum: observable,
+            numTotalRows: observable,
+            decisionReasonInput: observable,
+            showReadme: observable,
+            showSettings: observable,
+            showPendingOnly: observable,
+            showExistingChart: observable,
+            previewMode: observable,
+            desktopPreviewSize: observable,
+            sortBy: observable,
+            sortOrder: observable,
+            previewSvgOrJson: observable,
+            simulateVisionDeficiency: observable,
+            _isGraphersSet: observable,
+            admin: computed,
+            offset: computed,
+            prevBtnIsDisabled: computed,
+            nextBtnIsDisabled: computed,
+            randomBtnIsDisabled: computed,
+            grapherBounds: computed,
+            rowNumValid: computed,
+            updateButtonsIsDisabled: computed,
+            approveButtonIsDisabled: computed,
+            rejectButtonIsDisabled: computed,
+            flagButtonIsDisabled: computed,
+            listMode: computed,
+            refresh: action.bound,
+            fetchGraphers: action.bound,
+            rerenderGraphers: action.bound,
+            fetchRefs: action.bound,
+            onApproveSuggestedChartRevision: action.bound,
+            onRejectSuggestedChartRevision: action.bound,
+            onFlagSuggestedChartRevision: action.bound,
+            updateSuggestedChartRevision: action.bound,
+            onFirst: action.bound,
+            onPrev: action.bound,
+            onNext: action.bound,
+            onLast: action.bound,
+            onRandom: action.bound,
+            onDecisionReasonInput: action.bound,
+            clearDecisionReasonInput: action.bound,
+            onRowNumInput: action.bound,
+            onChangeDesktopPreviewSize: action.bound,
+            onChangePreviewSvgOrJson: action.bound,
+            onSortByChange: action.bound,
+            onSortOrderChange: action.bound,
+            onToggleShowPendingOnly: action.bound,
+            onToggleShowExistingChart: action.bound,
+            onToggleShowReadme: action.bound,
+            onToggleShowSettings: action.bound
+        });
+    }
+
+    get admin() {
         return this.context.admin
     }
 
-    @computed get offset() {
+    get offset() {
         return this.rowNumValid - 1
     }
 
-    @computed get prevBtnIsDisabled() {
+    get prevBtnIsDisabled() {
         return !this._isGraphersSet || this.rowNumValid <= 1
     }
 
-    @computed get nextBtnIsDisabled() {
+    get nextBtnIsDisabled() {
         return !this._isGraphersSet || this.rowNumValid >= this.numTotalRows
     }
 
-    @computed get randomBtnIsDisabled() {
+    get randomBtnIsDisabled() {
         return !this._isGraphersSet || this.numTotalRows <= 1
     }
 
-    @computed get grapherBounds() {
+    get grapherBounds() {
         let bounds
         if (this.previewMode === "mobile") {
             bounds = new Bounds(0, 0, 360, 500)
@@ -107,15 +172,15 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         return bounds
     }
 
-    @computed get rowNumValid() {
+    get rowNumValid() {
         return Math.max(Math.min(this.rowNum, this.numTotalRows), 1)
     }
 
-    @computed get updateButtonsIsDisabled() {
+    get updateButtonsIsDisabled() {
         return !this._isGraphersSet
     }
 
-    @computed get approveButtonIsDisabled() {
+    get approveButtonIsDisabled() {
         return (
             this.updateButtonsIsDisabled ||
             (this.suggestedChartRevision &&
@@ -123,7 +188,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         )
     }
 
-    @computed get rejectButtonIsDisabled() {
+    get rejectButtonIsDisabled() {
         return (
             this.updateButtonsIsDisabled ||
             (this.suggestedChartRevision &&
@@ -131,7 +196,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         )
     }
 
-    @computed get flagButtonIsDisabled() {
+    get flagButtonIsDisabled() {
         return (
             this.updateButtonsIsDisabled ||
             (this.suggestedChartRevision &&
@@ -139,18 +204,18 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         )
     }
 
-    @computed get listMode() {
+    get listMode() {
         const { suggestedChartRevisionId } = this.props
         return !suggestedChartRevisionId
     }
 
-    @action.bound async refresh() {
+    async refresh() {
         this.clearDecisionReasonInput()
         await this.fetchGraphers()
         await this.fetchRefs()
     }
 
-    @action.bound async fetchGraphers() {
+    async fetchGraphers() {
         const { admin } = this.context
         const { suggestedChartRevisionId } = this.props
         if (suggestedChartRevisionId === undefined) {
@@ -181,7 +246,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         this.rerenderGraphers()
     }
 
-    @action.bound async rerenderGraphers() {
+    async rerenderGraphers() {
         this._isGraphersSet = false
         setTimeout(() => {
             if (this.suggestedChartRevision) {
@@ -190,7 +255,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         }, 0)
     }
 
-    @action.bound async fetchRefs() {
+    async fetchRefs() {
         const chartId = this.suggestedChartRevision?.chartId
         const { admin } = this.context
         const json =
@@ -200,31 +265,28 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         this.chartReferences = json.references || []
     }
 
-    @action.bound onApproveSuggestedChartRevision() {
+    onApproveSuggestedChartRevision() {
         this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.approved,
             this.decisionReasonInput
         )
     }
 
-    @action.bound onRejectSuggestedChartRevision() {
+    onRejectSuggestedChartRevision() {
         this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.rejected,
             this.decisionReasonInput
         )
     }
 
-    @action.bound onFlagSuggestedChartRevision() {
+    onFlagSuggestedChartRevision() {
         this.updateSuggestedChartRevision(
             SuggestedChartRevisionStatus.flagged,
             this.decisionReasonInput
         )
     }
 
-    @action.bound async updateSuggestedChartRevision(
-        status: SuggestedChartRevisionStatus,
-        decisionReason: string | undefined
-    ) {
+    async updateSuggestedChartRevision(status: SuggestedChartRevisionStatus, decisionReason: string | undefined) {
         this._isGraphersSet = false
         if (!this.suggestedChartRevision) return
         const { admin } = this.context
@@ -242,50 +304,50 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         this.refresh()
     }
 
-    @action.bound onFirst() {
+    onFirst() {
         if (!this.prevBtnIsDisabled) {
             this.rowNum = 1
             this.refresh()
         }
     }
 
-    @action.bound onPrev() {
+    onPrev() {
         if (!this.prevBtnIsDisabled) {
             this.rowNum = this.rowNumValid - 1
             this.refresh()
         }
     }
 
-    @action.bound onNext() {
+    onNext() {
         if (!this.nextBtnIsDisabled) {
             this.rowNum = this.rowNumValid + 1
             this.refresh()
         }
     }
 
-    @action.bound onLast() {
+    onLast() {
         if (!this.nextBtnIsDisabled) {
             this.rowNum = this.numTotalRows
             this.refresh()
         }
     }
 
-    @action.bound onRandom() {
+    onRandom() {
         if (!this.randomBtnIsDisabled) {
             this.rowNum = Math.floor(Math.random() * this.numTotalRows + 1)
             this.refresh()
         }
     }
 
-    @action.bound onDecisionReasonInput(input: string) {
+    onDecisionReasonInput(input: string) {
         this.decisionReasonInput = input
     }
 
-    @action.bound clearDecisionReasonInput() {
+    clearDecisionReasonInput() {
         this.decisionReasonInput = ""
     }
 
-    @action.bound onRowNumInput(input: number | undefined) {
+    onRowNumInput(input: number | undefined) {
         if (input === undefined || input === null) {
             return
         }
@@ -295,41 +357,41 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         }, 100)
     }
 
-    @action.bound onChangeDesktopPreviewSize(value: string) {
+    onChangeDesktopPreviewSize(value: string) {
         this.desktopPreviewSize = value
         this.rerenderGraphers()
     }
 
-    @action.bound onChangePreviewSvgOrJson(value: string) {
+    onChangePreviewSvgOrJson(value: string) {
         this.previewSvgOrJson = value
         this.rerenderGraphers()
     }
 
-    @action.bound onSortByChange(selected: any) {
+    onSortByChange(selected: any) {
         this.sortBy = selected.value
         this.refresh()
     }
 
-    @action.bound onSortOrderChange(value: SortOrder) {
+    onSortOrderChange(value: SortOrder) {
         this.sortOrder = value
         this.refresh()
     }
 
-    @action.bound onToggleShowPendingOnly(value: boolean) {
+    onToggleShowPendingOnly(value: boolean) {
         this.showPendingOnly = value
         this.refresh()
     }
 
-    @action.bound onToggleShowExistingChart(value: boolean) {
+    onToggleShowExistingChart(value: boolean) {
         this.showExistingChart = value
         // this.refresh()
     }
 
-    @action.bound onToggleShowReadme() {
+    onToggleShowReadme() {
         this.showReadme = !this.showReadme
     }
 
-    @action.bound onToggleShowSettings() {
+    onToggleShowSettings() {
         this.showSettings = !this.showSettings
     }
 
@@ -1443,4 +1505,4 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
             </React.Fragment>
         )
     }
-}
+});

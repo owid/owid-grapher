@@ -2,19 +2,32 @@ import React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Section, Timeago } from "./Forms.js"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx";
 
-@observer
-class LogRenderer extends React.Component<{
+const LogRenderer = observer(class LogRenderer extends React.Component<{
     log: Log
     applyConfig: (config: any) => void
 }> {
-    @computed get prettyConfig() {
+    constructor(
+        props: {
+            log: Log
+            applyConfig: (config: any) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            prettyConfig: computed,
+            title: computed
+        });
+    }
+
+    get prettyConfig() {
         const { log } = this.props
         return JSON.stringify(JSON.parse(log.config), undefined, 2)
     }
 
-    @computed get title() {
+    get title() {
         const { log } = this.props
 
         const user = log.userName || log.userId.toString()
@@ -41,15 +54,23 @@ class LogRenderer extends React.Component<{
             </li>
         )
     }
-}
+});
 
-@observer
-export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
-    @computed get logs() {
+export const EditorHistoryTab = observer(class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            logs: computed,
+            applyConfig: action.bound
+        });
+    }
+
+    get logs() {
         return this.props.editor.logs || []
     }
 
-    @action.bound async applyConfig(config: any) {
+    async applyConfig(config: any) {
         const { grapher } = this.props.editor
         const configJson = JSON.parse(config)
         grapher.updateFromObject(configJson)
@@ -87,4 +108,4 @@ export class EditorHistoryTab extends React.Component<{ editor: ChartEditor }> {
             </div>
         )
     }
-}
+});

@@ -1,29 +1,43 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, ChartRedirect } from "./ChartEditor.js"
-import { computed, action, observable, runInAction } from "mobx"
+import { computed, action, observable, runInAction, makeObservable } from "mobx";
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { stringifyUnkownError } from "../clientUtils/Util.js"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 
-@observer
-export class EditorReferencesTab extends React.Component<{
+export const EditorReferencesTab = observer(class EditorReferencesTab extends React.Component<{
     editor: ChartEditor
 }> {
-    @computed get isPersisted() {
+    constructor(
+        props: {
+            editor: ChartEditor
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            isPersisted: computed,
+            references: computed,
+            redirects: computed,
+            appendRedirect: action.bound
+        });
+    }
+
+    get isPersisted() {
         return this.props.editor.grapher.id
     }
 
-    @computed get references() {
+    get references() {
         return this.props.editor.references || []
     }
-    @computed get redirects() {
+    get redirects() {
         return this.props.editor.redirects || []
     }
 
-    @action.bound appendRedirect(redirect: ChartRedirect) {
+    appendRedirect(redirect: ChartRedirect) {
         this.props.editor.manager.redirects.push(redirect)
     }
 
@@ -104,26 +118,42 @@ export class EditorReferencesTab extends React.Component<{
             </div>
         )
     }
-}
+});
 
-@observer
-class AddRedirectForm extends React.Component<{
+const AddRedirectForm = observer(class AddRedirectForm extends React.Component<{
     editor: ChartEditor
     onSuccess: (redirect: ChartRedirect) => void
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable slug?: string = ""
+    slug?: string = "";
 
-    @observable isLoading: boolean = false
-    @observable errorMessage?: string
+    isLoading: boolean = false;
+    errorMessage?: string;
 
-    @action.bound onChange(slug: string) {
+    constructor(
+        props: {
+            editor: ChartEditor
+            onSuccess: (redirect: ChartRedirect) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            slug: observable,
+            isLoading: observable,
+            errorMessage: observable,
+            onChange: action.bound,
+            onSubmit: action.bound
+        });
+    }
+
+    onChange(slug: string) {
         this.slug = slug
     }
 
-    @action.bound async onSubmit() {
+    async onSubmit() {
         if (!this.isLoading) {
             this.isLoading = true
             try {
@@ -184,4 +214,4 @@ class AddRedirectForm extends React.Component<{
             </form>
         )
     }
-}
+});

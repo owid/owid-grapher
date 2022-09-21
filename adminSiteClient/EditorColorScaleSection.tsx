@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed, runInAction } from "mobx"
+import { action, computed, runInAction, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -39,8 +39,7 @@ interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
 }
 
-@observer
-export class EditorColorScaleSection extends React.Component<{
+export const EditorColorScaleSection = observer(class EditorColorScaleSection extends React.Component<{
     scale: ColorScale
     chartType: ChartTypeName
     features: EditorColorScaleSectionFeatures
@@ -62,20 +61,34 @@ export class EditorColorScaleSection extends React.Component<{
             </React.Fragment>
         )
     }
-}
+});
 
-@observer
-class ColorLegendSection extends React.Component<{
+const ColorLegendSection = observer(class ColorLegendSection extends React.Component<{
     scale: ColorScale
     features: EditorColorScaleSectionFeatures
     onChange?: () => void
 }> {
-    @action.bound onEqualSizeBins(isEqual: boolean) {
+    constructor(
+        props: {
+            scale: ColorScale
+            features: EditorColorScaleSectionFeatures
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onEqualSizeBins: action.bound,
+            onManualBins: action.bound
+        });
+    }
+
+    onEqualSizeBins(isEqual: boolean) {
         this.props.scale.config.equalSizeBins = isEqual
         this.props.onChange?.()
     }
 
-    @action.bound onManualBins() {
+    onManualBins() {
         populateManualBinValuesIfAutomatic(this.props.scale)
         this.props.onChange?.()
     }
@@ -124,15 +137,35 @@ class ColorLegendSection extends React.Component<{
             </Section>
         )
     }
-}
+});
 
-@observer
-class ColorsSection extends React.Component<{
+const ColorsSection = observer(class ColorsSection extends React.Component<{
     scale: ColorScale
     chartType: ChartTypeName
     onChange?: () => void
 }> {
-    @action.bound onColorScheme(selected: ColorSchemeOption) {
+    constructor(
+        props: {
+            scale: ColorScale
+            chartType: ChartTypeName
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onColorScheme: action.bound,
+            onInvert: action.bound,
+            scale: computed,
+            config: computed,
+            onBinningStrategy: action.bound,
+            currentColorScheme: computed,
+            binningStrategyOptions: computed,
+            currentBinningStrategyOption: computed
+        });
+    }
+
+    onColorScheme(selected: ColorSchemeOption) {
         const { config } = this
 
         if (selected.value === "custom") config.customNumericColorsActive = true
@@ -143,20 +176,20 @@ class ColorsSection extends React.Component<{
         this.props.onChange?.()
     }
 
-    @action.bound onInvert(invert: boolean) {
+    onInvert(invert: boolean) {
         this.config.colorSchemeInvert = invert || undefined
         this.props.onChange?.()
     }
 
-    @computed get scale() {
+    get scale() {
         return this.props.scale
     }
 
-    @computed get config() {
+    get config() {
         return this.scale.config
     }
 
-    @action.bound onBinningStrategy(
+    onBinningStrategy(
         binningStrategy: {
             label: string
             value: BinningStrategy
@@ -166,14 +199,14 @@ class ColorsSection extends React.Component<{
         this.props.onChange?.()
     }
 
-    @computed get currentColorScheme() {
+    get currentColorScheme() {
         const { scale } = this
         return scale.customNumericColorsActive
             ? "custom"
             : scale.baseColorScheme
     }
 
-    @computed get binningStrategyOptions() {
+    get binningStrategyOptions() {
         const options = Object.entries(binningStrategyLabels).map(
             ([value, label]) => ({
                 label: label,
@@ -192,7 +225,7 @@ class ColorsSection extends React.Component<{
         return options
     }
 
-    @computed get currentBinningStrategyOption() {
+    get currentBinningStrategyOption() {
         return this.binningStrategyOptions.find(
             (option) => option.value === this.config.binningStrategy
         )
@@ -267,10 +300,9 @@ class ColorsSection extends React.Component<{
             </Section>
         )
     }
-}
+});
 
-@observer
-class ColorSchemeEditor extends React.Component<{
+const ColorSchemeEditor = observer(class ColorSchemeEditor extends React.Component<{
     scale: ColorScale
     onChange?: () => void
 }> {
@@ -304,16 +336,30 @@ class ColorSchemeEditor extends React.Component<{
             </div>
         )
     }
-}
+});
 
-@observer
-class BinLabelView extends React.Component<{
+const BinLabelView = observer(class BinLabelView extends React.Component<{
     scale: ColorScale
     bin: ColorScaleBin
     index: number
     onChange?: () => void
 }> {
-    @action.bound onLabel(value: string) {
+    constructor(
+        props: {
+            scale: ColorScale
+            bin: ColorScaleBin
+            index: number
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onLabel: action.bound
+        });
+    }
+
+    onLabel(value: string) {
         if (this.props.bin instanceof NumericBin) {
             const { scale, index } = this.props
             while (scale.config.customNumericLabels.length < scale.numBins)
@@ -360,7 +406,7 @@ class BinLabelView extends React.Component<{
             </EditableListItem>
         )
     }
-}
+});
 
 function populateManualBinValuesIfAutomatic(scale: ColorScale) {
     runInAction(() => {
@@ -372,14 +418,32 @@ function populateManualBinValuesIfAutomatic(scale: ColorScale) {
     })
 }
 
-@observer
-class NumericBinView extends React.Component<{
+const NumericBinView = observer(class NumericBinView extends React.Component<{
     scale: ColorScale
     bin: NumericBin
     index: number
     onChange?: () => void
 }> {
-    @action.bound onColor(color: Color | undefined) {
+    constructor(
+        props: {
+            scale: ColorScale
+            bin: NumericBin
+            index: number
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onColor: action.bound,
+            onMaximumValue: action.bound,
+            onLabel: action.bound,
+            onRemove: action.bound,
+            onAddAfter: action.bound
+        });
+    }
+
+    onColor(color: Color | undefined) {
         const { scale, index } = this.props
 
         if (!scale.customNumericColorsActive) {
@@ -396,14 +460,14 @@ class NumericBinView extends React.Component<{
         this.props.onChange?.()
     }
 
-    @action.bound onMaximumValue(value: number | undefined) {
+    onMaximumValue(value: number | undefined) {
         const { scale, index } = this.props
         populateManualBinValuesIfAutomatic(scale)
         if (value !== undefined) scale.config.customNumericValues[index] = value
         this.props.onChange?.()
     }
 
-    @action.bound onLabel(value: string) {
+    onLabel(value: string) {
         const { scale, index } = this.props
         while (scale.config.customNumericLabels.length < scale.numBins)
             scale.config.customNumericLabels.push(undefined)
@@ -411,7 +475,7 @@ class NumericBinView extends React.Component<{
         this.props.onChange?.()
     }
 
-    @action.bound onRemove() {
+    onRemove() {
         const { scale, index } = this.props
         populateManualBinValuesIfAutomatic(scale)
         scale.config.customNumericValues.splice(index, 1)
@@ -419,7 +483,7 @@ class NumericBinView extends React.Component<{
         this.props.onChange?.()
     }
 
-    @action.bound onAddAfter() {
+    onAddAfter() {
         const { scale, index } = this.props
         const { customNumericValues, customNumericColors } = scale.config
         const currentValue = customNumericValues[index]
@@ -472,15 +536,30 @@ class NumericBinView extends React.Component<{
             </EditableListItem>
         )
     }
-}
+});
 
-@observer
-class CategoricalBinView extends React.Component<{
+const CategoricalBinView = observer(class CategoricalBinView extends React.Component<{
     scale: ColorScale
     bin: CategoricalBin
     onChange?: () => void
 }> {
-    @action.bound onColor(color: Color | undefined) {
+    constructor(
+        props: {
+            scale: ColorScale
+            bin: CategoricalBin
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onColor: action.bound,
+            onLabel: action.bound,
+            onToggleHidden: action.bound
+        });
+    }
+
+    onColor(color: Color | undefined) {
         const { scale, bin } = this.props
         if (!scale.customNumericColorsActive) {
             // Creating a new custom color scheme
@@ -496,7 +575,7 @@ class CategoricalBinView extends React.Component<{
         this.props.onChange?.()
     }
 
-    @action.bound onLabel(value: string) {
+    onLabel(value: string) {
         const { scale, bin } = this.props
         const customCategoryLabels = clone(scale.config.customCategoryLabels)
         customCategoryLabels[bin.value] = value
@@ -504,7 +583,7 @@ class CategoricalBinView extends React.Component<{
         this.props.onChange?.()
     }
 
-    @action.bound onToggleHidden() {
+    onToggleHidden() {
         const { scale, bin } = this.props
 
         const customHiddenCategories = clone(
@@ -531,4 +610,4 @@ class CategoricalBinView extends React.Component<{
             </EditableListItem>
         )
     }
-}
+});

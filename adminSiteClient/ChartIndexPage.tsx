@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, action, runInAction, makeObservable } from "mobx";
 
 import { TextField } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
@@ -13,24 +13,39 @@ import {
     SearchWord,
 } from "../clientUtils/search.js"
 
-@observer
-export class ChartIndexPage extends React.Component {
+export const ChartIndexPage = observer(class ChartIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable searchInput?: string
-    @observable maxVisibleCharts = 50
-    @observable charts: ChartListItem[] = []
+    searchInput?: string;
+    maxVisibleCharts = 50;
+    charts: ChartListItem[] = [];
 
-    @computed get searchWords(): SearchWord[] {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            searchInput: observable,
+            maxVisibleCharts: observable,
+            charts: observable,
+            searchWords: computed,
+            numTotalCharts: computed,
+            allChartsToShow: computed,
+            chartsToShow: computed,
+            onSearchInput: action.bound,
+            onShowMore: action.bound
+        });
+    }
+
+    get searchWords(): SearchWord[] {
         const { searchInput } = this
         return buildSearchWordsFromSearchString(searchInput)
     }
-    @computed get numTotalCharts() {
+    get numTotalCharts() {
         return this.charts.length
     }
 
-    @computed get allChartsToShow(): ChartListItem[] {
+    get allChartsToShow(): ChartListItem[] {
         const { searchWords, charts } = this
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
@@ -52,15 +67,15 @@ export class ChartIndexPage extends React.Component {
         }
     }
 
-    @computed get chartsToShow(): ChartListItem[] {
+    get chartsToShow(): ChartListItem[] {
         return this.allChartsToShow.slice(0, this.maxVisibleCharts)
     }
 
-    @action.bound onSearchInput(input: string) {
+    onSearchInput(input: string) {
         this.searchInput = input
     }
 
-    @action.bound onShowMore() {
+    onShowMore() {
         this.maxVisibleCharts += 100
     }
 
@@ -115,4 +130,4 @@ export class ChartIndexPage extends React.Component {
     componentDidMount() {
         this.getData()
     }
-}
+});

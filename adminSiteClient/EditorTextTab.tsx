@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed, runInAction } from "mobx"
+import { action, computed, runInAction, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor.js"
 import {
@@ -29,13 +29,24 @@ import Select from "react-select"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
 import { getIndexableKeys } from "../clientUtils/Util.js"
 
-@observer
-export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
-    @action.bound onSlug(slug: string) {
+export const EditorTextTab = observer(class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            onSlug: action.bound,
+            onChangeLogo: action.bound,
+            onAddRelatedQuestion: action.bound,
+            onRemoveRelatedQuestion: action.bound,
+            errorMessages: computed
+        });
+    }
+
+    onSlug(slug: string) {
         this.props.editor.grapher.slug = slugify(slug).toLowerCase()
     }
 
-    @action.bound onChangeLogo(value: string) {
+    onChangeLogo(value: string) {
         if (value === "none") {
             this.props.editor.grapher.hideLogo = true
         } else {
@@ -44,7 +55,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         }
     }
 
-    @action.bound onAddRelatedQuestion() {
+    onAddRelatedQuestion() {
         const { grapher } = this.props.editor
         grapher.relatedQuestions.push({
             text: "",
@@ -52,12 +63,12 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         })
     }
 
-    @action.bound onRemoveRelatedQuestion(idx: number) {
+    onRemoveRelatedQuestion(idx: number) {
         const { grapher } = this.props.editor
         grapher.relatedQuestions.splice(idx, 1)
     }
 
-    @computed get errorMessages() {
+    get errorMessages() {
         const { invalidDetailReferences } = this.props.editor.manager
         const keys = getIndexableKeys(invalidDetailReferences)
 
@@ -240,9 +251,9 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
             </div>
         )
     }
-}
-@observer
-class TopicsSection extends React.Component<{
+});
+
+const TopicsSection = observer(class TopicsSection extends React.Component<{
     allTopics: Topic[]
     grapher: Grapher
 }> {
@@ -273,4 +284,4 @@ class TopicsSection extends React.Component<{
             </Section>
         )
     }
-}
+});

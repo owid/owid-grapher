@@ -7,7 +7,8 @@ import {
     runInAction,
     reaction,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import * as lodash from "lodash"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -15,22 +16,35 @@ import { SearchField, FieldsRow } from "./Forms.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
-@observer
-export class VariablesIndexPage extends React.Component {
+export const VariablesIndexPage = observer(class VariablesIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable variables: VariableListItem[] = []
-    @observable maxVisibleRows = 50
-    @observable numTotalRows?: number
-    @observable searchInput?: string
-    @observable highlightSearch?: string
+    variables: VariableListItem[] = [];
+    maxVisibleRows = 50;
+    numTotalRows?: number;
+    searchInput?: string;
+    highlightSearch?: string;
 
-    @computed get variablesToShow(): VariableListItem[] {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            variables: observable,
+            maxVisibleRows: observable,
+            numTotalRows: observable,
+            searchInput: observable,
+            highlightSearch: observable,
+            variablesToShow: computed,
+            onShowMore: action.bound
+        });
+    }
+
+    get variablesToShow(): VariableListItem[] {
         return this.variables
     }
 
-    @action.bound onShowMore() {
+    onShowMore() {
         this.maxVisibleRows += 100
     }
 
@@ -115,4 +129,4 @@ export class VariablesIndexPage extends React.Component {
     componentWillUnmount() {
         this.dispose()
     }
-}
+});

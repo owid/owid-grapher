@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx";
 import { bind } from "decko"
 import { observer } from "mobx-react"
 import { AdminLayout } from "./AdminLayout.js"
@@ -34,16 +34,29 @@ interface DetailRowProps {
     deleteDetail: (id: number) => Promise<void>
 }
 
-@observer
-class DetailRow extends React.Component<DetailRowProps> {
-    @observable isEditing: boolean = false
-    @observable isDeleting: boolean = false
+const DetailRow = observer(class DetailRow extends React.Component<DetailRowProps> {
+    isEditing: boolean = false;
+    isDeleting: boolean = false;
     deleteButtonRef = React.createRef<HTMLButtonElement>()
 
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @action.bound async handleEdit() {
+    constructor(props: DetailRowProps) {
+        super(props);
+
+        makeObservable(this, {
+            isEditing: observable,
+            isDeleting: observable,
+            handleEdit: action.bound,
+            handleClickOff: action.bound,
+            handleDelete: action.bound,
+            doesDetailConflict: computed,
+            isDetailValid: computed
+        });
+    }
+
+    async handleEdit() {
         if (this.isEditing) {
             try {
                 await this.context.admin.requestJSON(
@@ -67,7 +80,7 @@ class DetailRow extends React.Component<DetailRowProps> {
         }
     }
 
-    @action.bound handleClickOff(event: Event) {
+    handleClickOff(event: Event) {
         const target = (event as unknown as React.MouseEvent<HTMLBodyElement>)
             .target
 
@@ -77,7 +90,7 @@ class DetailRow extends React.Component<DetailRowProps> {
         }
     }
 
-    @action.bound async handleDelete() {
+    async handleDelete() {
         if (this.isDeleting) {
             await this.props.deleteDetail(this.props.detail.id)
             this.isDeleting = false
@@ -88,7 +101,7 @@ class DetailRow extends React.Component<DetailRowProps> {
         }
     }
 
-    @computed get doesDetailConflict(): boolean {
+    get doesDetailConflict(): boolean {
         if (!this.isEditing) return false
 
         const { category, term } = this.props.detail
@@ -99,7 +112,7 @@ class DetailRow extends React.Component<DetailRowProps> {
         )
     }
 
-    @computed get isDetailValid(): boolean {
+    get isDetailValid(): boolean {
         if (!this.isEditing) return true
 
         const { category, term, title, content } = this.props.detail
@@ -167,22 +180,36 @@ class DetailRow extends React.Component<DetailRowProps> {
             </tr>
         )
     }
-}
+});
 
-@observer
-class NewDetail extends React.Component<{
+const NewDetail = observer(class NewDetail extends React.Component<{
     details: Detail[]
 }> {
-    @observable.deep detail: DraftDetail = {
+    detail: DraftDetail = {
         category: "",
         term: "",
         title: "",
         content: "",
-    }
+    };
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @computed get doesDetailConflict(): boolean {
+    constructor(
+        props: {
+            details: Detail[]
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            detail: observable.deep,
+            doesDetailConflict: computed,
+            handleSubmit: action.bound,
+            isDetailValid: computed
+        });
+    }
+
+    get doesDetailConflict(): boolean {
         const { category, term } = this.detail
         return (
             this.props.details.filter(
@@ -191,7 +218,7 @@ class NewDetail extends React.Component<{
         )
     }
 
-    @action.bound async handleSubmit() {
+    async handleSubmit() {
         try {
             const { id } = await this.context.admin.requestJSON(
                 "/api/details",
@@ -222,7 +249,7 @@ class NewDetail extends React.Component<{
         }
     }
 
-    @computed get isDetailValid(): boolean {
+    get isDetailValid(): boolean {
         const { category, term, title, content } = this.detail
         return Boolean(category && term && title && content)
     }
@@ -266,14 +293,21 @@ class NewDetail extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-export class DetailsOnDemandPage extends React.Component {
+export const DetailsOnDemandPage = observer(class DetailsOnDemandPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
-    @observable.deep details: Array<Detail> = []
+    details: Array<Detail> = [];
     sortKey: keyof Detail = "id"
+
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            details: observable.deep
+        });
+    }
 
     @bind async getDetails() {
         const json = await this.context.admin.getJSON("/api/details")
@@ -347,4 +381,4 @@ export class DetailsOnDemandPage extends React.Component {
             </AdminLayout>
         )
     }
-}
+});

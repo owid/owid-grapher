@@ -5,8 +5,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
-@observer
-export class TestIndexPage extends React.Component {
+export const TestIndexPage = observer(class TestIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -181,4 +180,4 @@ export class TestIndexPage extends React.Component {
             </AdminLayout>
         )
     }
-}
+});

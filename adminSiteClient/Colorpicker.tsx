@@ -1,5 +1,5 @@
 import React from "react"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx";
 import { SketchPicker } from "react-color"
 
 import { lastOfNonEmptyArray } from "../clientUtils/Util.js"
@@ -11,7 +11,15 @@ interface ColorpickerProps {
 }
 
 export class Colorpicker extends React.Component<ColorpickerProps> {
-    @action.bound onColor(color: string) {
+    constructor(props: ColorpickerProps) {
+        super(props);
+
+        makeObservable(this, {
+            onColor: action.bound
+        });
+    }
+
+    onColor(color: string) {
         if (color === "") {
             this.props.onColor(undefined)
         } else {

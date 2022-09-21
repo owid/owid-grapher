@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import fuzzysort from "fuzzysort"
 import { Link } from "react-router-dom"
 
@@ -25,20 +25,39 @@ interface Searchable {
     term?: Fuzzysort.Prepared
 }
 
-@observer
-export class SuggestedChartRevisionListPage extends React.Component {
+export const SuggestedChartRevisionListPage = observer(class SuggestedChartRevisionListPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable searchInput?: string
-    @observable maxVisibleCharts = 50
-    @observable suggestedChartRevisions: SuggestedChartRevisionListItem[] = []
-    @observable numTotalRows?: number
+    searchInput?: string;
+    maxVisibleCharts = 50;
+    suggestedChartRevisions: SuggestedChartRevisionListItem[] = [];
+    numTotalRows?: number;
 
-    @observable sortBy: string = "updatedAt"
-    @observable sortOrder: SortOrder = SortOrder.desc
+    sortBy: string = "updatedAt";
+    sortOrder: SortOrder = SortOrder.desc;
 
-    @computed get searchIndex(): Searchable[] {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            searchInput: observable,
+            maxVisibleCharts: observable,
+            suggestedChartRevisions: observable,
+            numTotalRows: observable,
+            sortBy: observable,
+            sortOrder: observable,
+            searchIndex: computed,
+            suggestedChartRevisionsToShow: computed,
+            getData: action.bound,
+            onSearchInput: action.bound,
+            onShowMore: action.bound,
+            onSortByChange: action.bound,
+            onSortOrderChange: action.bound
+        });
+    }
+
+    get searchIndex(): Searchable[] {
         const searchIndex: Searchable[] = []
         for (const suggestedChartRevision of this.suggestedChartRevisions) {
             const originalConfig = suggestedChartRevision.originalConfig
@@ -56,7 +75,6 @@ export class SuggestedChartRevisionListPage extends React.Component {
         return searchIndex
     }
 
-    @computed
     get suggestedChartRevisionsToShow(): SuggestedChartRevisionListItem[] {
         const { searchInput, searchIndex, maxVisibleCharts } = this
         if (searchInput) {
@@ -72,7 +90,7 @@ export class SuggestedChartRevisionListPage extends React.Component {
         }
     }
 
-    @action.bound async getData() {
+    async getData() {
         const { admin } = this.context
         const json = await admin.getJSON("/api/suggested-chart-revisions", {
             sortBy: this.sortBy,
@@ -82,20 +100,20 @@ export class SuggestedChartRevisionListPage extends React.Component {
         this.numTotalRows = json.numTotalRows
     }
 
-    @action.bound onSearchInput(input: string) {
+    onSearchInput(input: string) {
         this.searchInput = input
     }
 
-    @action.bound onShowMore() {
+    onShowMore() {
         this.maxVisibleCharts += 50
     }
 
-    @action.bound onSortByChange(selected: any) {
+    onSortByChange(selected: any) {
         this.sortBy = selected.value
         this.getData()
     }
 
-    @action.bound onSortOrderChange(value: SortOrder) {
+    onSortOrderChange(value: SortOrder) {
         this.sortOrder = value
         this.getData()
     }
@@ -274,4 +292,4 @@ export class SuggestedChartRevisionListPage extends React.Component {
             </AdminLayout>
         )
     }
-}
+});

@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, action, runInAction, makeObservable } from "mobx";
 import { Prompt, Redirect } from "react-router-dom"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -24,23 +24,39 @@ interface TagPageData {
 }
 
 class TagEditable {
-    @observable name: string = ""
-    @observable parentId?: number
+    name: string = "";
+    parentId?: number;
 
     constructor(json: TagPageData) {
+        makeObservable(this, {
+            name: observable,
+            parentId: observable
+        });
+
         for (const key in this) {
             this[key] = (json as any)[key]
         }
     }
 }
 
-@observer
-class TagEditor extends React.Component<{ tag: TagPageData }> {
+const TagEditor = observer(class TagEditor extends React.Component<{ tag: TagPageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable newtag!: TagEditable
-    @observable isDeleted: boolean = false
+    newtag: TagEditable;
+    isDeleted: boolean = false;
+
+    constructor(props: { tag: TagPageData }) {
+        super(props);
+
+        makeObservable(this, {
+            newtag: observable,
+            isDeleted: observable,
+            isModified: computed,
+            onChooseParent: action.bound,
+            parentTag: computed
+        });
+    }
 
     // Store the original tag to determine when it is modified
     UNSAFE_componentWillMount() {
@@ -51,7 +67,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         this.isDeleted = false
     }
 
-    @computed get isModified(): boolean {
+    get isModified(): boolean {
         return (
             JSON.stringify(this.newtag) !==
             JSON.stringify(new TagEditable(this.props.tag))
@@ -95,7 +111,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         }
     }
 
-    @action.bound onChooseParent(parentId: number) {
+    onChooseParent(parentId: number) {
         if (parentId === -1) {
             this.newtag.parentId = undefined
         } else {
@@ -103,7 +119,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
         }
     }
 
-    @computed get parentTag() {
+    get parentTag() {
         const { parentId } = this.props.tag
         return parentId
             ? this.props.tag.possibleParents.find((c) => c.id === parentId)
@@ -205,14 +221,21 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
             </main>
         )
     }
-}
+});
 
-@observer
-export class TagEditPage extends React.Component<{ tagId: number }> {
+export const TagEditPage = observer(class TagEditPage extends React.Component<{ tagId: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable tag?: TagPageData
+    tag?: TagPageData;
+
+    constructor(props: { tagId: number }) {
+        super(props);
+
+        makeObservable(this, {
+            tag: observable
+        });
+    }
 
     render() {
         return (
@@ -235,4 +258,4 @@ export class TagEditPage extends React.Component<{ tagId: number }> {
     UNSAFE_componentWillReceiveProps(nextProps: any) {
         this.getData(nextProps.tagId)
     }
-}
+});

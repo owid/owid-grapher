@@ -27,8 +27,7 @@ export interface SuggestedChartRevisionListItem {
     originalConfig: ChartListItem
 }
 
-@observer
-class SuggestedChartRevisionRow extends React.Component<{
+const SuggestedChartRevisionRow = observer(class SuggestedChartRevisionRow extends React.Component<{
     suggestedChartRevision: SuggestedChartRevisionListItem
     searchHighlight?: (text: string) => any
 }> {
@@ -129,10 +128,9 @@ class SuggestedChartRevisionRow extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-export class SuggestedChartRevisionList extends React.Component<{
+export const SuggestedChartRevisionList = observer(class SuggestedChartRevisionList extends React.Component<{
     suggestedChartRevisions: SuggestedChartRevisionListItem[]
     searchHighlight?: (text: string) => any
 }> {
@@ -166,10 +164,9 @@ export class SuggestedChartRevisionList extends React.Component<{
             </table>
         )
     }
-}
+});
 
-@observer
-export class SuggestedChartRevisionStatusIcon extends React.Component<{
+export const SuggestedChartRevisionStatusIcon = observer(class SuggestedChartRevisionStatusIcon extends React.Component<{
     status: SuggestedChartRevisionStatus
     setColor?: boolean
 }> {
@@ -192,4 +189,4 @@ export class SuggestedChartRevisionStatusIcon extends React.Component<{
         }
         return <FontAwesomeIcon icon={icon} style={setColor ? { color } : {}} />
     }
-}
+});

@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, action, reaction, IReactionDisposer, when } from "mobx"
+import { observable, action, reaction, IReactionDisposer, when, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import {
     moveArrayItemToIndex,
@@ -31,20 +31,41 @@ import {
 } from "../clientUtils/owidTypes.js"
 import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 
-@observer
-class DimensionSlotView extends React.Component<{
+const DimensionSlotView = observer(class DimensionSlotView extends React.Component<{
     slot: DimensionSlot
     editor: ChartEditor
 }> {
     disposers: IReactionDisposer[] = []
 
-    @observable.ref isSelectingVariables: boolean = false
+    isSelectingVariables: boolean = false;
+
+    constructor(
+        props: {
+            slot: DimensionSlot
+            editor: ChartEditor
+        }
+    ) {
+        super(props);
+
+        makeObservable<DimensionSlotView, "onAddVariables" | "onRemoveDimension" | "onChangeDimension" | "draggingColumnSlug" | "dimensionsInDisplayOrder" | "updateLegacySelectionAndRebuildTable" | "onMouseUp" | "onStartDrag" | "onMouseEnter">(this, {
+            isSelectingVariables: observable.ref,
+            onAddVariables: action.bound,
+            onRemoveDimension: action.bound,
+            onChangeDimension: action.bound,
+            draggingColumnSlug: observable,
+            dimensionsInDisplayOrder: observable,
+            updateLegacySelectionAndRebuildTable: action.bound,
+            onMouseUp: action.bound,
+            onStartDrag: action.bound,
+            onMouseEnter: action.bound
+        });
+    }
 
     private get grapher() {
         return this.props.editor.grapher
     }
 
-    @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
+    private onAddVariables(variableIds: OwidVariableId[]) {
         const { slot } = this.props
         const { grapher } = this.props.editor
 
@@ -70,7 +91,7 @@ class DimensionSlotView extends React.Component<{
         this.isSelectingVariables = false
     }
 
-    @action.bound private onRemoveDimension(variableId: OwidVariableId) {
+    private onRemoveDimension(variableId: OwidVariableId) {
         const { slot } = this.props
         const { grapher } = this.props.editor
 
@@ -88,7 +109,7 @@ class DimensionSlotView extends React.Component<{
         grapher.rebuildInputOwidTable()
     }
 
-    @action.bound private onChangeDimension() {
+    private onChangeDimension() {
         this.updateLegacySelectionAndRebuildTable()
     }
 
@@ -154,10 +175,10 @@ class DimensionSlotView extends React.Component<{
         this.disposers.forEach((dispose) => dispose())
     }
 
-    @observable private draggingColumnSlug?: ColumnSlug
-    @observable private dimensionsInDisplayOrder: ChartDimension[] = []
+    private draggingColumnSlug?: ColumnSlug;
+    private dimensionsInDisplayOrder: ChartDimension[] = [];
 
-    @action.bound private updateLegacySelectionAndRebuildTable() {
+    private updateLegacySelectionAndRebuildTable() {
         const { grapher } = this.props.editor
 
         grapher.setDimensionsForProperty(
@@ -171,20 +192,20 @@ class DimensionSlotView extends React.Component<{
         this.grapher.rebuildInputOwidTable()
     }
 
-    @action.bound private onMouseUp() {
+    private onMouseUp() {
         this.draggingColumnSlug = undefined
         window.removeEventListener("mouseup", this.onMouseUp)
 
         this.updateLegacySelectionAndRebuildTable()
     }
 
-    @action.bound private onStartDrag(targetSlug: ColumnSlug) {
+    private onStartDrag(targetSlug: ColumnSlug) {
         this.draggingColumnSlug = targetSlug
 
         window.addEventListener("mouseup", this.onMouseUp)
     }
 
-    @action.bound private onMouseEnter(targetSlug: ColumnSlug) {
+    private onMouseEnter(targetSlug: ColumnSlug) {
         if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
             return
 
@@ -274,12 +295,19 @@ class DimensionSlotView extends React.Component<{
             </div>
         )
     }
-}
+});
 
-@observer
-class VariablesSection extends React.Component<{ editor: ChartEditor }> {
+const VariablesSection = observer(class VariablesSection extends React.Component<{ editor: ChartEditor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    @observable.ref isAddingVariable: boolean = false
+    isAddingVariable: boolean = false;
+
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            isAddingVariable: observable.ref
+        });
+    }
 
     render() {
         const { props } = this
@@ -297,11 +325,18 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
             </Section>
         )
     }
-}
+});
 
-@observer
-export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
-    @action.bound onChartTypeChange(value: string) {
+export const EditorBasicTab = observer(class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            onChartTypeChange: action.bound
+        });
+    }
+
+    onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
         grapher.type = value as ChartTypeName
 
@@ -366,4 +401,4 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             </div>
         )
     }
-}
+});

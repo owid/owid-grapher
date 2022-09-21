@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor.js"
 import { Grapher } from "../grapher/core/Grapher.js"
@@ -31,9 +31,17 @@ import {
 } from "../grapher/core/GrapherConstants.js"
 import Select from "react-select"
 import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes.js"
-@observer
-export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
-    @action.bound onChange(selected: ColorSchemeOption) {
+export const ColorSchemeSelector = observer(class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
+    constructor(props: { grapher: Grapher }) {
+        super(props);
+
+        makeObservable(this, {
+            onChange: action.bound,
+            onInvertColorScheme: action.bound
+        });
+    }
+
+    onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
         // we are not using the multi-option select we can force the type to be
@@ -47,7 +55,7 @@ export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
         this.props.grapher.seriesColorMap?.clear()
     }
 
-    @action.bound onInvertColorScheme(value: boolean) {
+    onInvertColorScheme(value: boolean) {
         this.props.grapher.invertColorScheme = value || undefined
 
         this.props.grapher.seriesColorMap?.clear()
@@ -87,7 +95,7 @@ export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
             </React.Fragment>
         )
     }
-}
+});
 
 interface SortOrderDropdownOption {
     label: string
@@ -95,17 +103,28 @@ interface SortOrderDropdownOption {
     display?: { name: string; displayName: string }
 }
 
-@observer
-class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
-    @computed get sortConfig(): SortConfig {
+const SortOrderSection = observer(class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            sortConfig: computed,
+            grapher: computed,
+            sortOptions: computed,
+            onSortByChange: action.bound,
+            onSortOrderChange: action.bound
+        });
+    }
+
+    get sortConfig(): SortConfig {
         return this.grapher._sortConfig
     }
 
-    @computed get grapher() {
+    get grapher() {
         return this.props.editor.grapher
     }
 
-    @computed get sortOptions(): SortOrderDropdownOption[] {
+    get sortOptions(): SortOrderDropdownOption[] {
         const { features } = this.props.editor
 
         let dimensionSortOptions: SortOrderDropdownOption[] = []
@@ -136,12 +155,12 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
         ]
     }
 
-    @action.bound onSortByChange(selected: SortOrderDropdownOption | null) {
+    onSortByChange(selected: SortOrderDropdownOption | null) {
         this.grapher.sortBy = selected?.value.sortBy
         this.grapher.sortColumnSlug = selected?.value.sortColumnSlug
     }
 
-    @action.bound onSortOrderChange(sortOrder: string) {
+    onSortOrderChange(sortOrder: string) {
         this.grapher.sortOrder = sortOrder as SortOrder
     }
 
@@ -193,17 +212,27 @@ class SortOrderSection extends React.Component<{ editor: ChartEditor }> {
             </Section>
         )
     }
-}
+});
 
-@observer
-class FacetSection extends React.Component<{ editor: ChartEditor }> {
+const FacetSection = observer(class FacetSection extends React.Component<{ editor: ChartEditor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get grapher() {
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            grapher: computed,
+            facetOptions: computed,
+            facetSelection: computed,
+            onFacetSelectionChange: action.bound
+        });
+    }
+
+    get grapher() {
         return this.props.editor.grapher
     }
 
-    @computed get facetOptions(): Array<{
+    get facetOptions(): Array<{
         label: string
         value?: FacetStrategy
     }> {
@@ -214,7 +243,7 @@ class FacetSection extends React.Component<{ editor: ChartEditor }> {
         )
     }
 
-    @computed get facetSelection(): { label: string; value?: FacetStrategy } {
+    get facetSelection(): { label: string; value?: FacetStrategy } {
         const strategy = this.grapher.selectedFacetStrategy
         if (strategy) {
             return { label: strategy.toString(), value: strategy }
@@ -223,7 +252,7 @@ class FacetSection extends React.Component<{ editor: ChartEditor }> {
         return { label: "auto" }
     }
 
-    @action.bound onFacetSelectionChange(
+    onFacetSelectionChange(
         selected: {
             label: string
             value?: FacetStrategy
@@ -261,51 +290,68 @@ class FacetSection extends React.Component<{ editor: ChartEditor }> {
             </Section>
         )
     }
-}
+});
 
-@observer
-class TimelineSection extends React.Component<{ editor: ChartEditor }> {
+const TimelineSection = observer(class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get grapher() {
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            grapher: computed,
+            minTime: computed,
+            maxTime: computed,
+            timelineMinTime: computed,
+            timelineMaxTime: computed,
+            onMinTime: action.bound,
+            onMaxTime: action.bound,
+            onTimelineMinTime: action.bound,
+            onTimelineMaxTime: action.bound,
+            onToggleHideTimeline: action.bound,
+            onToggleShowYearLabels: action.bound
+        });
+    }
+
+    get grapher() {
         return this.props.editor.grapher
     }
 
-    @computed get minTime() {
+    get minTime() {
         return this.grapher.minTime
     }
-    @computed get maxTime() {
+    get maxTime() {
         return this.grapher.maxTime
     }
 
-    @computed get timelineMinTime() {
+    get timelineMinTime() {
         return this.grapher.timelineMinTime
     }
-    @computed get timelineMaxTime() {
+    get timelineMaxTime() {
         return this.grapher.timelineMaxTime
     }
 
-    @action.bound onMinTime(value: number | undefined) {
+    onMinTime(value: number | undefined) {
         this.grapher.minTime = value ?? TimeBoundValue.negativeInfinity
     }
 
-    @action.bound onMaxTime(value: number | undefined) {
+    onMaxTime(value: number | undefined) {
         this.grapher.maxTime = value ?? TimeBoundValue.positiveInfinity
     }
 
-    @action.bound onTimelineMinTime(value: number | undefined) {
+    onTimelineMinTime(value: number | undefined) {
         this.grapher.timelineMinTime = value
     }
 
-    @action.bound onTimelineMaxTime(value: number | undefined) {
+    onTimelineMaxTime(value: number | undefined) {
         this.grapher.timelineMaxTime = value
     }
 
-    @action.bound onToggleHideTimeline(value: boolean) {
+    onToggleHideTimeline(value: boolean) {
         this.grapher.hideTimeline = value || undefined
     }
 
-    @action.bound onToggleShowYearLabels(value: boolean) {
+    onToggleShowYearLabels(value: boolean) {
         this.grapher.showYearLabels = value || undefined
     }
 
@@ -368,68 +414,78 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
             </Section>
         )
     }
-}
+});
 
-@observer
-class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
-    @observable comparisonLines: ComparisonLineConfig[] = []
+const ComparisonLineSection = observer(
+    class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
+        comparisonLines: ComparisonLineConfig[] = [];
 
-    @action.bound onAddComparisonLine() {
-        const { grapher } = this.props.editor
-        grapher.comparisonLines.push({})
+        constructor(props: { editor: ChartEditor }) {
+            super(props);
+
+            makeObservable(this, {
+                comparisonLines: observable,
+                onAddComparisonLine: action.bound,
+                onRemoveComparisonLine: action.bound
+            });
+        }
+
+        onAddComparisonLine() {
+            const { grapher } = this.props.editor
+            grapher.comparisonLines.push({})
+        }
+
+        onRemoveComparisonLine(index: number) {
+            const { grapher } = this.props.editor
+            grapher.comparisonLines!.splice(index, 1)
+        }
+
+        render() {
+            const { comparisonLines } = this.props.editor.grapher
+
+            return (
+                <Section name="Comparison line">
+                    <p>
+                        Overlay a line onto the chart for comparison. Supports basic{" "}
+                        <a href="https://github.com/silentmatt/expr-eval#expression-syntax">
+                            mathematical expressions
+                        </a>
+                        .
+                    </p>
+
+                    <Button onClick={this.onAddComparisonLine}>
+                        <FontAwesomeIcon icon={faPlus} /> Add comparison line
+                    </Button>
+                    {comparisonLines.map((comparisonLine, i) => (
+                        <div key={i}>
+                            {`Line ${i + 1}`}{" "}
+                            <Button onClick={() => this.onRemoveComparisonLine(i)}>
+                                <FontAwesomeIcon icon={faMinus} />
+                            </Button>
+                            <TextField
+                                label={`y=`}
+                                placeholder="x"
+                                value={comparisonLine.yEquals}
+                                onValue={action((value: string) => {
+                                    comparisonLine.yEquals = value || undefined
+                                })}
+                            />
+                            <TextField
+                                label="Label"
+                                value={comparisonLine.label}
+                                onValue={action((value: string) => {
+                                    comparisonLine.label = value || undefined
+                                })}
+                            />
+                        </div>
+                    ))}
+                </Section>
+            )
+        }
     }
+);
 
-    @action.bound onRemoveComparisonLine(index: number) {
-        const { grapher } = this.props.editor
-        grapher.comparisonLines!.splice(index, 1)
-    }
-
-    render() {
-        const { comparisonLines } = this.props.editor.grapher
-
-        return (
-            <Section name="Comparison line">
-                <p>
-                    Overlay a line onto the chart for comparison. Supports basic{" "}
-                    <a href="https://github.com/silentmatt/expr-eval#expression-syntax">
-                        mathematical expressions
-                    </a>
-                    .
-                </p>
-
-                <Button onClick={this.onAddComparisonLine}>
-                    <FontAwesomeIcon icon={faPlus} /> Add comparison line
-                </Button>
-                {comparisonLines.map((comparisonLine, i) => (
-                    <div key={i}>
-                        {`Line ${i + 1}`}{" "}
-                        <Button onClick={() => this.onRemoveComparisonLine(i)}>
-                            <FontAwesomeIcon icon={faMinus} />
-                        </Button>
-                        <TextField
-                            label={`y=`}
-                            placeholder="x"
-                            value={comparisonLine.yEquals}
-                            onValue={action((value: string) => {
-                                comparisonLine.yEquals = value || undefined
-                            })}
-                        />
-                        <TextField
-                            label="Label"
-                            value={comparisonLine.label}
-                            onValue={action((value: string) => {
-                                comparisonLine.label = value || undefined
-                            })}
-                        />
-                    </div>
-                ))}
-            </Section>
-        )
-    }
-}
-
-@observer
-export class EditorCustomizeTab extends React.Component<{
+export const EditorCustomizeTab = observer(class EditorCustomizeTab extends React.Component<{
     editor: ChartEditor
 }> {
     render() {
@@ -649,4 +705,4 @@ export class EditorCustomizeTab extends React.Component<{
             </div>
         )
     }
-}
+});

@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, action, runInAction, makeObservable } from "mobx";
 import * as lodash from "lodash"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -14,21 +14,37 @@ import {
     SearchWord,
 } from "../clientUtils/search.js"
 
-@observer
-export class DatasetsIndexPage extends React.Component {
+export const DatasetsIndexPage = observer(class DatasetsIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable datasets: DatasetListItem[] = []
-    @observable maxVisibleRows = 50
-    @observable searchInput?: string
+    datasets: DatasetListItem[] = [];
+    maxVisibleRows = 50;
+    searchInput?: string;
 
-    @computed get searchWords(): SearchWord[] {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            datasets: observable,
+            maxVisibleRows: observable,
+            searchInput: observable,
+            searchWords: computed,
+            allDatasetsToShow: computed,
+            datasetsToShow: computed,
+            namespaces: computed,
+            numTotalRows: computed,
+            onSearchInput: action.bound,
+            onShowMore: action.bound
+        });
+    }
+
+    get searchWords(): SearchWord[] {
         const { searchInput } = this
         return buildSearchWordsFromSearchString(searchInput)
     }
 
-    @computed get allDatasetsToShow(): DatasetListItem[] {
+    get allDatasetsToShow(): DatasetListItem[] {
         const { searchWords, datasets, maxVisibleRows } = this
         if (searchWords.length > 0) {
             const filterFn = filterFunctionForSearchWords(
@@ -47,23 +63,23 @@ export class DatasetsIndexPage extends React.Component {
         }
     }
 
-    @computed get datasetsToShow(): DatasetListItem[] {
+    get datasetsToShow(): DatasetListItem[] {
         return this.allDatasetsToShow.slice(0, this.maxVisibleRows)
     }
 
-    @computed get namespaces() {
+    get namespaces() {
         return lodash.uniq(this.datasets.map((d) => d.namespace))
     }
 
-    @computed get numTotalRows(): number {
+    get numTotalRows(): number {
         return this.datasets.length
     }
 
-    @action.bound onSearchInput(input: string) {
+    onSearchInput(input: string) {
         this.searchInput = input
     }
 
-    @action.bound onShowMore() {
+    onShowMore() {
         this.maxVisibleRows += 100
     }
 
@@ -115,4 +131,4 @@ export class DatasetsIndexPage extends React.Component {
     componentDidMount() {
         this.getData()
     }
-}
+});

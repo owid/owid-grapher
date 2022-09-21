@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, action, computed } from "mobx"
+import { observable, action, computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 
 import { Link } from "./Link.js"
@@ -13,8 +13,7 @@ import {
     EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants.js"
 
-@observer
-export class AdminLayout extends React.Component<{
+export const AdminLayout = observer(class AdminLayout extends React.Component<{
     noSidebar?: boolean
     title?: string
     children: React.ReactNode
@@ -22,18 +21,37 @@ export class AdminLayout extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable private showFAQ: boolean = false
-    @observable private showSidebar: boolean = false
+    private showFAQ: boolean = false;
+    private showSidebar: boolean = false;
 
-    @action.bound onToggleFAQ(): void {
+    constructor(
+        props: {
+            noSidebar?: boolean
+            title?: string
+            children: React.ReactNode
+        }
+    ) {
+        super(props);
+
+        makeObservable<AdminLayout, "showFAQ" | "showSidebar" | "setInitialSidebarState">(this, {
+            showFAQ: observable,
+            showSidebar: observable,
+            onToggleFAQ: action.bound,
+            onToggleSidebar: action.bound,
+            setInitialSidebarState: action.bound,
+            environmentSpan: computed
+        });
+    }
+
+    onToggleFAQ(): void {
         this.showFAQ = !this.showFAQ
     }
 
-    @action.bound onToggleSidebar(): void {
+    onToggleSidebar(): void {
         this.showSidebar = !this.showSidebar
     }
 
-    @action.bound private setInitialSidebarState(value: boolean): void {
+    private setInitialSidebarState(value: boolean): void {
         this.showSidebar = value
     }
 
@@ -47,7 +65,7 @@ export class AdminLayout extends React.Component<{
             document.title = this.props.title + " - owid-admin"
     }
 
-    @computed get environmentSpan(): JSX.Element {
+    get environmentSpan(): JSX.Element {
         const { admin } = this.context
         if (admin.settings.ENV === "development") {
             return <span className="dev">dev</span>
@@ -120,4 +138,4 @@ export class AdminLayout extends React.Component<{
             </div>
         )
     }
-}
+});

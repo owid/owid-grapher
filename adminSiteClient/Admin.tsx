@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import * as lodash from "lodash"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp.js"
@@ -25,7 +25,7 @@ interface ErrorMessage {
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export class Admin {
-    @observable errorMessage?: ErrorMessage
+    errorMessage?: ErrorMessage;
     basePath: string
     username: string
     isSuperuser: boolean
@@ -36,22 +36,31 @@ export class Admin {
         isSuperuser: boolean
         settings: ClientSettings
     }) {
+        makeObservable<Admin, "addRequest" | "removeRequest">(this, {
+            errorMessage: observable,
+            currentRequests: observable,
+            showLoadingIndicator: computed,
+            loadingIndicatorSetting: observable,
+            setErrorMessage: action.bound,
+            addRequest: action.bound,
+            removeRequest: action.bound
+        });
+
         this.basePath = "/admin"
         this.username = props.username
         this.isSuperuser = props.isSuperuser
         this.settings = props.settings
     }
 
-    @observable currentRequests: Promise<Response>[] = []
+    currentRequests: Promise<Response>[] = [];
 
-    @computed get showLoadingIndicator(): boolean {
+    get showLoadingIndicator(): boolean {
         return this.loadingIndicatorSetting === "default"
             ? this.currentRequests.length > 0
             : this.loadingIndicatorSetting === "loading"
     }
 
-    @observable loadingIndicatorSetting: "loading" | "off" | "default" =
-        "default"
+    loadingIndicatorSetting: "loading" | "off" | "default" = "default";
 
     start(containerNode: HTMLElement, gitCmsBranchName: string): void {
         ReactDOM.render(
@@ -144,15 +153,15 @@ export class Admin {
         return json
     }
 
-    @action.bound setErrorMessage(message: ErrorMessage): void {
+    setErrorMessage(message: ErrorMessage): void {
         this.errorMessage = message
     }
 
-    @action.bound private addRequest(request: Promise<Response>): void {
+    private addRequest(request: Promise<Response>): void {
         this.currentRequests.push(request)
     }
 
-    @action.bound private removeRequest(request: Promise<Response>): void {
+    private removeRequest(request: Promise<Response>): void {
         this.currentRequests = this.currentRequests.filter(
             (req) => req !== request
         )

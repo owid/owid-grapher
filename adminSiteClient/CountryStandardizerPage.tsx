@@ -7,7 +7,8 @@ import {
     runInAction,
     reaction,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import Papa from "papaparse"
 
 import unidecode from "unidecode"
@@ -26,28 +27,46 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 class CSV {
-    @observable filename?: string
-    @observable rows: string[][]
-    @observable countryEntriesMap: Map<string, CountryEntry>
-    @observable mapCountriesInputToOutput: Record<string, string>
-    @observable autoMatchedCount: number = 0
-    @observable parseError?: string
-    @observable findSimilarCountries: boolean = true
+    filename?: string;
+    rows: string[][];
+    countryEntriesMap: Map<string, CountryEntry>;
+    mapCountriesInputToOutput: Record<string, string>;
+    autoMatchedCount: number = 0;
+    parseError?: string;
+    findSimilarCountries: boolean = true;
 
     constructor() {
+        makeObservable(this, {
+            filename: observable,
+            rows: observable,
+            countryEntriesMap: observable,
+            mapCountriesInputToOutput: observable,
+            autoMatchedCount: observable,
+            parseError: observable,
+            findSimilarCountries: observable,
+            allCountries: computed,
+            countryColumnIndex: computed,
+            showDownloadOption: computed,
+            numCountries: computed,
+            validationError: computed,
+            onFileUpload: action.bound,
+            onFormatChange: action.bound,
+            parseCSV: action.bound
+        });
+
         this.countryEntriesMap = new Map<string, CountryEntry>()
         this.rows = []
         this.mapCountriesInputToOutput = {}
     }
 
-    @computed get allCountries(): string[] {
+    get allCountries(): string[] {
         const standardNames = Object.values(
             this.mapCountriesInputToOutput
         ).filter((value: string | undefined) => value !== undefined) as string[]
         return uniq(sortBy(standardNames)) as string[]
     }
 
-    @computed get countryColumnIndex() {
+    get countryColumnIndex() {
         const { rows } = this
         if (rows.length === 0) {
             return -1
@@ -57,7 +76,7 @@ class CSV {
         )
     }
 
-    @computed get showDownloadOption() {
+    get showDownloadOption() {
         const { rows, validationError } = this
         if (rows.length > 0 && validationError === undefined) {
             return true
@@ -65,11 +84,11 @@ class CSV {
         return false
     }
 
-    @computed get numCountries() {
+    get numCountries() {
         return this.rows.length - 1
     }
 
-    @computed get validationError(): string | undefined {
+    get validationError(): string | undefined {
         const { parseError } = this
         if (parseError !== undefined) {
             return `Could not parse file (error: ${parseError}). Check if it is a valid CSV file.`
@@ -85,7 +104,7 @@ class CSV {
         return undefined
     }
 
-    @action.bound onFileUpload(
+    onFileUpload(
         filename: string,
         rows: string[][],
         err: { message: string } | undefined,
@@ -103,16 +122,13 @@ class CSV {
         this.parseCSV()
     }
 
-    @action.bound onFormatChange(
-        countryMap: Record<string, string>,
-        findSimilarCountries: boolean
-    ) {
+    onFormatChange(countryMap: Record<string, string>, findSimilarCountries: boolean) {
         this.mapCountriesInputToOutput = countryMap
         this.findSimilarCountries = findSimilarCountries
         this.parseCSV()
     }
 
-    @action.bound parseCSV() {
+    parseCSV() {
         const {
             rows,
             countryColumnIndex,
@@ -191,19 +207,36 @@ interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> {
     customName?: string
 }
 
-@observer
-class CountryEntryRowRenderer extends React.Component<{
+const CountryEntryRowRenderer = observer(class CountryEntryRowRenderer extends React.Component<{
     entry: CountryEntry
     allCountries: string[]
     onUpdate: (value: string, inputCountry: string, isCustom: boolean) => void
 }> {
-    @observable selectedStandardName!: string
+    selectedStandardName: string;
 
-    @computed get defaultOption() {
+    constructor(
+        props: {
+            entry: CountryEntry
+            allCountries: string[]
+            onUpdate: (value: string, inputCountry: string, isCustom: boolean) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            selectedStandardName: observable,
+            defaultOption: computed,
+            isMatched: computed,
+            defaultValue: computed,
+            onEntrySelected: action.bound
+        });
+    }
+
+    get defaultOption() {
         return "Select one"
     }
 
-    @computed get isMatched(): boolean {
+    get isMatched(): boolean {
         const { entry } = this.props
 
         if (entry.standardizedName || entry.selectedMatch || entry.customName)
@@ -211,7 +244,7 @@ class CountryEntryRowRenderer extends React.Component<{
         else return false
     }
 
-    @computed get defaultValue() {
+    get defaultValue() {
         const { entry } = this.props
 
         if (
@@ -223,7 +256,7 @@ class CountryEntryRowRenderer extends React.Component<{
         return this.defaultOption
     }
 
-    @action.bound onEntrySelected(selectedName: string) {
+    onEntrySelected(selectedName: string) {
         const { entry, onUpdate } = this.props
 
         onUpdate(selectedName, entry.originalName, false)
@@ -286,22 +319,48 @@ class CountryEntryRowRenderer extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-export class CountryStandardizerPage extends React.Component {
+export const CountryStandardizerPage = observer(class CountryStandardizerPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
     fileUploader!: HTMLInputElement
 
-    @observable countryList: CountryEntry[] = []
-    @observable inputFormat: string = CountryNameFormat.NonStandardCountryName
-    @observable outputFormat: string = CountryNameFormat.OurWorldInDataName
-    @observable csv: CSV = new CSV()
-    @observable showAllRows: boolean = false
+    countryList: CountryEntry[] = [];
+    inputFormat: string = CountryNameFormat.NonStandardCountryName;
+    outputFormat: string = CountryNameFormat.OurWorldInDataName;
+    csv: CSV = new CSV();
+    showAllRows: boolean = false;
 
-    @computed get shouldSaveSelection(): boolean {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            countryList: observable,
+            inputFormat: observable,
+            outputFormat: observable,
+            csv: observable,
+            showAllRows: observable,
+            shouldSaveSelection: computed,
+            displayMatchStatus: computed,
+            onInputFormat: action.bound,
+            onOutputFormat: action.bound,
+            onChooseCSV: action.bound,
+            csvDataUri: computed,
+            csvFilename: computed,
+            downloadTooltip: computed,
+            fileUploadLabel: computed,
+            outputCSV: computed,
+            onUpdateRow: action.bound,
+            onDownload: action.bound,
+            onToggleRows: action.bound,
+            onSave: action.bound,
+            entriesToShow: computed
+        });
+    }
+
+    get shouldSaveSelection(): boolean {
         if (
             this.inputFormat === CountryNameFormat.NonStandardCountryName &&
             this.outputFormat === CountryNameFormat.OurWorldInDataName
@@ -311,7 +370,7 @@ export class CountryStandardizerPage extends React.Component {
         return false
     }
 
-    @computed get displayMatchStatus() {
+    get displayMatchStatus() {
         const { autoMatchedCount, numCountries, showDownloadOption } = this.csv
 
         if (!showDownloadOption) return <div></div>
@@ -340,15 +399,15 @@ export class CountryStandardizerPage extends React.Component {
         )
     }
 
-    @action.bound onInputFormat(format: string) {
+    onInputFormat(format: string) {
         this.inputFormat = format
     }
 
-    @action.bound onOutputFormat(format: string) {
+    onOutputFormat(format: string) {
         this.outputFormat = format
     }
 
-    @action.bound onChooseCSV({ target }: { target: HTMLInputElement }) {
+    onChooseCSV({ target }: { target: HTMLInputElement }) {
         const file = target.files && target.files[0]
         if (!file) return
 
@@ -408,12 +467,12 @@ export class CountryStandardizerPage extends React.Component {
         })
     }
 
-    @computed get csvDataUri(): string {
+    get csvDataUri(): string {
         if (this.outputCSV) return window.URL.createObjectURL(this.outputCSV)
         else return ""
     }
 
-    @computed get csvFilename(): string {
+    get csvFilename(): string {
         const { csv } = this
 
         if (csv.filename === undefined) return ""
@@ -421,7 +480,7 @@ export class CountryStandardizerPage extends React.Component {
         return csv.filename.replace(".csv", "_country_standardized.csv")
     }
 
-    @computed get downloadTooltip(): string {
+    get downloadTooltip(): string {
         const { shouldSaveSelection } = this
 
         if (shouldSaveSelection) {
@@ -430,7 +489,7 @@ export class CountryStandardizerPage extends React.Component {
         return ""
     }
 
-    @computed get fileUploadLabel() {
+    get fileUploadLabel() {
         const { csv } = this
 
         if (csv === undefined || csv.filename === undefined) {
@@ -439,7 +498,7 @@ export class CountryStandardizerPage extends React.Component {
         return csv.filename
     }
 
-    @computed get outputCSV() {
+    get outputCSV() {
         const { csv } = this
 
         if (csv === undefined || csv.validationError !== undefined)
@@ -489,11 +548,7 @@ export class CountryStandardizerPage extends React.Component {
         return new Blob([strRows.join("\n")], { type: "text/csv" })
     }
 
-    @action.bound onUpdateRow(
-        value: string,
-        inputCountry: string,
-        isCustom: boolean
-    ) {
+    onUpdateRow(value: string, inputCountry: string, isCustom: boolean) {
         const { csv } = this
 
         const entry = csv.countryEntriesMap.get(inputCountry) as CountryEntry
@@ -507,7 +562,7 @@ export class CountryStandardizerPage extends React.Component {
     }
 
     // IE11 compatibility
-    @action.bound onDownload() {
+    onDownload() {
         const { shouldSaveSelection } = this
 
         if (shouldSaveSelection) {
@@ -515,11 +570,11 @@ export class CountryStandardizerPage extends React.Component {
         }
     }
 
-    @action.bound onToggleRows() {
+    onToggleRows() {
         this.showAllRows = !this.showAllRows
     }
 
-    @action.bound onSave() {
+    onSave() {
         const { csv } = this
 
         const countries: Record<string, string> = {}
@@ -549,7 +604,7 @@ export class CountryStandardizerPage extends React.Component {
         }
     }
 
-    @computed get entriesToShow(): CountryEntry[] {
+    get entriesToShow(): CountryEntry[] {
         if (this.csv === undefined) return []
 
         const countries: CountryEntry[] = []
@@ -694,4 +749,4 @@ export class CountryStandardizerPage extends React.Component {
             </AdminLayout>
         )
     }
-}
+});

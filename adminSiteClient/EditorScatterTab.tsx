@@ -1,6 +1,6 @@
 import React from "react"
 import { debounce, excludeUndefined } from "../clientUtils/Util.js"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher.js"
 import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine.js"
@@ -10,27 +10,39 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ScatterPointLabelStrategy } from "../grapher/core/GrapherConstants.js"
 import { EntityName } from "../coreTable/OwidTableConstants.js"
 
-@observer
-export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
-    @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
+export const EditorScatterTab = observer(class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
+    comparisonLine: ComparisonLineConfig = { yEquals: undefined };
 
     constructor(props: { grapher: Grapher }) {
         super(props)
+
+        makeObservable<EditorScatterTab, "excludedEntityNames" | "excludedEntityChoices">(this, {
+            comparisonLine: observable,
+            onToggleHideTimeline: action.bound,
+            onToggleHideLinesOutsideTolerance: action.bound,
+            onXOverrideYear: action.bound,
+            excludedEntityNames: computed,
+            excludedEntityChoices: computed,
+            onExcludeEntity: action.bound,
+            onUnexcludeEntity: action.bound,
+            onToggleConnection: action.bound,
+            onChangeScatterPointLabelStrategy: action.bound
+        });
     }
 
-    @action.bound onToggleHideTimeline(value: boolean) {
+    onToggleHideTimeline(value: boolean) {
         this.props.grapher.hideTimeline = value || undefined
     }
 
-    @action.bound onToggleHideLinesOutsideTolerance(value: boolean) {
+    onToggleHideLinesOutsideTolerance(value: boolean) {
         this.props.grapher.hideLinesOutsideTolerance = value || undefined
     }
 
-    @action.bound onXOverrideYear(value: number | undefined) {
+    onXOverrideYear(value: number | undefined) {
         this.props.grapher.xOverrideTime = value
     }
 
-    @computed private get excludedEntityNames(): EntityName[] {
+    private get excludedEntityNames(): EntityName[] {
         const { excludedEntities, inputTable } = this.props.grapher
         const { entityIdToNameMap } = inputTable
         const excludedEntityIds = excludedEntities ?? []
@@ -39,7 +51,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
         )
     }
 
-    @computed private get excludedEntityChoices() {
+    private get excludedEntityChoices() {
         const { inputTable } = this.props.grapher
         return inputTable.availableEntityNames
             .filter(
@@ -48,7 +60,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
             .sort()
     }
 
-    @action.bound onExcludeEntity(entity: string) {
+    onExcludeEntity(entity: string) {
         const { grapher } = this.props
         if (grapher.excludedEntities === undefined) {
             grapher.excludedEntities = []
@@ -59,7 +71,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
             grapher.excludedEntities.push(entityId)
     }
 
-    @action.bound onUnexcludeEntity(entity: string) {
+    onUnexcludeEntity(entity: string) {
         const { grapher } = this.props
         if (!grapher.excludedEntities) return
 
@@ -69,12 +81,12 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
         )
     }
 
-    @action.bound onToggleConnection(value: boolean) {
+    onToggleConnection(value: boolean) {
         const { grapher } = this.props
         grapher.hideConnectedScatterLines = value
     }
 
-    @action.bound onChangeScatterPointLabelStrategy(value: string) {
+    onChangeScatterPointLabelStrategy(value: string) {
         this.props.grapher.scatterPointLabelStrategy =
             value as ScatterPointLabelStrategy
     }
@@ -157,4 +169,4 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
             </div>
         )
     }
-}
+});

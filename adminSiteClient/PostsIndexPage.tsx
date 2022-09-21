@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, action, runInAction, makeObservable } from "mobx";
 import fuzzysort from "fuzzysort"
 import * as lodash from "lodash"
 
@@ -26,14 +26,27 @@ interface Searchable {
     term?: Fuzzysort.Prepared
 }
 
-@observer
-class PostRow extends React.Component<{
+const PostRow = observer(class PostRow extends React.Component<{
     post: PostIndexMeta
     highlight: (text: string) => string | JSX.Element
     availableTags: Tag[]
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
+
+    constructor(
+        props: {
+            post: PostIndexMeta
+            highlight: (text: string) => string | JSX.Element
+            availableTags: Tag[]
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onSaveTags: action.bound
+        });
+    }
 
     async saveTags(tags: Tag[]) {
         const { post } = this.props
@@ -47,7 +60,7 @@ class PostRow extends React.Component<{
         }
     }
 
-    @action.bound onSaveTags(tags: Tag[]) {
+    onSaveTags(tags: Tag[]) {
         this.saveTags(tags)
     }
 
@@ -84,19 +97,34 @@ class PostRow extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-export class PostsIndexPage extends React.Component {
+export const PostsIndexPage = observer(class PostsIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable posts: PostIndexMeta[] = []
-    @observable maxVisibleRows = 50
-    @observable searchInput?: string
-    @observable availableTags: Tag[] = []
+    posts: PostIndexMeta[] = [];
+    maxVisibleRows = 50;
+    searchInput?: string;
+    availableTags: Tag[] = [];
 
-    @computed get searchIndex(): Searchable[] {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            posts: observable,
+            maxVisibleRows: observable,
+            searchInput: observable,
+            availableTags: observable,
+            searchIndex: computed,
+            postsToShow: computed,
+            numTotalRows: computed,
+            onSearchInput: action.bound,
+            onShowMore: action.bound
+        });
+    }
+
+    get searchIndex(): Searchable[] {
         const searchIndex: Searchable[] = []
         for (const post of this.posts) {
             searchIndex.push({
@@ -110,7 +138,7 @@ export class PostsIndexPage extends React.Component {
         return searchIndex
     }
 
-    @computed get postsToShow(): PostIndexMeta[] {
+    get postsToShow(): PostIndexMeta[] {
         const { searchInput, searchIndex, maxVisibleRows } = this
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
@@ -123,15 +151,15 @@ export class PostsIndexPage extends React.Component {
         }
     }
 
-    @computed get numTotalRows(): number {
+    get numTotalRows(): number {
         return this.posts.length
     }
 
-    @action.bound onSearchInput(input: string) {
+    onSearchInput(input: string) {
         this.searchInput = input
     }
 
-    @action.bound onShowMore() {
+    onShowMore() {
         this.maxVisibleRows += 100
     }
 
@@ -216,4 +244,4 @@ export class PostsIndexPage extends React.Component {
         this.getData()
         this.getTags()
     }
-}
+});

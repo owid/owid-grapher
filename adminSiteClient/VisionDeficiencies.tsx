@@ -2,7 +2,7 @@ import React from "react"
 import Select, { GroupBase, components, OptionProps } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx";
 import { groupBy } from "../clientUtils/Util.js"
 import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
 
@@ -172,49 +172,59 @@ const VisionDeficiencyOption = (
     </div>
 )
 
-@observer
-export class VisionDeficiencyDropdown extends React.Component<VisionDeficiencyDropdownProps> {
-    noDeficiencyOption = {
-        label: "No deficiencies",
-        value: "none",
-    }
+export const VisionDeficiencyDropdown = observer(
+    class VisionDeficiencyDropdown extends React.Component<VisionDeficiencyDropdownProps> {
+        noDeficiencyOption = {
+            label: "No deficiencies",
+            value: "none",
+        }
 
-    @computed get options(): GroupBase<VisionDeficiencyEntity>[] {
-        const options = visionDeficiencies.map((deficiency) => ({
-            label: `${deficiency.name} (${deficiency.alternativeName})`,
-            value: deficiency.id,
-            deficiency,
-        }))
-        const grouped = groupBy(options, (option) => option.deficiency.group)
-        const selectGroups = Object.entries(grouped).map(
-            ([label, options]) => ({ label, options })
-        )
+        constructor(props: VisionDeficiencyDropdownProps) {
+            super(props);
 
-        return [
-            {
-                label: "No deficiencies",
-                options: [this.noDeficiencyOption],
-            },
-            ...selectGroups,
-        ]
-    }
+            makeObservable(this, {
+                options: computed,
+                onChange: action.bound
+            });
+        }
 
-    @action.bound onChange(selected: VisionDeficiencyEntity | null) {
-        if (selected) this.props.onChange(selected)
-    }
+        get options(): GroupBase<VisionDeficiencyEntity>[] {
+            const options = visionDeficiencies.map((deficiency) => ({
+                label: `${deficiency.name} (${deficiency.alternativeName})`,
+                value: deficiency.id,
+                deficiency,
+            }))
+            const grouped = groupBy(options, (option) => option.deficiency.group)
+            const selectGroups = Object.entries(grouped).map(
+                ([label, options]) => ({ label, options })
+            )
 
-    render() {
-        return (
-            <Select
-                options={this.options}
-                onChange={this.onChange}
-                defaultValue={this.noDeficiencyOption}
-                menuPlacement="top"
-                components={{
-                    Option: VisionDeficiencyOption,
-                }}
-                styles={getStylesForTargetHeight(30)}
-            />
-        )
+            return [
+                {
+                    label: "No deficiencies",
+                    options: [this.noDeficiencyOption],
+                },
+                ...selectGroups,
+            ]
+        }
+
+        onChange(selected: VisionDeficiencyEntity | null) {
+            if (selected) this.props.onChange(selected)
+        }
+
+        render() {
+            return (
+                <Select
+                    options={this.options}
+                    onChange={this.onChange}
+                    defaultValue={this.noDeficiencyOption}
+                    menuPlacement="top"
+                    components={{
+                        Option: VisionDeficiencyOption,
+                    }}
+                    styles={getStylesForTargetHeight(30)}
+                />
+            )
+        }
     }
-}
+);

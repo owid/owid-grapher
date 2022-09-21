@@ -1,19 +1,28 @@
 import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 
-@observer
-export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
-    @action.bound onSaveChart() {
+export const SaveButtons = observer(class SaveButtons extends React.Component<{ editor: ChartEditor }> {
+    constructor(props: { editor: ChartEditor }) {
+        super(props);
+
+        makeObservable(this, {
+            onSaveChart: action.bound,
+            onSaveAsNew: action.bound,
+            onPublishToggle: action.bound
+        });
+    }
+
+    onSaveChart() {
         this.props.editor.saveGrapher()
     }
 
-    @action.bound onSaveAsNew() {
+    onSaveAsNew() {
         this.props.editor.saveAsNewGrapher()
     }
 
-    @action.bound onPublishToggle() {
+    onPublishToggle() {
         if (this.props.editor.grapher.isPublished)
             this.props.editor.unpublishGrapher()
         else this.props.editor.publishGrapher()
@@ -62,4 +71,4 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
             {" "}<button type="button" className="btn btn-lg btn-danger" onClick={this.onPublishToggle}>{chart.isPublished ? "Unpublish" : "Publish"}</button>
         </section>*/
     }
-}
+});

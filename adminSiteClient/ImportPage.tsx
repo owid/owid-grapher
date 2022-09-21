@@ -9,7 +9,8 @@ import {
     reaction,
     runInAction,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import { observer } from "mobx-react"
 import { Redirect } from "react-router-dom"
 
@@ -21,16 +22,28 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 class EditableVariable {
-    @observable name: string = ""
-    @observable unit: string = ""
-    @observable description: string = ""
-    @observable coverage: string = ""
-    @observable timespan: string = ""
+    name: string = "";
+    unit: string = "";
+    description: string = "";
+    coverage: string = "";
+    timespan: string = "";
 
     // Existing variable to be overwritten by this one
-    @observable overwriteId?: number
+    overwriteId?: number;
 
-    @observable values: string[] = []
+    values: string[] = [];
+
+    constructor() {
+        makeObservable(this, {
+            name: observable,
+            unit: observable,
+            description: observable,
+            coverage: observable,
+            timespan: observable,
+            overwriteId: observable,
+            values: observable
+        });
+    }
 }
 
 interface ExistingVariable {
@@ -48,15 +61,15 @@ interface ExistingDataset {
 }
 
 class EditableDataset {
-    @observable id?: number
-    @observable name: string = ""
-    @observable description: string = ""
-    @observable existingVariables: ExistingVariable[] = []
-    @observable newVariables: EditableVariable[] = []
-    @observable years: number[] = []
-    @observable entities: string[] = []
+    id?: number;
+    name: string = "";
+    description: string = "";
+    existingVariables: ExistingVariable[] = [];
+    newVariables: EditableVariable[] = [];
+    years: number[] = [];
+    entities: string[] = [];
 
-    @observable source: {
+    source: {
         name: string
         dataPublishedBy: string
         dataPublisherSource: string
@@ -70,6 +83,20 @@ class EditableDataset {
         link: "",
         retrievedDate: "",
         additionalInfo: "",
+    };
+
+    constructor() {
+        makeObservable(this, {
+            id: observable,
+            name: observable,
+            description: observable,
+            existingVariables: observable,
+            newVariables: observable,
+            years: observable,
+            entities: observable,
+            source: observable,
+            isLoading: computed
+        });
     }
 
     update(json: any) {
@@ -78,7 +105,7 @@ class EditableDataset {
         }
     }
 
-    @computed get isLoading() {
+    get isLoading() {
         return this.id && !this.existingVariables.length
     }
 }
@@ -86,15 +113,26 @@ class EditableDataset {
 // https://stackoverflow.com/questions/638565/parsing-scientific-notation-sensibly
 const reValidNumber = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?$/
 
-@observer
-class DataPreview extends React.Component<{ csv: CSV }> {
-    @observable rowOffset: number = 0
-    @observable visibleRows: number = 10
-    @computed get numRows(): number {
+const DataPreview = observer(class DataPreview extends React.Component<{ csv: CSV }> {
+    rowOffset: number = 0;
+    visibleRows: number = 10;
+
+    constructor(props: { csv: CSV }) {
+        super(props);
+
+        makeObservable(this, {
+            rowOffset: observable,
+            visibleRows: observable,
+            numRows: computed,
+            onScroll: action.bound
+        });
+    }
+
+    get numRows(): number {
         return this.props.csv.rows.length
     }
 
-    @action.bound onScroll(ev: React.UIEvent<Element>) {
+    onScroll(ev: React.UIEvent<Element>) {
         const { scrollTop, scrollHeight } = ev.currentTarget
         const { numRows } = this
 
@@ -145,10 +183,9 @@ class DataPreview extends React.Component<{ csv: CSV }> {
             </div>
         )
     }
-}
+});
 
-@observer
-class EditVariable extends React.Component<{
+const EditVariable = observer(class EditVariable extends React.Component<{
     variable: EditableVariable
     dataset: EditableDataset
 }> {
@@ -178,53 +215,62 @@ class EditVariable extends React.Component<{
             </li>
         )
     }
-}
+});
 
-@observer
-class EditVariables extends React.Component<{ dataset: EditableDataset }> {
-    @computed get deletingVariables() {
-        const { dataset } = this.props
-        const deletingVariables: ExistingVariable[] = []
-        for (const variable of dataset.existingVariables) {
-            if (
-                !dataset.newVariables.some((v) => v.overwriteId === variable.id)
-            ) {
-                deletingVariables.push(variable)
-            }
+const EditVariables = observer(
+    class EditVariables extends React.Component<{ dataset: EditableDataset }> {
+        constructor(props: { dataset: EditableDataset }) {
+            super(props);
+
+            makeObservable(this, {
+                deletingVariables: computed
+            });
         }
-        return deletingVariables
-    }
 
-    render() {
-        const { dataset } = this.props
+        get deletingVariables() {
+            const { dataset } = this.props
+            const deletingVariables: ExistingVariable[] = []
+            for (const variable of dataset.existingVariables) {
+                if (
+                    !dataset.newVariables.some((v) => v.overwriteId === variable.id)
+                ) {
+                    deletingVariables.push(variable)
+                }
+            }
+            return deletingVariables
+        }
 
-        return (
-            <section className="form-section variables-section">
-                <h3>Variables</h3>
-                <p className="form-section-desc">
-                    These are the variables that will be stored for your
-                    dataset.
-                </p>
-                <ol>
-                    {dataset.newVariables.map((variable, i) => (
-                        <EditVariable
-                            key={i}
-                            variable={variable}
-                            dataset={dataset}
-                        />
-                    ))}
-                </ol>
-                {this.deletingVariables.length > 0 && (
-                    <div className="alert alert-danger">
-                        Some existing variables are not selected to overwrite
-                        and will be deleted:{" "}
-                        {this.deletingVariables.map((v) => v.name).join(",")}
-                    </div>
-                )}
-            </section>
-        )
+        render() {
+            const { dataset } = this.props
+
+            return (
+                <section className="form-section variables-section">
+                    <h3>Variables</h3>
+                    <p className="form-section-desc">
+                        These are the variables that will be stored for your
+                        dataset.
+                    </p>
+                    <ol>
+                        {dataset.newVariables.map((variable, i) => (
+                            <EditVariable
+                                key={i}
+                                variable={variable}
+                                dataset={dataset}
+                            />
+                        ))}
+                    </ol>
+                    {this.deletingVariables.length > 0 && (
+                        <div className="alert alert-danger">
+                            Some existing variables are not selected to overwrite
+                            and will be deleted:{" "}
+                            {this.deletingVariables.map((v) => v.name).join(",")}
+                        </div>
+                    )}
+                </section>
+            )
+        }
     }
-}
+);
 
 interface ValidationResults {
     results: { class: string; message: string }[]
@@ -253,11 +299,11 @@ class CSV {
     rows: string[][]
     existingEntities: string[]
 
-    @computed get basename() {
-        return (this.filename.match(/(.*?)(.csv)?$/) || [])[1]
+    get basename() {
+        return (this.filename.match(/(.*?)(.csv)?$/) || [])[1];
     }
 
-    @computed get data() {
+    get data() {
         const { rows } = this
 
         const variables: EditableVariable[] = []
@@ -290,7 +336,7 @@ class CSV {
         }
     }
 
-    @computed get validation(): ValidationResults {
+    get validation(): ValidationResults {
         const validation: ValidationResults = { results: [], passed: false }
         const { rows } = this
 
@@ -383,19 +429,25 @@ class CSV {
         return validation
     }
 
-    @computed get isValid() {
+    get isValid() {
         return this.validation.passed
     }
 
     constructor({ filename = "", rows = [], existingEntities = [] }) {
+        makeObservable(this, {
+            basename: computed,
+            data: computed,
+            validation: computed,
+            isValid: computed
+        });
+
         this.filename = filename
         this.rows = rows
         this.existingEntities = existingEntities
     }
 }
 
-@observer
-class ValidationView extends React.Component<{
+const ValidationView = observer(class ValidationView extends React.Component<{
     validation: ValidationResults
 }> {
     render() {
@@ -411,17 +463,30 @@ class ValidationView extends React.Component<{
             </section>
         )
     }
-}
+});
 
-@observer
-class CSVSelector extends React.Component<{
+const CSVSelector = observer(class CSVSelector extends React.Component<{
     existingEntities: string[]
     onCSV: (csv: CSV) => void
 }> {
-    @observable csv?: CSV
+    csv?: CSV;
     fileInput?: HTMLInputElement
 
-    @action.bound onChooseCSV({ target }: { target: HTMLInputElement }) {
+    constructor(
+        props: {
+            existingEntities: string[]
+            onCSV: (csv: CSV) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            csv: observable,
+            onChooseCSV: action.bound
+        });
+    }
+
+    onChooseCSV({ target }: { target: HTMLInputElement }) {
         const { existingEntities } = this.props
         const file = target.files && target.files[0]
         if (!file) return
@@ -470,21 +535,35 @@ class CSVSelector extends React.Component<{
     componentDidMount() {
         if (this.fileInput) this.fileInput.value = ""
     }
-}
+});
 
-@observer
-class Importer extends React.Component<ImportPageData> {
+const Importer = observer(class Importer extends React.Component<ImportPageData> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable csv?: CSV
-    @observable.ref dataset = new EditableDataset()
+    csv?: CSV;
+    dataset = new EditableDataset();
 
-    @observable existingDataset?: ExistingDataset
-    @observable postImportDatasetId?: number
+    existingDataset?: ExistingDataset;
+    postImportDatasetId?: number;
+
+    constructor(props: ImportPageData) {
+        super(props);
+
+        makeObservable(this, {
+            csv: observable,
+            dataset: observable.ref,
+            existingDataset: observable,
+            postImportDatasetId: observable,
+            onCSV: action.bound,
+            onChooseDataset: action.bound,
+            initializeDataset: action.bound,
+            onSubmit: action.bound
+        });
+    }
 
     // First step is user selecting a CSV file
-    @action.bound onCSV(csv: CSV) {
+    onCSV(csv: CSV) {
         this.csv = csv
 
         // Look for an existing dataset that matches this csv filename
@@ -497,7 +576,7 @@ class Importer extends React.Component<ImportPageData> {
         }
     }
 
-    @action.bound onChooseDataset(datasetId: number) {
+    onChooseDataset(datasetId: number) {
         if (datasetId === -1) this.existingDataset = undefined
         else this.getExistingDataset(datasetId)
     }
@@ -512,7 +591,7 @@ class Importer extends React.Component<ImportPageData> {
 
     // When we have the csv and have matched against an existing dataset (or decided not to), we can
     // then initialize the dataset model for user customization
-    @action.bound initializeDataset() {
+    initializeDataset() {
         const { csv, existingDataset } = this
         if (!csv) return
 
@@ -548,7 +627,7 @@ class Importer extends React.Component<ImportPageData> {
         this.dataset = dataset
     }
 
-    @action.bound onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         this.saveDataset()
     }
@@ -693,7 +772,7 @@ class Importer extends React.Component<ImportPageData> {
             </form>
         )
     }
-}
+});
 
 interface ImportPageData {
     datasets: {
@@ -708,12 +787,19 @@ interface ImportPageData {
     existingEntities: string[]
 }
 
-@observer
-export class ImportPage extends React.Component {
+export const ImportPage = observer(class ImportPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable importData?: ImportPageData
+    importData?: ImportPageData;
+
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            importData: observable
+        });
+    }
 
     async getData() {
         const json = await this.context.admin.getJSON("/api/importData.json")
@@ -733,4 +819,4 @@ export class ImportPage extends React.Component {
             </AdminLayout>
         )
     }
-}
+});

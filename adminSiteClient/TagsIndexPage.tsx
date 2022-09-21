@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, action, runInAction, makeObservable } from "mobx";
 import * as lodash from "lodash"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
@@ -15,18 +15,33 @@ interface TagListItem {
     specialType?: string
 }
 
-@observer
-class AddTagModal extends React.Component<{
+const AddTagModal = observer(class AddTagModal extends React.Component<{
     parentId?: number
     onClose: () => void
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable tagName: string = ""
-    @observable newTagId?: number
+    tagName: string = "";
+    newTagId?: number;
 
-    @computed get tag() {
+    constructor(
+        props: {
+            parentId?: number
+            onClose: () => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            tagName: observable,
+            newTagId: observable,
+            tag: computed,
+            onTagName: action.bound
+        });
+    }
+
+    get tag() {
         if (!this.tagName) return undefined
 
         return {
@@ -48,7 +63,7 @@ class AddTagModal extends React.Component<{
         }
     }
 
-    @action.bound onTagName(tagName: string) {
+    onTagName(tagName: string) {
         this.tagName = tagName
     }
 
@@ -87,22 +102,34 @@ class AddTagModal extends React.Component<{
             </Modal>
         )
     }
-}
+});
 
-@observer
-export class TagsIndexPage extends React.Component {
+export const TagsIndexPage = observer(class TagsIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable tags: TagListItem[] = []
-    @observable isAddingTag: boolean = false
-    @observable addTagParentId?: number
+    tags: TagListItem[] = [];
+    isAddingTag: boolean = false;
+    addTagParentId?: number;
 
-    @computed get categoriesById(): lodash.Dictionary<TagListItem> {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            tags: observable,
+            isAddingTag: observable,
+            addTagParentId: observable,
+            categoriesById: computed,
+            parentCategories: computed,
+            onNewTag: action.bound
+        });
+    }
+
+    get categoriesById(): lodash.Dictionary<TagListItem> {
         return lodash.keyBy(this.tags, (t) => t.id)
     }
 
-    @computed get parentCategories(): {
+    get parentCategories(): {
         id: number
         name: string
         specialType?: string
@@ -120,7 +147,7 @@ export class TagsIndexPage extends React.Component {
         return parentCategories
     }
 
-    @action.bound onNewTag(parentId?: number) {
+    onNewTag(parentId?: number) {
         this.addTagParentId = parentId
         this.isAddingTag = true
     }
@@ -194,4 +221,4 @@ export class TagsIndexPage extends React.Component {
     componentDidMount() {
         this.getData()
     }
-}
+});

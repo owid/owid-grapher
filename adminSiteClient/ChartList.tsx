@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, runInAction, observable } from "mobx"
+import { action, runInAction, observable, makeObservable } from "mobx";
 import * as lodash from "lodash"
 
 import { Link } from "./Link.js"
@@ -51,8 +51,7 @@ function showChartType(chart: ChartListItem) {
     }
 }
 
-@observer
-class ChartRow extends React.Component<{
+const ChartRow = observer(class ChartRow extends React.Component<{
     chart: ChartListItem
     searchHighlight?: (text: string) => string | JSX.Element
     availableTags: Tag[]
@@ -60,6 +59,21 @@ class ChartRow extends React.Component<{
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
+
+    constructor(
+        props: {
+            chart: ChartListItem
+            searchHighlight?: (text: string) => string | JSX.Element
+            availableTags: Tag[]
+            onDelete: (chart: ChartListItem) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onSaveTags: action.bound
+        });
+    }
 
     async saveTags(tags: Tag[]) {
         const { chart } = this.props
@@ -73,7 +87,7 @@ class ChartRow extends React.Component<{
         }
     }
 
-    @action.bound onSaveTags(tags: Tag[]) {
+    onSaveTags(tags: Tag[]) {
         this.saveTags(tags)
     }
 
@@ -157,10 +171,9 @@ class ChartRow extends React.Component<{
             </tr>
         )
     }
-}
+});
 
-@observer
-export class ChartList extends React.Component<{
+export const ChartList = observer(class ChartList extends React.Component<{
     charts: ChartListItem[]
     searchHighlight?: (text: string) => string | JSX.Element
     onDelete?: (chart: ChartListItem) => void
@@ -168,7 +181,21 @@ export class ChartList extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable availableTags: Tag[] = []
+    availableTags: Tag[] = [];
+
+    constructor(
+        props: {
+            charts: ChartListItem[]
+            searchHighlight?: (text: string) => string | JSX.Element
+            onDelete?: (chart: ChartListItem) => void
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            availableTags: observable
+        });
+    }
 
     @bind async onDeleteChart(chart: ChartListItem) {
         if (
@@ -237,4 +264,4 @@ export class ChartList extends React.Component<{
             </table>
         )
     }
-}
+});

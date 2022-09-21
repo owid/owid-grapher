@@ -9,8 +9,7 @@ import Tippy from "@tippyjs/react"
 
 export { Tag }
 
-@observer
-export class TagBadge extends React.Component<{
+export const TagBadge = observer(class TagBadge extends React.Component<{
     tag: Tag
     onToggleKey?: () => void
     searchHighlight?: (text: string) => string | JSX.Element
@@ -42,4 +41,4 @@ export class TagBadge extends React.Component<{
             )
         }
     }
-}
+});
