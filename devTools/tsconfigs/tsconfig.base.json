@@ -27,6 +27,7 @@
 
         "experimentalDecorators": true,
         "emitDecoratorMetadata": false,
-        "keyofStringsOnly": true
+        "keyofStringsOnly": true,
+        "useDefineForClassFields": true
     }
 }
