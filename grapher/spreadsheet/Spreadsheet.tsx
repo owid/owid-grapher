@@ -1,7 +1,7 @@
 import { observer } from "mobx-react"
 import React from "react"
 import { HotTable } from "@handsontable/react"
-import { action, computed } from "mobx"
+import { action, computed, makeObservable } from "mobx";
 import { exposeInstanceOnWindow } from "../../clientUtils/Util.js"
 import Handsontable from "handsontable"
 import { OwidTable } from "../../coreTable/OwidTable.js"
@@ -15,13 +15,25 @@ interface SpreadsheetManager {
     table: OwidTable
 }
 
-@observer
-export class Spreadsheet extends React.Component<{
+export const Spreadsheet = observer(class Spreadsheet extends React.Component<{
     manager: SpreadsheetManager
 }> {
     private hotTableComponent = React.createRef<HotTable>()
 
-    @action.bound private updateFromHot(): void {
+    constructor(
+        props: {
+            manager: SpreadsheetManager
+        }
+    ) {
+        super(props);
+
+        makeObservable<Spreadsheet, "updateFromHot" | "manager">(this, {
+            updateFromHot: action.bound,
+            manager: computed
+        });
+    }
+
+    private updateFromHot(): void {
         const newVersion =
             this.hotTableComponent.current?.hotInstance?.getData() as CoreMatrix
         if (!newVersion || !this.isChanged(newVersion)) return
@@ -37,7 +49,7 @@ export class Spreadsheet extends React.Component<{
         exposeInstanceOnWindow(this, "spreadsheet")
     }
 
-    @computed private get manager(): SpreadsheetManager {
+    private get manager(): SpreadsheetManager {
         return this.props.manager
     }
 
@@ -72,4 +84,4 @@ export class Spreadsheet extends React.Component<{
             />
         )
     }
-}
+});

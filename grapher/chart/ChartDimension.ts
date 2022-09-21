@@ -1,7 +1,7 @@
 // Todo: remove this.
 // Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
 
-import { observable, computed } from "mobx"
+import { observable, computed, makeObservable } from "mobx";
 import { trimObject } from "../../clientUtils/Util.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"
 import { OwidVariableDisplayConfig } from "../../clientUtils/OwidVariable.js"
@@ -22,15 +22,24 @@ import { OwidChartDimensionInterface } from "../../clientUtils/OwidVariableDispl
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
 class ChartDimensionDefaults implements OwidChartDimensionInterface {
-    @observable property!: DimensionProperty
-    @observable variableId!: OwidVariableId
+    property: DimensionProperty;
+    variableId: OwidVariableId;
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
-    @observable display = new OwidVariableDisplayConfig() // todo: make persistable
+    display = new OwidVariableDisplayConfig(); // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
-    @observable targetYear?: Time = undefined
+    targetYear?: Time = undefined;
+
+    constructor() {
+        makeObservable(this, {
+            property: observable,
+            variableId: observable,
+            display: observable,
+            targetYear: observable
+        });
+    }
 }
 
 // todo: remove when we remove dimensions
@@ -49,11 +58,19 @@ export class ChartDimension
         manager: LegacyDimensionsManager
     ) {
         super()
+
+        makeObservable<ChartDimension, "table">(this, {
+            table: computed,
+            slug: observable,
+            column: computed,
+            columnSlug: computed
+        });
+
         this.manager = manager
         if (obj) this.updateFromObject(obj)
     }
 
-    @computed private get table(): OwidTable {
+    private get table(): OwidTable {
         return this.manager.table
     }
 
@@ -81,13 +98,13 @@ export class ChartDimension
     }
 
     // Do not persist yet, until we migrate off VariableIds
-    @observable slug?: ColumnSlug
+    slug?: ColumnSlug;
 
-    @computed get column(): CoreColumn {
+    get column(): CoreColumn {
         return this.table.get(this.columnSlug)
     }
 
-    @computed get columnSlug(): string {
+    get columnSlug(): string {
         return this.slug ?? this.variableId.toString()
     }
 }

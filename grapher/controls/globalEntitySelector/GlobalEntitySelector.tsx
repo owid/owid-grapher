@@ -1,6 +1,6 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { action, observable, IReactionDisposer, reaction, computed } from "mobx"
+import { action, observable, IReactionDisposer, reaction, computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import Select, {
     components,
@@ -138,8 +138,7 @@ function SelectedItems(props: {
     )
 }
 
-@observer
-export class GlobalEntitySelector extends React.Component<{
+export const GlobalEntitySelector = observer(class GlobalEntitySelector extends React.Component<{
     selection: SelectionArray
     graphersAndExplorersToUpdate?: Set<SelectionArray>
     environment?: string
@@ -147,15 +146,46 @@ export class GlobalEntitySelector extends React.Component<{
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 
-    @observable mode = GlobalEntitySelectionModes.none
+    mode = GlobalEntitySelectionModes.none;
 
-    @observable private isNarrow = true
-    @observable private isOpen = false
-    @observable private localEntityName: EntityName | undefined
+    private isNarrow = true;
+    private isOpen = false;
+    private localEntityName: EntityName | undefined;
 
     selection = this.props.selection
 
-    @observable.ref private optionGroups: GroupBase<DropdownEntity>[] = []
+    private optionGroups: GroupBase<DropdownEntity>[] = [];
+
+    constructor(
+        props: {
+            selection: SelectionArray
+            graphersAndExplorersToUpdate?: Set<SelectionArray>
+            environment?: string
+        }
+    ) {
+        super(props);
+
+        makeObservable<GlobalEntitySelector, "isNarrow" | "isOpen" | "localEntityName" | "optionGroups" | "onResize" | "prepareOptionGroups" | "updateURL" | "onChange" | "updateAllGraphersAndExplorersOnPage" | "onRemove" | "onMenuOpen" | "onMenuClose" | "onButtonOpen" | "onButtonClose" | "selectedOptions">(this, {
+            mode: observable,
+            isNarrow: observable,
+            isOpen: observable,
+            localEntityName: observable,
+            optionGroups: observable.ref,
+            onResize: action.bound,
+            populateLocalEntity: action.bound,
+            prepareOptionGroups: action.bound,
+            updateURL: action.bound,
+            updateSelection: action.bound,
+            onChange: action.bound,
+            updateAllGraphersAndExplorersOnPage: action.bound,
+            onRemove: action.bound,
+            onMenuOpen: action.bound,
+            onMenuClose: action.bound,
+            onButtonOpen: action.bound,
+            onButtonClose: action.bound,
+            selectedOptions: computed
+        });
+    }
 
     componentDidMount(): void {
         this.onResize()
@@ -175,12 +205,12 @@ export class GlobalEntitySelector extends React.Component<{
     }
 
     private onResizeThrottled = throttle(this.onResize, 200)
-    @action.bound private onResize(): void {
+    private onResize(): void {
         const container = this.refContainer.current
         if (container) this.isNarrow = container.offsetWidth <= 640
     }
 
-    @action.bound async populateLocalEntity(): Promise<void> {
+    async populateLocalEntity(): Promise<void> {
         try {
             const localCountryCode = await getCountryCodeFromNetlifyRedirect()
             if (!localCountryCode) return
@@ -192,7 +222,7 @@ export class GlobalEntitySelector extends React.Component<{
         } catch (err) {}
     }
 
-    @action.bound private prepareOptionGroups(): GroupBase<DropdownEntity>[] {
+    private prepareOptionGroups(): GroupBase<DropdownEntity>[] {
         let optionGroups: GroupBase<DropdownEntity>[] = []
         // We want to include the local country, but not if it's already selected, it adds
         // unnecessary duplication.
@@ -234,7 +264,7 @@ export class GlobalEntitySelector extends React.Component<{
         this.props.environment ?? "development"
     )
 
-    @action.bound private updateURL(): void {
+    private updateURL(): void {
         setWindowUrl(
             setSelectedEntityNamesParam(
                 getWindowUrl(),
@@ -243,13 +273,13 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    @action.bound updateSelection(newSelectedEntities: string[]): void {
+    updateSelection(newSelectedEntities: string[]): void {
         this.selection.setSelectedEntities(newSelectedEntities)
         this.updateAllGraphersAndExplorersOnPage()
         this.updateURL()
     }
 
-    @action.bound private onChange(options: readonly DropdownEntity[]): void {
+    private onChange(options: readonly DropdownEntity[]): void {
         this.updateSelection(
             options.map((option: DropdownEntity) => option.label)
         )
@@ -260,7 +290,7 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    @action.bound private updateAllGraphersAndExplorersOnPage(): void {
+    private updateAllGraphersAndExplorersOnPage(): void {
         if (!this.props.graphersAndExplorersToUpdate) return
         Array.from(this.props.graphersAndExplorersToUpdate.values()).forEach(
             (value) => {
@@ -269,23 +299,21 @@ export class GlobalEntitySelector extends React.Component<{
         )
     }
 
-    @action.bound private onRemove(option: EntityName): void {
+    private onRemove(option: EntityName): void {
         this.selection.toggleSelection(option)
         this.updateAllGraphersAndExplorersOnPage()
         this.updateURL()
     }
 
-    @action.bound private onMenuOpen(): void {
+    private onMenuOpen(): void {
         this.isOpen = true
     }
 
-    @action.bound private onMenuClose(): void {
+    private onMenuClose(): void {
         this.isOpen = false
     }
 
-    @action.bound private onButtonOpen(
-        event: React.MouseEvent<HTMLButtonElement>
-    ): void {
+    private onButtonOpen(event: React.MouseEvent<HTMLButtonElement>): void {
         this.analytics.logGlobalEntitySelector(
             "open",
             event.currentTarget.innerText
@@ -293,9 +321,7 @@ export class GlobalEntitySelector extends React.Component<{
         this.onMenuOpen()
     }
 
-    @action.bound private onButtonClose(
-        event: React.MouseEvent<HTMLButtonElement>
-    ): void {
+    private onButtonClose(event: React.MouseEvent<HTMLButtonElement>): void {
         this.analytics.logGlobalEntitySelector(
             "close",
             event.currentTarget.innerText
@@ -303,7 +329,7 @@ export class GlobalEntitySelector extends React.Component<{
         this.onMenuClose()
     }
 
-    @computed private get selectedOptions(): DropdownEntity[] {
+    private get selectedOptions(): DropdownEntity[] {
         return this.selection.selectedEntityNames.map(entityNameToOption)
     }
 
@@ -402,7 +428,7 @@ export class GlobalEntitySelector extends React.Component<{
             </div>
         )
     }
-}
+});
 
 export const hydrateGlobalEntitySelectorIfAny = (
     selection: SelectionArray,

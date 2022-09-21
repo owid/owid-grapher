@@ -1,5 +1,5 @@
 import React, { CSSProperties } from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser.js"
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import { imemo } from "../../coreTable/CoreTableUtils.js"
@@ -506,32 +506,50 @@ type MarkdownTextWrapProps = {
 }
 
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
-    @computed get maxWidth(): number {
+    constructor(props: MarkdownTextWrapProps) {
+        super(props);
+
+        makeObservable(this, {
+            maxWidth: computed,
+            lineHeight: computed,
+            fontSize: computed,
+            fontParams: computed,
+            text: computed,
+            detailsOrderedByReference: computed,
+            ast: computed,
+            htmlLines: computed,
+            svgLines: computed,
+            height: computed,
+            style: computed
+        });
+    }
+
+    get maxWidth(): number {
         return this.props.maxWidth ?? Infinity
     }
-    @computed get lineHeight(): number {
+    get lineHeight(): number {
         return this.props.lineHeight ?? 1.1
     }
-    @computed get fontSize(): number {
+    get fontSize(): number {
         return this.props.fontSize
     }
-    @computed get fontParams(): IRFontParams {
+    get fontParams(): IRFontParams {
         return {
             fontFamily: this.props.fontFamily,
             fontSize: this.props.fontSize,
             fontWeight: this.props.fontWeight,
         }
     }
-    @computed get text(): string {
+    get text(): string {
         return this.props.text
     }
-    @computed get detailsOrderedByReference(): {
+    get detailsOrderedByReference(): {
         category: string
         term: string
     }[] {
         return this.props.detailsOrderedByReference || []
     }
-    @computed get ast(): MarkdownRoot["children"] {
+    get ast(): MarkdownRoot["children"] {
         if (!this.text) return []
         const result = mdParser.markdown.parse(this.props.text)
         if (result.status) {
@@ -540,14 +558,14 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return []
     }
 
-    @computed get htmlLines(): IRToken[][] {
+    get htmlLines(): IRToken[][] {
         const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
         return splitIntoLines(tokens, this.maxWidth)
     }
 
     // We render DoDs differently for SVG (superscript reference  numbers) so we need to calculate
     // their width differently. Height should remain the same.
-    @computed get svgLines(): IRToken[][] {
+    get svgLines(): IRToken[][] {
         const references: { category: string; term: string }[] =
             this.detailsOrderedByReference
         function appendReferenceNumbers(tokens: IRToken[]): IRToken[] {
@@ -590,13 +608,13 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return splitIntoLines(tokensWithReferenceNumbers, this.maxWidth)
     }
 
-    @computed get height(): number {
+    get height(): number {
         const { htmlLines, lineHeight, fontSize } = this
         if (htmlLines.length === 0) return 0
         return htmlLines.length * lineHeight * fontSize
     }
 
-    @computed get style(): any {
+    get style(): any {
         return {
             ...this.fontParams,
             ...this.props.style,

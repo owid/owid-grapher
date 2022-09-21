@@ -1,6 +1,6 @@
 import React from "react"
 import { TextWrap } from "../text/TextWrap.js"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos.js"
 import { HeaderManager } from "./HeaderManager.js"
@@ -8,32 +8,55 @@ import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
-@observer
-export class Header extends React.Component<{
+export const Header = observer(class Header extends React.Component<{
     manager: HeaderManager
     maxWidth?: number
 }> {
-    @computed private get manager(): HeaderManager {
+    constructor(
+        props: {
+            manager: HeaderManager
+            maxWidth?: number
+        }
+    ) {
+        super(props);
+
+        makeObservable<Header, "manager" | "fontSize" | "maxWidth" | "titleText" | "subtitleText" | "logoWidth" | "logoHeight">(this, {
+            manager: computed,
+            fontSize: computed,
+            maxWidth: computed,
+            titleText: computed,
+            subtitleText: computed,
+            logo: computed,
+            logoWidth: computed,
+            logoHeight: computed,
+            title: computed,
+            subtitleWidth: computed,
+            subtitle: computed,
+            height: computed
+        });
+    }
+
+    private get manager(): HeaderManager {
         return this.props.manager
     }
 
-    @computed private get fontSize(): number {
+    private get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get maxWidth(): number {
+    private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @computed private get titleText(): string {
+    private get titleText(): string {
         return this.manager.currentTitle ?? ""
     }
 
-    @computed private get subtitleText(): string {
+    private get subtitleText(): string {
         return this.manager.subtitle ?? ""
     }
 
-    @computed get logo(): Logo | undefined {
+    get logo(): Logo | undefined {
         const { manager } = this
         if (manager.hideLogo) return undefined
 
@@ -44,14 +67,14 @@ export class Header extends React.Component<{
         })
     }
 
-    @computed private get logoWidth(): number {
+    private get logoWidth(): number {
         return this.logo ? this.logo.width : 0
     }
-    @computed private get logoHeight(): number {
+    private get logoHeight(): number {
         return this.logo ? this.logo.height : 0
     }
 
-    @computed get title(): TextWrap {
+    get title(): TextWrap {
         const { logoWidth } = this
         const maxWidth = this.maxWidth - logoWidth - 20
 
@@ -79,14 +102,14 @@ export class Header extends React.Component<{
 
     titleMarginBottom = 4
 
-    @computed get subtitleWidth(): number {
+    get subtitleWidth(): number {
         // If the subtitle is entirely below the logo, we can go underneath it
         return this.title.height > this.logoHeight
             ? this.maxWidth
             : this.maxWidth - this.logoWidth - 10
     }
 
-    @computed get subtitle(): MarkdownTextWrap {
+    get subtitle(): MarkdownTextWrap {
         return new MarkdownTextWrap({
             maxWidth: this.subtitleWidth,
             fontSize: 0.8 * this.fontSize,
@@ -96,7 +119,7 @@ export class Header extends React.Component<{
         })
     }
 
-    @computed get height(): number {
+    get height(): number {
         if (this.manager.isMediaCard) return 0
 
         return Math.max(
@@ -165,4 +188,4 @@ export class Header extends React.Component<{
             </div>
         )
     }
-}
+});

@@ -1,6 +1,6 @@
 import { linkify } from "../../clientUtils/Util.js"
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
@@ -17,16 +17,29 @@ export interface SourcesTabManager {
     showAdminControls?: boolean
 }
 
-@observer
-export class SourcesTab extends React.Component<{
+export const SourcesTab = observer(class SourcesTab extends React.Component<{
     bounds?: Bounds
     manager: SourcesTabManager
 }> {
-    @computed private get bounds(): Bounds {
+    constructor(
+        props: {
+            bounds?: Bounds
+            manager: SourcesTabManager
+        }
+    ) {
+        super(props);
+
+        makeObservable<SourcesTab, "bounds" | "manager">(this, {
+            bounds: computed,
+            manager: computed
+        });
+    }
+
+    private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get manager(): SourcesTabManager {
+    private get manager(): SourcesTabManager {
         return this.props.manager
     }
 
@@ -154,4 +167,4 @@ export class SourcesTab extends React.Component<{
             </div>
         )
     }
-}
+});

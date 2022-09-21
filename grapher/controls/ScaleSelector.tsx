@@ -1,5 +1,5 @@
 import React from "react"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { ScaleType } from "../core/GrapherConstants.js"
 import classNames from "classnames"
@@ -9,12 +9,24 @@ export interface ScaleSelectorManager {
     scaleType?: ScaleType
 }
 
-@observer
-export class ScaleSelector extends React.Component<{
+export const ScaleSelector = observer(class ScaleSelector extends React.Component<{
     manager?: ScaleSelectorManager
     prefix?: string
 }> {
-    @action.bound private onClick(): void {
+    constructor(
+        props: {
+            manager?: ScaleSelectorManager
+            prefix?: string
+        }
+    ) {
+        super(props);
+
+        makeObservable<ScaleSelector, "onClick">(this, {
+            onClick: action.bound
+        });
+    }
+
+    private onClick(): void {
         const manager = this.props.manager ?? {}
         manager.scaleType = next(
             [ScaleType.linear, ScaleType.log],
@@ -51,4 +63,4 @@ export class ScaleSelector extends React.Component<{
             </span>
         )
     }
-}
+});

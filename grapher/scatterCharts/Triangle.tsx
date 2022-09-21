@@ -12,8 +12,7 @@ type TriangleProps = Readonly<{
 }> &
     React.SVGProps<SVGPolygonElement>
 
-@observer
-export class Triangle extends React.Component<TriangleProps> {
+export const Triangle = observer(class Triangle extends React.Component<TriangleProps> {
     render(): JSX.Element {
         const { cx, cy, r } = this.props
         const x = cx - r,
@@ -33,4 +32,4 @@ export class Triangle extends React.Component<TriangleProps> {
             />
         )
     }
-}
+});

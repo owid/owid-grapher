@@ -1,5 +1,5 @@
 import React, { createRef } from "react"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { MarkdownTextWrap, parsimmonToTextTokens } from "./MarkdownTextWrap.js"
 import { IRToken } from "./MarkdownTextWrap.js"
@@ -10,12 +10,10 @@ export default {
     title: "MarkdownTextWrap",
 }
 
-@observer
 class MarkdownViewer extends React.Component {
     ref = createRef<HTMLDivElement>()
-    @observable width: number = 200
-    @observable isLocked: boolean = false
-    @observable
+    width: number = 200;
+    isLocked: boolean = false;
     markdown: string = `Hello _**world!**_
 
 Testing this somewhat long line. **I am bold-_and-italic_. And the formatting extends into
@@ -29,28 +27,38 @@ These DoDs won't render on hover because there's no data for them, but they'll d
 [links can contain _formatting_ too](http://ourworldindata.org). Averylongtokenthatcantbesplitbutshouldbeincludedanyway.**Canhavebold**withoutlinebreak.
 
 _THE END_
-`
+`;
 
-    @action.bound onChangeMarkdown(
-        event: React.ChangeEvent<HTMLTextAreaElement>
-    ): void {
+    constructor(props) {
+        super(props);
+
+        makeObservable(this, {
+            width: observable,
+            isLocked: observable,
+            markdown: observable,
+            onChangeMarkdown: action.bound,
+            onMouseMove: action.bound,
+            onClick: action.bound,
+            tokens: computed
+        });
+    }
+
+    onChangeMarkdown(event: React.ChangeEvent<HTMLTextAreaElement>): void {
         this.markdown = event.target.value
     }
 
-    @action.bound onMouseMove(
-        event: React.MouseEvent<HTMLDivElement, MouseEvent>
-    ): void {
+    onMouseMove(event: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
         if (this.isLocked) return
         const elementX = event.currentTarget.offsetLeft
         const clickX = event.clientX
         this.width = clickX - elementX
     }
 
-    @action.bound onClick(): void {
+    onClick(): void {
         this.isLocked = !this.isLocked
     }
 
-    @computed get tokens(): IRToken[] {
+    get tokens(): IRToken[] {
         const result = mdParser.markdown.parse(this.markdown)
         if (result.status) {
             return parsimmonToTextTokens(result.value.children)

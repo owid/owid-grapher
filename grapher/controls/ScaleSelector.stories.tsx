@@ -4,7 +4,7 @@ import {
     ScaleSelectorManager,
 } from "../controls/ScaleSelector.js"
 import { ScaleType } from "../core/GrapherConstants.js"
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx";
 
 export default {
     title: "ScaleSelector",
@@ -12,7 +12,13 @@ export default {
 }
 
 class MockScaleSelectorManager implements ScaleSelectorManager {
-    @observable scaleType = ScaleType.log
+    scaleType = ScaleType.log;
+
+    constructor() {
+        makeObservable(this, {
+            scaleType: observable
+        });
+    }
 }
 
 export const Default = (): JSX.Element => (

@@ -1,11 +1,10 @@
 import React from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { TooltipProps, TooltipManager } from "./TooltipProps.js"
 
-@observer
-class TooltipCard extends React.Component<
+const TooltipCard = observer(class TooltipCard extends React.Component<
     TooltipProps & {
         containerWidth: number
         containerHeight: number
@@ -14,8 +13,24 @@ class TooltipCard extends React.Component<
 > {
     private base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable.struct private bounds?: Bounds
-    @action.bound private updateBounds(): void {
+    private bounds?: Bounds;
+
+    constructor(
+        props: TooltipProps & {
+            containerWidth: number
+            containerHeight: number
+            bounds?: Bounds
+        }
+    ) {
+        super(props);
+
+        makeObservable<TooltipCard, "bounds" | "updateBounds">(this, {
+            bounds: observable.struct,
+            updateBounds: action.bound
+        });
+    }
+
+    private updateBounds(): void {
         if (this.base.current)
             this.bounds = Bounds.fromElement(this.base.current)
     }
@@ -67,15 +82,28 @@ class TooltipCard extends React.Component<
             </div>
         )
     }
-}
+});
 
-@observer
-export class TooltipContainer extends React.Component<{
+export const TooltipContainer = observer(class TooltipContainer extends React.Component<{
     tooltipProvider: TooltipManager
     containerWidth: number
     containerHeight: number
 }> {
-    @computed private get rendered(): JSX.Element | null {
+    constructor(
+        props: {
+            tooltipProvider: TooltipManager
+            containerWidth: number
+            containerHeight: number
+        }
+    ) {
+        super(props);
+
+        makeObservable<TooltipContainer, "rendered">(this, {
+            rendered: computed
+        });
+    }
+
+    private get rendered(): JSX.Element | null {
         const tooltipsMap = this.props.tooltipProvider.tooltips
         if (!tooltipsMap) return null
         const tooltips = Object.entries(tooltipsMap.toJSON())
@@ -96,19 +124,27 @@ export class TooltipContainer extends React.Component<{
     render(): JSX.Element | null {
         return this.rendered
     }
-}
+});
 
-@observer
-export class Tooltip extends React.Component<TooltipProps> {
+export const Tooltip = observer(class Tooltip extends React.Component<TooltipProps> {
+    constructor(props: TooltipProps) {
+        super(props);
+
+        makeObservable<Tooltip, "connectTooltipToContainer" | "removeToolTipFromContainer">(this, {
+            connectTooltipToContainer: action.bound,
+            removeToolTipFromContainer: action.bound
+        });
+    }
+
     componentDidMount(): void {
         this.connectTooltipToContainer()
     }
 
-    @action.bound private connectTooltipToContainer(): void {
+    private connectTooltipToContainer(): void {
         this.props.tooltipManager.tooltips?.set(this.props.id, this.props)
     }
 
-    @action.bound private removeToolTipFromContainer(): void {
+    private removeToolTipFromContainer(): void {
         this.props.tooltipManager.tooltips?.delete(this.props.id)
     }
 
@@ -123,4 +159,4 @@ export class Tooltip extends React.Component<TooltipProps> {
     render(): null {
         return null
     }
-}
+});

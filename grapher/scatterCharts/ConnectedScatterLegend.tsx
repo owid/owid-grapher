@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { Triangle } from "./Triangle.js"
 import { TextWrap } from "../text/TextWrap.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
@@ -15,20 +15,30 @@ export interface ConnectedScatterLegendManager {
 export class ConnectedScatterLegend {
     manager: ConnectedScatterLegendManager
     constructor(manager: ConnectedScatterLegendManager) {
+        makeObservable(this, {
+            fontSize: computed,
+            fontColor: computed,
+            maxLabelWidth: computed,
+            startLabel: computed,
+            endLabel: computed,
+            width: computed,
+            height: computed
+        });
+
         this.manager = manager
     }
 
-    @computed get fontSize(): number {
+    get fontSize(): number {
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
-    @computed get fontColor(): string {
+    get fontColor(): string {
         return "#333"
     }
-    @computed get maxLabelWidth(): number {
+    get maxLabelWidth(): number {
         return this.manager.sidebarWidth / 3
     }
 
-    @computed get startLabel(): TextWrap {
+    get startLabel(): TextWrap {
         const { manager, maxLabelWidth, fontSize } = this
         return new TextWrap({
             text: manager.displayStartTime,
@@ -38,7 +48,7 @@ export class ConnectedScatterLegend {
         })
     }
 
-    @computed get endLabel(): TextWrap {
+    get endLabel(): TextWrap {
         const { manager, maxLabelWidth, fontSize } = this
         return new TextWrap({
             text: manager.displayEndTime,
@@ -48,11 +58,11 @@ export class ConnectedScatterLegend {
         })
     }
 
-    @computed get width(): number {
+    get width(): number {
         return this.manager.sidebarWidth
     }
 
-    @computed get height(): number {
+    get height(): number {
         return Math.max(this.startLabel.height, this.endLabel.height)
     }
 

@@ -4,7 +4,7 @@ import {
     ScaleType,
 } from "../core/GrapherConstants.js"
 import { extend, trimObject } from "../../clientUtils/Util.js"
-import { observable, computed } from "mobx"
+import { observable, computed, makeObservable } from "mobx";
 import { HorizontalAxis, VerticalAxis } from "./Axis.js"
 import {
     deleteRuntimeAndUnchangedProps,
@@ -20,23 +20,45 @@ export interface FontSizeManager {
 }
 
 class AxisConfigDefaults implements AxisConfigInterface {
-    @observable.ref orient?: Position = undefined
-    @observable.ref min?: number = undefined
-    @observable.ref max?: number = undefined
-    @observable.ref canChangeScaleType?: boolean = undefined
-    @observable.ref removePointsOutsideDomain?: boolean = undefined
-    @observable.ref minSize?: number = undefined
-    @observable.ref hideAxis?: boolean = undefined
-    @observable.ref hideGridlines?: boolean = undefined
-    @observable.ref labelPadding?: number = undefined
-    @observable.ref nice?: boolean = undefined
-    @observable.ref maxTicks?: number = undefined
-    @observable.ref tickFormattingOptions?: TickFormattingOptions = undefined
-    @observable.ref scaleType?: ScaleType = ScaleType.linear
-    @observable.ref facetDomain?: FacetAxisDomain = undefined
-    @observable.ref ticks?: Tickmark[] = undefined
-    @observable.ref singleValueAxisPointAlign?: AxisAlign = undefined
-    @observable.ref label: string = ""
+    orient?: Position = undefined;
+    min?: number = undefined;
+    max?: number = undefined;
+    canChangeScaleType?: boolean = undefined;
+    removePointsOutsideDomain?: boolean = undefined;
+    minSize?: number = undefined;
+    hideAxis?: boolean = undefined;
+    hideGridlines?: boolean = undefined;
+    labelPadding?: number = undefined;
+    nice?: boolean = undefined;
+    maxTicks?: number = undefined;
+    tickFormattingOptions?: TickFormattingOptions = undefined;
+    scaleType?: ScaleType = ScaleType.linear;
+    facetDomain?: FacetAxisDomain = undefined;
+    ticks?: Tickmark[] = undefined;
+    singleValueAxisPointAlign?: AxisAlign = undefined;
+    label: string = "";
+
+    constructor() {
+        makeObservable(this, {
+            orient: observable.ref,
+            min: observable.ref,
+            max: observable.ref,
+            canChangeScaleType: observable.ref,
+            removePointsOutsideDomain: observable.ref,
+            minSize: observable.ref,
+            hideAxis: observable.ref,
+            hideGridlines: observable.ref,
+            labelPadding: observable.ref,
+            nice: observable.ref,
+            maxTicks: observable.ref,
+            tickFormattingOptions: observable.ref,
+            scaleType: observable.ref,
+            facetDomain: observable.ref,
+            ticks: observable.ref,
+            singleValueAxisPointAlign: observable.ref,
+            label: observable.ref
+        });
+    }
 }
 
 export class AxisConfig
@@ -48,6 +70,14 @@ export class AxisConfig
         fontSizeManager?: FontSizeManager
     ) {
         super()
+
+        makeObservable<AxisConfig, "constrainedMin" | "constrainedMax">(this, {
+            fontSize: computed,
+            constrainedMin: computed,
+            constrainedMax: computed,
+            domain: computed
+        });
+
         this.updateFromObject(props)
         this.fontSizeManager = fontSizeManager
     }
@@ -85,12 +115,12 @@ export class AxisConfig
         return obj
     }
 
-    @computed get fontSize(): number {
+    get fontSize(): number {
         return this.fontSizeManager?.fontSize || BASE_FONT_SIZE
     }
 
     // A log scale domain cannot have values <= 0, so we double check here
-    @computed private get constrainedMin(): number {
+    private get constrainedMin(): number {
         if (this.scaleType === ScaleType.log && (this.min ?? 0) <= 0)
             return Infinity
         return this.min ?? Infinity
@@ -104,13 +134,13 @@ export class AxisConfig
         return false
     }
 
-    @computed private get constrainedMax(): number {
+    private get constrainedMax(): number {
         if (this.scaleType === ScaleType.log && (this.max || 0) <= 0)
             return -Infinity
         return this.max ?? -Infinity
     }
 
-    @computed get domain(): [number, number] {
+    get domain(): [number, number] {
         return [this.constrainedMin, this.constrainedMax]
     }
 

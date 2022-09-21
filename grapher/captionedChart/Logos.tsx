@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { OWID_LOGO_SVG, CORE_LOGO_SVG, GV_LOGO_SVG } from "./LogosSVG.js"
 
 export enum LogoOption {
@@ -47,23 +47,30 @@ interface LogoProps {
 export class Logo {
     props: LogoProps
     constructor(props: LogoProps) {
+        makeObservable<Logo, "spec" | "scale">(this, {
+            spec: computed,
+            scale: computed,
+            width: computed,
+            height: computed
+        });
+
         this.props = props
     }
 
-    @computed private get spec(): LogoAttributes {
+    private get spec(): LogoAttributes {
         return this.props.logo !== undefined
             ? logos[this.props.logo]
             : logos.owid
     }
 
-    @computed private get scale(): number {
+    private get scale(): number {
         return this.spec.targetHeight / this.spec.height
     }
 
-    @computed get width(): number {
+    get width(): number {
         return this.spec.width * this.scale
     }
-    @computed get height(): number {
+    get height(): number {
         return this.spec.height * this.scale
     }
 

@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
@@ -62,20 +62,50 @@ const polyfillToBlob = (): void => {
     })
 }
 
-@observer
-export class DownloadTab extends React.Component<DownloadTabProps> {
-    @computed private get idealBounds(): Bounds {
+export const DownloadTab = observer(class DownloadTab extends React.Component<DownloadTabProps> {
+    constructor(props: DownloadTabProps) {
+        super(props);
+
+        makeObservable<DownloadTab, "idealBounds" | "bounds" | "targetWidth" | "targetHeight" | "manager" | "svgBlob" | "svgPreviewUrl" | "pngBlob" | "pngPreviewUrl" | "isReady" | "export" | "createSvg" | "tryCreatePng" | "csvBlob" | "markAsReady" | "fallbackPngUrl" | "baseFilename" | "inputTable" | "nonRedistributableColumn" | "nonRedistributable" | "nonRedistributableSourceLink" | "onPngDownload" | "onSvgDownload" | "onCsvDownload">(this, {
+            idealBounds: computed,
+            bounds: computed,
+            targetWidth: computed,
+            targetHeight: computed,
+            manager: computed,
+            svgBlob: observable,
+            svgPreviewUrl: observable,
+            pngBlob: observable,
+            pngPreviewUrl: observable,
+            isReady: observable,
+            export: action.bound,
+            createSvg: action.bound,
+            tryCreatePng: action.bound,
+            csvBlob: computed,
+            markAsReady: action.bound,
+            fallbackPngUrl: computed,
+            baseFilename: computed,
+            inputTable: computed,
+            nonRedistributableColumn: computed,
+            nonRedistributable: computed,
+            nonRedistributableSourceLink: computed,
+            onPngDownload: action.bound,
+            onSvgDownload: action.bound,
+            onCsvDownload: action.bound
+        });
+    }
+
+    private get idealBounds(): Bounds {
         return this.manager.idealBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get bounds(): Bounds {
+    private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get targetWidth(): number {
+    private get targetWidth(): number {
         return this.idealBounds.width
     }
-    @computed private get targetHeight(): number {
+    private get targetHeight(): number {
         if (this.manager.shouldIncludeDetailsInStaticExport) {
             return (
                 this.idealBounds.height +
@@ -88,19 +118,19 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return this.idealBounds.height
     }
 
-    @computed private get manager(): DownloadTabManager {
+    private get manager(): DownloadTabManager {
         return this.props.manager
     }
 
-    @observable private svgBlob?: Blob
-    @observable private svgPreviewUrl?: string
+    private svgBlob?: Blob;
+    private svgPreviewUrl?: string;
 
-    @observable private pngBlob?: Blob
-    @observable private pngPreviewUrl?: string
+    private pngBlob?: Blob;
+    private pngPreviewUrl?: string;
 
-    @observable private isReady: boolean = false
+    private isReady: boolean = false;
 
-    @action.bound private export(): void {
+    private export(): void {
         if (!HTMLCanvasElement.prototype.toBlob) polyfillToBlob()
         this.createSvg()
         const reader = new FileReader()
@@ -111,14 +141,14 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         reader.readAsDataURL(this.svgBlob as Blob)
     }
 
-    @action.bound private createSvg(): void {
+    private createSvg(): void {
         const staticSVG = this.manager.staticSVG
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8",
         })
     }
 
-    @action.bound private tryCreatePng(svgPreviewUrl: string): void {
+    private tryCreatePng(svgPreviewUrl: string): void {
         const { targetWidth, targetHeight } = this
         // Client-side SVG => PNG export. Somewhat experimental, so there's a lot of cross-browser fiddling and fallbacks here.
         const img = new Image()
@@ -151,29 +181,29 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         img.src = svgPreviewUrl
     }
 
-    @computed private get csvBlob(): Blob {
+    private get csvBlob(): Blob {
         const csv = this.inputTable.toPrettyCsv()
         return new Blob([csv], {
             type: "text/csv;charset=utf-8",
         })
     }
 
-    @action.bound private markAsReady(): void {
+    private markAsReady(): void {
         this.isReady = true
     }
 
-    @computed private get fallbackPngUrl(): string {
+    private get fallbackPngUrl(): string {
         return `${this.manager.baseUrl || ""}.png${this.manager.queryStr || ""}`
     }
-    @computed private get baseFilename(): string {
+    private get baseFilename(): string {
         return this.manager.displaySlug
     }
 
-    @computed private get inputTable(): OwidTable {
+    private get inputTable(): OwidTable {
         return this.manager.table ?? BlankOwidTable()
     }
 
-    @computed private get nonRedistributableColumn(): CoreColumn | undefined {
+    private get nonRedistributableColumn(): CoreColumn | undefined {
         return this.inputTable.columnsAsArray.find(
             (col) => (col.def as OwidColumnDef).nonRedistributable
         )
@@ -183,7 +213,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     // In the future, we would probably like to drop only the columns that are
     // non-redistributable, and allow downloading the rest in the CSV.
     // -@danielgavrilov, 2021-11-16
-    @computed private get nonRedistributable(): boolean {
+    private get nonRedistributable(): boolean {
         return this.nonRedistributableColumn !== undefined
     }
 
@@ -192,14 +222,14 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     // In the future, we may need to change the phrasing of the download
     // notice and provide links to all publishers.
     // -@danielgavrilov, 2021-11-16
-    @computed private get nonRedistributableSourceLink(): string | undefined {
+    private get nonRedistributableSourceLink(): string | undefined {
         const def = this.nonRedistributableColumn?.def as
             | OwidColumnDef
             | undefined
         return def?.sourceLink
     }
 
-    @action.bound private onPngDownload(): void {
+    private onPngDownload(): void {
         const filename = this.baseFilename + ".png"
         if (this.pngBlob) {
             triggerDownloadFromBlob(filename, this.pngBlob)
@@ -208,14 +238,14 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
     }
 
-    @action.bound private onSvgDownload(): void {
+    private onSvgDownload(): void {
         const filename = this.baseFilename + ".svg"
         if (this.svgBlob) {
             triggerDownloadFromBlob(filename, this.svgBlob)
         }
     }
 
-    @action.bound private onCsvDownload(): void {
+    private onCsvDownload(): void {
         const { manager, baseFilename } = this
         const filename = baseFilename + ".csv"
         if (manager.externalCsvLink) {
@@ -408,4 +438,4 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             </div>
         )
     }
-}
+});

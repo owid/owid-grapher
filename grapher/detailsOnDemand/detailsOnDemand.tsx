@@ -1,17 +1,25 @@
 import React from "react"
 import { Tippy } from "../chart/Tippy.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
-import { computed, observable, ObservableMap } from "mobx"
+import { computed, observable, ObservableMap, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Detail } from "../core/GrapherConstants.js"
 
 class DetailsOnDemand {
-    @observable details = new ObservableMap<
+    details = new ObservableMap<
         string,
         ObservableMap<string, Detail>
-    >()
+    >();
 
-    @observable getDetail(category: string, term: string): Detail | void {
+    constructor() {
+        makeObservable(this, {
+            details: observable,
+            getDetail: observable,
+            addDetails: observable
+        });
+    }
+
+    getDetail(category: string, term: string): Detail | void {
         const terms = this.details.get(category)
         if (terms) {
             const detail = terms.get(term)
@@ -19,7 +27,7 @@ class DetailsOnDemand {
         }
     }
 
-    @observable addDetails(details: Record<string, Record<string, Detail>>) {
+    addDetails(details: Record<string, Record<string, Detail>>) {
         const observableDetails = Object.entries(details).reduce(
             (acc, [category, terms]) => {
                 acc.set(category, new ObservableMap(terms))
@@ -40,28 +48,35 @@ interface DoDWrapperProps {
     children?: React.ReactNode
 }
 
-@observer
-export class DoDWrapper extends React.Component<DoDWrapperProps> {
+export const DoDWrapper = observer(class DoDWrapper extends React.Component<DoDWrapperProps> {
     constructor(props: DoDWrapperProps) {
         super(props)
+
+        makeObservable(this, {
+            category: computed,
+            term: computed,
+            detail: computed,
+            content: computed,
+            title: computed
+        });
     }
-    @computed get category() {
+    get category() {
         return this.props.category
     }
-    @computed get term() {
+    get term() {
         return this.props.term
     }
-    @computed get detail() {
+    get detail() {
         return globalDetailsOnDemand.getDetail(this.category, this.term)
     }
-    @computed get content() {
+    get content() {
         if (this.detail) {
             return this.detail.content
         }
         return ""
     }
 
-    @computed get title() {
+    get title() {
         if (this.detail) {
             return this.detail.title
         }
@@ -99,4 +114,4 @@ export class DoDWrapper extends React.Component<DoDWrapperProps> {
             </span>
         )
     }
-}
+});

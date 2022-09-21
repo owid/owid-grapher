@@ -1,4 +1,4 @@
-import { action } from "mobx"
+import { action, makeObservable } from "mobx";
 
 export interface SlideShowManager<SlideData> {
     setSlide: (slide: SlideData) => void
@@ -11,6 +11,12 @@ export class SlideShowController<SlideData> {
         currentIndex = 0,
         manager?: SlideShowManager<SlideData>
     ) {
+        makeObservable<SlideShowController, "playIndexCommand">(this, {
+            playIndexCommand: action.bound,
+            playNext: action.bound,
+            playPrevious: action.bound
+        });
+
         this.currentIndex = currentIndex
         this.slides = slides
         this.manager = manager
@@ -23,7 +29,7 @@ export class SlideShowController<SlideData> {
         return this.slides.length === 0
     }
 
-    @action.bound private playIndexCommand(index: number) {
+    private playIndexCommand(index: number) {
         const slides = this.slides
         index = index >= slides.length ? index - slides.length : index
         index = index < 0 ? slides.length + index : index
@@ -32,11 +38,11 @@ export class SlideShowController<SlideData> {
         if (this.manager) this.manager.setSlide(slide)
     }
 
-    @action.bound playNext() {
+    playNext() {
         this.playIndexCommand(++this.currentIndex)
     }
 
-    @action.bound playPrevious() {
+    playPrevious() {
         this.playIndexCommand(--this.currentIndex)
     }
 }

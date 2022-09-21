@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed } from "mobx"
+import { action, computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -13,17 +13,31 @@ export interface NoDataModalManager {
     entityType?: string
 }
 
-@observer
-export class NoDataModal extends React.Component<{
+export const NoDataModal = observer(class NoDataModal extends React.Component<{
     bounds?: Bounds
     message?: string
     manager: NoDataModalManager
 }> {
-    @action.bound private onDataSelect(): void {
+    constructor(
+        props: {
+            bounds?: Bounds
+            message?: string
+            manager: NoDataModalManager
+        }
+    ) {
+        super(props);
+
+        makeObservable<NoDataModal, "onDataSelect" | "bounds">(this, {
+            onDataSelect: action.bound,
+            bounds: computed
+        });
+    }
+
+    private onDataSelect(): void {
         this.props.manager.isSelectingData = true
     }
 
-    @computed private get bounds(): Bounds {
+    private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
@@ -64,4 +78,4 @@ export class NoDataModal extends React.Component<{
             </foreignObject>
         )
     }
-}
+});

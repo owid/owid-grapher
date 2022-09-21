@@ -11,8 +11,7 @@ import {
 import { Triangle } from "./Triangle.js"
 
 // When there's only a single point in a series (e.g. single year mode)
-@observer
-export class ScatterPoint extends React.Component<{
+export const ScatterPoint = observer(class ScatterPoint extends React.Component<{
     series: ScatterRenderSeries
     isLayerMode?: boolean
 }> {
@@ -52,10 +51,9 @@ export class ScatterPoint extends React.Component<{
             </g>
         )
     }
-}
+});
 
-@observer
-export class ScatterLine extends React.Component<{
+export const ScatterLine = observer(class ScatterLine extends React.Component<{
     series: ScatterRenderSeries
     isLayerMode: boolean
 }> {
@@ -106,4 +104,4 @@ export class ScatterLine extends React.Component<{
             </g>
         )
     }
-}
+});

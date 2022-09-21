@@ -1,5 +1,5 @@
 import React from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import { TextWrap } from "../text/TextWrap.js"
@@ -10,46 +10,75 @@ import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
 import { FooterManager } from "./FooterManager.js"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
 
-@observer
-export class Footer extends React.Component<{
+export const Footer = observer(class Footer extends React.Component<{
     manager: FooterManager
     maxWidth?: number
 }> {
-    @computed private get maxWidth(): number {
+    constructor(
+        props: {
+            manager: FooterManager
+            maxWidth?: number
+        }
+    ) {
+        super(props);
+
+        makeObservable<Footer, "maxWidth" | "manager" | "sourcesText" | "noteText" | "ccSvg" | "originUrlWithProtocol" | "finalUrl" | "finalUrlText" | "licenseSvg" | "fontSize" | "sources" | "note" | "license" | "isCompact" | "paraMargin" | "onMouseMove">(this, {
+            maxWidth: computed,
+            manager: computed,
+            sourcesText: computed,
+            noteText: computed,
+            ccSvg: computed,
+            originUrlWithProtocol: computed,
+            finalUrl: computed,
+            finalUrlText: computed,
+            licenseSvg: computed,
+            fontSize: computed,
+            sources: computed,
+            note: computed,
+            license: computed,
+            isCompact: computed,
+            paraMargin: computed,
+            height: computed,
+            tooltipTarget: observable.ref,
+            onMouseMove: action.bound
+        });
+    }
+
+    private get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
-    @computed private get manager(): FooterManager {
+    private get manager(): FooterManager {
         return this.props.manager
     }
 
-    @computed private get sourcesText(): string {
+    private get sourcesText(): string {
         const sourcesLine = this.manager.sourcesLine
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 
-    @computed private get noteText(): string {
+    private get noteText(): string {
         return this.manager.note ? `Note: ${this.manager.note}` : ""
     }
 
-    @computed private get ccSvg(): string {
+    private get ccSvg(): string {
         if (this.manager.hasOWIDLogo)
             return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
 
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
     }
 
-    @computed private get originUrlWithProtocol(): string {
+    private get originUrlWithProtocol(): string {
         return this.manager.originUrlWithProtocol ?? "http://localhost"
     }
 
-    @computed private get finalUrl(): string {
+    private get finalUrl(): string {
         const originUrl = this.originUrlWithProtocol
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }
 
-    @computed private get finalUrlText(): string | undefined {
+    private get finalUrlText(): string | undefined {
         const originUrl = this.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
@@ -74,7 +103,7 @@ export class Footer extends React.Component<{
         return finalUrlText
     }
 
-    @computed private get licenseSvg(): string {
+    private get licenseSvg(): string {
         const { finalUrl, finalUrlText, ccSvg } = this
         if (!finalUrlText) return ccSvg
 
@@ -85,14 +114,14 @@ export class Footer extends React.Component<{
                 "'>" +
                 finalUrlText +
                 "</a>"
-        )
+        );
     }
 
-    @computed private get fontSize(): number {
+    private get fontSize(): number {
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed private get sources(): TextWrap {
+    private get sources(): TextWrap {
         const { maxWidth, fontSize, sourcesText } = this
         return new TextWrap({
             maxWidth,
@@ -102,7 +131,7 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get note(): MarkdownTextWrap {
+    private get note(): MarkdownTextWrap {
         const { maxWidth, fontSize, noteText } = this
         return new MarkdownTextWrap({
             maxWidth,
@@ -112,7 +141,7 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get license(): TextWrap {
+    private get license(): TextWrap {
         const { maxWidth, fontSize, licenseSvg } = this
         return new TextWrap({
             maxWidth: maxWidth * 3,
@@ -123,15 +152,15 @@ export class Footer extends React.Component<{
     }
 
     // Put the license stuff to the side if there's room
-    @computed private get isCompact(): boolean {
+    private get isCompact(): boolean {
         return this.maxWidth - this.sources.width - 5 > this.license.width
     }
 
-    @computed private get paraMargin(): number {
+    private get paraMargin(): number {
         return 2
     }
 
-    @computed get height(): number {
+    get height(): number {
         if (this.manager.isMediaCard) return 0
 
         const { sources, note, license, isCompact, paraMargin } = this
@@ -170,9 +199,9 @@ export class Footer extends React.Component<{
     }
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    @observable.ref tooltipTarget?: { x: number; y: number }
+    tooltipTarget?: { x: number; y: number };
 
-    @action.bound private onMouseMove(e: MouseEvent): void {
+    private onMouseMove(e: MouseEvent): void {
         const cc = this.base.current!.querySelector(".cclogo")
         if (cc && cc.matches(":hover")) {
             const div = this.base.current as HTMLDivElement
@@ -272,4 +301,4 @@ export class Footer extends React.Component<{
             </footer>
         )
     }
-}
+});

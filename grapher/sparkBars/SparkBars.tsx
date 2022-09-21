@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { scaleLinear } from "d3-scale"
 import { bind } from "decko"
@@ -32,18 +32,27 @@ export interface SparkBarsDatum {
     value: number
 }
 
-@observer
-export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
+export const SparkBars = observer(class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
     static defaultProps = {
         onHover: (): undefined => undefined,
         className: "spark-bars",
     }
 
-    @computed get maxY(): number | undefined {
+    constructor(props: SparkBarsProps<T>) {
+        super(props);
+
+        makeObservable(this, {
+            maxY: computed,
+            barHeightScale: computed,
+            bars: computed
+        });
+    }
+
+    get maxY(): number | undefined {
         return max(this.bars.map((d) => (d ? this.props.y(d) ?? 0 : 0)))
     }
 
-    @computed get barHeightScale(): ScaleLinear<number, number> {
+    get barHeightScale(): ScaleLinear<number, number> {
         const maxY = this.maxY
         return scaleLinear()
             .domain([0, maxY !== undefined && maxY > 0 ? maxY : 1])
@@ -68,7 +77,7 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
         return BarState.normal
     }
 
-    @computed get bars(): (T | undefined)[] {
+    get bars(): (T | undefined)[] {
         const indexed = keyBy(this.props.data, this.props.x)
         const [start, end] = this.props.xDomain
         const result = []
@@ -115,4 +124,4 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
             </div>
         )
     }
-}
+});

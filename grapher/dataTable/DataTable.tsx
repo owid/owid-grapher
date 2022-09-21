@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, observable, action } from "mobx"
+import { computed, observable, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -72,22 +72,54 @@ export interface DataTableManager {
     dataTableSlugs?: ColumnSlug[]
 }
 
-@observer
-export class DataTable extends React.Component<{
+export const DataTable = observer(class DataTable extends React.Component<{
     manager?: DataTableManager
     bounds?: Bounds
 }> {
-    @observable private storedState: DataTableState = {
+    private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
+    };
+
+    constructor(
+        props: {
+            manager?: DataTableManager
+            bounds?: Bounds
+        }
+    ) {
+        super(props);
+
+        makeObservable<DataTable, "storedState" | "tableState" | "sortState" | "entityType" | "sortValueMapper" | "hasSubheaders" | "updateSort" | "loadedWithData" | "columnsToShow" | "selectionArray" | "entityNames" | "sortedRows" | "displayRows">(this, {
+            storedState: observable,
+            tableState: computed,
+            sortState: computed,
+            table: computed,
+            inputTable: computed,
+            manager: computed,
+            entityType: computed,
+            sortValueMapper: computed,
+            hasSubheaders: computed,
+            updateSort: action.bound,
+            bounds: computed,
+            loadedWithData: computed,
+            autoSelectedStartTime: computed,
+            columnsToShow: computed,
+            selectionArray: computed,
+            entityNames: computed,
+            targetTimes: computed,
+            columnsWithValues: computed,
+            displayDimensions: computed,
+            sortedRows: computed,
+            displayRows: computed
+        });
     }
 
-    @computed private get tableState(): DataTableState {
+    private get tableState(): DataTableState {
         return {
             sort: this.sortState,
         }
     }
 
-    @computed private get sortState(): DataTableSortState {
+    private get sortState(): DataTableSortState {
         let { dimIndex, columnKey, order } = {
             ...DEFAULT_SORT_STATE,
             ...this.storedState.sort,
@@ -113,15 +145,15 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed get table(): OwidTable {
+    get table(): OwidTable {
         return this.inputTable
     }
 
-    @computed get inputTable(): OwidTable {
+    get inputTable(): OwidTable {
         return this.manager.table
     }
 
-    @computed get manager(): DataTableManager {
+    get manager(): DataTableManager {
         return (
             this.props.manager ?? {
                 table: BlankOwidTable(),
@@ -130,11 +162,11 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get entityType(): string {
+    private get entityType(): string {
         return this.manager.entityType
     }
 
-    @computed private get sortValueMapper(): (
+    private get sortValueMapper(): (
         row: DataTableRow
     ) => number | string {
         const { dimIndex, columnKey, order } = this.tableState.sort
@@ -167,16 +199,13 @@ export class DataTable extends React.Component<{
         }
     }
 
-    @computed private get hasSubheaders(): boolean {
+    private get hasSubheaders(): boolean {
         return this.displayDimensions.some(
             (header) => header.columns.length > 1
         )
     }
 
-    @action.bound private updateSort(
-        dimIndex: DimensionIndex,
-        columnKey?: ColumnKey
-    ): void {
+    private updateSort(dimIndex: DimensionIndex, columnKey?: ColumnKey): void {
         const { sort } = this.tableState
         const order =
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
@@ -383,7 +412,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed get bounds(): Bounds {
+    get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
@@ -404,7 +433,7 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get loadedWithData(): boolean {
+    private get loadedWithData(): boolean {
         return this.columnsToShow.length > 0
     }
 
@@ -414,7 +443,7 @@ export class DataTable extends React.Component<{
      * If the user or the editor hasn't specified a start, auto-select a start time
      *  where AUTO_SELECTION_THRESHOLD_PERCENTAGE of the entities have values.
      */
-    @computed get autoSelectedStartTime(): number | undefined {
+    get autoSelectedStartTime(): number | undefined {
         let autoSelectedStartTime: number | undefined = undefined
 
         if (
@@ -453,7 +482,7 @@ export class DataTable extends React.Component<{
         return autoSelectedStartTime
     }
 
-    @computed private get columnsToShow(): CoreColumn[] {
+    private get columnsToShow(): CoreColumn[] {
         const slugs = this.manager.dataTableSlugs ?? []
         if (slugs.length)
             return slugs
@@ -475,11 +504,11 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get selectionArray(): SelectionArray {
+    private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager)
     }
 
-    @computed private get entityNames(): string[] {
+    private get entityNames(): string[] {
         const tableForEntities = this.table
         return union(
             ...this.columnsToShow.map(
@@ -506,7 +535,7 @@ export class DataTable extends React.Component<{
               })
     }
 
-    @computed get targetTimes(): number[] | undefined {
+    get targetTimes(): number[] | undefined {
         const { startTime, endTime } = this.manager
         if (startTime === undefined || endTime === undefined) return undefined
 
@@ -514,7 +543,7 @@ export class DataTable extends React.Component<{
         return [endTime]
     }
 
-    @computed get columnsWithValues(): Dimension[] {
+    get columnsWithValues(): Dimension[] {
         return this.columnsToShow.map((sourceColumn) => {
             let targetTimes: number[]
             if (sourceColumn.def.targetTime !== undefined)
@@ -691,7 +720,7 @@ export class DataTable extends React.Component<{
         })
     }
 
-    @computed get displayDimensions(): DataTableDimension[] {
+    get displayDimensions(): DataTableDimension[] {
         // Todo: for sorting etc, use CoreTable?
         return this.columnsWithValues.map((d) => ({
             // A top-level header is only sortable if it has a single nested column, because
@@ -707,12 +736,12 @@ export class DataTable extends React.Component<{
         }))
     }
 
-    @computed private get sortedRows(): DataTableRow[] {
+    private get sortedRows(): DataTableRow[] {
         const { order } = this.tableState.sort
         return orderBy(this.displayRows, this.sortValueMapper, [order])
     }
 
-    @computed private get displayRows(): DataTableRow[] {
+    private get displayRows(): DataTableRow[] {
         return this.entityNames.map((entityName) => {
             return {
                 entityName,
@@ -722,7 +751,7 @@ export class DataTable extends React.Component<{
             }
         })
     }
-}
+});
 
 function ColumnHeader(props: {
     sortable: boolean

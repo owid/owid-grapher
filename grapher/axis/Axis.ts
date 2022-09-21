@@ -1,5 +1,5 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { observable, computed } from "mobx"
+import { observable, computed, makeObservable } from "mobx";
 import {
     rollingMap,
     min,
@@ -60,14 +60,42 @@ const boundsFromLabelPlacement = (label: TickLabelPlacement): Bounds => {
 abstract class AbstractAxis {
     config: AxisConfig
 
-    @observable.ref domain: ValueRange
-    @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
-    @observable hideFractionalTicks = false
-    @observable.struct range: ValueRange = [0, 0]
-    @observable private _scaleType?: ScaleType
-    @observable private _label?: string
+    domain: ValueRange;
+    formatColumn?: CoreColumn; // Pass the column purely for formatting reasons. Might be a better way to do this.
+    hideFractionalTicks = false;
+    range: ValueRange = [0, 0];
+    private _scaleType?: ScaleType;
+    private _label?: string;
 
     constructor(config: AxisConfig) {
+        makeObservable<AbstractAxis, "_scaleType" | "_label" | "maxTicks" | "d3_scale" | "totalTicksTarget" | "baseTicks">(this, {
+            domain: observable.ref,
+            formatColumn: observable,
+            hideFractionalTicks: observable,
+            range: observable.struct,
+            _scaleType: observable,
+            _label: observable,
+            hideAxis: computed,
+            hideGridlines: computed,
+            labelPadding: computed,
+            nice: computed,
+            fontSize: computed,
+            maxTicks: computed,
+            canChangeScaleType: computed,
+            scaleType: computed,
+            label: computed,
+            d3_scale: computed,
+            rangeSize: computed,
+            rangeMax: computed,
+            rangeMin: computed,
+            totalTicksTarget: computed,
+            tickFontSize: computed,
+            baseTicks: computed,
+            tickLabels: computed,
+            labelFontSize: computed,
+            labelTextWrap: computed
+        });
+
         this.config = config
         this.domain = [config.domain[0], config.domain[1]]
     }
@@ -83,35 +111,35 @@ abstract class AbstractAxis {
 
     abstract placeTickLabel(value: number): TickLabelPlacement
 
-    @computed get hideAxis(): boolean {
+    get hideAxis(): boolean {
         return this.config.hideAxis ?? false
     }
 
-    @computed get hideGridlines(): boolean {
+    get hideGridlines(): boolean {
         return this.config.hideGridlines ?? false
     }
 
-    @computed get labelPadding(): number {
+    get labelPadding(): number {
         return this.config.labelPadding ?? 5
     }
 
-    @computed get nice(): boolean {
+    get nice(): boolean {
         return this.config.nice ?? false
     }
 
-    @computed get fontSize(): number {
+    get fontSize(): number {
         return this.config.fontSize
     }
 
-    @computed private get maxTicks(): number {
+    private get maxTicks(): number {
         return this.config.maxTicks ?? 6
     }
 
-    @computed get canChangeScaleType(): boolean | undefined {
+    get canChangeScaleType(): boolean | undefined {
         return this.config.canChangeScaleType
     }
 
-    @computed get scaleType(): ScaleType {
+    get scaleType(): ScaleType {
         return this._scaleType ?? this.config.scaleType ?? ScaleType.linear
     }
 
@@ -119,7 +147,7 @@ abstract class AbstractAxis {
         this._scaleType = value
     }
 
-    @computed get label(): string {
+    get label(): string {
         return this._label ?? this.config.label
     }
 
@@ -156,7 +184,7 @@ abstract class AbstractAxis {
         return this
     }
 
-    @computed private get d3_scale():
+    private get d3_scale():
         | ScaleLinear<number, number>
         | ScaleLogarithmic<number, number> {
         const d3Scale =
@@ -165,20 +193,20 @@ abstract class AbstractAxis {
         return this.nice ? scale.nice(this.totalTicksTarget) : scale
     }
 
-    @computed get rangeSize(): number {
+    get rangeSize(): number {
         return Math.abs(this.range[1] - this.range[0])
     }
 
-    @computed get rangeMax(): number {
+    get rangeMax(): number {
         return Math.max(this.range[1], this.range[0])
     }
 
-    @computed get rangeMin(): number {
+    get rangeMin(): number {
         return Math.min(this.range[1], this.range[0])
     }
 
     /** The number of ticks we should _aim_ to show, not necessarily a strict target. */
-    @computed private get totalTicksTarget(): number {
+    private get totalTicksTarget(): number {
         // Chose 1.8 here by trying a bunch of different faceted charts and figuring out what
         // a reasonable lower bound is.
         // NOTE: This setting is used between both log & linear axes, check both when tweaking.
@@ -380,15 +408,15 @@ abstract class AbstractAxis {
         return this.d3_scale.invert(value)
     }
 
-    @computed get tickFontSize(): number {
+    get tickFontSize(): number {
         return 0.9 * this.fontSize
     }
 
-    @computed protected get baseTicks(): Tickmark[] {
+    protected get baseTicks(): Tickmark[] {
         return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
 
-    @computed get tickLabels(): TickLabelPlacement[] {
+    get tickLabels(): TickLabelPlacement[] {
         // Get ticks with coordinates, sorted by priority
         const tickLabels = sortBy(this.baseTicks, (tick) => tick.priority).map(
             (tick) => this.placeTickLabel(tick.value)
@@ -427,11 +455,11 @@ abstract class AbstractAxis {
         )
     }
 
-    @computed get labelFontSize(): number {
+    get labelFontSize(): number {
         return 0.7 * this.fontSize
     }
 
-    @computed get labelTextWrap(): TextWrap | undefined {
+    get labelTextWrap(): TextWrap | undefined {
         const text = this.label
         return text
             ? new TextWrap({
@@ -445,28 +473,42 @@ abstract class AbstractAxis {
 }
 
 export class HorizontalAxis extends AbstractAxis {
+    constructor() {
+        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
+        super();
+
+        makeObservable<HorizontalAxis, "baseTicks">(this, {
+            orient: computed,
+            labelOffset: computed,
+            labelWidth: computed,
+            height: computed,
+            size: computed,
+            baseTicks: computed
+        });
+    }
+
     clone(): HorizontalAxis {
         return new HorizontalAxis(this.config)._update(this)
     }
 
-    @computed get orient(): Position {
+    get orient(): Position {
         // Default to `bottom` unless overriden to `top`.
         return this.config.orient === Position.top
             ? Position.top
             : Position.bottom
     }
 
-    @computed get labelOffset(): number {
+    get labelOffset(): number {
         return this.labelTextWrap
             ? this.labelTextWrap.height + this.labelPadding * 2
             : 0
     }
 
-    @computed get labelWidth(): number {
+    get labelWidth(): number {
         return this.rangeSize
     }
 
-    @computed get height(): number {
+    get height(): number {
         if (this.hideAxis) return 0
         const { labelOffset, labelPadding } = this
         const maxTickHeight = max(this.tickLabels.map((tick) => tick.height))
@@ -476,11 +518,11 @@ export class HorizontalAxis extends AbstractAxis {
         return Math.max(height, this.config.minSize ?? 0)
     }
 
-    @computed get size(): number {
+    get size(): number {
         return this.height
     }
 
-    @computed protected get baseTicks(): Tickmark[] {
+    protected get baseTicks(): Tickmark[] {
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
         )
@@ -551,25 +593,39 @@ export class HorizontalAxis extends AbstractAxis {
 }
 
 export class VerticalAxis extends AbstractAxis {
+    constructor() {
+        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
+        super();
+
+        makeObservable(this, {
+            orient: computed,
+            labelWidth: computed,
+            labelOffset: computed,
+            width: computed,
+            height: computed,
+            size: computed
+        });
+    }
+
     clone(): VerticalAxis {
         return new VerticalAxis(this.config)._update(this)
     }
 
-    @computed get orient(): Position {
+    get orient(): Position {
         return Position.left
     }
 
-    @computed get labelWidth(): number {
+    get labelWidth(): number {
         return this.height
     }
 
-    @computed get labelOffset(): number {
+    get labelOffset(): number {
         return this.labelTextWrap
             ? this.labelTextWrap.height + this.labelPadding * 2
             : 0
     }
 
-    @computed get width(): number {
+    get width(): number {
         if (this.hideAxis) return 0
         const { labelOffset, labelPadding } = this
         const maxTickWidth = max(this.tickLabels.map((tick) => tick.width))
@@ -580,11 +636,11 @@ export class VerticalAxis extends AbstractAxis {
         return Math.max(width, this.config.minSize ?? 0)
     }
 
-    @computed get height(): number {
+    get height(): number {
         return this.rangeSize
     }
 
-    @computed get size(): number {
+    get size(): number {
         return this.width
     }
 
@@ -621,44 +677,53 @@ interface DualAxisProps {
 export class DualAxis {
     private props: DualAxisProps
     constructor(props: DualAxisProps) {
+        makeObservable<DualAxis, "horizontalAxisSize" | "verticalAxisSize">(this, {
+            horizontalAxis: computed,
+            verticalAxis: computed,
+            horizontalAxisSize: computed,
+            verticalAxisSize: computed,
+            innerBounds: computed,
+            bounds: computed
+        });
+
         this.props = props
     }
 
-    @computed get horizontalAxis(): HorizontalAxis {
+    get horizontalAxis(): HorizontalAxis {
         const axis = this.props.horizontalAxis.clone()
         axis.range = this.innerBounds.xRange()
         return axis
     }
 
-    @computed get verticalAxis(): VerticalAxis {
+    get verticalAxis(): VerticalAxis {
         const axis = this.props.verticalAxis.clone()
         axis.range = this.innerBounds.yRange()
         return axis
     }
 
     // We calculate an initial height from the range of the input bounds
-    @computed private get horizontalAxisSize(): number {
+    private get horizontalAxisSize(): number {
         const axis = this.props.horizontalAxis.clone()
         axis.range = [0, this.bounds.width]
         return axis.size
     }
 
     // We calculate an initial width from the range of the input bounds
-    @computed private get verticalAxisSize(): number {
+    private get verticalAxisSize(): number {
         const axis = this.props.verticalAxis.clone()
         axis.range = [0, this.bounds.height]
         return axis.size
     }
 
     // Now we can determine the "true" inner bounds of the dual axis
-    @computed get innerBounds(): Bounds {
+    get innerBounds(): Bounds {
         return this.bounds.pad({
             [this.props.horizontalAxis.orient]: this.horizontalAxisSize,
             [this.props.verticalAxis.orient]: this.verticalAxisSize,
         })
     }
 
-    @computed get bounds(): Bounds {
+    get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 }

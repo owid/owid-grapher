@@ -14,8 +14,7 @@ export interface Command {
 
 const CommandPaletteClassName = "CommandPalette"
 
-@observer
-export class CommandPalette extends React.Component<{
+export const CommandPalette = observer(class CommandPalette extends React.Component<{
     commands: Command[]
     display: "none" | "block"
 }> {
@@ -68,4 +67,4 @@ export class CommandPalette extends React.Component<{
             </BodyDiv>
         )
     }
-}
+});

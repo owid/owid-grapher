@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed } from "mobx"
+import { action, computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { Header } from "../header/Header.js"
@@ -91,28 +91,48 @@ const PADDING_BELOW_HEADER = 16
 const CONTROLS_ROW_HEIGHT = 36
 const PADDING_ABOVE_FOOTER = 25
 
-@observer
-export class CaptionedChart extends React.Component<CaptionedChartProps> {
-    @computed protected get manager(): CaptionedChartManager {
+export const CaptionedChart = observer(class CaptionedChart extends React.Component<CaptionedChartProps> {
+    constructor(props: CaptionedChartProps) {
+        super(props);
+
+        makeObservable<CaptionedChart, "manager" | "containerElement" | "maxWidth" | "header" | "footer" | "chartHeight" | "isMapTab" | "bounds" | "boundsForChart" | "svgProps">(this, {
+            manager: computed,
+            containerElement: computed,
+            maxWidth: computed,
+            header: computed,
+            footer: computed,
+            chartHeight: computed,
+            isMapTab: computed,
+            bounds: computed,
+            boundsForChart: computed,
+            isFaceted: computed,
+            startSelecting: action.bound,
+            controls: computed,
+            selectionArray: computed,
+            svgProps: computed
+        });
+    }
+
+    protected get manager(): CaptionedChartManager {
         return this.props.manager
     }
 
-    @computed private get containerElement(): HTMLDivElement | undefined {
+    private get containerElement(): HTMLDivElement | undefined {
         return this.manager?.containerElement
     }
 
-    @computed private get maxWidth(): number {
+    private get maxWidth(): number {
         return this.props.maxWidth ?? this.bounds.width - OUTSIDE_PADDING * 2
     }
 
-    @computed protected get header(): Header {
+    protected get header(): Header {
         return new Header({
             manager: this.manager,
             maxWidth: this.maxWidth,
         })
     }
 
-    @computed protected get footer(): Footer {
+    protected get footer(): Footer {
         return new Footer({
             manager: this.manager,
             maxWidth: this.maxWidth,
@@ -136,7 +156,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed protected get chartHeight(): number {
+    protected get chartHeight(): number {
         const controlsRowHeight = this.controls.length ? CONTROLS_ROW_HEIGHT : 0
         return Math.floor(
             this.bounds.height -
@@ -148,16 +168,16 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     // todo: should we remove this and not make a distinction between map and chart tabs?
-    @computed protected get isMapTab(): boolean {
+    protected get isMapTab(): boolean {
         return this.manager.tab === GrapherTabOption.map
     }
 
-    @computed protected get bounds(): Bounds {
+    protected get bounds(): Bounds {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
     // The bounds for the middle chart part
-    @computed protected get boundsForChart(): Bounds {
+    protected get boundsForChart(): Bounds {
         const topPadding = this.isMapTab
             ? 0
             : this.manager.type === ChartTypeName.Marimekko
@@ -169,7 +189,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             .padBottom(OUTSIDE_PADDING)
     }
 
-    @computed get isFaceted(): boolean {
+    get isFaceted(): boolean {
         const hasStrategy =
             !!this.manager.facetStrategy &&
             this.manager.facetStrategy !== FacetStrategy.none
@@ -211,11 +231,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         exposeInstanceOnWindow(this, "captionedChart")
     }
 
-    @action.bound startSelecting(): void {
+    startSelecting(): void {
         this.manager.isSelectingData = true
     }
 
-    @computed get controls(): JSX.Element[] {
+    get controls(): JSX.Element[] {
         const manager = this.manager
         // Todo: we don't yet show any controls on Maps, but seems like we would want to.
         if (!manager.isReady || this.isMapTab) return []
@@ -311,7 +331,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return controls
     }
 
-    @computed get selectionArray(): SelectionArray | EntityName[] | undefined {
+    get selectionArray(): SelectionArray | EntityName[] | undefined {
         return this.manager.selection
     }
 
@@ -399,7 +419,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed protected get svgProps(): React.SVGProps<SVGSVGElement> {
+    protected get svgProps(): React.SVGProps<SVGSVGElement> {
         return {
             xmlns: "http://www.w3.org/2000/svg",
             version: "1.1",
@@ -413,20 +433,24 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             },
         }
     }
-}
+});
 
-@observer
-export class StaticCaptionedChart extends CaptionedChart {
+export const StaticCaptionedChart = observer(class StaticCaptionedChart extends CaptionedChart {
     constructor(props: CaptionedChartProps) {
         super(props)
+
+        makeObservable<StaticCaptionedChart, "paddedBounds" | "boundsForChart">(this, {
+            paddedBounds: computed,
+            boundsForChart: computed
+        });
     }
 
-    @computed private get paddedBounds(): Bounds {
+    private get paddedBounds(): Bounds {
         return this.bounds.pad(OUTSIDE_PADDING)
     }
 
     // The bounds for the middle chart part
-    @computed protected get boundsForChart(): Bounds {
+    protected get boundsForChart(): Bounds {
         return this.paddedBounds
             .padTop(this.header.height)
             .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
@@ -462,4 +486,4 @@ export class StaticCaptionedChart extends CaptionedChart {
             </svg>
         )
     }
-}
+});

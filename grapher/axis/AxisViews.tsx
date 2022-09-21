@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis.js"
@@ -22,8 +22,7 @@ const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
 const SOLID_TICK_COLOR = "#999"
 
-@observer
-export class VerticalAxisGridLines extends React.Component<{
+export const VerticalAxisGridLines = observer(class VerticalAxisGridLines extends React.Component<{
     verticalAxis: VerticalAxis
     bounds: Bounds
 }> {
@@ -62,14 +61,26 @@ export class VerticalAxisGridLines extends React.Component<{
             </g>
         )
     }
-}
+});
 
-@observer
-export class HorizontalAxisGridLines extends React.Component<{
+export const HorizontalAxisGridLines = observer(class HorizontalAxisGridLines extends React.Component<{
     horizontalAxis: HorizontalAxis
     bounds?: Bounds
 }> {
-    @computed get bounds(): Bounds {
+    constructor(
+        props: {
+            horizontalAxis: HorizontalAxis
+            bounds?: Bounds
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            bounds: computed
+        });
+    }
+
+    get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
@@ -109,7 +120,7 @@ export class HorizontalAxisGridLines extends React.Component<{
             </g>
         )
     }
-}
+});
 
 interface DualAxisViewProps {
     dualAxis: DualAxis
@@ -117,8 +128,7 @@ interface DualAxisViewProps {
     showTickMarks?: boolean
 }
 
-@observer
-export class DualAxisComponent extends React.Component<DualAxisViewProps> {
+export const DualAxisComponent = observer(class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render(): JSX.Element {
         const { dualAxis, showTickMarks } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
@@ -162,10 +172,9 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             </g>
         )
     }
-}
+});
 
-@observer
-export class VerticalAxisComponent extends React.Component<{
+export const VerticalAxisComponent = observer(class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
 }> {
@@ -207,7 +216,7 @@ export class VerticalAxisComponent extends React.Component<{
             </g>
         )
     }
-}
+});
 
 export class HorizontalAxisComponent extends React.Component<{
     bounds: Bounds
@@ -215,7 +224,23 @@ export class HorizontalAxisComponent extends React.Component<{
     showTickMarks?: boolean
     preferredAxisPosition?: number
 }> {
-    @computed get scaleType(): ScaleType {
+    constructor(
+        props: {
+            bounds: Bounds
+            axis: HorizontalAxis
+            showTickMarks?: boolean
+            preferredAxisPosition?: number
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            scaleType: computed,
+            bounds: computed
+        });
+    }
+
+    get scaleType(): ScaleType {
         return this.props.axis.scaleType
     }
 
@@ -224,7 +249,7 @@ export class HorizontalAxisComponent extends React.Component<{
     }
 
     // for scale selector. todo: cleanup
-    @computed get bounds(): Bounds {
+    get bounds(): Bounds {
         const { bounds, axis } = this.props
         if (axis.orient === Position.top)
             return new Bounds(bounds.right, bounds.top + 30, 100, 100)

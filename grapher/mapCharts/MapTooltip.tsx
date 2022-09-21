@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Tooltip } from "../tooltip/Tooltip.js"
 import { MapChartManager } from "./MapChartConstants.js"
@@ -34,31 +34,49 @@ const SPARKLINE_WIDTH = 140
 const SPARKLINE_HEIGHT = 60
 const SPARKLINE_PADDING = 7
 
-@observer
-export class MapTooltip extends React.Component<MapTooltipProps> {
-    @computed private get mapColumnSlug(): string | undefined {
+export const MapTooltip = observer(class MapTooltip extends React.Component<MapTooltipProps> {
+    constructor(props: MapTooltipProps) {
+        super(props);
+
+        makeObservable<MapTooltip, "mapColumnSlug" | "mapAndYColumnAreTheSame" | "entityName" | "mapTable" | "timeSeriesTable" | "datum" | "hasTimeSeriesData" | "lineColorScale" | "showSparkline" | "tooltipTarget" | "sparklineTable" | "sparklineManager">(this, {
+            mapColumnSlug: computed,
+            mapAndYColumnAreTheSame: computed,
+            entityName: computed,
+            mapTable: computed,
+            timeSeriesTable: computed,
+            datum: computed,
+            hasTimeSeriesData: computed,
+            lineColorScale: computed,
+            showSparkline: computed,
+            tooltipTarget: computed,
+            sparklineTable: computed,
+            sparklineManager: computed
+        });
+    }
+
+    private get mapColumnSlug(): string | undefined {
         return this.props.manager.mapColumnSlug
     }
 
-    @computed private get mapAndYColumnAreTheSame(): boolean {
+    private get mapAndYColumnAreTheSame(): boolean {
         const { yColumnSlug, yColumnSlugs, mapColumnSlug } = this.props.manager
         return yColumnSlugs && mapColumnSlug !== undefined
             ? yColumnSlugs.includes(mapColumnSlug)
             : yColumnSlug === mapColumnSlug
     }
 
-    @computed private get entityName(): EntityName {
+    private get entityName(): EntityName {
         return this.props.entityName
     }
 
     // Table pre-filtered by targetTime, exlcudes time series
-    @computed private get mapTable(): OwidTable {
+    private get mapTable(): OwidTable {
         const table =
             this.props.manager.transformedTable ?? this.props.manager.table
         return table.filterByEntityNames([this.entityName])
     }
 
-    @computed private get timeSeriesTable(): OwidTable | undefined {
+    private get timeSeriesTable(): OwidTable | undefined {
         if (this.mapColumnSlug === undefined) return undefined
         return this.props.timeSeriesTable
             .filterByEntityNames([this.entityName])
@@ -69,19 +87,19 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             )
     }
 
-    @computed private get datum():
+    private get datum():
         | OwidVariableRow<number | string>
         | undefined {
         return this.mapTable.get(this.mapColumnSlug).owidRows[0]
     }
 
-    @computed private get hasTimeSeriesData(): boolean {
+    private get hasTimeSeriesData(): boolean {
         return this.timeSeriesTable !== undefined
             ? this.timeSeriesTable.numRows > 1
             : false
     }
 
-    @computed private get lineColorScale(): ColorScale {
+    private get lineColorScale(): ColorScale {
         const oldManager = this.props.colorScaleManager
         // Make sure all ColorScaleManager props are included.
         // We can't ...rest here because I think mobx computeds aren't
@@ -96,11 +114,11 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return new ColorScale(newManager)
     }
 
-    @computed private get showSparkline(): boolean {
+    private get showSparkline(): boolean {
         return this.hasTimeSeriesData
     }
 
-    @computed private get tooltipTarget(): {
+    private get tooltipTarget(): {
         x: number
         y: number
         featureId: string
@@ -115,10 +133,10 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     // Line chart fields
-    @computed private get sparklineTable(): OwidTable {
+    private get sparklineTable(): OwidTable {
         return this.timeSeriesTable ?? new OwidTable()
     }
-    @computed private get sparklineManager(): LineChartManager {
+    private get sparklineManager(): LineChartManager {
         // Pass down short units, while omitting long or undefined ones.
         const unit = this.sparklineTable.get(this.mapColumnSlug).shortUnit
         const yAxisUnit =
@@ -300,4 +318,4 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             </Tooltip>
         )
     }
-}
+});

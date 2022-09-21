@@ -1,5 +1,5 @@
 import React from "react"
-import { action, computed, observable, runInAction, reaction } from "mobx"
+import { action, computed, observable, runInAction, reaction, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
@@ -55,41 +55,82 @@ interface EntityOptionWithMetricValue {
 /** Modulo that wraps negative numbers too */
 const mod = (n: number, m: number): number => ((n % m) + m) % m
 
-@observer
-export class EntityPicker extends React.Component<{
+export const EntityPicker = observer(class EntityPicker extends React.Component<{
     manager: EntityPickerManager
     isDropdownMenu?: boolean
 }> {
-    @computed private get analyticsNamespace(): string {
+    constructor(
+        props: {
+            manager: EntityPickerManager
+            isDropdownMenu?: boolean
+        }
+    ) {
+        super(props);
+
+        makeObservable<EntityPicker, "analyticsNamespace" | "searchInput" | "searchInputRef" | "focusIndex" | "focusRef" | "scrollFocusedIntoViewOnUpdate" | "blockOptionHover" | "scrollContainerRef" | "isOpen" | "isDropdownMenu" | "selectEntity" | "manager" | "metric" | "sortOrder" | "pickerColumnDefs" | "metricOptions" | "activePickerMetricColumn" | "availableEntitiesForCurrentView" | "entitiesWithMetricValue" | "grapherTable" | "pickerTable" | "fuzzy" | "searchResults" | "focusedOption" | "showDoneButton" | "focusOptionDirection" | "clearSearchInput" | "onKeyDown" | "onSearchFocus" | "onSearchBlur" | "onHover" | "blockHover" | "unblockHover" | "onMenuMouseDown" | "barScale" | "updateMetric">(this, {
+            analyticsNamespace: computed,
+            searchInput: observable,
+            searchInputRef: observable,
+            focusIndex: observable,
+            focusRef: observable,
+            scrollFocusedIntoViewOnUpdate: observable,
+            blockOptionHover: observable,
+            scrollContainerRef: observable,
+            isOpen: observable,
+            isDropdownMenu: computed,
+            selectEntity: action.bound,
+            manager: computed,
+            metric: computed,
+            sortOrder: computed,
+            pickerColumnDefs: computed,
+            metricOptions: computed,
+            activePickerMetricColumn: computed,
+            availableEntitiesForCurrentView: computed,
+            entitiesWithMetricValue: computed,
+            grapherTable: computed,
+            pickerTable: computed,
+            selection: computed,
+            selectionSet: computed,
+            fuzzy: computed,
+            searchResults: computed,
+            focusedOption: computed,
+            showDoneButton: computed,
+            focusOptionDirection: action.bound,
+            clearSearchInput: action.bound,
+            onKeyDown: action.bound,
+            onSearchFocus: action.bound,
+            onSearchBlur: action.bound,
+            onHover: action.bound,
+            blockHover: action.bound,
+            unblockHover: action.bound,
+            onMenuMouseDown: action.bound,
+            barScale: computed,
+            updateMetric: action
+        });
+    }
+
+    private get analyticsNamespace(): string {
         return this.manager.analyticsNamespace ?? ""
     }
 
-    @observable private searchInput?: string
-    @observable
-    private searchInputRef: React.RefObject<HTMLInputElement> =
-        React.createRef()
+    private searchInput?: string;
+    private searchInputRef: React.RefObject<HTMLInputElement> = React.createRef();
 
-    @observable private focusIndex?: number
-    @observable
-    private focusRef: React.RefObject<HTMLLabelElement> = React.createRef()
-    @observable private scrollFocusedIntoViewOnUpdate = false
+    private focusIndex?: number;
+    private focusRef: React.RefObject<HTMLLabelElement> = React.createRef();
+    private scrollFocusedIntoViewOnUpdate = false;
 
-    @observable private blockOptionHover = false
+    private blockOptionHover = false;
 
-    @observable
-    private scrollContainerRef: React.RefObject<HTMLDivElement> =
-        React.createRef()
+    private scrollContainerRef: React.RefObject<HTMLDivElement> = React.createRef();
 
-    @observable private isOpen = false
+    private isOpen = false;
 
-    @computed private get isDropdownMenu(): boolean {
+    private get isDropdownMenu(): boolean {
         return !!this.props.isDropdownMenu
     }
 
-    @action.bound private selectEntity(
-        name: EntityName,
-        checked?: boolean
-    ): void {
+    private selectEntity(name: EntityName, checked?: boolean): void {
         this.manager.selection.toggleSelection(name)
         // Clear search input
         this.searchInput = ""
@@ -100,25 +141,25 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    @computed private get manager(): EntityPickerManager {
+    private get manager(): EntityPickerManager {
         return this.props.manager
     }
 
-    @computed private get metric(): string | undefined {
+    private get metric(): string | undefined {
         return this.manager.entityPickerMetric
     }
 
-    @computed private get sortOrder(): SortOrder {
+    private get sortOrder(): SortOrder {
         // On mobile, only allow sorting by entityName (ascending)
         if (this.isDropdownMenu) return SortOrder.asc
         return this.manager.entityPickerSort ?? SortOrder.asc
     }
 
-    @computed private get pickerColumnDefs(): CoreColumnDef[] {
+    private get pickerColumnDefs(): CoreColumnDef[] {
         return this.manager.entityPickerColumnDefs ?? []
     }
 
-    @computed private get metricOptions(): { label: string; value: string }[] {
+    private get metricOptions(): { label: string; value: string }[] {
         return this.pickerColumnDefs.map(
             (
                 col
@@ -139,18 +180,17 @@ export class EntityPicker extends React.Component<{
         return this.manager.entityPickerTable?.get(slug)
     }
 
-    @computed private get activePickerMetricColumn(): CoreColumn | undefined {
+    private get activePickerMetricColumn(): CoreColumn | undefined {
         return this.getColumn(this.metric)
     }
 
-    @computed private get availableEntitiesForCurrentView(): Set<string> {
+    private get availableEntitiesForCurrentView(): Set<string> {
         if (!this.grapherTable) return this.selection.availableEntityNameSet
         if (!this.manager.requiredColumnSlugs?.length)
             return this.grapherTable.availableEntityNameSet
         return this.grapherTable.entitiesWith(this.manager.requiredColumnSlugs)
     }
 
-    @computed
     private get entitiesWithMetricValue(): EntityOptionWithMetricValue[] {
         const { pickerTable, selection } = this
         const col = this.activePickerMetricColumn
@@ -176,30 +216,30 @@ export class EntityPicker extends React.Component<{
         })
     }
 
-    @computed private get grapherTable(): OwidTable | undefined {
+    private get grapherTable(): OwidTable | undefined {
         return this.manager.grapherTable
     }
 
-    @computed private get pickerTable(): OwidTable | undefined {
+    private get pickerTable(): OwidTable | undefined {
         return this.manager.entityPickerTable
     }
 
-    @computed get selection(): SelectionArray {
+    get selection(): SelectionArray {
         return this.manager.selection
     }
 
-    @computed get selectionSet(): Set<string> {
+    get selectionSet(): Set<string> {
         return new Set(this.selection.selectedEntityNames)
     }
 
-    @computed private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
+    private get fuzzy(): FuzzySearch<EntityOptionWithMetricValue> {
         return new FuzzySearch(
             this.entitiesWithMetricValue,
             OwidTableSlugs.entityName
         )
     }
 
-    @computed private get searchResults(): EntityOptionWithMetricValue[] {
+    private get searchResults(): EntityOptionWithMetricValue[] {
         if (this.searchInput) return this.fuzzy.search(this.searchInput)
         const { selectionSet } = this
         // Show the selected up top and in order.
@@ -220,19 +260,17 @@ export class EntityPicker extends React.Component<{
         return mod(index, this.searchResults.length)
     }
 
-    @computed private get focusedOption(): string | undefined {
+    private get focusedOption(): string | undefined {
         return this.focusIndex !== undefined
             ? this.searchResults[this.focusIndex].entityName
             : undefined
     }
 
-    @computed private get showDoneButton(): boolean {
+    private get showDoneButton(): boolean {
         return this.isDropdownMenu && this.isOpen
     }
 
-    @action.bound private focusOptionDirection(
-        direction: FocusDirection
-    ): void {
+    private focusOptionDirection(direction: FocusDirection): void {
         if (direction === FocusDirection.first)
             this.focusIndex = this.normalizeFocusIndex(0)
         else if (direction === FocusDirection.last)
@@ -249,13 +287,11 @@ export class EntityPicker extends React.Component<{
         this.scrollFocusedIntoViewOnUpdate = true
     }
 
-    @action.bound private clearSearchInput(): void {
+    private clearSearchInput(): void {
         if (this.searchInput) this.searchInput = ""
     }
 
-    @action.bound private onKeyDown(
-        event: React.KeyboardEvent<HTMLDivElement>
-    ): void {
+    private onKeyDown(event: React.KeyboardEvent<HTMLDivElement>): void {
         // We want to block hover if a key is pressed.
         // The hover will be unblocked iff the user moves the mouse (relative to the menu).
         this.blockHover()
@@ -292,13 +328,13 @@ export class EntityPicker extends React.Component<{
         this.searchInputRef.current?.focus()
     }
 
-    @action.bound private onSearchFocus(): void {
+    private onSearchFocus(): void {
         this.isOpen = true
         if (this.focusIndex === undefined)
             this.focusOptionDirection(FocusDirection.first)
     }
 
-    @action.bound private onSearchBlur(): void {
+    private onSearchBlur(): void {
         // Do not allow focus on elements inside menu; shift focus back to search input.
         if (
             this.scrollContainerRef.current &&
@@ -311,21 +347,19 @@ export class EntityPicker extends React.Component<{
         this.focusIndex = undefined
     }
 
-    @action.bound private onHover(index: number): void {
+    private onHover(index: number): void {
         if (!this.blockOptionHover) this.focusIndex = index
     }
 
-    @action.bound private blockHover(): void {
+    private blockHover(): void {
         this.blockOptionHover = true
     }
 
-    @action.bound private unblockHover(): void {
+    private unblockHover(): void {
         this.blockOptionHover = false
     }
 
-    @action.bound private onMenuMouseDown(
-        event: React.MouseEvent<HTMLDivElement, MouseEvent>
-    ): void {
+    private onMenuMouseDown(event: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
         event.stopPropagation()
         event.preventDefault()
         this.focusSearch()
@@ -362,7 +396,7 @@ export class EntityPicker extends React.Component<{
         )
     }
 
-    @computed private get barScale(): ScaleLinear<number, number> {
+    private get barScale(): ScaleLinear<number, number> {
         const maxValue = max(
             this.entitiesWithMetricValue
                 .map((option) => option.plotValue)
@@ -396,7 +430,7 @@ export class EntityPicker extends React.Component<{
         }
     }
 
-    @action private updateMetric(columnSlug: ColumnSlug): void {
+    private updateMetric(columnSlug: ColumnSlug): void {
         const col = this.getColumn(columnSlug)
 
         this.manager.setEntityPicker?.({
@@ -586,7 +620,7 @@ export class EntityPicker extends React.Component<{
             </div>
         )
     }
-}
+});
 
 interface PickerOptionProps {
     optionWithMetricValue: EntityOptionWithMetricValue

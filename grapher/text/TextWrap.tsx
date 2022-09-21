@@ -1,5 +1,5 @@
 import { isEmpty, max, stripHTML, linkify } from "../../clientUtils/Util.js"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { Bounds, FontFamily } from "../../clientUtils/Bounds.js"
 import React from "react"
 
@@ -23,7 +23,7 @@ interface WrapLine {
 }
 
 function startsWithNewline(text: string): boolean {
-    return /^\n/.test(text)
+    return /^\n/.test(text);
 }
 
 export const shortenForTargetWidth = (
@@ -53,26 +53,38 @@ export const shortenForTargetWidth = (
 export class TextWrap {
     props: TextWrapProps
     constructor(props: TextWrapProps) {
+        makeObservable(this, {
+            maxWidth: computed,
+            lineHeight: computed,
+            fontSize: computed,
+            fontWeight: computed,
+            text: computed,
+            lines: computed,
+            height: computed,
+            width: computed,
+            htmlStyle: computed
+        });
+
         this.props = props
     }
 
-    @computed get maxWidth(): number {
+    get maxWidth(): number {
         return this.props.maxWidth ?? Infinity
     }
-    @computed get lineHeight(): number {
+    get lineHeight(): number {
         return this.props.lineHeight ?? 1.1
     }
-    @computed get fontSize(): FontSize {
+    get fontSize(): FontSize {
         return this.props.fontSize ?? 1
     }
-    @computed get fontWeight(): number | undefined {
+    get fontWeight(): number | undefined {
         return this.props.fontWeight
     }
-    @computed get text(): string {
+    get text(): string {
         return this.props.text
     }
 
-    @computed get lines(): WrapLine[] {
+    get lines(): WrapLine[] {
         const { text, maxWidth, fontSize, fontWeight } = this
 
         const words = isEmpty(text)
@@ -129,17 +141,17 @@ export class TextWrap {
         return lines
     }
 
-    @computed get height(): number {
+    get height(): number {
         const { lines, lineHeight, fontSize } = this
         if (lines.length === 0) return 0
         return lines.length * lineHeight * fontSize
     }
 
-    @computed get width(): number {
+    get width(): number {
         return max(this.lines.map((l) => l.width)) ?? 0
     }
 
-    @computed get htmlStyle(): any {
+    get htmlStyle(): any {
         const { fontSize, fontWeight, lineHeight } = this
         return {
             fontSize: fontSize.toFixed(2) + "px",

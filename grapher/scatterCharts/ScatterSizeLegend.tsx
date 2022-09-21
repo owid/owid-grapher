@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap } from "../text/TextWrap.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
@@ -35,18 +35,31 @@ const MIN_FONT_SIZE = 9
 export class ScatterSizeLegend {
     manager: ScatterSizeLegendManager
     constructor(manager: ScatterSizeLegendManager) {
+        makeObservable<ScatterSizeLegend, "baseFontSize" | "maxWidth" | "ticks" | "fontSizeFromRadius" | "legendSize" | "label" | "title" | "highlight">(this, {
+            baseFontSize: computed,
+            maxWidth: computed,
+            ticks: computed,
+            fontSizeFromRadius: computed,
+            legendSize: computed,
+            label: computed,
+            title: computed,
+            width: computed,
+            height: computed,
+            highlight: computed
+        });
+
         this.manager = manager
     }
 
-    @computed private get baseFontSize(): number {
+    private get baseFontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get maxWidth(): number {
+    private get maxWidth(): number {
         return this.manager.sidebarWidth
     }
 
-    @computed private get ticks(): number[] {
+    private get ticks(): number[] {
         const { sizeScale } = this.manager
         const [domainStart, domainEnd] = sizeScale.domain()
         if (domainStart === domainEnd) return [domainStart]
@@ -72,7 +85,7 @@ export class ScatterSizeLegend {
     }
 
     // input radius, output font size
-    @computed private get fontSizeFromRadius(): ScaleLinear<number, number> {
+    private get fontSizeFromRadius(): ScaleLinear<number, number> {
         return (
             scaleLinear()
                 // choosing the domain & range somewhat arbitrarily here,
@@ -84,14 +97,14 @@ export class ScatterSizeLegend {
     }
 
     // Since it's circular, this is both the width and the height of the legend.
-    @computed private get legendSize(): number {
+    private get legendSize(): number {
         if (this.ticks.length === 0) return 0
         const maxRadius = last(this.manager.sizeScale.range()) ?? 0
         // adding some padding to account for label sticking out at the top
         return 2 * maxRadius + 2
     }
 
-    @computed private get label(): TextWrap {
+    private get label(): TextWrap {
         const fontSize = Math.max(MIN_FONT_SIZE, 0.625 * this.baseFontSize)
         return new TextWrap({
             text: "Dots sized by",
@@ -104,7 +117,7 @@ export class ScatterSizeLegend {
         })
     }
 
-    @computed private get title(): TextWrap {
+    private get title(): TextWrap {
         const fontSize = Math.max(MIN_FONT_SIZE, 0.6875 * this.baseFontSize)
         return new TextWrap({
             text: this.manager.sizeColumn.displayName,
@@ -118,11 +131,11 @@ export class ScatterSizeLegend {
         })
     }
 
-    @computed get width(): number {
+    get width(): number {
         return this.manager.sidebarWidth
     }
 
-    @computed get height(): number {
+    get height(): number {
         return (
             this.legendSize +
             LEGEND_PADDING +
@@ -132,7 +145,7 @@ export class ScatterSizeLegend {
         )
     }
 
-    @computed private get highlight():
+    private get highlight():
         | { value: number | undefined; color: string }
         | undefined {
         const { tooltipSeries } = this.manager

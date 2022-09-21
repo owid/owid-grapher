@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { TimelineComponent } from "../timeline/TimelineComponent.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -26,15 +26,27 @@ export interface NoDataAreaToggleManager {
     showNoDataArea?: boolean
 }
 
-@observer
-export class NoDataAreaToggle extends React.Component<{
+export const NoDataAreaToggle = observer(class NoDataAreaToggle extends React.Component<{
     manager: NoDataAreaToggleManager
 }> {
-    @action.bound onToggle(): void {
+    constructor(
+        props: {
+            manager: NoDataAreaToggleManager
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onToggle: action.bound,
+            manager: computed
+        });
+    }
+
+    onToggle(): void {
         this.manager.showNoDataArea = !this.manager.showNoDataArea
     }
 
-    @computed get manager(): NoDataAreaToggleManager {
+    get manager(): NoDataAreaToggleManager {
         return this.props.manager
     }
 
@@ -52,27 +64,40 @@ export class NoDataAreaToggle extends React.Component<{
             </label>
         )
     }
-}
+});
 export interface AbsRelToggleManager {
     stackMode?: StackMode
     relativeToggleLabel?: string
 }
 
-@observer
-export class AbsRelToggle extends React.Component<{
+export const AbsRelToggle = observer(class AbsRelToggle extends React.Component<{
     manager: AbsRelToggleManager
 }> {
-    @action.bound onToggle(): void {
+    constructor(
+        props: {
+            manager: AbsRelToggleManager
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onToggle: action.bound,
+            isRelativeMode: computed,
+            manager: computed
+        });
+    }
+
+    onToggle(): void {
         this.manager.stackMode = this.isRelativeMode
             ? StackMode.absolute
             : StackMode.relative
     }
 
-    @computed get isRelativeMode(): boolean {
+    get isRelativeMode(): boolean {
         return this.manager.stackMode === StackMode.relative
     }
 
-    @computed get manager(): AbsRelToggleManager {
+    get manager(): AbsRelToggleManager {
         return this.props.manager
     }
 
@@ -90,23 +115,35 @@ export class AbsRelToggle extends React.Component<{
             </label>
         )
     }
-}
+});
 
 export interface FacetYDomainToggleManager {
     yAxis?: AxisConfig
 }
 
-@observer
-export class FacetYDomainToggle extends React.Component<{
+export const FacetYDomainToggle = observer(class FacetYDomainToggle extends React.Component<{
     manager: FacetYDomainToggleManager
 }> {
-    @action.bound onToggle(): void {
+    constructor(
+        props: {
+            manager: FacetYDomainToggleManager
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onToggle: action.bound,
+            isYDomainShared: computed
+        });
+    }
+
+    onToggle(): void {
         this.props.manager.yAxis!.facetDomain = this.isYDomainShared
             ? FacetAxisDomain.independent
             : FacetAxisDomain.shared
     }
 
-    @computed get isYDomainShared(): boolean {
+    get isYDomainShared(): boolean {
         const facetDomain =
             this.props.manager.yAxis!.facetDomain || FacetAxisDomain.shared
         return facetDomain === FacetAxisDomain.shared
@@ -125,17 +162,28 @@ export class FacetYDomainToggle extends React.Component<{
             </label>
         )
     }
-}
+});
 
 export interface ZoomToggleManager {
     zoomToSelection?: boolean
 }
 
-@observer
-export class ZoomToggle extends React.Component<{
+export const ZoomToggle = observer(class ZoomToggle extends React.Component<{
     manager: ZoomToggleManager
 }> {
-    @action.bound onToggle(): void {
+    constructor(
+        props: {
+            manager: ZoomToggleManager
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onToggle: action.bound
+        });
+    }
+
+    onToggle(): void {
         this.props.manager.zoomToSelection = this.props.manager.zoomToSelection
             ? undefined
             : true
@@ -155,7 +203,7 @@ export class ZoomToggle extends React.Component<{
             </label>
         )
     }
-}
+});
 
 export interface FacetStrategyDropdownManager {
     availableFacetStrategies: FacetStrategy[]
@@ -166,10 +214,25 @@ export interface FacetStrategyDropdownManager {
 
 // A drop-down button that, when clicked, shows a hovering visual display
 // indicating the faceting options.
-@observer
-export class FacetStrategyDropdown extends React.Component<{
+export const FacetStrategyDropdown = observer(class FacetStrategyDropdown extends React.Component<{
     manager: FacetStrategyDropdownManager
 }> {
+    constructor(
+        props: {
+            manager: FacetStrategyDropdownManager
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            facetStrategyLabels: computed,
+            strategies: computed,
+            dropDownWidth: computed,
+            content: computed,
+            facetStrategy: computed
+        });
+    }
+
     render(): JSX.Element {
         return (
             <Tippy
@@ -192,7 +255,7 @@ export class FacetStrategyDropdown extends React.Component<{
         )
     }
 
-    @computed get facetStrategyLabels(): { [key in FacetStrategy]: string } {
+    get facetStrategyLabels(): { [key in FacetStrategy]: string } {
         // arbitrary entity names can be too long for our current design; as a trade-off,
         // we accept them only if they are not too long, otherwise we just use "item"
         const entityType = this.props.manager.entityType ?? "country"
@@ -206,7 +269,7 @@ export class FacetStrategyDropdown extends React.Component<{
         }
     }
 
-    @computed get strategies(): FacetStrategy[] {
+    get strategies(): FacetStrategy[] {
         return (
             this.props.manager.availableFacetStrategies || [
                 FacetStrategy.none,
@@ -216,7 +279,7 @@ export class FacetStrategyDropdown extends React.Component<{
         )
     }
 
-    @computed get dropDownWidth(): string {
+    get dropDownWidth(): string {
         const maxWidth = Math.max(
             ...this.strategies.map(
                 (s) =>
@@ -229,7 +292,7 @@ export class FacetStrategyDropdown extends React.Component<{
     }
 
     // A hovering visual display giving options to be selected from
-    @computed get content(): JSX.Element {
+    get content(): JSX.Element {
         const parts = this.strategies.map((value: FacetStrategy) => {
             const label = this.facetStrategyLabels[value]
             const children =
@@ -271,10 +334,10 @@ export class FacetStrategyDropdown extends React.Component<{
         return <div className="FacetStrategyFloat">{parts}</div>
     }
 
-    @computed get facetStrategy(): FacetStrategy {
+    get facetStrategy(): FacetStrategy {
         return this.props.manager.facetStrategy || FacetStrategy.none
     }
-}
+});
 
 export interface FooterControlsManager extends ShareMenuManager {
     isShareMenuActive?: boolean
@@ -291,19 +354,32 @@ export interface FooterControlsManager extends ShareMenuManager {
     timelineController?: TimelineController
 }
 
-@observer
-export class FooterControls extends React.Component<{
+export const FooterControls = observer(class FooterControls extends React.Component<{
     manager: FooterControlsManager
 }> {
-    @computed private get manager(): FooterControlsManager {
+    constructor(
+        props: {
+            manager: FooterControlsManager
+        }
+    ) {
+        super(props);
+
+        makeObservable<FooterControls, "manager" | "availableTabs">(this, {
+            manager: computed,
+            onShareMenu: action.bound,
+            availableTabs: computed
+        });
+    }
+
+    private get manager(): FooterControlsManager {
         return this.props.manager
     }
 
-    @action.bound onShareMenu(): void {
+    onShareMenu(): void {
         this.manager.isShareMenuActive = !this.manager.isShareMenuActive
     }
 
-    @computed private get availableTabs(): GrapherTabOption[] {
+    private get availableTabs(): GrapherTabOption[] {
         return this.manager.availableTabs || []
     }
 
@@ -432,4 +508,4 @@ export class FooterControls extends React.Component<{
             </div>
         )
     }
-}
+});

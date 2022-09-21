@@ -2,7 +2,7 @@ import React from "react"
 import { select } from "d3-selection"
 import { getRelativeMouse, isMobile, debounce } from "../../clientUtils/Util.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
 import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
@@ -14,23 +14,50 @@ import { timeFromTimebounds } from "../../clientUtils/TimeBounds.js"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
-@observer
-export class TimelineComponent extends React.Component<{
+export const TimelineComponent = observer(class TimelineComponent extends React.Component<{
     timelineController: TimelineController
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable private dragTarget?: "start" | "end" | "both"
+    private dragTarget?: "start" | "end" | "both";
 
-    @computed private get isDragging(): boolean {
+    constructor(
+        props: {
+            timelineController: TimelineController
+        }
+    ) {
+        super(props);
+
+        makeObservable<TimelineComponent, "dragTarget" | "isDragging" | "manager" | "controller" | "onDrag" | "showTooltips" | "onMouseDown" | "onMouseMove" | "onMouseUp" | "onMouseOver" | "onMouseLeave" | "isPlayingOrDragging" | "startTooltipVisible" | "endTooltipVisible" | "lastUpdatedTooltip" | "togglePlay">(this, {
+            dragTarget: observable,
+            isDragging: computed,
+            manager: computed,
+            controller: computed,
+            onDrag: action.bound,
+            showTooltips: action.bound,
+            onMouseDown: action.bound,
+            onMouseMove: action.bound,
+            onMouseUp: action.bound,
+            onMouseOver: action.bound,
+            onMouseLeave: action.bound,
+            onPlayTouchEnd: action.bound,
+            isPlayingOrDragging: computed,
+            startTooltipVisible: observable,
+            endTooltipVisible: observable,
+            lastUpdatedTooltip: observable,
+            togglePlay: action.bound
+        });
+    }
+
+    private get isDragging(): boolean {
         return !!this.dragTarget
     }
 
-    @computed private get manager(): TimelineManager {
+    private get manager(): TimelineManager {
         return this.props.timelineController.manager
     }
 
-    @computed private get controller(): TimelineController {
+    private get controller(): TimelineController {
         return this.props.timelineController
     }
 
@@ -54,7 +81,7 @@ export class TimelineComponent extends React.Component<{
         return minTime + fracWidth * (maxTime - minTime)
     }
 
-    @action.bound private onDrag(inputTime: number): void {
+    private onDrag(inputTime: number): void {
         if (!this.manager.isPlaying) this.manager.userHasSetTimeline = true
         this.dragTarget = this.controller.dragHandleToTime(
             this.dragTarget!,
@@ -63,7 +90,7 @@ export class TimelineComponent extends React.Component<{
         this.showTooltips()
     }
 
-    @action.bound private showTooltips(): void {
+    private showTooltips(): void {
         this.hideStartTooltip.cancel()
         this.hideEndTooltip.cancel()
         this.startTooltipVisible = true
@@ -96,7 +123,7 @@ export class TimelineComponent extends React.Component<{
         return "both"
     }
 
-    @action.bound private onMouseDown(event: any): void {
+    private onMouseDown(event: any): void {
         const logic = this.controller
         const targetEl = select(event.target)
 
@@ -117,7 +144,7 @@ export class TimelineComponent extends React.Component<{
     }
 
     private queuedDrag?: boolean
-    @action.bound private onMouseMove(event: MouseEvent | TouchEvent): void {
+    private onMouseMove(event: MouseEvent | TouchEvent): void {
         const { dragTarget } = this
         if (!dragTarget) return
         if (this.queuedDrag) return
@@ -128,7 +155,7 @@ export class TimelineComponent extends React.Component<{
         this.queuedDrag = false
     }
 
-    @action.bound private onMouseUp(): void {
+    private onMouseUp(): void {
         this.dragTarget = undefined
 
         if (this.manager.isPlaying) return
@@ -143,7 +170,7 @@ export class TimelineComponent extends React.Component<{
     }
 
     private mouseHoveringOverTimeline: boolean = false
-    @action.bound private onMouseOver(): void {
+    private onMouseOver(): void {
         this.mouseHoveringOverTimeline = true
 
         this.hideStartTooltip.cancel()
@@ -153,7 +180,7 @@ export class TimelineComponent extends React.Component<{
         this.endTooltipVisible = true
     }
 
-    @action.bound private onMouseLeave(): void {
+    private onMouseLeave(): void {
         if (!this.manager.isPlaying && !this.isDragging) {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
@@ -168,13 +195,13 @@ export class TimelineComponent extends React.Component<{
         this.endTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
 
-    @action.bound onPlayTouchEnd(evt: Event): void {
+    onPlayTouchEnd(evt: Event): void {
         evt.preventDefault()
         evt.stopPropagation()
         this.controller.togglePlay()
     }
 
-    @computed private get isPlayingOrDragging(): boolean {
+    private get isPlayingOrDragging(): boolean {
         return this.manager.isPlaying || this.isDragging
     }
 
@@ -246,11 +273,11 @@ export class TimelineComponent extends React.Component<{
         )
     }
 
-    @observable private startTooltipVisible: boolean = false
-    @observable private endTooltipVisible: boolean = false
-    @observable private lastUpdatedTooltip?: "startMarker" | "endMarker"
+    private startTooltipVisible: boolean = false;
+    private endTooltipVisible: boolean = false;
+    private lastUpdatedTooltip?: "startMarker" | "endMarker";
 
-    @action.bound private togglePlay(): void {
+    private togglePlay(): void {
         this.controller.togglePlay()
     }
 
@@ -328,7 +355,7 @@ export class TimelineComponent extends React.Component<{
             </div>
         )
     }
-}
+});
 
 const TimelineHandle = ({
     type,

@@ -1,4 +1,4 @@
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx";
 import { MapProjectionName } from "./MapProjections.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
 import { ColumnSlug, OwidVariableId } from "../../clientUtils/owidTypes.js"
@@ -18,15 +18,27 @@ import { trimObject, NoUndefinedValues } from "../../clientUtils/Util.js"
 // It wraps the map property on ChartConfig.
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
-    @observable columnSlug?: ColumnSlug
-    @observable time?: number
-    @observable timeTolerance?: number
-    @observable hideTimeline?: boolean
-    @observable projection = MapProjectionName.World
+    columnSlug?: ColumnSlug;
+    time?: number;
+    timeTolerance?: number;
+    hideTimeline?: boolean;
+    projection = MapProjectionName.World;
 
-    @observable colorScale = new ColorScaleConfig()
+    colorScale = new ColorScaleConfig();
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-    @observable tooltipUseCustomLabels?: boolean = undefined
+    tooltipUseCustomLabels?: boolean = undefined;
+
+    constructor() {
+        makeObservable(this, {
+            columnSlug: observable,
+            time: observable,
+            timeTolerance: observable,
+            hideTimeline: observable,
+            projection: observable,
+            colorScale: observable,
+            tooltipUseCustomLabels: observable
+        });
+    }
 }
 
 export type MapConfigInterface = MapConfigDefaults

@@ -1,5 +1,5 @@
 import React from "react"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { uniq, makeSafeForCSS, sum } from "../../clientUtils/Util.js"
 import { Bounds } from "../../clientUtils/Bounds.js"
@@ -51,32 +51,44 @@ interface TickmarkPlacement {
     isHidden: boolean
 }
 
-@observer
-class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
+const StackedBarSegment = observer(class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     base: React.RefObject<SVGRectElement> = React.createRef()
 
-    @observable mouseOver: boolean = false
+    mouseOver: boolean = false;
 
-    @computed get yPos(): number {
+    constructor(props: StackedBarSegmentProps) {
+        super(props);
+
+        makeObservable(this, {
+            mouseOver: observable,
+            yPos: computed,
+            barHeight: computed,
+            trueOpacity: computed,
+            onBarMouseOver: action.bound,
+            onBarMouseLeave: action.bound
+        });
+    }
+
+    get yPos(): number {
         const { bar, yAxis } = this.props
         return yAxis.place(bar.value + bar.valueOffset)
     }
 
-    @computed get barHeight(): number {
+    get barHeight(): number {
         const { bar, yAxis } = this.props
         return yAxis.place(bar.valueOffset) - this.yPos
     }
 
-    @computed get trueOpacity(): number {
+    get trueOpacity(): number {
         return this.mouseOver ? 1 : this.props.opacity
     }
 
-    @action.bound onBarMouseOver(): void {
+    onBarMouseOver(): void {
         this.mouseOver = true
         this.props.onBarMouseOver(this.props.bar, this.props.series)
     }
 
-    @action.bound onBarMouseLeave(): void {
+    onBarMouseLeave(): void {
         this.mouseOver = false
         this.props.onBarMouseLeave()
     }
@@ -99,451 +111,479 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
             />
         )
     }
-}
+});
 
-@observer
-export class StackedBarChart
-    extends AbstractStackedChart
-    implements VerticalColorLegendManager, ColorScaleManager
-{
-    readonly minBarSpacing = 4
+export const StackedBarChart = observer(
+    class StackedBarChart extends AbstractStackedChart implements VerticalColorLegendManager, ColorScaleManager {
+        readonly minBarSpacing = 4
 
-    constructor(props: AbstractStackedChartProps) {
-        super(props)
-    }
+        constructor(props: AbstractStackedChartProps) {
+            super(props)
 
-    // currently hovered legend color
-    @observable hoverColor?: string
-    // current hovered individual bar
-    @observable hoverBar?: StackedPoint<Time>
-    @observable hoverSeries?: StackedSeries<Time>
+            makeObservable<StackedBarChart, "baseFontSize" | "paddingForLegend" | "legendDimensions" | "tickPlacements" | "xValues">(this, {
+                hoverColor: observable,
+                hoverBar: observable,
+                hoverSeries: observable,
+                baseFontSize: computed,
+                tickFontSize: computed,
+                barWidth: computed,
+                barSpacing: computed,
+                barFontSize: computed,
+                paddingForLegend: computed,
+                hoverKeys: computed,
+                activeColors: computed,
+                legendItems: computed,
+                maxLegendWidth: computed,
+                sidebarMaxWidth: computed,
+                sidebarMinWidth: computed,
+                sidebarWidth: computed,
+                legendDimensions: computed,
+                tooltip: computed,
+                mapXValueToOffset: computed,
+                tickPlacements: computed,
+                ticks: computed,
+                onLegendMouseOver: action.bound,
+                onLegendMouseLeave: action.bound,
+                onBarMouseOver: action.bound,
+                onBarMouseLeave: action.bound,
+                legendY: computed,
+                legendX: computed,
+                xValues: computed,
+                colorScaleConfig: computed,
+                series: computed
+            });
+        }
 
-    @computed private get baseFontSize(): number {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
-    }
+        // currently hovered legend color
+        hoverColor?: string;
+        // current hovered individual bar
+        hoverBar?: StackedPoint<Time>;
+        hoverSeries?: StackedSeries<Time>;
 
-    @computed get tickFontSize(): number {
-        return 0.9 * this.baseFontSize
-    }
+        private get baseFontSize(): number {
+            return this.manager.baseFontSize ?? BASE_FONT_SIZE
+        }
 
-    @computed get barWidth(): number {
-        const { dualAxis } = this
+        get tickFontSize(): number {
+            return 0.9 * this.baseFontSize
+        }
 
-        return (0.8 * dualAxis.innerBounds.width) / this.xValues.length
-    }
+        get barWidth(): number {
+            const { dualAxis } = this
 
-    @computed get barSpacing(): number {
-        return (
-            this.dualAxis.innerBounds.width / this.xValues.length -
-            this.barWidth
-        )
-    }
+            return (0.8 * dualAxis.innerBounds.width) / this.xValues.length
+        }
 
-    @computed get barFontSize(): number {
-        return 0.75 * this.baseFontSize
-    }
+        get barSpacing(): number {
+            return (
+                this.dualAxis.innerBounds.width / this.xValues.length -
+                this.barWidth
+            )
+        }
 
-    @computed protected get paddingForLegend(): number {
-        return this.sidebarWidth + 20
-    }
+        get barFontSize(): number {
+            return 0.75 * this.baseFontSize
+        }
 
-    // All currently hovered group keys, combining the legend and the main UI
-    @computed get hoverKeys(): string[] {
-        const { hoverColor } = this
+        protected get paddingForLegend(): number {
+            return this.sidebarWidth + 20
+        }
 
-        const hoverKeys =
-            hoverColor === undefined
-                ? []
-                : uniq(
-                      this.series
-                          .filter((g) => g.color === hoverColor)
-                          .map((g) => g.seriesName)
-                  )
+        // All currently hovered group keys, combining the legend and the main UI
+        get hoverKeys(): string[] {
+            const { hoverColor } = this
 
-        return hoverKeys
-    }
+            const hoverKeys =
+                hoverColor === undefined
+                    ? []
+                    : uniq(
+                          this.series
+                              .filter((g) => g.color === hoverColor)
+                              .map((g) => g.seriesName)
+                      )
 
-    @computed get activeColors(): string[] {
-        const { hoverKeys } = this
-        const activeKeys = hoverKeys.length > 0 ? hoverKeys : []
+            return hoverKeys
+        }
 
-        if (!activeKeys.length)
-            // No hover means they're all active by default
-            return uniq(this.series.map((g) => g.color))
+        get activeColors(): string[] {
+            const { hoverKeys } = this
+            const activeKeys = hoverKeys.length > 0 ? hoverKeys : []
 
-        return uniq(
-            this.series
-                .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
-                .map((g) => g.color)
-        )
-    }
+            if (!activeKeys.length)
+                // No hover means they're all active by default
+                return uniq(this.series.map((g) => g.color))
 
-    @computed get legendItems(): LegendItem[] {
-        return this.series
-            .map((series) => {
-                return {
-                    label: series.seriesName,
-                    color: series.color,
-                }
-            })
-            .reverse() // Vertical legend orders things in the opposite direction we want
-    }
+            return uniq(
+                this.series
+                    .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
+                    .map((g) => g.color)
+            )
+        }
 
-    @computed get maxLegendWidth(): number {
-        return this.sidebarMaxWidth
-    }
+        get legendItems(): LegendItem[] {
+            return this.series
+                .map((series) => {
+                    return {
+                        label: series.seriesName,
+                        color: series.color,
+                    }
+                })
+                .reverse() // Vertical legend orders things in the opposite direction we want
+        }
 
-    @computed get sidebarMaxWidth(): number {
-        return this.bounds.width / 5
-    }
-    @computed get sidebarMinWidth(): number {
-        return 100
-    }
-    @computed get sidebarWidth(): number {
-        if (this.manager.hideLegend) return 0
-        const { sidebarMinWidth, sidebarMaxWidth, legendDimensions } = this
-        return Math.max(
-            Math.min(legendDimensions.width, sidebarMaxWidth),
-            sidebarMinWidth
-        )
-    }
+        get maxLegendWidth(): number {
+            return this.sidebarMaxWidth
+        }
 
-    @computed private get legendDimensions(): VerticalColorLegend {
-        return new VerticalColorLegend({ manager: this })
-    }
+        get sidebarMaxWidth(): number {
+            return this.bounds.width / 5
+        }
+        get sidebarMinWidth(): number {
+            return 100
+        }
+        get sidebarWidth(): number {
+            if (this.manager.hideLegend) return 0
+            const { sidebarMinWidth, sidebarMaxWidth, legendDimensions } = this
+            return Math.max(
+                Math.min(legendDimensions.width, sidebarMaxWidth),
+                sidebarMinWidth
+            )
+        }
 
-    @computed get tooltip(): JSX.Element | undefined {
-        const {
-            hoverBar,
-            mapXValueToOffset,
-            barWidth,
-            dualAxis,
-            yColumns,
-            hoverSeries,
-            series,
-        } = this
-        if (hoverBar === undefined) return
+        private get legendDimensions(): VerticalColorLegend {
+            return new VerticalColorLegend({ manager: this })
+        }
 
-        const xPos = mapXValueToOffset.get(hoverBar.position)
-        if (xPos === undefined) return
+        get tooltip(): JSX.Element | undefined {
+            const {
+                hoverBar,
+                mapXValueToOffset,
+                barWidth,
+                dualAxis,
+                yColumns,
+                hoverSeries,
+                series,
+            } = this
+            if (hoverBar === undefined) return
 
-        const yPos = dualAxis.verticalAxis.place(
-            hoverBar.valueOffset + hoverBar.value
-        )
+            const xPos = mapXValueToOffset.get(hoverBar.position)
+            if (xPos === undefined) return
 
-        const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
-        const seriesRows = [...series].reverse().map((series) => ({
-            seriesName: series.seriesName,
-            color: series.color,
-            isHovered: hoverSeries?.seriesName === series.seriesName,
-            point: series.points.find(
-                (bar) => bar.position === hoverBar.position
-            ),
-        }))
-        const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
-        const showTotalValue: boolean = seriesRows.length > 1
-        return (
-            <Tooltip
-                id={this.renderUid}
-                tooltipManager={this.props.manager}
-                x={xPos + barWidth}
-                y={yPos}
-                style={{ padding: "0.3em" }}
-                offsetX={4}
-            >
-                <table style={{ fontSize: "0.9em", lineHeight: "1.4em" }}>
-                    <tbody>
-                        <tr>
-                            <td colSpan={3}>
-                                <strong>
-                                    {yColumn.formatTime(hoverBar.position)}
-                                </strong>
-                            </td>
-                        </tr>
-                        {seriesRows.map(
-                            ({ seriesName, color, isHovered, point }) => (
-                                <tr
-                                    key={seriesName}
-                                    style={{
-                                        color: isHovered ? "#000" : "#888",
-                                        fontWeight: isHovered
-                                            ? "bold"
-                                            : undefined,
-                                    }}
-                                >
-                                    <td>
-                                        <div
+            const yPos = dualAxis.verticalAxis.place(
+                hoverBar.valueOffset + hoverBar.value
+            )
+
+            const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
+            const seriesRows = [...series].reverse().map((series) => ({
+                seriesName: series.seriesName,
+                color: series.color,
+                isHovered: hoverSeries?.seriesName === series.seriesName,
+                point: series.points.find(
+                    (bar) => bar.position === hoverBar.position
+                ),
+            }))
+            const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
+            const showTotalValue: boolean = seriesRows.length > 1
+            return (
+                <Tooltip
+                    id={this.renderUid}
+                    tooltipManager={this.props.manager}
+                    x={xPos + barWidth}
+                    y={yPos}
+                    style={{ padding: "0.3em" }}
+                    offsetX={4}
+                >
+                    <table style={{ fontSize: "0.9em", lineHeight: "1.4em" }}>
+                        <tbody>
+                            <tr>
+                                <td colSpan={3}>
+                                    <strong>
+                                        {yColumn.formatTime(hoverBar.position)}
+                                    </strong>
+                                </td>
+                            </tr>
+                            {seriesRows.map(
+                                ({ seriesName, color, isHovered, point }) => (
+                                    <tr
+                                        key={seriesName}
+                                        style={{
+                                            color: isHovered ? "#000" : "#888",
+                                            fontWeight: isHovered
+                                                ? "bold"
+                                                : undefined,
+                                        }}
+                                    >
+                                        <td>
+                                            <div
+                                                style={{
+                                                    width: "10px",
+                                                    height: "10px",
+                                                    display: "inline-block",
+                                                    marginRight: "2px",
+                                                    backgroundColor: color,
+                                                }}
+                                            />
+                                        </td>
+                                        <td>{seriesName}</td>
+                                        <td
                                             style={{
-                                                width: "10px",
-                                                height: "10px",
-                                                display: "inline-block",
-                                                marginRight: "2px",
-                                                backgroundColor: color,
+                                                textAlign: "right",
+                                                whiteSpace: "nowrap",
+                                                paddingLeft: "0.8em",
                                             }}
-                                        />
-                                    </td>
-                                    <td>{seriesName}</td>
+                                        >
+                                            {yColumn.formatValueLong(point?.value, {
+                                                trailingZeroes: true,
+                                            })}
+                                        </td>
+                                    </tr>
+                                )
+                            )}
+                            {showTotalValue && (
+                                <tr>
+                                    <td></td>
+                                    <td>Total</td>
                                     <td
                                         style={{
                                             textAlign: "right",
                                             whiteSpace: "nowrap",
-                                            paddingLeft: "0.8em",
                                         }}
                                     >
-                                        {yColumn.formatValueLong(point?.value, {
+                                        {yColumn.formatValueLong(totalValue, {
                                             trailingZeroes: true,
                                         })}
                                     </td>
                                 </tr>
-                            )
-                        )}
-                        {showTotalValue && (
-                            <tr>
-                                <td></td>
-                                <td>Total</td>
-                                <td
-                                    style={{
-                                        textAlign: "right",
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    {yColumn.formatValueLong(totalValue, {
-                                        trailingZeroes: true,
-                                    })}
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </Tooltip>
-        )
-    }
-
-    @computed get mapXValueToOffset(): Map<number, number> {
-        const { dualAxis, barWidth, barSpacing } = this
-
-        const xValueToOffset = new Map<number, number>()
-        let xOffset = dualAxis.innerBounds.left + barSpacing
-
-        for (let i = 0; i < this.xValues.length; i++) {
-            xValueToOffset.set(this.xValues[i], xOffset)
-            xOffset += barWidth + barSpacing
+                            )}
+                        </tbody>
+                    </table>
+                </Tooltip>
+            )
         }
-        return xValueToOffset
-    }
 
-    // Place ticks centered beneath the bars, before doing overlap detection
-    @computed private get tickPlacements(): TickmarkPlacement[] {
-        const { mapXValueToOffset, barWidth, dualAxis } = this
-        const { xValues } = this
-        const { horizontalAxis } = dualAxis
+        get mapXValueToOffset(): Map<number, number> {
+            const { dualAxis, barWidth, barSpacing } = this
 
-        return xValues.map((x) => {
-            const text = horizontalAxis.formatTick(x)
-            const xPos = mapXValueToOffset.get(x) as number
+            const xValueToOffset = new Map<number, number>()
+            let xOffset = dualAxis.innerBounds.left + barSpacing
 
-            const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
-            return {
-                text,
-                bounds: bounds.set({
-                    x: xPos + barWidth / 2 - bounds.width / 2,
-                    y: dualAxis.innerBounds.bottom + 5,
-                }),
-                isHidden: false,
+            for (let i = 0; i < this.xValues.length; i++) {
+                xValueToOffset.set(this.xValues[i], xOffset)
+                xOffset += barWidth + barSpacing
             }
-        })
-    }
+            return xValueToOffset
+        }
 
-    @computed get ticks(): TickmarkPlacement[] {
-        const { tickPlacements } = this
+        // Place ticks centered beneath the bars, before doing overlap detection
+        private get tickPlacements(): TickmarkPlacement[] {
+            const { mapXValueToOffset, barWidth, dualAxis } = this
+            const { xValues } = this
+            const { horizontalAxis } = dualAxis
 
-        for (let i = 0; i < tickPlacements.length; i++) {
-            for (let j = 1; j < tickPlacements.length; j++) {
-                const t1 = tickPlacements[i],
-                    t2 = tickPlacements[j]
+            return xValues.map((x) => {
+                const text = horizontalAxis.formatTick(x)
+                const xPos = mapXValueToOffset.get(x) as number
 
-                if (t1 === t2 || t1.isHidden || t2.isHidden) continue
+                const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
+                return {
+                    text,
+                    bounds: bounds.set({
+                        x: xPos + barWidth / 2 - bounds.width / 2,
+                        y: dualAxis.innerBounds.bottom + 5,
+                    }),
+                    isHidden: false,
+                }
+            })
+        }
 
-                if (t1.bounds.intersects(t2.bounds.padWidth(-5))) {
-                    if (i === 0) t2.isHidden = true
-                    else if (j === tickPlacements.length - 1) t1.isHidden = true
-                    else t2.isHidden = true
+        get ticks(): TickmarkPlacement[] {
+            const { tickPlacements } = this
+
+            for (let i = 0; i < tickPlacements.length; i++) {
+                for (let j = 1; j < tickPlacements.length; j++) {
+                    const t1 = tickPlacements[i],
+                        t2 = tickPlacements[j]
+
+                    if (t1 === t2 || t1.isHidden || t2.isHidden) continue
+
+                    if (t1.bounds.intersects(t2.bounds.padWidth(-5))) {
+                        if (i === 0) t2.isHidden = true
+                        else if (j === tickPlacements.length - 1) t1.isHidden = true
+                        else t2.isHidden = true
+                    }
                 }
             }
+
+            return tickPlacements.filter((t) => !t.isHidden)
         }
 
-        return tickPlacements.filter((t) => !t.isHidden)
-    }
+        onLegendMouseOver(color: string): void {
+            this.hoverColor = color
+        }
 
-    @action.bound onLegendMouseOver(color: string): void {
-        this.hoverColor = color
-    }
+        onLegendMouseLeave(): void {
+            this.hoverColor = undefined
+        }
 
-    @action.bound onLegendMouseLeave(): void {
-        this.hoverColor = undefined
-    }
+        onBarMouseOver(bar: StackedPoint<Time>, series: StackedSeries<Time>): void {
+            this.hoverBar = bar
+            this.hoverSeries = series
+        }
 
-    @action.bound onBarMouseOver(
-        bar: StackedPoint<Time>,
-        series: StackedSeries<Time>
-    ): void {
-        this.hoverBar = bar
-        this.hoverSeries = series
-    }
+        onBarMouseLeave(): void {
+            this.hoverBar = undefined
+        }
 
-    @action.bound onBarMouseLeave(): void {
-        this.hoverBar = undefined
-    }
+        render(): JSX.Element {
+            if (this.failMessage)
+                return (
+                    <NoDataModal
+                        manager={this.manager}
+                        bounds={this.bounds}
+                        message={this.failMessage}
+                    />
+                )
 
-    render(): JSX.Element {
-        if (this.failMessage)
+            const {
+                dualAxis,
+                renderUid,
+                bounds,
+                tooltip,
+                barWidth,
+                mapXValueToOffset,
+                ticks,
+            } = this
+            const { series } = this
+            const { innerBounds, verticalAxis } = dualAxis
+
+            const textColor = "#666"
+
+            const clipPath = makeClipPath(renderUid, innerBounds)
+
             return (
-                <NoDataModal
-                    manager={this.manager}
-                    bounds={this.bounds}
-                    message={this.failMessage}
-                />
-            )
-
-        const {
-            dualAxis,
-            renderUid,
-            bounds,
-            tooltip,
-            barWidth,
-            mapXValueToOffset,
-            ticks,
-        } = this
-        const { series } = this
-        const { innerBounds, verticalAxis } = dualAxis
-
-        const textColor = "#666"
-
-        const clipPath = makeClipPath(renderUid, innerBounds)
-
-        return (
-            <g
-                className="StackedBarChart"
-                width={bounds.width}
-                height={bounds.height}
-            >
-                {clipPath.element}
-
-                <rect
-                    x={bounds.left}
-                    y={bounds.top}
+                <g
+                    className="StackedBarChart"
                     width={bounds.width}
                     height={bounds.height}
-                    opacity={0}
-                    fill="rgba(255,255,255,0)"
-                />
-                <VerticalAxisComponent
-                    bounds={bounds}
-                    verticalAxis={verticalAxis}
-                />
-                <VerticalAxisGridLines
-                    verticalAxis={verticalAxis}
-                    bounds={innerBounds}
-                />
+                >
+                    {clipPath.element}
 
-                <AxisTickMarks
-                    tickMarkTopPosition={innerBounds.bottom}
-                    tickMarkXPositions={ticks.map(
-                        (tick) => tick.bounds.centerX
+                    <rect
+                        x={bounds.left}
+                        y={bounds.top}
+                        width={bounds.width}
+                        height={bounds.height}
+                        opacity={0}
+                        fill="rgba(255,255,255,0)"
+                    />
+                    <VerticalAxisComponent
+                        bounds={bounds}
+                        verticalAxis={verticalAxis}
+                    />
+                    <VerticalAxisGridLines
+                        verticalAxis={verticalAxis}
+                        bounds={innerBounds}
+                    />
+
+                    <AxisTickMarks
+                        tickMarkTopPosition={innerBounds.bottom}
+                        tickMarkXPositions={ticks.map(
+                            (tick) => tick.bounds.centerX
+                        )}
+                        color={textColor}
+                    />
+
+                    <g>
+                        {ticks.map((tick, i) => {
+                            return (
+                                <Text
+                                    key={i}
+                                    x={tick.bounds.x}
+                                    y={tick.bounds.y}
+                                    fill={textColor}
+                                    fontSize={this.tickFontSize}
+                                >
+                                    {tick.text}
+                                </Text>
+                            )
+                        })}
+                    </g>
+
+                    <g clipPath={clipPath.id}>
+                        {series.map((series, index) => {
+                            const isLegendHovered = this.hoverKeys.includes(
+                                series.seriesName
+                            )
+                            const opacity =
+                                isLegendHovered || this.hoverKeys.length === 0
+                                    ? 0.8
+                                    : 0.2
+
+                            return (
+                                <g
+                                    key={index}
+                                    className={
+                                        makeSafeForCSS(series.seriesName) +
+                                        "-segments"
+                                    }
+                                >
+                                    {series.points.map((bar, index) => {
+                                        const xPos = mapXValueToOffset.get(
+                                            bar.position
+                                        ) as number
+                                        const barOpacity =
+                                            bar === this.hoverBar ? 1 : opacity
+
+                                        return (
+                                            <StackedBarSegment
+                                                key={index}
+                                                bar={bar}
+                                                color={series.color}
+                                                xOffset={xPos}
+                                                opacity={barOpacity}
+                                                yAxis={verticalAxis}
+                                                series={series}
+                                                onBarMouseOver={this.onBarMouseOver}
+                                                onBarMouseLeave={
+                                                    this.onBarMouseLeave
+                                                }
+                                                barWidth={barWidth}
+                                            />
+                                        )
+                                    })}
+                                </g>
+                            )
+                        })}
+                    </g>
+
+                    {!this.manager.hideLegend && (
+                        <VerticalColorLegend manager={this} />
                     )}
-                    color={textColor}
-                />
-
-                <g>
-                    {ticks.map((tick, i) => {
-                        return (
-                            <Text
-                                key={i}
-                                x={tick.bounds.x}
-                                y={tick.bounds.y}
-                                fill={textColor}
-                                fontSize={this.tickFontSize}
-                            >
-                                {tick.text}
-                            </Text>
-                        )
-                    })}
+                    {tooltip}
                 </g>
+            )
+        }
 
-                <g clipPath={clipPath.id}>
-                    {series.map((series, index) => {
-                        const isLegendHovered = this.hoverKeys.includes(
-                            series.seriesName
-                        )
-                        const opacity =
-                            isLegendHovered || this.hoverKeys.length === 0
-                                ? 0.8
-                                : 0.2
+        get legendY(): number {
+            return this.bounds.top
+        }
 
-                        return (
-                            <g
-                                key={index}
-                                className={
-                                    makeSafeForCSS(series.seriesName) +
-                                    "-segments"
-                                }
-                            >
-                                {series.points.map((bar, index) => {
-                                    const xPos = mapXValueToOffset.get(
-                                        bar.position
-                                    ) as number
-                                    const barOpacity =
-                                        bar === this.hoverBar ? 1 : opacity
+        get legendX(): number {
+            return this.bounds.right - this.sidebarWidth
+        }
 
-                                    return (
-                                        <StackedBarSegment
-                                            key={index}
-                                            bar={bar}
-                                            color={series.color}
-                                            xOffset={xPos}
-                                            opacity={barOpacity}
-                                            yAxis={verticalAxis}
-                                            series={series}
-                                            onBarMouseOver={this.onBarMouseOver}
-                                            onBarMouseLeave={
-                                                this.onBarMouseLeave
-                                            }
-                                            barWidth={barWidth}
-                                        />
-                                    )
-                                })}
-                            </g>
-                        )
-                    })}
-                </g>
+        private get xValues(): number[] {
+            return uniq(this.allStackedPoints.map((bar) => bar.position))
+        }
 
-                {!this.manager.hideLegend && (
-                    <VerticalColorLegend manager={this} />
-                )}
-                {tooltip}
-            </g>
-        )
+        get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
+            return this.manager.colorScale
+        }
+
+        defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
+
+        get series(): readonly StackedSeries<number>[] {
+            return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
+        }
     }
-
-    @computed get legendY(): number {
-        return this.bounds.top
-    }
-
-    @computed get legendX(): number {
-        return this.bounds.right - this.sidebarWidth
-    }
-
-    @computed private get xValues(): number[] {
-        return uniq(this.allStackedPoints.map((bar) => bar.position))
-    }
-
-    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
-        return this.manager.colorScale
-    }
-
-    defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
-
-    @computed get series(): readonly StackedSeries<number>[] {
-        return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
-    }
-}
+);

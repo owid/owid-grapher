@@ -9,7 +9,7 @@ import {
     sumBy,
     flatten,
 } from "../../clientUtils/Util.js"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { TextWrap } from "../text/TextWrap.js"
 import { VerticalAxis } from "../axis/Axis.js"
@@ -72,8 +72,7 @@ function stackGroupVertically(
     return group
 }
 
-@observer
-class Label extends React.Component<{
+const Label = observer(class Label extends React.Component<{
     series: PlacedSeries
     manager: LineLegend
     isFocus?: boolean
@@ -143,7 +142,7 @@ class Label extends React.Component<{
             </g>
         )
     }
-}
+});
 
 export interface LineLegendManager {
     startSelectingWhenLineClicked?: boolean
@@ -162,25 +161,53 @@ export interface LineLegendManager {
     lineLegendX?: number
 }
 
-@observer
-export class LineLegend extends React.Component<{
+export const LineLegend = observer(class LineLegend extends React.Component<{
     manager: LineLegendManager
 }> {
     leftPadding = 35
 
-    @computed private get fontSize(): number {
+    constructor(
+        props: {
+            manager: LineLegendManager
+        }
+    ) {
+        super(props);
+
+        makeObservable<LineLegend, "fontSize" | "fontWeight" | "maxWidth" | "initialSeries" | "backgroundSeries" | "focusedSeries" | "needsLines">(this, {
+            fontSize: computed,
+            fontWeight: computed,
+            maxWidth: computed,
+            sizedLabels: computed.struct,
+            width: computed,
+            onMouseOver: computed,
+            onMouseLeave: computed,
+            onClick: computed,
+            isFocusMode: computed,
+            legendX: computed,
+            initialSeries: computed,
+            standardPlacement: computed,
+            overlappingPlacement: computed,
+            placedSeries: computed,
+            backgroundSeries: computed,
+            focusedSeries: computed,
+            needsLines: computed,
+            manager: computed
+        });
+    }
+
+    private get fontSize(): number {
         return 0.75 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed private get fontWeight(): number {
+    private get fontWeight(): number {
         return this.manager.fontWeight ?? DEFAULT_FONT_WEIGHT
     }
 
-    @computed private get maxWidth(): number {
+    private get maxWidth(): number {
         return this.manager.maxLineLegendWidth ?? 300
     }
 
-    @computed.struct get sizedLabels(): SizedSeries[] {
+    get sizedLabels(): SizedSeries[] {
         const { fontSize, fontWeight, leftPadding, maxWidth } = this
         const maxTextWidth = maxWidth - leftPadding
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
@@ -218,33 +245,33 @@ export class LineLegend extends React.Component<{
         })
     }
 
-    @computed get width(): number {
+    get width(): number {
         if (this.sizedLabels.length === 0) return 0
         return max(this.sizedLabels.map((d) => d.width)) ?? 0
     }
 
-    @computed get onMouseOver(): any {
+    get onMouseOver(): any {
         return this.manager.onLineLegendMouseOver ?? noop
     }
-    @computed get onMouseLeave(): any {
+    get onMouseLeave(): any {
         return this.manager.onLineLegendMouseLeave ?? noop
     }
-    @computed get onClick(): any {
+    get onClick(): any {
         return this.manager.onLineLegendClick ?? noop
     }
 
-    @computed get isFocusMode(): boolean {
+    get isFocusMode(): boolean {
         return this.sizedLabels.some((label) =>
             this.manager.focusedSeriesNames.includes(label.seriesName)
         )
     }
 
-    @computed get legendX(): number {
+    get legendX(): number {
         return this.manager.lineLegendX ?? 0
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
-    @computed private get initialSeries(): PlacedSeries[] {
+    private get initialSeries(): PlacedSeries[] {
         const { yAxis } = this.manager
         const { legendX } = this
 
@@ -283,7 +310,7 @@ export class LineLegend extends React.Component<{
         )
     }
 
-    @computed get standardPlacement(): PlacedSeries[] {
+    get standardPlacement(): PlacedSeries[] {
         const { yAxis } = this.manager
 
         const groups: PlacedSeries[][] = cloneDeep(this.initialSeries).map(
@@ -353,7 +380,7 @@ export class LineLegend extends React.Component<{
     }
 
     // Overlapping placement, for when we really can't find a solution without overlaps.
-    @computed get overlappingPlacement(): PlacedSeries[] {
+    get overlappingPlacement(): PlacedSeries[] {
         const series = cloneDeep(this.initialSeries)
         for (let i = 0; i < series.length; i++) {
             const m1 = series[i]
@@ -368,7 +395,7 @@ export class LineLegend extends React.Component<{
         return series
     }
 
-    @computed get placedSeries(): PlacedSeries[] {
+    get placedSeries(): PlacedSeries[] {
         const nonOverlappingMinHeight =
             sumBy(this.initialSeries, (series) => series.bounds.height) +
             this.initialSeries.length * LEGEND_ITEM_MIN_SPACING
@@ -390,7 +417,7 @@ export class LineLegend extends React.Component<{
         return this.standardPlacement
     }
 
-    @computed private get backgroundSeries(): PlacedSeries[] {
+    private get backgroundSeries(): PlacedSeries[] {
         const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
         return this.placedSeries.filter((mark) =>
@@ -400,7 +427,7 @@ export class LineLegend extends React.Component<{
         )
     }
 
-    @computed private get focusedSeries(): PlacedSeries[] {
+    private get focusedSeries(): PlacedSeries[] {
         const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
         return this.placedSeries.filter((mark) =>
@@ -411,7 +438,7 @@ export class LineLegend extends React.Component<{
     }
 
     // Does this placement need line markers or is the position of the labels already clear?
-    @computed private get needsLines(): boolean {
+    private get needsLines(): boolean {
         return this.placedSeries.some((series) => series.totalLevels > 1)
     }
 
@@ -444,7 +471,7 @@ export class LineLegend extends React.Component<{
         ))
     }
 
-    @computed get manager(): LineLegendManager {
+    get manager(): LineLegendManager {
         return this.props.manager
     }
 
@@ -463,4 +490,4 @@ export class LineLegend extends React.Component<{
             </g>
         )
     }
-}
+});

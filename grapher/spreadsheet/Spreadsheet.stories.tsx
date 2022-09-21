@@ -4,7 +4,7 @@ import {
     SynthesizeGDPTable,
 } from "../../coreTable/OwidTableSynthesizers.js"
 import { Spreadsheet } from "./Spreadsheet.js"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { ChartTypeName } from "../core/GrapherConstants.js"
@@ -34,29 +34,42 @@ const getRandomTable = (): OwidTable =>
         ])
         .sortColumns([OwidTableSlugs.entityName, OwidTableSlugs.year])
 
-@observer
 class Editor extends React.Component {
-    @observable.ref table = getRandomTable()
+    table = getRandomTable();
 
-    @action.bound private shuffleTable(): void {
+    constructor(props) {
+        super(props);
+
+        makeObservable<Editor, "shuffleTable" | "changeChartType">(this, {
+            table: observable.ref,
+            shuffleTable: action.bound,
+            yColumnSlugs: computed,
+            xColumnSlug: computed,
+            chartTypeName: observable,
+            selection: computed,
+            changeChartType: action.bound
+        });
+    }
+
+    private shuffleTable(): void {
         this.table = getRandomTable()
     }
 
-    @computed get yColumnSlugs(): string[] {
+    get yColumnSlugs(): string[] {
         return this.table.suggestedYColumnSlugs
     }
 
-    @computed get xColumnSlug(): string {
+    get xColumnSlug(): string {
         return this.table.timeColumn?.slug
     }
 
-    @observable chartTypeName = ChartTypeName.LineChart
+    chartTypeName = ChartTypeName.LineChart;
 
-    @computed get selection(): any[] {
+    get selection(): any[] {
         return this.table.availableEntityNames
     }
 
-    @action.bound private changeChartType(type: ChartTypeName): void {
+    private changeChartType(type: ChartTypeName): void {
         this.chartTypeName = type
     }
 

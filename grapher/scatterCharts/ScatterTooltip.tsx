@@ -7,8 +7,7 @@ import {
     SeriesPoint,
 } from "./ScatterPlotChartConstants.js"
 
-@observer
-export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
+export const ScatterTooltip = observer(class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueY(value: SeriesPoint): string {
         return "Y Axis: " + this.props.yColumn.formatValueLong(value.y)
     }
@@ -95,4 +94,4 @@ export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
             </g>
         )
     }
-}
+});

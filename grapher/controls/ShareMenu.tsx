@@ -1,6 +1,6 @@
 import { observer } from "mobx-react"
 import React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
@@ -29,39 +29,52 @@ interface ShareMenuState {
     copied: boolean
 }
 
-@observer
-export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
+export const ShareMenu = observer(class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     dismissable = true
 
     constructor(props: ShareMenuProps) {
         super(props)
+
+        makeObservable(this, {
+            manager: computed,
+            title: computed,
+            isDisabled: computed,
+            canonicalUrl: computed,
+            dismiss: action.bound,
+            onClickSomewhere: action.bound,
+            onEmbed: action.bound,
+            onNavigatorShare: action.bound,
+            onCopyUrl: action.bound,
+            twitterHref: computed,
+            facebookHref: computed
+        });
 
         this.state = {
             copied: false,
         }
     }
 
-    @computed get manager(): ShareMenuManager {
+    get manager(): ShareMenuManager {
         return this.props.manager
     }
 
-    @computed get title(): string {
+    get title(): string {
         return this.manager.currentTitle ?? ""
     }
 
-    @computed get isDisabled(): boolean {
+    get isDisabled(): boolean {
         return !this.manager.slug
     }
 
-    @computed get canonicalUrl(): string | undefined {
+    get canonicalUrl(): string | undefined {
         return this.manager.canonicalUrl
     }
 
-    @action.bound dismiss(): void {
+    dismiss(): void {
         this.props.onDismiss()
     }
 
-    @action.bound onClickSomewhere(): void {
+    onClickSomewhere(): void {
         if (this.dismissable) this.dismiss()
         else this.dismissable = true
     }
@@ -74,7 +87,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         document.removeEventListener("click", this.onClickSomewhere)
     }
 
-    @action.bound onEmbed(): void {
+    onEmbed(): void {
         if (!this.canonicalUrl) return
 
         this.manager.addPopup(
@@ -83,7 +96,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         this.dismiss()
     }
 
-    @action.bound async onNavigatorShare(): Promise<void> {
+    async onNavigatorShare(): Promise<void> {
         if (!this.canonicalUrl || !navigator.share) return
 
         const shareData = {
@@ -98,7 +111,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @action.bound onCopyUrl(): void {
+    onCopyUrl(): void {
         if (!this.canonicalUrl) return
 
         try {
@@ -112,7 +125,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @computed get twitterHref(): string {
+    get twitterHref(): string {
         let href =
             "https://twitter.com/intent/tweet/?text=" +
             encodeURIComponent(this.title)
@@ -121,7 +134,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return href
     }
 
-    @computed get facebookHref(): string {
+    get facebookHref(): string {
         let href =
             "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page"
         if (this.canonicalUrl)
@@ -202,24 +215,37 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
             </div>
         )
     }
-}
+});
 
-@observer
-class EmbedMenu extends React.Component<{
+const EmbedMenu = observer(class EmbedMenu extends React.Component<{
     manager: ShareMenuManager
 }> {
     dismissable = true
 
-    @action.bound onClickSomewhere(): void {
+    constructor(
+        props: {
+            manager: ShareMenuManager
+        }
+    ) {
+        super(props);
+
+        makeObservable(this, {
+            onClickSomewhere: action.bound,
+            manager: computed,
+            onClick: action.bound
+        });
+    }
+
+    onClickSomewhere(): void {
         if (this.dismissable) this.manager.removePopup(EmbedMenu)
         else this.dismissable = true
     }
 
-    @computed get manager(): ShareMenuManager {
+    get manager(): ShareMenuManager {
         return this.props.manager
     }
 
-    @action.bound onClick(): void {
+    onClick(): void {
         this.dismissable = false
     }
 
@@ -246,4 +272,4 @@ class EmbedMenu extends React.Component<{
             </div>
         )
     }
-}
+});

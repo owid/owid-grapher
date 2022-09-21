@@ -1,4 +1,4 @@
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx";
 import { Color } from "../../coreTable/CoreTableConstants.js"
 import { ColumnColorScale } from "../../coreTable/CoreColumnDef.js"
 import {
@@ -17,65 +17,84 @@ export class ColorScaleConfigDefaults {
     // ============
 
     /** Key for a colorbrewer scheme */
-    @observable baseColorScheme?: ColorSchemeName
+    baseColorScheme?: ColorSchemeName;
 
     /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
-    @observable colorSchemeInvert?: boolean = undefined
+    colorSchemeInvert?: boolean = undefined;
 
     // Numeric bins
     // ============
 
     /** The strategy for generating the bin boundaries */
-    @observable binningStrategy: BinningStrategy = BinningStrategy.ckmeans
+    binningStrategy: BinningStrategy = BinningStrategy.ckmeans;
     /** The *suggested* number of bins for the automatic binning algorithm */
-    @observable binningStrategyBinCount?: number
+    binningStrategyBinCount?: number;
 
     /** The minimum bracket of the first bin */
-    @observable customNumericMinValue?: number
+    customNumericMinValue?: number;
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
-    @observable customNumericValues: number[] = []
+    customNumericValues: number[] = [];
     /**
      * Custom labels for each numeric bin. Only applied when strategy is `manual`.
      * `undefined` or `null` falls back to default label.
      * We need to handle `null` because JSON serializes `undefined` values
      * inside arrays into `null`.
      */
-    @observable customNumericLabels: (string | undefined | null)[] = []
+    customNumericLabels: (string | undefined | null)[] = [];
 
     /** Whether `customNumericColors` are used to override the color scheme. */
-    @observable customNumericColorsActive?: boolean = undefined
+    customNumericColorsActive?: boolean = undefined;
     /**
      * Override some or all colors for the numerical color legend.
      * `undefined` or `null` falls back the color scheme color.
      * We need to handle `null` because JSON serializes `undefined` values
      * inside arrays into `null`.
      */
-    @observable customNumericColors: (Color | undefined | null)[] = []
+    customNumericColors: (Color | undefined | null)[] = [];
 
     /** Whether the visual scaling for the color legend is disabled. */
-    @observable equalSizeBins?: boolean = true
+    equalSizeBins?: boolean = true;
 
     // Categorical bins
     // ================
 
-    @observable.ref customCategoryColors: {
+    customCategoryColors: {
         [key: string]: string | undefined
-    } = {}
+    } = {};
 
-    @observable.ref customCategoryLabels: {
+    customCategoryLabels: {
         [key: string]: string | undefined
-    } = {}
+    } = {};
 
     // Allow hiding categories from the legend
-    @observable.ref customHiddenCategories: {
+    customHiddenCategories: {
         [key: string]: true | undefined
-    } = {}
+    } = {};
 
     // Other
     // =====
 
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
-    @observable legendDescription?: string = undefined
+    legendDescription?: string = undefined;
+
+    constructor() {
+        makeObservable(this, {
+            baseColorScheme: observable,
+            colorSchemeInvert: observable,
+            binningStrategy: observable,
+            binningStrategyBinCount: observable,
+            customNumericMinValue: observable,
+            customNumericValues: observable,
+            customNumericLabels: observable,
+            customNumericColorsActive: observable,
+            customNumericColors: observable,
+            equalSizeBins: observable,
+            customCategoryColors: observable.ref,
+            customCategoryLabels: observable.ref,
+            customHiddenCategories: observable.ref,
+            legendDescription: observable
+        });
+    }
 }
 
 export type ColorScaleConfigInterface = ColorScaleConfigDefaults

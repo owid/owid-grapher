@@ -1,7 +1,7 @@
 import { line as d3_line, curveLinear } from "d3-shape"
 import { guid } from "../../clientUtils/Util.js"
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis.js"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator.js"
@@ -14,14 +14,28 @@ export interface ComparisonLineConfig {
     yEquals?: string
 }
 
-@observer
-export class ComparisonLine extends React.Component<{
+export const ComparisonLine = observer(class ComparisonLine extends React.Component<{
     dualAxis: DualAxis
     comparisonLine: ComparisonLineConfig
 }> {
     private renderUid = guid()
 
-    @computed private get controlData(): [number, number][] {
+    constructor(
+        props: {
+            dualAxis: DualAxis
+            comparisonLine: ComparisonLineConfig
+        }
+    ) {
+        super(props);
+
+        makeObservable<ComparisonLine, "controlData" | "linePath" | "placedLabel">(this, {
+            controlData: computed,
+            linePath: computed,
+            placedLabel: computed
+        });
+    }
+
+    private get controlData(): [number, number][] {
         const { comparisonLine, dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
         return generateComparisonLinePoints(
@@ -33,7 +47,7 @@ export class ComparisonLine extends React.Component<{
         )
     }
 
-    @computed private get linePath(): string | null {
+    private get linePath(): string | null {
         const { controlData } = this
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         const line = d3_line()
@@ -43,7 +57,7 @@ export class ComparisonLine extends React.Component<{
         return line(controlData)
     }
 
-    @computed private get placedLabel():
+    private get placedLabel():
         | { x: number; y: number; bounds: Bounds; angle: number; text: string }
         | undefined {
         const { label } = this.props.comparisonLine
@@ -131,4 +145,4 @@ export class ComparisonLine extends React.Component<{
             </g>
         )
     }
-}
+});

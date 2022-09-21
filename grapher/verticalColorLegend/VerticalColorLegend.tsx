@@ -1,6 +1,6 @@
 import React from "react"
 import { sum, max } from "../../clientUtils/Util.js"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { TextWrap } from "../text/TextWrap.js"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
@@ -34,29 +34,48 @@ interface SizedLegendSeries {
     height: number
 }
 
-@observer
-export class VerticalColorLegend extends React.Component<{
+export const VerticalColorLegend = observer(class VerticalColorLegend extends React.Component<{
     manager: VerticalColorLegendManager
 }> {
-    @computed get manager(): VerticalColorLegendManager {
+    constructor(
+        props: {
+            manager: VerticalColorLegendManager
+        }
+    ) {
+        super(props);
+
+        makeObservable<VerticalColorLegend, "maxLegendWidth" | "fontSize" | "rectSize" | "title" | "titleHeight" | "series">(this, {
+            manager: computed,
+            maxLegendWidth: computed,
+            fontSize: computed,
+            rectSize: computed,
+            title: computed,
+            titleHeight: computed,
+            series: computed,
+            width: computed,
+            height: computed
+        });
+    }
+
+    get manager(): VerticalColorLegendManager {
         return this.props.manager
     }
 
-    @computed private get maxLegendWidth(): number {
+    private get maxLegendWidth(): number {
         return this.manager.maxLegendWidth ?? 100
     }
 
-    @computed private get fontSize(): number {
+    private get fontSize(): number {
         return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
-    @computed private get rectSize(): number {
+    private get rectSize(): number {
         return Math.round(this.fontSize / 1.4)
     }
 
     private rectPadding = 5
     private lineHeight = 5
 
-    @computed private get title(): TextWrap | undefined {
+    private get title(): TextWrap | undefined {
         if (!this.manager.legendTitle) return undefined
         return new TextWrap({
             maxWidth: this.maxLegendWidth,
@@ -67,12 +86,12 @@ export class VerticalColorLegend extends React.Component<{
         })
     }
 
-    @computed private get titleHeight(): number {
+    private get titleHeight(): number {
         if (!this.title) return 0
         return this.title.height + 5
     }
 
-    @computed private get series(): SizedLegendSeries[] {
+    private get series(): SizedLegendSeries[] {
         const { manager, fontSize, rectSize, rectPadding } = this
 
         return manager.legendItems
@@ -98,13 +117,13 @@ export class VerticalColorLegend extends React.Component<{
             .filter((v) => !!v) as SizedLegendSeries[]
     }
 
-    @computed get width(): number {
+    get width(): number {
         const widths = this.series.map((series) => series.width)
         if (this.title) widths.push(this.title.width)
         return max(widths) ?? 0
     }
 
-    @computed get height(): number {
+    get height(): number {
         return (
             this.titleHeight +
             sum(this.series.map((series) => series.height)) +
@@ -199,4 +218,4 @@ export class VerticalColorLegend extends React.Component<{
             </>
         )
     }
-}
+});

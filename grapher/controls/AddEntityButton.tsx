@@ -7,8 +7,7 @@ export interface AddEntityButtonManager {
     entityType?: string
 }
 
-@observer
-export class AddEntityButton extends React.Component<{
+export const AddEntityButton = observer(class AddEntityButton extends React.Component<{
     manager: AddEntityButtonManager
 }> {
     render(): JSX.Element {
@@ -33,4 +32,4 @@ export class AddEntityButton extends React.Component<{
             </button>
         )
     }
-}
+});

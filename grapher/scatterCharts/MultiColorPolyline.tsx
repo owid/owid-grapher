@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 
 import { last } from "../../clientUtils/Util.js"
@@ -91,35 +91,44 @@ type MultiColorPolylineProps = Omit<
 // - Compute meter joints ourselves (https://bl.ocks.org/mbostock/4163057): this results in the most
 //   accurate output, but is most complex & slow.
 //
-@observer
-export class MultiColorPolyline extends React.Component<MultiColorPolylineProps> {
-    @computed get segments(): Segment[] {
-        return getSegmentsFromPoints(this.props.points)
-    }
+export const MultiColorPolyline = observer(
+    class MultiColorPolyline extends React.Component<MultiColorPolylineProps> {
+        constructor(props: MultiColorPolylineProps) {
+            super(props);
 
-    render(): JSX.Element {
-        const { markerStart, markerMid, markerEnd, ...polylineProps } =
-            this.props
-        return (
-            <>
-                {this.segments.map((group, index) => (
-                    <polyline
-                        {...polylineProps}
-                        key={index}
-                        points={toSvgPoints(group.points)}
-                        stroke={group.color}
-                        fill="none"
-                        strokeLinecap="butt" // `butt` allows us to have clean miter joints
-                        markerStart={index === 0 ? markerStart : undefined}
-                        markerMid={markerMid}
-                        markerEnd={
-                            index === this.segments.length - 1
-                                ? markerEnd
-                                : undefined
-                        }
-                    />
-                ))}
-            </>
-        )
+            makeObservable(this, {
+                segments: computed
+            });
+        }
+
+        get segments(): Segment[] {
+            return getSegmentsFromPoints(this.props.points)
+        }
+
+        render(): JSX.Element {
+            const { markerStart, markerMid, markerEnd, ...polylineProps } =
+                this.props
+            return (
+                <>
+                    {this.segments.map((group, index) => (
+                        <polyline
+                            {...polylineProps}
+                            key={index}
+                            points={toSvgPoints(group.points)}
+                            stroke={group.color}
+                            fill="none"
+                            strokeLinecap="butt" // `butt` allows us to have clean miter joints
+                            markerStart={index === 0 ? markerStart : undefined}
+                            markerMid={markerMid}
+                            markerEnd={
+                                index === this.segments.length - 1
+                                    ? markerEnd
+                                    : undefined
+                            }
+                        />
+                    ))}
+                </>
+            )
+        }
     }
-}
+);

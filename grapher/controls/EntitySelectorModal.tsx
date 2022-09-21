@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx";
 import { isTouchDevice, sortBy } from "../../clientUtils/Util.js"
 import { FuzzySearch } from "./FuzzySearch.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
@@ -48,41 +48,64 @@ class EntitySearchResult extends React.PureComponent<SearchResultProps> {
     }
 }
 
-@observer
-export class EntitySelectorModal extends React.Component<{
+export const EntitySelectorModal = observer(class EntitySelectorModal extends React.Component<{
     selectionArray: SelectionArray
     isMulti: boolean
     onDismiss: () => void
 }> {
-    @observable searchInput: string = ""
+    searchInput: string = "";
     searchField!: HTMLInputElement
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get sortedAvailableEntities(): string[] {
+    constructor(
+        props: {
+            selectionArray: SelectionArray
+            isMulti: boolean
+            onDismiss: () => void
+        }
+    ) {
+        super(props);
+
+        makeObservable<EntitySelectorModal, "searchableEntities">(this, {
+            searchInput: observable,
+            sortedAvailableEntities: computed,
+            isMulti: computed,
+            fuzzy: computed,
+            searchableEntities: computed,
+            searchResults: computed,
+            onSelect: action.bound,
+            onDocumentClick: action.bound,
+            onOverlayKeyDown: action.bound,
+            onSearchKeyDown: action.bound,
+            onClear: action.bound
+        });
+    }
+
+    get sortedAvailableEntities(): string[] {
         return sortBy(this.props.selectionArray.availableEntityNames)
     }
 
-    @computed get isMulti(): boolean {
+    get isMulti(): boolean {
         return this.props.isMulti
     }
 
-    @computed get fuzzy(): FuzzySearch<SearchableEntity> {
+    get fuzzy(): FuzzySearch<SearchableEntity> {
         return new FuzzySearch(this.searchableEntities, "name")
     }
 
-    @computed private get searchableEntities(): SearchableEntity[] {
+    private get searchableEntities(): SearchableEntity[] {
         return this.sortedAvailableEntities.map((name) => {
             return { name } as SearchableEntity
         })
     }
 
-    @computed get searchResults(): SearchableEntity[] {
+    get searchResults(): SearchableEntity[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : this.searchableEntities
     }
 
-    @action.bound onSelect(entityName: string): void {
+    onSelect(entityName: string): void {
         if (this.isMulti) {
             this.props.selectionArray.toggleSelection(entityName)
         } else {
@@ -91,7 +114,7 @@ export class EntitySelectorModal extends React.Component<{
         }
     }
 
-    @action.bound onDocumentClick(e: MouseEvent): void {
+    onDocumentClick(e: MouseEvent): void {
         // check if the click was outside of the modal
         if (
             this.base?.current &&
@@ -112,18 +135,18 @@ export class EntitySelectorModal extends React.Component<{
         document.removeEventListener("click", this.onDocumentClick)
     }
 
-    @action.bound onOverlayKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
+    onOverlayKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
         if (e.key === "Escape") this.props.onDismiss()
     }
 
-    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
+    onSearchKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
         if (e.key === "Enter" && this.searchResults.length > 0) {
             this.onSelect(this.searchResults[0].name)
             this.searchInput = ""
         }
     }
 
-    @action.bound onClear(): void {
+    onClear(): void {
         this.props.selectionArray.clearSelection()
     }
 
@@ -228,4 +251,4 @@ export class EntitySelectorModal extends React.Component<{
             </div>
         )
     }
-}
+});

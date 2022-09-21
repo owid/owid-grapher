@@ -1,39 +1,55 @@
 import React from "react"
 import { TimelineComponent } from "./TimelineComponent.js"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx";
 import { range } from "../../clientUtils/Util.js"
 import { TimelineController, TimelineManager } from "./TimelineController.js"
 
 class TimelineManagerMock implements TimelineManager {
-    @observable isPlaying = false
-    @observable userHasSetTimeline = true
-    @observable times = range(1900, 2021)
+    isPlaying = false;
+    userHasSetTimeline = true;
+    times = range(1900, 2021);
 
-    @observable protected _endTime = 2020
+    protected _endTime = 2020;
+
+    constructor() {
+        makeObservable<TimelineManagerMock, "_endTime" | "_startTime">(this, {
+            isPlaying: observable,
+            userHasSetTimeline: observable,
+            times: observable,
+            _endTime: observable,
+            endHandleTimeBound: computed,
+            updateEndTime: action.bound,
+            _startTime: observable,
+            startHandleTimeBound: computed,
+            updateStartTime: action.bound,
+            disablePlay: observable
+        });
+    }
+
     set endHandleTimeBound(num: number) {
         this.updateEndTime(num)
     }
-    @computed get endHandleTimeBound(): number {
+    get endHandleTimeBound(): number {
         return this._endTime
     }
 
-    @action.bound updateEndTime(num: number): void {
+    updateEndTime(num: number): void {
         this._endTime = num
     }
 
-    @observable protected _startTime = 1950
+    protected _startTime = 1950;
     set startHandleTimeBound(num: number) {
         this.updateStartTime(num)
     }
-    @computed get startHandleTimeBound(): number {
+    get startHandleTimeBound(): number {
         return this._startTime
     }
 
-    @action.bound updateStartTime(num: number): void {
+    updateStartTime(num: number): void {
         this._startTime = num
     }
 
-    @observable disablePlay = false
+    disablePlay = false;
 }
 
 export default {
@@ -42,16 +58,27 @@ export default {
 }
 
 class SingleYearManager extends TimelineManagerMock {
-    @action.bound updateEndTime(num: number): void {
+    constructor() {
+        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
+        super();
+
+        makeObservable<SingleYearManager, "_endTime">(this, {
+            updateEndTime: action.bound,
+            updateStartTime: action.bound,
+            _endTime: observable
+        });
+    }
+
+    updateEndTime(num: number): void {
         // Simulate the Map class, which can only have 1 target time
         this._endTime = num
         this._startTime = num
     }
-    @action.bound updateStartTime(num: number): void {
+    updateStartTime(num: number): void {
         this._endTime = num
         this._startTime = num
     }
-    @observable protected _endTime = 1950
+    protected _endTime = 1950;
 }
 
 export const Default = (): JSX.Element => {

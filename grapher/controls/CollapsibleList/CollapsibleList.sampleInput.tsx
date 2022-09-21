@@ -1,13 +1,21 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, action } from "mobx"
+import { observable, action, makeObservable } from "mobx";
 import { range } from "../../../clientUtils/Util.js"
 
-@observer
-class SampleCheckBox extends React.Component<{ id: number }> {
-    @observable checked: boolean = false
+const SampleCheckBox = observer(class SampleCheckBox extends React.Component<{ id: number }> {
+    checked: boolean = false;
 
-    @action.bound onToggle(): void {
+    constructor(props: { id: number }) {
+        super(props);
+
+        makeObservable(this, {
+            checked: observable,
+            onToggle: action.bound
+        });
+    }
+
+    onToggle(): void {
         this.checked = !this.checked
     }
 
@@ -23,7 +31,7 @@ class SampleCheckBox extends React.Component<{ id: number }> {
             </label>
         )
     }
-}
+});
 
 export const collapsibleListSampleItems = range(0, 12).map((i) => (
     <SampleCheckBox key={i} id={i} />

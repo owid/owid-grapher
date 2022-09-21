@@ -1,5 +1,5 @@
 import React, { ReactNode } from "react"
-import { observable, action } from "mobx"
+import { observable, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { throttle } from "../../../clientUtils/Util.js"
 import { Tippy } from "../../chart/Tippy.js"
@@ -12,8 +12,7 @@ interface ListChild {
 }
 
 /** A UI component inspired by the "Priority+ Navbar" or "Progressively Collapsing Navbar"*/
-@observer
-export class CollapsibleList extends React.Component<{
+export const CollapsibleList = observer(class CollapsibleList extends React.Component<{
     children: React.ReactNode
 }> {
     private outerContainerRef: React.RefObject<HTMLDivElement> =
@@ -23,7 +22,22 @@ export class CollapsibleList extends React.Component<{
     private moreButtonWidth: number = 0
     private itemsWidths: number[] = []
 
-    @observable private numItemsVisible?: number
+    private numItemsVisible?: number;
+
+    constructor(
+        props: {
+            children: React.ReactNode
+        }
+    ) {
+        super(props);
+
+        makeObservable<CollapsibleList, "numItemsVisible" | "updateNumItemsVisible" | "onResize" | "updateItemVisibility">(this, {
+            numItemsVisible: observable,
+            updateNumItemsVisible: action,
+            onResize: action,
+            updateItemVisibility: action
+        });
+    }
 
     private get children(): ListChild[] {
         return (
@@ -48,7 +62,7 @@ export class CollapsibleList extends React.Component<{
             .forEach((item): number => this.itemsWidths.push(item.clientWidth))
     }
 
-    @action private updateNumItemsVisible(): void {
+    private updateNumItemsVisible(): void {
         const numItemsVisibleWithoutMoreButton = numItemsVisible(
             this.itemsWidths,
             this.outerContainerWidth
@@ -72,11 +86,11 @@ export class CollapsibleList extends React.Component<{
         return this.children.slice(this.numItemsVisible)
     }
 
-    @action private onResize = throttle((): void => {
+    private onResize = throttle((): void => {
         this.updateItemVisibility()
-    }, 100)
+    }, 100);
 
-    @action private updateItemVisibility(): void {
+    private updateItemVisibility(): void {
         this.updateOuterContainerWidth()
         this.updateNumItemsVisible()
     }
@@ -144,7 +158,7 @@ export class CollapsibleList extends React.Component<{
             </div>
         )
     }
-}
+});
 
 export class MoreButton extends React.Component<{
     options: React.ReactElement[]
