@@ -10,7 +10,16 @@ import {
     GdocsPatchOp,
     OwidArticleType,
 } from "../clientUtils/owidTypes.js"
-import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
+import {
+    Button,
+    Col,
+    Drawer,
+    notification,
+    Row,
+    Space,
+    Tag,
+    Typography,
+} from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { useInterval } from "../site/hooks.js"
@@ -75,8 +84,16 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
         if (!gdoc || (gdoc.published && hasErrors)) return
 
         const gdocsPatches: GdocsPatch[] = [
-            { op: GdocsPatchOp.Update, property: "title", payload: gdoc.title },
-            { op: GdocsPatchOp.Update, property: "slug", payload: gdoc.slug },
+            {
+                op: GdocsPatchOp.Update,
+                property: "title",
+                payload: gdoc.title,
+            },
+            {
+                op: GdocsPatchOp.Update,
+                property: "slug",
+                payload: gdoc.slug,
+            },
             {
                 op: GdocsPatchOp.Update,
                 property: "content",
@@ -86,6 +103,18 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
         ]
 
         await admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdocsPatches, "PATCH")
+        openNotification(
+            "success",
+            "Document saved",
+            gdoc.published ? (
+                <span>
+                    Your changes have been scheduled for publication.{" "}
+                    <a href="/admin/deploys">Check deploy progress</a>
+                </span>
+            ) : (
+                ""
+            )
+        )
         setSettingsOpen(false)
         setOriginalGdoc(gdoc)
     }
@@ -220,4 +249,16 @@ export const useGdocsChanged = (
     }, [prevGdoc, nextGdoc])
 
     return hasChanges
+}
+
+type NotificationType = "success" | "info" | ErrorMessageType
+const openNotification = (
+    type: NotificationType,
+    title: string,
+    description: React.ReactNode
+) => {
+    notification[type]({
+        message: title,
+        description,
+    })
 }
