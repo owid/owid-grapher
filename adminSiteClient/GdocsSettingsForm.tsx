@@ -10,12 +10,10 @@ import { Input } from "antd"
 export const GdocsSettings = ({
     gdoc,
     setGdoc,
-    saveButtons,
     errors,
 }: {
     gdoc: OwidArticleType
     setGdoc: (gdoc: OwidArticleType) => void
-    saveButtons: React.ReactNode
     errors?: ErrorMessage[]
 }) => {
     return gdoc ? (
@@ -45,7 +43,6 @@ export const GdocsSettings = ({
             <div className="form-group">
                 <GdocsSlug gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
             </div>
-            <div className="d-flex justify-content-end">{saveButtons}</div>
         </form>
     ) : null
 }

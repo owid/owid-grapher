@@ -29,6 +29,7 @@ import { faCircle } from "@fortawesome/free-solid-svg-icons/faCircle"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { isEqual } from "../clientUtils/Util.js"
 import { ButtonBadge } from "./ButtonBadge.js"
+import { useGdocsStore } from "./GdocsStore.js"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
@@ -39,6 +40,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
 
     const { admin } = useContext(AdminAppContext)
+    const store = useGdocsStore()
 
     const updatePreview = useCallback(async () => {
         try {
@@ -77,32 +79,17 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const hasErrors =
         errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
 
-    const onSubmit = async (
-        e: React.MouseEvent<HTMLElement>,
-        overridePatch?: GdocsPatch[]
-    ) => {
+    const onPublish = async () => {
         if (!gdoc || (gdoc.published && hasErrors)) return
 
-        const gdocsPatches: GdocsPatch[] = [
+        await store.update({ ...gdoc, published: true }, [
             {
                 op: GdocsPatchOp.Update,
-                property: "title",
-                payload: gdoc.title,
+                property: "published",
+                payload: true,
             },
-            {
-                op: GdocsPatchOp.Update,
-                property: "slug",
-                payload: gdoc.slug,
-            },
-            {
-                op: GdocsPatchOp.Update,
-                property: "content",
-                payload: gdoc.content,
-            },
-            ...(overridePatch ?? []),
-        ]
+        ])
 
-        await admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdocsPatches, "PATCH")
         openNotification(
             "success",
             "Document saved",
@@ -115,8 +102,6 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                 ""
             )
         )
-        setSettingsOpen(false)
-        setOriginalGdoc(gdoc)
     }
 
     // Fetch the gdoc on mount
@@ -134,6 +119,14 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
         const errors = getErrors(gdoc)
         setErrors(errors)
     }, [gdoc])
+
+    // Auto-save on change
+    useEffect(() => {
+        if (!gdoc || !hasChanges || gdoc.published) return
+        console.log("saving")
+        store.update(gdoc)
+        setOriginalGdoc(gdoc)
+    }, [store, gdoc, hasChanges])
 
     return gdoc ? (
         <AdminLayout title="Google Docs - Edit" noSidebar fixedNav={false}>
@@ -193,7 +186,7 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
                                 hasChanges={hasChanges}
-                                onSubmit={onSubmit}
+                                onPublish={onPublish}
                             />
                             <Button onClick={() => setSettingsOpen(true)}>
                                 <FontAwesomeIcon icon={faGear} />
@@ -219,15 +212,6 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                     <GdocsSettings
                         gdoc={gdoc}
                         setGdoc={setGdoc}
-                        saveButtons={
-                            <GdocsSaveButtons
-                                published={gdoc.published}
-                                hasErrors={hasErrors}
-                                hasWarnings={hasWarnings}
-                                hasChanges={hasChanges}
-                                onSubmit={onSubmit}
-                            />
-                        }
                         errors={errors}
                     />
                 </Drawer>
