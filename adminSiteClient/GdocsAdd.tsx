@@ -1,23 +1,20 @@
 import React from "react"
+import { useGdocsStore } from "./GdocsStore.js"
 
-export const GdocsAdd = ({
-    onAdd,
-}: {
-    onAdd: (id: string) => Promise<void>
-}) => {
+export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
     const [documentUrl, setDocumentUrl] = React.useState("")
+    const store = useGdocsStore()
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const regex = /https:\/\/docs\.google\.com\/document\/d\/([^\/]+)\/edit/
 
-        const match = documentUrl.match(regex)
+        const [, id] = documentUrl.match(regex) || []
 
-        // handled by HTML5 validation below
-        if (!match) return
+        // fallback for HTML5 validation below
+        if (!id) return
 
-        const id = match[1]
-
+        await store.create(id)
         onAdd(id)
     }
     return (
