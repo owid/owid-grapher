@@ -298,11 +298,15 @@ export class AdminApp extends React.Component<{
                             <Route
                                 exact
                                 path="/gdocs/:id/edit"
-                                component={GdocsEditPage}
+                                render={(props: GdocsMatchProps) => (
+                                    <GdocsStoreProvider>
+                                        <GdocsEditPage {...props} />
+                                    </GdocsStoreProvider>
+                                )}
                             />
                             <Route
                                 path="/gdocs"
-                                component={(props: GdocsMatchProps) => (
+                                render={(props: GdocsMatchProps) => (
                                     <GdocsStoreProvider>
                                         <GdocsIndexPage {...props} />
                                     </GdocsStoreProvider>
