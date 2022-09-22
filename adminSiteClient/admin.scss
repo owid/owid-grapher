@@ -1263,6 +1263,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 }
 
 .GdocsEditPage {
+    .anticon svg {
+        vertical-align: unset; // undo reboot.css
+    }
+
     .admin-bar {
         position: sticky;
         top: 0;
@@ -1287,10 +1291,5 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 
     .ant-typography-edit {
         margin-right: 12px;
-    }
-    .content-syncing {
-        svg {
-            vertical-align: middle;
-        }
     }
 }
