@@ -81,8 +81,8 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
 
     const onPublish = async () => {
         if (!gdoc || (gdoc.published && hasErrors)) return
-
-        await store.update({ ...gdoc, published: true }, [
+        const publishedGdoc = { ...gdoc, published: true }
+        await store.update(publishedGdoc, [
             {
                 op: GdocsPatchOp.Update,
                 property: "published",
@@ -90,17 +90,15 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
             },
         ])
 
+        setGdoc(publishedGdoc)
+        setOriginalGdoc(publishedGdoc)
         openNotification(
             "success",
             "Document saved",
-            gdoc.published ? (
-                <span>
-                    Your changes have been scheduled for publication.{" "}
-                    <a href="/admin/deploys">Check deploy progress</a>
-                </span>
-            ) : (
-                ""
-            )
+            <span>
+                Your changes have been scheduled for publication.{" "}
+                <a href="/admin/deploys">Check deploy progress</a>
+            </span>
         )
     }
 

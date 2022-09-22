@@ -22,7 +22,7 @@ export const GdocsSaveButtons = ({
         <Space>
             <Button disabled={hasErrors} type="primary" onClick={onPublish}>
                 {published ? "Republish" : "Publish"}
-                {hasChanges ? (
+                {hasChanges && published ? (
                     <FontAwesomeIcon
                         icon={faCircle}
                         size="xs"
