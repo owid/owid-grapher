@@ -1,5 +1,9 @@
 /* Page Navigation Sidebar
 --------------------------------------------- */
+.sidebar-root {
+    margin-top: -16px;
+}
+
 .toc-wrapper {
     @include xxlg-down {
         height: 2rem; // HACK, prevent "Contents" button to run over content when page hasn't been scrolled yet.
@@ -14,11 +18,7 @@
     width: $sidebar-content-width + 2 * $padding-x-md;
     z-index: $zindex-sidebar;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
-    background-color: $white;
-
-    &.sticky {
-        background: $blue-10;
-    }
+    background: $blue-10;
 
     .entry-toc {
         top: 0;
@@ -132,7 +132,6 @@
     @include xxlg-up {
         position: relative;
         height: 100%;
-        background-color: initial;
 
         .sticky-sentinel {
             position: absolute;

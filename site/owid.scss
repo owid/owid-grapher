@@ -631,11 +631,12 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 .with-sidebar .section-heading {
     @include xxlg-up {
         position: relative;
-        width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
-        margin-left: calc(
-            50% - 50vw - #{($sidebar-content-width + 2 * $padding-x-md) * 0.5}
+        width: calc(100vw - $sidebar-width);
+        margin-left: 0;
+        left: min(
+            calc((100vw - 100% - $sidebar-width) / -2),
+            calc(-1 * $padding-x-md)
         );
-        left: $sidebar-content-width + 2 * $padding-x-md;
     }
 }
 
