@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react"
 import { AdminLayout } from "./AdminLayout.js"
-import { FieldsRow, Modal, SearchField } from "./Forms.js"
+import { FieldsRow, Modal } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons/faCirclePlus"
 import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons/faCloudArrowUp"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
@@ -35,17 +35,6 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
         }
         fetchGdocs()
     }, [admin, store])
-
-    const onAdd = async (id: string) => {
-        const gdoc = (await admin.requestJSON(
-            `/api/gdocs/${id}`,
-            {},
-            "PUT"
-        )) as OwidArticleType
-        store.addGdoc(gdoc)
-
-        history.push(`/gdocs/${id}/edit`)
-    }
 
     return (
         <AdminLayout title="Google Docs">
@@ -85,7 +74,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                             </thead>
                             <tbody>
                                 {store.gdocs.map((gdoc) => (
-                                    <tr key={gdoc.slug}>
+                                    <tr key={gdoc.id}>
                                         <td>{gdoc.title}</td>
                                         <td>{gdoc.slug}</td>
                                         <td>Type</td>
@@ -145,7 +134,11 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
 
                     return (
                         <Modal onClose={onClose}>
-                            <GdocsAdd onAdd={onAdd} />
+                            <GdocsAdd
+                                onAdd={(id: string) =>
+                                    history.push(`${match.url}/${id}/edit`)
+                                }
+                            />
                         </Modal>
                     )
                 }}
