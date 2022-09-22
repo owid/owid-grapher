@@ -10,7 +10,9 @@ import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
-
+import { Observer } from "mobx-react"
+import { useGdocsStore } from "./GdocsStore.js"
+import { runInAction } from "mobx"
 interface GdocsMatchParams {
     id: string
 }
@@ -18,19 +20,21 @@ interface GdocsMatchParams {
 export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
 
 export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
-    const [gdocs, setGdocs] = React.useState<OwidArticleType[]>([])
-
     const { admin } = useContext(AdminAppContext)
+    const store = useGdocsStore()
 
     useEffect(() => {
-        const fetchGodcs = async () => {
+        const fetchGdocs = async () => {
             const gdocs = (await admin.getJSON(
                 "/api/gdocs"
             )) as OwidArticleType[]
-            setGdocs(gdocs)
+
+            runInAction(() => {
+                store.gdocs = gdocs
+            })
         }
-        fetchGodcs()
-    }, [admin])
+        fetchGdocs()
+    }, [admin, store])
 
     const onAdd = async (id: string) => {
         const gdoc = (await admin.requestJSON(
@@ -38,93 +42,101 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
             {},
             "PUT"
         )) as OwidArticleType
-        setGdocs([...gdocs, gdoc])
+        store.addGdoc(gdoc)
 
         history.push(`/gdocs/${id}/edit`)
     }
 
     return (
         <AdminLayout title="Google Docs">
-            <main>
-                <FieldsRow>
-                    <span>
-                        {/* Showing {postsToShow.length} of {numTotalRows} posts */}
-                    </span>
-                    {/* <SearchField
-                            placeholder="Search all posts..."
-                            value={searchInput}
-                            onValue={this.onSearchInput}
-                            autofocus
-                        /> */}
+            <Observer>
+                {() => (
+                    <main>
+                        <FieldsRow>
+                            <span>
+                                Showing {store.gdocs.length} Google Docs
+                                {/* Showing {postsToShow.length} of {numTotalRows} posts */}
+                            </span>
+                            {/* <SearchField
+                        placeholder="Search all posts..."
+                        value={searchInput}
+                        onValue={this.onSearchInput}
+                        autofocus
+                    /> */}
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => history.push(`${match.url}/add`)}
+                            >
+                                <FontAwesomeIcon icon={faCirclePlus} /> Add
+                                document
+                            </button>
+                        </FieldsRow>
+                        <table className="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Authors</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Tags</th>
+                                    <th>Last Updated</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {store.gdocs.map((gdoc) => (
+                                    <tr key={gdoc.slug}>
+                                        <td>{gdoc.title}</td>
+                                        <td>{gdoc.slug}</td>
+                                        <td>Type</td>
+                                        <td>Status</td>
+                                        <td>Tags</td>
+                                        <td>Last Updated</td>
+                                        <td>
+                                            <button>
+                                                <FontAwesomeIcon
+                                                    icon={faCloudArrowUp}
+                                                />
+                                                Publish
+                                            </button>
+                                            <Link
+                                                to={`${match.url}/${gdoc.id}/settings`}
+                                            >
+                                                <FontAwesomeIcon
+                                                    icon={faGear}
+                                                />
+                                                Settings
+                                            </Link>
+                                            <Link
+                                                to={`${match.url}/${gdoc.id}/edit`}
+                                                className="btn btn-primary"
+                                            >
+                                                Edit
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {/* {postsToShow.map((post) => (
+                            <PostRow
+                                key={post.id}
+                                post={post}
+                                highlight={highlight}
+                                availableTags={this.availableTags}
+                            />
+                        ))} */}
+                            </tbody>
+                        </table>
+                        {/* {!searchInput && (
                     <button
-                        className="btn btn-primary"
-                        onClick={() => history.push(`${match.url}/add`)}
+                        className="btn btn-secondary"
+                        onClick={this.onShowMore}
                     >
-                        <FontAwesomeIcon icon={faCirclePlus} /> Add document
+                        Show more posts...
                     </button>
-                </FieldsRow>
-                <table className="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Authors</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Tags</th>
-                            <th>Last Updated</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {gdocs.map((gdoc) => (
-                            <tr key={gdoc.slug}>
-                                <td>{gdoc.title}</td>
-                                <td>{gdoc.slug}</td>
-                                <td>Type</td>
-                                <td>Status</td>
-                                <td>Tags</td>
-                                <td>Last Updated</td>
-                                <td>
-                                    <button>
-                                        <FontAwesomeIcon
-                                            icon={faCloudArrowUp}
-                                        />
-                                        Publish
-                                    </button>
-                                    <Link
-                                        to={`${match.url}/${gdoc.id}/settings`}
-                                    >
-                                        <FontAwesomeIcon icon={faGear} />
-                                        Settings
-                                    </Link>
-                                    <Link
-                                        to={`${match.url}/${gdoc.id}/edit`}
-                                        className="btn btn-primary"
-                                    >
-                                        Edit
-                                    </Link>
-                                </td>
-                            </tr>
-                        ))}
-                        {/* {postsToShow.map((post) => (
-                                <PostRow
-                                    key={post.id}
-                                    post={post}
-                                    highlight={highlight}
-                                    availableTags={this.availableTags}
-                                />
-                            ))} */}
-                    </tbody>
-                </table>
-                {/* {!searchInput && (
-                        <button
-                            className="btn btn-secondary"
-                            onClick={this.onShowMore}
-                        >
-                            Show more posts...
-                        </button>
-                    )} */}
-            </main>
+                )} */}
+                    </main>
+                )}
+            </Observer>
 
             <Route
                 path={`${match.path}/add`}

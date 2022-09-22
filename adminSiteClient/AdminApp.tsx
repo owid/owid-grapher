@@ -42,8 +42,9 @@ import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { DetailsOnDemandPage } from "./DetailsOnDemand.js"
-import { GdocsIndexPage } from "./GdocsIndexPage.js"
+import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsEditPage } from "./GdocsEditPage.js"
+import { GdocsStoreProvider } from "./GdocsStore.js"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -299,7 +300,14 @@ export class AdminApp extends React.Component<{
                                 path="/gdocs/:id/edit"
                                 component={GdocsEditPage}
                             />
-                            <Route path="/gdocs" component={GdocsIndexPage} />
+                            <Route
+                                path="/gdocs"
+                                component={(props: GdocsMatchProps) => (
+                                    <GdocsStoreProvider>
+                                        <GdocsIndexPage {...props} />
+                                    </GdocsStoreProvider>
+                                )}
+                            />
                             <Route
                                 exact
                                 path="/test"
