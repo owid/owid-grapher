@@ -1,7 +1,11 @@
 import React, { useContext } from "react"
 import { observable, runInAction } from "mobx"
 import { createContext, useState } from "react"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import {
+    GdocsPatch,
+    GdocsPatchOp,
+    OwidArticleType,
+} from "../clientUtils/owidTypes.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
 
@@ -21,6 +25,43 @@ export class GdocsStore {
             "PUT"
         )) as OwidArticleType
         runInAction(() => this.gdocs.push(gdoc))
+    }
+
+    async update(gdoc: OwidArticleType, overridePatch?: GdocsPatch[]) {
+        // todo simplify from the knowledge of update as a  single responsibility?
+        const gdocsPatches: GdocsPatch[] = [
+            {
+                op: GdocsPatchOp.Update,
+                property: "title",
+                payload: gdoc.title,
+            },
+            {
+                op: GdocsPatchOp.Update,
+                property: "slug",
+                payload: gdoc.slug,
+            },
+            {
+                op: GdocsPatchOp.Update,
+                property: "content",
+                payload: gdoc.content,
+            },
+            ...(overridePatch ?? []),
+        ]
+
+        await this.admin.requestJSON(
+            `/api/gdocs/${gdoc.id}`,
+            gdocsPatches,
+            "PATCH"
+        )
+
+        runInAction(() => {
+            const gdocToUpdateIdx = this.gdocs.findIndex(
+                (someGdoc) => someGdoc.id === gdoc.id
+            )
+            if (!gdocToUpdateIdx) return
+
+            this.gdocs.splice(gdocToUpdateIdx, 1, gdoc)
+        })
     }
 }
 
