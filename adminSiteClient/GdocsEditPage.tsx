@@ -6,7 +6,6 @@ import { OwidArticle } from "../site/gdocs/owid-article.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     GdocsContentSource,
-    GdocsPatch,
     GdocsPatchOp,
     OwidArticleType,
 } from "../clientUtils/owidTypes.js"
@@ -24,12 +23,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { useInterval } from "../site/hooks.js"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
-import { faCircle } from "@fortawesome/free-solid-svg-icons/faCircle"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { isEqual } from "../clientUtils/Util.js"
 import { ButtonBadge } from "./ButtonBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
+import { ExclamationCircleOutlined, SyncOutlined } from "@ant-design/icons"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
@@ -151,34 +149,25 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                             >
                                 {gdoc.title}
                             </Typography.Title>
-                            {gdoc.published ? (
-                                <Tag color="success">live</Tag>
-                            ) : (
+                            {!gdoc.published && (
                                 <Tag color="default">Draft</Tag>
+                            )}
+                            {syncingError ? (
+                                <Tag
+                                    icon={<ExclamationCircleOutlined />}
+                                    color="warning"
+                                >
+                                    Syncing error, retrying...
+                                </Tag>
+                            ) : (
+                                <Tag icon={<SyncOutlined />} color="processing">
+                                    Refreshing preview
+                                </Tag>
                             )}
                         </div>
                     </Col>
                     <Col>
                         <Space>
-                            <span className="mr-2">
-                                {syncingError ? (
-                                    <span className="warning">
-                                        <span>Syncing error, retrying...</span>{" "}
-                                        <FontAwesomeIcon
-                                            icon={faExclamationTriangle}
-                                            color="orange"
-                                        />
-                                    </span>
-                                ) : (
-                                    <span className="success">
-                                        Content syncing{" "}
-                                        <FontAwesomeIcon
-                                            icon={faCircle}
-                                            size="xs"
-                                        />
-                                    </span>
-                                )}
-                            </span>
                             <GdocsSaveButtons
                                 published={gdoc.published}
                                 hasErrors={hasErrors}
