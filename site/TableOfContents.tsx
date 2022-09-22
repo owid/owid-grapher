@@ -38,40 +38,14 @@ export const TableOfContents = ({
     hideSubheadings,
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
-    const [isSticky, setIsSticky] = useState(false)
     const [activeHeading, setActiveHeading] = useState("")
     const tocRef = useRef<HTMLElement>(null)
-    const stickySentinelRef = useRef<HTMLDivElement>(null)
 
     const toggle = () => {
         setIsToggled(!isToggled)
     }
 
     useTriggerWhenClickOutside(tocRef, isToggled, setIsToggled)
-
-    useEffect(() => {
-        if ("IntersectionObserver" in window) {
-            // Sets up an intersection observer to notify when the element with the class
-            // `.sticky-sentinel` becomes visible/invisible at the top of the viewport.
-            // Inspired by https://developers.google.com/web/updates/2017/09/sticky-headers
-            const observer = new IntersectionObserver((records) => {
-                for (const record of records) {
-                    const targetInfo = record.boundingClientRect
-                    // Started sticking
-                    if (targetInfo.top < 0) {
-                        setIsSticky(true)
-                    }
-                    // Stopped sticking
-                    if (targetInfo.bottom > 0) {
-                        setIsSticky(false)
-                    }
-                }
-            })
-            if (stickySentinelRef.current) {
-                observer.observe(stickySentinelRef.current)
-            }
-        }
-    }, [])
 
     useEffect(() => {
         if ("IntersectionObserver" in window) {
@@ -149,12 +123,9 @@ export const TableOfContents = ({
     return (
         <div className={TOC_WRAPPER_CLASSNAME}>
             <aside
-                className={`entry-sidebar${isToggled ? " toggled" : ""}${
-                    isSticky ? " sticky" : ""
-                }`}
+                className={`entry-sidebar${isToggled ? " toggled" : ""}`}
                 ref={tocRef}
             >
-                <div className="sticky-sentinel" ref={stickySentinelRef} />
                 <nav className="entry-toc">
                     <ul>
                         <li>
