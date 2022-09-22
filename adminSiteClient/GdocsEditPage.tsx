@@ -27,7 +27,9 @@ import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { isEqual } from "../clientUtils/Util.js"
 import { ButtonBadge } from "./ButtonBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
-import { ExclamationCircleOutlined, SyncOutlined } from "@ant-design/icons"
+import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate"
+import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
@@ -154,13 +156,24 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                             )}
                             {syncingError ? (
                                 <Tag
-                                    icon={<ExclamationCircleOutlined />}
+                                    icon={
+                                        <FontAwesomeIcon
+                                            icon={faExclamationTriangle}
+                                        />
+                                    }
                                     color="warning"
                                 >
                                     Syncing error, retrying...
                                 </Tag>
                             ) : (
-                                <Tag icon={<SyncOutlined />} color="processing">
+                                <Tag
+                                    icon={
+                                        <FontAwesomeIcon
+                                            icon={faArrowsRotate}
+                                        />
+                                    }
+                                    color="success"
+                                >
                                     Refreshing preview
                                 </Tag>
                             )}
@@ -168,6 +181,11 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                     </Col>
                     <Col>
                         <Space>
+                            {!gdoc.published && (
+                                <span className="mr-2">
+                                    <GdocsSaveStatus hasChanges={hasChanges} />
+                                </span>
+                            )}
                             <GdocsSaveButtons
                                 published={gdoc.published}
                                 hasErrors={hasErrors}
