@@ -21,7 +21,7 @@ import {
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
-import { useInterval } from "../site/hooks.js"
+import { useDebounceCallback, useInterval } from "../site/hooks.js"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { isEqual } from "../clientUtils/Util.js"
@@ -118,13 +118,16 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
         setErrors(errors)
     }, [gdoc])
 
+    const save = useDebounceCallback((gdoc: OwidArticleType) => {
+        store.update(gdoc)
+        setOriginalGdoc(gdoc)
+    }, 2000)
+
     // Auto-save on change
     useEffect(() => {
         if (!gdoc || !hasChanges || gdoc.published) return
-        console.log("saving")
-        store.update(gdoc)
-        setOriginalGdoc(gdoc)
-    }, [store, gdoc, hasChanges])
+        save(gdoc)
+    }, [save, gdoc, hasChanges])
 
     return gdoc ? (
         <AdminLayout title="Google Docs - Edit" noSidebar fixedNav={false}>
