@@ -197,27 +197,36 @@ figure[data-explorer-src] {
     }
 
     @include lg-up {
-        &.is-style-sticky-right .wp-block-column,
-        &.is-style-sticky-left .wp-block-column {
-            &:first-child {
+        &.is-style-sticky-right {
+            .wp-block-column:first-child {
                 grid-column: 1 / 6;
             }
-            &:last-child {
+            .wp-block-column:last-child {
                 grid-column: 6 / 13;
             }
-            .wp-sticky-container {
+            .wp-block-column .wp-sticky-container {
+                @include sticky-child;
+            }
+        }
+
+        &.is-style-sticky-left {
+            .wp-block-column:first-child {
+                grid-column: 1 / 8;
+            }
+            .wp-block-column:last-child {
+                grid-column: 8 / 13;
+            }
+            .wp-block-column .wp-sticky-container {
                 @include sticky-child;
             }
         }
     }
-    @include lg-up {
-        &.is-style-side-by-side {
-            .wp-block-column:first-child {
-                grid-column: 1 / 7;
-            }
-            .wp-block-column:last-child {
-                grid-column: 7 / 13;
-            }
+    &.is-style-side-by-side {
+        .wp-block-column:first-child {
+            grid-column: 1 / 7;
+        }
+        .wp-block-column:last-child {
+            grid-column: 7 / 13;
         }
     }
 }
