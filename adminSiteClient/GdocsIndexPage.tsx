@@ -54,7 +54,9 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                     /> */}
                             <button
                                 className="btn btn-primary"
-                                onClick={() => history.push(`${match.url}/add`)}
+                                onClick={() =>
+                                    history.push(`${match.path}/add`)
+                                }
                             >
                                 <FontAwesomeIcon icon={faCirclePlus} /> Add
                                 document
@@ -130,13 +132,13 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
             <Route
                 path={`${match.path}/add`}
                 render={() => {
-                    const onClose = () => history.push(match.url)
+                    const onClose = () => history.push(match.path)
 
                     return (
                         <Modal onClose={onClose}>
                             <GdocsAdd
                                 onAdd={(id: string) =>
-                                    history.push(`${match.url}/${id}/edit`)
+                                    history.push(`${match.path}/${id}/edit`)
                                 }
                             />
                         </Modal>
