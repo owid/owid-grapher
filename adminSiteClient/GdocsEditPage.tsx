@@ -30,37 +30,19 @@ import { useGdocsStore } from "./GdocsStore.js"
 import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate"
 import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import { Admin } from "./Admin.js"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
     const [originalGdoc, setOriginalGdoc] = useState<OwidArticleType>()
     const [isSettingsOpen, setSettingsOpen] = useState(false)
-    const [syncingError, setSyncingError] = React.useState(false)
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
 
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
 
-    const updatePreview = useCallback(async () => {
-        try {
-            const draftGdoc = (await admin.requestJSON(
-                `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
-                {},
-                "GET",
-                { onFailure: "continue" }
-            )) as OwidArticleType
-            setGdoc((currGdoc) =>
-                currGdoc
-                    ? { ...currGdoc, content: draftGdoc.content }
-                    : draftGdoc
-            )
-            setSyncingError(false)
-        } catch (e) {
-            console.log(e)
-            setSyncingError(true)
-        }
-    }, [admin, id])
+    const syncingError = useUpdatePreviewContent(id, !gdoc, setGdoc, admin)
 
     useEffect(() => {
         const fetchOriginalGdoc = async () => {
@@ -101,15 +83,6 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
             </span>
         )
     }
-
-    // Fetch the gdoc on mount
-    useEffect(() => {
-        updatePreview()
-        admin.loadingIndicatorSetting = "off"
-    }, [admin, updatePreview])
-
-    // Sync content every 5 seconds
-    useInterval(updatePreview, 5000)
 
     // Handle errors and validation status
     useEffect(() => {
@@ -242,6 +215,49 @@ export const useGdocsChanged = (
     }, [prevGdoc, nextGdoc])
 
     return hasChanges
+}
+
+export const useUpdatePreviewContent = (
+    id: string,
+    initialLoad: boolean,
+    setGdoc: React.Dispatch<React.SetStateAction<OwidArticleType | undefined>>,
+    admin: Admin
+) => {
+    const [syncingError, setSyncingError] = React.useState(false)
+
+    const updatePreviewContent = useCallback(async () => {
+        try {
+            const draftGdoc = (await admin.requestJSON(
+                `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
+                {},
+                "GET",
+                { onFailure: "continue" }
+            )) as OwidArticleType
+            setGdoc((currGdoc: OwidArticleType | undefined) =>
+                currGdoc
+                    ? { ...currGdoc, content: draftGdoc.content }
+                    : draftGdoc
+            )
+            setSyncingError(false)
+        } catch (e) {
+            console.log(e)
+            setSyncingError(true)
+        }
+    }, [admin, id, setGdoc])
+
+    // Initial load behaviours
+    useEffect(() => {
+        if (initialLoad) {
+            updatePreviewContent()
+        } else {
+            admin.loadingIndicatorSetting = "off"
+        }
+    }, [admin, updatePreviewContent, initialLoad])
+
+    // Sync content every 5 seconds
+    useInterval(updatePreviewContent, 5000)
+
+    return syncingError
 }
 
 type NotificationType = "success" | "info" | ErrorMessageType
