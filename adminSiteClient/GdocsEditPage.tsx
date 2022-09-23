@@ -1,14 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettings } from "./GdocsSettingsForm.js"
 import { OwidArticle } from "../site/gdocs/owid-article.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import {
-    GdocsContentSource,
-    GdocsPatchOp,
-    OwidArticleType,
-} from "../clientUtils/owidTypes.js"
+import { GdocsPatchOp, OwidArticleType } from "../clientUtils/owidTypes.js"
 import {
     Button,
     Col,
@@ -21,16 +17,15 @@ import {
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
-import { useDebounceCallback, useInterval } from "../site/hooks.js"
+import { useDebounceCallback } from "../site/hooks.js"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
-import { isEqual } from "../clientUtils/Util.js"
 import { IconBadge } from "./IconBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
 import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate"
 import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
-import { Admin } from "./Admin.js"
+import { useUpdatePreviewContent, useGdocsChanged } from "./gdocsHooks.js"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
@@ -202,62 +197,6 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
             </main>
         </AdminLayout>
     ) : null
-}
-
-export const useGdocsChanged = (
-    prevGdoc: OwidArticleType | undefined,
-    nextGdoc: OwidArticleType | undefined
-) => {
-    const [hasChanges, setHasChanges] = useState(false)
-
-    useEffect(() => {
-        setHasChanges(!isEqual(prevGdoc, nextGdoc))
-    }, [prevGdoc, nextGdoc])
-
-    return hasChanges
-}
-
-export const useUpdatePreviewContent = (
-    id: string,
-    initialLoad: boolean,
-    setGdoc: React.Dispatch<React.SetStateAction<OwidArticleType | undefined>>,
-    admin: Admin
-) => {
-    const [syncingError, setSyncingError] = React.useState(false)
-
-    const updatePreviewContent = useCallback(async () => {
-        try {
-            const draftGdoc = (await admin.requestJSON(
-                `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
-                {},
-                "GET",
-                { onFailure: "continue" }
-            )) as OwidArticleType
-            setGdoc((currGdoc: OwidArticleType | undefined) =>
-                currGdoc
-                    ? { ...currGdoc, content: draftGdoc.content }
-                    : draftGdoc
-            )
-            setSyncingError(false)
-        } catch (e) {
-            console.log(e)
-            setSyncingError(true)
-        }
-    }, [admin, id, setGdoc])
-
-    // Initial load behaviours
-    useEffect(() => {
-        if (initialLoad) {
-            updatePreviewContent()
-        } else {
-            admin.loadingIndicatorSetting = "off"
-        }
-    }, [admin, updatePreviewContent, initialLoad])
-
-    // Sync content every 5 seconds
-    useInterval(updatePreviewContent, 5000)
-
-    return syncingError
 }
 
 type NotificationType = "success" | "info" | ErrorMessageType
