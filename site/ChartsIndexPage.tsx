@@ -104,7 +104,6 @@ export const ChartsIndexPage = (props: {
                                             type="search"
                                             className="chartsSearchInput"
                                             placeholder="Filter interactive charts by title"
-                                            autoFocus
                                         />
                                     </header>
                                     <section id="explorers-section">
