@@ -1,9 +1,7 @@
 import React, { useContext, useEffect } from "react"
 import { AdminLayout } from "./AdminLayout.js"
-import { FieldsRow, Modal } from "./Forms.js"
+import { Modal } from "./Forms.js"
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons/faCirclePlus"
-import { faCloudArrowUp } from "@fortawesome/free-solid-svg-icons/faCloudArrowUp"
-import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
@@ -41,17 +39,10 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
             <Observer>
                 {() => (
                     <main>
-                        <FieldsRow>
+                        <div className="d-flex justify-content-between mb-3">
                             <span>
                                 Showing {store.gdocs.length} Google Docs
-                                {/* Showing {postsToShow.length} of {numTotalRows} posts */}
                             </span>
-                            {/* <SearchField
-                        placeholder="Search all posts..."
-                        value={searchInput}
-                        onValue={this.onSearchInput}
-                        autofocus
-                    /> */}
                             <button
                                 className="btn btn-primary"
                                 onClick={() =>
@@ -61,15 +52,14 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                 <FontAwesomeIcon icon={faCirclePlus} /> Add
                                 document
                             </button>
-                        </FieldsRow>
+                        </div>
                         <table className="table table-bordered">
                             <thead>
                                 <tr>
                                     <th>Title</th>
-                                    <th>Authors</th>
+                                    <th>Slug</th>
                                     <th>Type</th>
                                     <th>Status</th>
-                                    <th>Tags</th>
                                     <th>Last Updated</th>
                                     <th></th>
                                 </tr>
@@ -79,27 +69,16 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                     <tr key={gdoc.id}>
                                         <td>{gdoc.title}</td>
                                         <td>{gdoc.slug}</td>
-                                        <td>Type</td>
-                                        <td>Status</td>
-                                        <td>Tags</td>
-                                        <td>Last Updated</td>
+                                        <td>Article</td>
                                         <td>
-                                            <button>
-                                                <FontAwesomeIcon
-                                                    icon={faCloudArrowUp}
-                                                />
-                                                Publish
-                                            </button>
+                                            {gdoc.published
+                                                ? "Published"
+                                                : "Draft"}
+                                        </td>
+                                        <td>{gdoc.updatedAt}</td>
+                                        <td>
                                             <Link
-                                                to={`${match.url}/${gdoc.id}/settings`}
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faGear}
-                                                />
-                                                Settings
-                                            </Link>
-                                            <Link
-                                                to={`${match.url}/${gdoc.id}/edit`}
+                                                to={`${match.path}/${gdoc.id}/edit`}
                                                 className="btn btn-primary"
                                             >
                                                 Edit
@@ -107,24 +86,8 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                         </td>
                                     </tr>
                                 ))}
-                                {/* {postsToShow.map((post) => (
-                            <PostRow
-                                key={post.id}
-                                post={post}
-                                highlight={highlight}
-                                availableTags={this.availableTags}
-                            />
-                        ))} */}
                             </tbody>
                         </table>
-                        {/* {!searchInput && (
-                    <button
-                        className="btn btn-secondary"
-                        onClick={this.onShowMore}
-                    >
-                        Show more posts...
-                    </button>
-                )} */}
                     </main>
                 )}
             </Observer>
