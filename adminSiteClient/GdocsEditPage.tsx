@@ -25,7 +25,7 @@ import { useDebounceCallback, useInterval } from "../site/hooks.js"
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { isEqual } from "../clientUtils/Util.js"
-import { ButtonBadge } from "./ButtonBadge.js"
+import { IconBadge } from "./IconBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
 import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate"
 import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
@@ -196,18 +196,19 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                 hasChanges={hasChanges}
                                 onPublish={onPublish}
                             />
-                            <Button onClick={() => setSettingsOpen(true)}>
-                                <FontAwesomeIcon icon={faGear} />
-                                {hasErrors ? (
-                                    <ButtonBadge
-                                        status={ErrorMessageType.Error}
-                                    />
-                                ) : hasWarnings ? (
-                                    <ButtonBadge
-                                        status={ErrorMessageType.Warning}
-                                    />
-                                ) : null}
-                            </Button>
+                            <IconBadge
+                                status={
+                                    hasErrors
+                                        ? ErrorMessageType.Error
+                                        : hasWarnings
+                                        ? ErrorMessageType.Warning
+                                        : null
+                                }
+                            >
+                                <Button onClick={() => setSettingsOpen(true)}>
+                                    <FontAwesomeIcon icon={faGear} />
+                                </Button>
+                            </IconBadge>
                         </Space>
                     </Col>
                 </Row>

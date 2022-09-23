@@ -3,10 +3,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 import { ErrorMessageType } from "./gdocsValidation.js"
+import { Badge } from "antd"
 
-export const ButtonBadge = ({ status }: { status: ErrorMessageType }) => {
+export const IconBadge = ({
+    status,
+    children,
+}: {
+    status: ErrorMessageType | null
+    children: React.ReactNode
+}) => {
+    if (!status) return <>{children}</>
+
     let icon
-
     switch (status) {
         case ErrorMessageType.Warning:
             icon = faExclamationTriangle
@@ -17,14 +25,8 @@ export const ButtonBadge = ({ status }: { status: ErrorMessageType }) => {
     }
 
     return (
-        <FontAwesomeIcon
-            icon={icon}
-            className={status}
-            style={{
-                position: "absolute",
-                top: "-0.5em",
-                right: "-0.5em",
-            }}
-        />
+        <Badge count={<FontAwesomeIcon icon={icon} className={status} />}>
+            {children}
+        </Badge>
     )
 }
