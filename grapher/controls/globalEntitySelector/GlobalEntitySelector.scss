@@ -1,8 +1,11 @@
 .global-entity-control-container {
     position: sticky;
     top: 5px;
-    margin-left: 7rem; // HACK, making horizontal space for "Contents" button
     z-index: $zindex-global-entity-select;
+
+    @include xxlg-down {
+        margin-left: 128px; // space for ToC "Contents" button
+    }
 }
 
 .global-entity-control {

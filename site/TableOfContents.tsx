@@ -7,6 +7,7 @@ import { useTriggerWhenClickOutside } from "./hooks.js"
 import { wrapInDiv } from "../clientUtils/Util.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { TocHeading } from "../clientUtils/owidTypes.js"
+import classNames from "classnames"
 
 const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
@@ -37,15 +38,15 @@ export const TableOfContents = ({
     pageTitle,
     hideSubheadings,
 }: TableOfContentsData) => {
-    const [isToggled, setIsToggled] = useState(false)
+    const [isOpen, setIsOpen] = useState(false)
     const [activeHeading, setActiveHeading] = useState("")
     const tocRef = useRef<HTMLElement>(null)
 
-    const toggle = () => {
-        setIsToggled(!isToggled)
+    const toggleIsOpen = () => {
+        setIsOpen(!isOpen)
     }
 
-    useTriggerWhenClickOutside(tocRef, isToggled, setIsToggled)
+    useTriggerWhenClickOutside(tocRef, isOpen, setIsOpen)
 
     useEffect(() => {
         if ("IntersectionObserver" in window) {
@@ -123,7 +124,9 @@ export const TableOfContents = ({
     return (
         <div className={TOC_WRAPPER_CLASSNAME}>
             <aside
-                className={`entry-sidebar${isToggled ? " toggled" : ""}`}
+                className={classNames("entry-sidebar", {
+                    "entry-sidebar--is-open": isOpen,
+                })}
                 ref={tocRef}
             >
                 <nav className="entry-toc">
@@ -131,7 +134,7 @@ export const TableOfContents = ({
                         <li>
                             <a
                                 onClick={() => {
-                                    toggle()
+                                    toggleIsOpen()
                                     setActiveHeading("")
                                 }}
                                 href="#"
@@ -159,7 +162,7 @@ export const TableOfContents = ({
                                     }
                                 >
                                     <a
-                                        onClick={toggle}
+                                        onClick={toggleIsOpen}
                                         href={`#${heading.slug}`}
                                         data-track-note="toc-link"
                                     >
@@ -173,13 +176,13 @@ export const TableOfContents = ({
                     <button
                         data-track-note="page-toggle-toc"
                         aria-label={`${
-                            isToggled ? "Close" : "Open"
+                            isOpen ? "Close" : "Open"
                         } table of contents`}
-                        onClick={toggle}
+                        onClick={toggleIsOpen}
                     >
-                        <FontAwesomeIcon icon={isToggled ? faTimes : faBars} />
+                        <FontAwesomeIcon icon={isOpen ? faTimes : faBars} />
                         <span className="label">
-                            {isToggled ? "Close" : "Contents"}
+                            {isOpen ? "Close" : "Contents"}
                         </span>
                     </button>
                 </div>
