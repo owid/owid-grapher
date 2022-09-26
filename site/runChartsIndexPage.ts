@@ -86,7 +86,8 @@ class ChartFilter {
             null,
             document.title,
             window.location.pathname +
-                (this.query ? `?search=${encodeHashSafe(this.query)}` : "")
+                (this.query ? `?search=${encodeHashSafe(this.query)}` : "") +
+                window.location.hash
         )
 
         if (!this.query) {
