@@ -27,8 +27,9 @@ import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { useUpdatePreviewContent, useGdocsChanged } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
+import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 
-export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
+export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
     const [originalGdoc, setOriginalGdoc] = useState<OwidArticleType>()
@@ -105,14 +106,18 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                 >
                     <Col flex={1}>
                         <div className="d-flex align-items-center">
+                            <Button
+                                className="mr-3"
+                                onClick={() => history.push("/gdocs")}
+                            >
+                                <FontAwesomeIcon icon={faAngleLeft} />
+                            </Button>
                             <Typography.Title
                                 editable={{
                                     onChange: (title) =>
                                         setGdoc({ ...gdoc, title }),
                                 }}
-                                style={{
-                                    marginBottom: 0,
-                                }}
+                                className="mb-0"
                                 level={4}
                             >
                                 {gdoc.title}
