@@ -4,7 +4,7 @@
     padding: $padding-x-sm;
     font-weight: initial; // prevent style bleed when surrounding text is <strong>
     font-style: initial; // prevent style bleed when surrounding text is <em>
-    background-color: $primary-color-100;
+    background-color: $blue-10;
 
     .title {
         display: block;
@@ -12,7 +12,7 @@
         text-transform: uppercase;
         font-size: 0.8rem;
         font-weight: bold;
-        color: $primary-color-400;
+        color: $blue-40;
     }
 
     a {

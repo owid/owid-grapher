@@ -10,8 +10,7 @@
     .sticky-nav-container {
         @include content-wrapper;
         @include lg-up {
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
+            max-width: $xlg;
         }
     }
     @include sm-only {
@@ -94,7 +93,7 @@
             text-decoration: underline;
             transition: all 0.2s;
             &:hover {
-                color: $secondary-color;
+                color: $vermillion;
             }
         }
 
@@ -105,7 +104,7 @@
 
     &.large-banner {
         .offset-header {
-            background-color: $primary-color-100;
+            background-color: $blue-10;
         }
 
         .article-titles {

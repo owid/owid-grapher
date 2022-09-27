@@ -7,14 +7,14 @@
         transition: all 0.2s;
     }
 
-    background-color: $primary-color-100;
-    border: 1px solid $primary-color-100;
+    background-color: $blue-10;
+    border: 1px solid $blue-10;
     border-radius: 2px;
     transition: all 0.1s;
 
     &:hover {
         @include block-shadow;
-        border: 1px solid $primary-color-400;
+        border: 1px solid $blue-40;
         svg {
             margin-left: 0.8rem;
         }
@@ -46,7 +46,7 @@
         margin-bottom: $vertical-spacing;
         .content-wrapper {
             padding: 0.5rem;
-            background-color: $primary-color-100;
+            background-color: $blue-10;
         }
         .content {
             font-size: 0.9rem;

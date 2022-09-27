@@ -19,6 +19,7 @@ import { Bounds, DEFAULT_BOUNDS } from "../../clientUtils/Bounds.js"
 import {
     BASE_FONT_SIZE,
     EntitySelectionMode,
+    Patterns,
 } from "../core/GrapherConstants.js"
 import { DualAxisComponent } from "../axis/AxisViews.js"
 import { NoDataModal } from "../noDataModal/NoDataModal.js"
@@ -59,7 +60,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants.js"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray.js"
 import { ColorScheme } from "../color/ColorScheme.js"
@@ -325,7 +326,7 @@ export class MarimekkoChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     defaultBaseColorScheme = ColorSchemeName.continents
-    defaultNoDataColor = "#959595"
+    defaultNoDataColor = OwidNoDataGray
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     transformTable(table: OwidTable): OwidTable {
@@ -990,7 +991,6 @@ export class MarimekkoChart
         const hasSelection = selectionSet.size > 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
-        let patterns: JSX.Element[] = []
         const noDataHeight = Bounds.forText("no data").height + 10 //  dualAxis.verticalAxis.rangeSize
 
         const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
@@ -1047,25 +1047,12 @@ export class MarimekkoChart
                     //transform={`translate(${barX}, ${barY - barHeight})`}
                     width={noDataRangeEndX - noDataRangeStartX}
                     height={noDataHeight}
-                    fill={"url(#diagonalHatch)"}
+                    fill={`url(#${Patterns.noDataPattern})`}
                     // stroke={strokeColor}
                     // strokeWidth={strokeWidth}
                     opacity={0.5}
                 ></rect>
             )
-
-            patterns = [
-                <pattern
-                    id="diagonalHatch"
-                    key="diagonalHatch"
-                    patternUnits="userSpaceOnUse"
-                    width="4"
-                    height="4"
-                    patternTransform="rotate(-45 2 2)"
-                >
-                    <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="1" />
-                </pattern>,
-            ]
         }
 
         for (const item of placedItems) {
@@ -1144,7 +1131,6 @@ export class MarimekkoChart
         }
 
         return ([] as JSX.Element[]).concat(
-            patterns,
             noDataAreaElement ? [noDataAreaElement] : [],
             normalElements,
             placedLabels,

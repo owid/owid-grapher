@@ -4,11 +4,11 @@
         justify-content: space-between;
         align-items: center;
         padding: $vertical-spacing * 0.5 1rem; // match header spacing
-        color: $primary-color;
+        color: $blue-100;
         font-size: 0.9rem;
-        background-color: $tertiary-color;
+        background-color: $amber;
         &:hover {
-            background-color: $tertiary-color-brighter;
+            background-color: $amber-110;
         }
 
         @include md-up {
@@ -35,9 +35,9 @@
             display: inline-block;
             padding: 0.2rem 0.5rem;
             color: $white;
-            background-color: $primary-color;
+            background-color: $oxford-blue;
             &:hover {
-                background-color: $primary-color-700;
+                background-color: $blue-90;
             }
             transition: 200ms;
             border-radius: 3px;

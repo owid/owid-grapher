@@ -56,7 +56,7 @@ $zindex-dropdown: 100;
         flex: 0;
         white-space: nowrap;
         font-size: 14px;
-        color: $primary-color-700;
+        color: $blue-90;
         margin-right: 8px;
     }
 
@@ -64,7 +64,7 @@ $zindex-dropdown: 100;
         flex: 1;
         font-size: 14px;
         font-weight: 700;
-        color: $primary-color;
+        color: $blue-100;
     }
 
     .sort {
@@ -79,11 +79,11 @@ $zindex-dropdown: 100;
     align-items: center;
     padding: 10px;
     line-height: 1.3;
-    border-bottom: 1px solid $primary-color-200;
+    border-bottom: 1px solid $blue-20;
     font-size: 15px;
     cursor: pointer;
     color: $text-color;
-    background-color: $primary-color-50;
+    background-color: $blue-10;
     user-select: none;
     position: relative;
 
@@ -94,7 +94,7 @@ $zindex-dropdown: 100;
     }
 
     &.focused {
-        background-color: $primary-color-30;
+        background-color: $gray-10;
     }
 
     .input-container {
@@ -143,7 +143,7 @@ $zindex-dropdown: 100;
         flex: 0;
         font-size: 14px;
         font-weight: 400;
-        color: $primary-color-500;
+        color: $blue-50;
         text-align: right;
     }
 
@@ -159,13 +159,13 @@ $zindex-dropdown: 100;
 
     .bar {
         height: 100%;
-        background-color: rgba($primary-color, 0.03);
-        border-right: 1px solid rgba($primary-color, 0.05);
+        background-color: rgba($oxford-blue, 0.03);
+        border-right: 1px solid rgba($oxford-blue, 0.05);
     }
 
     &.selected .bar {
-        background-color: rgba($primary-color, 0.05);
-        border-right: 1px solid rgba($primary-color, 0.07);
+        background-color: rgba($oxford-blue, 0.05);
+        border-right: 1px solid rgba($oxford-blue, 0.07);
     }
 }
 
@@ -176,7 +176,7 @@ $zindex-dropdown: 100;
 .EntityPickerSearchInput {
     flex: 0;
     position: relative;
-    color: $primary-color-800;
+    color: $blue-90;
 
     .input-field {
         width: 100%;
@@ -231,7 +231,7 @@ $zindex-dropdown: 100;
         z-index: 2;
 
         button {
-            background-color: $primary-color;
+            background-color: $oxford-blue;
             padding: 8px 12px;
             font-size: 14px;
             color: white;
@@ -252,6 +252,5 @@ $zindex-dropdown: 100;
 
     .ExplorerFigure {
         min-height: 480px;
-        @include full-width;
     }
 }

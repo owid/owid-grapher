@@ -21,6 +21,7 @@
 @import "css/variables.scss";
 @import "css/colors.scss";
 @import "css/mixins.scss";
+@import "css/typography.scss";
 @import "css/category-coloring.scss";
 @import "css/util.scss";
 @import "css/layout.scss";
@@ -33,6 +34,7 @@
 @import "css/sidebar.scss";
 
 @import "css/homepage.scss";
+@import "css/topic-page.scss";
 @import "css/donate.scss";
 @import "css/faq.scss";
 @import "css/covid.scss";
@@ -115,7 +117,7 @@ header.blog-header h1 {
     text-align: center;
     font-family: $serif-font-stack;
     font-weight: 400;
-    background: $primary-color;
+    background: $oxford-blue;
     color: white;
     margin: auto;
     margin-bottom: 1rem;
@@ -489,7 +491,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     /* The CSS here is very precise so as not to interfere with any iframeless embeds */
 
     > p {
-        margin-bottom: 1em;
+        @include body-2-regular;
     }
 
     /* Subsections e.g. I.1 Historical perspective */
@@ -498,7 +500,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         margin-top: 5rem;
         margin-bottom: 2.5rem;
         padding-top: 2.5rem;
-        border-top: 1px solid $primary-color-200;
+        border-top: 1px solid $blue-20;
     }
 
     // e.g. see "Sector by sector: where do global greenhouse gas emissions come from?"
@@ -557,10 +559,6 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 .article-content .section-heading {
     .wrapper {
         @include content-wrapper;
-        @include lg-up {
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
-        }
     }
     @include full-width;
     padding-top: 2.5rem;
@@ -571,7 +569,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         padding-bottom: 4 * $vertical-spacing;
         margin-bottom: 5rem;
     }
-    background-color: $primary-color-200;
+    background-color: $blue-20;
 
     @include xxlg-up {
         width: calc(100vw - #{2 * $padding-x-md});
@@ -599,10 +597,10 @@ div.owid-presentations li:nth-of-type(1) a:hover {
         text-transform: uppercase;
         font-size: 0.9rem;
         font-weight: bold;
-        color: $primary-color-400;
+        color: $blue-40;
         .border {
             margin-left: 1rem;
-            background-color: $primary-color-300;
+            background-color: $blue-30;
             height: 0.7em;
             flex: 1;
         }
@@ -620,25 +618,18 @@ div.owid-presentations li:nth-of-type(1) a:hover {
     }
 
     a {
-        color: $primary-color;
+        color: $blue-100;
         &:hover svg {
             color: inherit;
         }
     }
     svg {
-        color: $primary-color-400;
+        color: $blue-40;
         margin-right: 0.5rem;
     }
 }
 
 .with-sidebar .section-heading {
-    @include md-up {
-        // position: relative;
-        // width: calc(100vw - #{$sidebar-closed-drawer-width});
-        // left: $sidebar-closed-drawer-width;
-        // margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
-    }
-
     @include xxlg-up {
         position: relative;
         width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
@@ -650,7 +641,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 }
 
 hr {
-    color: lightgrey;
+    color: $blue-20;
     border-bottom: none;
     border-left: none;
     border-right: none;
@@ -680,6 +671,8 @@ hr {
 
     ol.endnotes {
         margin-top: 1em;
+        padding-bottom: 24px;
+        border-bottom: 1px solid $blue-20;
     }
 
     ol.endnotes > li {
@@ -759,7 +752,6 @@ iframe:not(:first-child) {
     .deep-link {
         width: 12px;
         height: 12px;
-        margin-left: -11px;
     }
 }
 
@@ -998,7 +990,7 @@ html:not(.js) {
 
 .ChartsIndexPage #explorers-section {
     padding-bottom: $vertical-spacing;
-    border-bottom: 1px solid $primary-color-200;
+    border-bottom: 1px solid $blue-20;
 }
 
 .SearchPage > main,
@@ -1274,7 +1266,7 @@ html:not(.js) {
 
         .icon {
             font-size: 3rem;
-            color: rgba($primary-color, 0.45);
+            color: rgba($blue-100, 0.45);
         }
     }
 }

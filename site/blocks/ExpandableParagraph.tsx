@@ -32,7 +32,7 @@ export const ExpandableParagraph = (
                     className="expandable-paragraph__expand-button"
                     onClick={() => setIsExpanded(true)}
                 >
-                    Continue reading
+                    Show more
                 </button>
             )}
         </>

@@ -1,14 +1,19 @@
 .wp-block-media-text.is-style-biography {
     display: flex;
-    margin: $vertical-spacing 0 2 * $vertical-spacing;
+    margin-top: 16px;
+    margin-bottom: 32px;
+    @include md-down {
+        flex-direction: column;
+    }
     figure {
         margin-right: $padding-x-md;
-        flex: 0 0 8rem;
+        max-width: 128px;
+        min-width: 128px;
     }
     img {
         margin: 0;
         padding: 0;
-        border-radius: 80px;
+        border-radius: 50%;
     }
     h4,
     h5 {
@@ -16,6 +21,6 @@
     }
     h5 {
         font-weight: normal !important;
-        color: $primary-color-600;
+        color: $blue-60;
     }
 }

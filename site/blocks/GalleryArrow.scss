@@ -4,15 +4,15 @@ button.gallery-arrow {
     width: $gallery-navigation-button-size;
     height: $gallery-navigation-button-size;
     font-size: 1.2rem;
-    border: 2px solid $primary-color;
+    border: 2px solid $oxford-blue;
     border-radius: 50%;
     outline: none;
-    color: $primary-color;
+    color: $blue-100;
     cursor: pointer;
     background: none;
     &:hover {
         color: white;
-        background-color: $primary-color;
+        background-color: $oxford-blue;
     }
     &:disabled {
         color: lightgrey;

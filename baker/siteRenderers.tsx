@@ -72,7 +72,7 @@ import {
     KeyInsightsSlides,
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
-import { formatUrls } from "../site/formatting.js"
+import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
@@ -644,7 +644,9 @@ export const renderKeyInsights = async (
 
         const rendered = ReactDOMServer.renderToString(
             <>
-                <h3 id={slug}>{title}</h3>
+                <h2 id={slug} className={KEY_INSIGHTS_H2_CLASSNAME}>
+                    {title}
+                </h2>
                 <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
                     <div className="block-wrapper">
                         <KeyInsightsThumbs titles={titles} />

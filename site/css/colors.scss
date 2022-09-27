@@ -2,47 +2,49 @@
  * Colors
  */
 
-/* Oxford Blue */
-$primary-color: #002147;
-$primary-color-1000: $primary-color;
-$primary-color-900: #0d2e54;
-$primary-color-800: #1d3d63;
-$primary-color-700: #365578;
-$primary-color-600: #577291;
-$primary-color-500: #6e87a2;
-$primary-color-400: #92a5bb;
-$primary-color-300: #c0ccda;
-$primary-color-200: #d8e0e9;
-$primary-color-100: #ebeef2;
-$primary-color-50: #f4f5f7;
-$primary-color-30: #fafbfd;
+// Brand colors
+$oxford-blue: #002147;
+$vermillion: #ce261e;
+$amber: #f7c020;
 
-/* Blood Orange */
-$secondary-color: #d42b21;
+// Blue shades
+$blue-100: #002147;
+$blue-90: #1d3d63;
+$blue-60: #577291;
+$blue-50: #6e87a2;
+$blue-40: #98a9bd;
+$blue-30: #a4b6ca;
 
-/* Yellow */
-$tertiary-color: #f8c723;
-$tertiary-color-brighter: #f9cf44;
-$tertiary-color-100: #f4eddb;
-$tertiary-color-400: $tertiary-color;
-$tertiary-color-700: #d8b43b;
+/* Amber shades */
+$amber-110: #f9cf44;
+$amber-10: #f4eddb;
+
+// Background colors
+$blue-20: #dbe5f0;
+$blue-10: #ebeef2;
+$gray-10: #f7f7f7;
+$beige: #fbf9f3;
+$white: #ffffff;
+
+// Accent colors
+$accent-electric-blue: #2162e6;
+$accent-pale-blue: #e7f2ff;
+$accent-vermillion: #b40000;
+
+// Visited
+$purple-90: #631d49;
+$purple-60: #91577c;
 
 /* Highlight color */
 $highlight-color: #f8c723;
 
-/* Default background color */
-$body-bg: #fafafa;
-
-/* White */
-$white: #ffffff;
-
 /* Text colors */
-$text-color: $primary-color-800;
-$secondary-text-color: $primary-color-600;
-$tertiary-text-color: $tertiary-color;
-$error-text-color: $secondary-color;
+$tertiary-text-color: $amber;
 $grey-text-color: #616161;
-$bluish-grey-text-color: $primary-color-500;
+$text-color: $blue-90;
+$secondary-text-color: $blue-60;
+$bluish-grey-text-color: $blue-50;
+$error-text-color: $vermillion;
 
 /* Hyperlink colors */
 $link-color: #2162e6;
@@ -71,33 +73,3 @@ $culture-color: #af488f;
 $controls-color: #0073e6;
 $light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.08) 0px 2px 2px;
-
-// New color definitions from redesign
-// Brand colors
-$oxford-blue: #002147;
-$vermillion: #ce261e;
-$amber: #f7c020;
-
-// Text colors
-$blue-100: #002147;
-$blue-90: #1d3d63;
-$blue-60: #577291;
-$blue-50: #6e87a2;
-$blue-40: #98a9bd;
-$blue-30: #a4b6ca;
-
-// Accent colors
-$accent-electric-blue: #2162e6;
-$accent-pale-blue: #e7f2ff;
-$accent-vermillion: #b40000;
-
-// Visited
-$purple-90: #631d49;
-$purple-60: #91577c;
-
-// Background colors
-$blue-20: #dbe5f0;
-$blue-10: #ebeef2;
-$gray-10: #f7f7f7;
-$beige: #fbf9f3;
-$white: #ffffff;

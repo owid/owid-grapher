@@ -12,15 +12,12 @@ import {
     last,
     roundSigFig,
     mapNullToUndefined,
-    isString,
-    mapValues,
-    identity,
 } from "../../clientUtils/Util.js"
 import { Color, CoreValueType } from "../../coreTable/CoreTableConstants.js"
 import { ColorSchemes } from "../color/ColorSchemes.js"
 import { ColorScheme } from "../color/ColorScheme.js"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin.js"
-import { ColorSchemeName } from "./ColorConstants.js"
+import { ColorSchemeName, OwidNoDataGray } from "./ColorConstants.js"
 import { CoreColumn } from "../../coreTable/CoreTableColumns.js"
 import { getBinMaximums } from "./BinningStrategies.js"
 import { BinningStrategy } from "./BinningStrategy.js"
@@ -33,7 +30,6 @@ export interface ColorScaleManager {
     defaultNoDataColor?: string
     defaultBaseColorScheme?: ColorSchemeName
     colorScaleColumn?: CoreColumn
-    transformColor?: (color: Color) => Color
 }
 
 export class ColorScale {
@@ -60,7 +56,7 @@ export class ColorScale {
         const colors = this.customNumericColorsActive
             ? mapNullToUndefined(this.config.customNumericColors)
             : []
-        return colors.map(this.transformColor)
+        return colors
     }
 
     @computed get customHiddenCategories(): {
@@ -101,7 +97,7 @@ export class ColorScale {
     }
 
     @computed private get defaultNoDataColor(): Color {
-        return this.transformColor(this.manager.defaultNoDataColor ?? "#eee")
+        return this.manager.defaultNoDataColor ?? OwidNoDataGray
     }
 
     @computed get colorScaleColumn(): CoreColumn | undefined {
@@ -110,22 +106,6 @@ export class ColorScale {
 
     @computed get legendDescription(): string | undefined {
         return this.config.legendDescription
-    }
-
-    @computed private get transformColor(): <
-        MaybeColor extends Color | undefined
-    >(
-        color: MaybeColor
-    ) => MaybeColor {
-        const transform = this.manager.transformColor
-        if (!transform) return identity
-        return <MaybeColor extends Color | undefined>(
-            color: MaybeColor
-        ): MaybeColor => {
-            return isString(color) && transform
-                ? (transform(color) as MaybeColor)
-                : color
-        }
     }
 
     // Transforms
@@ -201,17 +181,14 @@ export class ColorScale {
 
     // Ensure there's always a custom color for "No data"
     @computed private get customCategoryColors(): { [key: string]: Color } {
-        return mapValues(
-            {
-                [NO_DATA_LABEL]: this.defaultNoDataColor, // default 'no data' color
-                ...this.config.customCategoryColors,
-            },
-            this.transformColor
-        )
+        return {
+            [NO_DATA_LABEL]: this.defaultNoDataColor, // default 'no data' color
+            ...this.config.customCategoryColors,
+        }
     }
 
     @computed get noDataColor(): Color {
-        return this.transformColor(this.customCategoryColors[NO_DATA_LABEL])
+        return this.customCategoryColors[NO_DATA_LABEL]
     }
 
     @computed get baseColors(): Color[] {
@@ -220,14 +197,13 @@ export class ColorScale {
             colorScheme,
             bucketMaximums,
             isColorSchemeInverted,
-            transformColor,
         } = this
         const numColors = bucketMaximums.length + categoricalValues.length
         const colors = colorScheme.getColors(numColors)
 
         if (isColorSchemeInverted) reverse(colors)
 
-        return colors.map(transformColor)
+        return colors
     }
 
     @computed get numAutoBins(): number {

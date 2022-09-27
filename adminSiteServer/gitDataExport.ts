@@ -13,7 +13,7 @@ import { execFormatted } from "../db/execWrapper.js"
 import { JsonError } from "../clientUtils/owidTypes.js"
 
 const datasetToReadme = async (dataset: Dataset): Promise<string> => {
-    const source = await Source.findOne({ datasetId: dataset.id })
+    const source = await Source.findOneBy({ datasetId: dataset.id })
     return `# ${dataset.name}\n\n${
         (source && source.description && source.description.additionalInfo) ||
         ""
@@ -70,7 +70,7 @@ export async function syncDatasetToGitRepo(
         ? options.transaction.manager.getRepository(Dataset)
         : Dataset.getRepository()
 
-    const dataset = await datasetRepo.findOne({ id: datasetId })
+    const dataset = await datasetRepo.findOneBy({ id: datasetId })
     if (!dataset) throw new JsonError(`No such dataset ${datasetId}`, 404)
 
     if (dataset.isPrivate || dataset.nonRedistributable)
