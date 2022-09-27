@@ -19,10 +19,16 @@ export const GdocsSlug = ({
     const slugFromTitle = slugify(title)
 
     useEffect(() => {
-        if (!gdoc.published) {
-            setSlugSyncing(true)
+        if (gdoc.published) {
+            setSlugSyncing(false)
         }
     }, [gdoc.published])
+
+    useEffect(() => {
+        if (!slug) {
+            setSlugSyncing(true)
+        }
+    }, [slug])
 
     const setSlug = (slug: string) => {
         setGdoc({ ...gdoc, slug })
