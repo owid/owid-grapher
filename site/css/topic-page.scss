@@ -31,11 +31,19 @@
             background: $gray-10;
             box-shadow: min(50vw, 1280px) 0px 0 0 $gray-10,
                 max(-50vw, -1280px) 0px 0 0 $gray-10;
-            + figure {
+            + figure,
+            + div {
                 background: $gray-10;
                 box-shadow: min(50vw, 1280px) 0px 0 0 $gray-10,
                     max(-50vw, -1280px) 0px 0 0 $gray-10;
                 padding-bottom: 48px;
+
+                .expandable-paragraph::after {
+                    background: linear-gradient(
+                        rgba(255, 255, 255, 0),
+                        $gray-10
+                    );
+                }
             }
         }
 

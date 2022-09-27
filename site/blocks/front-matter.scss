@@ -35,6 +35,8 @@
     border: 1px solid $accent-vermillion;
     display: inline-block;
     cursor: pointer;
+    height: 48px;
+    line-height: 30px;
 
     &:hover {
         border-color: $accent-vermillion;
@@ -67,11 +69,8 @@
     }
 
     p {
-        text-transform: uppercase;
+        @include overline-black-caps;
         color: $blue-40;
-        font-weight: bold;
-        line-height: 1;
-        letter-spacing: 1.6px;
     }
 
     ul {
@@ -86,6 +85,7 @@
         text-underline-offset: 6px;
 
         a {
+            @include body-3-medium;
             @include owid-link-90;
             text-decoration: none;
         }
