@@ -24,6 +24,7 @@ help:
 	@echo '  make down          stop any services still running'
 	@echo '  make refresh       (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make migrate       (while up) run any outstanding db migrations'
+	@echo '  make test          run full suite of CI checks including unit tests'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
 	@echo '  make up.full       start dev environment via docker-compose and tmux'
@@ -222,3 +223,29 @@ stage:
 	
 	@echo '==> Deploying to staging...'
 	yarn buildAndDeploySite staging
+
+test: 
+	@echo '==> Linting'
+	yarn
+	yarn run eslint
+	
+	@echo '==> Checking formatting'
+	yarn testPrettierChanged
+	
+	@echo '==> Running tests'
+	yarn run jest --all
+
+lint:
+	@echo '==> Linting'
+	yarn
+	yarn run eslint
+
+check-formatting:
+	@echo '==> Checking formatting'
+	yarn
+	yarn testPrettierChanged
+
+unittest:
+	@echo '==> Running tests'
+	yarn
+	yarn run jest --all
