@@ -4,7 +4,7 @@ import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettings } from "./GdocsSettingsForm.js"
 import { OwidArticle } from "../site/gdocs/owid-article.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { GdocsPatchOp, OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import {
     Button,
     Col,
@@ -26,6 +26,7 @@ import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate
 import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { useUpdatePreviewContent, useGdocsChanged } from "./gdocsHooks.js"
+import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 
 export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const { id } = match.params
@@ -56,19 +57,13 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
     const hasErrors =
         errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
 
-    const onPublish = async () => {
+    const onUpdatePublicationStatus = async (published: boolean) => {
         if (!gdoc || (gdoc.published && hasErrors)) return
-        const publishedGdoc = { ...gdoc, published: true }
-        await store.update(publishedGdoc, [
-            {
-                op: GdocsPatchOp.Update,
-                property: "published",
-                payload: true,
-            },
-        ])
+        const updatedGdoc = { ...gdoc, published }
+        await store.update(updatedGdoc)
 
-        setGdoc(publishedGdoc)
-        setOriginalGdoc(publishedGdoc)
+        setGdoc(updatedGdoc)
+        setOriginalGdoc(updatedGdoc)
         openNotification(
             "success",
             "Document saved",
@@ -162,7 +157,9 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
                                 hasChanges={hasChanges}
-                                onPublish={onPublish}
+                                onPublish={() =>
+                                    onUpdatePublicationStatus(true)
+                                }
                             />
                             <IconBadge
                                 status={
@@ -177,6 +174,12 @@ export const GdocsEditPage = ({ match }: GdocsMatchProps) => {
                                     <FontAwesomeIcon icon={faGear} />
                                 </Button>
                             </IconBadge>
+                            <GdocsMoreMenu
+                                gdoc={gdoc}
+                                onUnpublish={() =>
+                                    onUpdatePublicationStatus(false)
+                                }
+                            />
                         </Space>
                     </Col>
                 </Row>

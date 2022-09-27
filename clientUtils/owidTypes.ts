@@ -417,13 +417,7 @@ export interface OwidArticleContent {
     "featured-image"?: any
 }
 
-export enum GdocsPatchOp {
-    Update = "update",
-    Refresh = "refresh",
-}
-
 export interface GdocsPatch {
-    op: GdocsPatchOp
     property: keyof OwidArticleType
     payload?: string | boolean | OwidArticleContent
 }
