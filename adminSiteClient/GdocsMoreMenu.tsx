@@ -12,6 +12,7 @@ export const GdocsMoreMenu = ({
     onUnpublish: VoidFunction
 }) => (
     <Dropdown
+        trigger={["click"]}
         overlay={
             <Menu
                 onClick={({ key }) => {
