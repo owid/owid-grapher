@@ -23,7 +23,6 @@ import {
 import {
     GdocsContentSource,
     GdocsPatch,
-    GdocsPatchOp,
     OwidArticleContent,
     SuggestedChartRevisionStatus,
 } from "../clientUtils/owidTypes.js"
@@ -2639,27 +2638,18 @@ apiRouter.patch("/gdocs/:id", async (req) => {
     if (!patches) return { gdoc }
 
     // todo: there is probably a simpler way to do this
-    for (const { op, property, payload } of patches) {
-        if (op === GdocsPatchOp.Update) {
-            switch (property) {
-                case "slug":
-                case "title":
-                    gdoc[property] = payload as string
-                    break
-                case "published":
-                    gdoc[property] = payload as boolean
-                    break
-                case "content":
-                    gdoc[property] = payload as OwidArticleContent
-                    break
-            }
-            // todo: remove, not used?
-        } else if (op === GdocsPatchOp.Refresh) {
-            switch (property) {
-                case "content":
-                    gdoc[property] = await gdoc.getDraftContent()
-                    break
-            }
+    for (const { property, payload } of patches) {
+        switch (property) {
+            case "slug":
+            case "title":
+                gdoc[property] = payload as string
+                break
+            case "published":
+                gdoc[property] = payload as boolean
+                break
+            case "content":
+                gdoc[property] = payload as OwidArticleContent
+                break
         }
     }
 
