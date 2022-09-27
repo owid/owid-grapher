@@ -399,7 +399,7 @@ export interface OwidArticleType {
     content: OwidArticleContent
     published: boolean
     createdAt: Date
-    updatedAt: Date
+    updatedAt: Date | null
 }
 
 export interface OwidArticleContent {
