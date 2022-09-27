@@ -53,6 +53,8 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
 import { queryMysql } from "../db/db.js"
+import { OwidArticleType } from "../site/gdocs/gdoc-types.js"
+
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -127,7 +129,7 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakeGDocPost(post: any) {
+    private async bakeGDocPost(post: OwidArticleType) {
         const html = await renderGDocsPost(post)
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))

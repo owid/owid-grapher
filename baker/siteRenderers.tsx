@@ -3,6 +3,8 @@ import {
     LongFormPage,
     PageOverrides,
 } from "../site/LongFormPage.js"
+
+import { OwidArticleType } from "../site/gdocs/gdoc-types.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
@@ -150,6 +152,11 @@ export const renderGDocsPageBySlug = async (slug: string) => {
     `,
         [slug]
     )
+
+    if (!post) {
+        console.warn(`Attempting to render an unknown GDocs post: ${slug}.`);
+        return;
+    }
 
     return renderGDocsPost(post)
 }
