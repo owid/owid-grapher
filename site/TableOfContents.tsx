@@ -7,6 +7,7 @@ import { useTriggerWhenClickOutside } from "./hooks.js"
 import { wrapInDiv } from "../clientUtils/Util.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { TocHeading } from "../clientUtils/owidTypes.js"
+import classNames from "classnames"
 
 const TOC_WRAPPER_CLASSNAME = "toc-wrapper"
 
@@ -37,41 +38,15 @@ export const TableOfContents = ({
     pageTitle,
     hideSubheadings,
 }: TableOfContentsData) => {
-    const [isToggled, setIsToggled] = useState(false)
-    const [isSticky, setIsSticky] = useState(false)
+    const [isOpen, setIsOpen] = useState(false)
     const [activeHeading, setActiveHeading] = useState("")
     const tocRef = useRef<HTMLElement>(null)
-    const stickySentinelRef = useRef<HTMLDivElement>(null)
 
-    const toggle = () => {
-        setIsToggled(!isToggled)
+    const toggleIsOpen = () => {
+        setIsOpen(!isOpen)
     }
 
-    useTriggerWhenClickOutside(tocRef, isToggled, setIsToggled)
-
-    useEffect(() => {
-        if ("IntersectionObserver" in window) {
-            // Sets up an intersection observer to notify when the element with the class
-            // `.sticky-sentinel` becomes visible/invisible at the top of the viewport.
-            // Inspired by https://developers.google.com/web/updates/2017/09/sticky-headers
-            const observer = new IntersectionObserver((records) => {
-                for (const record of records) {
-                    const targetInfo = record.boundingClientRect
-                    // Started sticking
-                    if (targetInfo.top < 0) {
-                        setIsSticky(true)
-                    }
-                    // Stopped sticking
-                    if (targetInfo.bottom > 0) {
-                        setIsSticky(false)
-                    }
-                }
-            })
-            if (stickySentinelRef.current) {
-                observer.observe(stickySentinelRef.current)
-            }
-        }
-    }, [])
+    useTriggerWhenClickOutside(tocRef, isOpen, setIsOpen)
 
     useEffect(() => {
         if ("IntersectionObserver" in window) {
@@ -149,18 +124,17 @@ export const TableOfContents = ({
     return (
         <div className={TOC_WRAPPER_CLASSNAME}>
             <aside
-                className={`entry-sidebar${isToggled ? " toggled" : ""}${
-                    isSticky ? " sticky" : ""
-                }`}
+                className={classNames("entry-sidebar", {
+                    "entry-sidebar--is-open": isOpen,
+                })}
                 ref={tocRef}
             >
-                <div className="sticky-sentinel" ref={stickySentinelRef} />
                 <nav className="entry-toc">
                     <ul>
                         <li>
                             <a
                                 onClick={() => {
-                                    toggle()
+                                    toggleIsOpen()
                                     setActiveHeading("")
                                 }}
                                 href="#"
@@ -188,7 +162,7 @@ export const TableOfContents = ({
                                     }
                                 >
                                     <a
-                                        onClick={toggle}
+                                        onClick={toggleIsOpen}
                                         href={`#${heading.slug}`}
                                         data-track-note="toc-link"
                                     >
@@ -202,13 +176,13 @@ export const TableOfContents = ({
                     <button
                         data-track-note="page-toggle-toc"
                         aria-label={`${
-                            isToggled ? "Close" : "Open"
+                            isOpen ? "Close" : "Open"
                         } table of contents`}
-                        onClick={toggle}
+                        onClick={toggleIsOpen}
                     >
-                        <FontAwesomeIcon icon={isToggled ? faTimes : faBars} />
+                        <FontAwesomeIcon icon={isOpen ? faTimes : faBars} />
                         <span className="label">
-                            {isToggled ? "Close" : "Contents"}
+                            {isOpen ? "Close" : "Contents"}
                         </span>
                     </button>
                 </div>

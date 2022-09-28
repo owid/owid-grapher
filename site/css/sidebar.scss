@@ -1,5 +1,9 @@
 /* Page Navigation Sidebar
 --------------------------------------------- */
+.sidebar-root {
+    margin-top: -16px;
+}
+
 .toc-wrapper {
     @include xxlg-down {
         height: 2rem; // HACK, prevent "Contents" button to run over content when page hasn't been scrolled yet.
@@ -14,11 +18,7 @@
     width: $sidebar-content-width + 2 * $padding-x-md;
     z-index: $zindex-sidebar;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
-    background-color: $white;
-
-    &.sticky {
-        background: $blue-10;
-    }
+    background: $white;
 
     .entry-toc {
         top: 0;
@@ -49,13 +49,13 @@
             padding: $vertical-spacing * 0.25 $padding-x-md;
 
             &:hover {
-                background-color: $blue-20;
+                background-color: $blue-10;
             }
         }
 
         &.active a {
             color: $blue-100;
-            background-color: $blue-20;
+            background-color: $blue-10;
             border-left-color: $oxford-blue;
         }
 
@@ -85,10 +85,12 @@
             position: absolute;
             top: 0;
             bottom: 0;
+            right: 0;
+            transform: translateX(calc(100% + $padding-x-md));
+            transition: transform 300ms ease;
             padding: $vertical-spacing 0;
-            left: $sidebar-content-width + 2 * $padding-x-md;
-            margin-left: $padding-x-sm;
             pointer-events: none;
+
             @include md-up {
                 margin-left: $padding-x-md;
             }
@@ -107,12 +109,13 @@
             display: none;
         }
 
-        &.toggled {
+        &.entry-sidebar--is-open {
             margin-left: 0;
             @include block-shadow;
 
             .toggle-toc {
-                margin-left: -1rem;
+                transform: translateX(-16px);
+
                 @include sm-only {
                     svg {
                         margin: 0 0.25rem;
@@ -132,13 +135,6 @@
     @include xxlg-up {
         position: relative;
         height: 100%;
-        background-color: initial;
-
-        .sticky-sentinel {
-            position: absolute;
-            height: 1px;
-            width: inherit;
-        }
 
         .toggle-toc {
             display: none;
