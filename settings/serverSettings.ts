@@ -111,6 +111,5 @@ export const DATA_FILES_CHECKSUMS_DIRECTORY: string =
     `${BASE_DIR}/data_files_checksums`
 
 export const GDOCS_PRIVATE_KEY: string = serverSettings.GDOCS_PRIVATE_KEY ?? ""
-export const GDOCS_CLIENT_EMAIL: string =
-    serverSettings.GDOCS_CLIENT_EMAIL ?? ""
+export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
 export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
