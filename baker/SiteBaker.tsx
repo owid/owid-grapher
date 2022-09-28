@@ -55,7 +55,6 @@ import { postsTable } from "../db/model/Post.js"
 import { queryMysql } from "../db/db.js"
 import { OwidArticleType } from "../site/gdocs/gdoc-types.js"
 
-
 export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
