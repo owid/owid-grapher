@@ -17,6 +17,7 @@ $mobile-header-height: $mobile-header-wrapper-height +
 
 $content-max-width: 800px;
 $sidebar-content-width: 224px;
+$sidebar-width: #{$sidebar-content-width + 2 * $padding-x-md};
 $sidebar-padding-top: 32px;
 $sidebar-toggle-width: 32px;
 $sidebar-closed-drawer-width: 0;

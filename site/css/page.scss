@@ -13,6 +13,17 @@
             max-width: $xlg;
         }
     }
+
+    .content-and-footnotes {
+        margin-top: 32px;
+    }
+
+    &.with-sidebar .content-and-footnotes {
+        @include xxlg-up {
+            max-width: min(calc(100vw - 384px), $xlg);
+        }
+    }
+
     @include sm-only {
         .site-subnavigation {
             padding-right: 0;
