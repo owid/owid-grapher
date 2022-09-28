@@ -6,7 +6,7 @@ import {
     GDOCS_CLIENT_ID,
     GDOCS_PRIVATE_KEY,
 } from "../../settings/serverSettings.js"
-import { GoogleAuth } from "google-auth-library"
+import { google, Auth } from "googleapis"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity {
@@ -18,11 +18,11 @@ export class Gdoc extends BaseEntity {
     @Column() createdAt!: Date
     @Column({ nullable: true }) updatedAt!: Date
 
-    static cachedGoogleAuth?: GoogleAuth
+    static cachedGoogleAuth?: Auth.GoogleAuth
 
-    static getGoogleAuth(): GoogleAuth {
+    static getGoogleAuth(): Auth.GoogleAuth {
         if (!Gdoc.cachedGoogleAuth) {
-            Gdoc.cachedGoogleAuth = new GoogleAuth({
+            Gdoc.cachedGoogleAuth = new google.auth.GoogleAuth({
                 credentials: {
                     type: "service_account",
                     private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
