@@ -48,7 +48,7 @@
         "@fortawesome/free-solid-svg-icons": "^6.2.0",
         "@fortawesome/react-fontawesome": "^0.2.0",
         "@handsontable/react": "^12.1.2",
-        "@ourworldindata/doc-to-archieml": "^1.1.1",
+        "@ourworldindata/doc-to-archieml": "^1.1.2",
         "@prettier/plugin-php": "^0.14.3",
         "@tippyjs/react": "^4.2.6",
         "@types/amplitude-js": "^7.0.1",
