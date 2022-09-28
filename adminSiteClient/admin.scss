@@ -1241,6 +1241,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 .GdocsAddForm {
     ol {
         list-style-position: inside;
+        & > li {
+            margin-bottom: 1rem;
+        }
     }
 }
 

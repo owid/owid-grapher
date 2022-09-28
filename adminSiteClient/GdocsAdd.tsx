@@ -1,4 +1,5 @@
 import React from "react"
+import { GDOCS_CLIENT_EMAIL } from "../settings/clientSettings.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
 export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
@@ -24,10 +25,34 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
             </div>
             <div className="modal-body">
                 <ol>
-                    <li>Make a copy of this Google Doc.</li>
-                    <li>Edit the title</li>
-                    <li>Add xxx@yy.iam.gserviceaccount.com as an editor</li>
-                    <li>Fill in the URL of your Doc in the field below 👇</li>
+                    <li>
+                        <a
+                            href="https://docs.google.com/document/d/1xLoZ9HBzI8PYxHpkg3PfMbz_4GasUWjllOFQLEDduEc/copy?copyCollaborators=true"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            Create a new document{" "}
+                        </a>
+                        from the basic article template.
+                        <br />
+                        <em>
+                            Alternatively:
+                            <ul>
+                                <li>
+                                    wrap an existing document's content in a{" "}
+                                    <code>[+body] ... []</code> tag
+                                </li>
+                                <li>
+                                    share it with{" "}
+                                    <code>{GDOCS_CLIENT_EMAIL}</code> as an
+                                    editor.
+                                </li>
+                            </ul>
+                        </em>
+                    </li>
+                    <li>
+                        Paste the URL of your new document in the field below 👇
+                    </li>
                 </ol>
                 <div className="form-group">
                     <input
