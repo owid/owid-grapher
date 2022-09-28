@@ -75,6 +75,12 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
         )
     }
 
+    const onDelete = async () => {
+        if (!gdoc) return
+        await store.delete(gdoc)
+        history.push("/gdocs")
+    }
+
     // Handle errors and validation status
     useEffect(() => {
         if (!gdoc) return
@@ -184,6 +190,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                                 onUnpublish={() =>
                                     onUpdatePublicationStatus(false)
                                 }
+                                onDelete={onDelete}
                             />
                         </Space>
                     </Col>

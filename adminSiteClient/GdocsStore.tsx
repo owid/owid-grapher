@@ -59,6 +59,19 @@ export class GdocsStore {
             this.gdocs.splice(gdocToUpdateIdx, 1, gdoc)
         })
     }
+
+    async delete(gdoc: OwidArticleType) {
+        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
+
+        runInAction(() => {
+            const gdocToDeleteIdx = this.gdocs.findIndex(
+                (someGdoc) => someGdoc.id === gdoc.id
+            )
+            if (!gdocToDeleteIdx) return
+
+            this.gdocs.splice(gdocToDeleteIdx, 1)
+        })
+    }
 }
 
 const GdocsStoreContext = createContext<GdocsStore | undefined>(undefined)
