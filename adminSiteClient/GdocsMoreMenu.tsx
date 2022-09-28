@@ -5,16 +5,23 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { ExclamationCircleOutlined } from "@ant-design/icons"
 
+enum GdocsMoreMenuAction {
+    Delete = "delete",
+    Unpublish = "unpublish",
+}
+
 export const GdocsMoreMenu = ({
     gdoc,
     onUnpublish,
+    onDelete,
 }: {
     gdoc: OwidArticleType
     onUnpublish: VoidFunction
+    onDelete: VoidFunction
 }) => {
     const confirmUnpublish = () => {
         Modal.confirm({
-            title: "Are you sure you want to unpublish?",
+            title: "Are you sure you want to unpublish this article?",
             icon: <ExclamationCircleOutlined />,
             content: "The article will no longer be visible to the public.",
             okText: "Unpublish",
@@ -22,6 +29,20 @@ export const GdocsMoreMenu = ({
             cancelText: "Cancel",
             onOk() {
                 onUnpublish()
+            },
+        })
+    }
+    const confirmDelete = () => {
+        Modal.confirm({
+            title: "Are you sure you want to delete this article?",
+            icon: <ExclamationCircleOutlined />,
+            content:
+                "The article will be removed from the admin list and unpublished. The original Google Doc will be preserved.",
+            okText: "Delete",
+            okType: "danger",
+            cancelText: "Cancel",
+            onOk() {
+                onDelete()
             },
         })
     }
@@ -33,18 +54,25 @@ export const GdocsMoreMenu = ({
                     <Menu
                         onClick={({ key }) => {
                             switch (key) {
-                                case "unpublish":
+                                case GdocsMoreMenuAction.Unpublish:
                                     confirmUnpublish()
-                                default:
+                                    break
+                                case GdocsMoreMenuAction.Delete:
+                                    confirmDelete()
                                     break
                             }
                         }}
                         items={[
                             {
-                                key: "unpublish",
+                                key: GdocsMoreMenuAction.Unpublish,
                                 label: "Unpublish",
                                 danger: gdoc.published,
                                 disabled: !gdoc.published,
+                            },
+                            {
+                                key: GdocsMoreMenuAction.Delete,
+                                label: "Delete",
+                                danger: true,
                             },
                         ]}
                     />

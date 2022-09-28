@@ -2672,4 +2672,10 @@ apiRouter.put("/gdocs/:id", async (req) => {
     return gdoc
 })
 
+apiRouter.delete("/gdocs/:id", async (req) => {
+    const { id } = req.params
+    await Gdoc.delete(id)
+    return {}
+})
+
 export { apiRouter }
