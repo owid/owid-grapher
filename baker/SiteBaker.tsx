@@ -68,7 +68,7 @@ export class SiteBaker {
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                total: 15,
+                total: 16,
             }
         )
     }

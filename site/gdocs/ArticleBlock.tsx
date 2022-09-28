@@ -33,9 +33,12 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
         } else if (_type === "scroller") {
             content = <Scroller key={key} d={d} />
         } else if (_type === "chart-grid") {
-            const columns = +d.value.find(
-                (_d: OwidArticleBlock) => _d.type === "columns"
-            ).value
+            let columns = 1;
+            try { 
+                columns = +d.value.find(
+                    (_d: OwidArticleBlock) => _d.type === "columns"
+                ).value || 1;
+            } catch(e) {}
 
             return (
                 <div
