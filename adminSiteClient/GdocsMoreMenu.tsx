@@ -1,8 +1,9 @@
-import React, { useState } from "react"
+import React from "react"
 import { Dropdown, Menu, Button, Modal } from "antd"
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons/faEllipsisVertical"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import { ExclamationCircleOutlined } from "@ant-design/icons"
 
 export const GdocsMoreMenu = ({
     gdoc,
@@ -11,10 +12,18 @@ export const GdocsMoreMenu = ({
     gdoc: OwidArticleType
     onUnpublish: VoidFunction
 }) => {
-    const [isModalOpen, setModalOpen] = useState(false)
-
-    const closeModal = () => {
-        setModalOpen(false)
+    const confirmUnpublish = () => {
+        Modal.confirm({
+            title: "Are you sure you want to unpublish?",
+            icon: <ExclamationCircleOutlined />,
+            content: "The article will no longer be visible to the public.",
+            okText: "Unpublish",
+            okType: "danger",
+            cancelText: "Cancel",
+            onOk() {
+                onUnpublish()
+            },
+        })
     }
     return (
         <>
@@ -25,7 +34,7 @@ export const GdocsMoreMenu = ({
                         onClick={({ key }) => {
                             switch (key) {
                                 case "unpublish":
-                                    setModalOpen(true)
+                                    confirmUnpublish()
                                 default:
                                     break
                             }
@@ -46,20 +55,6 @@ export const GdocsMoreMenu = ({
                     <FontAwesomeIcon icon={faEllipsisVertical} />
                 </Button>
             </Dropdown>
-            <Modal
-                title="Are you sure you want to unpublish?"
-                open={isModalOpen}
-                okText="Unpublish"
-                okButtonProps={{ danger: true }}
-                onCancel={closeModal}
-                onOk={() => {
-                    onUnpublish()
-                    closeModal()
-                }}
-            >
-                By confirming, the article will no longer be visible to the
-                public.
-            </Modal>
         </>
     )
 }
