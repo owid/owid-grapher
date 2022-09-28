@@ -1,89 +1,90 @@
 .article-content .wp-block-owid-prominent-link {
+    --outline-width: 24px;
+    background-color: $blue-10;
+    transition: all 0.1s;
+    margin: calc(var(--outline-width) + 48px) 0;
+
     svg {
-        width: 0.4em;
-        height: 1em;
+        // magic numbers for positioning across various variations
+        width: 0.8em;
+        height: 0.7em;
+        margin-left: 0.6em;
+        margin-top: -0.1em;
         vertical-align: middle;
-        margin-left: 0.6rem;
         transition: all 0.2s;
     }
 
-    background-color: $blue-10;
-    border: 1px solid $blue-10;
-    border-radius: 2px;
-    transition: all 0.1s;
-
     &:hover {
-        @include block-shadow;
-        border: 1px solid $blue-40;
         svg {
-            margin-left: 0.8rem;
+            margin-left: 1em;
         }
     }
 
     a {
         @include cancel-link-styles;
+        outline: var(--outline-width) solid $blue-10;
+        display: grid;
+        padding: 0;
+        grid-template-columns: repeat(5, 1fr);
+        column-gap: 24px;
+    }
+
+    // No margins on images
+    figure {
+        margin: 0;
+        img {
+            margin: 0;
+        }
     }
 
     &[data-style="is-style-default"] {
-        @include left-media-columns;
-        margin-bottom: 2rem;
-        a {
-            display: block;
-            padding: $padding-x-sm;
-            @include md-up {
-                padding: $padding-x-md;
+        h3 {
+            @include h2-bold;
+            grid-column: 1/6;
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+        .content-wrapper {
+            grid-column: 1/6;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            column-gap: 24px;
+
+            .content {
+                grid-column: 1/6;
             }
         }
 
-        h3 {
-            @include h3-style;
-            margin-top: 0;
+        &.with-image {
+            figure {
+                grid-column: 1/3;
+            }
+            .content {
+                grid-column: 3/6;
+            }
         }
     }
 
     &[data-style="is-style-thin"] {
-        background-color: transparent;
-        margin-bottom: $vertical-spacing;
         .content-wrapper {
-            padding: 0.5rem;
-            background-color: $blue-10;
-        }
-        .content {
-            font-size: 0.9rem;
-            font-weight: lighter;
-            line-height: 1.2;
-            *:first-child {
-                margin-top: 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            column-gap: 24px;
+            grid-column: 1/6;
+
+            .title {
+                @include h3-bold;
+                margin: 0;
+                grid-column: 1/5;
             }
-            *:last-child {
-                margin-bottom: 0;
-            }
-        }
-        .title {
-            margin-top: $vertical-spacing * 0.25;
-            font-weight: bold;
-            line-height: 1;
         }
 
-        &.with-image a {
-            display: flex;
-            align-items: stretch;
-            figure {
-                flex: 0 0 5rem;
-                margin: 0.5rem;
-                @include md-up {
-                    margin: 0;
-                    align-self: center;
-                }
-                img {
-                    width: 100%;
-                    margin: 0;
-                    padding: 0;
-                    box-shadow: none;
-                }
+        &.with-image {
+            .figure {
+                grid-column: 1/2;
             }
             .content-wrapper {
-                flex: 1;
+                grid-column: 2/6;
             }
         }
     }
