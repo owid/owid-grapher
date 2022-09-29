@@ -1,8 +1,7 @@
 .article-content .wp-block-owid-prominent-link {
-    --outline-width: 24px;
     background-color: $blue-10;
     transition: all 0.1s;
-    margin: calc(var(--outline-width) + 48px) 0;
+    margin: 32px 0;
 
     svg {
         // magic numbers for positioning across various variations
@@ -22,11 +21,12 @@
 
     a {
         @include cancel-link-styles;
-        outline: var(--outline-width) solid $blue-10;
-        display: grid;
-        padding: 0;
-        grid-template-columns: repeat(5, 1fr);
-        column-gap: 24px;
+        @include grid(5);
+        padding: 24px;
+
+        p:last-child {
+            margin-bottom: 0;
+        }
     }
 
     // No margins on images
@@ -34,6 +34,7 @@
         margin: 0;
         img {
             margin: 0;
+            box-shadow: none;
         }
     }
 
@@ -46,9 +47,7 @@
         }
         .content-wrapper {
             grid-column: 1/6;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            column-gap: 24px;
+            @include grid(5);
 
             .content {
                 grid-column: 1/6;
@@ -67,10 +66,10 @@
 
     &[data-style="is-style-thin"] {
         .content-wrapper {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            column-gap: 24px;
             grid-column: 1/6;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
 
             .title {
                 @include h3-bold;

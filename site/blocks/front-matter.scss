@@ -1,6 +1,6 @@
 .front-matter {
     margin-top: 48px;
-    @include grid-12;
+    @include grid(12);
 
     .wp-block-column:nth-child(1) {
         grid-column: 1 / 13;

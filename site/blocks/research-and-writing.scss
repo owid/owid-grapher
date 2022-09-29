@@ -1,5 +1,5 @@
 .wp-block-research-and-writing {
-    @include grid-12;
+    @include grid(12);
     padding-bottom: 48px;
 
     // "Research & Writing" heading
@@ -86,7 +86,7 @@
 
 .research-and-writing__top {
     grid-column: 1 / 13;
-    @include grid-12;
+    @include grid(12);
 
     .wp-block-owid-card {
         .title {
@@ -103,7 +103,7 @@
 
     .research-and-writing__top-right {
         grid-column: 1 / 13;
-        @include grid-2;
+        @include grid(2);
         grid-template-rows: auto 1fr;
 
         > .wp-block-owid-card,
