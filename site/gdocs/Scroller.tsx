@@ -1,6 +1,8 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import { InView } from 'react-intersection-observer';
 import { OwidArticleBlock } from "./gdoc-types.js"
+
+import { useEmbedChart } from "../hooks.js"
 
 export default function Scroller({ d }: any) {
     let lastUrl: string
@@ -19,13 +21,19 @@ export default function Scroller({ d }: any) {
 
     const [figureSrc, setFigureSrc] = useState(d.value[0].value)
 
+    const refChartContainer = useRef<HTMLDivElement>(null)
+
+    const [activeChartIdx, setActiveChartIdx] = useState(0)
+    useEmbedChart(activeChartIdx, refChartContainer);
+
     return (
         <section className={"stickySection"}>
             {figureSrc ? (
                 <div className={"stickyFigure"}>
-                    <iframe
-                        src={figureSrc}
-                        loading="lazy"
+                    <figure
+                        // Use unique `key` to force React to re-render tree
+                        key={figureSrc}
+                        data-grapher-src={figureSrc}
                         style={{
                             width: "100%",
                             height: "550px",
@@ -45,6 +53,7 @@ export default function Scroller({ d }: any) {
                                 onChange={(isVisible: boolean) => {
                                     if (isVisible) {
                                         setFigureSrc(figureURLs[i])
+                                        setActiveChartIdx(i)
                                     }
                                 }}
                             >

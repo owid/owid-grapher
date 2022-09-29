@@ -1,14 +1,21 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import { faCircleArrowRight } from "@fortawesome/free-solid-svg-icons/faCircleArrowRight"
 import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons/faCircleArrowLeft"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
+import { useEmbedChart } from "../hooks.js"
+
+
 export default function ChartStory({ slides }: any) {
     const [slide, setSlide] = useState(0)
     const showDetails = true
-
+    
     const currentSlide = slides[slide]
     const maxSlide = slides.length - 1
+    
+    const refChartContainer = useRef<HTMLDivElement>(null)
+    useEmbedChart(slide, refChartContainer)
+
 
     return (
         <div className={"chartStory"}>
@@ -27,9 +34,10 @@ export default function ChartStory({ slides }: any) {
                 {currentSlide.narrative}
             </div>
             <div className={"chart-story--chart"}>
-                <iframe
-                    src={currentSlide.chart}
-                    loading="lazy"
+                <figure
+                    // Use unique `key` to force React to re-render tree
+                    key={currentSlide.chart}
+                    data-grapher-src={currentSlide.chart}
                     style={{ width: "100%", height: 550, border: "0px none" }}
                 />
             </div>
