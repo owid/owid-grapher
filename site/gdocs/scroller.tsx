@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import VisibilitySensor from "react-visibility-sensor"
+import { InView } from 'react-intersection-observer';
 import { OwidArticleBlock } from "./gdoc-types.js"
 
 export default function Scroller({ d }: any) {
@@ -39,8 +39,9 @@ export default function Scroller({ d }: any) {
                     .filter((_d: OwidArticleBlock) => _d.type === "text")
                     .map(({ value }: OwidArticleBlock, i: number) => {
                         return (
-                            <VisibilitySensor
+                            <InView
                                 key={i}
+                                threshold={.67}
                                 onChange={(isVisible: boolean) => {
                                     if (isVisible) {
                                         setFigureSrc(figureURLs[i])
@@ -48,7 +49,7 @@ export default function Scroller({ d }: any) {
                                 }}
                             >
                                 <p>{value}</p>
-                            </VisibilitySensor>
+                            </InView>
                         )
                     })}
             </div>
