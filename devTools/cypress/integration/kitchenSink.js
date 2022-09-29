@@ -159,11 +159,12 @@ describe("Kitchen sink", function () {
             title: "Cumulative confirmed COVID-19 cases",
             src: DEFAULT_THUMBNAIL_URL,
         })
-        testProminentLink({
-            testTitle:
-                "[NOT RECOMMENDED] Grapher link redirected to grapher (in wordpress)",
-            title: "Adjusted net savings per capita",
-            src: "http://localhost:3030/grapher/exports/adjusted-net-savings-per-person.svg",
-        })
+        // N/A
+        // testProminentLink({
+        //     testTitle:
+        //         "[NOT RECOMMENDED] Grapher link redirected to grapher (in wordpress)",
+        //     title: "Adjusted net savings per capita",
+        //     src: "http://localhost:3030/grapher/exports/adjusted-net-savings-per-person.svg",
+        // })
     })
 })
