@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { InView } from 'react-intersection-observer';
+import { InView } from "react-intersection-observer"
 import { OwidArticleBlock } from "./gdoc-types.js"
 
 export default function Scroller({ d }: any) {
@@ -41,7 +41,7 @@ export default function Scroller({ d }: any) {
                         return (
                             <InView
                                 key={i}
-                                threshold={.67}
+                                threshold={0.67}
                                 onChange={(isVisible: boolean) => {
                                     if (isVisible) {
                                         setFigureSrc(figureURLs[i])
