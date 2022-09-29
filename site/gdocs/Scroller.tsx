@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react"
-import { InView } from 'react-intersection-observer'
+import { InView } from "react-intersection-observer"
 import { OwidArticleBlock } from "./gdoc-types.js"
 
 import { useEmbedChart } from "../hooks.js"
@@ -24,7 +24,7 @@ export default function Scroller({ d }: any) {
     const refChartContainer = useRef<HTMLDivElement>(null)
 
     const [activeChartIdx, setActiveChartIdx] = useState(0)
-    useEmbedChart(activeChartIdx, refChartContainer);
+    useEmbedChart(activeChartIdx, refChartContainer)
 
     return (
         <section className={"stickySection"}>

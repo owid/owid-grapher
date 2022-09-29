@@ -37,19 +37,18 @@ export default function Chart({ d }: { d: OwidArticleBlock }) {
                 className={d.value.position}
                 style={{ gridRow: d.value.row, gridColumn: d.value.column }}
             >
-            <figure
-                // Use unique `key` to force React to re-render tree
-                key={d.value.url}
-                data-grapher-src={d.value.url}
-                style={{
-                    height:
-                    d.value.position === "featured"
-                        ? 700
-                        : d.value.height || "550px",
-
-                }}
+                <figure
+                    // Use unique `key` to force React to re-render tree
+                    key={d.value.url}
+                    data-grapher-src={d.value.url}
+                    style={{
+                        height:
+                            d.value.position === "featured"
+                                ? 700
+                                : d.value.height || "550px",
+                    }}
                 />
-               {d.value.caption ? (
+                {d.value.caption ? (
                     <figcaption>{d.value.caption}</figcaption>
                 ) : null}
             </figure>

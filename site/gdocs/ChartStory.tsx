@@ -5,17 +5,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { useEmbedChart } from "../hooks.js"
 
-
 export default function ChartStory({ slides }: any) {
     const [slide, setSlide] = useState(0)
     const showDetails = true
-    
+
     const currentSlide = slides[slide]
     const maxSlide = slides.length - 1
-    
+
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(slide, refChartContainer)
-
 
     return (
         <div className={"chartStory"}>
