@@ -8,7 +8,7 @@ import {
 } from "../../clientUtils/owidTypes.js"
 
 export function OwidArticle(props: OwidArticleType) {
-    const { title, content } = props
+    const { content } = props
 
     const coverStyle = content["cover-image"]
         ? {
@@ -21,7 +21,7 @@ export function OwidArticle(props: OwidArticleType) {
         <article className={"owidArticle"}>
             <div className={"articleCover"} style={coverStyle}></div>
             <div className={"articlePage"}></div>
-            <h1 className={"title"}>{title}</h1>
+            <h1 className={"title"}>{content.title}</h1>
             <h2 className={"subtitle"}>{content.subtitle}</h2>
             <div className={"bylineContainer"}>
                 <div>

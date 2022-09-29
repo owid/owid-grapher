@@ -395,7 +395,6 @@ export interface OwidArticleBlock {
 export interface OwidArticleType {
     id: string
     slug: string
-    title: string
     content: OwidArticleContent
     published: boolean
     createdAt: Date

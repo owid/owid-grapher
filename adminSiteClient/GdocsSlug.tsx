@@ -3,7 +3,10 @@ import React, { useEffect, useState } from "react"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { slugify } from "../clientUtils/Util.js"
 import { Help } from "./Forms.js"
-import { ErrorMessage, getPropertyValidationStatus } from "./gdocsValidation.js"
+import {
+    ErrorMessage,
+    getPropertyMostCriticalError,
+} from "./gdocsValidation.js"
 
 export const GdocsSlug = ({
     gdoc,
@@ -15,7 +18,10 @@ export const GdocsSlug = ({
     errors?: ErrorMessage[]
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)
-    const { title, slug } = gdoc
+    const {
+        content: { title },
+        slug,
+    } = gdoc
     const slugFromTitle = slugify(title)
 
     useEffect(() => {
@@ -51,7 +57,9 @@ export const GdocsSlug = ({
                         onChange={(e) => setSlug(slugify(e.target.value))}
                         placeholder={slugFromTitle}
                         required
-                        status={getPropertyValidationStatus("slug", errors)}
+                        status={
+                            getPropertyMostCriticalError("slug", errors)?.type
+                        }
                         disabled={isSlugSyncing}
                         id="slug"
                     />

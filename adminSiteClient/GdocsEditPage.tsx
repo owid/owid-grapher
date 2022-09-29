@@ -111,50 +111,42 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                     }`}
                 >
                     <Col flex={1}>
-                        <div className="d-flex align-items-center">
-                            <Button
-                                className="mr-3"
-                                onClick={() => history.push("/gdocs")}
-                            >
+                        <Space>
+                            <Button onClick={() => history.push("/gdocs")}>
                                 <FontAwesomeIcon icon={faAngleLeft} />
                             </Button>
-                            <Typography.Title
-                                editable={{
-                                    onChange: (title) =>
-                                        setGdoc({ ...gdoc, title }),
-                                }}
-                                className="mb-0"
-                                level={4}
-                            >
-                                {gdoc.title}
+                            <Typography.Title className="mb-0" level={4}>
+                                {gdoc.content.title}
                             </Typography.Title>
-                            {!gdoc.published && (
-                                <Tag color="default">Draft</Tag>
-                            )}
-                            {syncingError ? (
-                                <Tag
-                                    icon={
-                                        <FontAwesomeIcon
-                                            icon={faExclamationTriangle}
-                                        />
-                                    }
-                                    color="warning"
-                                >
-                                    Syncing error, retrying...
-                                </Tag>
-                            ) : (
-                                <Tag
-                                    icon={
-                                        <FontAwesomeIcon
-                                            icon={faArrowsRotate}
-                                        />
-                                    }
-                                    color="success"
-                                >
-                                    Refreshing preview
-                                </Tag>
-                            )}
-                        </div>
+                            <div>
+                                {!gdoc.published && (
+                                    <Tag color="default">Draft</Tag>
+                                )}
+                                {syncingError ? (
+                                    <Tag
+                                        icon={
+                                            <FontAwesomeIcon
+                                                icon={faExclamationTriangle}
+                                            />
+                                        }
+                                        color="warning"
+                                    >
+                                        Syncing error, retrying...
+                                    </Tag>
+                                ) : (
+                                    <Tag
+                                        icon={
+                                            <FontAwesomeIcon
+                                                icon={faArrowsRotate}
+                                            />
+                                        }
+                                        color="success"
+                                    >
+                                        Refreshing preview
+                                    </Tag>
+                                )}
+                            </div>
+                        </Space>
                     </Col>
                     <Col>
                         <Space>
