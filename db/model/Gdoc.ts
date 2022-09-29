@@ -1,5 +1,4 @@
 import { Entity, PrimaryColumn, Column, BaseEntity } from "typeorm"
-import { docToArchieML } from "@ourworldindata/doc-to-archieml"
 import { OwidArticleContent } from "../../clientUtils/owidTypes.js"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -7,6 +6,7 @@ import {
     GDOCS_PRIVATE_KEY,
 } from "../../settings/serverSettings.js"
 import { google, Auth } from "googleapis"
+import { gdocToArchieML } from "../gdocToArchieml.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity {
@@ -39,7 +39,7 @@ export class Gdoc extends BaseEntity {
     async getDraftContent(): Promise<OwidArticleContent> {
         const auth = Gdoc.getGoogleAuth()
 
-        return docToArchieML({
+        return gdocToArchieML({
             documentId: this.id,
             auth,
         }) as Promise<OwidArticleContent>

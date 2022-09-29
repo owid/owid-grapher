@@ -2476,14 +2476,6 @@
   dependencies:
     "@octokit/openapi-types" "^10.0.0"
 
-"@ourworldindata/doc-to-archieml@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@ourworldindata/doc-to-archieml/-/doc-to-archieml-1.1.2.tgz#14109a47e2c99ae0eed1ec9a1048550640603c3b"
-  integrity sha512-88CHOOu5Ed+DYTZABd2D7L89mIYRBIp7UE2guIcPuaf7FxGoYMUSZoX0ZsfE3TPWlcf7tv1ePINUbA2AAs1EHg==
-  dependencies:
-    archieml "^0.4.2"
-    googleapis "^107.0.0"
-
 "@pmmmwh/react-refresh-webpack-plugin@^0.5.3":
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/@pmmmwh/react-refresh-webpack-plugin/-/react-refresh-webpack-plugin-0.5.7.tgz#58f8217ba70069cc6a73f5d7e05e85b458c150e2"
@@ -5249,10 +5241,10 @@ arch@^2.2.0:
   resolved "https://registry.yarnpkg.com/arch/-/arch-2.2.0.tgz#1bc47818f305764f23ab3306b0bfc086c5a29d11"
   integrity sha512-Of/R0wqp83cgHozfIYLbBMnej79U/SVGOOyuB3VVFv1NRM/PSFMK12x9KVtiYzJqmnU5WR2qp0Z5rHb7sWGnFQ==
 
-archieml@^0.4.2:
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/archieml/-/archieml-0.4.2.tgz#21e014c03d9113a906b682b5d4ad171681e77f36"
-  integrity sha512-p8sXQqg9Wmud25PctpEOvrxqMGML5dZ7jiuv5QgJkZjjH8TrwxUqXVXBhxK1oTG7F246FwGM4r2RaAsevzbxgg==
+archieml@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/archieml/-/archieml-0.5.0.tgz#76a43231df91bd2b34c6ed86558ee5020545b4b7"
+  integrity sha512-HhL+z+8toD2M9b+TijMR/3fmbs6dhWcATBstpQFTCqU4iyqDENznwZ4JRN0w3EkBbUL34jOv3PJK5/45VF9hJA==
 
 archive-type@^4.0.0:
   version "4.0.0"
@@ -9605,9 +9597,9 @@ gauge@^3.0.0:
     wide-align "^1.1.2"
 
 gaxios@^5.0.0, gaxios@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/gaxios/-/gaxios-5.0.1.tgz#50fc76a2d04bc1700ed8c3ff1561e52255dfc6e0"
-  integrity sha512-keK47BGKHyyOVQxgcUaSaFvr3ehZYAlvhvpHXy0YB2itzZef+GqZR8TBsfVRWghdwlKrYsn+8L8i3eblF7Oviw==
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/gaxios/-/gaxios-5.0.2.tgz#ca3a40e851c728d31d7001c2357062d46bf966d1"
+  integrity sha512-TjtV2AJOZoMQqRYoy5eM8cCQogYwazWNYLQ72QB0kwa6vHHruYkGmhhyrlzbmgNHK1dNnuP2WSH81urfzyN2Og==
   dependencies:
     extend "^3.0.2"
     https-proxy-agent "^5.0.0"
@@ -9615,9 +9607,9 @@ gaxios@^5.0.0, gaxios@^5.0.1:
     node-fetch "^2.6.7"
 
 gcp-metadata@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/gcp-metadata/-/gcp-metadata-5.0.0.tgz#a00f999f60a4461401e7c515f8a3267cfb401ee7"
-  integrity sha512-gfwuX3yA3nNsHSWUL4KG90UulNiq922Ukj3wLTrcnX33BB7PwB1o0ubR8KVvXu9nJH+P5w1j2SQSNNqto+H0DA==
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/gcp-metadata/-/gcp-metadata-5.0.1.tgz#8d1e785ee7fad554bc2a80c1f930c9a9518d2b00"
+  integrity sha512-jiRJ+Fk7e8FH68Z6TLaqwea307OktJpDjmYnU7/li6ziwvVvU2RlrCyQo5vkdeP94chm0kcSCOOszvmuaioq3g==
   dependencies:
     gaxios "^5.0.0"
     json-bigint "^1.0.0"
@@ -9939,10 +9931,10 @@ googleapis-common@^6.0.0:
     url-template "^2.0.8"
     uuid "^9.0.0"
 
-googleapis@^107.0.0:
-  version "107.0.0"
-  resolved "https://registry.yarnpkg.com/googleapis/-/googleapis-107.0.0.tgz#f3595d6311f4dc3c4538f15d16fc0101422b3cf6"
-  integrity sha512-emMvsOEPvE9/DxrOVCMblQzKAhaar37c5JPAqYXoo+hxPpzFefkpN5ayIJFgatDpUWCSMvWtP3CcEWfFhFA7QA==
+googleapis@^108.0.0:
+  version "108.0.0"
+  resolved "https://registry.yarnpkg.com/googleapis/-/googleapis-108.0.0.tgz#3c8626d0c693b10193e81f33b716e84a6118d844"
+  integrity sha512-wQuBzCObtjpfg3CksOfUlX3yT8clw/vJFdGSfs9cpn84WSxNK3U5sxYxEH3mPM+d+SrA8znKM9G8sOuwQceGIA==
   dependencies:
     google-auth-library "^8.0.2"
     googleapis-common "^6.0.0"
@@ -10024,9 +10016,9 @@ graphql@16.5.0:
   integrity sha512-qbHgh8Ix+j/qY+a/ZcJnFQ+j8ezakqPiHwPiZhV/3PgGlgf96QMBB5/f2rkiC9sgLoy/xvT6TSiaf2nTHJh5iA==
 
 gtoken@^6.1.0:
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/gtoken/-/gtoken-6.1.1.tgz#29ebf3e6893719176d180f5694f1cad525ce3c04"
-  integrity sha512-HPM4VzzPEGxjQ7T2xLrdSYBs+h1c0yHAUiN+8RHPDoiZbndlpg9Sx3SjWcrTt9+N3FHsSABEpjvdQVan5AAuZQ==
+  version "6.1.2"
+  resolved "https://registry.yarnpkg.com/gtoken/-/gtoken-6.1.2.tgz#aeb7bdb019ff4c3ba3ac100bbe7b6e74dce0e8bc"
+  integrity sha512-4ccGpzz7YAr7lxrT2neugmXQ3hP9ho2gcaityLVkiUecAiwiy60Ii8gRbZeOsXV19fYaRjgBSshs8kXw+NKCPQ==
   dependencies:
     gaxios "^5.0.1"
     google-p12-pem "^4.0.0"
