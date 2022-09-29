@@ -27,7 +27,7 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                 <ol>
                     <li>
                         <a
-                            href="https://docs.google.com/document/d/1xLoZ9HBzI8PYxHpkg3PfMbz_4GasUWjllOFQLEDduEc/copy?copyCollaborators=true"
+                            href="https://docs.google.com/document/d/1h0c33x3NiYKoxDsbmdEVGLK8YfuA0iqIS8q_DIxv_1k/copy?copyCollaborators=true"
                             target="_blank"
                             rel="noopener"
                         >
