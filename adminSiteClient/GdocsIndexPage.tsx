@@ -67,7 +67,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                             <tbody>
                                 {store.gdocs.map((gdoc) => (
                                     <tr key={gdoc.id}>
-                                        <td>{gdoc.title}</td>
+                                        <td>{gdoc.content.title}</td>
                                         <td>{gdoc.slug}</td>
                                         <td>Article</td>
                                         <td>

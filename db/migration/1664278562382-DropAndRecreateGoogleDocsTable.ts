@@ -11,7 +11,6 @@ export class DropAndRecreateGoogleDocsTable1664278562382
         await queryRunner.query(`CREATE TABLE \`posts_gdocs\` (
             \`id\` varchar(255) NOT NULL,
             \`slug\` varchar(255) NOT NULL,
-            \`title\` varchar(255) NOT NULL,
             \`content\` json NOT NULL,
             \`published\` tinyint DEFAULT 0 NOT NULL,
             \`createdAt\` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,

@@ -1,4 +1,7 @@
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import {
+    OwidArticleContent,
+    OwidArticleType,
+} from "../clientUtils/owidTypes.js"
 
 export enum ErrorMessageType {
     Error = "error",
@@ -6,7 +9,7 @@ export enum ErrorMessageType {
 }
 
 export interface ErrorMessage {
-    property: keyof OwidArticleType
+    property: keyof OwidArticleType | keyof OwidArticleContent
     type: ErrorMessageType
     message: string
 }
@@ -32,12 +35,12 @@ abstract class AbstractHandler implements Handler {
 
 export class TitleHandler extends AbstractHandler {
     handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
-        const { title } = gdoc
+        const { title } = gdoc.content
         if (!title) {
             messages.push({
                 property: "title",
                 type: ErrorMessageType.Error,
-                message: `Missing title`,
+                message: `Missing title. Add "title: My article title" at the top of the Google Doc.`,
             })
         }
 
@@ -77,19 +80,18 @@ export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
     return errors
 }
 
-export const getFirstPropertyError = (
+export const getPropertyFirstErrorOfType = (
     type: ErrorMessageType,
-    property: keyof OwidArticleType,
+    property: keyof OwidArticleType | keyof OwidArticleContent,
     errors?: ErrorMessage[]
 ) => errors?.find((error) => error.property === property && error.type === type)
 
-export const getPropertyValidationStatus = (
-    property: keyof OwidArticleType,
+export const getPropertyMostCriticalError = (
+    property: keyof OwidArticleType | keyof OwidArticleContent,
     errors: ErrorMessage[] | undefined
-): ErrorMessageType | undefined => {
-    return getFirstPropertyError(ErrorMessageType.Error, property, errors)
-        ? ErrorMessageType.Error
-        : getFirstPropertyError(ErrorMessageType.Warning, property, errors)
-        ? ErrorMessageType.Warning
-        : undefined
+): ErrorMessage | undefined => {
+    return (
+        getPropertyFirstErrorOfType(ErrorMessageType.Error, property, errors) ||
+        getPropertyFirstErrorOfType(ErrorMessageType.Warning, property, errors)
+    )
 }

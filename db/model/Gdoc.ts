@@ -12,12 +12,15 @@ import { gdocToArchieML } from "../gdocToArchieml.js"
 export class Gdoc extends BaseEntity {
     @PrimaryColumn() id!: string
     @Column() slug: string = ""
-    @Column() title: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
     @Column() published!: boolean
     @Column() createdAt!: Date
     @Column({ nullable: true }) updatedAt!: Date
 
+    constructor(id: string) {
+        super()
+        this.id = id
+    }
     static cachedGoogleAuth?: Auth.GoogleAuth
 
     static getGoogleAuth(): Auth.GoogleAuth {
@@ -36,12 +39,13 @@ export class Gdoc extends BaseEntity {
         return Gdoc.cachedGoogleAuth
     }
 
-    async getDraftContent(): Promise<OwidArticleContent> {
+    async updateWithDraft(): Promise<void> {
         const auth = Gdoc.getGoogleAuth()
 
-        return gdocToArchieML({
+        const draftContent = await gdocToArchieML({
             documentId: this.id,
             auth,
-        }) as Promise<OwidArticleContent>
+        })
+        this.content = draftContent
     }
 }

@@ -3,6 +3,7 @@
 
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
+import { OwidArticleContent } from "../clientUtils/owidTypes.js"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
@@ -18,7 +19,7 @@ export const gdocToArchieML = async ({
     documentId,
     google = googleApisInstance,
     imageHandler,
-}: DocToArchieMLOptions): Promise<any> => {
+}: DocToArchieMLOptions): Promise<OwidArticleContent> => {
     // create docs client if not provided
     if (!client) {
         client = google.docs({

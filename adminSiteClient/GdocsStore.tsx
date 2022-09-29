@@ -27,10 +27,6 @@ export class GdocsStore {
         // todo: simplify by iterating over all properties?
         const gdocsPatches: GdocsPatch[] = [
             {
-                property: "title",
-                payload: gdoc.title,
-            },
-            {
                 property: "slug",
                 payload: gdoc.slug,
             },

@@ -1,11 +1,15 @@
 import React from "react"
-import { Help } from "./Forms.js"
+import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
+import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons/faCircleQuestion"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
-import { ErrorMessage, getPropertyValidationStatus } from "./gdocsValidation.js"
+import {
+    ErrorMessage,
+    getPropertyMostCriticalError,
+} from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
-import { Input } from "antd"
+import { Input, Tooltip } from "antd"
 
 export const GdocsSettings = ({
     gdoc,
@@ -28,17 +32,25 @@ export const GdocsSettings = ({
                 </a>
             </p>
             <div className="form-group">
-                <label htmlFor="title">Title</label>
+                <label htmlFor="title">
+                    Title{" "}
+                    <Tooltip title="Editable in Google Docs">
+                        <span>
+                            <FontAwesomeIcon icon={faCircleQuestion} />
+                        </span>
+                    </Tooltip>
+                </label>
                 <Input
-                    value={gdoc.title}
-                    onChange={(e) =>
-                        setGdoc({ ...gdoc, title: e.target.value })
-                    }
-                    status={getPropertyValidationStatus("title", errors)}
+                    addonBefore="title:"
+                    value={gdoc.content.title}
+                    status={getPropertyMostCriticalError("title", errors)?.type}
                     id="title"
                     required
+                    disabled={true}
                 />
-                <Help>The document title as it will appear on the site.</Help>
+                <GdocsErrorHelp
+                    error={getPropertyMostCriticalError("title", errors)}
+                />
             </div>
             <div className="form-group">
                 <GdocsSlug gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
