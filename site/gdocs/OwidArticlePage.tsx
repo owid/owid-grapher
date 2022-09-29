@@ -6,7 +6,7 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
-import { OwidArticle } from "./owid-article.js"
+import { OwidArticle } from "./OwidArticle.js"
 
 declare global {
     interface Window {

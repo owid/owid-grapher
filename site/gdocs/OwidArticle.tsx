@@ -1,8 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { ArticleBlocks } from "./article-blocks.js"
-
-import Footnotes from "./footnotes.js"
+import { ArticleBlocks } from "./ArticleBlocks"
+import Footnotes from "./Footnotes"
 
 import { OwidArticleType, OwidArticleBlock } from "./gdoc-types.js"
 

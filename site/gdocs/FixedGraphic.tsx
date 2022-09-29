@@ -1,6 +1,6 @@
 import React from "react"
 
-import ArticleBlock from "./article-block"
+import ArticleBlock from "./ArticleBlock"
 import { OwidArticleBlock } from "./gdoc-types.js"
 
 export default function FixedSection({ d }: { d: OwidArticleBlock }) {

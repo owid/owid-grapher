@@ -2,14 +2,14 @@ import React from "react"
 
 import { OwidArticleBlock } from "./gdoc-types.js"
 
-import ChartStory from "./chart-story"
-import Scroller from "./scroller"
-import Chart from "./chart"
-import PullQuote from "./pull-quote"
-import FixedGraphic from "./fixed-graphic"
-import Recirc from "./recirc"
-import List from "./list"
-import Image from "./image"
+import ChartStory from "./ChartStory"
+import Scroller from "./Scroller"
+import Chart from "./Chart"
+import PullQuote from "./PullQuote"
+import FixedGraphic from "./FixedGraphic"
+import Recirc from "./Recirc"
+import List from "./List"
+import Image from "./Image"
 
 export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {

@@ -1,5 +1,5 @@
 import React from "react"
-import ArticleBlock from "./article-block.js"
+import ArticleBlock from "./ArticleBlock.js"
 import { OwidArticleBlock } from "./gdoc-types.js"
 
 export const ArticleBlocks = ({ blocks }: { blocks: OwidArticleBlock[] }) => (
