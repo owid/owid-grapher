@@ -1,11 +1,11 @@
 import React from "react"
-import { FullPost } from "../../clientUtils/owidTypes.js"
+import { IndexPost } from "../../clientUtils/owidTypes.js"
 import { formatAuthors, formatDate, formatUrls } from "../formatting.js"
 
-const PostCard = ({ post }: { post: FullPost }) => {
+const PostCard = ({ post }: { post: IndexPost }) => {
     return (
         <article className="post-card">
-            <a href={`/${post.path}`}>
+            <a href={`/${post.slug}`}>
                 {post.imageUrl && (
                     <div
                         className="cover-image"

@@ -33,6 +33,8 @@ import {
     PostRestApi,
     TopicId,
     GraphType,
+    IndexPost,
+    OwidArticleType,
 } from "../clientUtils/owidTypes.js"
 import { memoize } from "../clientUtils/Util.js"
 import { Topic } from "../grapher/core/GrapherConstants.js"
@@ -41,6 +43,7 @@ import {
     WPPostTypeToGraphDocumentType,
 } from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
+import { Gdoc } from "./model/Gdoc.js"
 
 let _knexInstance: Knex
 
@@ -705,11 +708,34 @@ export const getFullPost = async (
     glossary: postApi.meta.owid_glossary_meta_field,
 })
 
-export const getBlogIndex = memoize(async (): Promise<FullPost[]> => {
+export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     // TODO: do not get post content in the first place
-    const posts = await getPosts([WP_PostType.Post], selectHomepagePosts)
-    return Promise.all(posts.map((post) => getFullPost(post, true)))
+    const wordpressPosts = await getPosts(
+        [WP_PostType.Post],
+        selectHomepagePosts
+    )
+
+    const wordpressPostsCards = await Promise.all(
+        wordpressPosts.map((post) => getFullPost(post, true))
+    )
+    const gdocsCards = await Gdoc.find()
+
+    return [
+        ...wordpressPostsCards,
+        ...mapGdocsToWordpressPosts(gdocsCards),
+    ].sort((postA, postB) => postB.date.getTime() - postA.date.getTime())
 })
+
+const mapGdocsToWordpressPosts = (gdocs: OwidArticleType[]): IndexPost[] => {
+    return gdocs.map((gdoc) => ({
+        title: gdoc.content.title,
+        slug: gdoc.slug,
+        date: gdoc.createdAt,
+        authors: ["TODO"], //todo
+        excerpt: "TODO", //todo
+        imageUrl: `${BAKED_BASE_URL}/default-thumbnail.jpg`, //todo
+    }))
+}
 
 export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
     if (!isWordpressAPIEnabled) return []
