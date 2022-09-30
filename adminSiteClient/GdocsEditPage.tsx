@@ -28,6 +28,7 @@ import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExcla
 import { useUpdatePreviewContent, useGdocsChanged } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
+import { GdocsEditLink } from "./GdocsEditLink.js"
 
 export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -122,6 +123,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                             <Typography.Title className="mb-0" level={4}>
                                 {gdoc.content.title}
                             </Typography.Title>
+                            [ <GdocsEditLink gdoc={gdoc} /> ]
                             <div>
                                 {!gdoc.published && (
                                     <Tag color="default">Draft</Tag>
@@ -146,7 +148,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                                         }
                                         color="success"
                                     >
-                                        Refreshing preview
+                                        preview
                                     </Tag>
                                 )}
                             </div>
