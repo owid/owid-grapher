@@ -14,7 +14,7 @@ import {
 import { GdocsSlug } from "./GdocsSlug.js"
 import { Input, Tooltip } from "antd"
 
-export const GdocsSettings = ({
+export const GdocsSettingsForm = ({
     gdoc,
     setGdoc,
     errors,
