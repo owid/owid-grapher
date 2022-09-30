@@ -37,11 +37,7 @@ export class TitleHandler extends AbstractHandler {
     handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
         const { title } = gdoc.content
         if (!title) {
-            messages.push({
-                property: "title",
-                type: ErrorMessageType.Error,
-                message: `Missing title. Add "title: My article title" at the top of the Google Doc.`,
-            })
+            messages.push(getMissingContentPropertyError("title"))
         }
 
         return super.handle(gdoc, messages)
@@ -69,11 +65,22 @@ export class SlugHandler extends AbstractHandler {
     }
 }
 
+export class BylineHandler extends AbstractHandler {
+    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
+        const { byline } = gdoc.content
+        if (!byline) {
+            messages.push(getMissingContentPropertyError("byline"))
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
 export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
     const errors: ErrorMessage[] = []
     const titleHandler = new TitleHandler()
 
-    titleHandler.setNext(new SlugHandler())
+    titleHandler.setNext(new SlugHandler()).setNext(new BylineHandler())
 
     titleHandler.handle(gdoc, errors)
 
@@ -94,4 +101,12 @@ export const getPropertyMostCriticalError = (
         getPropertyFirstErrorOfType(ErrorMessageType.Error, property, errors) ||
         getPropertyFirstErrorOfType(ErrorMessageType.Warning, property, errors)
     )
+}
+
+const getMissingContentPropertyError = (property: keyof OwidArticleContent) => {
+    return {
+        property,
+        type: ErrorMessageType.Error,
+        message: `Missing ${property}. Add "${property}: ..." at the top of the Google Doc.`,
+    }
 }
