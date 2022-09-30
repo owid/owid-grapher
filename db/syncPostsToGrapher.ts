@@ -18,7 +18,6 @@ const syncPostsToGrapher = async (): Promise<void> => {
         )
 
     const allBlocks = keyBy(blocks, "ID")
-    console.log(typeof blocks[0].ID)
 
     const rows = await wpdb.singleton.query(
         "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
@@ -50,9 +49,8 @@ const syncPostsToGrapher = async (): Promise<void> => {
         // in which case we leave the original ref comment as is; the second is
         // that some blocks reference other blocks (🎉 recursion!) and so we
         // check in a loop if the regexp still matches and run replace again.
-        // Because not all refs we have to limit the number of attempts, for now
-        // we try it 3 times which should be plenty for all reasonably sane
-        // scenarios
+        // Because not all refs resolve we have to limit the number of attempts - for now
+        // we try it 3 times which should be plenty for all reasonably sane scenarios
         const content = post.post_content as string
         let contentWithBlocksInlined = content.replace(blockRefRegex, replacer)
         for (
