@@ -261,18 +261,21 @@ export interface KeyInsight {
     slug: string
 }
 
-export interface FullPost {
-    id: number
-    type: WP_PostType
-    slug: string
-    path: string
+export interface IndexPost {
     title: string
+    slug: string
     date: Date
-    modifiedDate: Date
     authors: string[]
-    content: string
     excerpt?: string
     imageUrl?: string
+}
+
+export interface FullPost extends IndexPost {
+    id: number
+    type: WP_PostType
+    path: string
+    modifiedDate: Date
+    content: string
     thumbnailUrl?: string
     imageId?: number
     postId?: number

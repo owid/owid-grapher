@@ -16,9 +16,9 @@ import {
     NewsletterSubscriptionContext,
 } from "../site/NewsletterSubscription.js"
 import {
+    IndexPost,
     CategoryWithEntries,
     EntryNode,
-    FullPost,
 } from "../clientUtils/owidTypes.js"
 import PostCard from "./PostCard/PostCard.js"
 
@@ -32,7 +32,7 @@ const splitOnLastWord = (str: string) => {
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
-    posts: FullPost[]
+    posts: IndexPost[]
     totalCharts: number
     baseUrl: string
 }) => {
