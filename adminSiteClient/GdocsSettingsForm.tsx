@@ -1,8 +1,5 @@
 import React from "react"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
-import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons/faCircleQuestion"
 import {
     OwidArticleContent,
     OwidArticleType,
@@ -12,7 +9,8 @@ import {
     getPropertyMostCriticalError,
 } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
-import { Input, Tooltip } from "antd"
+import { Input } from "antd"
+import { GdocsEditLink } from "./GdocsEditLink.js"
 
 export const GdocsSettingsForm = ({
     gdoc,
@@ -25,15 +23,6 @@ export const GdocsSettingsForm = ({
 }) => {
     return gdoc ? (
         <form className="GdocsSettingsForm">
-            <p>
-                <a
-                    href={`https://docs.google.com/document/d/${gdoc.id}/edit`}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    <FontAwesomeIcon icon={faEdit} /> Edit document
-                </a>
-            </p>
             <GdocsSettingsContentField
                 property="title"
                 gdoc={gdoc}
@@ -64,12 +53,8 @@ const GdocsSettingsContentField = ({
     return (
         <div className="form-group">
             <label htmlFor={property}>
-                <span className="text-capitalize">{property}</span>{" "}
-                <Tooltip title="Editable in Google Docs">
-                    <span>
-                        <FontAwesomeIcon icon={faCircleQuestion} />
-                    </span>
-                </Tooltip>
+                <span className="text-capitalize">{property}</span> [{" "}
+                <GdocsEditLink gdoc={gdoc} /> ]
             </label>
             <Input
                 addonBefore={`${property}:`}
