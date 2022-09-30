@@ -54,7 +54,7 @@ const GdocsSettingsContentField = ({
         <div className="form-group">
             <label htmlFor={property}>
                 <span className="text-capitalize">{property}</span> [{" "}
-                <GdocsEditLink gdoc={gdoc} /> ]
+                <GdocsEditLink gdoc={gdoc} style={{ fontSize: "O.8em" }} /> ]
             </label>
             <Input
                 addonBefore={`${property}:`}
