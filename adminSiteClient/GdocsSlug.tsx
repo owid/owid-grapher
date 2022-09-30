@@ -50,9 +50,9 @@ export const GdocsSlug = ({
         <>
             <label htmlFor="slug">Slug</label>
             <Row gutter={24}>
-                <Col span={12}>
+                <Col span={16}>
                     <Input
-                        addonBefore="https://ourworldindata.org/"
+                        addonBefore="ourworldindata.org/"
                         value={slug}
                         onChange={(e) => setSlug(slugify(e.target.value))}
                         placeholder={slugFromTitle}
@@ -64,7 +64,7 @@ export const GdocsSlug = ({
                         id="slug"
                     />
                 </Col>
-                <Col span={12}>
+                <Col span={8}>
                     <Space>
                         <Switch
                             checked={isSlugSyncing}

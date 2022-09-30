@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
-import { GdocsSettings } from "./GdocsSettingsForm.js"
+import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
 import { OwidArticle } from "../site/gdocs/owid-article.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
@@ -79,6 +79,10 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
         if (!gdoc) return
         await store.delete(gdoc)
         history.push("/gdocs")
+    }
+
+    const onSettingsClose = () => {
+        setSettingsOpen(false)
     }
 
     // Handle errors and validation status
@@ -189,11 +193,17 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                 </Row>
                 <Drawer
                     title="Settings"
-                    placement="bottom"
-                    onClose={() => setSettingsOpen(false)}
+                    placement="right"
+                    size="large"
+                    onClose={onSettingsClose}
                     open={isSettingsOpen}
+                    extra={
+                        <Button type="primary" onClick={onSettingsClose}>
+                            Done
+                        </Button>
+                    }
                 >
-                    <GdocsSettings
+                    <GdocsSettingsForm
                         gdoc={gdoc}
                         setGdoc={setGdoc}
                         errors={errors}
