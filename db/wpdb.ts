@@ -731,7 +731,9 @@ const mapGdocsToWordpressPosts = (gdocs: OwidArticleType[]): IndexPost[] => {
         title: gdoc.content.title,
         slug: gdoc.slug,
         date: gdoc.createdAt,
-        authors: ["TODO"], //todo
+        authors: Array.isArray(gdoc.content.byline)
+            ? gdoc.content.byline
+            : [gdoc.content.byline],
         excerpt: "TODO", //todo
         imageUrl: `${BAKED_BASE_URL}/default-thumbnail.jpg`, //todo
     }))

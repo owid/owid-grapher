@@ -3,7 +3,10 @@ import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons/faCircleQuestion"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import {
+    OwidArticleContent,
+    OwidArticleType,
+} from "../clientUtils/owidTypes.js"
 import {
     ErrorMessage,
     getPropertyMostCriticalError,
@@ -31,30 +34,52 @@ export const GdocsSettings = ({
                     <FontAwesomeIcon icon={faEdit} /> Edit document
                 </a>
             </p>
-            <div className="form-group">
-                <label htmlFor="title">
-                    Title{" "}
-                    <Tooltip title="Editable in Google Docs">
-                        <span>
-                            <FontAwesomeIcon icon={faCircleQuestion} />
-                        </span>
-                    </Tooltip>
-                </label>
-                <Input
-                    addonBefore="title:"
-                    value={gdoc.content.title}
-                    status={getPropertyMostCriticalError("title", errors)?.type}
-                    id="title"
-                    required
-                    disabled={true}
-                />
-                <GdocsErrorHelp
-                    error={getPropertyMostCriticalError("title", errors)}
-                />
-            </div>
+            <GdocsSettingsContentField
+                property="title"
+                gdoc={gdoc}
+                errors={errors}
+            />
             <div className="form-group">
                 <GdocsSlug gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
             </div>
+            <GdocsSettingsContentField
+                property="byline"
+                gdoc={gdoc}
+                errors={errors}
+            />
         </form>
     ) : null
+}
+
+const GdocsSettingsContentField = ({
+    gdoc,
+    property,
+    errors,
+}: {
+    gdoc: OwidArticleType
+    property: keyof OwidArticleContent
+    errors?: ErrorMessage[]
+}) => {
+    const error = getPropertyMostCriticalError(property, errors)
+    return (
+        <div className="form-group">
+            <label htmlFor={property}>
+                <span className="text-capitalize">{property}</span>{" "}
+                <Tooltip title="Editable in Google Docs">
+                    <span>
+                        <FontAwesomeIcon icon={faCircleQuestion} />
+                    </span>
+                </Tooltip>
+            </label>
+            <Input
+                addonBefore={`${property}:`}
+                value={gdoc.content[property]}
+                status={error?.type}
+                id={property}
+                required
+                disabled={true}
+            />
+            <GdocsErrorHelp error={error} />
+        </div>
+    )
 }
