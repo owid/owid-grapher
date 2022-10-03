@@ -35,8 +35,8 @@
     border: 1px solid $accent-vermillion;
     display: inline-block;
     cursor: pointer;
-    height: 48px;
     line-height: 30px;
+    text-align: center;
 
     &:hover {
         border-color: $accent-vermillion;
