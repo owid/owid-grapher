@@ -5,17 +5,36 @@
         margin-bottom: 0;
     }
 
-    .content-wrapper {
-        padding-top: 48px;
-    }
-
+    .article-content > section:not(:first-of-type),
     section {
         margin: 0;
         padding: 0;
     }
 
+    // specificity overrides for "titling" mixin
+    .large-banner h1.entry-title {
+        @include md-down {
+            @include display-1-semibold;
+            margin-bottom: 0;
+        }
+        @include md-up {
+            @include display-1-semibold;
+            margin-bottom: 0;
+        }
+    }
+
+    .authors-byline {
+        @include body-1-regular;
+    }
+
     h2 {
         @include h1-semibold;
+    }
+
+    .front-matter {
+        p {
+            @include body-1-regular;
+        }
     }
 
     .article-content > section > h3 {
@@ -38,11 +57,17 @@
                     max(-50vw, -1280px) 0px 0 0 $gray-10;
                 padding-bottom: 48px;
 
-                .expandable-paragraph::after {
-                    background: linear-gradient(
-                        rgba(255, 255, 255, 0),
-                        $gray-10
-                    );
+                .expandable-paragraph {
+                    p {
+                        @include body-2-regular;
+                    }
+
+                    &::after {
+                        background: linear-gradient(
+                            rgba(255, 255, 255, 0),
+                            $gray-10
+                        );
+                    }
                 }
             }
         }
