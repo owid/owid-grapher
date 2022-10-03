@@ -36,6 +36,11 @@ export const GdocsSettingsForm = ({
                 gdoc={gdoc}
                 errors={errors}
             />
+            <GdocsSettingsContentField
+                property="dateline"
+                gdoc={gdoc}
+                errors={errors}
+            />
         </form>
     ) : null
 }
