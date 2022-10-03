@@ -75,11 +75,7 @@ import {
 } from "../clientUtils/Util.js"
 
 import { Detail } from "../grapher/core/GrapherConstants.js"
-import {
-    ErrorMessage,
-    SlugHandler,
-    TitleHandler,
-} from "../adminSiteClient/gdocsValidation.js"
+import { getErrors } from "../adminSiteClient/gdocsValidation.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2613,17 +2609,12 @@ apiRouter.get("/gdocs/:id", async (req) => {
 
 apiRouter.get("/gdocs/:id/validate", async (req) => {
     const { id } = req.params
-    const errors: ErrorMessage[] = []
 
     const gdoc = await Gdoc.findOne({ id })
 
     if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
-    const titleHandler = new TitleHandler()
-    titleHandler.setNext(new SlugHandler())
-
-    titleHandler.handle(gdoc, errors)
-    return errors
+    return getErrors(gdoc)
 })
 
 apiRouter.patch("/gdocs/:id", async (req) => {
@@ -2649,7 +2640,9 @@ apiRouter.patch("/gdocs/:id", async (req) => {
                 break
         }
     }
-
+    //todo #gdocsvalidationserver: run validation before saving published
+    //articles, in addition to the first pass performed in front-end code (see
+    //#gdocsvalidationclient)
     await gdoc.save()
 
     return gdoc

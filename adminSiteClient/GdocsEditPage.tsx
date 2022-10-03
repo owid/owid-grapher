@@ -60,6 +60,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
         errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
 
     const onUpdatePublicationStatus = async (published: boolean) => {
+        //#gdocsvalidationclient: do not allow publishing articles with errors
         if (!gdoc || (gdoc.published && hasErrors)) return
         const updatedGdoc = { ...gdoc, published }
         await store.update(updatedGdoc)

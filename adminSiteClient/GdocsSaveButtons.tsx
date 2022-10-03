@@ -32,6 +32,7 @@ export const GdocsSaveButtons = ({
     return (
         <Space>
             <Badge {...badgeProps}>
+                {/* #gdocsvalidationclient: prevent saving published articles with errors */}
                 <Button disabled={hasErrors} type="primary" onClick={onPublish}>
                     {published ? "Republish" : "Publish"}
                 </Button>

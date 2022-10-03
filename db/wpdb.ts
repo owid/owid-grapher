@@ -604,6 +604,24 @@ export const getLatestPostRevision = async (id: number): Promise<FullPost> => {
     })
 }
 
+const getPublishedGdocs = async (): Promise<OwidArticleTypePublished[]> => {
+    // #gdocsvalidation this cast means that we trust the admin code and
+    // workflow to provide published articles that have all the required content
+    // fields (see #gdocsvalidationclient and pending #gdocsvalidationserver).
+    // It also means that if a required field is added after the publication of
+    // an article, there won't currently be any checks preventing the then
+    // incomplete article to be republished (short of an error being raised down
+    // the line). A migration should then be added to update current articles
+    // with a sensible default for the new required content field. An
+    // alternative would be to encapsulate that default in
+    // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
+    // the database dependent on the mapping function, which is more practical
+    // but also makes it less of a source of truth when considered in isolation.
+    return Gdoc.find({
+        where: { published: true },
+    }) as Promise<OwidArticleTypePublished[]>
+}
+
 export const getRelatedCharts = async (
     postId: number
 ): Promise<RelatedChart[]> =>
@@ -718,15 +736,17 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     const wordpressPostsCards = await Promise.all(
         wordpressPosts.map((post) => getFullPost(post, true))
     )
-    const gdocsCards = await Gdoc.find()
+    const publishedGdocs = await getPublishedGdocs()
 
     return [
         ...wordpressPostsCards,
-        ...mapGdocsToWordpressPosts(gdocsCards),
+        ...mapGdocsToWordpressPosts(publishedGdocs),
     ].sort((postA, postB) => postB.date.getTime() - postA.date.getTime())
 })
 
-const mapGdocsToWordpressPosts = (gdocs: OwidArticleType[]): IndexPost[] => {
+const mapGdocsToWordpressPosts = (
+    gdocs: OwidArticleTypePublished[]
+): IndexPost[] => {
     return gdocs.map((gdoc) => ({
         title: gdoc.content.title,
         slug: gdoc.slug,
