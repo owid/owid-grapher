@@ -404,19 +404,29 @@ export interface OwidArticleType {
     updatedAt: Date | null
 }
 
+export interface OwidArticleTypePublished extends OwidArticleType {
+    content: OwidArticleContentPublished
+}
+
 export interface OwidArticleContent {
-    body: OwidArticleBlock[]
-    title: string
-    subtitle: string
-    template: string
-    byline: string | string[]
-    slug?: string
+    body?: OwidArticleBlock[]
+    title?: string
+    subtitle?: string
+    template?: string
+    byline?: string | string[]
     dateline?: string
     refs?: OwidArticleBlock[]
     summary?: OwidArticleBlock[]
     citation?: OwidArticleBlock[]
     "cover-image"?: any
     "featured-image"?: any
+}
+
+export interface OwidArticleContentPublished extends OwidArticleContent {
+    body: OwidArticleBlock[]
+    title: string
+    byline: string | string[]
+    dateline: string
 }
 
 export interface GdocsPatch {

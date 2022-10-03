@@ -33,7 +33,18 @@ abstract class AbstractHandler implements Handler {
     }
 }
 
-export class TitleHandler extends AbstractHandler {
+class BodyHandler extends AbstractHandler {
+    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
+        const { body } = gdoc.content
+        if (!body) {
+            messages.push(getMissingContentPropertyError("body"))
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
+class TitleHandler extends AbstractHandler {
     handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
         const { title } = gdoc.content
         if (!title) {
@@ -44,7 +55,29 @@ export class TitleHandler extends AbstractHandler {
     }
 }
 
-export class SlugHandler extends AbstractHandler {
+class BylineHandler extends AbstractHandler {
+    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
+        const { byline } = gdoc.content
+        if (!byline) {
+            messages.push(getMissingContentPropertyError("byline"))
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
+class DatelineHandler extends AbstractHandler {
+    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
+        const { dateline } = gdoc.content
+        if (!dateline) {
+            messages.push(getMissingContentPropertyError("dateline"))
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
+class SlugHandler extends AbstractHandler {
     handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
         const { slug } = gdoc
         if (!slug) {
@@ -65,24 +98,24 @@ export class SlugHandler extends AbstractHandler {
     }
 }
 
-export class BylineHandler extends AbstractHandler {
-    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
-        const { byline } = gdoc.content
-        if (!byline) {
-            messages.push(getMissingContentPropertyError("byline"))
-        }
-
-        return super.handle(gdoc, messages)
-    }
-}
-
+// #gdocsvalidation Errors prevent saving published articles. Errors are only
+// raised in front-end admin code at the moment (search for
+// #gdocsvalidationclient in codebase), but should ultimately be performed in
+// server code too (see #gdocsvalidationserver). The checks performed here
+// should match the list of required content fields in
+// OwidArticleContentPublished, so that gdocs coming from the DB effectively
+// honor the type cast (and subsequent assumptions) in getPublishedGdocs()
 export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
     const errors: ErrorMessage[] = []
-    const titleHandler = new TitleHandler()
+    const bodyHandler = new BodyHandler()
 
-    titleHandler.setNext(new SlugHandler()).setNext(new BylineHandler())
+    bodyHandler
+        .setNext(new TitleHandler())
+        .setNext(new BylineHandler())
+        .setNext(new DatelineHandler())
+        .setNext(new SlugHandler())
 
-    titleHandler.handle(gdoc, errors)
+    bodyHandler.handle(gdoc, errors)
 
     return errors
 }

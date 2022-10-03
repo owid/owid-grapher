@@ -38,11 +38,13 @@ export default function OwidArticlePage({
                 baseUrl={baseUrl}
             >
                 <CitationMeta
-                    title={content.title}
+                    title={content.title || ""}
                     authors={
                         Array.isArray(content.byline)
                             ? content.byline
-                            : [content.byline]
+                            : content.byline
+                            ? [content.byline]
+                            : []
                     }
                     date={updatedAt || createdAt}
                     canonicalUrl={canonicalUrl}

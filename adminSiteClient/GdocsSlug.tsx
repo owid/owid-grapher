@@ -19,7 +19,7 @@ export const GdocsSlug = ({
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)
     const {
-        content: { title },
+        content: { title = "" },
         slug,
     } = gdoc
     const slugFromTitle = slugify(title)
