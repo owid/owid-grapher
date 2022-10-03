@@ -11,10 +11,10 @@ import { gdocToArchieML } from "../gdocToArchieml.js"
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity {
     @PrimaryColumn() id!: string
-    @Column() slug!: string
+    @Column() slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
-    @Column() published!: boolean
-    @Column() createdAt!: Date
+    @Column() published: boolean = false
+    @Column() createdAt: Date = new Date()
     @Column({ nullable: true }) updatedAt!: Date
 
     constructor(id: string) {
