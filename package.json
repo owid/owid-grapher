@@ -144,6 +144,7 @@
         "json8-pointer": "^1.0.6",
         "jsonwebtoken": "^8.5.1",
         "knex": "^2.3.0",
+        "lerna": "^5.5.4",
         "linkifyjs": "^2.1.9",
         "lodash": "^4.17.20",
         "mathjax-full": "^3.1.0",
