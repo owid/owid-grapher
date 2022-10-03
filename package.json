@@ -253,5 +253,9 @@
         ">0.5%",
         "Firefox ESR",
         "not dead"
+    ],
+    "name": "grapher",
+    "workspaces": [
+        "packages/@ourworldindata/*"
     ]
 }
