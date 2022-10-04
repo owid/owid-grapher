@@ -1,7 +1,14 @@
 import React from "react"
+import { Help } from "./Forms.js"
 import { ErrorMessage } from "./gdocsValidation.js"
 
-export const GdocsErrorHelp = ({ error }: { error?: ErrorMessage }) => {
+export const GdocsErrorHelp = ({
+    error,
+    help,
+}: {
+    error?: ErrorMessage
+    help?: string
+}) => {
     return error ? (
         <div
             className={error.type}
@@ -9,5 +16,7 @@ export const GdocsErrorHelp = ({ error }: { error?: ErrorMessage }) => {
         >
             {error.message}
         </div>
+    ) : help ? (
+        <Help>{help}</Help>
     ) : null
 }

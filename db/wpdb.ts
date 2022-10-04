@@ -34,7 +34,7 @@ import {
     TopicId,
     GraphType,
     IndexPost,
-    OwidArticleType,
+    OwidArticleTypePublished,
 } from "../clientUtils/owidTypes.js"
 import { memoize } from "../clientUtils/Util.js"
 import { Topic } from "../grapher/core/GrapherConstants.js"

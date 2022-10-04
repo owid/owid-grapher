@@ -8,7 +8,7 @@ import {
 } from "../../clientUtils/owidTypes.js"
 
 export function OwidArticle(props: OwidArticleType) {
-    const { content } = props
+    const { content, publishedAt } = props
 
     const coverStyle = content["cover-image"]
         ? {
@@ -27,7 +27,9 @@ export function OwidArticle(props: OwidArticleType) {
                 <div>
                     By: <div className={"byline"}>{content.byline}</div>
                 </div>
-                <div className={"dateline"}>{content.dateline}</div>
+                <div className={"dateline"}>
+                    {content.dateline || publishedAt}
+                </div>
             </div>
 
             {content.summary ? (

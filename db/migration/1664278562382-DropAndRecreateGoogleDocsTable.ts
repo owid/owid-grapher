@@ -14,6 +14,7 @@ export class DropAndRecreateGoogleDocsTable1664278562382
             \`content\` json NOT NULL,
             \`published\` tinyint NOT NULL,
             \`createdAt\` datetime NOT NULL,
+            \`publishedAt\` datetime NULL,
             \`updatedAt\` datetime NULL ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (\`id\`),
             UNIQUE(\`slug\`)

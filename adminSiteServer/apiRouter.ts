@@ -2635,6 +2635,9 @@ apiRouter.patch("/gdocs/:id", async (req) => {
             case "published":
                 gdoc[property] = payload as boolean
                 break
+            case "publishedAt":
+                gdoc[property] = payload as Date | null
+                break
             case "content":
                 gdoc[property] = payload as OwidArticleContent
                 break
