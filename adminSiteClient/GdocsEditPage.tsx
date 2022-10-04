@@ -29,6 +29,7 @@ import { useUpdatePreviewContent, useGdocsChanged } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
+import { getArticleFromJSON } from "./gdocsUtils.js"
 
 export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -44,10 +45,9 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
 
     useEffect(() => {
         const fetchOriginalGdoc = async () => {
-            const originalGdoc = (await admin.getJSON(
-                `/api/gdocs/${id}`
-            )) as OwidArticleType
-            setOriginalGdoc(originalGdoc)
+            const originalGdocJson = await admin.getJSON(`/api/gdocs/${id}`)
+
+            setOriginalGdoc(getArticleFromJSON(originalGdocJson))
         }
         fetchOriginalGdoc()
     }, [admin, id])
