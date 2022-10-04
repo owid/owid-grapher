@@ -6,6 +6,7 @@ import {
     OwidArticleBlock,
     OwidArticleType,
 } from "../../clientUtils/owidTypes.js"
+import { formatDate } from "../../clientUtils/Util.js"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt } = props
@@ -28,7 +29,8 @@ export function OwidArticle(props: OwidArticleType) {
                     By: <div className={"byline"}>{content.byline}</div>
                 </div>
                 <div className={"dateline"}>
-                    {content.dateline || publishedAt}
+                    {content.dateline ||
+                        (publishedAt && formatDate(publishedAt))}
                 </div>
             </div>
 

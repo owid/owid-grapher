@@ -1246,3 +1246,10 @@ export function moveArrayItemToIndex<Item>(
 export const getIndexableKeys = Object.keys as <T extends object>(
     obj: T
 ) => Array<keyof T>
+
+export const formatDate = (date: Date): string =>
+    date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "2-digit",
+    })
