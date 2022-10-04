@@ -15,7 +15,8 @@ export class Gdoc extends BaseEntity {
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
     @Column() published: boolean = false
     @Column() createdAt: Date = new Date()
-    @Column({ nullable: true }) updatedAt!: Date
+    @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
+    @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
 
     constructor(id: string) {
         super()

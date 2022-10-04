@@ -66,17 +66,6 @@ class BylineHandler extends AbstractHandler {
     }
 }
 
-class DatelineHandler extends AbstractHandler {
-    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
-        const { dateline } = gdoc.content
-        if (!dateline) {
-            messages.push(getMissingContentPropertyError("dateline"))
-        }
-
-        return super.handle(gdoc, messages)
-    }
-}
-
 class SlugHandler extends AbstractHandler {
     handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
         const { slug } = gdoc
@@ -98,12 +87,27 @@ class SlugHandler extends AbstractHandler {
     }
 }
 
+class PublishedAtHandler extends AbstractHandler {
+    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
+        const { publishedAt } = gdoc
+        if (!publishedAt) {
+            messages.push({
+                property: "publishedAt",
+                type: ErrorMessageType.Warning,
+                message: `The publication date will be set to the current date on publishing.`,
+            })
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
 // #gdocsvalidation Errors prevent saving published articles. Errors are only
 // raised in front-end admin code at the moment (search for
 // #gdocsvalidationclient in codebase), but should ultimately be performed in
 // server code too (see #gdocsvalidationserver). The checks performed here
-// should match the list of required content fields in
-// OwidArticleContentPublished, so that gdocs coming from the DB effectively
+// should match the list of required fields in OwidArticleTypePublished and
+// OwidArticleContentPublished types, so that gdocs coming from the DB effectively
 // honor the type cast (and subsequent assumptions) in getPublishedGdocs()
 export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
     const errors: ErrorMessage[] = []
@@ -112,8 +116,8 @@ export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
     bodyHandler
         .setNext(new TitleHandler())
         .setNext(new BylineHandler())
-        .setNext(new DatelineHandler())
         .setNext(new SlugHandler())
+        .setNext(new PublishedAtHandler())
 
     bodyHandler.handle(gdoc, errors)
 

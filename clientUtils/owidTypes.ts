@@ -401,6 +401,7 @@ export interface OwidArticleType {
     content: OwidArticleContent
     published: boolean
     createdAt: Date
+    publishedAt: Date | null
     updatedAt: Date | null
 }
 
@@ -426,12 +427,11 @@ export interface OwidArticleContentPublished extends OwidArticleContent {
     body: OwidArticleBlock[]
     title: string
     byline: string | string[]
-    dateline: string
 }
 
 export interface GdocsPatch {
     property: keyof OwidArticleType
-    payload?: string | boolean | OwidArticleContent
+    payload?: string | boolean | OwidArticleContent | Date | null
 }
 
 export enum GdocsContentSource {

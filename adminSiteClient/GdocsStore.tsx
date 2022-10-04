@@ -38,6 +38,10 @@ export class GdocsStore {
                 property: "published",
                 payload: gdoc.published,
             },
+            {
+                property: "publishedAt",
+                payload: gdoc.publishedAt,
+            },
         ]
 
         await this.admin.requestJSON(
