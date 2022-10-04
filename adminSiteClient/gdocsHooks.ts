@@ -6,6 +6,7 @@ import {
 import { isEqual } from "../clientUtils/Util.js"
 import { useInterval } from "../site/hooks.js"
 import { Admin } from "./Admin.js"
+import { getArticleFromJSON } from "./gdocsUtils.js"
 
 export const useGdocsChanged = (
     prevGdoc: OwidArticleType | undefined,
@@ -30,12 +31,15 @@ export const useUpdatePreviewContent = (
 
     const updatePreviewContent = useCallback(async () => {
         try {
-            const draftGdoc = (await admin.requestJSON(
+            const draftGdocJson = await admin.requestJSON(
                 `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
                 {},
                 "GET",
                 { onFailure: "continue" }
-            )) as OwidArticleType
+            )
+
+            const draftGdoc = getArticleFromJSON(draftGdocJson)
+
             setGdoc((currGdoc: OwidArticleType | undefined) =>
                 currGdoc
                     ? { ...currGdoc, content: draftGdoc.content }
