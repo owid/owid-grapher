@@ -328,7 +328,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
 
         if (!hasSize)
             grapher.addDimension({
-                variableId: 72,
+                variableId: 525709,
                 property: DimensionProperty.size,
             })
     }
