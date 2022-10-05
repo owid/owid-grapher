@@ -14,7 +14,7 @@
     }
 
     a {
-        color: $blue-40;
+        color: inherit;
         transition: color 150ms ease;
 
         &:hover {
