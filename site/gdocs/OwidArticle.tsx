@@ -6,7 +6,7 @@ import {
     OwidArticleBlock,
     OwidArticleType,
 } from "../../clientUtils/owidTypes.js"
-import { formatDate } from "../../clientUtils/Util.js"
+import { formatDate, getArticleFromJSON } from "../../clientUtils/Util.js"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt } = props
@@ -70,7 +70,7 @@ export function OwidArticle(props: OwidArticleType) {
 
 export const hydrateOwidArticle = () => {
     const wrapper = document.querySelector("#owid-article-root")
-    const props = window._OWID_ARTICLE_PROPS
+    const props = getArticleFromJSON(window._OWID_ARTICLE_PROPS)
     if (wrapper) {
         ReactDOM.hydrate(<OwidArticle {...props} />, wrapper)
     }

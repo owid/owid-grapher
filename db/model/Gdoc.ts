@@ -1,5 +1,8 @@
 import { Entity, PrimaryColumn, Column, BaseEntity } from "typeorm"
-import { OwidArticleContent } from "../../clientUtils/owidTypes.js"
+import {
+    OwidArticleContent,
+    OwidArticleTypePublished,
+} from "../../clientUtils/owidTypes.js"
 import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,
@@ -48,5 +51,27 @@ export class Gdoc extends BaseEntity {
             auth,
         })
         this.content = draftContent
+    }
+
+    static cachedPublishedGdocs?: OwidArticleTypePublished[]
+    static async getPublishedGdocs(): Promise<OwidArticleTypePublished[]> {
+        // #gdocsvalidation this cast means that we trust the admin code and
+        // workflow to provide published articles that have all the required content
+        // fields (see #gdocsvalidationclient and pending #gdocsvalidationserver).
+        // It also means that if a required field is added after the publication of
+        // an article, there won't currently be any checks preventing the then
+        // incomplete article to be republished (short of an error being raised down
+        // the line). A migration should then be added to update current articles
+        // with a sensible default for the new required content field. An
+        // alternative would be to encapsulate that default in
+        // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
+        // the database dependent on the mapping function, which is more practical
+        // but also makes it less of a source of truth when considered in isolation.
+        return (
+            Gdoc.cachedPublishedGdocs ||
+            (Gdoc.find({
+                where: { published: true },
+            }) as Promise<OwidArticleTypePublished[]>)
+        )
     }
 }

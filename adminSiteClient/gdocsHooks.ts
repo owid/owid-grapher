@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from "react"
 import {
     GdocsContentSource,
     OwidArticleType,
+    OwidArticleTypeJSON,
 } from "../clientUtils/owidTypes.js"
-import { isEqual } from "../clientUtils/Util.js"
+import { getArticleFromJSON, isEqual } from "../clientUtils/Util.js"
 import { useInterval } from "../site/hooks.js"
 import { Admin } from "./Admin.js"
-import { getArticleFromJSON } from "./gdocsUtils.js"
 
 export const useGdocsChanged = (
     prevGdoc: OwidArticleType | undefined,
@@ -31,12 +31,12 @@ export const useUpdatePreviewContent = (
 
     const updatePreviewContent = useCallback(async () => {
         try {
-            const draftGdocJson = await admin.requestJSON(
+            const draftGdocJson = (await admin.requestJSON(
                 `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
                 {},
                 "GET",
                 { onFailure: "continue" }
-            )
+            )) as OwidArticleTypeJSON
 
             const draftGdoc = getArticleFromJSON(draftGdocJson)
 

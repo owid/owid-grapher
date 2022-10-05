@@ -4,7 +4,10 @@ import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
 import { OwidArticle } from "../site/gdocs/owid-article.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import {
+    OwidArticleType,
+    OwidArticleTypeJSON,
+} from "../clientUtils/owidTypes.js"
 import {
     Button,
     Col,
@@ -29,7 +32,7 @@ import { useUpdatePreviewContent, useGdocsChanged } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
-import { getArticleFromJSON } from "./gdocsUtils.js"
+import { getArticleFromJSON } from "../clientUtils/Util.js"
 
 export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -45,7 +48,9 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
 
     useEffect(() => {
         const fetchOriginalGdoc = async () => {
-            const originalGdocJson = await admin.getJSON(`/api/gdocs/${id}`)
+            const originalGdocJson = (await admin.getJSON(
+                `/api/gdocs/${id}`
+            )) as OwidArticleTypeJSON
 
             setOriginalGdoc(getArticleFromJSON(originalGdocJson))
         }

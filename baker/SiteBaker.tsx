@@ -27,7 +27,7 @@ import {
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
-    renderGDocsPost,
+    renderGdocsArticle,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -44,7 +44,7 @@ import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { bakeEmbedSnippet } from "../site/webpackUtils.js"
-import { FullPost } from "../clientUtils/owidTypes.js"
+import { FullPost, OwidArticleTypePublished } from "../clientUtils/owidTypes.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     bakeAllExplorerRedirects,
@@ -53,7 +53,7 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
 import { queryMysql } from "../db/db.js"
-import { OwidArticleType } from "../site/gdocs/gdoc-types.js"
+import { Gdoc } from "../db/model/Gdoc.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -128,8 +128,8 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakeGDocPost(post: OwidArticleType) {
-        const html = await renderGDocsPost(post)
+    private async bakeGDocPost(post: OwidArticleTypePublished) {
+        const html = renderGdocsArticle(post)
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
         await this.stageWrite(outPath, html)
@@ -226,10 +226,8 @@ export class SiteBaker {
     }
 
     // Bake all GDoc posts
-    private async bakeGDocPosts() {
-        const posts = await queryMysql(
-            `SELECT * FROM posts_gdocs WHERE published = 1`
-        )
+    async bakeGDocPosts() {
+        const posts = await Gdoc.getPublishedGdocs()
 
         const postSlugs = []
         for (const post of posts) {
