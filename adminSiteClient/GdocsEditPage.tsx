@@ -69,14 +69,20 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const hasErrors =
         errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
 
-    const onUpdatePublicationStatus = async (published: boolean) => {
+    const onPublish = async (published: boolean) => {
         //#gdocsvalidationclient: do not allow publishing articles with errors
         if (!gdoc || (gdoc.published && hasErrors)) return
-        const updatedGdoc = { ...gdoc, published }
-        await store.update(updatedGdoc)
 
-        setGdoc(updatedGdoc)
-        setOriginalGdoc(updatedGdoc)
+        const pendingGdoc = {
+            ...gdoc,
+            published,
+            // Add today's date if publishing
+            publishedAt: gdoc.publishedAt ?? new Date(),
+        }
+        await store.update(pendingGdoc)
+
+        setGdoc(pendingGdoc)
+        setOriginalGdoc(pendingGdoc)
         openNotification(
             "success",
             "Document saved",
@@ -166,9 +172,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
                                 hasChanges={hasChanges}
-                                onPublish={() =>
-                                    onUpdatePublicationStatus(true)
-                                }
+                                onPublish={() => onPublish(true)}
                             />
                             <IconBadge
                                 status={
@@ -185,9 +189,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                             </IconBadge>
                             <GdocsMoreMenu
                                 gdoc={gdoc}
-                                onUnpublish={() =>
-                                    onUpdatePublicationStatus(false)
-                                }
+                                onUnpublish={() => onPublish(false)}
                                 onDelete={onDelete}
                             />
                         </Space>
