@@ -119,6 +119,7 @@
         "decko": "^1.2.0",
         "dotenv": "^16.0.1",
         "dotenv-webpack": "^8.0.1",
+        "duckdb": "^0.5.1",
         "entities": "^4.4.0",
         "enzyme": "^3.11.0",
         "enzyme-adapter-react-16": "^1.15.6",
