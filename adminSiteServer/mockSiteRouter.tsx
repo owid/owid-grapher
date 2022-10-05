@@ -2,7 +2,7 @@ import express, { Router } from "express"
 import * as path from "path"
 import {
     renderFrontPage,
-    renderGDocsPageBySlug,
+    renderGdocsPageBySlug,
     renderPageBySlug,
     renderChartsPage,
     renderMenuJson,
@@ -224,7 +224,7 @@ mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")
 
     try {
-        res.send(await renderGDocsPageBySlug(slug))
+        res.send(await renderGdocsPageBySlug(slug))
     } catch (e) {}
 
     try {

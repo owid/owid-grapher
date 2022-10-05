@@ -49,6 +49,7 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
+    OwidArticleType,
     PostRow,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
@@ -90,6 +91,7 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
+import { Gdoc } from "../db/model/Gdoc.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -141,32 +143,21 @@ export const renderChartsPage = async (
 export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
-export const renderGDocsPageBySlug = async (slug: string) => {
-    const [post] = await queryMysql(
-        `
-        SELECT
-            *
-        FROM posts_gdocs
-        WHERE
-            slug = ?
-    `,
-        [slug]
-    )
+export const renderGdocsPageBySlug = async (
+    slug: string
+): Promise<string | undefined> => {
+    const gdoc = await Gdoc.findOne({ slug })
 
-    if (!post) {
+    if (!gdoc) {
         throw new Error("Failed to render an unknown GDocs post: ${slug}.")
     }
 
-    return renderGDocsPost(post)
+    return renderGdocsArticle(gdoc)
 }
 
-export const renderGDocsPost = (post: any) => {
-    // TODO(gdocs) - why doesn't this get serialized by SQL?
-    if (typeof post.content === "string") {
-        post.content = JSON.parse(post.content)
-    }
+export const renderGdocsArticle = (article: OwidArticleType) => {
     return renderToHtmlPage(
-        <OwidArticlePage baseUrl={BAKED_BASE_URL} article={post} />
+        <OwidArticlePage baseUrl={BAKED_BASE_URL} article={article} />
     )
 }
 

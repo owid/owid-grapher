@@ -405,6 +405,14 @@ export interface OwidArticleType {
     updatedAt: Date | null
 }
 
+// see also: getArticleFromJSON()
+export interface OwidArticleTypeJSON
+    extends Omit<OwidArticleType, "createdAt" | "publishedAt" | "updatedAt"> {
+    createdAt: string
+    publishedAt: string | null
+    updatedAt: string | null
+}
+
 export interface OwidArticleTypePublished extends OwidArticleType {
     content: OwidArticleContentPublished
 }
