@@ -5,8 +5,9 @@ import {
     OwidArticleTypeJSON,
 } from "../clientUtils/owidTypes.js"
 import { getArticleFromJSON, isEqual } from "../clientUtils/Util.js"
-import { useInterval } from "../site/hooks.js"
+import { useDebounceCallback, useInterval } from "../site/hooks.js"
 import { Admin } from "./Admin.js"
+import { useGdocsStore } from "./GdocsStore.js"
 
 export const useGdocsChanged = (
     prevGdoc: OwidArticleType | undefined,
@@ -19,6 +20,26 @@ export const useGdocsChanged = (
     }, [prevGdoc, nextGdoc])
 
     return hasChanges
+}
+
+export const useAutoSaveDraft = (
+    gdoc: OwidArticleType | undefined,
+    setOriginalGdoc: React.Dispatch<
+        React.SetStateAction<OwidArticleType | undefined>
+    >,
+    hasChanges: boolean
+) => {
+    const store = useGdocsStore()
+
+    const saveDraft = useDebounceCallback((gdoc: OwidArticleType) => {
+        store.update(gdoc)
+        setOriginalGdoc(gdoc)
+    }, 2000)
+
+    useEffect(() => {
+        if (!gdoc || !hasChanges || gdoc.published) return
+        saveDraft(gdoc)
+    }, [saveDraft, gdoc, hasChanges])
 }
 
 export const useUpdatePreviewContent = (

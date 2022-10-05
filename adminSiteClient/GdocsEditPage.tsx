@@ -20,7 +20,7 @@ import {
 } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
-import { useDebounceCallback } from "../site/hooks.js"
+
 import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { IconBadge } from "./IconBadge.js"
@@ -28,7 +28,11 @@ import { useGdocsStore } from "./GdocsStore.js"
 import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate"
 import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
-import { useUpdatePreviewContent, useGdocsChanged } from "./gdocsHooks.js"
+import {
+    useUpdatePreviewContent,
+    useGdocsChanged,
+    useAutoSaveDraft,
+} from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
@@ -45,6 +49,8 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const store = useGdocsStore()
 
     const syncingError = useUpdatePreviewContent(id, !gdoc, setGdoc, admin)
+    const hasChanges = useGdocsChanged(originalGdoc, gdoc)
+    useAutoSaveDraft(gdoc, setOriginalGdoc, hasChanges)
 
     useEffect(() => {
         const fetchOriginalGdoc = async () => {
@@ -57,7 +63,6 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
         fetchOriginalGdoc()
     }, [admin, id])
 
-    const hasChanges = useGdocsChanged(originalGdoc, gdoc)
     const hasWarnings =
         errors?.some((error) => error.type === ErrorMessageType.Warning) ??
         false
@@ -98,17 +103,6 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
         const errors = getErrors(gdoc)
         setErrors(errors)
     }, [gdoc])
-
-    const save = useDebounceCallback((gdoc: OwidArticleType) => {
-        store.update(gdoc)
-        setOriginalGdoc(gdoc)
-    }, 2000)
-
-    // Auto-save on change
-    useEffect(() => {
-        if (!gdoc || !hasChanges || gdoc.published) return
-        save(gdoc)
-    }, [save, gdoc, hasChanges])
 
     return gdoc ? (
         <AdminLayout title="Google Docs - Edit" noSidebar fixedNav={false}>
