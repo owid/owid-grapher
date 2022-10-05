@@ -3,7 +3,6 @@ import { Dropdown, Menu, Button, Modal } from "antd"
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons/faEllipsisVertical"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
-import { ExclamationCircleOutlined } from "@ant-design/icons"
 
 enum GdocsMoreMenuAction {
     Delete = "delete",
@@ -22,7 +21,6 @@ export const GdocsMoreMenu = ({
     const confirmUnpublish = () => {
         Modal.confirm({
             title: "Are you sure you want to unpublish this article?",
-            icon: <ExclamationCircleOutlined />,
             content: "The article will no longer be visible to the public.",
             okText: "Unpublish",
             okType: "danger",
@@ -35,7 +33,6 @@ export const GdocsMoreMenu = ({
     const confirmDelete = () => {
         Modal.confirm({
             title: "Are you sure you want to delete this article?",
-            icon: <ExclamationCircleOutlined />,
             content:
                 "The article will be removed from the admin list and unpublished. The original Google Doc will be preserved.",
             okText: "Delete",

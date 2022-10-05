@@ -12,6 +12,7 @@ import {
     Button,
     Col,
     Drawer,
+    Modal,
     notification,
     Row,
     Space,
@@ -69,14 +70,30 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const hasErrors =
         errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
 
-    const onPublish = async (published: boolean) => {
-        //#gdocsvalidationclient: do not allow publishing articles with errors
-        if (!gdoc || (gdoc.published && hasErrors)) return
+    const confirmPublish = async () => {
+        if (!gdoc) return
+
+        Modal.confirm({
+            title: "Are you sure you want to publish this article?",
+            content:
+                hasWarnings &&
+                errors?.map((error, i) => <div key={i}>{error.message}</div>),
+            okType: hasWarnings ? "danger" : "primary",
+            okText: "Publish now",
+            cancelText: "Cancel",
+            onOk() {
+                doPublish(true)
+            },
+        })
+    }
+
+    const doPublish = async (published: boolean) => {
+        if (!gdoc) return
 
         const pendingGdoc = {
             ...gdoc,
             published,
-            // Add today's date if publishing
+            // Add today's date if the publication date is missing
             publishedAt: gdoc.publishedAt ?? new Date(),
         }
         await store.update(pendingGdoc)
@@ -172,7 +189,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
                                 hasChanges={hasChanges}
-                                onPublish={() => onPublish(true)}
+                                onPublish={confirmPublish}
                             />
                             <IconBadge
                                 status={
@@ -189,7 +206,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                             </IconBadge>
                             <GdocsMoreMenu
                                 gdoc={gdoc}
-                                onUnpublish={() => onPublish(false)}
+                                onUnpublish={() => doPublish(false)}
                                 onDelete={onDelete}
                             />
                         </Space>
@@ -229,5 +246,6 @@ const openNotification = (
     notification[type]({
         message: title,
         description,
+        placement: "bottomLeft",
     })
 }
