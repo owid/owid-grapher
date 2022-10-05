@@ -471,7 +471,7 @@ export const getPosts = async (
 ): Promise<any[]> => {
     if (!isWordpressAPIEnabled) return []
 
-    const perPage = 50
+    const perPage = 20
     const posts: PostRestApi[] = []
 
     for (const postType of postTypes) {
