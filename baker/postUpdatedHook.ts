@@ -7,9 +7,8 @@ import { exit } from "../db/cleanup.js"
 import { PostRow } from "../clientUtils/owidTypes.js"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
-import { blockRefRegex } from "../db/syncPostsToGrapher.js"
+import { buildReusableBlocksResolver } from "../db/syncPostsToGrapher.js"
 import { postsTable, select } from "../db/model/Post.js"
-import { keyBy } from "../clientUtils/Util.js"
 const argv = parseArgs(process.argv.slice(2))
 
 const zeroDateString = "0000-00-00 00:00:00"
@@ -22,6 +21,7 @@ const syncPostToGrapher = async (
         "SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'",
         [postId]
     )
+    const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
 
     const matchingRows = await db.knexTable(postsTable).where({ id: postId })
     const existsInGrapher = !!matchingRows.length
@@ -51,44 +51,11 @@ const syncPostToGrapher = async (
             // Delete from grapher
             await transaction.table(postsTable).where({ id: postId }).delete()
         else if (postRow) {
-            const contentWithBlocksInlined = postRow.content
-            let matches = contentWithBlocksInlined.matchAll(blockRefRegex)
-            // Dereference WP refs that point to blocks. In a handful of cases blocks reference
-            // blocks again so we have to deref in a loop until we don't have any refs left. To
-            // avoid endless loops if a ref can't be dereferenced and we keep the original string
-            // we limit the repeat runs to 3 which should be enough for all reasonable uses of blocks
-            for (
-                let recursionLevelsRemaining = 3;
-                recursionLevelsRemaining > 0 && matches;
-                recursionLevelsRemaining--
-            ) {
-                const matchesArray = [...matches]
-                const blockIds = new Set(
-                    matchesArray.map((match) => match.groups?.id)
-                )
-                const blockRows = await wpdb.singleton.query(
-                    "SELECT ID, post_content FROM wp_posts WHERE ID in (?) AND post_type = 'wp_block' AND post_status != 'trash'",
-                    [[...blockIds]]
-                )
-                const allBlocks = keyBy(blockRows, "ID")
-                const replacer = (
-                    _match: string,
-                    _firstPattern: string,
-                    _offset: number,
-                    fullString: string,
-                    matches: Record<string, string>
-                ): string => {
-                    const block = allBlocks[matches["id"].toString()]
-                    if (block) return block.post_content
-                    else return fullString
-                }
-                const contentWithBlocksInlined = postRow.content.replace(
-                    blockRefRegex,
-                    replacer
-                )
-                matches = contentWithBlocksInlined.matchAll(blockRefRegex)
-                postRow.content = contentWithBlocksInlined
-            }
+            const contentWithBlocksInlined = dereferenceReusableBlocksFn(
+                postRow.content
+            )
+            postRow.content = contentWithBlocksInlined
+
             if (!existsInGrapher)
                 await transaction.table(postsTable).insert(postRow)
             else if (existsInGrapher)
