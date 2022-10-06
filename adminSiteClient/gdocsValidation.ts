@@ -102,6 +102,24 @@ class PublishedAtHandler extends AbstractHandler {
     }
 }
 
+export class ExcerptHandler extends AbstractHandler {
+    static maxLength = 150
+    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
+        const { excerpt } = gdoc.content
+        if (!excerpt) {
+            messages.push(getMissingContentPropertyError("excerpt"))
+        } else if (excerpt.length > ExcerptHandler.maxLength) {
+            messages.push({
+                property: "excerpt",
+                type: ErrorMessageType.Warning,
+                message: `Long excerpts may not display well in our list of articles or on social media.`,
+            })
+        }
+
+        return super.handle(gdoc, messages)
+    }
+}
+
 // #gdocsvalidation Errors prevent saving published articles. Errors are only
 // raised in front-end admin code at the moment (search for
 // #gdocsvalidationclient in codebase), but should ultimately be performed in
@@ -118,6 +136,7 @@ export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
         .setNext(new BylineHandler())
         .setNext(new SlugHandler())
         .setNext(new PublishedAtHandler())
+        .setNext(new ExcerptHandler())
 
     bodyHandler.handle(gdoc, errors)
 
