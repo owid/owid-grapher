@@ -7,11 +7,9 @@
     },
     "files": ["webpack.config.ts"],
     "references": [
-        { "path": "./clientUtils" },
         { "path": "./gridLang" },
         { "path": "./gitCms" },
         { "path": "./explorer" },
-        { "path": "./coreTable" },
         { "path": "./site" },
         { "path": "./settings" },
         { "path": "./adminSiteClient" },
