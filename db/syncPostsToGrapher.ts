@@ -92,7 +92,7 @@ type BlockResolveFunction = (content: string) => string
     @example
     const content = "some content with a <!-- wp:block {\"ref\":123} /--> reference"
     const replacerFn = await buildReusableBlocksResolver()
-    const dereferencedConentet = replacerFn(content)
+    const dereferencedContent = replacerFn(content)
      */
 export async function buildReusableBlocksResolver(): Promise<BlockResolveFunction> {
     const allBlocks = await fetchAllReusableBlocks()
