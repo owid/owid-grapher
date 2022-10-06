@@ -7,7 +7,10 @@ export interface Country {
 }
 
 interface FilterableCountry extends Country {
+    name: string
+    code: string
     filter?: boolean
+    iso3166: string
 }
 
 const allCountriesSortedByCode: FilterableCountry[] = [
@@ -40,6 +43,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         code: "ALA",
         slug: "aland-islands",
         filter: true,
+        iso3166: "AX",
     },
     {
         name: "Albania",
@@ -58,6 +62,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         code: "ANT",
         slug: "netherlands-antilles",
         filter: true,
+        iso3166: "AN",
     },
     {
         name: "United Arab Emirates",
@@ -145,6 +150,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         code: "BES",
         slug: "bonaire-sint-eustatius-and-saba",
         filter: true,
+        iso3166: "BQ",
     },
     {
         name: "Burkina Faso",
@@ -186,6 +192,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Saint Barthélemy",
         code: "BLM",
         slug: "saint-barthelemy",
+        iso3166: "BL",
     },
     {
         name: "Belarus",
@@ -227,6 +234,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Brunei",
         code: "BRN",
         slug: "brunei",
+        iso3166: "BN",
     },
     {
         name: "Bhutan",
@@ -264,6 +272,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         code: "CCK",
         slug: "cocos-islands",
         filter: true,
+        iso3166: "CC",
     },
     {
         name: "Switzerland",
@@ -299,6 +308,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Democratic Republic of Congo",
         code: "COD",
         slug: "democratic-republic-of-congo",
+        iso3166: "CD",
     },
     {
         name: "Congo",
@@ -470,6 +480,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Falkland Islands",
         code: "FLK",
         slug: "falkland-islands",
+        iso3166: "FK",
     },
     {
         name: "France",
@@ -481,11 +492,13 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Faeroe Islands",
         code: "FRO",
         slug: "faeroe-islands",
+        iso3166: "FO",
     },
     {
         name: "Micronesia (country)",
         code: "FSM",
         slug: "micronesia-country",
+        iso3166: "FM",
     },
     {
         name: "Gabon",
@@ -670,6 +683,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Iran",
         code: "IRN",
         slug: "iran",
+        iso3166: "IR",
     },
     {
         name: "Iraq",
@@ -759,6 +773,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "South Korea",
         code: "KOR",
         slug: "south-korea",
+        iso3166: "KR",
     },
     {
         name: "Kuwait",
@@ -770,6 +785,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Laos",
         code: "LAO",
         slug: "laos",
+        iso3166: "LA",
     },
     {
         name: "Lebanon",
@@ -787,6 +803,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Libya",
         code: "LBY",
         slug: "libya",
+        iso3166: "LY",
     },
     {
         name: "Saint Lucia",
@@ -841,6 +858,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         code: "MAF",
         slug: "saint-martin-french-part",
         filter: true,
+        iso3166: "MF",
     },
     {
         name: "Morocco",
@@ -858,6 +876,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Moldova",
         code: "MDA",
         slug: "moldova",
+        iso3166: "MD",
     },
     {
         name: "Madagascar",
@@ -1111,6 +1130,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "North Korea",
         code: "PRK",
         slug: "north-korea",
+        iso3166: "KP",
     },
     {
         name: "Portugal",
@@ -1128,6 +1148,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Palestine",
         code: "PSE",
         slug: "palestine",
+        iso3166: "PS",
     },
     {
         name: "French Polynesia",
@@ -1157,6 +1178,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Russia",
         code: "RUS",
         slug: "russia",
+        iso3166: "RU",
     },
     {
         name: "Rwanda",
@@ -1304,6 +1326,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Syria",
         code: "SYR",
         slug: "syria",
+        iso3166: "SY",
     },
     {
         name: "Turks and Caicos Islands",
@@ -1351,6 +1374,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Timor",
         code: "TLS",
         slug: "timor",
+        iso3166: "TL",
     },
     {
         name: "Tonga",
@@ -1392,6 +1416,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Tanzania",
         code: "TZA",
         slug: "tanzania",
+        iso3166: "TZ",
     },
     {
         name: "Uganda",
@@ -1435,6 +1460,7 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "Vatican",
         code: "VAT",
         slug: "vatican",
+        iso3166: "VA",
     },
     {
         name: "Saint Vincent and the Grenadines",
@@ -1452,11 +1478,13 @@ const allCountriesSortedByCode: FilterableCountry[] = [
         name: "British Virgin Islands",
         code: "VGB",
         slug: "british-virgin-islands",
+        iso3166: "VG",
     },
     {
         name: "United States Virgin Islands",
         code: "VIR",
         slug: "united-states-virgin-islands",
+        iso3166: "VI",
     },
     {
         name: "Vietnam",
