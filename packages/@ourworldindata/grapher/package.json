@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "description": "OWID's data exploration and visualization library.",
   "main": "dist/index.js",
-  "scripts": {},
+  "scripts": {
+    "build": "tsc"
+  },
   "keywords": [],
   "author": "",
   "dependencies": {
