@@ -85,7 +85,7 @@ type BlockResolveFunction = (content: string) => string
 
 /** This function fetches all reusable blocks and then returns a function that
     takes a post content and returns the content with all references to blocks resolved.
-    To do it's work this function uses a database connection to fetch all blocks when it is called
+    To do its work this function uses a database connection to fetch all blocks when it is called
     that has to be awaited but then the function that is returned is then a simple lookup implementation.
     This was implemented as a closure for nicer re-use and encapsulation.
 
