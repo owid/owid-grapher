@@ -247,5 +247,6 @@ const openNotification = (
         message: title,
         description,
         placement: "bottomLeft",
+        closeIcon: <></>,
     })
 }
