@@ -413,6 +413,10 @@ export interface OwidArticleTypeJSON
     updatedAt: string | null
 }
 
+/**
+ * See ../adminSiteClient/gdocsValidation/getErrors() where these existence
+ * constraints are surfaced at runtime on the draft article
+ */
 export interface OwidArticleTypePublished extends OwidArticleType {
     content: OwidArticleContentPublished
 }
@@ -424,6 +428,7 @@ export interface OwidArticleContent {
     template?: string
     byline?: string | string[]
     dateline?: string
+    excerpt?: string
     refs?: OwidArticleBlock[]
     summary?: OwidArticleBlock[]
     citation?: OwidArticleBlock[]
@@ -435,6 +440,7 @@ export interface OwidArticleContentPublished extends OwidArticleContent {
     body: OwidArticleBlock[]
     title: string
     byline: string | string[]
+    excerpt: string
 }
 
 export interface GdocsPatch {

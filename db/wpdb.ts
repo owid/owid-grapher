@@ -736,7 +736,7 @@ const mapGdocsToWordpressPosts = (
         authors: Array.isArray(gdoc.content.byline)
             ? gdoc.content.byline
             : [gdoc.content.byline],
-        excerpt: "TODO", //todo
+        excerpt: gdoc.content.excerpt,
         imageUrl: `${BAKED_BASE_URL}/default-thumbnail.jpg`, //todo
     }))
 }
