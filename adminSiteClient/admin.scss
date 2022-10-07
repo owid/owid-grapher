@@ -1292,3 +1292,30 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         }
     }
 }
+
+.GdocsSettingsForm {
+    .edit-in-gdocs {
+        position: relative;
+
+        a {
+            background-color: rgb(24, 144, 255, 0.8);
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+
+        &:hover a {
+            opacity: 1;
+        }
+    }
+}

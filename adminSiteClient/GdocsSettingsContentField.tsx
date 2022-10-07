@@ -37,15 +37,16 @@ export const GdocsSettingsContentField = ({
     return (
         <div className="form-group">
             <label htmlFor={property}>
-                <span className="text-capitalize">{property}</span> [{" "}
-                <GdocsEditLink gdoc={gdoc} style={{ fontSize: "O.8em" }} /> ]
+                <span className="text-capitalize">{property}</span>
             </label>
-
-            {render({
-                name: property,
-                value: gdoc.content[property],
-                errorType: error?.type,
-            })}
+            <div className="edit-in-gdocs">
+                <GdocsEditLink gdoc={gdoc} />
+                {render({
+                    name: property,
+                    value: gdoc.content[property],
+                    errorType: error?.type,
+                })}
+            </div>
 
             <GdocsErrorHelp error={error} />
         </div>
@@ -68,7 +69,7 @@ export const GdocsSettingsTextField = ({
         value={value}
         status={errorType}
         id={name}
-        disabled={true}
+        readOnly
         {...inputProps}
     />
 )
@@ -88,7 +89,7 @@ export const GdocsSettingsTextArea = ({
         value={value}
         status={errorType}
         id={name}
-        disabled={true}
+        readOnly
         {...inputProps}
     />
 )
