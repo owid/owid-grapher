@@ -3,13 +3,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 import { ChartEditor } from "./ChartEditor.js"
-import {
-    Toggle,
-    EditableListItem,
-    BindAutoString,
-    BindAutoFloat,
-    ColorBox,
-} from "./Forms.js"
+import { Toggle, BindAutoString, BindAutoFloat, ColorBox } from "./Forms.js"
 import { Link } from "./Link.js"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
 import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
@@ -23,11 +17,10 @@ import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 export class DimensionCard extends React.Component<{
     dimension: ChartDimension
     editor: ChartEditor
+    isDndEnabled?: boolean
     onChange: (dimension: ChartDimension) => void
     onEdit?: () => void
     onRemove?: () => void
-    onMouseEnter?: () => void
-    onMouseDown?: () => void
 }> {
     @observable.ref isExpanded: boolean = false
 
@@ -86,16 +79,12 @@ export class DimensionCard extends React.Component<{
     }
 
     render() {
-        const { dimension, editor } = this.props
+        const { dimension, editor, isDndEnabled } = this.props
         const { grapher } = editor
         const { column } = dimension
 
         return (
-            <EditableListItem
-                className="DimensionCard draggable"
-                onMouseDown={() => this.props.onMouseDown?.()}
-                onMouseEnter={() => this.props.onMouseEnter?.()}
-            >
+            <div className="DimensionCard list-group-item">
                 <header>
                     <div>
                         <span
@@ -110,20 +99,18 @@ export class DimensionCard extends React.Component<{
                                 }
                             />
                         </span>
+                        {isDndEnabled && (
+                            <FontAwesomeIcon icon={faArrowsAltV} />
+                        )}
+                        <ColorBox color={this.color} onColor={this.onColor} />
                     </div>
-                    <div>
-                        <FontAwesomeIcon icon={faArrowsAltV} />
-                    </div>
-                    <ColorBox color={this.color} onColor={this.onColor} />
-                    <div>
-                        <Link
-                            to={`/variables/${dimension.variableId}`}
-                            className="dimensionLink"
-                            target="_blank"
-                        >
-                            {column.name}
-                        </Link>
-                    </div>
+                    <Link
+                        to={`/variables/${dimension.variableId}`}
+                        className="dimensionLink"
+                        target="_blank"
+                    >
+                        {column.name}
+                    </Link>
                     <div>
                         {this.props.onEdit && (
                             <div
@@ -144,7 +131,7 @@ export class DimensionCard extends React.Component<{
                     </div>
                 </header>
                 {this.isExpanded && (
-                    <div onMouseDown={(e) => e.stopPropagation()}>
+                    <div>
                         <BindAutoString
                             label="Display name"
                             field="name"
@@ -199,7 +186,7 @@ export class DimensionCard extends React.Component<{
                         <hr className="ui divider" />
                     </div>
                 )}
-            </EditableListItem>
+            </div>
         )
     }
 }
