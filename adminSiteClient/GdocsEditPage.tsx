@@ -8,17 +8,7 @@ import {
     OwidArticleType,
     OwidArticleTypeJSON,
 } from "../clientUtils/owidTypes.js"
-import {
-    Button,
-    Col,
-    Drawer,
-    Modal,
-    notification,
-    Row,
-    Space,
-    Tag,
-    Typography,
-} from "antd"
+import { Button, Col, Drawer, Modal, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 
@@ -38,6 +28,7 @@ import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { getArticleFromJSON } from "../clientUtils/Util.js"
+import { openSuccessNotification } from "./gdocsNotifications.js"
 
 export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -90,13 +81,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     const doPublish = async (published: boolean) => {
         if (!gdoc) return
 
-        const pendingGdoc = {
-            ...gdoc,
-            published,
-            // Add today's date if the publication date is missing
-            publishedAt: gdoc.publishedAt ?? new Date(),
-        }
-        await store.update(pendingGdoc)
+        openSuccessNotification()
 
         setGdoc(pendingGdoc)
         setOriginalGdoc(pendingGdoc)
@@ -235,18 +220,4 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
             </main>
         </AdminLayout>
     ) : null
-}
-
-type NotificationType = "success" | "info" | ErrorMessageType
-const openNotification = (
-    type: NotificationType,
-    title: string,
-    description: React.ReactNode
-) => {
-    notification[type]({
-        message: title,
-        description,
-        placement: "bottomLeft",
-        closeIcon: <></>,
-    })
 }
