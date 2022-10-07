@@ -12,10 +12,11 @@ export const GdocsEditLink = ({
 }) => (
     <a
         href={`https://docs.google.com/document/d/${gdoc.id}/edit`}
-        target="_blank"
-        rel="noopener"
+        target={gdoc.id}
         style={style}
+        rel="noopener noreferrer"
     >
-        Edit <FontAwesomeIcon icon={faEdit} />
+        Edit
+        <FontAwesomeIcon style={{ marginLeft: "0.4em" }} icon={faEdit} />
     </a>
 )
