@@ -160,11 +160,11 @@ describe("Kitchen sink", function () {
             src: DEFAULT_THUMBNAIL_URL,
         })
         // N/A
-        // testProminentLink({
-        //     testTitle:
-        //         "[NOT RECOMMENDED] Grapher link redirected to grapher (in wordpress)",
-        //     title: "Adjusted net savings per capita",
-        //     src: "http://localhost:3030/grapher/exports/adjusted-net-savings-per-person.svg",
-        // })
+        testProminentLink({
+            testTitle:
+                "[NOT RECOMMENDED] Grapher link redirected to grapher (in wordpress)",
+            title: "Adjusted net savings per capita",
+            src: "http://localhost:3030/grapher/exports/adjusted-net-savings-per-person.svg",
+        })
     })
 })
