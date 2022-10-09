@@ -12,7 +12,12 @@ import {
     BAKED_GRAPHER_URL,
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
-import { excludeUndefined, parseIntOrUndefined } from "../clientUtils/Util.js"
+import {
+    excludeUndefined,
+    parseIntOrUndefined,
+    Url,
+    queryParamsToStr,
+} from "@ourworldindata/utils"
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import {
     ChartTypeName,
@@ -20,8 +25,6 @@ import {
     GrapherTabOption,
     StackMode,
 } from "../grapher/core/GrapherConstants.js"
-import { Url } from "../clientUtils/urls/Url.js"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"

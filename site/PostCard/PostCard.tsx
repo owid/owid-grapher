@@ -1,5 +1,5 @@
 import React from "react"
-import { FullPost } from "../../clientUtils/owidTypes.js"
+import { FullPost } from "@ourworldindata/utils"
 import { formatAuthors, formatDate, formatUrls } from "../formatting.js"
 
 const PostCard = ({ post }: { post: FullPost }) => {

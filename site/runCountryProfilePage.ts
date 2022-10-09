@@ -1,5 +1,5 @@
 import fuzzysort from "fuzzysort"
-import { keyBy } from "../clientUtils/Util.js"
+import { keyBy } from "@ourworldindata/utils"
 import { observable, computed, action, autorun } from "mobx"
 import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"

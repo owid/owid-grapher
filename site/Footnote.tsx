@@ -1,5 +1,5 @@
 import { Tippy } from "../grapher/chart/Tippy.js"
-import { parseIntOrUndefined } from "../clientUtils/Util.js"
+import { parseIntOrUndefined } from "@ourworldindata/utils"
 import React from "react"
 import ReactDOM from "react-dom"
 

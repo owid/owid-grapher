@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { Tag } from "../clientUtils/owidTypes.js"
+import { Tag } from "@ourworldindata/utils"
 
 import { Link } from "./Link.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"

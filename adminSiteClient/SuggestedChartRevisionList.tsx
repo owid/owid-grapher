@@ -11,7 +11,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { ChartListItem } from "./ChartList.js"
 import { Link } from "./Link.js"
-import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
+import { SuggestedChartRevisionStatus } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
 
 export interface SuggestedChartRevisionListItem {

@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio"
-import { WP_ColumnStyle } from "../clientUtils/owidTypes.js"
+import { WP_ColumnStyle } from "@ourworldindata/utils"
 import {
     formatAuthors,
     GRAPHER_PREVIEW_CLASS,

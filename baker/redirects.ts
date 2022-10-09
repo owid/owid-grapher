@@ -1,12 +1,14 @@
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
-import { getCountryDetectionRedirects } from "../clientUtils/countries.js"
-import { memoize } from "../clientUtils/Util.js"
+import {
+    getCountryDetectionRedirects,
+    memoize,
+    JsonError,
+    Url,
+} from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
-import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
-import { JsonError } from "../clientUtils/owidTypes.js"
 
 export const getRedirects = async () => {
     const redirects = [

@@ -10,12 +10,12 @@ import {
 import { GitCmsClient } from "../gitCms/GitCmsClient.js"
 import { Prompt } from "react-router-dom"
 import Handsontable from "handsontable"
-import { CoreMatrix } from "../coreTable/CoreTableConstants.js"
+import { CoreMatrix } from "@ourworldindata/core-table"
 import {
     exposeInstanceOnWindow,
     slugify,
     toRectangularMatrix,
-} from "../clientUtils/Util.js"
+} from "@ourworldindata/utils"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
 import {
     DefaultNewExplorerSlug,

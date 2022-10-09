@@ -33,8 +33,8 @@ import {
     PostRestApi,
     TopicId,
     GraphType,
-} from "../clientUtils/owidTypes.js"
-import { memoize } from "../clientUtils/Util.js"
+    memoize,
+} from "@ourworldindata/utils"
 import { Topic } from "../grapher/core/GrapherConstants.js"
 import {
     getContentGraph,

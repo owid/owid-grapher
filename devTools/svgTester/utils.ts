@@ -13,13 +13,13 @@ import {
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
-} from "../../clientUtils/OwidVariable.js"
+    TESTING_ONLY_reset_guid,
+} from "@ourworldindata/utils"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 import md5 from "md5"
 
 import * as util from "util"
 import { GrapherInterface } from "../../grapher/core/GrapherInterface.js"
-import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util.js"
 import _ from "lodash"
 
 export const CONFIG_FILENAME: string = "config.json"

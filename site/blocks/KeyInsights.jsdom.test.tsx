@@ -8,10 +8,10 @@ import {
     KEY_INSIGHTS_INSIGHT_PARAM,
 } from "./KeyInsights.js"
 
-import { KeyInsight } from "../../clientUtils/owidTypes.js"
+import { KeyInsight } from "@ourworldindata/utils"
 import { fireEvent, render, screen } from "@testing-library/react"
 import "@testing-library/jest-dom"
-import { getWindowUrl } from "../../clientUtils/urls/Url.js"
+import { getWindowUrl } from "@ourworldindata/utils"
 
 const KEY_INSIGHTS_SLUG = "key-insights"
 

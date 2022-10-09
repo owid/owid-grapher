@@ -13,8 +13,12 @@ import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 
-import { OwidVariableDisplayConfig } from "../clientUtils/OwidVariable.js"
-import { OwidSource } from "../clientUtils/OwidSource.js"
+import {
+    OwidVariableDisplayConfig,
+    OwidSource,
+    OwidVariableDisplayConfigInterface,
+    EPOCH_DATE,
+} from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
@@ -44,8 +48,6 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { OwidVariableDisplayConfigInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
-import { EPOCH_DATE } from "../clientUtils/owidTypes.js"
 
 class VariableEditable {
     @observable name: string = ""

@@ -15,11 +15,7 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "../site/NewsletterSubscription.js"
-import {
-    CategoryWithEntries,
-    EntryNode,
-    FullPost,
-} from "../clientUtils/owidTypes.js"
+import { CategoryWithEntries, EntryNode, FullPost } from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
 
 const splitOnLastWord = (str: string) => {

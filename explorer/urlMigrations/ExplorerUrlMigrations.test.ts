@@ -1,6 +1,6 @@
 #! yarn testJest
 
-import { Url } from "../../clientUtils/urls/Url.js"
+import { Url } from "@ourworldindata/utils"
 import {
     explorerUrlMigrationsById,
     ExplorerUrlMigrationId,

@@ -11,7 +11,6 @@ import {
 } from "../explorer/ExplorerControls.js"
 import ReactDOM from "react-dom"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { ColumnSlug, SerializedGridProgram } from "../clientUtils/owidTypes.js"
 import {
     Grapher,
     GrapherManager,
@@ -28,7 +27,15 @@ import {
     omitUndefinedValues,
     throttle,
     uniqBy,
-} from "../clientUtils/Util.js"
+    ColumnSlug,
+    SerializedGridProgram,
+    Bounds,
+    DEFAULT_BOUNDS,
+    setWindowUrl,
+    Url,
+    PromiseCache,
+    PromiseSwitcher,
+} from "@ourworldindata/utils"
 import {
     SlideShowController,
     SlideShowManager,
@@ -44,25 +51,26 @@ import {
 } from "./ExplorerConstants.js"
 import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants.js"
 import { SelectionArray } from "../grapher/selection/SelectionArray.js"
-import { SortOrder, TableSlug } from "../coreTable/CoreTableConstants.js"
-import { isNotErrorValue } from "../coreTable/ErrorValues.js"
-import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds.js"
+import {
+    SortOrder,
+    TableSlug,
+    isNotErrorValue,
+    ColumnTypeNames,
+    CoreColumnDef,
+    BlankOwidTable,
+    OwidTable,
+} from "@ourworldindata/core-table"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker.js"
 import classNames from "classnames"
-import { ColumnTypeNames, CoreColumnDef } from "../coreTable/CoreColumnDef.js"
-import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
-import { setWindowUrl, Url } from "../clientUtils/urls/Url.js"
 import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder.js"
-import { PromiseCache } from "../clientUtils/PromiseCache.js"
-import { PromiseSwitcher } from "../clientUtils/PromiseSwitcher.js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]

@@ -1,7 +1,7 @@
 import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { isEmpty } from "../clientUtils/Util.js"
+import { isEmpty, OwidVariableId } from "@ourworldindata/utils"
 import {
     MapProjectionLabels,
     MapProjectionName,
@@ -15,7 +15,6 @@ import {
     Section,
 } from "./Forms.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
-import { OwidVariableId } from "../clientUtils/owidTypes.js"
 import { MapConfig } from "../grapher/mapCharts/MapConfig.js"
 import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"

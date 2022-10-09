@@ -4,11 +4,7 @@ import React from "react"
 import { GrapherPage } from "./GrapherPage.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import {
-    DimensionProperty,
-    PostRow,
-    RelatedChart,
-} from "../clientUtils/owidTypes.js"
+import { DimensionProperty, PostRow, RelatedChart } from "@ourworldindata/utils"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 

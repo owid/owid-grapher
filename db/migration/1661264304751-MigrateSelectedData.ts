@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { excludeUndefined, sortBy, uniq } from "../../clientUtils/Util.js"
+import { excludeUndefined, sortBy, uniq } from "@ourworldindata/utils"
 
 import { entityNameById } from "./data/entityNameById.js"
 

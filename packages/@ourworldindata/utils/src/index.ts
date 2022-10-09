@@ -165,6 +165,7 @@ export {
     removeAllWhitespace,
     moveArrayItemToIndex,
     getIndexableKeys,
+    retryPromise,
 } from "./Util.js"
 
 export {
@@ -265,7 +266,12 @@ export {
     getTimeDomainFromQueryString,
 } from "./TimeBounds.js"
 
-export { countries } from "./countries.js"
+export {
+    countries,
+    Country,
+    getCountry,
+    getCountryDetectionRedirects,
+} from "./countries.js"
 
 export { getStylesForTargetHeight } from "./react-select.jsx"
 
@@ -310,3 +316,84 @@ export {
 export { Url, setWindowUrl, getWindowUrl } from "./urls/Url.js"
 
 export { UrlMigration, performUrlMigrations } from "./urls/UrlMigration.js"
+
+export {
+    GrapherConfigPatch,
+    BulkGrapherConfigResponseRow,
+    VariableAnnotationsResponseRow,
+    BulkChartEditResponseRow,
+    BulkGrapherConfigResponse,
+    WHITELISTED_SQL_COLUMN_NAMES,
+    variableAnnotationAllowedColumnNamesAndTypes,
+    chartBulkUpdateAllowedColumnNamesAndTypes,
+} from "./AdminSessionTypes.js"
+
+export {
+    setValueRecursiveInplace,
+    setValueRecursive,
+    compileGetValueFunction,
+    applyPatch,
+} from "./patchHelper.js"
+
+export {
+    EditorOption,
+    FieldType,
+    FieldDescription,
+    extractFieldDescriptionsFromSchema,
+} from "./schemaProcessing.js"
+
+export {
+    SExprAtom,
+    JSONPreciselyTyped,
+    JsonLogicContext,
+    Arity,
+    OperationContext,
+    Operation,
+    ExpressionType,
+    BooleanAtom,
+    NumberAtom,
+    StringAtom,
+    JsonPointerSymbol,
+    SqlColumnName,
+    ArithmeticOperator,
+    allArithmeticOperators,
+    ArithmeticOperation,
+    NullCheckOperator,
+    allNullCheckOperators,
+    NullCheckOperation,
+    EqualityOperator,
+    allEqualityOperators,
+    EqualityComparision,
+    StringContainsOperation,
+    ComparisonOperator,
+    allComparisonOperators,
+    NumericComparison,
+    BinaryLogicOperators,
+    allBinaryLogicOperators,
+    BinaryLogicOperation,
+    Negation,
+    parseOperationRecursive,
+    parseToOperation,
+    NumericOperation,
+    BooleanOperation,
+    StringOperation,
+} from "./SqlFilterSExpression.js"
+
+export {
+    SearchWord,
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+    htmlToPlaintext,
+    chunkWords,
+    chunkSentences,
+    chunkParagraphs,
+} from "./search.jsx"
+
+export { findUrlsInText, camelCaseProperties } from "./string.js"
+
+export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
+
+export { PromiseCache } from "./PromiseCache.js"
+
+export { PromiseSwitcher } from "./PromiseSwitcher.js"

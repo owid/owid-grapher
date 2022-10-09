@@ -6,7 +6,7 @@ import Papa from "papaparse"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { TextField } from "./Forms.js"
-import { capitalize } from "../clientUtils/Util.js"
+import { capitalize } from "@ourworldindata/utils"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 interface ResponseMessage {

@@ -1,5 +1,7 @@
-import { ColumnTypeNames } from "../coreTable/CoreColumnDef.js"
-import { AvailableTransforms } from "../coreTable/Transforms.js"
+import {
+    ColumnTypeNames,
+    AvailableTransforms,
+} from "@ourworldindata/core-table"
 import { BinningStrategy } from "../grapher/color/BinningStrategy.js"
 import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
 import {

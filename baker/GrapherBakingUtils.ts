@@ -12,7 +12,7 @@ import { bakeGraphersToSvgs } from "../baker/GrapherImageBaker.js"
 import { warn } from "../serverUtils/slackLog.js"
 import { Chart } from "../db/model/Chart.js"
 import md5 from "md5"
-import { Url } from "../clientUtils/urls/Url.js"
+import { Url } from "@ourworldindata/utils"
 
 interface ChartExportMeta {
     key: string

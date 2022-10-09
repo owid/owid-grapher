@@ -8,8 +8,7 @@ import {
     CountryProfilePage,
 } from "../site/CountryProfilePage.js"
 import { SiteBaker } from "./SiteBaker.js"
-import { countries, getCountry } from "../clientUtils/countries.js"
-import { JsonError } from "../clientUtils/owidTypes.js"
+import { countries, getCountry, JsonError } from "@ourworldindata/utils"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import {
     parseVariableRows,

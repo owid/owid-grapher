@@ -37,10 +37,10 @@ import {
     EntriesForYearPage,
 } from "../site/EntriesByYearPage.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
-import { getCountry, Country } from "../clientUtils/countries.js"
-import { memoize } from "../clientUtils/Util.js"
-import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import {
+    getCountry,
+    Country,
+    memoize,
     FormattedPost,
     FormattingOptions,
     FullPost,
@@ -48,7 +48,9 @@ import {
     KeyInsight,
     PostRow,
     WP_PostType,
-} from "../clientUtils/owidTypes.js"
+    Url,
+} from "@ourworldindata/utils"
+import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
@@ -63,7 +65,6 @@ import {
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
-import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {

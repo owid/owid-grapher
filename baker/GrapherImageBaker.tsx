@@ -10,7 +10,7 @@ import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
-import { MultipleOwidVariableDataDimensionsMap } from "../clientUtils/OwidVariable.js"
+import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
 
 export async function bakeGraphersToPngs(
     outDir: string,

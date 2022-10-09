@@ -6,21 +6,19 @@ import {
     FormattingOptions,
     KeyValueProps,
     OwidVariableId,
-} from "../clientUtils/owidTypes.js"
-import { Country } from "../clientUtils/countries.js"
+    Country,
+    OwidVariableDataMetadataDimensions,
+    OwidChartDimensionInterface,
+    OwidVariableDisplayConfigInterface,
+    capitalize,
+    Url,
+} from "@ourworldindata/utils"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { DATA_VALUE } from "../site/DataValue.js"
-import { OwidVariableDataMetadataDimensions } from "../clientUtils/OwidVariable.js"
-import {
-    OwidChartDimensionInterface,
-    OwidVariableDisplayConfigInterface,
-} from "../clientUtils/OwidVariableDisplayConfigInterface.js"
 import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTable.js"
 import { getBodyHtml } from "../site/formatting.js"
-import { Url } from "../clientUtils/urls/Url.js"
 import * as path from "path"
-import { capitalize } from "../clientUtils/Util.js"
 
 export const DEEP_LINK_CLASS = "deep-link"
 

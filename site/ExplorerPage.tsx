@@ -13,7 +13,7 @@ import {
 } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { serializeJSONForHTML } from "../clientUtils/serializers.js"
+import { serializeJSONForHTML } from "@ourworldindata/utils"
 import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 

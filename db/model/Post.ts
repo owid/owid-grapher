@@ -1,6 +1,6 @@
 import * as db from "../db.js"
 import { Knex } from "knex"
-import { PostRow } from "../../clientUtils/owidTypes.js"
+import { PostRow } from "@ourworldindata/utils"
 
 export const postsTable = "posts"
 

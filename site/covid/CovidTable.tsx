@@ -18,8 +18,8 @@ import {
     extend,
     uniq,
     stringifyUnkownError,
-} from "../../clientUtils/Util.js"
-import { SortOrder } from "../../coreTable/CoreTableConstants.js"
+} from "@ourworldindata/utils"
+import { SortOrder } from "@ourworldindata/core-table"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants.js"
 import {
     CovidSortKey,

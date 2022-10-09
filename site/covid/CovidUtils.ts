@@ -1,10 +1,11 @@
-import { maxBy, dateDiffInDays } from "../../clientUtils/Util.js"
-import { utcFormat } from "d3-time-format"
-import { SortOrder } from "../../coreTable/CoreTableConstants.js"
 import {
+    maxBy,
+    dateDiffInDays,
     TickFormattingOptions,
     formatValue,
-} from "../../clientUtils/formatValue.js"
+} from "@ourworldindata/utils"
+import { utcFormat } from "d3-time-format"
+import { SortOrder } from "@ourworldindata/core-table"
 import {
     CovidSeries,
     CovidDatum,

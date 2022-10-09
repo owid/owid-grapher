@@ -1,6 +1,9 @@
-import { imemo, trimMatrix } from "../coreTable/CoreTableUtils.js"
-import { isPresent } from "../clientUtils/isPresent.js"
-import { GitCommit, SerializedGridProgram } from "../clientUtils/owidTypes.js"
+import { imemo, trimMatrix } from "@ourworldindata/core-table"
+import {
+    isPresent,
+    GitCommit,
+    SerializedGridProgram,
+} from "@ourworldindata/utils"
 
 import { GridCell } from "./GridCell.js"
 import {

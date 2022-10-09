@@ -2,13 +2,12 @@ import React from "react"
 import { observer } from "mobx-react"
 import { action, computed } from "mobx"
 import Select, { components, SingleValueProps } from "react-select"
-import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
 import {
     ExplorerControlType,
     ExplorerChoiceOption,
     ExplorerChoice,
 } from "./ExplorerConstants.js"
-import { chunk } from "../clientUtils/Util.js"
+import { chunk, getStylesForTargetHeight } from "@ourworldindata/utils"
 import { GridBoolean } from "../gridLang/GridLangConstants.js"
 import classNames from "classnames"
 

@@ -33,7 +33,7 @@ import {
 } from "../grapher/core/GrapherConstants.js"
 import { Grapher } from "../grapher/core/Grapher.js"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
-import { CoreTable } from "../coreTable/CoreTable.js"
+import { CoreTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import Bugsnag from "@bugsnag/js"

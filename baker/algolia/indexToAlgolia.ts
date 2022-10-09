@@ -1,9 +1,12 @@
 import * as db from "../../db/db.js"
 import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
-import { chunkParagraphs, htmlToPlaintext } from "../../clientUtils/search.js"
-import { countries } from "../../clientUtils/countries.js"
-import { FormattedPost } from "../../clientUtils/owidTypes.js"
+import {
+    chunkParagraphs,
+    htmlToPlaintext,
+    countries,
+    FormattedPost,
+} from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 

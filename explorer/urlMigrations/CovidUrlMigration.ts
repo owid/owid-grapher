@@ -1,5 +1,4 @@
-import { Url } from "../../clientUtils/urls/Url.js"
-import { UrlMigration } from "../../clientUtils/urls/UrlMigration.js"
+import { Url, UrlMigration } from "@ourworldindata/utils"
 import {
     getExplorerSlugFromUrl,
     QueryParamTransformMap,

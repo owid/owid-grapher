@@ -1,4 +1,4 @@
-import dayjs from "../../clientUtils/dayjs.js"
+import dayjs from "@ourworldindata/utils"
 import React, { ReactPortal } from "react"
 import ReactDOM from "react-dom"
 import {

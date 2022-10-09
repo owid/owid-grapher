@@ -5,12 +5,12 @@ import { Link } from "react-router-dom"
 import { Base64 } from "js-base64"
 import Select from "react-select"
 import classNames from "classnames"
-import { Bounds } from "../clientUtils/Bounds.js"
-import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
 import {
+    Bounds,
+    getStylesForTargetHeight,
     SortOrder,
     SuggestedChartRevisionStatus,
-} from "../clientUtils/owidTypes.js"
+} from "@ourworldindata/utils"
 import { Grapher } from "../grapher/core/Grapher.js"
 import {
     TextAreaField,

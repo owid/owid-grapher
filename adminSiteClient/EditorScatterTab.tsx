@@ -1,5 +1,5 @@
 import React from "react"
-import { debounce, excludeUndefined } from "../clientUtils/Util.js"
+import { debounce, excludeUndefined } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher.js"
@@ -8,7 +8,7 @@ import { Toggle, NumberField, SelectField, Section } from "./Forms.js"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { ScatterPointLabelStrategy } from "../grapher/core/GrapherConstants.js"
-import { EntityName } from "../coreTable/OwidTableConstants.js"
+import { EntityName } from "@ourworldindata/core-table"
 
 @observer
 export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {

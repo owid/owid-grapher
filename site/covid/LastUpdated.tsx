@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import dayjs, { Dayjs } from "../../clientUtils/dayjs.js"
+import dayjs, { Dayjs } from "@ourworldindata/utils"
 
 export interface LastUpdatedTokenProps {
     timestampUrl?: string

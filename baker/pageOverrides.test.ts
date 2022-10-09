@@ -1,4 +1,4 @@
-import { FullPost, WP_PostType } from "../clientUtils/owidTypes.js"
+import { FullPost, WP_PostType } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "./formatting.js"
 import * as pageOverrides from "./pageOverrides.js"
 

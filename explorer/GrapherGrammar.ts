@@ -18,7 +18,7 @@ import {
     StackMode,
 } from "../grapher/core/GrapherConstants.js"
 import { ColorSchemes } from "../grapher/color/ColorSchemes.js"
-import { SortBy, SortOrder } from "../clientUtils/owidTypes.js"
+import { SortBy, SortOrder } from "@ourworldindata/utils"
 
 const toTerminalOptions = (keywords: string[]): CellDef[] => {
     return keywords.map((keyword) => ({

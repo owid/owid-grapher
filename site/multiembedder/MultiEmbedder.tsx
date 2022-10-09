@@ -1,9 +1,15 @@
 import React from "react"
 import ReactDOM from "react-dom"
-import { fetchText, isMobile } from "../../clientUtils/Util.js"
-import { isPresent } from "../../clientUtils/isPresent.js"
+import {
+    fetchText,
+    isMobile,
+    isPresent,
+    deserializeJSONFromHTML,
+    getWindowUrl,
+    Url,
+    Annotation,
+} from "@ourworldindata/utils"
 import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants.js"
-import { deserializeJSONFromHTML } from "../../clientUtils/serializers.js"
 import {
     Grapher,
     GrapherProgrammaticInterface,
@@ -18,7 +24,6 @@ import {
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
 } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants.js"
-import { getWindowUrl, Url } from "../../clientUtils/urls/Url.js"
 import { SelectionArray } from "../../grapher/selection/SelectionArray.js"
 import {
     getSelectedEntityNamesParam,
@@ -26,7 +31,6 @@ import {
 } from "../../grapher/core/EntityUrlBuilder.js"
 import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector.js"
 import { action } from "mobx"
-import { Annotation } from "../../clientUtils/owidTypes.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 
 const figuresFromDOM = (

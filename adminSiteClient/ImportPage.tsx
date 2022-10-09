@@ -1,7 +1,7 @@
 // WIP
 
 import React from "react"
-import { isEmpty, difference, clone, uniq } from "../clientUtils/Util.js"
+import { isEmpty, difference, clone, uniq } from "@ourworldindata/utils"
 import {
     observable,
     computed,

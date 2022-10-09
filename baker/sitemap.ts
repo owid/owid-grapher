@@ -4,16 +4,14 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import dayjs from "../clientUtils/dayjs.js"
+import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
-import { countries } from "../clientUtils/countries.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { postsTable } from "../db/model/Post.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 
 interface SitemapUrl {
     loc: string

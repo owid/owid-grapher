@@ -1,5 +1,5 @@
 import React from "react"
-import { clone } from "../clientUtils/Util.js"
+import { clone } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "../grapher/core/Grapher.js"
@@ -15,7 +15,7 @@ import { ChartEditor } from "./ChartEditor.js"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { EntityName } from "../coreTable/OwidTableConstants.js"
+import { EntityName } from "@ourworldindata/core-table"
 import { EntitySelectionMode } from "../grapher/core/GrapherConstants.js"
 
 interface EntityItemProps extends EditableListItemProps {

@@ -35,7 +35,7 @@ import {
 } from "../baker/GrapherBakingUtils.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
-import { countries } from "../clientUtils/countries.js"
+import { countries, FullPost } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -43,7 +43,6 @@ import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { bakeEmbedSnippet } from "../site/webpackUtils.js"
-import { FullPost } from "../clientUtils/owidTypes.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     bakeAllExplorerRedirects,

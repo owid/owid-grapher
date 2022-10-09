@@ -3,7 +3,17 @@ import { Chart } from "../db/model/Chart.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
-import { excludeUndefined, urlToSlug, without } from "../clientUtils/Util.js"
+import {
+    excludeUndefined,
+    urlToSlug,
+    without,
+    deserializeJSONFromHTML,
+    JsonError,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableMixedData,
+    OwidVariableWithSourceAndDimension,
+    OwidVariableWithSourceAndDimensionWithoutId,
+} from "@ourworldindata/utils"
 import {
     getRelatedArticles,
     getRelatedCharts,
@@ -11,7 +21,6 @@ import {
     isWordpressDBEnabled,
 } from "../db/wpdb.js"
 import * as fs from "fs-extra"
-import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
 import * as lodash from "lodash"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
 import {
@@ -24,15 +33,8 @@ import {
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
 import * as glob from "glob"
-import { JsonError } from "../clientUtils/owidTypes.js"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { getPostBySlug } from "../db/model/Post.js"
-import {
-    OwidVariableDataMetadataDimensions,
-    OwidVariableMixedData,
-    OwidVariableWithSourceAndDimension,
-    OwidVariableWithSourceAndDimensionWithoutId,
-} from "../clientUtils/OwidVariable.js"
 import {
     GRAPHER_VARIABLES_ROUTE,
     GRAPHER_VARIABLE_DATA_ROUTE,

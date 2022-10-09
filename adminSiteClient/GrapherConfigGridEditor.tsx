@@ -1,5 +1,20 @@
 import * as React from "react"
-import { GrapherConfigPatch } from "../clientUtils/AdminSessionTypes.js"
+import {
+    GrapherConfigPatch,
+    applyPatch,
+    setValueRecursiveInplace,
+    FieldDescription,
+    extractFieldDescriptionsFromSchema,
+    FieldType,
+    EditorOption,
+    Bounds,
+    stringifyUnkownError,
+    excludeUndefined,
+    moveArrayItemToIndex,
+    Operation,
+    getWindowUrl,
+    setWindowUrl,
+} from "@ourworldindata/utils"
 import {
     DragDropContext,
     Droppable,
@@ -26,19 +41,8 @@ import {
 
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import {
-    applyPatch,
-    setValueRecursiveInplace,
-} from "../clientUtils/patchHelper.js"
-import {
-    FieldDescription,
-    extractFieldDescriptionsFromSchema,
-    FieldType,
-    EditorOption,
-} from "../clientUtils/schemaProcessing.js"
 
 import Handsontable from "handsontable"
-import { Bounds } from "../clientUtils/Bounds.js"
 import {
     Grapher,
     GrapherProgrammaticInterface,
@@ -53,14 +57,8 @@ import {
 } from "rxjs/operators"
 import { fromFetch } from "rxjs/fetch"
 import { toStream, fromStream } from "mobx-utils"
-import {
-    stringifyUnkownError,
-    excludeUndefined,
-    moveArrayItemToIndex,
-} from "../clientUtils/Util.js"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
-import { Operation } from "../clientUtils/SqlFilterSExpression.js"
 import {
     parseVariableAnnotationsRow,
     VariableAnnotationsRow,
@@ -101,7 +99,6 @@ import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { MapChart } from "../grapher/mapCharts/MapChart.js"
-import { getWindowUrl, setWindowUrl } from "../clientUtils/urls/Url.js"
 import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
 
 function HotColorScaleRenderer() {

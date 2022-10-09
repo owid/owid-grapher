@@ -5,7 +5,7 @@ import {
     GraphDocumentType,
     GraphType,
     TopicId,
-} from "../../clientUtils/owidTypes.js"
+} from "@ourworldindata/utils"
 import { getContentGraph } from "../../db/contentGraph.js"
 import * as wpdb from "../../db/wpdb.js"
 import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"

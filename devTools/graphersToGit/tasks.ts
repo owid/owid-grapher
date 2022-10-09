@@ -6,11 +6,10 @@ import {
     Grapher,
     GrapherProgrammaticInterface,
 } from "../../grapher/core/Grapher.js"
-import { mapToObjectLiteral } from "../../clientUtils/Util.js"
-import { isPresent } from "../../clientUtils/isPresent.js"
+import { mapToObjectLiteral, isPresent } from "@ourworldindata/utils"
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 import { LegacyGrapherInterface } from "../../grapher/core/GrapherInterface.js"
-import { CoreTable } from "../../coreTable/CoreTable.js"
+import { CoreTable } from "@ourworldindata/core-table"
 import parseArgs from "minimist"
 import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
 import { ColorScaleConfig } from "../../grapher/color/ColorScaleConfig.js"

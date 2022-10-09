@@ -27,7 +27,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import Select from "react-select"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { getIndexableKeys } from "../clientUtils/Util.js"
+import { getIndexableKeys } from "@ourworldindata/utils"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {

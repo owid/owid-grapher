@@ -2,8 +2,8 @@ import React from "react"
 import {
     variableAnnotationAllowedColumnNamesAndTypes,
     WHITELISTED_SQL_COLUMN_NAMES,
-} from "../clientUtils/AdminSessionTypes.js"
-import { DimensionProperty } from "../clientUtils/owidTypes.js"
+    DimensionProperty,
+} from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
 import { GrapherConfigGridEditor } from "./GrapherConfigGridEditor.js"
 import {

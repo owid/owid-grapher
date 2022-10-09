@@ -1,5 +1,10 @@
-import { trimObject } from "../clientUtils/Util.js"
-import { GitCommit, SubNavId } from "../clientUtils/owidTypes.js"
+import {
+    trimObject,
+    GitCommit,
+    SubNavId,
+    SerializedGridProgram,
+    PromiseCache,
+} from "@ourworldindata/utils"
 import {
     DefaultNewExplorerSlug,
     ExplorerChoiceParams,
@@ -8,12 +13,12 @@ import {
 import {
     columnDefinitionsFromDelimited,
     CoreTable,
-} from "../coreTable/CoreTable.js"
-import {
     CoreMatrix,
     CoreTableInputOption,
     TableSlug,
-} from "../coreTable/CoreTableConstants.js"
+    OwidTable,
+    CoreColumnDef,
+} from "@ourworldindata/core-table"
 import { ExplorerGrammar } from "./ExplorerGrammar.js"
 import {
     CellDef,
@@ -23,15 +28,11 @@ import {
     Grammar,
     RootKeywordCellDef,
 } from "../gridLang/GridLangConstants.js"
-import { OwidTable } from "../coreTable/OwidTable.js"
 import { GridProgram } from "../gridLang/GridProgram.js"
-import { SerializedGridProgram } from "../clientUtils/owidTypes.js"
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { GrapherGrammar } from "./GrapherGrammar.js"
 import { ColumnGrammar } from "./ColumnGrammar.js"
 import { DecisionMatrix } from "./ExplorerDecisionMatrix.js"
-import { CoreColumnDef } from "../coreTable/CoreColumnDef.js"
-import { PromiseCache } from "../clientUtils/PromiseCache.js"
 import { FacetAxisDomain } from "../grapher/core/GrapherConstants.js"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"

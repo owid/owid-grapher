@@ -10,8 +10,7 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-import { Bounds } from "../clientUtils/Bounds.js"
-import { capitalize, getIndexableKeys } from "../clientUtils/Util.js"
+import { Bounds, capitalize, getIndexableKeys } from "@ourworldindata/utils"
 import { Grapher } from "../grapher/core/Grapher.js"
 import { Admin } from "./Admin.js"
 import {

@@ -9,7 +9,7 @@ import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
-import { countries } from "../../clientUtils/countries.js"
+import { countries } from "@ourworldindata/utils"
 
 export const CONTENT_GRAPH_ALGOLIA_INDEX = "graph"
 

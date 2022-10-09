@@ -4,22 +4,19 @@ import * as db from "../db.js"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
-} from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
-import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     OwidVariableDimensionValueFull,
     OwidVariableDimensionValuePartial,
     OwidVariableMixedData,
     OwidVariableWithSourceAndType,
-} from "../../clientUtils/OwidVariable.js"
-import { arrToCsvRow, omitNullableValues } from "../../clientUtils/Util.js"
-import {
+    arrToCsvRow,
+    omitNullableValues,
     DataValueQueryArgs,
     DataValueResult,
     OwidVariableId,
-} from "../../clientUtils/owidTypes.js"
-import { OwidSource } from "../../clientUtils/OwidSource.js"
+    OwidSource,
+} from "@ourworldindata/utils"
 
 export interface VariableRow {
     id: number

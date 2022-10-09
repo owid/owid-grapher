@@ -11,7 +11,7 @@ if (baseDir === undefined) throw new Error("could not locate base package.json")
 dotenv.config({ path: `${baseDir}/.env` })
 
 import * as clientSettings from "./clientSettings.js"
-import { parseIntOrUndefined } from "../clientUtils/Util.js"
+import { parseIntOrUndefined } from "@ourworldindata/utils"
 
 const serverSettings = process.env ?? {}
 

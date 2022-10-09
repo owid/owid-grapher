@@ -119,3 +119,10 @@ export {
     getOriginalTimeColumnSlug,
     toPercentageColumnDef,
 } from "./OwidTableUtil.js"
+
+export {
+    insertMissingValuePlaceholders,
+    computeRollingAverage,
+    AvailableTransforms,
+    applyTransforms,
+} from "./Transforms.js"

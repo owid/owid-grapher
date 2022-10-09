@@ -6,7 +6,10 @@ import {
     sample,
     sampleSize,
     startCase,
-} from "../clientUtils/Util.js"
+    ColumnSlug,
+    DimensionProperty,
+    OwidVariableId,
+} from "@ourworldindata/utils"
 import {
     EntitySelectionMode,
     ChartTypeName,
@@ -24,11 +27,6 @@ import { ChartEditor } from "./ChartEditor.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
 import { DimensionSlot } from "../grapher/chart/DimensionSlot.js"
-import {
-    ColumnSlug,
-    DimensionProperty,
-    OwidVariableId,
-} from "../clientUtils/owidTypes.js"
 import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 
 @observer

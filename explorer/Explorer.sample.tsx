@@ -1,5 +1,5 @@
 import React from "react"
-import { DimensionProperty } from "../clientUtils/owidTypes.js"
+import { DimensionProperty } from "@ourworldindata/utils"
 import { GrapherProgrammaticInterface } from "../grapher/core/Grapher.js"
 import { GrapherTabOption } from "../grapher/core/GrapherConstants.js"
 import { Explorer, ExplorerProps } from "./Explorer.js"

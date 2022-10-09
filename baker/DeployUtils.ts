@@ -3,7 +3,7 @@ import { SiteBaker } from "../baker/SiteBaker.js"
 import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { DeployChange } from "../clientUtils/owidTypes.js"
+import { DeployChange } from "@ourworldindata/utils"
 
 const deployQueueServer = new DeployQueueServer()
 

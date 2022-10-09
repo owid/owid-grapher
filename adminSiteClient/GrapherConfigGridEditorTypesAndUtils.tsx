@@ -1,4 +1,3 @@
-import { QueryParams, queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,
@@ -21,16 +20,19 @@ import {
     OperationContext,
     parseToOperation,
     JSONPreciselyTyped,
-} from "../clientUtils/SqlFilterSExpression.js"
+    VariableAnnotationsResponseRow,
+    GrapherConfigPatch,
+    excludeUndefined,
+    isArray,
+    checkIsPlainObjectWithGuard,
+    EditorOption,
+    FieldDescription,
+} from "@ourworldindata/utils"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import {
-    VariableAnnotationsResponseRow,
-    GrapherConfigPatch,
-} from "../clientUtils/AdminSessionTypes.js"
 import AntdConfig from "react-awesome-query-builder/lib/config/antd"
 import {
     BasicConfig,
@@ -48,16 +50,7 @@ import {
     ImmutableTree,
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
-import {
-    excludeUndefined,
-    isArray,
-    checkIsPlainObjectWithGuard,
-} from "../clientUtils/Util.js"
 import { isNil } from "lodash"
-import {
-    EditorOption,
-    FieldDescription,
-} from "../clientUtils/schemaProcessing.js"
 
 export function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow

@@ -8,17 +8,18 @@ import {
     PostReference,
     PostRow,
     RelatedChart,
-} from "../clientUtils/owidTypes.js"
+    serializeJSONForHTML,
+    flatten,
+    uniq,
+} from "@ourworldindata/utils"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
 import { IFrameDetector } from "./IframeDetector.js"
-import { serializeJSONForHTML } from "../clientUtils/serializers.js"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GRAPHER_PAGE_BODY_CLASS,
 } from "../grapher/core/GrapherConstants.js"
-import { flatten, uniq } from "../clientUtils/Util.js"
 import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
 
 export const GrapherPage = (props: {

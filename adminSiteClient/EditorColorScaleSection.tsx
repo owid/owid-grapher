@@ -11,8 +11,8 @@ import {
     NumericBin,
     CategoricalBin,
 } from "../grapher/color/ColorScaleBin.js"
-import { clone, noop, last } from "../clientUtils/Util.js"
-import { Color } from "../coreTable/CoreTableConstants.js"
+import { clone, noop, last } from "@ourworldindata/utils"
+import { Color } from "@ourworldindata/core-table"
 import {
     Section,
     Toggle,

@@ -6,7 +6,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { every, sortBy } from "lodash"
 import { Controlled } from "react-codemirror2"
-import { stringifyUnkownError } from "../clientUtils/Util.js"
+import { stringifyUnkownError } from "@ourworldindata/utils"
 
 interface Detail {
     category: string

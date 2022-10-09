@@ -1,5 +1,5 @@
 import React from "react"
-import { RelatedChart } from "../../clientUtils/owidTypes.js"
+import { RelatedChart } from "@ourworldindata/utils"
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,

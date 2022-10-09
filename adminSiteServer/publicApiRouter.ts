@@ -3,7 +3,7 @@ import { Request, Response } from "./authentication.js"
 import { writeVariableCSV } from "../db/model/Variable.js"
 import { expectInt } from "../serverUtils/serverUtil.js"
 import * as db from "../db/db.js"
-import { stringifyUnkownError } from "../clientUtils/Util.js"
+import { stringifyUnkownError } from "@ourworldindata/utils"
 
 export const publicApiRouter = new FunctionalRouter()
 

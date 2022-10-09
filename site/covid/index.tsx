@@ -10,8 +10,8 @@ import { CovidSortKey } from "./CovidTypes.js"
 import { fetchTestsData, fetchJHUData } from "./CovidFetch.js"
 import { formatDate } from "./CovidUtils.js"
 import { Tippy } from "../../grapher/chart/Tippy.js"
-import { SortOrder } from "../../coreTable/CoreTableConstants.js"
-import { oneOf } from "../../clientUtils/Util.js"
+import { SortOrder } from "@ourworldindata/core-table"
+import { oneOf } from "@ourworldindata/utils"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"
 

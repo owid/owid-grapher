@@ -13,7 +13,7 @@ import { User } from "./User.js"
 import { Source } from "./Source.js"
 
 import * as db from "../db.js"
-import { arrToCsvRow, slugify } from "../../clientUtils/Util.js"
+import { arrToCsvRow, slugify } from "@ourworldindata/utils"
 import filenamify from "filenamify"
 import { VariableRow, variableTable } from "./Variable.js"
 
