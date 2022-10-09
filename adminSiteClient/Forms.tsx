@@ -940,7 +940,7 @@ export class Timeago extends React.Component<{
 import { TagBadge, Tag } from "./TagBadge.js"
 
 import ReactTags from "react-tag-autocomplete"
-import { Tippy } from "../grapher/chart/Tippy.js"
+import { Tippy } from "@ourworldindata/grapher"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer

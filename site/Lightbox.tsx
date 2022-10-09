@@ -1,14 +1,13 @@
-import React from "react"
-import ReactDOM from "react-dom"
-import { useState, useRef, useEffect } from "react"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus"
-import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
 import { faCompress } from "@fortawesome/free-solid-svg-icons/faCompress"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
+import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
+import { LoadingIndicator } from "@ourworldindata/grapher"
+import React, { useEffect, useRef, useState } from "react"
+import ReactDOM from "react-dom"
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch"
 
 const Lightbox = ({
     children,

@@ -24,7 +24,7 @@ import {
     EntitySelectionMode,
     GrapherTabOption,
     StackMode,
-} from "../grapher/core/GrapherConstants.js"
+} from "@ourworldindata/grapher"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 const DEFAULT_COMPARISON_URL = "https://ourworldindata.org"

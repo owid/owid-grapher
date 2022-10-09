@@ -1,4 +1,4 @@
-import { Tippy } from "../grapher/chart/Tippy.js"
+import { Tippy } from "@ourworldindata/grapher"
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 import React from "react"
 import ReactDOM from "react-dom"

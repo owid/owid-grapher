@@ -32,7 +32,7 @@ import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import AntdConfig from "react-awesome-query-builder/lib/config/antd"
 import {
     BasicConfig,

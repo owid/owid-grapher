@@ -1,9 +1,9 @@
-import React from "react"
-import { observable, action } from "mobx"
+import { action, observable } from "mobx"
 import { observer } from "mobx-react"
+import React from "react"
 
+import { Grapher } from "@ourworldindata/grapher"
 import { Bounds } from "@ourworldindata/utils"
-import { Grapher } from "../grapher/core/Grapher.js"
 
 // Wrapper for Grapher that uses css on figure element to determine the bounds
 @observer

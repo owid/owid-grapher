@@ -1,4 +1,4 @@
-import { legacyToCurrentGrapherUrl } from "../../grapher/core/GrapherUrlMigrations.js"
+import { legacyToCurrentGrapherUrl } from "@ourworldindata/grapher"
 import { Url, UrlMigration } from "@ourworldindata/utils"
 import {
     decodeURIComponentOrUndefined,

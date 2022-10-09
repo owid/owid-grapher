@@ -1,33 +1,33 @@
-import React from "react"
-import { observable, action, reaction, IReactionDisposer, when } from "mobx"
-import { observer } from "mobx-react"
 import {
+    ChartDimension,
+    ChartTypeName,
+    DimensionSlot,
+    EntitySelectionMode,
+    StackMode,
+    WorldEntityName,
+} from "@ourworldindata/grapher"
+import {
+    ColumnSlug,
+    DimensionProperty,
     moveArrayItemToIndex,
+    OwidVariableId,
     sample,
     sampleSize,
     startCase,
-    ColumnSlug,
-    DimensionProperty,
-    OwidVariableId,
 } from "@ourworldindata/utils"
+import { action, IReactionDisposer, observable, reaction, when } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
+import { ChartEditor } from "./ChartEditor.js"
+import { DimensionCard } from "./DimensionCard.js"
 import {
-    EntitySelectionMode,
-    ChartTypeName,
-    WorldEntityName,
-    StackMode,
-} from "../grapher/core/GrapherConstants.js"
-import {
-    Toggle,
-    SelectField,
     EditableList,
     FieldsRow,
     Section,
+    SelectField,
+    Toggle,
 } from "./Forms.js"
-import { ChartEditor } from "./ChartEditor.js"
 import { VariableSelector } from "./VariableSelector.js"
-import { DimensionCard } from "./DimensionCard.js"
-import { DimensionSlot } from "../grapher/chart/DimensionSlot.js"
-import { ChartDimension } from "../grapher/chart/ChartDimension.js"
 
 @observer
 class DimensionSlotView extends React.Component<{

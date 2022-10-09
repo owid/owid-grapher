@@ -9,9 +9,8 @@ import { bind } from "decko"
 import { EditableTags, Timeago } from "./Forms.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
-import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
+import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
 import { startCase } from "@ourworldindata/utils"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {

@@ -1,10 +1,9 @@
-import { MigrationInterface, QueryRunner } from "typeorm"
 import { excludeUndefined, sortBy, uniq } from "@ourworldindata/utils"
+import { MigrationInterface, QueryRunner } from "typeorm"
 
 import { entityNameById } from "./data/entityNameById.js"
 
-import { GrapherInterface } from "../../grapher/core/GrapherInterface.js"
-import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
+import { ChartTypeName, GrapherInterface } from "@ourworldindata/grapher"
 
 /**
  * Migrate the legacy `selectedData` and get rid of it.

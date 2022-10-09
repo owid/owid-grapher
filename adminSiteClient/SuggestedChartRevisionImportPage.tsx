@@ -7,7 +7,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { TextField } from "./Forms.js"
 import { capitalize } from "@ourworldindata/utils"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
 
 interface ResponseMessage {
     type: string

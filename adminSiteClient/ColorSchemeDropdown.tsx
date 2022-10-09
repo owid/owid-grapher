@@ -1,11 +1,10 @@
 import React from "react"
 import { computed, action } from "mobx"
 import Select from "react-select"
-import { getColorSchemeForChartType } from "../grapher/color/ColorSchemes.js"
+import { getColorSchemeForChartType } from "@ourworldindata/grapher"
 import { observer } from "mobx-react"
 import { bind } from "decko"
-import { ColorScheme } from "../grapher/color/ColorScheme.js"
-import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
+import { ColorScheme, ChartTypeName } from "@ourworldindata/grapher"
 
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme

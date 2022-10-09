@@ -2,7 +2,11 @@
   "name": "@ourworldindata/grapher",
   "version": "0.0.0",
   "description": "OWID's data exploration and visualization library.",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
+  "directories": {
+    "lib": "src"
+  },
+  "types": "dist/src",
   "scripts": {
     "build": "tsc"
   },

@@ -12,7 +12,7 @@ import {
     getStylesForTargetHeight,
 } from "@ourworldindata/utils"
 import Select from "react-select"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
+import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
 import {
     SuggestedChartRevisionList,
     SuggestedChartRevisionListItem,

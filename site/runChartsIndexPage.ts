@@ -1,7 +1,7 @@
-import fuzzysort from "fuzzysort"
+import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
 import { keyBy } from "@ourworldindata/utils"
-import { observable, computed, action, autorun } from "mobx"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
+import fuzzysort from "fuzzysort"
+import { action, autorun, computed, observable } from "mobx"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 interface ChartItem {
     title: string

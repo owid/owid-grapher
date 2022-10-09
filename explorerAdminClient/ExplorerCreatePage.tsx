@@ -1,22 +1,18 @@
-import { observer } from "mobx-react"
-import React from "react"
 import { HotTable } from "@handsontable/react"
-import { action, observable, computed } from "mobx"
-import {
-    ExplorerProgram,
-    EXPLORER_FILE_SUFFIX,
-    makeFullPath,
-} from "../explorer/ExplorerProgram.js"
-import { GitCmsClient } from "../gitCms/GitCmsClient.js"
-import { Prompt } from "react-router-dom"
-import Handsontable from "handsontable"
 import { CoreMatrix } from "@ourworldindata/core-table"
+import { LoadingIndicator } from "@ourworldindata/grapher"
 import {
     exposeInstanceOnWindow,
     slugify,
     toRectangularMatrix,
 } from "@ourworldindata/utils"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
+import classNames from "classnames"
+import Handsontable from "handsontable"
+import { registerAllModules } from "handsontable/registry"
+import { action, computed, observable } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
+import { Prompt } from "react-router-dom"
 import {
     DefaultNewExplorerSlug,
     ExplorerChoiceParams,
@@ -25,15 +21,19 @@ import {
     UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
 } from "../explorer/ExplorerConstants.js"
 import {
+    ExplorerProgram,
+    EXPLORER_FILE_SUFFIX,
+    makeFullPath,
+} from "../explorer/ExplorerProgram.js"
+import { GitCmsClient } from "../gitCms/GitCmsClient.js"
+import { GitCmsFile, GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
+import { isEmpty } from "../gridLang/GrammarUtils.js"
+import { AdminManager } from "./AdminManager.js"
+import {
     AutofillColDefCommand,
     InlineDataCommand,
     SelectAllHitsCommand,
 } from "./ExplorerCommands.js"
-import { isEmpty } from "../gridLang/GrammarUtils.js"
-import classNames from "classnames"
-import { GitCmsFile, GIT_CMS_BASE_ROUTE } from "../gitCms/GitCmsConstants.js"
-import { AdminManager } from "./AdminManager.js"
-import { registerAllModules } from "handsontable/registry"
 
 const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don't allow authors to save explorers with these names, otherwise might create some annoying situations.
 

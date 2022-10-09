@@ -11,7 +11,7 @@ import {
     SortOrder,
     SuggestedChartRevisionStatus,
 } from "@ourworldindata/utils"
-import { Grapher } from "../grapher/core/Grapher.js"
+import { Grapher } from "@ourworldindata/grapher"
 import {
     TextAreaField,
     NumberField,

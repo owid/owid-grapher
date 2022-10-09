@@ -35,7 +35,7 @@ import {
     GraphType,
     memoize,
 } from "@ourworldindata/utils"
-import { Topic } from "../grapher/core/GrapherConstants.js"
+import { Topic } from "@ourworldindata/grapher"
 import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,

@@ -5,13 +5,11 @@
  *
  */
 
-import { observable, computed, runInAction, when } from "mobx"
-import { Grapher } from "../grapher/core/Grapher.js"
-import { EditorFeatures } from "./EditorFeatures.js"
-import { Admin } from "./Admin.js"
+import { Grapher, GrapherInterface, Topic } from "@ourworldindata/grapher"
+import { computed, observable, runInAction, when } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
-import { Topic } from "../grapher/core/GrapherConstants.js"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { Admin } from "./Admin.js"
+import { EditorFeatures } from "./EditorFeatures.js"
 
 type EditorTab = string
 

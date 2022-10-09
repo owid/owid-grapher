@@ -28,10 +28,10 @@ import {
     BUGSNAG_API_KEY,
 } from "../settings/clientSettings.js"
 import {
+    Grapher,
     CookieKey,
     GRAPHER_PAGE_BODY_CLASS,
-} from "../grapher/core/GrapherConstants.js"
-import { Grapher } from "../grapher/core/Grapher.js"
+} from "@ourworldindata/grapher"
 import { MultiEmbedderSingleton } from "../site/multiembedder/MultiEmbedder.js"
 import { CoreTable } from "@ourworldindata/core-table"
 import { SiteAnalytics } from "./SiteAnalytics.js"

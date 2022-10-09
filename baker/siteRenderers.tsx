@@ -74,11 +74,11 @@ import {
 } from "../site/blocks/KeyInsights.js"
 import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
 
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
+    GrapherInterface,
     Grapher,
     GrapherProgrammaticInterface,
-} from "../grapher/core/Grapher.js"
+} from "@ourworldindata/grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { ExplorerPage } from "../site/ExplorerPage.js"

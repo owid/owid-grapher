@@ -1,18 +1,17 @@
 #! /usr/bin/env node
 
-import * as fs from "fs"
-import * as db from "../../db/db.js"
+import { CoreTable } from "@ourworldindata/core-table"
 import {
+    ChartTypeName,
+    ColorScaleConfig,
     Grapher,
     GrapherProgrammaticInterface,
-} from "../../grapher/core/Grapher.js"
-import { mapToObjectLiteral, isPresent } from "@ourworldindata/utils"
-import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
-import { LegacyGrapherInterface } from "../../grapher/core/GrapherInterface.js"
-import { CoreTable } from "@ourworldindata/core-table"
+    LegacyGrapherInterface,
+} from "@ourworldindata/grapher"
+import { isPresent, mapToObjectLiteral } from "@ourworldindata/utils"
+import * as fs from "fs"
 import parseArgs from "minimist"
-import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
-import { ColorScaleConfig } from "../../grapher/color/ColorScaleConfig.js"
+import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
 
 const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"

@@ -1,39 +1,38 @@
 import {
-    trimObject,
+    columnDefinitionsFromDelimited,
+    CoreColumnDef,
+    CoreMatrix,
+    CoreTable,
+    CoreTableInputOption,
+    OwidTable,
+    TableSlug,
+} from "@ourworldindata/core-table"
+import { FacetAxisDomain, GrapherInterface } from "@ourworldindata/grapher"
+import {
     GitCommit,
-    SubNavId,
-    SerializedGridProgram,
     PromiseCache,
+    SerializedGridProgram,
+    SubNavId,
+    trimObject,
 } from "@ourworldindata/utils"
+import {
+    CellDef,
+    Grammar,
+    GridBoolean,
+    GRID_CELL_DELIMITER,
+    GRID_NODE_DELIMITER,
+    RootKeywordCellDef,
+} from "../gridLang/GridLangConstants.js"
+import { GridProgram } from "../gridLang/GridProgram.js"
+import { ColumnGrammar } from "./ColumnGrammar.js"
 import {
     DefaultNewExplorerSlug,
     ExplorerChoiceParams,
     EXPLORERS_ROUTE_FOLDER,
 } from "./ExplorerConstants.js"
-import {
-    columnDefinitionsFromDelimited,
-    CoreTable,
-    CoreMatrix,
-    CoreTableInputOption,
-    TableSlug,
-    OwidTable,
-    CoreColumnDef,
-} from "@ourworldindata/core-table"
-import { ExplorerGrammar } from "./ExplorerGrammar.js"
-import {
-    CellDef,
-    GridBoolean,
-    GRID_CELL_DELIMITER,
-    GRID_NODE_DELIMITER,
-    Grammar,
-    RootKeywordCellDef,
-} from "../gridLang/GridLangConstants.js"
-import { GridProgram } from "../gridLang/GridProgram.js"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { GrapherGrammar } from "./GrapherGrammar.js"
-import { ColumnGrammar } from "./ColumnGrammar.js"
 import { DecisionMatrix } from "./ExplorerDecisionMatrix.js"
-import { FacetAxisDomain } from "../grapher/core/GrapherConstants.js"
+import { ExplorerGrammar } from "./ExplorerGrammar.js"
+import { GrapherGrammar } from "./GrapherGrammar.js"
 
 export const EXPLORER_FILE_SUFFIX = ".explorer.tsv"
 

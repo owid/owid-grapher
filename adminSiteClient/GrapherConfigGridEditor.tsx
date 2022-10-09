@@ -46,7 +46,9 @@ import Handsontable from "handsontable"
 import {
     Grapher,
     GrapherProgrammaticInterface,
-} from "../grapher/core/Grapher.js"
+    MapChart,
+    ChartTypeName,
+} from "@ourworldindata/grapher"
 import { BindString, SelectField, Toggle } from "./Forms.js"
 import { from } from "rxjs"
 import {
@@ -98,8 +100,6 @@ import codemirror from "codemirror"
 import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
-import { MapChart } from "../grapher/mapCharts/MapChart.js"
-import { ChartTypeName } from "../grapher/core/GrapherConstants.js"
 
 function HotColorScaleRenderer() {
     return <div style={{ color: "gray" }}>Color scale</div>

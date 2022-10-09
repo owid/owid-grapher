@@ -1,4 +1,4 @@
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import { SuggestedChartRevisionStatus } from "@ourworldindata/utils"
 
 export interface SuggestedChartRevisionSerialized {

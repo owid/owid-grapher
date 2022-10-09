@@ -1,9 +1,9 @@
-import React from "react"
-import { RelatedChart } from "@ourworldindata/utils"
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
-} from "../../grapher/core/GrapherConstants.js"
+} from "@ourworldindata/grapher"
+import { RelatedChart } from "@ourworldindata/utils"
+import React from "react"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,

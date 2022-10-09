@@ -1,13 +1,4 @@
-import * as stream from "stream"
-import * as path from "path"
-import { getVariableData } from "../../db/model/Variable.js"
-import {
-    initGrapherForSvgExport,
-    buildSvgOutFilename,
-} from "../../baker/GrapherImageBaker.js"
-import { createGunzip, createGzip } from "zlib"
-import * as fs from "fs-extra"
-import getStream from "get-stream"
+import { ChartTypeName } from "@ourworldindata/grapher"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -15,12 +6,21 @@ import {
     OwidVariableWithSourceAndDimension,
     TESTING_ONLY_reset_guid,
 } from "@ourworldindata/utils"
-import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
+import * as fs from "fs-extra"
+import getStream from "get-stream"
 import md5 from "md5"
+import * as path from "path"
+import * as stream from "stream"
+import { createGunzip, createGzip } from "zlib"
+import {
+    buildSvgOutFilename,
+    initGrapherForSvgExport,
+} from "../../baker/GrapherImageBaker.js"
+import { getVariableData } from "../../db/model/Variable.js"
 
-import * as util from "util"
-import { GrapherInterface } from "../../grapher/core/GrapherInterface.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import _ from "lodash"
+import * as util from "util"
 
 export const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"

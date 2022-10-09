@@ -11,7 +11,12 @@ import {
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { Bounds, capitalize, getIndexableKeys } from "@ourworldindata/utils"
-import { Grapher } from "../grapher/core/Grapher.js"
+import {
+    Grapher,
+    Detail,
+    Topic,
+    GrapherInterface,
+} from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import {
     ChartEditor,
@@ -43,9 +48,7 @@ import {
     VisionDeficiencyEntity,
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
-import { Detail, Topic } from "../grapher/core/GrapherConstants.js"
 import { get, has, set } from "lodash"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {

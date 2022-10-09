@@ -37,7 +37,7 @@ import {
 import {
     GrapherInterface,
     grapherKeysToSerialize,
-} from "../grapher/core/GrapherInterface.js"
+} from "@ourworldindata/grapher"
 import {
     CountryNameFormat,
     CountryDefByKey,
@@ -65,7 +65,7 @@ import {
     getTagsByPostId,
 } from "../db/model/Post.js"
 
-import { Detail } from "../grapher/core/GrapherConstants.js"
+import { Detail } from "@ourworldindata/grapher"
 
 const apiRouter = new FunctionalRouter()
 

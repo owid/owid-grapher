@@ -1,36 +1,32 @@
-import React from "react"
-import ReactDOM from "react-dom"
 import {
-    fetchText,
-    isMobile,
-    isPresent,
-    deserializeJSONFromHTML,
-    getWindowUrl,
-    Url,
-    Annotation,
-} from "@ourworldindata/utils"
-import { GRAPHER_EMBEDDED_FIGURE_ATTR } from "../../grapher/core/GrapherConstants.js"
-import {
+    getSelectedEntityNamesParam,
+    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
+    GLOBAL_ENTITY_SELECTOR_ELEMENT,
     Grapher,
     GrapherProgrammaticInterface,
-} from "../../grapher/core/Grapher.js"
+    GRAPHER_EMBEDDED_FIGURE_ATTR,
+    hydrateGlobalEntitySelectorIfAny,
+    migrateSelectedEntityNamesParam,
+    SelectionArray,
+} from "@ourworldindata/grapher"
+import {
+    Annotation,
+    deserializeJSONFromHTML,
+    fetchText,
+    getWindowUrl,
+    isMobile,
+    isPresent,
+    Url,
+} from "@ourworldindata/utils"
+import { action } from "mobx"
+import React from "react"
+import ReactDOM from "react-dom"
 import { Explorer, ExplorerProps } from "../../explorer/Explorer.js"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants.js"
-import {
-    GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
-    GLOBAL_ENTITY_SELECTOR_ELEMENT,
-} from "../../grapher/controls/globalEntitySelector/GlobalEntitySelectorConstants.js"
-import { SelectionArray } from "../../grapher/selection/SelectionArray.js"
-import {
-    getSelectedEntityNamesParam,
-    migrateSelectedEntityNamesParam,
-} from "../../grapher/core/EntityUrlBuilder.js"
-import { hydrateGlobalEntitySelectorIfAny } from "../../grapher/controls/globalEntitySelector/GlobalEntitySelector.js"
-import { action } from "mobx"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 
 const figuresFromDOM = (

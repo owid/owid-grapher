@@ -1,16 +1,15 @@
+import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
+import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
+import * as fs from "fs-extra"
+import * as path from "path"
+import sharp from "sharp"
+import svgo from "svgo"
 import * as db from "../db/db.js"
 import { getDataForMultipleVariables } from "../db/model/Variable.js"
-import * as fs from "fs-extra"
-import svgo from "svgo"
-import sharp from "sharp"
-import * as path from "path"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { Grapher } from "../grapher/core/Grapher.js"
 import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
-import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
 
 export async function bakeGraphersToPngs(
     outDir: string,

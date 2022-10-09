@@ -1,6 +1,5 @@
 import React from "react"
 import { Chart } from "../db/model/Chart.js"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
@@ -41,7 +40,8 @@ import {
     GRAPHER_VARIABLE_METADATA_ROUTE,
     getVariableDataRoute,
     getVariableMetadataRoute,
-} from "../grapher/core/GrapherConstants.js"
+    GrapherInterface,
+} from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import fetch from "node-fetch"

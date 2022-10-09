@@ -2,8 +2,8 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor.js"
-import { Grapher } from "../grapher/core/Grapher.js"
-import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine.js"
+import { Grapher } from "@ourworldindata/grapher"
+import { ComparisonLineConfig } from "@ourworldindata/grapher"
 import {
     NumberField,
     Toggle,
@@ -32,11 +32,11 @@ import {
     ColorSchemeOption,
 } from "./ColorSchemeDropdown.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
-import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
 import {
+    ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
-} from "../grapher/core/GrapherConstants.js"
+} from "@ourworldindata/grapher"
 import Select from "react-select"
 @observer
 export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {

@@ -1,18 +1,17 @@
 import {
-    ColumnTypeNames,
     AvailableTransforms,
+    ColumnTypeNames,
 } from "@ourworldindata/core-table"
-import { BinningStrategy } from "../grapher/color/BinningStrategy.js"
-import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
+import { BinningStrategy, ColorSchemeName } from "@ourworldindata/grapher"
 import {
-    Grammar,
-    SlugDeclarationCellDef,
-    StringCellDef,
-    IntegerCellDef,
-    UrlCellDef,
     BooleanCellDef,
     EnumCellDef,
+    Grammar,
+    IntegerCellDef,
     NumericCellDef,
+    SlugDeclarationCellDef,
+    StringCellDef,
+    UrlCellDef,
 } from "../gridLang/GridLangConstants.js"
 
 export const ColumnGrammar: Grammar = {

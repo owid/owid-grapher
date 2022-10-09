@@ -1,14 +1,14 @@
-import React from "react"
-import { excludeUndefined } from "@ourworldindata/utils"
-import { computed, action, IReactionDisposer, reaction, observable } from "mobx"
-import { observer } from "mobx-react"
-import { Grapher } from "../grapher/core/Grapher.js"
-import { Toggle, NumberField, SelectField, Section } from "./Forms.js"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "@ourworldindata/core-table"
-import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash"
+import { Grapher } from "@ourworldindata/grapher"
+import { excludeUndefined } from "@ourworldindata/utils"
 import lodash from "lodash"
+import { action, computed, IReactionDisposer, observable, reaction } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
+import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 
 @observer
 export class EditorMarimekkoTab extends React.Component<{ grapher: Grapher }> {

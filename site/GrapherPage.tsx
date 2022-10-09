@@ -1,26 +1,26 @@
-import React from "react"
-import urljoin from "url-join"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
-import { Head } from "./Head.js"
 import {
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+    GrapherInterface,
+    GRAPHER_PAGE_BODY_CLASS,
+    LoadingIndicator,
+} from "@ourworldindata/grapher"
+import {
+    flatten,
     PostReference,
     PostRow,
     RelatedChart,
     serializeJSONForHTML,
-    flatten,
     uniq,
 } from "@ourworldindata/utils"
+import React from "react"
+import urljoin from "url-join"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
+import { Head } from "./Head.js"
 import { IFrameDetector } from "./IframeDetector.js"
-import {
-    getVariableDataRoute,
-    getVariableMetadataRoute,
-    GRAPHER_PAGE_BODY_CLASS,
-} from "../grapher/core/GrapherConstants.js"
 import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { SiteHeader } from "./SiteHeader.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface

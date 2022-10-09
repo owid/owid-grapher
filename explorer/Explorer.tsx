@@ -1,23 +1,32 @@
-import React from "react"
-import { observer } from "mobx-react"
-import { action, observable, computed, reaction } from "mobx"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    GrapherInterface,
-    GrapherQueryParams,
-} from "../grapher/core/GrapherInterface.js"
+    BlankOwidTable,
+    ColumnTypeNames,
+    CoreColumnDef,
+    isNotErrorValue,
+    OwidTable,
+    SortOrder,
+    TableSlug,
+} from "@ourworldindata/core-table"
 import {
-    ExplorerControlPanel,
-    ExplorerControlBar,
-} from "../explorer/ExplorerControls.js"
-import ReactDOM from "react-dom"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import {
+    EntityPicker,
+    EntityPickerManager,
     Grapher,
+    GrapherInterface,
     GrapherManager,
     GrapherProgrammaticInterface,
-} from "../grapher/core/Grapher.js"
+    GrapherQueryParams,
+    SelectionArray,
+    setSelectedEntityNamesParam,
+    SlideShowController,
+    SlideShowManager,
+} from "@ourworldindata/grapher"
 import {
+    Bounds,
+    ColumnSlug,
     debounce,
+    DEFAULT_BOUNDS,
     excludeUndefined,
     exposeInstanceOnWindow,
     flatten,
@@ -25,21 +34,25 @@ import {
     keyMap,
     omit,
     omitUndefinedValues,
-    throttle,
-    uniqBy,
-    ColumnSlug,
-    SerializedGridProgram,
-    Bounds,
-    DEFAULT_BOUNDS,
-    setWindowUrl,
-    Url,
     PromiseCache,
     PromiseSwitcher,
+    SerializedGridProgram,
+    setWindowUrl,
+    throttle,
+    uniqBy,
+    Url,
 } from "@ourworldindata/utils"
+import classNames from "classnames"
+import { action, computed, observable, reaction } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
+import ReactDOM from "react-dom"
 import {
-    SlideShowController,
-    SlideShowManager,
-} from "../grapher/slideshowController/SlideShowController.js"
+    ExplorerControlBar,
+    ExplorerControlPanel,
+} from "../explorer/ExplorerControls.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import {
     ExplorerChoiceParams,
     ExplorerContainerId,
@@ -49,28 +62,11 @@ import {
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
 } from "./ExplorerConstants.js"
-import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants.js"
-import { SelectionArray } from "../grapher/selection/SelectionArray.js"
-import {
-    SortOrder,
-    TableSlug,
-    isNotErrorValue,
-    ColumnTypeNames,
-    CoreColumnDef,
-    BlankOwidTable,
-    OwidTable,
-} from "@ourworldindata/core-table"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker.js"
-import classNames from "classnames"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
-import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec.js"
-import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder.js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]

@@ -1,7 +1,7 @@
 import React from "react"
 import { DimensionProperty } from "@ourworldindata/utils"
-import { GrapherProgrammaticInterface } from "../grapher/core/Grapher.js"
-import { GrapherTabOption } from "../grapher/core/GrapherConstants.js"
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import { GrapherTabOption } from "@ourworldindata/grapher"
 import { Explorer, ExplorerProps } from "./Explorer.js"
 
 const SampleExplorerOfGraphersProgram = `explorerTitle	CO₂ Data Explorer

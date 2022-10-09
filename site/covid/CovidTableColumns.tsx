@@ -1,31 +1,34 @@
-import React from "react"
-import { scaleThreshold, scaleLinear, ScaleLinear } from "d3-scale"
-import { interpolateLab } from "d3-interpolate"
 import classnames from "classnames"
+import { interpolateLab } from "d3-interpolate"
+import { scaleLinear, ScaleLinear, scaleThreshold } from "d3-scale"
+import React from "react"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle"
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import { Tippy } from "../../grapher/chart/Tippy.js"
+import { Tippy } from "@ourworldindata/grapher"
 
+import {
+    SparkBars,
+    SparkBarsProps,
+    SparkBarTimeSeriesValue,
+} from "@ourworldindata/grapher"
+import { nouns } from "./CovidConstants.js"
+import { CovidDoublingTooltip } from "./CovidDoublingTooltip.js"
 import {
     CovidTableHeaderCell as HeaderCell,
     CovidTableHeaderCellProps,
 } from "./CovidTableHeaderCell.js"
 import {
-    CovidSortKey,
     CovidCountryDatum,
     CovidDatum,
-    NounGenerator,
     CovidDoublingRange,
+    CovidSortKey,
+    NounGenerator,
 } from "./CovidTypes.js"
 import { formatDate, formatInt } from "./CovidUtils.js"
-import { nouns } from "./CovidConstants.js"
-import { CovidDoublingTooltip } from "./CovidDoublingTooltip.js"
-import { SparkBarTimeSeriesValue } from "../../grapher/sparkBars/SparkBarTimeSeriesValue.js"
-import { SparkBars, SparkBarsProps } from "../../grapher/sparkBars/SparkBars.js"
 
 export enum CovidTableColumnKey {
     location = "location",

@@ -16,7 +16,7 @@ import {
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { DATA_VALUE } from "../site/DataValue.js"
-import { legacyToOwidTableAndDimensions } from "../grapher/core/LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "@ourworldindata/grapher"
 import { getBodyHtml } from "../site/formatting.js"
 import * as path from "path"
 
