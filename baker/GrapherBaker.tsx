@@ -380,10 +380,9 @@ export const bakeAllPublishedChartsVariableDataAndMetadata = async (
             })
         )
     } else {
-        const maxWorkers = MAX_NUM_BAKE_PROCESSES
         const poolOptions = {
             minWorkers: 2,
-            maxWorkers: maxWorkers,
+            maxWorkers: MAX_NUM_BAKE_PROCESSES,
             // using `process` instead of worker threads is necessary for DuckDB to work
             workerType: "process",
         } as workerpool.WorkerPoolOptions
@@ -486,10 +485,9 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 })
             )
         } else {
-            const maxWorkers = MAX_NUM_BAKE_PROCESSES
             const poolOptions = {
                 minWorkers: 2,
-                maxWorkers: maxWorkers,
+                maxWorkers: MAX_NUM_BAKE_PROCESSES,
             }
             const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
             try {

@@ -71,6 +71,14 @@ type VariableQueryRow = Readonly<
     }
 >
 
+interface DataRow {
+    value: string
+    year: number
+    entityId: number
+    entityName: string
+    entityCode: string
+}
+
 export type UnparsedVariableRow = VariableRow & { display: string }
 
 export type Field = keyof VariableRow
@@ -136,10 +144,11 @@ export async function getVariableData(
     const row = await variableQuery
     if (row === undefined) throw new Error(`Variable ${variableId} not found`)
 
-    const results =
-        row.catalogPath && row.shortName
-            ? await readValuesFromParquet(variableId, row)
-            : await readValuesFromMysql(variableId)
+    const parquetDataExists = row.catalogPath && row.shortName
+
+    const results = parquetDataExists
+        ? await readValuesFromParquet(variableId, row)
+        : await readValuesFromMysql(variableId)
 
     const {
         sourceId,
@@ -405,7 +414,7 @@ export const getOwidVariableDisplayConfig = async (
 
 const readValuesFromMysql = async (
     variableId: OwidVariableId
-): Promise<any[]> => {
+): Promise<DataRow[]> => {
     return db.queryMysql(
         `
         SELECT
@@ -441,15 +450,32 @@ const constructParquetQuery = (row: VariableQueryRow): string => {
 
     const uri = `${_.trimEnd(CATALOG_PATH, "/")}/${row.catalogPath!}.parquet`
 
-    return `
-        select
-            ${shortName} as value,
-            year,
-            country as entityName
-        from read_parquet('${uri}')
-        where ${shortName} is not null and ${where}
-        order by year asc
-    `
+    // backported variables use entity_id, entity_code and entity_name instead of country
+    // TODO: it might be easier to keep backported variables in the same format as grapher
+    // variables, i.e. with just country
+    if (row.catalogPath!.startsWith("backport/")) {
+        return `
+            select
+                ${shortName} as value,
+                year,
+                entity_name as entityName,
+                entity_code as entityCode,
+                entity_id as entityId
+            from read_parquet('${uri}')
+            where ${shortName} is not null and ${where}
+            order by year asc
+        `
+    } else {
+        return `
+            select
+                ${shortName} as value,
+                year,
+                country as entityName
+            from read_parquet('${uri}')
+            where ${shortName} is not null and ${where}
+            order by year asc
+        `
+    }
 }
 
 const fetchEntities = async (entityNames: string[]): Promise<EntityRow[]> => {
@@ -468,14 +494,24 @@ const fetchEntities = async (entityNames: string[]): Promise<EntityRow[]> => {
 const readValuesFromParquet = async (
     variableId: OwidVariableId,
     row: VariableQueryRow
-): Promise<any[]> => {
+): Promise<DataRow[]> => {
     const sql = constructParquetQuery(row)
 
     const con = ddb.connect()
-    const results = await util.promisify(con.all).bind(con)(sql)
+    let results
+    try {
+        results = await util.promisify(con.all).bind(con)(sql)
+    } catch (error: any) {
+        throw new Error(`${error.message}\n${sql}`)
+    }
 
     if (results.length == 0) {
-        console.warn(`No entities found for variable ${variableId}`)
+        console.warn(`No values found for variable ${variableId}`)
+        return results
+    }
+
+    // backported variables already have entity info
+    if (results[0].entityId) {
         return results
     }
 
