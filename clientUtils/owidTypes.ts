@@ -324,6 +324,7 @@ export interface DeployChange {
     authorName?: string
     authorEmail?: string
     message?: string
+    slug?: string
 }
 
 export interface Deploy {

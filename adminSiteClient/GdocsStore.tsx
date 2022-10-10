@@ -60,9 +60,37 @@ export class GdocsStore {
         })
     }
 
-    async delete(gdoc: OwidArticleType) {
-        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
+    async publish(gdoc: OwidArticleType, isLightningDeploy: boolean) {
+        const publishedGdoc = {
+            ...gdoc,
+            published: true,
+            // Add today's date if the publication date is missing
+            publishedAt: gdoc.publishedAt ?? new Date(),
+        }
+        await this.update(publishedGdoc)
 
+        if (isLightningDeploy) {
+            await this.admin.requestJSON(`/api/deploy/${gdoc.slug}`, {}, "PUT")
+        } else {
+            await this.admin.requestJSON(`/api/deploy`, {}, "PUT")
+        }
+
+        return publishedGdoc
+    }
+
+    async unpublish(gdoc: OwidArticleType) {
+        const unpublishedGdoc = {
+            ...gdoc,
+            published: false,
+        }
+        await this.update(unpublishedGdoc)
+
+        await this.admin.requestJSON(`/api/deploy`, {}, "PUT")
+
+        return unpublishedGdoc
+    }
+
+    async delete(gdoc: OwidArticleType) {
         runInAction(() => {
             const gdocToDeleteIdx = this.gdocs.findIndex(
                 (someGdoc) => someGdoc.id === gdoc.id
@@ -71,6 +99,9 @@ export class GdocsStore {
 
             this.gdocs.splice(gdocToDeleteIdx, 1)
         })
+
+        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
+        await this.admin.requestJSON(`/api/deploy`, {}, "PUT")
     }
 }
 

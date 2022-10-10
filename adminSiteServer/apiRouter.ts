@@ -96,6 +96,27 @@ const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
     })
 }
 
+const triggerLightningBuild = async (
+    user: CurrentUser,
+    commitMessage: string,
+    slug: string
+) => {
+    if (!BAKE_ON_CHANGE) {
+        console.log(
+            "Not triggering static build because BAKE_ON_CHANGE is false"
+        )
+        return
+    }
+
+    return new DeployQueueServer().enqueueChange({
+        timeISOString: new Date().toISOString(),
+        authorName: user.fullName,
+        authorEmail: user.email,
+        message: commitMessage,
+        slug,
+    })
+}
+
 async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
     const logs = await db.queryMysql(
         `SELECT userId, config, fullName as userName, l.createdAt
@@ -2492,8 +2513,18 @@ apiRouter.get("/deploys.json", async () => ({
     deploys: await new DeployQueueServer().getDeploys(),
 }))
 
-apiRouter.put("/deploy", async (req: Request, res: Response) => {
-    triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+apiRouter.put("/deploy/:slug?", async (req: Request, res: Response) => {
+    const { slug } = req.params
+    if (!slug) {
+        await triggerStaticBuild(res.locals.user, "Manually triggered deploy")
+    } else {
+        // Lightning deploy: supported by gdocs only. In the future, lightning
+        // deploys might also come from other sources (Wordpress, grapher,
+        // explorer). This might be better dealt with when the content graph is
+        // operational and we're able to compute content dependencies.
+        await triggerLightningBuild(res.locals.user, `Update ${slug}`, slug)
+    }
+    return { success: true }
 })
 
 apiRouter.get("/details", async () => ({

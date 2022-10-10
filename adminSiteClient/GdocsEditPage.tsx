@@ -23,6 +23,7 @@ import {
     useUpdatePreviewContent,
     useGdocsChanged,
     useAutoSaveDraft,
+    useLightningDeploy,
 } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
@@ -42,6 +43,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
 
     const syncingError = useUpdatePreviewContent(id, !gdoc, setGdoc, admin)
     const hasChanges = useGdocsChanged(originalGdoc, gdoc)
+    const isLightningDeploy = useLightningDeploy(originalGdoc, gdoc)
     useAutoSaveDraft(gdoc, setOriginalGdoc, hasChanges)
 
     useEffect(() => {
@@ -72,27 +74,26 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
             okType: hasWarnings ? "danger" : "primary",
             okText: "Publish now",
             cancelText: "Cancel",
-            onOk() {
-                doPublish(true)
-            },
+            onOk: doPublish,
         })
     }
 
-    const doPublish = async (published: boolean) => {
+    const doPublish = async () => {
         if (!gdoc) return
+        const publishedGdoc = await store.publish(gdoc, isLightningDeploy)
 
+        setGdoc(publishedGdoc)
+        setOriginalGdoc(publishedGdoc)
         openSuccessNotification()
+    }
 
-        setGdoc(pendingGdoc)
-        setOriginalGdoc(pendingGdoc)
-        openNotification(
-            "success",
-            "Document saved",
-            <span>
-                Your changes have been scheduled for publication.{" "}
-                <a href="/admin/deploys">Check deploy progress</a>
-            </span>
-        )
+    const doUnpublish = async () => {
+        if (!gdoc) return
+        const unpublishedGdoc = await store.unpublish(gdoc)
+
+        setGdoc(unpublishedGdoc)
+        setOriginalGdoc(unpublishedGdoc)
+        openSuccessNotification()
     }
 
     const onDelete = async () => {
@@ -174,6 +175,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
                                 hasChanges={hasChanges}
+                                isLightningDeploy={isLightningDeploy}
                                 onPublish={confirmPublish}
                             />
                             <IconBadge
@@ -191,7 +193,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                             </IconBadge>
                             <GdocsMoreMenu
                                 gdoc={gdoc}
-                                onUnpublish={() => doPublish(false)}
+                                onUnpublish={doUnpublish}
                                 onDelete={onDelete}
                             />
                         </Space>

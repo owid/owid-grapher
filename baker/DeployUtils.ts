@@ -3,7 +3,12 @@ import { SiteBaker } from "../baker/SiteBaker.js"
 import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { DeployChange } from "../clientUtils/owidTypes.js"
+import {
+    DeployChange,
+    OwidArticleTypePublished,
+} from "../clientUtils/owidTypes.js"
+import { Gdoc } from "../db/model/Gdoc.js"
+import * as db from "../db/db.js"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -36,6 +41,31 @@ const bakeAndDeploy = async (
 
     try {
         await baker.bakeAll()
+        await baker.deployToNetlifyAndPushToGitPush(message, email, name)
+    } catch (err) {
+        logErrorAndMaybeSendToSlack(err)
+        throw err
+    }
+}
+
+const lightningBakeAndDeploy = async (
+    lightningQueue: DeployChange[],
+    message?: string,
+    email?: string,
+    name?: string
+) => {
+    message = message ?? (await defaultCommitMessage())
+
+    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
+
+    try {
+        for (const change of lightningQueue) {
+            const gdoc = (await Gdoc.findOneOrFail({
+                published: true,
+                slug: change.slug,
+            })) as OwidArticleTypePublished
+            await baker.bakeGDocPost(gdoc)
+        }
         await baker.deployToNetlifyAndPushToGitPush(message, email, name)
     } catch (err) {
         logErrorAndMaybeSendToSlack(err)
@@ -77,7 +107,10 @@ export const tryDeploy = async (
     }
 }
 
-const generateCommitMsg = (queueItems: DeployChange[]) => {
+const generateCommitMsg = (
+    queueItems: DeployChange[],
+    isLightningDeploy: boolean = false
+) => {
     const date: string = new Date().toISOString()
 
     const message: string = queueItems
@@ -91,8 +124,9 @@ const generateCommitMsg = (queueItems: DeployChange[]) => {
             return `Co-authored-by: ${item.authorName} <${item.authorEmail}>`
         })
         .join("\n")
-
-    return `Deploy ${date}\n${message}\n\n\n${coauthors}`
+    return `${
+        isLightningDeploy ? "Lightning " : ""
+    }Deploy ${date}\n${message}\n\n\n${coauthors}`
 }
 
 const MAX_SUCCESSIVE_FAILURES = 2
@@ -120,15 +154,29 @@ export const deployIfQueueIsNotEmpty = async () => {
         // Truncate file immediately. Ideally this would be an atomic action, otherwise it's
         // possible that another process writes to this file in the meantime...
         await deployQueueServer.clearQueueFile()
-        // Write to `.deploying` file to be able to recover the deploy message
+        // Write to `.pending` file to be able to recover the deploy message
         // in case of failure.
         await deployQueueServer.writePendingFile(deployContent)
-        const message = generateCommitMsg(
-            deployQueueServer.parseQueueContent(deployContent)
-        )
+
+        const parsedQueue = deployQueueServer.parseQueueContent(deployContent)
+        // todo: process lightning build ()
+
+        const isLightningChange = (item: DeployChange) => item.slug
+        // if every DeployChange is a lightning change, then we can do a lightning deploy
+        const isLightningDeploy = parsedQueue.every(isLightningChange)
+
+        const message = generateCommitMsg(parsedQueue, isLightningDeploy)
         console.log(`Deploying site...\n---\n${message}\n---`)
         try {
-            await bakeAndDeploy(message)
+            if (isLightningDeploy) {
+                await lightningBakeAndDeploy(
+                    parsedQueue.filter(isLightningChange),
+                    message
+                )
+            } else {
+                // else do a standard deploy
+                await bakeAndDeploy(message)
+            }
             await deployQueueServer.deletePendingFile()
         } catch (err) {
             failures++
