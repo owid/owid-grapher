@@ -32,9 +32,11 @@
         margin-top: 24px;
     }
     padding: 8px 24px;
-    border: 1px solid $accent-vermillion;
+    border: 1px solid $vermillion;
     display: inline-block;
     cursor: pointer;
+    line-height: 30px;
+    text-align: center;
 
     &:hover {
         border-color: $accent-vermillion;
@@ -47,7 +49,7 @@
 
     a,
     a:visited {
-        color: $accent-vermillion;
+        color: $vermillion;
         text-decoration: none;
     }
 }
@@ -67,11 +69,8 @@
     }
 
     p {
-        text-transform: uppercase;
+        @include overline-black-caps;
         color: $blue-40;
-        font-weight: bold;
-        line-height: 1;
-        letter-spacing: 1.6px;
     }
 
     ul {
@@ -86,6 +85,7 @@
         text-underline-offset: 6px;
 
         a {
+            @include body-3-medium;
             @include owid-link-90;
             text-decoration: none;
         }
