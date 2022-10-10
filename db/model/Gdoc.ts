@@ -69,9 +69,9 @@ export class Gdoc extends BaseEntity {
         // but also makes it less of a source of truth when considered in isolation.
         return (
             Gdoc.cachedPublishedGdocs ||
-            (Gdoc.find({
-                where: { published: true },
-            }) as Promise<OwidArticleTypePublished[]>)
+            (Gdoc.find({ published: true }) as Promise<
+                OwidArticleTypePublished[]
+            >)
         )
     }
 }
