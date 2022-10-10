@@ -110,7 +110,7 @@ export class ProminentLink extends React.Component<{
             return (
                 <>
                     {this.props.title ? (
-                        <h3>
+                        <h3 className="title">
                             <span
                                 dangerouslySetInnerHTML={{
                                     __html: this.props.title,
