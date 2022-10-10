@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import {
     GdocsContentSource,
+    OwidArticleContent,
     OwidArticleType,
     OwidArticleTypeJSON,
 } from "../clientUtils/owidTypes.js"
@@ -20,6 +21,45 @@ export const useGdocsChanged = (
     }, [prevGdoc, nextGdoc])
 
     return hasChanges
+}
+
+export const useLightningDeploy = (
+    prevGdoc: OwidArticleType | undefined,
+    nextGdoc: OwidArticleType | undefined
+) => {
+    const [isLightningDeploy, setLightningDeploy] = useState(false)
+
+    useEffect(() => {
+        if (!prevGdoc || !nextGdoc) return
+
+        const hasChanged = (prop: keyof OwidArticleType) => {
+            return prevGdoc[prop] !== nextGdoc[prop]
+        }
+
+        const hasChangedDate = (
+            prop: keyof Pick<OwidArticleType, "publishedAt">
+        ) => {
+            return prevGdoc[prop]?.getTime() !== nextGdoc[prop]?.getTime()
+        }
+
+        const hasChangedContent = (prop: keyof OwidArticleContent) => {
+            return prevGdoc.content[prop] !== nextGdoc.content[prop]
+        }
+
+        // if any of the props that require a full deploy have changed, or the
+        // article is a draft, then we can't do an instant deploy
+        const requireFullDeploy =
+            !prevGdoc.published ||
+            hasChanged("slug") ||
+            hasChangedDate("publishedAt") ||
+            hasChangedContent("title") ||
+            hasChangedContent("byline") ||
+            hasChangedContent("excerpt")
+
+        setLightningDeploy(!requireFullDeploy)
+    }, [nextGdoc, prevGdoc])
+
+    return isLightningDeploy
 }
 
 export const useAutoSaveDraft = (
