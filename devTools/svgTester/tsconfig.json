@@ -4,10 +4,5 @@
         "outDir": "../../itsJustJavascript/devTools/svgTester",
         "rootDir": "."
     },
-    "references": [
-        { "path": "../../grapher" },
-        { "path": "../../clientUtils" },
-        { "path": "../../baker" },
-        { "path": "../../settings" }
-    ]
+    "references": [{ "path": "../../baker" }, { "path": "../../settings" }]
 }

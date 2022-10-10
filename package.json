@@ -39,6 +39,9 @@
         "testJest": "jest"
     },
     "dependencies": {
+        "@ourworldindata/grapher": "*",
+        "@ourworldindata/core-table": "*",
+        "@ourworldindata/utils": "*",
         "@bugsnag/core": "^7.17.0",
         "@bugsnag/js": "^7.17.0",
         "@bugsnag/plugin-react": "^7.17.0",
@@ -256,6 +259,7 @@
     ],
     "name": "grapher",
     "workspaces": [
-        "packages/@ourworldindata/*"
+        "packages/@ourworldindata/*",
+        "."
     ]
 }

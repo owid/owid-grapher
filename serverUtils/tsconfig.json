@@ -4,5 +4,5 @@
         "outDir": "../itsJustJavascript/serverUtils",
         "rootDir": "."
     },
-    "references": [{ "path": "../clientUtils" }, { "path": "../settings" }]
+    "references": [{ "path": "../settings" }]
 }

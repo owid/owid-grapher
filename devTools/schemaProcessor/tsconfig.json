@@ -4,5 +4,5 @@
         "outDir": "../../itsJustJavascript/devTools/schemaProcessor",
         "rootDir": "."
     },
-    "references": [{ "path": "../../clientUtils" }]
+    "references": []
 }

@@ -5,10 +5,7 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../clientUtils" },
         { "path": "../explorer" },
-        { "path": "../grapher" },
-        { "path": "../coreTable" },
         { "path": "../site" },
         { "path": "../db" }
     ]

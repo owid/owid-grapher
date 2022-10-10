@@ -4,7 +4,7 @@ import fetch from "node-fetch"
 import opener from "opener"
 import { execWrapper } from "../db/execWrapper.js"
 import { DeployTarget, ProdTarget } from "./DeployTarget.js"
-import dayjs from "@ourworldindata/utils"
+import { dayjs } from "@ourworldindata/utils"
 
 /**
  * Retrieves information about the deployed commit on a live or staging server.

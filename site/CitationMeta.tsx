@@ -1,5 +1,5 @@
 import React from "react"
-import dayjs from "@ourworldindata/utils"
+import { dayjs } from "@ourworldindata/utils"
 
 export const CitationMeta = (props: {
     // id: number
