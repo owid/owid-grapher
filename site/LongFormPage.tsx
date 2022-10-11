@@ -342,7 +342,7 @@ export const LongFormPage = (props: {
                                                             id="licence"
                                                             className="h3-bold"
                                                         >
-                                                            Reuse our work
+                                                            Reuse this work
                                                             freely
                                                         </h3>
 
