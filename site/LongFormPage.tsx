@@ -300,7 +300,7 @@ export const LongFormPage = (props: {
                                                             id="citation"
                                                             className="h3-bold"
                                                         >
-                                                            Cite our work
+                                                            Cite this work
                                                         </h3>
                                                         <p>
                                                             Our articles and
