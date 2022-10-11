@@ -620,7 +620,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset.source}
                                     label="Retrieved"
                                     disabled={isBulkImport}
-                                    helpText="Date when this data was obtained by us"
+                                    helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
                                 />
                                 <DatasetTagEditor
                                     newDataset={newDataset}
@@ -657,9 +657,9 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                 <BindString
                                     field="name"
                                     store={newDataset.source}
-                                    label="Source Name"
+                                    label="Source name"
                                     disabled={isBulkImport}
-                                    helpText={`Source name displayed on charts using this dataset. For academic papers, the name of the source should be "Authors (year)" e.g. Arroyo-Abad and Lindert (2016). For institutional projects or reports, the name should be "Institution, Project (year or vintage)" e.g. U.S. Bureau of Labor Statistics, Consumer Expenditure Survey (2015 release). For data that we have modified extensively, the name should be "Our World in Data based on Author (year)" e.g. Our World in Data based on Atkinson (2002) and Sen (2000).`}
+                                    helpText={`Short citation of the main sources, to be displayed on the charts. Additional sources (e.g. population denominator) should not be included. Use semi-colons to separate multiple sources e.g. "UN (2022); World Bank (2022)". For institutional datasets or reports, use "Institution, Project (year or vintage)" e.g. "IHME, Global Burden of Disease (2019)". For data we have modified extensively, use "Our World in Data based on X (year)" e.g. "Our World in Data based on Pew Research Center (2022)". For academic papers, use "Authors (year)" e.g. "Arroyo-Abad and Lindert (2016)".`}
                                 />
 
                                 <BindString
@@ -667,14 +667,14 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                     store={newDataset.source}
                                     label="Data published by"
                                     disabled={isBulkImport}
-                                    helpText={`For academic papers this should be a complete reference. For institutional projects, detail the project or report. For data we have modified extensively, list OWID as the publishers and provide the name of the person in charge of the calculation.`}
+                                    helpText={`Full citation of main and additional sources. For academic papers, institutional datasets, and reports, use the complete citation recommended by the publisher. For data we have modified extensively, use "Our World in Data based on X (year) and Y (year)" e.g. "Our World in Data based on Pew Research Center (2022) and UN (2022)".`}
                                 />
                                 <BindString
                                     field="dataPublisherSource"
                                     store={newDataset.source}
                                     label="Data publisher's source"
                                     disabled={isBulkImport}
-                                    helpText={`Basic indication of how the publisher collected this data e.g. surveys data. Anything longer than a line should go in the dataset description.`}
+                                    helpText={`Optional field. Basic indication of how the publisher collected this data e.g. "Survey data". Anything longer than a line should go in the dataset description.`}
                                 />
                                 <BindString
                                     field="description"
