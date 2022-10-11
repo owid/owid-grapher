@@ -13,6 +13,11 @@
         transition: all 0.2s;
     }
 
+    img {
+        padding: 0;
+        background: none;
+    }
+
     &:hover {
         svg {
             transform: translateX(0.25em);
@@ -21,69 +26,83 @@
 
     a {
         @include cancel-link-styles;
-        @include grid(5);
-        padding: 24px;
+        display: flex;
+        flex-wrap: wrap;
 
         p:last-child {
             margin-bottom: 0;
         }
     }
 
-    // No margins on images
+    .content-wrapper {
+        display: flex;
+    }
+
     figure {
         margin: 0;
         img {
             margin: 0;
             box-shadow: none;
+            max-width: 128px;
         }
     }
 
     &[data-style="is-style-default"] {
+        a {
+            padding: 24px;
+        }
+
+        figure {
+            margin-right: 24px;
+        }
+
         h3 {
             @include h2-bold;
-            grid-column: 1/6;
             margin-top: 0;
-            margin-bottom: 24px;
         }
-        .content-wrapper {
-            grid-column: 1/6;
-            @include grid(5);
-
-            .content {
-                grid-column: 1/6;
-            }
-        }
-
         &.with-image {
-            figure {
-                grid-column: 1/3;
-            }
-            .content {
-                grid-column: 3/6;
+            h3 {
+                margin-bottom: 24px;
             }
         }
     }
 
     &[data-style="is-style-thin"] {
         .content-wrapper {
-            grid-column: 1/6;
-            display: flex;
             flex-direction: column;
             justify-content: center;
+            min-height: 64px;
+            margin-left: 24px;
+            padding: 8px;
+            padding-left: 0;
 
             .title {
                 @include h3-bold;
                 margin: 0;
-                grid-column: 1/5;
+            }
+
+            .content {
+                @include body-3-medium;
             }
         }
 
         &.with-image {
-            .figure {
-                grid-column: 1/2;
+            a {
+                flex-wrap: nowrap;
             }
-            .content-wrapper {
-                grid-column: 2/6;
+            figure {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                outline: 1px solid $blue-10;
+                outline-offset: -1px;
+                background: $white;
+                img {
+                    max-width: 96px;
+                    min-width: 96px;
+                    object-fit: cover;
+                    height: 64px;
+                }
             }
         }
     }
