@@ -23,7 +23,6 @@ import {
 import {
     GdocsContentSource,
     GdocsPatch,
-    OwidArticleContent,
     SuggestedChartRevisionStatus,
 } from "../clientUtils/owidTypes.js"
 import {
@@ -2650,29 +2649,15 @@ apiRouter.get("/gdocs/:id/validate", async (req) => {
 
 apiRouter.patch("/gdocs/:id", async (req) => {
     const { id } = req.params
-    const patches: GdocsPatch[] = req.body
+    const patch: GdocsPatch = req.body
 
     const gdoc = await Gdoc.findOne({ id })
     if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
-    if (!patches) return { gdoc }
+    if (!patch) return { gdoc }
 
-    // todo: there is probably a simpler way to do this
-    for (const { property, payload } of patches) {
-        switch (property) {
-            case "slug":
-                gdoc[property] = payload as string
-                break
-            case "published":
-                gdoc[property] = payload as boolean
-                break
-            case "publishedAt":
-                gdoc[property] = payload as Date | null
-                break
-            case "content":
-                gdoc[property] = payload as OwidArticleContent
-                break
-        }
+    for (const [key, value] of Object.entries(patch)) {
+        set(gdoc, key, value)
     }
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see

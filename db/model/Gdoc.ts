@@ -1,6 +1,7 @@
 import { Entity, PrimaryColumn, Column, BaseEntity } from "typeorm"
 import {
     OwidArticleContent,
+    OwidArticleType,
     OwidArticleTypePublished,
 } from "../../clientUtils/owidTypes.js"
 import {
@@ -12,7 +13,7 @@ import { google, Auth } from "googleapis"
 import { gdocToArchieML } from "../gdocToArchieml.js"
 
 @Entity("posts_gdocs")
-export class Gdoc extends BaseEntity {
+export class Gdoc extends BaseEntity implements OwidArticleType {
     @PrimaryColumn() id!: string
     @Column() slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
