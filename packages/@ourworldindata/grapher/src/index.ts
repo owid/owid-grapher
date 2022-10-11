@@ -94,4 +94,4 @@ export { Tippy } from "./chart/Tippy.js"
 export {
     SlideShowManager,
     SlideShowController,
-} from "./slideshowController/SlideShowController.jsx"
+} from "./slideshowController/SlideShowController.js"

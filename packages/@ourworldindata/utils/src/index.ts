@@ -273,7 +273,7 @@ export {
     getCountryDetectionRedirects,
 } from "./countries.js"
 
-export { getStylesForTargetHeight } from "./react-select.jsx"
+export { getStylesForTargetHeight } from "./react-select.js"
 
 export { GridBounds, FontFamily, Bounds, DEFAULT_BOUNDS } from "./Bounds.js"
 
@@ -388,7 +388,7 @@ export {
     chunkWords,
     chunkSentences,
     chunkParagraphs,
-} from "./search.jsx"
+} from "./search.js"
 
 export { findUrlsInText, camelCaseProperties } from "./string.js"
 

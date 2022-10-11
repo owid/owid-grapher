@@ -179,8 +179,8 @@ import { detailOnDemandRegex } from "../text/parser.js"
 //     BAKED_GRAPHER_URL,
 // } from "../../settings/clientSettings.js"
 
-const ADMIN_BASE_URL = ""
-const BAKED_GRAPHER_URL = ""
+const ADMIN_BASE_URL = "http://localhost:3030"
+const BAKED_GRAPHER_URL = "http://localhost:3030"
 
 declare const window: any
 
