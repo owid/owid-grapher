@@ -2355,6 +2355,7 @@ export class Grapher
         this.sortOrder = grapher.sortOrder
         this.sortColumnSlug = grapher.sortColumnSlug
         this.hideRelativeToggle = grapher.hideRelativeToggle
+        this.dimensions = grapher.dimensions
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
         this.hideTitleAnnotation = grapher.hideTitleAnnotation
