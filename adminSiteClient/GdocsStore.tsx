@@ -1,7 +1,7 @@
 import React, { useContext } from "react"
 import { observable, runInAction } from "mobx"
 import { createContext, useState } from "react"
-import { GdocsPatch, OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
 
@@ -24,31 +24,7 @@ export class GdocsStore {
     }
 
     async update(gdoc: OwidArticleType) {
-        // todo: simplify by iterating over all properties?
-        const gdocsPatches: GdocsPatch[] = [
-            {
-                property: "slug",
-                payload: gdoc.slug,
-            },
-            {
-                property: "content",
-                payload: gdoc.content,
-            },
-            {
-                property: "published",
-                payload: gdoc.published,
-            },
-            {
-                property: "publishedAt",
-                payload: gdoc.publishedAt,
-            },
-        ]
-
-        await this.admin.requestJSON(
-            `/api/gdocs/${gdoc.id}`,
-            gdocsPatches,
-            "PATCH"
-        )
+        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdoc, "PATCH")
 
         runInAction(() => {
             const gdocToUpdateIdx = this.gdocs.findIndex(

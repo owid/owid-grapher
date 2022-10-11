@@ -444,10 +444,7 @@ export interface OwidArticleContentPublished extends OwidArticleContent {
     excerpt: string
 }
 
-export interface GdocsPatch {
-    property: keyof OwidArticleType
-    payload?: string | boolean | OwidArticleContent | Date | null
-}
+export type GdocsPatch = Partial<OwidArticleType>
 
 export enum GdocsContentSource {
     Internal = "internal",
