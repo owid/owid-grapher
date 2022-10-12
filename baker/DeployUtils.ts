@@ -40,7 +40,7 @@ const bakeAndDeploy = async (
     try {
         if (lightningQueue?.length) {
             for (const change of lightningQueue) {
-                const gdoc = (await Gdoc.findOneOrFail({
+                const gdoc = (await Gdoc.findOneByOrFail({
                     published: true,
                     slug: change.slug,
                 })) as OwidArticleTypePublished
