@@ -60,7 +60,7 @@ interface Dimensions {
     }[]
 }
 
-type VariableQueryRow = Readonly<
+export type VariableQueryRow = Readonly<
     UnparsedVariableRow & {
         display: string
         datasetName: string
@@ -103,7 +103,7 @@ export function parseVariableRows(
     return plainRows
 }
 
-function normalizeEntityName(entityName: string): string {
+export function normalizeEntityName(entityName: string): string {
     return entityName.toLowerCase().trim()
 }
 
@@ -433,7 +433,7 @@ const readValuesFromMysql = async (
     )
 }
 
-const constructParquetQuery = (row: VariableQueryRow): string => {
+export const constructParquetQuery = (row: VariableQueryRow): string => {
     let shortName
     let where
 
@@ -478,7 +478,9 @@ const constructParquetQuery = (row: VariableQueryRow): string => {
     }
 }
 
-const fetchEntities = async (entityNames: string[]): Promise<EntityRow[]> => {
+export const fetchEntities = async (
+    entityNames: string[]
+): Promise<EntityRow[]> => {
     return db.queryMysql(
         `
             SELECT
@@ -491,19 +493,22 @@ const fetchEntities = async (entityNames: string[]): Promise<EntityRow[]> => {
     )
 }
 
-const readValuesFromParquet = async (
+export const executeSQL = async (sql: string): Promise<any[]> => {
+    const con = ddb.connect()
+    try {
+        return util.promisify(con.all).bind(con)(sql)
+    } catch (error: any) {
+        throw new Error(`${error.message}\n${sql}`)
+    }
+}
+
+export const readValuesFromParquet = async (
     variableId: OwidVariableId,
     row: VariableQueryRow
 ): Promise<DataRow[]> => {
     const sql = constructParquetQuery(row)
 
-    const con = ddb.connect()
-    let results
-    try {
-        results = await util.promisify(con.all).bind(con)(sql)
-    } catch (error: any) {
-        throw new Error(`${error.message}\n${sql}`)
-    }
+    const results = await executeSQL(sql)
 
     if (results.length == 0) {
         console.warn(`No values found for variable ${variableId}`)
