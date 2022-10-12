@@ -732,7 +732,7 @@ const mapGdocsToWordpressPosts = (
     return gdocs.map((gdoc) => ({
         title: gdoc.content.title,
         slug: gdoc.slug,
-        date: gdoc.createdAt,
+        date: gdoc.publishedAt,
         authors: Array.isArray(gdoc.content.byline)
             ? gdoc.content.byline
             : [gdoc.content.byline],

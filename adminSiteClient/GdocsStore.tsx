@@ -24,7 +24,7 @@ export class GdocsStore {
     }
 
     async update(gdoc: OwidArticleType) {
-        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdoc, "PATCH")
+        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
 
         runInAction(() => {
             const gdocToUpdateIdx = this.gdocs.findIndex(
@@ -36,7 +36,7 @@ export class GdocsStore {
         })
     }
 
-    async publish(gdoc: OwidArticleType, isLightningDeploy: boolean) {
+    async publish(gdoc: OwidArticleType) {
         const publishedGdoc = {
             ...gdoc,
             published: true,
@@ -44,34 +44,7 @@ export class GdocsStore {
             publishedAt: gdoc.publishedAt ?? new Date(),
         }
 
-        // Updating the article in the database before the deploy is even
-        // registered is rather optimistic since:
-        // 1. The deploy might fail to be registered when writing in the queue
-        //    (unlikely)
-        // 2. The deploy might fail
-
-        // In case of a failure, the UI would then permanently show the
-        // article as published, even though it is not currently. Alternatively,
-        // updating the store after the API request might technically run into a
-        // race condition, by which the deploy queue picks up the deploy before
-        // the store is updated.
-
-        // Given the low likelihood of (1) happening, and the fact that a later
-        // successful deploy would eventually clear up the state misalignment
-        // (in the same way that the intended deploy would ), that risk is
-        // favoured over the possibility of a race condition, which might bring
-        // more confusion.
-
-        // Ideally, an article would have additional states beyond draft and
-        // published (e.g. "queued for deploy"). These additional states would
-        // mirror the deploy queue states, and would be be reflected in the UI.
         await this.update(publishedGdoc)
-
-        if (isLightningDeploy) {
-            await this.admin.requestJSON(`/api/deploy/${gdoc.slug}`, {}, "PUT")
-        } else {
-            await this.admin.requestJSON(`/api/deploy`, {}, "PUT")
-        }
 
         return publishedGdoc
     }
@@ -82,10 +55,7 @@ export class GdocsStore {
             published: false,
         }
 
-        // see comment in publish()
         await this.update(unpublishedGdoc)
-
-        await this.admin.requestJSON(`/api/deploy`, {}, "PUT")
 
         return unpublishedGdoc
     }
