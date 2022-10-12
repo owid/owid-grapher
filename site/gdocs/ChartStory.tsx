@@ -12,7 +12,7 @@ export default function ChartStory({ slides }: any) {
     const currentSlide = slides[slide]
     const maxSlide = slides.length - 1
 
-    const refChartContainer = useRef<HTMLDivElement>(null)
+    const refChartContainer = useRef<HTMLDivElement>(currentSlide);
     useEmbedChart(slide, refChartContainer)
 
     return (
@@ -33,8 +33,7 @@ export default function ChartStory({ slides }: any) {
             </div>
             <div className={"chart-story--chart"}>
                 <figure
-                    // Use unique `key` to force React to re-render tree
-                    key={currentSlide.chart}
+                    ref={refChartContainer}
                     data-grapher-src={currentSlide.chart}
                     style={{ width: "100%", height: 550, border: "0px none" }}
                 />
