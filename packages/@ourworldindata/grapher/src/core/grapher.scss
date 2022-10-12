@@ -1,17 +1,55 @@
-@import "site/css/variables.scss";
-@import "site/css/colors.scss";
-@import "site/css/mixins.scss";
+// @import "site/css/variables.scss";
+// @import "site/css/colors.scss";
+// @import "site/css/mixins.scss";
+
+// Variables
 
 $sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
 $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 
 $gray-10: #fafbfd;
+$controls-color: #0073e6;
+$text-color: #1d3d63;
+$gray-10: #f7f7f7;
+$blue-10: #ebeef2;
+$blue-20: #dbe5f0;
+$blue-40: #98a9bd;
+$blue-50: #6e87a2;
+$blue-90: #1d3d63;
+$blue-100: #002147;
+$light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.08) 0px 2px 2px;
+$oxford-blue: #002147;
+$white: #fff;
 
 // These should be between 0–100 in order to avoid conflicting with
 // site dropdowns, search overlays, etc.
 $zindex-chart: 1;
 $zindex-tab: 1;
+$zindex-global-entity-select: 11;
 $zindex-Tooltip: 20;
+
+@import "../controls/entityPicker/EntityPicker.scss";
+@import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
+@import "../controls/CommandPalette.scss";
+@import "../controls/ScaleSelector.scss";
+@import "../controls/Controls.scss";
+@import "../timeline/TimelineComponent.scss";
+@import "../controls/ShareMenu.scss";
+@import "../noDataModal/NoDataModal.scss";
+@import "../controls/CollapsibleList/CollapsibleList.scss";
+@import "../controls/ControlsRow.scss";
+@import "../captionedChart/CaptionedChart.scss";
+@import "../controls/EntitySelectorModal.scss";
+@import "../controls/AddEntityButton.scss";
+@import "../downloadTab/DownloadTab.scss";
+@import "../dataTable/DataTable.scss";
+@import "../sourcesTab/SourcesTab.scss";
+@import "../mapCharts/MapTooltip.scss";
+@import "../sparkBars/SparkBars.scss";
+@import "../loadingIndicator/LoadingIndicator.scss";
+@import "../text/MarkdownTextWrap.scss";
+@import "../detailsOnDemand/detailsOnDemand.scss";
 
 .GrapherComponent,
 .GrapherComponent p,
@@ -125,25 +163,3 @@ $zindex-Tooltip: 20;
 .Tooltip {
     z-index: $zindex-Tooltip;
 }
-
-@import "grapher/controls/entityPicker/EntityPicker.scss";
-@import "grapher/controls/globalEntitySelector/GlobalEntitySelector.scss";
-@import "grapher/controls/CommandPalette.scss";
-@import "grapher/controls/ScaleSelector.scss";
-@import "grapher/controls/Controls.scss";
-@import "grapher/timeline/TimelineComponent.scss";
-@import "grapher/controls/ShareMenu.scss";
-@import "grapher/noDataModal/NoDataModal.scss";
-@import "grapher/controls/CollapsibleList/CollapsibleList.scss";
-@import "grapher/controls/ControlsRow.scss";
-@import "grapher/captionedChart/CaptionedChart.scss";
-@import "grapher/controls/EntitySelectorModal.scss";
-@import "grapher/controls/AddEntityButton.scss";
-@import "grapher/downloadTab/DownloadTab.scss";
-@import "grapher/dataTable/DataTable.scss";
-@import "grapher/sourcesTab/SourcesTab.scss";
-@import "grapher/mapCharts/MapTooltip.scss";
-@import "grapher/sparkBars/SparkBars.scss";
-@import "grapher/loadingIndicator/LoadingIndicator.scss";
-@import "grapher/text/MarkdownTextWrap.scss";
-@import "grapher/detailsOnDemand/detailsOnDemand.scss";

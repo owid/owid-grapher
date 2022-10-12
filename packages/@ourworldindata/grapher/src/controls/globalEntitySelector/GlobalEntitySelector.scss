@@ -3,9 +3,9 @@
     top: 5px;
     z-index: $zindex-global-entity-select;
 
-    @include xxlg-down {
-        margin-left: 128px; // space for ToC "Contents" button
-    }
+    // @include xxlg-down {
+    //     margin-left: 128px; // space for ToC "Contents" button
+    // }
 }
 
 .global-entity-control {

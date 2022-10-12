@@ -13,8 +13,6 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@ourworldindata/utils": "*",
-    "@ourworldindata/core-table": "*",
     "@bugsnag/core": "^7.17.0",
     "@bugsnag/js": "^7.17.0",
     "@bugsnag/plugin-react": "^7.17.0",
@@ -24,6 +22,8 @@
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@handsontable/react": "^12.1.2",
+    "@ourworldindata/core-table": "*",
+    "@ourworldindata/utils": "*",
     "@prettier/plugin-php": "^0.14.3",
     "@tippyjs/react": "^4.2.6",
     "@types/amplitude-js": "^7.0.1",
@@ -179,6 +179,7 @@
     "svgo": "^2.8.0",
     "timezone-mock": "^1.0.18",
     "topojson-client": "^3.1.0",
+    "ts-loader": "^9.4.1",
     "ts-pattern": "^3.3.3",
     "typeorm": "^0.3.10",
     "typescript": "~4.8.2",
@@ -192,6 +193,6 @@
     "webpack-dev-server": "^4.11.0",
     "webpack-manifest-plugin": "^5.0.0",
     "workerpool": "^6.2.0"
-},
+  },
   "license": "ISC"
 }
