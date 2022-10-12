@@ -23,7 +23,7 @@ import {
     useUpdatePreviewContent,
     useGdocsChanged,
     useAutoSaveDraft,
-    useLightningDeploy,
+    useLightningUpdate,
 } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
@@ -43,7 +43,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
 
     const syncingError = useUpdatePreviewContent(id, !gdoc, setGdoc, admin)
     const hasChanges = useGdocsChanged(originalGdoc, gdoc)
-    const isLightningDeploy = useLightningDeploy(originalGdoc, gdoc)
+    const isLightningUpdate = useLightningUpdate(originalGdoc, gdoc, hasChanges)
     useAutoSaveDraft(gdoc, setOriginalGdoc, hasChanges)
 
     useEffect(() => {
@@ -80,7 +80,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
 
     const doPublish = async () => {
         if (!gdoc) return
-        const publishedGdoc = await store.publish(gdoc, isLightningDeploy)
+        const publishedGdoc = await store.publish(gdoc)
 
         setGdoc(publishedGdoc)
         setOriginalGdoc(publishedGdoc)
@@ -175,7 +175,7 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
                                 hasChanges={hasChanges}
-                                isLightningDeploy={isLightningDeploy}
+                                isLightningUpdate={isLightningUpdate}
                                 onPublish={confirmPublish}
                             />
                             <IconBadge

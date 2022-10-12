@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react"
 import {
     GdocsContentSource,
-    OwidArticleContent,
     OwidArticleType,
     OwidArticleTypeJSON,
 } from "../clientUtils/owidTypes.js"
-import { getArticleFromJSON, isEqual } from "../clientUtils/Util.js"
+import { getArticleFromJSON } from "../clientUtils/Util.js"
 import { useDebounceCallback, useInterval } from "../site/hooks.js"
 import { Admin } from "./Admin.js"
+import { checkHasChanges, checkLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
 export const useGdocsChanged = (
@@ -17,47 +17,24 @@ export const useGdocsChanged = (
     const [hasChanges, setHasChanges] = useState(false)
 
     useEffect(() => {
-        setHasChanges(!isEqual(prevGdoc, nextGdoc))
+        if (!prevGdoc || !nextGdoc) return
+        setHasChanges(checkHasChanges(prevGdoc, nextGdoc))
     }, [prevGdoc, nextGdoc])
 
     return hasChanges
 }
 
-export const useLightningDeploy = (
+export const useLightningUpdate = (
     prevGdoc: OwidArticleType | undefined,
-    nextGdoc: OwidArticleType | undefined
+    nextGdoc: OwidArticleType | undefined,
+    hasChanges: boolean
 ) => {
-    const [isLightningDeploy, setLightningDeploy] = useState(false)
+    const [isLightningDeploy, setLightningUpdate] = useState(false)
 
     useEffect(() => {
         if (!prevGdoc || !nextGdoc) return
-
-        const hasChanged = (prop: keyof OwidArticleType) => {
-            return prevGdoc[prop] !== nextGdoc[prop]
-        }
-
-        const hasChangedDate = (
-            prop: keyof Pick<OwidArticleType, "publishedAt">
-        ) => {
-            return prevGdoc[prop]?.getTime() !== nextGdoc[prop]?.getTime()
-        }
-
-        const hasChangedContent = (prop: keyof OwidArticleContent) => {
-            return prevGdoc.content[prop] !== nextGdoc.content[prop]
-        }
-
-        // if any of the props that require a full deploy have changed, or the
-        // article is a draft, then we can't do an instant deploy
-        const requireFullDeploy =
-            !prevGdoc.published ||
-            hasChanged("slug") ||
-            hasChangedDate("publishedAt") ||
-            hasChangedContent("title") ||
-            hasChangedContent("byline") ||
-            hasChangedContent("excerpt")
-
-        setLightningDeploy(!requireFullDeploy)
-    }, [nextGdoc, prevGdoc])
+        setLightningUpdate(checkLightningUpdate(prevGdoc, nextGdoc, hasChanges))
+    }, [prevGdoc, nextGdoc, hasChanges])
 
     return isLightningDeploy
 }

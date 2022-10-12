@@ -9,14 +9,14 @@ export const GdocsSaveButtons = ({
     hasErrors,
     hasWarnings,
     hasChanges,
-    isLightningDeploy,
+    isLightningUpdate,
     onPublish,
 }: {
     published: boolean
     hasErrors: boolean
     hasWarnings: boolean
     hasChanges: boolean
-    isLightningDeploy: boolean
+    isLightningUpdate: boolean
     onPublish: VoidFunction
 }) => {
     const badgeProps =
@@ -36,10 +36,14 @@ export const GdocsSaveButtons = ({
         <Space>
             <Badge {...badgeProps}>
                 {/* #gdocsvalidationclient: prevent saving published articles with errors */}
-                <Button disabled={hasErrors} type="primary" onClick={onPublish}>
+                <Button
+                    disabled={hasErrors || (published && !hasChanges)}
+                    type="primary"
+                    onClick={onPublish}
+                >
                     {!published ? (
                         "Publish"
-                    ) : isLightningDeploy ? (
+                    ) : isLightningUpdate ? (
                         <>
                             Republish <FontAwesomeIcon icon={faBolt} />
                         </>

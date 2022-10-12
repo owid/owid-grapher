@@ -382,15 +382,6 @@ export interface GridParameters {
     columns: number
 }
 
-export interface Gdoc {
-    id: number
-    slug: string
-}
-export interface GdocParsed {
-    id: number
-    title: string
-}
-
 export interface OwidArticleBlock {
     type: string
     value: string | any
@@ -419,6 +410,8 @@ export interface OwidArticleTypeJSON
  * constraints are surfaced at runtime on the draft article
  */
 export interface OwidArticleTypePublished extends OwidArticleType {
+    publishedAt: Date
+    updatedAt: Date
     content: OwidArticleContentPublished
 }
 

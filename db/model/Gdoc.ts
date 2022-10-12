@@ -25,6 +25,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     constructor(id: string) {
         super()
         this.id = id
+        this.content = {}
     }
     static cachedGoogleAuth?: Auth.GoogleAuth
 
