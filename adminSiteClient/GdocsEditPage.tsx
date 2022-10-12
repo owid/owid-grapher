@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
-import { OwidArticle } from "../site/gdocs/owid-article.js"
+import { OwidArticle } from "../site/gdocs/OwidArticle.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     OwidArticleType,
