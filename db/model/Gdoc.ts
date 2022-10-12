@@ -22,9 +22,11 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
 
-    constructor(id: string) {
+    constructor(id?: string) {
         super()
-        this.id = id
+        if (id) {
+            this.id = id
+        }
         this.content = {}
     }
     static cachedGoogleAuth?: Auth.GoogleAuth
@@ -71,7 +73,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         // but also makes it less of a source of truth when considered in isolation.
         return (
             Gdoc.cachedPublishedGdocs ||
-            (Gdoc.find({ published: true }) as Promise<
+            (Gdoc.findBy({ published: true }) as Promise<
                 OwidArticleTypePublished[]
             >)
         )

@@ -144,7 +144,7 @@ export const renderCovidPage = () =>
 export const renderGdocsPageBySlug = async (
     slug: string
 ): Promise<string | undefined> => {
-    const gdoc = await Gdoc.findOne({ slug })
+    const gdoc = await Gdoc.findOneBy({ slug })
 
     if (!gdoc) {
         throw new Error("Failed to render an unknown GDocs post: ${slug}.")

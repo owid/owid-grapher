@@ -82,6 +82,7 @@ import {
     checkHasChanges,
     checkLightningUpdate,
 } from "../adminSiteClient/gdocsDeploy.js"
+import { dataSource } from "../db/dataSource.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2622,7 +2623,7 @@ apiRouter.get("/gdocs/:id", async (req) => {
         | GdocsContentSource
         | undefined
 
-    const gdoc = await Gdoc.findOne(id)
+    const gdoc = await Gdoc.findOneBy({ id })
 
     if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
@@ -2635,7 +2636,7 @@ apiRouter.get("/gdocs/:id", async (req) => {
 apiRouter.get("/gdocs/:id/validate", async (req) => {
     const { id } = req.params
 
-    const gdoc = await Gdoc.findOne({ id })
+    const gdoc = await Gdoc.findOneBy({ id })
 
     if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
@@ -2655,11 +2656,11 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
         const newGdoc = new Gdoc(id)
         // this will fail if the gdoc already exists, as opposed to a call to
         // newGdoc.save().
-        await getRepository(Gdoc).insert(newGdoc)
+        await dataSource.getRepository(Gdoc).insert(newGdoc)
         return newGdoc
     }
 
-    const prevGdoc = await Gdoc.findOne({ id })
+    const prevGdoc = await Gdoc.findOneBy({ id })
     if (!prevGdoc) throw new JsonError(`No gdoc with id ${id} found`)
 
     const nextGdoc = getArticleFromJSON(nextGdocJSON)
@@ -2681,7 +2682,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     // enqueue), so I opted for the version that matches the closest the current
     // baking model, which is "bake what is persisted in the DB". Ultimately, a
     // full sucessful deploy would resolve the state discrepancy either way.
-    await getRepository(Gdoc).save(nextGdoc)
+    await dataSource.getRepository(Gdoc).save(nextGdoc)
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     if (checkLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
