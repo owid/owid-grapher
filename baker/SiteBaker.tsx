@@ -190,9 +190,7 @@ export class SiteBaker {
             postSlugs.push(post.slug)
         }
 
-        const gdocPosts = await queryMysql(
-            `SELECT * FROM posts_gdocs WHERE published = 1`
-        )
+        const gdocPosts = await Gdoc.getPublishedGdocs()
 
         for (const post of gdocPosts) {
             postSlugs.push(post.slug)
