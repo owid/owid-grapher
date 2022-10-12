@@ -8,7 +8,6 @@ import {
     OwidArticleTypePublished,
 } from "../clientUtils/owidTypes.js"
 import { Gdoc } from "../db/model/Gdoc.js"
-import * as db from "../db/db.js"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -32,41 +31,25 @@ const defaultCommitMessage = async (): Promise<string> => {
  */
 const bakeAndDeploy = async (
     message?: string,
-    email?: string,
-    name?: string
+    lightningQueue?: DeployChange[]
 ) => {
     message = message ?? (await defaultCommitMessage())
 
     const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
     try {
-        await baker.bakeAll()
-        await baker.deployToNetlifyAndPushToGitPush(message, email, name)
-    } catch (err) {
-        logErrorAndMaybeSendToSlack(err)
-        throw err
-    }
-}
-
-const lightningBakeAndDeploy = async (
-    lightningQueue: DeployChange[],
-    message?: string,
-    email?: string,
-    name?: string
-) => {
-    message = message ?? (await defaultCommitMessage())
-
-    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
-
-    try {
-        for (const change of lightningQueue) {
-            const gdoc = (await Gdoc.findOneOrFail({
-                published: true,
-                slug: change.slug,
-            })) as OwidArticleTypePublished
-            await baker.bakeGDocPost(gdoc)
+        if (lightningQueue?.length) {
+            for (const change of lightningQueue) {
+                const gdoc = (await Gdoc.findOneOrFail({
+                    published: true,
+                    slug: change.slug,
+                })) as OwidArticleTypePublished
+                await baker.bakeGDocPost(gdoc)
+            }
+        } else {
+            await baker.bakeAll()
         }
-        await baker.deployToNetlifyAndPushToGitPush(message, email, name)
+        await baker.deployToNetlifyAndPushToGitPush(message)
     } catch (err) {
         logErrorAndMaybeSendToSlack(err)
         throw err
@@ -107,10 +90,7 @@ export const tryDeploy = async (
     }
 }
 
-const generateCommitMsg = (
-    queueItems: DeployChange[],
-    isLightningDeploy: boolean = false
-) => {
+const generateCommitMsg = (queueItems: DeployChange[]) => {
     const date: string = new Date().toISOString()
 
     const message: string = queueItems
@@ -124,9 +104,8 @@ const generateCommitMsg = (
             return `Co-authored-by: ${item.authorName} <${item.authorEmail}>`
         })
         .join("\n")
-    return `${
-        isLightningDeploy ? "Lightning " : ""
-    }Deploy ${date}\n${message}\n\n\n${coauthors}`
+
+    return `Deploy ${date}\n${message}\n\n\n${coauthors}`
 }
 
 const MAX_SUCCESSIVE_FAILURES = 2
@@ -159,24 +138,18 @@ export const deployIfQueueIsNotEmpty = async () => {
         await deployQueueServer.writePendingFile(deployContent)
 
         const parsedQueue = deployQueueServer.parseQueueContent(deployContent)
-        // todo: process lightning build ()
 
-        const isLightningChange = (item: DeployChange) => item.slug
-        // if every DeployChange is a lightning change, then we can do a lightning deploy
-        const isLightningDeploy = parsedQueue.every(isLightningChange)
-
-        const message = generateCommitMsg(parsedQueue, isLightningDeploy)
+        const message = generateCommitMsg(parsedQueue)
         console.log(`Deploying site...\n---\n${message}\n---`)
         try {
-            if (isLightningDeploy) {
-                await lightningBakeAndDeploy(
-                    parsedQueue.filter(isLightningChange),
-                    message
-                )
-            } else {
-                // else do a standard deploy
-                await bakeAndDeploy(message)
-            }
+            await bakeAndDeploy(
+                message,
+                // If every DeployChange is a lightning change, then we can do a
+                // lightning deploy. In the future, we might want to separate
+                // lightning updates from regular deploys so we could prioritize
+                // them, no matter the content of the queue.
+                parsedQueue.every(isLightningChange) ? parsedQueue : undefined
+            )
             await deployQueueServer.deletePendingFile()
         } catch (err) {
             failures++
@@ -186,3 +159,5 @@ export const deployIfQueueIsNotEmpty = async () => {
     }
     deploying = false
 }
+
+const isLightningChange = (item: DeployChange) => item.slug
