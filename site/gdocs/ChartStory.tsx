@@ -12,7 +12,7 @@ export default function ChartStory({ slides }: any) {
     const currentSlide = slides[slide]
     const maxSlide = slides.length - 1
 
-    const refChartContainer = useRef<HTMLDivElement>(currentSlide);
+    const refChartContainer = useRef<HTMLDivElement>(currentSlide)
     useEmbedChart(slide, refChartContainer)
 
     return (
