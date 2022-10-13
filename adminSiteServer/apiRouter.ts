@@ -2625,7 +2625,7 @@ apiRouter.get("/gdocs/:id", async (req) => {
 
     const gdoc = await Gdoc.findOneBy({ id })
 
-    if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     if (contentSource === GdocsContentSource.Gdocs) {
         await gdoc.updateWithDraft()
@@ -2638,7 +2638,7 @@ apiRouter.get("/gdocs/:id/validate", async (req) => {
 
     const gdoc = await Gdoc.findOneBy({ id })
 
-    if (!gdoc) throw new JsonError(`No gdoc with id ${id} found`)
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     return getErrors(gdoc)
 })
@@ -2661,7 +2661,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     }
 
     const prevGdoc = await Gdoc.findOneBy({ id })
-    if (!prevGdoc) throw new JsonError(`No gdoc with id ${id} found`)
+    if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     const nextGdoc = getArticleFromJSON(nextGdocJSON)
 
@@ -2692,7 +2692,13 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             nextGdoc.slug
         )
     } else if (checkFullDeployFallback(prevGdoc, nextGdoc, hasChanges)) {
-        await triggerStaticBuild(res.locals.user, `Update ${nextGdoc.slug}`)
+        const action =
+            prevGdoc.published && nextGdoc.published
+                ? "Updating"
+                : !prevGdoc.published && nextGdoc.published
+                ? "Publishing"
+                : "Unpublishing"
+        await triggerStaticBuild(res.locals.user, `${action} ${nextGdoc.slug}`)
     }
 
     return nextGdoc
