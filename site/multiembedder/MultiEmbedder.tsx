@@ -96,7 +96,7 @@ class MultiEmbedder {
         ).concat(figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR))
 
         figures.forEach((figure) => {
-            this.figuresObserver?.observe(figure);
+            this.figuresObserver?.observe(figure)
         })
     }
 
