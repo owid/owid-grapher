@@ -8,8 +8,8 @@ import { useEmbedChart } from "../hooks.js"
 export default function ChartStory({ slides }: any) {
     const showDetails = true
 
-    const [ currentIndex, setCurrentIndex ] = useState(0);
-    const [ currentSlide, setCurrentSlide ] = useState(slides[0]);
+    const [currentIndex, setCurrentIndex] = useState(0)
+    const [currentSlide, setCurrentSlide] = useState(slides[0])
 
     const maxSlide = slides.length - 1
 
@@ -47,7 +47,9 @@ export default function ChartStory({ slides }: any) {
             <div
                 className={"chart-story--nav-next"}
                 onClick={() => {
-                    setCurrentSlide(slides[Math.min(maxSlide, currentIndex + 1)])
+                    setCurrentSlide(
+                        slides[Math.min(maxSlide, currentIndex + 1)]
+                    )
                     setCurrentIndex(Math.min(maxSlide, currentIndex + 1))
                 }}
             >

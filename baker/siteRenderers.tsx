@@ -154,7 +154,7 @@ export const renderGDocsPageBySlug = async (slug: string) => {
     )
 
     if (!post) {
-        throw new Error('Failed to render an unknown GDocs post: ${slug}.');
+        throw new Error("Failed to render an unknown GDocs post: ${slug}.")
     }
 
     return renderGDocsPost(post)
