@@ -3,10 +3,14 @@
   "version": "0.0.0",
   "description": "OWID's data exploration and visualization library.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/index.js",
+    "dist/index.css"
+  ],
   "directories": {
     "lib": "src"
   },
-  "types": "dist/index.js",
   "scripts": {
     "build": "tsup src/index.ts"
   },

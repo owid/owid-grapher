@@ -1,9 +1,9 @@
 import "site/owid.scss"
-// import "@ourworldindata/grapher/grapher.css"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
+import "@ourworldindata/grapher/dist/index.css"
 
 import SmoothScroll from "smooth-scroll"
 import { runChartsIndexPage } from "./runChartsIndexPage.js"
