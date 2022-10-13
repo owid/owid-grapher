@@ -39,9 +39,6 @@
         "testJest": "jest"
     },
     "dependencies": {
-        "@ourworldindata/grapher": "*",
-        "@ourworldindata/core-table": "*",
-        "@ourworldindata/utils": "*",
         "@bugsnag/core": "^7.17.0",
         "@bugsnag/js": "^7.17.0",
         "@bugsnag/plugin-react": "^7.17.0",
@@ -51,6 +48,9 @@
         "@fortawesome/free-solid-svg-icons": "^6.2.0",
         "@fortawesome/react-fontawesome": "^0.2.0",
         "@handsontable/react": "^12.1.2",
+        "@ourworldindata/core-table": "*",
+        "@ourworldindata/grapher": "*",
+        "@ourworldindata/utils": "*",
         "@prettier/plugin-php": "^0.14.3",
         "@tippyjs/react": "^4.2.6",
         "@types/amplitude-js": "^7.0.1",
@@ -147,7 +147,7 @@
         "json8-pointer": "^1.0.6",
         "jsonwebtoken": "^8.5.1",
         "knex": "^2.3.0",
-        "lerna": "^5.5.4",
+        "lerna": "^6.0.0",
         "linkifyjs": "^2.1.9",
         "lodash": "^4.17.20",
         "mathjax-full": "^3.1.0",
