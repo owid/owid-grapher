@@ -1,20 +1,20 @@
-#! /usr/bin/env jest
+#! /usr/bin/env yarn jest
 
 import {
     normalizeEntityName,
     constructParquetQuery,
     readValuesFromParquet,
-} from "./Variable.js"
-import * as Variable from "./Variable.js"
+} from "./model/Variable.js"
+import * as Variable from "./model/Variable.js"
 
 describe("normalizeEntityName", () => {
-    test("works", () => {
+    it("works", () => {
         expect(normalizeEntityName("United kingdom ")).toBe("united kingdom")
     })
 })
 
 describe("constructParquetQuery", () => {
-    test("works without dimensions", () => {
+    it("works without dimensions", () => {
         const row: any = {
             shortName: "test_var",
             catalogPath: "dataset",
@@ -31,7 +31,7 @@ describe("constructParquetQuery", () => {
         expect(constructParquetQuery(row)).toBe(expectedSql)
     })
 
-    test("works with dimensions", () => {
+    it("works with dimensions", () => {
         const row: any = {
             shortName: "test_var__age_0_4__sex_male",
             catalogPath: "dataset",
@@ -61,7 +61,7 @@ describe("constructParquetQuery", () => {
         expect(constructParquetQuery(row)).toBe(expectedSql)
     })
 
-    test("works for backported variables", () => {
+    it("works for backported variables", () => {
         const row: any = {
             shortName: "test_var",
             catalogPath: "backport/dataset",
@@ -82,7 +82,7 @@ describe("constructParquetQuery", () => {
 })
 
 describe("readValuesFromParquet", () => {
-    test("works", async () => {
+    it("works", async () => {
         const row: any = {
             shortName: "gdp",
             catalogPath: "grapher/ggdc/2020-10-01/ggdc_maddison/maddison_gdp",
