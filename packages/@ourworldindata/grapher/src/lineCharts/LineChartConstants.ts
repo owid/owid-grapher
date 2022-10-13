@@ -1,7 +1,7 @@
-import { DualAxis } from "../axis/Axis.js"
-import { ChartManager } from "../chart/ChartManager.js"
-import { SeriesName } from "../core/GrapherConstants.js"
-import { ChartSeries } from "../chart/ChartInterface.js"
+import { DualAxis } from "../axis/Axis"
+import { ChartManager } from "../chart/ChartManager"
+import { SeriesName } from "../core/GrapherConstants"
+import { ChartSeries } from "../chart/ChartInterface"
 import { CoreValueType } from "@ourworldindata/core-table"
 import { Color } from "@ourworldindata/utils"
 

@@ -2,11 +2,11 @@
 
 import { Bounds } from "@ourworldindata/utils"
 import { ColumnTypeNames, OwidTable } from "@ourworldindata/core-table"
-import { DefaultColorScheme } from "../color/CustomSchemes.js"
-import { Grapher } from "../core/Grapher.js"
-import { ChartTypeName } from "../core/GrapherConstants.js"
-import { MarimekkoChart } from "./MarimekkoChart.js"
-import { BarShape, PlacedItem } from "./MarimekkoChartConstants.js"
+import { DefaultColorScheme } from "../color/CustomSchemes"
+import { Grapher } from "../core/Grapher"
+import { ChartTypeName } from "../core/GrapherConstants"
+import { MarimekkoChart } from "./MarimekkoChart"
+import { BarShape, PlacedItem } from "./MarimekkoChartConstants"
 it("can filter years correctly", () => {
     const csv = `year,entityName,population,percentBelow2USD
 2000,medium,4000,5

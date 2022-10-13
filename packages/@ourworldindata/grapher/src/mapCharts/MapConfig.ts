@@ -1,6 +1,6 @@
 import { observable } from "mobx"
-import { MapProjectionName } from "./MapProjections.js"
-import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
+import { MapProjectionName } from "./MapProjections"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ColumnSlug,
     OwidVariableId,

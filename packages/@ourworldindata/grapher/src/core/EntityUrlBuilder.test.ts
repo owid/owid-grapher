@@ -5,7 +5,7 @@ import {
     ENTITY_V2_DELIMITER,
     getSelectedEntityNamesParam,
     setSelectedEntityNamesParam,
-} from "./EntityUrlBuilder.js"
+} from "./EntityUrlBuilder"
 
 const encodeTests = [
     {

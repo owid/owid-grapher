@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart.js"
+import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
@@ -20,16 +20,16 @@ import {
     SCATTER_POINT_DEFAULT_RADIUS,
     SCATTER_POINT_MAX_RADIUS,
     SCATTER_POINT_MIN_RADIUS,
-} from "./ScatterPlotChartConstants.js"
+} from "./ScatterPlotChartConstants"
 import {
     EntitySelectionMode,
     ScaleType,
     ScatterPointLabelStrategy,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import { OwidTable } from "@ourworldindata/core-table"
-import { ContinentColors } from "../color/CustomSchemes.js"
+import { ContinentColors } from "../color/CustomSchemes"
 import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
-import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels.js"
+import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {

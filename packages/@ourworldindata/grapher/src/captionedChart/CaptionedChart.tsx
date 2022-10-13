@@ -7,12 +7,12 @@ import {
     exposeInstanceOnWindow,
     isEmpty,
 } from "@ourworldindata/utils"
-import { Header } from "../header/Header.js"
-import { Footer } from "../footer/Footer.js"
+import { Header } from "../header/Header"
+import { Footer } from "../footer/Footer"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../chart/ChartTypeMap.js"
+} from "../chart/ChartTypeMap"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
@@ -20,14 +20,14 @@ import {
     GrapherTabOption,
     Patterns,
     STATIC_EXPORT_DETAIL_SPACING,
-} from "../core/GrapherConstants.js"
-import { MapChartManager } from "../mapCharts/MapChartConstants.js"
-import { ChartManager } from "../chart/ChartManager.js"
-import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
-import { FacetChart } from "../facetChart/FacetChart.js"
+} from "../core/GrapherConstants"
+import { MapChartManager } from "../mapCharts/MapChartConstants"
+import { ChartManager } from "../chart/ChartManager"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
+import { FacetChart } from "../facetChart/FacetChart"
 import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
+import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList"
 import {
     ZoomToggle,
     AbsRelToggle,
@@ -37,19 +37,16 @@ import {
     FacetStrategyDropdown,
     FacetStrategyDropdownManager,
     NoDataAreaToggle,
-} from "../controls/Controls.js"
-import { ScaleSelector } from "../controls/ScaleSelector.js"
-import { AddEntityButton } from "../controls/AddEntityButton.js"
+} from "../controls/Controls"
+import { ScaleSelector } from "../controls/ScaleSelector"
+import { AddEntityButton } from "../controls/AddEntityButton"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
-import { FooterManager } from "../footer/FooterManager.js"
-import { HeaderManager } from "../header/HeaderManager.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { FooterManager } from "../footer/FooterManager"
+import { HeaderManager } from "../header/HeaderManager"
+import { SelectionArray } from "../selection/SelectionArray"
 import { EntityName } from "@ourworldindata/core-table"
-import { AxisConfig } from "../axis/AxisConfig.js"
-import {
-    MarkdownTextWrap,
-    sumTextWrapHeights,
-} from "../text/MarkdownTextWrap.js"
+import { AxisConfig } from "../axis/AxisConfig"
+import { MarkdownTextWrap, sumTextWrapHeights } from "../text/MarkdownTextWrap"
 
 export interface CaptionedChartManager
     extends ChartManager,

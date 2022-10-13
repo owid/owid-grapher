@@ -1,4 +1,4 @@
-import { ChartManager } from "../chart/ChartManager.js"
+import { ChartManager } from "../chart/ChartManager"
 
 import { Color, SortConfig, Time, Bounds } from "@ourworldindata/utils"
 import {
@@ -7,8 +7,8 @@ import {
     OwidTable,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { StackedPoint } from "./StackedConstants.js"
-import { DualAxis } from "../axis/Axis.js"
+import { StackedPoint } from "./StackedConstants"
+import { DualAxis } from "../axis/Axis"
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
     excludedEntities?: EntityId[]

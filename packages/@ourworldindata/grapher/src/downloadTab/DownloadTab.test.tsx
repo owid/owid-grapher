@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import { ColumnTypeNames, OwidTable } from "@ourworldindata/core-table"
-import { DownloadTab } from "./DownloadTab.js"
+import { DownloadTab } from "./DownloadTab"
 
 const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
     return new OwidTable(

@@ -1,5 +1,5 @@
 import { EntityName } from "@ourworldindata/core-table"
-import { MapTopology } from "./MapTopology.js"
+import { MapTopology } from "./MapTopology"
 
 let _cache: Set<string>
 export const isOnTheMap = (entityName: EntityName): boolean => {

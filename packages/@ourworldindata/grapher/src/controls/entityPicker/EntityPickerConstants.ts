@@ -1,7 +1,7 @@
 import { ColumnSlug } from "@ourworldindata/utils"
 import { CoreColumnDef, SortOrder, OwidTable } from "@ourworldindata/core-table"
-import { GrapherAnalytics } from "../../core/GrapherAnalytics.js"
-import { SelectionArray } from "../../selection/SelectionArray.js"
+import { GrapherAnalytics } from "../../core/GrapherAnalytics"
+import { SelectionArray } from "../../selection/SelectionArray"
 
 export interface EntityPickerManager {
     entityPickerMetric?: ColumnSlug

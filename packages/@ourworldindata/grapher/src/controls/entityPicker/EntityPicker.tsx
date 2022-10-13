@@ -6,10 +6,10 @@ import { bind } from "decko"
 import classnames from "classnames"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import Select from "react-select"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { FuzzySearch } from "../../controls/FuzzySearch.js"
+import { FuzzySearch } from "../../controls/FuzzySearch"
 import {
     partition,
     scrollIntoViewIfNeeded,
@@ -20,8 +20,8 @@ import {
     getStylesForTargetHeight,
     ColumnSlug,
 } from "@ourworldindata/utils"
-import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer.js"
-import { SortIcon } from "../../controls/SortIcon.js"
+import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
+import { SortIcon } from "../../controls/SortIcon"
 import {
     SortOrder,
     ColumnTypeMap,
@@ -31,8 +31,8 @@ import {
     CoreColumnDef,
     OwidTable,
 } from "@ourworldindata/core-table"
-import { EntityPickerManager } from "./EntityPickerConstants.js"
-import { SelectionArray } from "../../selection/SelectionArray.js"
+import { EntityPickerManager } from "./EntityPickerConstants"
+import { SelectionArray } from "../../selection/SelectionArray"
 
 const toggleSort = (order: SortOrder): SortOrder =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc

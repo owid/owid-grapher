@@ -1,5 +1,5 @@
 import React from "react"
-import { NoDataModal } from "./NoDataModal.js"
+import { NoDataModal } from "./NoDataModal"
 
 export default {
     title: "NoDataModal",

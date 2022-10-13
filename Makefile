@@ -88,7 +88,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 	@make check-port-3306
 
 	@echo '==> Building grapher'
-	yarn install
+	# yarn install
+	npx lerna bootstrap
 	yarn run tsc -b
 	yarn buildWordpressPlugin
 

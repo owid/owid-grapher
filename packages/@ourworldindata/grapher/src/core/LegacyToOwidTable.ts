@@ -1,6 +1,6 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
-import { ChartTypeName } from "../core/GrapherConstants.js"
+import { ChartTypeName } from "../core/GrapherConstants"
 import {
     ColumnTypeNames,
     CoreColumnDef,
@@ -11,7 +11,7 @@ import {
     ErrorValueTypes,
     makeKeyFn,
 } from "@ourworldindata/core-table"
-import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
+import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import {
     diffDateISOStringInDays,
     difference,

@@ -1,12 +1,12 @@
-import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
-import { ChartManager } from "../chart/ChartManager.js"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { ChartInterface } from "../chart/ChartInterface"
+import { ChartManager } from "../chart/ChartManager"
 import {
     BASE_FONT_SIZE,
     SeriesName,
     SeriesStrategy,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -22,20 +22,20 @@ import {
     StackedPoint,
     StackedRawSeries,
     StackedSeries,
-} from "./StackedConstants.js"
+} from "./StackedConstants"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "../chart/ChartUtils.js"
+} from "../chart/ChartUtils"
 import { ScaleOrdinal, scaleOrdinal } from "d3-scale"
 import { easeLinear } from "d3-ease"
 import { select } from "d3-selection"
-import { ColorSchemes } from "../color/ColorSchemes.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { CategoricalBin } from "../color/ColorScaleBin.js"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends.js"
+import { ColorSchemes } from "../color/ColorSchemes"
+import { SelectionArray } from "../selection/SelectionArray"
+import { CategoricalBin } from "../color/ColorScaleBin"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 
 export interface AbstractStackedChartProps {
     bounds?: Bounds

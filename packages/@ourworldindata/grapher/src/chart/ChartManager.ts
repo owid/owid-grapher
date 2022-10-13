@@ -1,25 +1,25 @@
-import { ColorScaleConfigInterface } from "../color/ColorScaleConfig.js"
+import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
 import {
     EntitySelectionMode,
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
-} from "../core/GrapherConstants.js"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
-import { TooltipManager } from "../tooltip/TooltipProps.js"
+} from "../core/GrapherConstants"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
+import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable } from "@ourworldindata/core-table"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface"
+import { ColorSchemeName } from "../color/ColorConstants"
 import { EntityName, CoreColumn } from "@ourworldindata/core-table"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { SelectionArray } from "../selection/SelectionArray"
 import {
     Annotation,
     ColumnSlug,
     SortConfig,
     TimeBound,
 } from "@ourworldindata/utils"
-import { ColorScaleBin } from "../color/ColorScaleBin.js"
-import { ColorScale } from "../color/ColorScale.js"
+import { ColorScaleBin } from "../color/ColorScaleBin"
+import { ColorScale } from "../color/ColorScale"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 

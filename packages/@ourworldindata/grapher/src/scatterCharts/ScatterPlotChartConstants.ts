@@ -7,18 +7,18 @@ import {
     EntityName,
     OwidTable,
 } from "@ourworldindata/core-table"
-import { DualAxis } from "../axis/Axis.js"
-import { ChartManager } from "../chart/ChartManager.js"
-import { NoDataModalManager } from "../noDataModal/NoDataModal.js"
-import { ColorScale } from "../color/ColorScale.js"
+import { DualAxis } from "../axis/Axis"
+import { ChartManager } from "../chart/ChartManager"
+import { NoDataModalManager } from "../noDataModal/NoDataModal"
+import { ColorScale } from "../color/ColorScale"
 import {
     ScatterPointLabelStrategy,
     EntitySelectionMode,
     SeriesName,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 
 import { Bounds, PointVector } from "@ourworldindata/utils"
-import { ChartSeries } from "../chart/ChartInterface.js"
+import { ChartSeries } from "../chart/ChartInterface"
 
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean

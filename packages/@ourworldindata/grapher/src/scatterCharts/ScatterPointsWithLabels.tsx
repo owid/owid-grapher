@@ -1,5 +1,5 @@
 import { select } from "d3-selection"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 import { SortOrder } from "@ourworldindata/core-table"
 import {
     Bounds,
@@ -19,8 +19,8 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { getElementWithHalo } from "./Halos.js"
-import { MultiColorPolyline } from "./MultiColorPolyline.js"
+import { getElementWithHalo } from "./Halos"
+import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
     ScatterPointsWithLabelsProps,
     ScatterRenderSeries,
@@ -30,16 +30,16 @@ import {
     SCATTER_POINT_MIN_RADIUS,
     ScatterRenderPoint,
     SCATTER_LABEL_MIN_FONT_SIZE,
-} from "./ScatterPlotChartConstants.js"
-import { ScatterLine, ScatterPoint } from "./ScatterPoints.js"
+} from "./ScatterPlotChartConstants"
+import { ScatterLine, ScatterPoint } from "./ScatterPoints"
 import {
     makeStartLabel,
     makeMidLabels,
     makeEndLabel,
     labelPriority,
-} from "./ScatterUtils.js"
-import { Triangle } from "./Triangle.js"
-import { ColorScale } from "../color/ColorScale.js"
+} from "./ScatterUtils"
+import { Triangle } from "./Triangle"
+import { ColorScale } from "../color/ColorScale"
 import { ScaleLinear } from "d3-scale"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.

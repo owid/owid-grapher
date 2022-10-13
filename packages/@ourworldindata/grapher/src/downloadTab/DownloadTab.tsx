@@ -2,8 +2,8 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
-import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import {
@@ -17,11 +17,8 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import {
-    MarkdownTextWrap,
-    sumTextWrapHeights,
-} from "../text/MarkdownTextWrap.js"
-import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants.js"
+import { MarkdownTextWrap, sumTextWrapHeights } from "../text/MarkdownTextWrap"
+import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds

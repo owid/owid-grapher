@@ -2,7 +2,7 @@ import {
     BASE_FONT_SIZE,
     FacetAxisDomain,
     ScaleType,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import {
     extend,
     trimObject,
@@ -13,9 +13,9 @@ import {
     TickFormattingOptions,
 } from "@ourworldindata/utils"
 import { observable, computed } from "mobx"
-import { HorizontalAxis, VerticalAxis } from "./Axis.js"
-import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface.js"
-import { ScaleSelectorManager } from "../controls/ScaleSelector.js"
+import { HorizontalAxis, VerticalAxis } from "./Axis"
+import { AxisConfigInterface, Tickmark } from "./AxisConfigInterface"
+import { ScaleSelectorManager } from "../controls/ScaleSelector"
 
 export interface FontSizeManager {
     fontSize: number

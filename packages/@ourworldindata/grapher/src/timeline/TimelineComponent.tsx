@@ -11,10 +11,10 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
 import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
-import { TimelineController, TimelineManager } from "./TimelineController.js"
+import { TimelineController, TimelineManager } from "./TimelineController"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 

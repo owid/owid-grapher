@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import { TimeBoundValue, range } from "@ourworldindata/utils"
-import { TimelineController, TimelineManager } from "./TimelineController.js"
+import { TimelineController, TimelineManager } from "./TimelineController"
 
 it("can play a timeline", async () => {
     let wasPlayed = false

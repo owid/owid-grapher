@@ -1,6 +1,6 @@
 import * as colorbrewer from "colorbrewer"
 import { Color } from "@ourworldindata/core-table"
-import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants.js"
+import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants"
 
 type ColorSchemeProps = { displayName: string; singleColorScale: boolean }
 

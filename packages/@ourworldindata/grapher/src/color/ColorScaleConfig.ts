@@ -9,9 +9,9 @@ import {
     Persistable,
     updatePersistables,
 } from "@ourworldindata/utils"
-import { ColorSchemeName } from "./ColorConstants.js"
-import { BinningStrategy } from "./BinningStrategy.js"
-import { NO_DATA_LABEL } from "./ColorScale.js"
+import { ColorSchemeName } from "./ColorConstants"
+import { BinningStrategy } from "./BinningStrategy"
+import { NO_DATA_LABEL } from "./ColorScale"
 
 export class ColorScaleConfigDefaults {
     // Color scheme

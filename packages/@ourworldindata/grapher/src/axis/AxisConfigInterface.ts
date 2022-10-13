@@ -3,7 +3,7 @@ import {
     AxisAlign,
     Position,
 } from "@ourworldindata/utils"
-import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants.js"
+import { FacetAxisDomain, ScaleType } from "../core/GrapherConstants"
 
 export interface Tickmark {
     value: number

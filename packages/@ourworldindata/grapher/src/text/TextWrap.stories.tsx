@@ -1,6 +1,6 @@
 import React from "react"
 
-import { TextWrap } from "./TextWrap.js"
+import { TextWrap } from "./TextWrap"
 
 export default {
     title: "TextWrap",

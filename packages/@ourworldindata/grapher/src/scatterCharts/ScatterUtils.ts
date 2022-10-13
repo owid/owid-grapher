@@ -4,7 +4,7 @@ import {
     ScatterLabel,
     ScatterRenderPoint,
     ScatterRenderSeries,
-} from "./ScatterPlotChartConstants.js"
+} from "./ScatterPlotChartConstants"
 
 export const labelPriority = (label: ScatterLabel): number => {
     let priority = label.fontSize

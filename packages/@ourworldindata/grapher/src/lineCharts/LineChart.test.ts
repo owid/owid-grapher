@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { LineChart } from "./LineChart.js"
+import { LineChart } from "./LineChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
@@ -8,21 +8,21 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager.js"
+import { ChartManager } from "../chart/ChartManager"
 import {
     FacetStrategy,
     ScaleType,
     SeriesStrategy,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import {
     OwidTable,
     ColumnTypeNames,
     ErrorValueTypes,
 } from "@ourworldindata/core-table"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { LineChartManager } from "./LineChartConstants.js"
-import { BinningStrategy } from "../color/BinningStrategy.js"
-import { OwidNoDataGray } from "../color/ColorConstants.js"
+import { SelectionArray } from "../selection/SelectionArray"
+import { LineChartManager } from "./LineChartConstants"
+import { BinningStrategy } from "../color/BinningStrategy"
+import { OwidNoDataGray } from "../color/ColorConstants"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })

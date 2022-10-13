@@ -1,7 +1,7 @@
 import React from "react"
-import { MapTooltip } from "./MapTooltip.js"
-import { Grapher } from "../core/Grapher.js"
-import { legacyMapGrapher } from "./MapChart.sample.js"
+import { MapTooltip } from "./MapTooltip"
+import { Grapher } from "../core/Grapher"
+import { legacyMapGrapher } from "./MapChart.sample"
 
 export default {
     title: "MapTooltip",

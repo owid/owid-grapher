@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { AxisConfig } from "../axis/AxisConfig.js"
-import { ScaleType } from "../core/GrapherConstants.js"
+import { AxisConfig } from "../axis/AxisConfig"
+import { ScaleType } from "../core/GrapherConstants"
 
 it("can create an axis, clone and modify the clone without affecting the original", () => {
     const axis = new AxisConfig({ scaleType: ScaleType.linear })

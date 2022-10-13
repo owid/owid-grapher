@@ -4,7 +4,7 @@ import {
     UrlMigration,
     performUrlMigrations,
 } from "@ourworldindata/utils"
-import { migrateSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
+import { migrateSelectedEntityNamesParam } from "./EntityUrlBuilder"
 
 export const grapherUrlMigrations: UrlMigration[] = [
     (url: Url): Url => {

@@ -1,7 +1,7 @@
 import { observer } from "mobx-react"
 import { Bounds } from "@ourworldindata/utils"
-import { ScatterPlotChart } from "./ScatterPlotChart.js"
-import { ScatterPlotManager } from "./ScatterPlotChartConstants.js"
+import { ScatterPlotChart } from "./ScatterPlotChart"
+import { ScatterPlotManager } from "./ScatterPlotChartConstants"
 
 // todo: readd
 @observer

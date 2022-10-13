@@ -1,5 +1,5 @@
 import React from "react"
-import { SlopeChart } from "./SlopeChart.js"
+import { SlopeChart } from "./SlopeChart"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,

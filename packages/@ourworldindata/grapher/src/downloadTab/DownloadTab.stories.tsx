@@ -2,8 +2,8 @@ import React from "react"
 import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
-} from "../core/GrapherConstants.js"
-import { DownloadTab } from "./DownloadTab.js"
+} from "../core/GrapherConstants"
+import { DownloadTab } from "./DownloadTab"
 
 export default {
     title: "DownloadTab",

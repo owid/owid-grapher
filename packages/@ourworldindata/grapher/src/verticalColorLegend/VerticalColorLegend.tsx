@@ -2,8 +2,8 @@ import React from "react"
 import { sum, max } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "../text/TextWrap.js"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { TextWrap } from "../text/TextWrap"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { Color } from "@ourworldindata/core-table"
 
 export interface VerticalColorLegendManager {

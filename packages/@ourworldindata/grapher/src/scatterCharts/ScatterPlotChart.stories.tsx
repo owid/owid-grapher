@@ -3,11 +3,11 @@ import {
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { ScaleType } from "../core/GrapherConstants.js"
+import { ScaleType } from "../core/GrapherConstants"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import React from "react"
-import { ScatterPlotChart } from "./ScatterPlotChart.js"
-import { ScatterPlotManager } from "./ScatterPlotChartConstants.js"
+import { ScatterPlotChart } from "./ScatterPlotChart"
+import { ScatterPlotManager } from "./ScatterPlotChartConstants"
 
 export default {
     title: "ScatterPlotChart",

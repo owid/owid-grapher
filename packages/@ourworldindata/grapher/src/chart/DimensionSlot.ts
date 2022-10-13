@@ -1,8 +1,8 @@
 // todo: remove
 
-import { Grapher } from "../core/Grapher.js"
+import { Grapher } from "../core/Grapher"
 import { computed } from "mobx"
-import { ChartDimension } from "./ChartDimension.js"
+import { ChartDimension } from "./ChartDimension"
 import { DimensionProperty } from "@ourworldindata/utils"
 
 export class DimensionSlot {

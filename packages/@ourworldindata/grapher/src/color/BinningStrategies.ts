@@ -8,7 +8,7 @@ import {
     roundSigFig,
     first,
 } from "@ourworldindata/utils"
-import { BinningStrategy } from "./BinningStrategy.js"
+import { BinningStrategy } from "./BinningStrategy"
 
 /** Human-readable labels for the binning strategies */
 export const binningStrategyLabels: Record<BinningStrategy, string> = {

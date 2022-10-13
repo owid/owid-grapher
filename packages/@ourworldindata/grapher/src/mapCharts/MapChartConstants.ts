@@ -1,11 +1,11 @@
-import { ColorScaleBin } from "../color/ColorScaleBin.js"
+import { ColorScaleBin } from "../color/ColorScaleBin"
 import { Bounds, PointVector, ColumnSlug } from "@ourworldindata/utils"
-import { MapProjectionName } from "./MapProjections.js"
-import { ChartManager } from "../chart/ChartManager.js"
-import { MapConfig } from "./MapConfig.js"
+import { MapProjectionName } from "./MapProjections"
+import { ChartManager } from "../chart/ChartManager"
+import { MapConfig } from "./MapConfig"
 import { Color, Time } from "@ourworldindata/core-table"
-import { ChartTypeName, SeriesName } from "../core/GrapherConstants.js"
-import { ChartSeries } from "../chart/ChartInterface.js"
+import { ChartTypeName, SeriesName } from "../core/GrapherConstants"
+import { ChartSeries } from "../chart/ChartInterface"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin

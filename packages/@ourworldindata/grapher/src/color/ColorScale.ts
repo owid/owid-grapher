@@ -4,7 +4,7 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
     ColorScaleConfigInterface,
-} from "./ColorScaleConfig.js"
+} from "./ColorScaleConfig"
 import {
     isEmpty,
     reverse,
@@ -14,12 +14,12 @@ import {
     mapNullToUndefined,
 } from "@ourworldindata/utils"
 import { Color, CoreValueType, CoreColumn } from "@ourworldindata/core-table"
-import { ColorSchemes } from "../color/ColorSchemes.js"
-import { ColorScheme } from "../color/ColorScheme.js"
-import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin.js"
-import { ColorSchemeName, OwidNoDataGray } from "./ColorConstants.js"
-import { getBinMaximums } from "./BinningStrategies.js"
-import { BinningStrategy } from "./BinningStrategy.js"
+import { ColorSchemes } from "../color/ColorSchemes"
+import { ColorScheme } from "../color/ColorScheme"
+import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
+import { ColorSchemeName, OwidNoDataGray } from "./ColorConstants"
+import { getBinMaximums } from "./BinningStrategies"
+import { BinningStrategy } from "./BinningStrategy"
 
 export const NO_DATA_LABEL = "No data"
 

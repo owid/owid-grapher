@@ -1,5 +1,5 @@
 import React from "react"
-import ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server"
 import {
     observable,
     computed,
@@ -82,30 +82,30 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     Detail,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
     ChartDimension,
     LegacyDimensionsManager,
-} from "../chart/ChartDimension.js"
-import { TooltipManager } from "../tooltip/TooltipProps.js"
+} from "../chart/ChartDimension"
+import { TooltipManager } from "../tooltip/TooltipProps"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
-} from "../core/GrapherInterface.js"
-import { DimensionSlot } from "../chart/DimensionSlot.js"
+} from "../core/GrapherInterface"
+import { DimensionSlot } from "../chart/DimensionSlot"
 import {
     getSelectedEntityNamesParam,
     setSelectedEntityNamesParam,
-} from "./EntityUrlBuilder.js"
-import { MapProjectionName } from "../mapCharts/MapProjections.js"
-import { LogoOption } from "../captionedChart/Logos.js"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
-import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
-import { MapConfig } from "../mapCharts/MapConfig.js"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
+} from "./EntityUrlBuilder"
+import { MapProjectionName } from "../mapCharts/MapProjections"
+import { LogoOption } from "../captionedChart/Logos"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { MapConfig } from "../mapCharts/MapConfig"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import {
     ColumnSlugs,
     Time,
@@ -118,69 +118,69 @@ import {
     ColumnTypeMap,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap.js"
-import { ChartManager } from "../chart/ChartManager.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
+import { ChartManager } from "../chart/ChartManager"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
     AbsRelToggleManager,
     FacetStrategyDropdownManager,
     FooterControls,
     FooterControlsManager,
-} from "../controls/Controls.js"
-import { TooltipContainer } from "../tooltip/Tooltip.js"
-import { EntitySelectorModal } from "../controls/EntitySelectorModal.js"
-import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab.js"
+} from "../controls/Controls"
+import { TooltipContainer } from "../tooltip/Tooltip"
+import { EntitySelectorModal } from "../controls/EntitySelectorModal"
+import { DownloadTab, DownloadTabManager } from "../downloadTab/DownloadTab"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab.js"
-import { DataTable, DataTableManager } from "../dataTable/DataTable.js"
-import { MapChartManager } from "../mapCharts/MapChartConstants.js"
-import { MapChart } from "../mapCharts/MapChart.js"
-import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants.js"
-import { Command, CommandPalette } from "../controls/CommandPalette.js"
-import { ShareMenuManager } from "../controls/ShareMenu.js"
+import { SourcesTab, SourcesTabManager } from "../sourcesTab/SourcesTab"
+import { DataTable, DataTableManager } from "../dataTable/DataTable"
+import { MapChartManager } from "../mapCharts/MapChartConstants"
+import { MapChart } from "../mapCharts/MapChart"
+import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
+import { Command, CommandPalette } from "../controls/CommandPalette"
+import { ShareMenuManager } from "../controls/ShareMenu"
 import {
     CaptionedChart,
     CaptionedChartManager,
     StaticCaptionedChart,
-} from "../captionedChart/CaptionedChart.js"
+} from "../captionedChart/CaptionedChart"
 import {
     TimelineController,
     TimelineManager,
-} from "../timeline/TimelineController.js"
+} from "../timeline/TimelineController"
 import * as Mousetrap from "mousetrap"
-import { SlideShowController } from "../slideshowController/SlideShowController.js"
+import { SlideShowController } from "../slideshowController/SlideShowController"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../chart/ChartTypeMap.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
-import { Entity, SelectionArray } from "../selection/SelectionArray.js"
-import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
-import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants.js"
-import { autoDetectYColumnSlugs } from "../chart/ChartUtils.js"
+} from "../chart/ChartTypeMap"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { Entity, SelectionArray } from "../selection/SelectionArray"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
+import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
+import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
 import classNames from "classnames"
-import { GrapherAnalytics } from "./GrapherAnalytics.js"
-import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
-import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants.js"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
+import { GrapherAnalytics } from "./GrapherAnalytics"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
+import { ChartInterface } from "../chart/ChartInterface"
+import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
-import { FacetChartManager } from "../facetChart/FacetChartConstants.js"
-import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand.js"
-import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
-import { detailOnDemandRegex } from "../text/parser.js"
+import { FacetChartManager } from "../facetChart/FacetChartConstants"
+import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap"
+import { detailOnDemandRegex } from "../text/parser"
 
 // TODO: How do we manage this now? Live config?
 // import {
 //     ADMIN_BASE_URL,
 //     BAKED_GRAPHER_URL,
-// } from "../../settings/clientSettings.js"
+// } from "../../settings/clientSettings"
 
 const ADMIN_BASE_URL = "http://localhost:3030"
-const BAKED_GRAPHER_URL = "http://localhost:3030"
+const BAKED_GRAPHER_URL = "http://localhost:3030/grapher"
 
 declare const window: any
 

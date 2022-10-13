@@ -20,38 +20,35 @@ import {
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants.js"
+import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
-} from "../axis/AxisViews.js"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
-import { AxisConfig } from "../axis/AxisConfig.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
+} from "../axis/AxisViews"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { AxisConfig } from "../axis/AxisConfig"
+import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable, EntityName, CoreColumn } from "@ourworldindata/core-table"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils.js"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import {
     stackSeries,
     withMissingValuesAsZeroes,
-} from "../stackedCharts/StackedUtils.js"
-import { ChartManager } from "../chart/ChartManager.js"
-import { StackedPoint, StackedSeries } from "./StackedConstants.js"
-import { ColorSchemes } from "../color/ColorSchemes.js"
+} from "../stackedCharts/StackedUtils"
+import { ChartManager } from "../chart/ChartManager"
+import { StackedPoint, StackedSeries } from "./StackedConstants"
+import { ColorSchemes } from "../color/ColorSchemes"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends.js"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
-import { TippyIfInteractive } from "../chart/Tippy.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+} from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { TippyIfInteractive } from "../chart/Tippy"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { isDarkColor } from "../color/ColorUtils.js"
-import { HorizontalAxis } from "../axis/Axis.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { ColorScheme } from "../color/ColorScheme.js"
+import { isDarkColor } from "../color/ColorUtils"
+import { HorizontalAxis } from "../axis/Axis"
+import { SelectionArray } from "../selection/SelectionArray"
+import { ColorScheme } from "../color/ColorScheme"
 import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"

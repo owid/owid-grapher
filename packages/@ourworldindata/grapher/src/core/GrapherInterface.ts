@@ -7,8 +7,8 @@ import {
     ChartTypeName,
     FacetStrategy,
     Detail,
-} from "./GrapherConstants.js"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
+} from "./GrapherConstants"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import {
     TimeBound,
     QueryParams,
@@ -17,17 +17,17 @@ import {
     SortConfig,
     TopicId,
 } from "@ourworldindata/utils"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
-import { LogoOption } from "../captionedChart/Logos.js"
-import { ColorScaleConfigInterface } from "../color/ColorScaleConfig.js"
-import { MapConfigWithLegacyInterface } from "../mapCharts/MapConfig.js"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
+import { LogoOption } from "../captionedChart/Logos"
+import { ColorScaleConfigInterface } from "../color/ColorScaleConfig"
+import { MapConfigWithLegacyInterface } from "../mapCharts/MapConfig"
 import {
     ColumnSlugs,
     Time,
     EntityId,
     EntityName,
 } from "@ourworldindata/core-table"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+import { ColorSchemeName } from "../color/ColorConstants"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again

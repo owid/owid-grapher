@@ -1,9 +1,9 @@
 import React from "react"
-import { Tippy } from "../chart/Tippy.js"
-import { MarkdownTextWrap } from "../text/MarkdownTextWrap.js"
+import { Tippy } from "../chart/Tippy"
+import { MarkdownTextWrap } from "../text/MarkdownTextWrap"
 import { computed, observable, ObservableMap } from "mobx"
 import { observer } from "mobx-react"
-import { Detail } from "../core/GrapherConstants.js"
+import { Detail } from "../core/GrapherConstants"
 
 class DetailsOnDemand {
     @observable details = new ObservableMap<

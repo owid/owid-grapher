@@ -10,9 +10,9 @@ import {
     dyFromAlign,
     textAnchorFromAlign,
 } from "@ourworldindata/utils"
-import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis.js"
+import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import { ScaleType } from "../core/GrapherConstants.js"
+import { ScaleType } from "../core/GrapherConstants"
 
 const dasharrayFromFontSize = (fontSize: number): string => {
     const dashLength = Math.round((fontSize / 16) * 3)

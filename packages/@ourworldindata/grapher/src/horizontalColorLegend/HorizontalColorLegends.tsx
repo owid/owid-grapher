@@ -20,10 +20,10 @@ import {
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
-} from "../color/ColorScaleBin.js"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
-import { TextWrap } from "../text/TextWrap.js"
-import { darkenColorForLine } from "../color/ColorUtils.js"
+} from "../color/ColorScaleBin"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { TextWrap } from "../text/TextWrap"
+import { darkenColorForLine } from "../color/ColorUtils"
 
 export interface PositionedBin {
     x: number

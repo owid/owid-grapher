@@ -6,27 +6,27 @@ import {
     VerticalAxisComponent,
     AxisTickMarks,
     VerticalAxisGridLines,
-} from "../axis/AxisViews.js"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
-import { Text } from "../text/Text.js"
+} from "../axis/AxisViews"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { Text } from "../text/Text"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
     LegendItem,
-} from "../verticalColorLegend/VerticalColorLegend.js"
-import { Tooltip } from "../tooltip/Tooltip.js"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
-import { ColorScaleManager } from "../color/ColorScale.js"
+} from "../verticalColorLegend/VerticalColorLegend"
+import { Tooltip } from "../tooltip/Tooltip"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { ColorScaleManager } from "../color/ColorScale"
 import {
     AbstractStackedChart,
     AbstractStackedChartProps,
-} from "./AbstractStackedChart.js"
-import { StackedPoint, StackedSeries } from "./StackedConstants.js"
-import { VerticalAxis } from "../axis/Axis.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils.js"
-import { makeClipPath } from "../chart/ChartUtils.js"
-import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig.js"
+} from "./AbstractStackedChart"
+import { StackedPoint, StackedSeries } from "./StackedConstants"
+import { VerticalAxis } from "../axis/Axis"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
+import { makeClipPath } from "../chart/ChartUtils"
+import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint<Time>

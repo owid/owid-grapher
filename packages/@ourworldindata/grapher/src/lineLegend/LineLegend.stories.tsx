@@ -1,7 +1,7 @@
-import { DualAxis } from "../axis/Axis.js"
-import { AxisConfig } from "../axis/AxisConfig.js"
+import { DualAxis } from "../axis/Axis"
+import { AxisConfig } from "../axis/AxisConfig"
 import React from "react"
-import { LineLegend, LineLegendManager } from "./LineLegend.js"
+import { LineLegend, LineLegendManager } from "./LineLegend"
 
 export default {
     title: "LineLegend",

@@ -2,7 +2,7 @@ import React from "react"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "./VerticalColorLegend.js"
+} from "./VerticalColorLegend"
 
 export default {
     title: "VerticalColorLegend",

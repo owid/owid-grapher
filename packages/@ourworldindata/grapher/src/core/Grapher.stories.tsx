@@ -1,5 +1,5 @@
 import React from "react"
-import { Grapher, GrapherProgrammaticInterface } from "./Grapher.js"
+import { Grapher, GrapherProgrammaticInterface } from "./Grapher"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
@@ -8,11 +8,11 @@ import {
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
-} from "./GrapherConstants.js"
+} from "./GrapherConstants"
 import { BlankOwidTable } from "@ourworldindata/core-table"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher.js"
+import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"
 import { DimensionProperty } from "@ourworldindata/utils"
 
 export default {

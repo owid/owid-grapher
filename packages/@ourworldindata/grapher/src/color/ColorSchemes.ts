@@ -1,8 +1,8 @@
-import { ColorSchemeName } from "./ColorConstants.js"
-import { CustomColorSchemes } from "./CustomSchemes.js"
-import { ColorBrewerSchemes } from "./ColorBrewerSchemes.js"
-import { ColorScheme } from "./ColorScheme.js"
-import { ChartTypeName } from "../core/GrapherConstants.js"
+import { ColorSchemeName } from "./ColorConstants"
+import { CustomColorSchemes } from "./CustomSchemes"
+import { ColorBrewerSchemes } from "./ColorBrewerSchemes"
+import { ColorScheme } from "./ColorScheme"
+import { ChartTypeName } from "../core/GrapherConstants"
 import { match } from "ts-pattern"
 import { partition, fromPairs } from "@ourworldindata/utils"
 

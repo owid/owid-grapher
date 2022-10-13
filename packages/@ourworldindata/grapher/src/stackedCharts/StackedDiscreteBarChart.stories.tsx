@@ -1,5 +1,5 @@
 import React from "react"
-import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart.js"
+import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
 import { SynthesizeFruitTable } from "@ourworldindata/core-table"
 
 export default {

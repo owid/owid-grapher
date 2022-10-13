@@ -10,7 +10,7 @@ import Select, {
     Props,
 } from "react-select"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import {
     countries,
@@ -21,12 +21,12 @@ import {
     getWindowUrl,
     setWindowUrl,
 } from "@ourworldindata/utils"
-import { GrapherAnalytics } from "../../core/GrapherAnalytics.js"
-import { WorldEntityName } from "../../core/GrapherConstants.js"
-import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants.js"
-import { SelectionArray } from "../../selection/SelectionArray.js"
+import { GrapherAnalytics } from "../../core/GrapherAnalytics"
+import { WorldEntityName } from "../../core/GrapherConstants"
+import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants"
+import { SelectionArray } from "../../selection/SelectionArray"
 import { EntityName } from "@ourworldindata/core-table"
-import { setSelectedEntityNamesParam } from "../../core/EntityUrlBuilder.js"
+import { setSelectedEntityNamesParam } from "../../core/EntityUrlBuilder"
 
 enum GlobalEntitySelectionModes {
     none = "none",

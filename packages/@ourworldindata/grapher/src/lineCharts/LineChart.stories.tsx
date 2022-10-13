@@ -1,12 +1,12 @@
 import React from "react"
-import { LineChart } from "../lineCharts/LineChart.js"
+import { LineChart } from "../lineCharts/LineChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { ScaleType } from "../core/GrapherConstants.js"
+import { ScaleType } from "../core/GrapherConstants"
 import { Bounds, makeAnnotationsSlug } from "@ourworldindata/utils"
 import { OwidTableSlugs } from "@ourworldindata/core-table"
 

@@ -1,19 +1,19 @@
 import React from "react"
 import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import { TextWrap } from "../text/TextWrap.js"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { TextWrap } from "../text/TextWrap"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { first, last } from "@ourworldindata/utils"
-import { getElementWithHalo } from "./Halos.js"
+import { getElementWithHalo } from "./Halos"
 import {
     ScatterSeries,
     SCATTER_POINT_MAX_RADIUS,
     SCATTER_POINT_OPACITY,
     SCATTER_POINT_STROKE_WIDTH,
     SCATTER_POINT_DEFAULT_RADIUS,
-} from "./ScatterPlotChartConstants.js"
-import { darkenColorForText } from "../color/ColorUtils.js"
+} from "./ScatterPlotChartConstants"
+import { darkenColorForText } from "../color/ColorUtils"
 
 export interface ScatterSizeLegendManager {
     sidebarWidth: number

@@ -1,8 +1,8 @@
 import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { TimelineComponent } from "../timeline/TimelineComponent.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { TimelineComponent } from "../timeline/TimelineComponent"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
@@ -14,11 +14,11 @@ import {
     GrapherTabOption,
     RelatedQuestionsConfig,
     StackMode,
-} from "../core/GrapherConstants.js"
-import { ShareMenu, ShareMenuManager } from "./ShareMenu.js"
-import { TimelineController } from "../timeline/TimelineController.js"
-import { AxisConfig } from "../axis/AxisConfig.js"
-import { Tippy } from "../chart/Tippy.js"
+} from "../core/GrapherConstants"
+import { ShareMenu, ShareMenuManager } from "./ShareMenu"
+import { TimelineController } from "../timeline/TimelineController"
+import { AxisConfig } from "../axis/AxisConfig"
+import { Tippy } from "../chart/Tippy"
 import { Bounds } from "@ourworldindata/utils"
 import classnames from "classnames"
 

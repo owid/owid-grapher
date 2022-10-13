@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { SlideShowController } from "./SlideShowController.js"
+import { SlideShowController } from "./SlideShowController"
 
 it("can create a new slideshow", () => {
     let newSlide = ""

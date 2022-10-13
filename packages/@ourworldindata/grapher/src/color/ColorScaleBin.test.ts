@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { CategoricalBin, NumericBin } from "./ColorScaleBin.js"
+import { CategoricalBin, NumericBin } from "./ColorScaleBin"
 
 it("can create a bin", () => {
     const bin = new CategoricalBin({

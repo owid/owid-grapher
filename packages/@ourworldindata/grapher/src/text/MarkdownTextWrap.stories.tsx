@@ -1,10 +1,10 @@
 import React, { createRef } from "react"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { MarkdownTextWrap, parsimmonToTextTokens } from "./MarkdownTextWrap.js"
-import { IRToken } from "./MarkdownTextWrap.js"
-import { mdParser } from "./parser.js"
-import { TextWrap } from "./TextWrap.js"
+import { MarkdownTextWrap, parsimmonToTextTokens } from "./MarkdownTextWrap"
+import { IRToken } from "./MarkdownTextWrap"
+import { mdParser } from "./parser"
+import { TextWrap } from "./TextWrap"
 
 export default {
     title: "MarkdownTextWrap",

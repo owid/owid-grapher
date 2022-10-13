@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 
 describe(legacyToCurrentGrapherQueryParams, () => {
     it("handles 'modern' query params containing '&'", () => {

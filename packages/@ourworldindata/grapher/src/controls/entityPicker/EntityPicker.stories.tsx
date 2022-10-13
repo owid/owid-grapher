@@ -1,5 +1,5 @@
 import React from "react"
-import { EntityPicker } from "./EntityPicker.js"
+import { EntityPicker } from "./EntityPicker"
 import { observer } from "mobx-react"
 import {
     SampleColumnSlugs,
@@ -8,9 +8,9 @@ import {
     OwidTableSlugs,
     SortOrder,
 } from "@ourworldindata/core-table"
-import { EntityPickerManager } from "./EntityPickerConstants.js"
+import { EntityPickerManager } from "./EntityPickerConstants"
 import { computed, observable } from "mobx"
-import { SelectionArray } from "../../selection/SelectionArray.js"
+import { SelectionArray } from "../../selection/SelectionArray"
 import { ColumnSlug } from "@ourworldindata/utils"
 
 class PickerHolder extends React.Component<{ children: React.ReactNode }> {

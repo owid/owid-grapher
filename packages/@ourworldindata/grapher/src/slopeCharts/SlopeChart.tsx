@@ -18,25 +18,25 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend.js"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
+} from "../verticalColorLegend/VerticalColorLegend"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     ScaleType,
     EntitySelectionMode,
     SeriesName,
-} from "../core/GrapherConstants.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
-import { ChartManager } from "../chart/ChartManager.js"
+} from "../core/GrapherConstants"
+import { ChartInterface } from "../chart/ChartInterface"
+import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
 import { select } from "d3-selection"
-import { Text } from "../text/Text.js"
-import { TextWrap } from "../text/TextWrap.js"
+import { Text } from "../text/Text"
+import { TextWrap } from "../text/TextWrap"
 import {
     DEFAULT_SLOPE_CHART_COLOR,
     LabelledSlopesProps,
@@ -44,14 +44,11 @@ import {
     SlopeChartSeries,
     SlopeChartValue,
     SlopeProps,
-} from "./SlopeChartConstants.js"
+} from "./SlopeChartConstants"
 import { CoreColumn, OwidTable, Color } from "@ourworldindata/core-table"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
 
 @observer
 export class SlopeChart

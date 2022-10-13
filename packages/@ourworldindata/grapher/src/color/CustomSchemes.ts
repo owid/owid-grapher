@@ -1,4 +1,4 @@
-import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants.js"
+import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants"
 
 export const CustomColorSchemes: ColorSchemeInterface[] = []
 

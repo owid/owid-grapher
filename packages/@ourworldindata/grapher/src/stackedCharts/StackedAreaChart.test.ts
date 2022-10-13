@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { StackedAreaChart } from "./StackedAreaChart.js"
+import { StackedAreaChart } from "./StackedAreaChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
@@ -8,10 +8,10 @@ import {
     SynthesizeGDPTable,
     ColumnTypeNames,
 } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager.js"
+import { ChartManager } from "../chart/ChartManager"
 import { observable } from "mobx"
-import { AxisConfig } from "../axis/AxisConfig.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { AxisConfig } from "../axis/AxisConfig"
+import { SelectionArray } from "../selection/SelectionArray"
 import { OwidTable } from "@ourworldindata/core-table"
 import { isNumber } from "@ourworldindata/utils"
 

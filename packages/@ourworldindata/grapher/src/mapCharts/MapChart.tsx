@@ -22,13 +22,13 @@ import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends.js"
-import { MapProjectionName, MapProjectionGeos } from "./MapProjections.js"
+} from "../horizontalColorLegend/HorizontalColorLegends"
+import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
-import { MapTooltip } from "./MapTooltip.js"
-import { ProjectionChooser } from "./ProjectionChooser.js"
-import { isOnTheMap } from "./EntitiesOnTheMap.js"
+import { MapTooltip } from "./MapTooltip"
+import { ProjectionChooser } from "./ProjectionChooser"
+import { isOnTheMap } from "./EntitiesOnTheMap"
 import { EntityName, OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
     GeoFeature,
@@ -38,36 +38,36 @@ import {
     ChoroplethMapManager,
     RenderFeature,
     ChoroplethSeries,
-} from "./MapChartConstants.js"
-import { MapConfig } from "./MapConfig.js"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
+} from "./MapChartConstants"
+import { MapConfig } from "./MapConfig"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GrapherTabOption,
     SeriesName,
     Patterns,
-} from "../core/GrapherConstants.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
+} from "../core/GrapherConstants"
+import { ChartInterface } from "../chart/ChartInterface"
 import {
     CategoricalBin,
     ColorScaleBin,
     NumericBin,
-} from "../color/ColorScaleBin.js"
+} from "../color/ColorScaleBin"
 import * as topojson from "topojson-client"
-import { MapTopology } from "./MapTopology.js"
+import { MapTopology } from "./MapTopology"
 import {
     WorldRegionName,
     WorldRegionToProjection,
-} from "./WorldRegionsToProjection.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
+} from "./WorldRegionsToProjection"
+import { ColorSchemeName } from "../color/ColorConstants"
 import {
     autoDetectYColumnSlugs,
     makeClipPath,
     makeSelectionArray,
-} from "../chart/ChartUtils.js"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
-import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+} from "../chart/ChartUtils"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { SelectionArray } from "../selection/SelectionArray"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22

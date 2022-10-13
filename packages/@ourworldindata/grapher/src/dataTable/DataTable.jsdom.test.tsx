@@ -2,12 +2,9 @@
 
 import React from "react"
 
-import { DataTable } from "./DataTable.js"
-import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants.js"
-import {
-    childMortalityGrapher,
-    IncompleteDataTable,
-} from "./DataTable.sample.js"
+import { DataTable } from "./DataTable"
+import { ChartTypeName, GrapherTabOption } from "../core/GrapherConstants"
+import { childMortalityGrapher, IncompleteDataTable } from "./DataTable.sample"
 
 import { mount, ReactWrapper, configure } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

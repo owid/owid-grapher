@@ -1,6 +1,6 @@
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 import React from "react"
-import { SourcesTab } from "./SourcesTab.js"
+import { SourcesTab } from "./SourcesTab"
 
 export default {
     title: "SourcesTab",

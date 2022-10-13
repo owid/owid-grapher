@@ -1,6 +1,6 @@
-import { TooltipManager } from "../tooltip/TooltipProps.js"
+import { TooltipManager } from "../tooltip/TooltipProps"
 import { Bounds } from "@ourworldindata/utils"
-import { GrapherInterface } from "../core/GrapherInterface.js"
+import { GrapherInterface } from "../core/GrapherInterface"
 
 export interface FooterManager {
     fontSize?: number

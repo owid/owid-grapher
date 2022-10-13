@@ -2,7 +2,7 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "@ourworldindata/utils"
-import { TooltipProps, TooltipManager } from "./TooltipProps.js"
+import { TooltipProps, TooltipManager } from "./TooltipProps"
 
 @observer
 class TooltipCard extends React.Component<

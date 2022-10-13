@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { ChartTypeName } from "../core/GrapherConstants.js"
-import { LegacyGrapherInterface } from "../core/GrapherInterface.js"
+import { ChartTypeName } from "../core/GrapherConstants"
+import { LegacyGrapherInterface } from "../core/GrapherInterface"
 import {
     ColumnTypeMap,
     ErrorValueTypes,
@@ -9,7 +9,7 @@ import {
     OwidTableSlugs,
     StandardOwidColumnDefs,
 } from "@ourworldindata/core-table"
-import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable.js"
+import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,

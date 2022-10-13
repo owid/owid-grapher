@@ -1,13 +1,13 @@
 #! /usr/bin/env jest
 
-import { HorizontalAxis } from "../axis/Axis.js"
-import { ScaleType } from "../core/GrapherConstants.js"
+import { HorizontalAxis } from "../axis/Axis"
+import { ScaleType } from "../core/GrapherConstants"
 import {
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { AxisConfig } from "./AxisConfig.js"
-import { AxisConfigInterface } from "./AxisConfigInterface.js"
+import { AxisConfig } from "./AxisConfig"
+import { AxisConfigInterface } from "./AxisConfigInterface"
 import { AxisAlign } from "@ourworldindata/utils"
 
 it("can create an axis", () => {

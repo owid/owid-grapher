@@ -12,12 +12,12 @@ import {
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "../text/TextWrap.js"
-import { VerticalAxis } from "../axis/Axis.js"
+import { TextWrap } from "../text/TextWrap"
+import { VerticalAxis } from "../axis/Axis"
 import { EntityName } from "@ourworldindata/core-table"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
-import { ChartSeries } from "../chart/ChartInterface.js"
-import { darkenColorForText } from "../color/ColorUtils.js"
+import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { ChartSeries } from "../chart/ChartInterface"
+import { darkenColorForText } from "../color/ColorUtils"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2

@@ -2,7 +2,7 @@ import React from "react"
 import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import {
     SortOrder,
@@ -31,10 +31,10 @@ import {
     ColumnSlug,
     TickFormattingOptions,
 } from "@ourworldindata/utils"
-import { SortIcon } from "../controls/SortIcon.js"
-import { Tippy } from "../chart/Tippy.js"
-import { makeSelectionArray } from "../chart/ChartUtils.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { SortIcon } from "../controls/SortIcon"
+import { Tippy } from "../chart/Tippy"
+import { makeSelectionArray } from "../chart/ChartUtils"
+import { SelectionArray } from "../selection/SelectionArray"
 
 interface DataTableState {
     sort: DataTableSortState

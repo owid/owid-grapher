@@ -1,9 +1,9 @@
 import React from "react"
 import { Box } from "@ourworldindata/utils"
-import { SeriesStrategy } from "../core/GrapherConstants.js"
-import { LineChartSeries } from "../lineCharts/LineChartConstants.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { ChartManager } from "./ChartManager.js"
+import { SeriesStrategy } from "../core/GrapherConstants"
+import { LineChartSeries } from "../lineCharts/LineChartConstants"
+import { SelectionArray } from "../selection/SelectionArray"
+import { ChartManager } from "./ChartManager"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)

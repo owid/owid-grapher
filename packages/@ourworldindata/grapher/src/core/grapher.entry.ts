@@ -7,6 +7,6 @@ const mobxFormatters = require("mobx-formatters").default
 mobxFormatters(Mobx)
 //Mobx.useStrict(true)
 
-import { Grapher } from "./Grapher.js"
+import { Grapher } from "./Grapher"
 declare let window: any
 window.Grapher = Grapher

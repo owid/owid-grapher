@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils.js"
+import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
 
 const seriesArr = [
     {

@@ -1,6 +1,6 @@
 import { EntityName } from "@ourworldindata/core-table"
 import { Url, performUrlMigrations, UrlMigration } from "@ourworldindata/utils"
-import { codeToEntityName, entityNameToCode } from "./EntityCodes.js"
+import { codeToEntityName, entityNameToCode } from "./EntityCodes"
 
 /*
  * Migration #1: Switch from + to ~ delimited entities.

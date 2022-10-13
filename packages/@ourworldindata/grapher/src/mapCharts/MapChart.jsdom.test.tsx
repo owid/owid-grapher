@@ -4,8 +4,8 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { MapChartManager } from "./MapChartConstants.js"
-import { MapChart } from "./MapChart.js"
+import { MapChartManager } from "./MapChartConstants"
+import { MapChart } from "./MapChart"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2001],

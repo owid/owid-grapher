@@ -24,20 +24,20 @@ import {
     ScaleType,
     BASE_FONT_SIZE,
     SeriesStrategy,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
-} from "../axis/AxisViews.js"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
-import { ColorSchemes } from "../color/ColorSchemes.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
+} from "../axis/AxisViews"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { ColorSchemes } from "../color/ColorSchemes"
+import { ChartInterface } from "../chart/ChartInterface"
 import {
     BACKGROUND_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
-} from "./DiscreteBarChartConstants.js"
+} from "./DiscreteBarChartConstants"
 import {
     OwidTable,
     CoreColumn,
@@ -48,22 +48,22 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     makeSelectionArray,
-} from "../chart/ChartUtils.js"
-import { HorizontalAxis } from "../axis/Axis.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { ColorScheme } from "../color/ColorScheme.js"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
+} from "../chart/ChartUtils"
+import { HorizontalAxis } from "../axis/Axis"
+import { SelectionArray } from "../selection/SelectionArray"
+import { ColorScheme } from "../color/ColorScheme"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     ColorScaleConfig,
     ColorScaleConfigInterface,
-} from "../color/ColorScaleConfig.js"
+} from "../color/ColorScaleConfig"
 import {
     ColorSchemeName,
     OwidErrorColor,
     OwidNoDataGray,
-} from "../color/ColorConstants.js"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
-import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends.js"
+} from "../color/ColorConstants"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { HorizontalNumericColorLegend } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
 
 const labelToTextPadding = 10

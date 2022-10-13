@@ -1,4 +1,4 @@
-import { mdParser } from "./parser.js"
+import { mdParser } from "./parser"
 
 describe("mdast parsers", () => {
     it("mdParser works for non-link brackets", () => {

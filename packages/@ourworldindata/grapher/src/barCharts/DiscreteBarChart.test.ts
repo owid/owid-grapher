@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { DiscreteBarChart } from "./DiscreteBarChart.js"
+import { DiscreteBarChart } from "./DiscreteBarChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
@@ -8,12 +8,12 @@ import {
     SynthesizeGDPTable,
     OwidTable,
 } from "@ourworldindata/core-table"
-import { DiscreteBarChartManager } from "./DiscreteBarChartConstants.js"
-import { ColorSchemeName } from "../color/ColorConstants.js"
-import { SeriesStrategy } from "../core/GrapherConstants.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
+import { ColorSchemeName } from "../color/ColorConstants"
+import { SeriesStrategy } from "../core/GrapherConstants"
+import { SelectionArray } from "../selection/SelectionArray"
 import { isNumber, SortBy, SortOrder } from "@ourworldindata/utils"
-import { OwidDistinctColorScheme } from "../color/CustomSchemes.js"
+import { OwidDistinctColorScheme } from "../color/CustomSchemes"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })

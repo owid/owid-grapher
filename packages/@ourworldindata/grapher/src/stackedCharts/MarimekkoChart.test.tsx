@@ -6,14 +6,14 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { DefaultColorScheme } from "../color/CustomSchemes.js"
-import { MarimekkoChart } from "./MarimekkoChart.js"
+import { DefaultColorScheme } from "../color/CustomSchemes"
+import { MarimekkoChart } from "./MarimekkoChart"
 import {
     MarimekkoChartManager,
     BarShape,
     Item,
     PlacedItem,
-} from "./MarimekkoChartConstants.js"
+} from "./MarimekkoChartConstants"
 
 it("can create a chart", () => {
     const table = SynthesizeGDPTable({

@@ -1,6 +1,6 @@
 import React from "react"
 import { computed } from "mobx"
-import { OWID_LOGO_SVG, CORE_LOGO_SVG, GV_LOGO_SVG } from "./LogosSVG.js"
+import { OWID_LOGO_SVG, CORE_LOGO_SVG, GV_LOGO_SVG } from "./LogosSVG"
 
 export enum LogoOption {
     owid = "owid",

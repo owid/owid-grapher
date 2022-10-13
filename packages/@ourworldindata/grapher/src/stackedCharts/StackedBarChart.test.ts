@@ -5,10 +5,10 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { ChartManager } from "../chart/ChartManager"
+import { SelectionArray } from "../selection/SelectionArray"
 import { isNumber } from "@ourworldindata/utils"
-import { StackedBarChart } from "./StackedBarChart.js"
+import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })

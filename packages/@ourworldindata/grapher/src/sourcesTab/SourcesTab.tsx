@@ -3,7 +3,7 @@ import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { OwidColumnDef } from "@ourworldindata/core-table"
 

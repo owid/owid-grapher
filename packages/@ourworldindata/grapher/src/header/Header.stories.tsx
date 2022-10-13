@@ -1,6 +1,6 @@
 import React from "react"
-import { Header } from "./Header.js"
-import { HeaderManager } from "./HeaderManager.js"
+import { Header } from "./Header"
+import { HeaderManager } from "./HeaderManager"
 
 export default {
     title: "Header",

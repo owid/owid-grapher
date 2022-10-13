@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
-import { AxisConfig } from "../axis/AxisConfig.js"
-import { LineLegend, LineLegendManager } from "./LineLegend.js"
+import { AxisConfig } from "../axis/AxisConfig"
+import { LineLegend, LineLegendManager } from "./LineLegend"
 
 const manager: LineLegendManager = {
     labelSeries: [

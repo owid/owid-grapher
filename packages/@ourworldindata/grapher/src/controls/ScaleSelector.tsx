@@ -1,7 +1,7 @@
 import React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
-import { ScaleType } from "../core/GrapherConstants.js"
+import { ScaleType } from "../core/GrapherConstants"
 import classNames from "classnames"
 import { next } from "@ourworldindata/utils"
 

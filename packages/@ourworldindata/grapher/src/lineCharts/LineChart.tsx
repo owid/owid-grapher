@@ -26,26 +26,26 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-import { DualAxisComponent } from "../axis/AxisViews.js"
-import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
+import { DualAxisComponent } from "../axis/AxisViews"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     LineLegend,
     LineLabelSeries,
     LineLegendManager,
-} from "../lineLegend/LineLegend.js"
-import { ComparisonLine } from "../scatterCharts/ComparisonLine.js"
-import { Tooltip } from "../tooltip/Tooltip.js"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
+} from "../lineLegend/LineLegend"
+import { ComparisonLine } from "../scatterCharts/ComparisonLine"
+import { Tooltip } from "../tooltip/Tooltip"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
 import {
     BASE_FONT_SIZE,
     SeriesName,
     ScaleType,
     SeriesStrategy,
-} from "../core/GrapherConstants.js"
-import { ColorSchemes } from "../color/ColorSchemes.js"
-import { AxisConfig, FontSizeManager } from "../axis/AxisConfig.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
+} from "../core/GrapherConstants"
+import { ColorSchemes } from "../color/ColorSchemes"
+import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
+import { ChartInterface } from "../chart/ChartInterface"
 import {
     LinesProps,
     LineChartSeries,
@@ -53,7 +53,7 @@ import {
     LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
-} from "./LineChartConstants.js"
+} from "./LineChartConstants"
 import {
     OwidTable,
     CoreColumn,
@@ -68,23 +68,23 @@ import {
     getSeriesKey,
     makeClipPath,
     makeSelectionArray,
-} from "../chart/ChartUtils.js"
-import { ColorScheme } from "../color/ColorScheme.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
+} from "../chart/ChartUtils"
+import { ColorScheme } from "../color/ColorScheme"
+import { SelectionArray } from "../selection/SelectionArray"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     ColorScaleConfig,
     ColorScaleConfigInterface,
-} from "../color/ColorScaleConfig.js"
-import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants.js"
-import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline.js"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
-import { darkenColorForHighContrastText } from "../color/ColorUtils.js"
+} from "../color/ColorScaleConfig"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
+import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
+import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
+import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends.js"
+} from "../horizontalColorLegend/HorizontalColorLegends"
 
 // background
 const BACKGROUND_COLOR = "#fff"

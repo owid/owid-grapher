@@ -12,25 +12,25 @@ import {
     Time,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
-import { SeriesName } from "../core/GrapherConstants.js"
+import { SeriesName } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
-import { DualAxisComponent } from "../axis/AxisViews.js"
-import { DualAxis } from "../axis/Axis.js"
+import { DualAxisComponent } from "../axis/AxisViews"
+import { DualAxis } from "../axis/Axis"
 import {
     LineLabelSeries,
     LineLegend,
     LineLegendManager,
-} from "../lineLegend/LineLegend.js"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
-import { Tooltip } from "../tooltip/Tooltip.js"
+} from "../lineLegend/LineLegend"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { Tooltip } from "../tooltip/Tooltip"
 import { rgb } from "d3-color"
 import {
     AbstractStackedChart,
     AbstractStackedChartProps,
-} from "../stackedCharts/AbstractStackedChart.js"
-import { StackedSeries } from "./StackedConstants.js"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils.js"
-import { makeClipPath } from "../chart/ChartUtils.js"
+} from "../stackedCharts/AbstractStackedChart"
+import { StackedSeries } from "./StackedConstants"
+import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
+import { makeClipPath } from "../chart/ChartUtils"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis

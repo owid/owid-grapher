@@ -1,9 +1,9 @@
 #! /usr/bin/env jest
 
 import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
-import { BinningStrategy } from "./BinningStrategy.js"
-import { ColorScale } from "./ColorScale.js"
-import { ColorScaleConfigInterface } from "./ColorScaleConfig.js"
+import { BinningStrategy } from "./BinningStrategy"
+import { ColorScale } from "./ColorScale"
+import { ColorScaleConfigInterface } from "./ColorScaleConfig"
 
 const createColorScaleFromTable = (
     colorValuePairs: { value: number; color?: string }[],

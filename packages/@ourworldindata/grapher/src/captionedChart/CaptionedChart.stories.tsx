@@ -4,14 +4,14 @@ import {
     FacetStrategy,
     GrapherTabOption,
     SeriesStrategy,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import React from "react"
 import {
     CaptionedChart,
     CaptionedChartManager,
     StaticCaptionedChart,
-} from "./CaptionedChart.js"
+} from "./CaptionedChart"
 
 export default {
     title: "CaptionedChart",

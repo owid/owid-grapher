@@ -1,10 +1,10 @@
 import React from "react"
 import classnames from "classnames"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons/faQuestionCircle"
 
-import { Tippy } from "../chart/Tippy.js"
+import { Tippy } from "../chart/Tippy"
 
 export const SparkBarTimeSeriesValue = ({
     value,

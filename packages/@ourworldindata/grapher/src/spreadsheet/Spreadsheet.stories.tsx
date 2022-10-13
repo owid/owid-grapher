@@ -5,16 +5,16 @@ import {
     OwidTableSlugs,
     OwidTable,
 } from "@ourworldindata/core-table"
-import { Spreadsheet } from "./Spreadsheet.js"
+import { Spreadsheet } from "./Spreadsheet"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "@ourworldindata/utils"
-import { ChartTypeName } from "../core/GrapherConstants.js"
+import { ChartTypeName } from "../core/GrapherConstants"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../chart/ChartTypeMap.js"
-import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher.js"
+} from "../chart/ChartTypeMap"
+import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"
 
 export default {
     title: "Spreadsheet",

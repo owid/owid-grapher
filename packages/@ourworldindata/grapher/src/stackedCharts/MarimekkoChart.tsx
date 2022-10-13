@@ -26,11 +26,11 @@ import {
     BASE_FONT_SIZE,
     EntitySelectionMode,
     Patterns,
-} from "../core/GrapherConstants.js"
-import { DualAxisComponent } from "../axis/AxisViews.js"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
-import { AxisConfig } from "../axis/AxisConfig.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
+} from "../core/GrapherConstants"
+import { DualAxisComponent } from "../axis/AxisViews"
+import { NoDataModal } from "../noDataModal/NoDataModal"
+import { AxisConfig } from "../axis/AxisConfig"
+import { ChartInterface } from "../chart/ChartInterface"
 import {
     OwidTable,
     EntityName,
@@ -38,30 +38,27 @@ import {
     OwidTableSlugs,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils.js"
-import { StackedPoint, StackedSeries } from "./StackedConstants.js"
-import { ColorSchemes } from "../color/ColorSchemes.js"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import { StackedPoint, StackedSeries } from "./StackedConstants"
+import { ColorSchemes } from "../color/ColorSchemes"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
-} from "../horizontalColorLegend/HorizontalColorLegends.js"
-import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin.js"
-import { TippyIfInteractive } from "../chart/Tippy.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+} from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
+import { TippyIfInteractive } from "../chart/Tippy"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
-} from "../color/ColorScaleConfig.js"
-import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants.js"
+} from "../color/ColorScaleConfig"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
 import { color } from "d3-color"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { ColorScheme } from "../color/ColorScheme.js"
+import { SelectionArray } from "../selection/SelectionArray"
+import { ColorScheme } from "../color/ColorScheme"
 import {
     MarimekkoChartManager,
     EntityColorData,
@@ -77,7 +74,7 @@ import {
     LabelWithPlacement,
     LabelCandidateWithElement,
     MarimekkoBarProps,
-} from "./MarimekkoChartConstants.js"
+} from "./MarimekkoChartConstants"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25

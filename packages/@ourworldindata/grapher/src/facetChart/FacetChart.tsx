@@ -27,41 +27,38 @@ import {
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import {
     ChartComponentClassMap,
     DefaultChartClass,
-} from "../chart/ChartTypeMap.js"
-import { ChartManager } from "../chart/ChartManager.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
-import { getChartPadding, getFontSize } from "./FacetChartUtils.js"
+} from "../chart/ChartTypeMap"
+import { ChartManager } from "../chart/ChartManager"
+import { ChartInterface } from "../chart/ChartInterface"
+import { getChartPadding, getFontSize } from "./FacetChartUtils"
 import {
     FacetSeries,
     FacetChartProps,
     PlacedFacetSeries,
     FacetChartManager,
-} from "./FacetChartConstants.js"
+} from "./FacetChartConstants"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { AxisConfigInterface } from "../axis/AxisConfigInterface.js"
-import { AxisConfig } from "../axis/AxisConfig.js"
-import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import { SelectionArray } from "../selection/SelectionArray"
+import { AxisConfigInterface } from "../axis/AxisConfigInterface"
+import { AxisConfig } from "../axis/AxisConfig"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegend,
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
-} from "../horizontalColorLegend/HorizontalColorLegends.js"
+} from "../horizontalColorLegend/HorizontalColorLegends"
 import {
     CategoricalBin,
     ColorScaleBin,
     NumericBin,
-} from "../color/ColorScaleBin.js"
-import { shortenForTargetWidth } from "../text/TextWrap.js"
+} from "../color/ColorScaleBin"
+import { shortenForTargetWidth } from "../text/TextWrap"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 

@@ -6,9 +6,9 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
 } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart.js"
+import { ChartManager } from "../chart/ChartManager"
+import { SelectionArray } from "../selection/SelectionArray"
+import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
 
 it("can create a chart", () => {
     const table = SynthesizeFruitTable({

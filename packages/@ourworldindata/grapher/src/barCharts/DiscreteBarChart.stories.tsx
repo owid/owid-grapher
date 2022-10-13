@@ -1,11 +1,11 @@
 import React from "react"
-import { DiscreteBarChart } from "./DiscreteBarChart.js"
+import { DiscreteBarChart } from "./DiscreteBarChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { DiscreteBarChartManager } from "./DiscreteBarChartConstants.js"
+import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
 export default {
     title: "DiscreteBarChart",

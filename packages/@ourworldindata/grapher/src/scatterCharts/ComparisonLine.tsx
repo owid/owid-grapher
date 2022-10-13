@@ -3,9 +3,9 @@ import { guid, Bounds, PointVector } from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { DualAxis } from "../axis/Axis.js"
-import { generateComparisonLinePoints } from "./ComparisonLineGenerator.js"
-import { getElementWithHalo } from "./Halos.js"
+import { DualAxis } from "../axis/Axis"
+import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
+import { getElementWithHalo } from "./Halos"
 
 export interface ComparisonLineConfig {
     label?: string

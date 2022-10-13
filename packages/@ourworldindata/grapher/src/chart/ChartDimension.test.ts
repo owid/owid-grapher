@@ -2,7 +2,7 @@
 
 // todo: remove this when we remove chartDimension
 
-import { ChartDimension } from "./ChartDimension.js"
+import { ChartDimension } from "./ChartDimension"
 import { BlankOwidTable } from "@ourworldindata/core-table"
 import { DimensionProperty } from "@ourworldindata/utils"
 

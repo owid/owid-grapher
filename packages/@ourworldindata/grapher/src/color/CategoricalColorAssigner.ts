@@ -1,6 +1,6 @@
 import { Color, last } from "@ourworldindata/utils"
-import { ColorScheme } from "./ColorScheme.js"
-import { getLeastUsedColor } from "./ColorUtils.js"
+import { ColorScheme } from "./ColorScheme"
+import { getLeastUsedColor } from "./ColorUtils"
 
 type CategoryId = string
 export type CategoricalColorMap = Map<CategoryId, Color>

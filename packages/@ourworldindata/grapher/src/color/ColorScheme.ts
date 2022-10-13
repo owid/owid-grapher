@@ -2,8 +2,8 @@ import { Color } from "@ourworldindata/core-table"
 import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
 import { lastOfNonEmptyArray, clone } from "@ourworldindata/utils"
-import { ColorSchemeInterface } from "./ColorConstants.js"
-import { interpolateArray } from "./ColorUtils.js"
+import { ColorSchemeInterface } from "./ColorConstants"
+import { interpolateArray } from "./ColorUtils"
 
 export class ColorScheme implements ColorSchemeInterface {
     name: string

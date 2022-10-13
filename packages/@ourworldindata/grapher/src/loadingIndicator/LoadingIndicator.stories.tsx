@@ -1,5 +1,5 @@
 import React from "react"
-import { LoadingIndicator } from "./LoadingIndicator.js"
+import { LoadingIndicator } from "./LoadingIndicator"
 
 export default {
     title: "LoadingIndicator",

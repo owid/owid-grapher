@@ -1,5 +1,5 @@
 import React from "react"
-import { MapChart } from "./MapChart.js"
+import { MapChart } from "./MapChart"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 
 export default {

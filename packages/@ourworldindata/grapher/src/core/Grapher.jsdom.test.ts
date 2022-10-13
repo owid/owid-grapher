@@ -1,17 +1,17 @@
 #! /usr/bin/env jest
-import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher.js"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {
     ChartTypeName,
     EntitySelectionMode,
     GrapherTabOption,
     ScaleType,
-} from "./GrapherConstants.js"
+} from "./GrapherConstants"
 import {
     GrapherInterface,
     GrapherQueryParams,
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
-} from "../core/GrapherInterface.js"
+} from "../core/GrapherInterface"
 import {
     TimeBoundValue,
     TimeBound,
@@ -27,15 +27,15 @@ import {
     SynthesizeGDPTable,
     ColumnTypeNames,
 } from "@ourworldindata/core-table"
-import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
-import { setSelectedEntityNamesParam } from "./EntityUrlBuilder.js"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
+import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
 import { OwidTable } from "@ourworldindata/core-table"
-import { MapConfig } from "../mapCharts/MapConfig.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
+import { MapConfig } from "../mapCharts/MapConfig"
+import { SelectionArray } from "../selection/SelectionArray"
 import {
     OwidDistinctColorScheme,
     OwidDistinctLinesColorScheme,
-} from "../color/CustomSchemes.js"
+} from "../color/CustomSchemes"
 
 const TestGrapherConfig = (): {
     table: OwidTable

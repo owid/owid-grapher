@@ -1,5 +1,5 @@
 import React from "react"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine.js"
+import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import {
@@ -22,14 +22,14 @@ import {
     DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
     ScaleType,
     EntitySelectionMode,
     ScatterPointLabelStrategy,
     SeriesName,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import {
     Color,
     EntityName,
@@ -43,18 +43,18 @@ import {
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
-} from "./ConnectedScatterLegend.js"
+} from "./ConnectedScatterLegend"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
-} from "../verticalColorLegend/VerticalColorLegend.js"
-import { DualAxisComponent } from "../axis/AxisViews.js"
-import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
-import { ComparisonLine } from "./ComparisonLine.js"
+} from "../verticalColorLegend/VerticalColorLegend"
+import { DualAxisComponent } from "../axis/AxisViews"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { ComparisonLine } from "./ComparisonLine"
 
-import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
-import { AxisConfig } from "../axis/AxisConfig.js"
-import { ChartInterface } from "../chart/ChartInterface.js"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import { AxisConfig } from "../axis/AxisConfig"
+import { ChartInterface } from "../chart/ChartInterface"
 import {
     ScatterPlotManager,
     ScatterSeries,
@@ -66,24 +66,21 @@ import {
     SCATTER_POINT_DEFAULT_RADIUS,
     SCATTER_POINT_MAX_RADIUS,
     SeriesPoint,
-} from "./ScatterPlotChartConstants.js"
-import { ScatterTooltip } from "./ScatterTooltip.js"
-import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels.js"
-import {
-    autoDetectYColumnSlugs,
-    makeSelectionArray,
-} from "../chart/ChartUtils.js"
-import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants.js"
+} from "./ScatterPlotChartConstants"
+import { ScatterTooltip } from "./ScatterTooltip"
+import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
 import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
-} from "../color/ColorScaleConfig.js"
-import { SelectionArray } from "../selection/SelectionArray.js"
-import { ColorScaleBin } from "../color/ColorScaleBin.js"
+} from "../color/ColorScaleConfig"
+import { SelectionArray } from "../selection/SelectionArray"
+import { ColorScaleBin } from "../color/ColorScaleBin"
 import {
     ScatterSizeLegend,
     ScatterSizeLegendManager,
-} from "./ScatterSizeLegend.js"
+} from "./ScatterSizeLegend"
 
 @observer
 export class ScatterPlotChart

@@ -1,19 +1,19 @@
 #! /usr/bin/env jest
 
-import { FacetChart } from "./FacetChart.js"
+import { FacetChart } from "./FacetChart"
 import {
     SynthesizeGDPTable,
     OwidTable,
     ColumnTypeNames,
 } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager.js"
+import { ChartManager } from "../chart/ChartManager"
 import {
     ChartTypeName,
     FacetAxisDomain,
     FacetStrategy,
-} from "../core/GrapherConstants.js"
+} from "../core/GrapherConstants"
 import { uniq } from "@ourworldindata/utils"
-import { LineChart } from "../lineCharts/LineChart.js"
+import { LineChart } from "../lineCharts/LineChart"
 
 const allElementsAreEqual = (array: any[]): boolean => {
     return uniq(array).length === 1

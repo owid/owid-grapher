@@ -1,13 +1,13 @@
 #! /usr/bin/env jest
 
-import { SlopeChart } from "./SlopeChart.js"
+import { SlopeChart } from "./SlopeChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager.js"
-import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants.js"
+import { ChartManager } from "../chart/ChartManager"
+import { DEFAULT_SLOPE_CHART_COLOR } from "./SlopeChartConstants"
 import { OwidTableSlugs } from "@ourworldindata/core-table"
 import { isNumber } from "@ourworldindata/utils"
 

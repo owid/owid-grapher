@@ -2,7 +2,7 @@ import React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import Select from "react-select"
-import { MapProjectionName, MapProjectionLabels } from "./MapProjections.js"
+import { MapProjectionName, MapProjectionLabels } from "./MapProjections"
 import { getStylesForTargetHeight } from "@ourworldindata/utils"
 
 interface ProjectionChooserEntry {

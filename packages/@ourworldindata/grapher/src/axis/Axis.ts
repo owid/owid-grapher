@@ -17,14 +17,14 @@ import {
     VerticalAlign,
     TickFormattingOptions,
 } from "@ourworldindata/utils"
-import { TextWrap } from "../text/TextWrap.js"
-import { AxisConfig } from "./AxisConfig.js"
+import { TextWrap } from "../text/TextWrap"
+import { AxisConfig } from "./AxisConfig"
 import {
     ColumnTypeMap,
     CoreColumn,
     ValueRange,
 } from "@ourworldindata/core-table"
-import { Tickmark } from "./AxisConfigInterface.js"
+import { Tickmark } from "./AxisConfigInterface"
 
 interface TickLabelPlacement {
     value: number

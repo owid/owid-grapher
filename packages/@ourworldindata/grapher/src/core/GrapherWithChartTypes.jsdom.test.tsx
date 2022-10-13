@@ -5,10 +5,10 @@ import {
     SynthesizeGDPTable,
     SampleColumnSlugs,
 } from "@ourworldindata/core-table"
-import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher.js"
-import { MapChart } from "../mapCharts/MapChart.js"
-import { legacyMapGrapher } from "../mapCharts/MapChart.sample.js"
-import { ChartTypeName } from "./GrapherConstants.js"
+import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
+import { MapChart } from "../mapCharts/MapChart"
+import { legacyMapGrapher } from "../mapCharts/MapChart.sample"
+import { ChartTypeName } from "./GrapherConstants"
 
 describe("grapher and map charts", () => {
     describe("map time tolerance plus query string works with a map chart", () => {

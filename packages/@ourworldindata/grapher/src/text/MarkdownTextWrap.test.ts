@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
 import { FontFamily } from "@ourworldindata/utils"
-import { IRText, MarkdownTextWrap, getLineWidth } from "./MarkdownTextWrap.js"
+import { IRText, MarkdownTextWrap, getLineWidth } from "./MarkdownTextWrap"
 
 describe("MarkdownTextWrap", () => {
     it("heavier fontWeight should be wider than plain IRText", () => {

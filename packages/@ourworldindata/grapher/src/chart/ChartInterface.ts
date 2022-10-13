@@ -1,8 +1,8 @@
 import { Color, OwidTable } from "@ourworldindata/core-table"
-import { SeriesName } from "../core/GrapherConstants.js"
-import { ColorScale } from "../color/ColorScale.js"
-import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
-import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends.js"
+import { SeriesName } from "../core/GrapherConstants"
+import { ColorScale } from "../color/ColorScale"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 // The idea of this interface is to try and start reusing more code across our Chart classes and make it easier
 // for a dev to work on a chart type they haven't touched before if they've worked with another that implements
 // this interface.

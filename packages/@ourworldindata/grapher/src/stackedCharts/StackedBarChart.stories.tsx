@@ -1,5 +1,5 @@
 import React from "react"
-import { StackedBarChart } from "./StackedBarChart.js"
+import { StackedBarChart } from "./StackedBarChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,

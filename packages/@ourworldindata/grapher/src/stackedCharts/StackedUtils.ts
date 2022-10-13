@@ -1,5 +1,5 @@
 import { flatten, keyBy, sortNumeric, uniq } from "@ourworldindata/utils"
-import { StackedPointPositionType, StackedSeries } from "./StackedConstants.js"
+import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 
 // This method shift up the Y Values of a Series with Points in place.
 // Todo: use a lib?

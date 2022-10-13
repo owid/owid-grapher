@@ -1,6 +1,6 @@
 #! /usr/bin/env jest
 
-import { getLeastUsedColor, isDarkColor } from "./ColorUtils.js"
+import { getLeastUsedColor, isDarkColor } from "./ColorUtils"
 
 describe(getLeastUsedColor, () => {
     it("returns unused color", () => {

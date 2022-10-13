@@ -1,17 +1,17 @@
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Tooltip } from "../tooltip/Tooltip.js"
-import { MapChartManager } from "./MapChartConstants.js"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
+import { Tooltip } from "../tooltip/Tooltip"
+import { MapChartManager } from "./MapChartConstants"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import {
     Time,
     OwidTable,
     EntityName,
     OwidVariableRow,
 } from "@ourworldindata/core-table"
-import { ChartTypeName } from "../core/GrapherConstants.js"
-import { LineChart } from "../lineCharts/LineChart.js"
+import { ChartTypeName } from "../core/GrapherConstants"
+import { LineChart } from "../lineCharts/LineChart"
 import classNames from "classnames"
 import {
     Bounds,
@@ -19,8 +19,8 @@ import {
     AllKeysRequired,
     checkIsVeryShortUnit,
 } from "@ourworldindata/utils"
-import { LineChartManager } from "../lineCharts/LineChartConstants.js"
-import { darkenColorForHighContrastText } from "../color/ColorUtils.js"
+import { LineChartManager } from "../lineCharts/LineChartConstants"
+import { darkenColorForHighContrastText } from "../color/ColorUtils"
 
 interface MapTooltipProps {
     entityName: EntityName
