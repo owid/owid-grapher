@@ -97,20 +97,6 @@ class MultiEmbedder {
 
         figures.forEach((figure) => {
             this.figuresObserver?.observe(figure);
-
-            const _observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.type === "attributes" && mutation.attributeName === GRAPHER_EMBEDDED_FIGURE_ATTR) {
-                        ReactDOM.unmountComponentAtNode(figure)
-                        this.renderInteractiveFigure(figure);
-                    }
-                });
-            });
-              
-            _observer.observe(figure, {
-                attributes: true
-            });
-              
         })
     }
 

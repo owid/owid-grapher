@@ -65,5 +65,7 @@ export function OwidArticle(props: OwidArticleType) {
 export const hydrateOwidArticle = () => {
     const wrapper = document.querySelector("#owid-article-root")
     const props = window._OWID_ARTICLE_PROPS
-    ReactDOM.hydrate(<OwidArticle {...props} />, wrapper)
+    if (wrapper) {
+        ReactDOM.hydrate(<OwidArticle {...props} />, wrapper)
+    }
 }

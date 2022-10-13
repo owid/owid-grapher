@@ -29,7 +29,7 @@ export default function Scroller({ d }: any) {
     return (
         <section className={"stickySection"}>
             {figureSrc ? (
-                <div className={"stickyFigure"}>
+                <div className={"stickyFigure"} ref={refChartContainer}>
                     <figure
                         // Use unique `key` to force React to re-render tree
                         key={figureSrc}

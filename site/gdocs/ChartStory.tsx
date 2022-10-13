@@ -6,21 +6,23 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { useEmbedChart } from "../hooks.js"
 
 export default function ChartStory({ slides }: any) {
-    const [slide, setSlide] = useState(0)
     const showDetails = true
 
-    const currentSlide = slides[slide]
+    const [ currentIndex, setCurrentIndex ] = useState(0);
+    const [ currentSlide, setCurrentSlide ] = useState(slides[0]);
+
     const maxSlide = slides.length - 1
 
-    const refChartContainer = useRef<HTMLDivElement>(currentSlide);
-    useEmbedChart(slide, refChartContainer)
+    const refChartContainer = useRef<HTMLDivElement>(null);
+    useEmbedChart(currentIndex, refChartContainer)
 
     return (
         <div className={"chartStory"}>
             <div
                 className={"chart-story--nav-back"}
                 onClick={() => {
-                    setSlide(Math.max(0, slide - 1))
+                    setCurrentSlide(slides[Math.max(0, currentIndex - 1)])
+                    setCurrentIndex(Math.max(0, currentIndex - 1))
                 }}
             >
                 <FontAwesomeIcon
@@ -31,21 +33,22 @@ export default function ChartStory({ slides }: any) {
             <div className={"chart-story--narrative-text"}>
                 {currentSlide.narrative}
             </div>
-            <div className={"chart-story--chart"}>
+            <div className={"chart-story--chart"} ref={refChartContainer}>
                 <figure
-                    ref={refChartContainer}
+                    key={currentSlide.chart}
                     data-grapher-src={currentSlide.chart}
                     style={{ width: "100%", height: 550, border: "0px none" }}
                 />
             </div>
             <div className={"chart-story--technical-text"}></div>
             <div className={"chart-story--nav-hud"}>
-                {`Chart ${slide + 1} of ${slides.length}`}
+                {`Chart ${currentIndex + 1} of ${slides.length}`}
             </div>
             <div
                 className={"chart-story--nav-next"}
                 onClick={() => {
-                    setSlide(Math.min(maxSlide, slide + 1))
+                    setCurrentSlide(slides[Math.min(maxSlide, currentIndex + 1)])
+                    setCurrentIndex(Math.min(maxSlide, currentIndex + 1))
                 }}
             >
                 <FontAwesomeIcon
