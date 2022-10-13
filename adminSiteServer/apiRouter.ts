@@ -2698,9 +2698,14 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     return nextGdoc
 })
 
-apiRouter.delete("/gdocs/:id", async (req) => {
+apiRouter.delete("/gdocs/:id", async (req, res) => {
     const { id } = req.params
+
+    const gdoc = await Gdoc.findOneBy({ id })
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
     await Gdoc.delete(id)
+    await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
 
