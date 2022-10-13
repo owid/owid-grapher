@@ -1,13 +1,19 @@
 import React, { useContext } from "react"
-import { observable, runInAction } from "mobx"
+import { observable } from "mobx"
 import { createContext, useState } from "react"
 import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
 
+/**
+ * This was originally a MobX data domain store (see
+ * https://mobx.js.org/defining-data-stores.html) used to store the state of the
+ * Google Docs index page. However, this index page currently only refreshes its
+ * state on mount so keeping gdocs updated through mutations is unnecessary.
+ * Today, this store acts as CRUD proxy for requests to API endpoints.
+ */
 export class GdocsStore {
     @observable gdocs: OwidArticleType[] = []
-    @observable count: number = 0
     admin: Admin
 
     constructor(admin: Admin) {
@@ -15,25 +21,11 @@ export class GdocsStore {
     }
 
     async create(id: string) {
-        const gdoc = (await this.admin.requestJSON(
-            `/api/gdocs/${id}`,
-            {},
-            "PUT"
-        )) as OwidArticleType
-        runInAction(() => this.gdocs.push(gdoc))
+        await this.admin.requestJSON(`/api/gdocs/${id}`, {}, "PUT")
     }
 
     async update(gdoc: OwidArticleType) {
         await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
-
-        runInAction(() => {
-            const gdocToUpdateIdx = this.gdocs.findIndex(
-                (someGdoc) => someGdoc.id === gdoc.id
-            )
-            if (!gdocToUpdateIdx) return
-
-            this.gdocs.splice(gdocToUpdateIdx, 1, gdoc)
-        })
     }
 
     async publish(gdoc: OwidArticleType) {
@@ -61,15 +53,6 @@ export class GdocsStore {
     }
 
     async delete(gdoc: OwidArticleType) {
-        runInAction(() => {
-            const gdocToDeleteIdx = this.gdocs.findIndex(
-                (someGdoc) => someGdoc.id === gdoc.id
-            )
-            if (!gdocToDeleteIdx) return
-
-            this.gdocs.splice(gdocToDeleteIdx, 1)
-        })
-
         await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
         await this.admin.requestJSON(`/api/deploy`, {}, "PUT")
     }
