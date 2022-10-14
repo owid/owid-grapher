@@ -1,3 +1,4 @@
+import { SiteFooterContext } from "../clientUtils/owidTypes.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { runBlocks } from "./blocks/index.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
@@ -9,13 +10,6 @@ import { runLightbox } from "./Lightbox.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runHeaderMenus } from "./SiteHeaderMenus.js"
 import { runSiteTools } from "./SiteTools.js"
-
-export enum SiteFooterContext {
-    gdocsPreview = "gdocsPreview",
-    grapherPage = "grapherPage",
-    explorerPage = "explorerPage",
-    default = "default",
-}
 
 export const runSiteFooterScripts = (
     context: SiteFooterContext = SiteFooterContext.default

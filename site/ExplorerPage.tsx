@@ -16,6 +16,7 @@ import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import { serializeJSONForHTML } from "../clientUtils/serializers.js"
 import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
+import { SiteFooterContext } from "../clientUtils/owidTypes.js"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram
@@ -98,7 +99,10 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     <LoadingIndicator />
                 </main>
                 {wpContent && <ExplorerContent content={wpContent} />}
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter
+                    baseUrl={baseUrl}
+                    context={SiteFooterContext.explorerPage}
+                />
                 <script dangerouslySetInnerHTML={{ __html: inlineJs }} />
             </body>
         </html>
