@@ -4,6 +4,7 @@ import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { runCovid } from "./covid/index.js"
 import { runFootnotes } from "./Footnote.js"
+import { hydrateOwidArticle } from "./gdocs/OwidArticle.js"
 import { runLightbox } from "./Lightbox.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runHeaderMenus } from "./SiteHeaderMenus.js"
@@ -35,6 +36,7 @@ export const runSiteFooterScripts = (
         case SiteFooterContext.default:
             runHeaderMenus(BAKED_BASE_URL)
             runBlocks()
+            hydrateOwidArticle()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
             runLightbox()
