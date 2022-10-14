@@ -63,12 +63,12 @@ export const useAutoSaveDraft = (
 
 export const useUpdatePreviewContent = (
     id: string,
-    initialLoad: boolean,
+    gdoc: OwidArticleType | undefined,
     setGdoc: React.Dispatch<React.SetStateAction<OwidArticleType | undefined>>,
-    admin: Admin,
-    hasChanges: boolean
+    admin: Admin
 ) => {
     const [syncingError, setSyncingError] = useState(false)
+    const initialLoad = !gdoc
 
     const updatePreviewContent = useCallback(async () => {
         try {
@@ -104,7 +104,7 @@ export const useUpdatePreviewContent = (
 
     useEffect(() => {
         runSiteFooterScripts(SiteFooterContext.gdocsPreview)
-    }, [hasChanges, initialLoad])
+    }, [gdoc])
 
     // Sync content every 5 seconds
     useInterval(updatePreviewContent, 5000)
