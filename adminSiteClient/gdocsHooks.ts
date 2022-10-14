@@ -106,7 +106,7 @@ export const useUpdatePreviewContent = (
 
     useEffect(() => {
         runSiteFooterScripts(SiteFooterContext.gdocsPreview)
-    }, [hasChanges])
+    }, [hasChanges, initialLoad])
 
     // Sync content every 5 seconds
     useInterval(updatePreviewContent, 5000)
