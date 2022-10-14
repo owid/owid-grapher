@@ -42,13 +42,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const store = useGdocsStore()
 
     const hasChanges = useGdocsChanged(originalGdoc, gdoc)
-    const syncingError = useUpdatePreviewContent(
-        id,
-        !gdoc,
-        setGdoc,
-        admin,
-        hasChanges
-    )
+    const syncingError = useUpdatePreviewContent(id, gdoc, setGdoc, admin)
     const isLightningUpdate = useLightningUpdate(originalGdoc, gdoc, hasChanges)
     useAutoSaveDraft(gdoc, setOriginalGdoc, hasChanges)
 
