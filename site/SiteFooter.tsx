@@ -264,9 +264,9 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <script src={webpackUrl("owid.js", props.baseUrl)} />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `window.runSiteFooterScripts("${
-                        props.context ?? ""
-                    }")`, // todo: gotta be a better way.
+                    __html: `window.runSiteFooterScripts(${JSON.stringify(
+                        props.context
+                    )})`, // todo: gotta be a better way.
                 }}
             />
         </footer>
