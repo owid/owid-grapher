@@ -67,6 +67,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 	@make check-port-3306
 	@echo '==> Building grapher'
 	yarn install
+	npx lerna run build
 	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
@@ -88,8 +89,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 	@make check-port-3306
 
 	@echo '==> Building grapher'
-	# yarn install
-	npx lerna bootstrap
+	yarn install
+	npx lerna run build
 	yarn run tsc -b
 	yarn buildWordpressPlugin
 
