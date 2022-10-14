@@ -443,3 +443,10 @@ export enum GdocsContentSource {
     Internal = "internal",
     Gdocs = "gdocs",
 }
+
+export enum SiteFooterContext {
+    gdocsPreview = "gdocsPreview",
+    grapherPage = "grapherPage",
+    explorerPage = "explorerPage",
+    default = "default",
+}

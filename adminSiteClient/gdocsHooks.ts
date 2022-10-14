@@ -3,13 +3,11 @@ import {
     GdocsContentSource,
     OwidArticleType,
     OwidArticleTypeJSON,
+    SiteFooterContext,
 } from "../clientUtils/owidTypes.js"
 import { getArticleFromJSON } from "../clientUtils/Util.js"
 import { useDebounceCallback, useInterval } from "../site/hooks.js"
-import {
-    runSiteFooterScripts,
-    SiteFooterContext,
-} from "../site/runSiteFooterScripts.js"
+import { runSiteFooterScripts } from "../site/runSiteFooterScripts.js"
 import { Admin } from "./Admin.js"
 import { checkHasChanges, checkLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"

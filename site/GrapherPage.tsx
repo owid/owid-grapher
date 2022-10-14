@@ -8,6 +8,7 @@ import {
     PostReference,
     PostRow,
     RelatedChart,
+    SiteFooterContext,
 } from "../clientUtils/owidTypes.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
@@ -131,7 +132,10 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         </div>
                     )}
                 </main>
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter
+                    baseUrl={baseUrl}
+                    context={SiteFooterContext.grapherPage}
+                />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
         </html>
