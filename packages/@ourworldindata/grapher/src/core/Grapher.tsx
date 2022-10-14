@@ -173,15 +173,6 @@ import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand"
 import { MarkdownTextWrap } from "../text/MarkdownTextWrap"
 import { detailOnDemandRegex } from "../text/parser"
 
-// TODO: How do we manage this now? Live config?
-// import {
-//     ADMIN_BASE_URL,
-//     BAKED_GRAPHER_URL,
-// } from "../../settings/clientSettings"
-
-const ADMIN_BASE_URL = "http://localhost:3030"
-const BAKED_GRAPHER_URL = "http://localhost:3030/grapher"
-
 declare const window: any
 
 async function loadVariablesDataAdmin(
@@ -403,8 +394,8 @@ export class Grapher
     analytics = new GrapherAnalytics(this.props.env ?? "")
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-    @observable bakedGrapherURL = BAKED_GRAPHER_URL
-    adminBaseUrl = ADMIN_BASE_URL
+    @observable bakedGrapherURL = this.props.bakedGrapherURL
+    adminBaseUrl = this.props.adminBaseUrl
 
     @observable.ref inputTable: OwidTable
 
@@ -1660,7 +1651,6 @@ export class Grapher
         jsonConfig: GrapherInterface
     ): void {
         const container = document.getElementsByTagName("figure")[0]
-
         try {
             Grapher.renderGrapherIntoContainer(
                 {

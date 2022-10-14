@@ -27,6 +27,10 @@ import {
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     EXPLORER_EMBEDDED_FIGURE_SELECTOR,
 } from "../../explorer/ExplorerConstants.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_BASE_URL,
+} from "../../settings/clientSettings.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 
 const figuresFromDOM = (
@@ -168,6 +172,8 @@ class MultiEmbedder {
                     ),
                 },
                 annotation,
+                adminBaseUrl: ADMIN_BASE_URL,
+                bakedGrapherURL: BAKED_BASE_URL,
             }
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)

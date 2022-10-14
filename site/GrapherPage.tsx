@@ -15,6 +15,10 @@ import {
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import { Head } from "./Head.js"
 import { IFrameDetector } from "./IframeDetector.js"
@@ -51,7 +55,11 @@ export const GrapherPage = (props: {
     const imageWidth: string = "1200"
     const imageHeight: string = "628"
 
-    const script = `const jsonConfig = ${serializeJSONForHTML(grapher)}
+    const script = `const jsonConfig = ${serializeJSONForHTML({
+        ...grapher,
+        adminBaseUrl: ADMIN_BASE_URL,
+        bakedGrapherURL: BAKED_GRAPHER_URL,
+    })}
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
