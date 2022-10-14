@@ -1,4 +1,3 @@
-import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { runBlocks } from "./blocks/index.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
@@ -10,20 +9,40 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runHeaderMenus } from "./SiteHeaderMenus.js"
 import { runSiteTools } from "./SiteTools.js"
 
-// Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
-export const runSiteFooterScripts = () => {
-    runHeaderMenus(BAKED_BASE_URL)
-    runBlocks()
-    runLightbox()
-    runSiteTools()
-    runCookiePreferencesManager()
-    runCovid()
-    runFootnotes()
-    if (!document.querySelector(`.${GRAPHER_PAGE_BODY_CLASS}`)) {
-        MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
-        MultiEmbedderSingleton.embedAll()
-        hydrateProminentLink(MultiEmbedderSingleton.selection)
-    } else {
-        hydrateProminentLink()
+export enum SiteFooterContext {
+    gdocsPreview = "gdocsPreview",
+    grapherPage = "grapherPage",
+    explorerPage = "explorerPage",
+    default = "default",
+}
+
+export const runSiteFooterScripts = (
+    context: SiteFooterContext = SiteFooterContext.default
+) => {
+    switch (context) {
+        case SiteFooterContext.gdocsPreview:
+            runBlocks()
+            runLightbox()
+            runFootnotes()
+            MultiEmbedderSingleton.embedAll()
+            break
+        case SiteFooterContext.grapherPage:
+        case SiteFooterContext.explorerPage:
+            runHeaderMenus(BAKED_BASE_URL)
+            runSiteTools()
+            runCookiePreferencesManager()
+            break
+        case SiteFooterContext.default:
+            runHeaderMenus(BAKED_BASE_URL)
+            runBlocks()
+            MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
+            MultiEmbedderSingleton.embedAll()
+            runLightbox()
+            hydrateProminentLink(MultiEmbedderSingleton.selection)
+            runFootnotes()
+            runSiteTools()
+            runCookiePreferencesManager()
+            runCovid()
+            break
     }
 }
