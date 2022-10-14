@@ -100,9 +100,9 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                     return (
                         <Modal onClose={onClose}>
                             <GdocsAdd
-                                onAdd={(id: string) =>
-                                    history.push(`${match.path}/${id}/edit`)
-                                }
+                                onAdd={(id: string) => {
+                                    history.push(`${match.path}/${id}/preview`)
+                                }}
                             />
                         </Modal>
                     )
