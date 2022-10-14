@@ -6,6 +6,10 @@ import {
 } from "../clientUtils/owidTypes.js"
 import { getArticleFromJSON } from "../clientUtils/Util.js"
 import { useDebounceCallback, useInterval } from "../site/hooks.js"
+import {
+    runSiteFooterScripts,
+    SiteFooterContext,
+} from "../site/runSiteFooterScripts.js"
 import { Admin } from "./Admin.js"
 import { checkHasChanges, checkLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"
@@ -63,7 +67,8 @@ export const useUpdatePreviewContent = (
     id: string,
     initialLoad: boolean,
     setGdoc: React.Dispatch<React.SetStateAction<OwidArticleType | undefined>>,
-    admin: Admin
+    admin: Admin,
+    hasChanges: boolean
 ) => {
     const [syncingError, setSyncingError] = useState(false)
 
@@ -98,6 +103,10 @@ export const useUpdatePreviewContent = (
             admin.loadingIndicatorSetting = "off"
         }
     }, [admin, updatePreviewContent, initialLoad])
+
+    useEffect(() => {
+        runSiteFooterScripts(SiteFooterContext.gdocsPreview)
+    }, [hasChanges])
 
     // Sync content every 5 seconds
     useInterval(updatePreviewContent, 5000)
