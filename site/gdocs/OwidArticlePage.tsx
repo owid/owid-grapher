@@ -64,11 +64,11 @@ export default function OwidArticlePage({
                 ></script>
             </Head>
             <body>
-                <SiteHeader baseUrl={"https://ourworldindata.org"} />
+                <SiteHeader baseUrl={baseUrl} />
                 <div id="owid-article-root">
                     <OwidArticle {...article} />
                 </div>
-                <SiteFooter baseUrl={"https://ourworldindata.org"} />
+                <SiteFooter baseUrl={baseUrl} />
             </body>
         </html>
     )
