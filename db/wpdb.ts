@@ -737,7 +737,9 @@ const mapGdocsToWordpressPosts = (
             ? gdoc.content.byline
             : [gdoc.content.byline],
         excerpt: gdoc.content.excerpt,
-        imageUrl: `${BAKED_BASE_URL}/default-thumbnail.jpg`, //todo
+        imageUrl:
+            gdoc.content["featured-image"] ||
+            `${BAKED_BASE_URL}/default-thumbnail.jpg`,
     }))
 }
 
