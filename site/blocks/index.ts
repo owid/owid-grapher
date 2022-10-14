@@ -4,7 +4,6 @@ import { runExpandableInlineBlock } from "../../site/ExpandableInlineBlock.js"
 import { runDataTokens } from "../../site/runDataTokens.js"
 import { shouldProgressiveEmbed } from "../../site/multiembedder/MultiEmbedder.js"
 import { hydrateKeyInsights } from "./KeyInsights.js"
-import { hydrateOwidArticle } from "../gdocs/OwidArticle.js"
 import { hydrateStickyNav } from "./StickyNav.js"
 import { hydrateExpandableParagraphs } from "./ExpandableParagraph.js"
 import { hydrateCodeSnippets } from "./CodeSnippet.js"
@@ -22,7 +21,6 @@ export const runBlocks = () => {
     runSearchCountry()
     hydrateAdditionalInformation()
     hydrateKeyInsights()
-    hydrateOwidArticle()
     hydrateExpandableParagraphs()
     hydrateStickyNav()
     hydrateCodeSnippets()
