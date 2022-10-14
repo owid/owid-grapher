@@ -78,10 +78,10 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                         <td>{gdoc.updatedAt}</td>
                                         <td>
                                             <Link
-                                                to={`${match.path}/${gdoc.id}/edit`}
+                                                to={`${match.path}/${gdoc.id}/preview`}
                                                 className="btn btn-primary"
                                             >
-                                                Edit
+                                                Preview
                                             </Link>
                                         </td>
                                     </tr>
