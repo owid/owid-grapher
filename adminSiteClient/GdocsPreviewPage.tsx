@@ -30,6 +30,10 @@ import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { getArticleFromJSON } from "../clientUtils/Util.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
+import {
+    runSiteFooterScripts,
+    SiteFooterContext,
+} from "../site/runSiteFooterScripts.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -56,6 +60,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
         fetchOriginalGdoc()
     }, [admin, id])
+
+    useEffect(() => {
+        runSiteFooterScripts(SiteFooterContext.gdocsPreview)
+    }, [gdoc])
 
     const hasWarnings =
         errors?.some((error) => error.type === ErrorMessageType.Warning) ??
