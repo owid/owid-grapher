@@ -43,7 +43,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { BulkGrapherConfigEditorPage } from "./BulkGrapherConfigEditor.js"
 import { DetailsOnDemandPage } from "./DetailsOnDemand.js"
 import { GdocsIndexPage, GdocsMatchProps } from "./GdocsIndexPage.js"
-import { GdocsEditPage } from "./GdocsEditPage.js"
+import { GdocsPreviewPage } from "./GdocsPreviewPage.js"
 import { GdocsStoreProvider } from "./GdocsStore.js"
 
 @observer
@@ -297,10 +297,10 @@ export class AdminApp extends React.Component<{
                             />
                             <Route
                                 exact
-                                path="/gdocs/:id/edit"
+                                path="/gdocs/:id/preview"
                                 render={(props: GdocsMatchProps) => (
                                     <GdocsStoreProvider>
-                                        <GdocsEditPage {...props} />
+                                        <GdocsPreviewPage {...props} />
                                     </GdocsStoreProvider>
                                 )}
                             />

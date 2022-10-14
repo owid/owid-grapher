@@ -31,7 +31,7 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { getArticleFromJSON } from "../clientUtils/Util.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 
-export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
+export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
     const [originalGdoc, setOriginalGdoc] = useState<OwidArticleType>()
@@ -114,7 +114,11 @@ export const GdocsEditPage = ({ match, history }: GdocsMatchProps) => {
     }, [gdoc])
 
     return gdoc ? (
-        <AdminLayout title="Google Docs - Edit" noSidebar fixedNav={false}>
+        <AdminLayout
+            title={`Previewing ${gdoc.content.title}`}
+            noSidebar
+            fixedNav={false}
+        >
             <main className="GdocsEditPage">
                 <Row
                     justify="space-between"
