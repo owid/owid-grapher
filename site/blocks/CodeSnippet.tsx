@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 
 export const CodeSnippet = (props: { code: string }) => {
