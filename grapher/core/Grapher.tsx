@@ -2363,6 +2363,7 @@ export class Grapher
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions
         this.details = grapher.details
+        this.sourceDesc = grapher.sourceDesc
     }
 
     debounceMode = false
