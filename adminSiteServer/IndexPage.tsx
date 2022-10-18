@@ -40,6 +40,11 @@ export const IndexPage = (props: {
                     rel="stylesheet"
                     type="text/css"
                 />
+                <link
+                    href={webpackUrl("owid.css", "/admin")}
+                    rel="stylesheet"
+                    type="text/css"
+                />
             </head>
             <body>
                 <div id="app"></div>
