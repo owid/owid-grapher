@@ -348,7 +348,7 @@ const deleteOldGraphers = async (bakedSiteDir: string, newSlugs: string[]) => {
     }
 }
 
-const bakeAllPublishedChartsVariableDataAndMetadata = async (
+export const bakeAllPublishedChartsVariableDataAndMetadata = async (
     bakedSiteDir: string,
     variableIds: number[],
     checksumsDir: string
@@ -366,29 +366,47 @@ const bakeAllPublishedChartsVariableDataAndMetadata = async (
         }
     )
 
-    const maxWorkers = MAX_NUM_BAKE_PROCESSES
-    const poolOptions = {
-        minWorkers: 2,
-        maxWorkers: maxWorkers,
-    }
-    const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
     const jobs: BakeVariableDataArguments[] = variableIds.map((variableId) => ({
         bakedSiteDir,
         variableId,
         checksumsDir,
     }))
-    try {
+
+    if (MAX_NUM_BAKE_PROCESSES == 1) {
         await Promise.all(
-            jobs.map((job) =>
-                pool.exec("bakeVariableData", [job]).then((job) =>
-                    progressBar.tick({
-                        name: `variableid ${job.variableId}`,
-                    })
+            jobs.map(async (job) => {
+                await bakeVariableData(job)
+                progressBar.tick({ name: `variableid ${job.variableId}` })
+            })
+        )
+    } else {
+        const poolOptions = {
+            minWorkers: 2,
+            maxWorkers: MAX_NUM_BAKE_PROCESSES,
+            // using `process` instead of worker threads is necessary for DuckDB to work
+            workerType: "process",
+        } as workerpool.WorkerPoolOptions
+        const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
+        const jobs: BakeVariableDataArguments[] = variableIds.map(
+            (variableId) => ({
+                bakedSiteDir,
+                variableId,
+                checksumsDir,
+            })
+        )
+        try {
+            await Promise.all(
+                jobs.map((job) =>
+                    pool.exec("bakeVariableData", [job]).then((job) =>
+                        progressBar.tick({
+                            name: `variableid ${job.variableId}`,
+                        })
+                    )
                 )
             )
-        )
-    } finally {
-        await pool.terminate(true)
+        } finally {
+            await pool.terminate(true)
+        }
     }
 }
 
@@ -435,9 +453,12 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
         )
 
         const rows: { id: number; config: string; slug: string }[] =
-            await db.queryMysql(
-                `SELECT id, config, config->>'$.slug' as slug FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true ORDER BY JSON_EXTRACT(config, "$.slug") ASC`
-            )
+            await db.queryMysql(`
+                SELECT
+                    id, config, config->>'$.slug' as slug
+                FROM charts WHERE JSON_EXTRACT(config, "$.isPublished")=true
+                ORDER BY JSON_EXTRACT(config, "$.slug") ASC
+                `)
 
         const newSlugs = rows.map((row) => row.slug)
         await fs.mkdirp(bakedSiteDir + "/grapher")
@@ -456,26 +477,34 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
             }
         )
 
-        const maxWorkers = MAX_NUM_BAKE_PROCESSES
-        const poolOptions = {
-            minWorkers: 2,
-            maxWorkers: maxWorkers,
-        }
-        const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
-        try {
+        if (MAX_NUM_BAKE_PROCESSES == 1) {
             await Promise.all(
-                jobs.map((job) =>
-                    pool.exec("bakeSingleGrapherChart", [job]).then(() =>
-                        progressBar.tick({
-                            name: `Baked chart ${job.slug}`,
-                        })
+                jobs.map(async (job) => {
+                    await bakeSingleGrapherChart(job)
+                    progressBar.tick({ name: `slug ${job.slug}` })
+                })
+            )
+        } else {
+            const poolOptions = {
+                minWorkers: 2,
+                maxWorkers: MAX_NUM_BAKE_PROCESSES,
+            }
+            const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
+            try {
+                await Promise.all(
+                    jobs.map((job) =>
+                        pool.exec("bakeSingleGrapherChart", [job]).then(() =>
+                            progressBar.tick({
+                                name: `Baked chart ${job.slug}`,
+                            })
+                        )
                     )
                 )
-            )
-
-            await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
-        } finally {
-            await pool.terminate(true)
+            } finally {
+                await pool.terminate(true)
+            }
         }
+
+        await deleteOldGraphers(bakedSiteDir, excludeUndefined(newSlugs))
         progressBar.tick({ name: `✅ Deleted old graphers` })
     }

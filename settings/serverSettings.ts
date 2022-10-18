@@ -110,6 +110,12 @@ export const DATA_FILES_CHECKSUMS_DIRECTORY: string =
     serverSettings.DATA_FILES_CHECKSUMS_DIRECTORY ??
     `${BASE_DIR}/data_files_checksums`
 
+// Either remote catalog `https://owid-catalog.nyc3.digitaloceanspaces.com/` or local catalog `.../etl/data/`
+// Note that Cloudflare proxy on `https://catalog.ourworldindata.org` does not support range requests yet
+export const CATALOG_PATH: string =
+    serverSettings.CATALOG_PATH ??
+    "https://owid-catalog.nyc3.digitaloceanspaces.com/"
+
 export const GDOCS_PRIVATE_KEY: string = serverSettings.GDOCS_PRIVATE_KEY ?? ""
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
 export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
