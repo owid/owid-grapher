@@ -8,6 +8,7 @@ import {
     OwidArticleTypePublished,
 } from "../clientUtils/owidTypes.js"
 import { Gdoc } from "../db/model/Gdoc.js"
+import * as db from "../db/db.js"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -40,6 +41,9 @@ const bakeAndDeploy = async (
     try {
         if (lightningQueue?.length) {
             for (const change of lightningQueue) {
+                // if you know how to close the connection without making
+                // subsequent runs fail, please do.
+                await db.getConnection()
                 const gdoc = (await Gdoc.findOneByOrFail({
                     published: true,
                     slug: change.slug,
