@@ -1,5 +1,8 @@
 import React from "react"
-import { GDOCS_CLIENT_EMAIL } from "../settings/clientSettings.js"
+import {
+    GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
+    GDOCS_CLIENT_EMAIL,
+} from "../settings/clientSettings.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
 export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
@@ -27,7 +30,7 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                 <ol>
                     <li>
                         <a
-                            href="https://docs.google.com/document/d/1h0c33x3NiYKoxDsbmdEVGLK8YfuA0iqIS8q_DIxv_1k/copy?copyCollaborators=true"
+                            href={GDOCS_BASIC_ARTICLE_TEMPLATE_URL}
                             target="_blank"
                             rel="noopener"
                         >
