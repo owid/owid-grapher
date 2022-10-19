@@ -52,7 +52,6 @@ import {
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
-import { queryMysql } from "../db/db.js"
 import { Gdoc } from "../db/model/Gdoc.js"
 
 export class SiteBaker {
