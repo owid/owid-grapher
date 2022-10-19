@@ -16,7 +16,7 @@ import {
 @observer
 export class AdminLayout extends React.Component<{
     noSidebar?: boolean
-    fixedNav?: boolean
+    hasFixedNav?: boolean
     title?: string
     children: React.ReactNode
 }> {
@@ -63,15 +63,13 @@ export class AdminLayout extends React.Component<{
     render(): JSX.Element {
         const { admin } = this.context
         const { showFAQ: isFAQ, showSidebar, environmentSpan } = this
+        const classnames = ["AdminLayout"]
+
+        if (showSidebar) classnames.push("withSidebar")
+        if (this.props.hasFixedNav) classnames.push("fixedNav")
 
         return (
-            <div
-                className={
-                    "AdminLayout" +
-                    (showSidebar ? " withSidebar" : "") +
-                    (this.props.fixedNav ? " fixedNav" : "")
-                }
-            >
+            <div className={classnames.join(" ")}>
                 {isFAQ && <EditorFAQ onClose={this.onToggleFAQ} />}
                 <nav className="navbar navbar-dark bg-dark flex-row navbar-expand-lg">
                     <button
