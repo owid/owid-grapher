@@ -36,7 +36,7 @@ import {
     IndexPost,
     OwidArticleTypePublished,
 } from "../clientUtils/owidTypes.js"
-import { memoize } from "../clientUtils/Util.js"
+import { memoize, orderBy } from "../clientUtils/Util.js"
 import { Topic } from "../grapher/core/GrapherConstants.js"
 import {
     getContentGraph,
@@ -720,10 +720,11 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     )
     const publishedGdocs = await Gdoc.getPublishedGdocs()
 
-    return [
-        ...wordpressPostsCards,
-        ...mapGdocsToWordpressPosts(publishedGdocs),
-    ].sort((postA, postB) => postB.date.getTime() - postA.date.getTime())
+    return orderBy(
+        [...wordpressPostsCards, ...mapGdocsToWordpressPosts(publishedGdocs)],
+        (post) => post.date.getTime(),
+        ["desc"]
+    )
 })
 
 const mapGdocsToWordpressPosts = (
