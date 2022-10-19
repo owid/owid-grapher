@@ -1103,7 +1103,5 @@ export class Button extends React.Component<{
 }
 
 export const Help = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ fontSize: "0.8em", color: "#666", marginTop: "0.25em" }}>
-        {children}
-    </div>
+    <small className="form-text text-muted">{children}</small>
 )
