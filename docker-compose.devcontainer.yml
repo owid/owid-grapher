@@ -45,7 +45,7 @@ services:
     # Stock mysql database. Used for both grapher and wordpress databases. Root password is hardcoded for now
     db:
         image: mysql/mysql-server:latest
-        command: --default-authentication-plugin=mysql_native_password
+        command: --default-authentication-plugin=mysql_native_password  --log-bin-trust-function-creators=ON
         restart: always
         volumes:
             - mysql_data:/var/lib/mysql
