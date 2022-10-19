@@ -44,42 +44,40 @@ export const GdocsMoreMenu = ({
         })
     }
     return (
-        <>
-            <Dropdown
-                trigger={["click"]}
-                overlay={
-                    <Menu
-                        onClick={({ key }) => {
-                            switch (key) {
-                                case GdocsMoreMenuAction.Unpublish:
-                                    confirmUnpublish()
-                                    break
-                                case GdocsMoreMenuAction.Delete:
-                                    confirmDelete()
-                                    break
-                            }
-                        }}
-                        items={[
-                            {
-                                key: GdocsMoreMenuAction.Unpublish,
-                                label: "Unpublish",
-                                danger: gdoc.published,
-                                disabled: !gdoc.published,
-                            },
-                            {
-                                key: GdocsMoreMenuAction.Delete,
-                                label: "Delete",
-                                danger: true,
-                            },
-                        ]}
-                    />
-                }
-                placement="bottomRight"
-            >
-                <Button>
-                    <FontAwesomeIcon icon={faEllipsisVertical} />
-                </Button>
-            </Dropdown>
-        </>
+        <Dropdown
+            trigger={["click"]}
+            overlay={
+                <Menu
+                    onClick={({ key }) => {
+                        switch (key) {
+                            case GdocsMoreMenuAction.Unpublish:
+                                confirmUnpublish()
+                                break
+                            case GdocsMoreMenuAction.Delete:
+                                confirmDelete()
+                                break
+                        }
+                    }}
+                    items={[
+                        {
+                            key: GdocsMoreMenuAction.Unpublish,
+                            label: "Unpublish",
+                            danger: gdoc.published,
+                            disabled: !gdoc.published,
+                        },
+                        {
+                            key: GdocsMoreMenuAction.Delete,
+                            label: "Delete",
+                            danger: true,
+                        },
+                    ]}
+                />
+            }
+            placement="bottomRight"
+        >
+            <Button>
+                <FontAwesomeIcon icon={faEllipsisVertical} />
+            </Button>
+        </Dropdown>
     )
 }
