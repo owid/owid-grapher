@@ -22,7 +22,9 @@ export const openSuccessNotification = () => {
         "Document saved",
         <span>
             Your changes have been scheduled for publication.{" "}
-            <a href="/admin/deploys">Check deploy progress</a>
+            <a href="/admin/deploys" target="deploy">
+                Check deploy progress
+            </a>
         </span>
     )
 }
