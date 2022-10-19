@@ -12,6 +12,7 @@ import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants.js"
+import classNames from "classnames"
 
 @observer
 export class AdminLayout extends React.Component<{
@@ -63,13 +64,14 @@ export class AdminLayout extends React.Component<{
     render(): JSX.Element {
         const { admin } = this.context
         const { showFAQ: isFAQ, showSidebar, environmentSpan } = this
-        const classnames = ["AdminLayout"]
-
-        if (showSidebar) classnames.push("withSidebar")
-        if (this.props.hasFixedNav) classnames.push("fixedNav")
 
         return (
-            <div className={classnames.join(" ")}>
+            <div
+                className={classNames("AdminLayout", {
+                    withSidebar: showSidebar,
+                    fixedNav: this.props.hasFixedNav,
+                })}
+            >
                 {isFAQ && <EditorFAQ onClose={this.onToggleFAQ} />}
                 <nav className="navbar navbar-dark bg-dark flex-row navbar-expand-lg">
                     <button
