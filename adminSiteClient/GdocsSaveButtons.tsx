@@ -43,7 +43,7 @@ export const GdocsSaveButtons = ({
                         "Publish"
                     ) : isLightningUpdate ? (
                         <>
-                            Republish <FontAwesomeIcon icon={faBolt} />
+                            <FontAwesomeIcon icon={faBolt} /> Republish
                         </>
                     ) : (
                         "Republish"
