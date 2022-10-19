@@ -19,7 +19,7 @@ export const checkFullDeployFallback = (
  * props, then it is safe to do a lightning update.
  *
  */
-export const checkLightningUpdate = (
+export const checkIsLightningUpdate = (
     prevGdoc: OwidArticleType,
     nextGdoc: OwidArticleType,
     hasChanges: boolean

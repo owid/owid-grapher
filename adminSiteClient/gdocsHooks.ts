@@ -9,7 +9,7 @@ import { getArticleFromJSON } from "../clientUtils/Util.js"
 import { useDebounceCallback, useInterval } from "../site/hooks.js"
 import { runSiteFooterScripts } from "../site/runSiteFooterScripts.js"
 import { Admin } from "./Admin.js"
-import { checkHasChanges, checkLightningUpdate } from "./gdocsDeploy.js"
+import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
 export const useGdocsChanged = (
@@ -35,7 +35,9 @@ export const useLightningUpdate = (
 
     useEffect(() => {
         if (!prevGdoc || !nextGdoc) return
-        setLightningUpdate(checkLightningUpdate(prevGdoc, nextGdoc, hasChanges))
+        setLightningUpdate(
+            checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)
+        )
     }, [prevGdoc, nextGdoc, hasChanges])
 
     return isLightningDeploy

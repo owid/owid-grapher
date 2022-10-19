@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as lodash from "lodash"
-import { getConnection, getRepository } from "typeorm"
+import { getConnection } from "typeorm"
 import express from "express"
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
@@ -80,7 +80,7 @@ import { getErrors } from "../adminSiteClient/gdocsValidation.js"
 import {
     checkFullDeployFallback,
     checkHasChanges,
-    checkLightningUpdate,
+    checkIsLightningUpdate,
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
 
@@ -2685,7 +2685,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     await dataSource.getRepository(Gdoc).save(nextGdoc)
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
-    if (checkLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
+    if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
         await enqueueLightningChange(
             res.locals.user,
             `Lightning update ${nextGdoc.slug}`,
