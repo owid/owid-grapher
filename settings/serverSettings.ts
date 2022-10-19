@@ -116,6 +116,14 @@ export const CATALOG_PATH: string =
     serverSettings.CATALOG_PATH ??
     "https://owid-catalog.nyc3.digitaloceanspaces.com/"
 
-export const GDOCS_PRIVATE_KEY: string = serverSettings.GDOCS_PRIVATE_KEY ?? ""
+// make and bash handle spaces in env variables differently.
+// no quotes - wait-for-mysql.sh will break: "PRIVATE: command not found"
+// quotes - wait-for-mysql.sh will work, but the variable will be double-quoted in node: '"-----BEGIN PRIVATE etc..."'
+// escaped spaces - wait-for-mysql.sh will work, but the backslashes will exist in node: "-----BEGIN\ PRIVATE\ etc..."
+export const GDOCS_PRIVATE_KEY: string = (
+    serverSettings.GDOCS_PRIVATE_KEY ?? ""
+)
+    .replaceAll('"', "")
+    .replaceAll("'", "")
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
 export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
