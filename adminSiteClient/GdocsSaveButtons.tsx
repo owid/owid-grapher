@@ -20,9 +20,7 @@ export const GdocsSaveButtons = ({
     onPublish: VoidFunction
 }) => {
     const badgeProps =
-        hasChanges && published
-            ? { dot: true }
-            : hasWarnings && !hasErrors
+        hasWarnings && !hasErrors
             ? {
                   count: (
                       <FontAwesomeIcon
