@@ -55,7 +55,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
-		new-window -n lerna 'yarn startLernaWatch' \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -79,7 +79,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
-		new-window -n lerna 'yarn startLernaWatch' \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -107,7 +107,7 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
-		new-window -n lerna 'yarn startLernaWatch' \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \

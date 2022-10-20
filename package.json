@@ -24,7 +24,7 @@
         "runPostUpdateHook": "node ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node ./itsJustJavascript/adminSiteServer/app.js",
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
-        "startLernaWatch": "lerna run watch --parallel",
+        "startLernaWatcher": "node ./devTools/lernaWatcher/lerna-watcher.js",
         "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
         "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
         "startTscServer": "tsc -b -verbose -watch",
