@@ -48,7 +48,7 @@ export function OwidArticle(props: OwidArticleType) {
             {content.refs ? <Footnotes d={content.refs} /> : null}
 
             {content.citation &&
-            content.citation.some((d) => d.type === "text") ? (
+            content.citation.some((d: OwidArticleBlock) => d.type === "text") ? (
                 <div>
                     <h3>Please cite this article as:</h3>
                     <pre>
