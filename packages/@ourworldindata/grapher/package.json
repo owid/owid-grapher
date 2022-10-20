@@ -12,7 +12,8 @@
     "lib": "src"
   },
   "scripts": {
-    "build": "tsup src/index.ts"
+    "build": "tsup src/index.ts",
+    "watch": "tsup src/index.ts --watch"
   },
   "keywords": [],
   "author": "",
