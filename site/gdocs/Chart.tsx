@@ -7,8 +7,7 @@ export default function Chart({ d }: { d: OwidArticleBlock }) {
     let content
 
     const refChartContainer = useRef<HTMLDivElement>(null)
-    const [activeChartIdx, setActiveChartIdx] = useState(0)
-    useEmbedChart(activeChartIdx, refChartContainer)
+    useEmbedChart(0, refChartContainer)
 
     if (typeof d.value === "string")
         content = (

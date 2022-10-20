@@ -58,7 +58,7 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
                 </div>
             )
         } else if (_type === "chart-story") {
-            return <ChartStory key={key} slides={d.value} />
+            content = <ChartStory key={key} slides={d.value} />
         } else if (_type === "pull-quote") {
             content = <PullQuote d={d} key={key} />
         } else if (_type === "fixed-graphic") {

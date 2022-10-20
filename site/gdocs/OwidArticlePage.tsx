@@ -5,6 +5,8 @@ import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
 import { OwidArticle } from "./OwidArticle.js"
+import { get } from "lodash"
+
 import {
     OwidArticleType,
     SiteFooterContext,
@@ -33,11 +35,7 @@ export default function OwidArticlePage({
                 pageTitle={content.title}
                 pageDesc={content.subtitle}
                 canonicalUrl={canonicalUrl}
-                imageUrl={
-                    content["featured-image"]
-                        ? content["featured-image"][0].value.src
-                        : ""
-                }
+                imageUrl={get(content, ['featured-image', 0, 'value', 'src'], "")}
                 baseUrl={baseUrl}
             >
                 <CitationMeta
@@ -53,7 +51,6 @@ export default function OwidArticlePage({
                     canonicalUrl={canonicalUrl}
                 />
 
-                {/* {post.style && <style>{post.style}</style>} */}
                 <link
                     href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&amp;display=swap"
                     rel="stylesheet"
