@@ -35,7 +35,11 @@ export default function OwidArticlePage({
                 pageTitle={content.title}
                 pageDesc={content.subtitle}
                 canonicalUrl={canonicalUrl}
-                imageUrl={get(content, ['featured-image', 0, 'value', 'src'], "")}
+                imageUrl={get(
+                    content,
+                    ["featured-image", 0, "value", "src"],
+                    ""
+                )}
                 baseUrl={baseUrl}
             >
                 <CitationMeta
