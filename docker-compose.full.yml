@@ -109,7 +109,7 @@ services:
     # be built in a node container once with the ./wordpress directory mounted into the container.
     wordpress-owid-plugin-build:
         image: node:16
-        command: "yarn && yarn build"
+        command: "yarn build"
         working_dir: /app/web/app/plugins/owid
         volumes:
             - ./wordpress:/app

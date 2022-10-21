@@ -9,7 +9,7 @@ import {
     WP_ColumnStyle,
     WP_PostType,
 } from "../clientUtils/owidTypes.js"
-import { last } from "../clientUtils/Util.js"
+import { formatDate, last } from "../clientUtils/Util.js"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings.js"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
 import {
@@ -53,13 +53,6 @@ export const formatAuthors = ({
 
     return authorsText
 }
-
-export const formatDate = (date: Date) =>
-    date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "2-digit",
-    })
 
 export const splitContentIntoSectionsAndColumns = (
     cheerioEl: CheerioStatic

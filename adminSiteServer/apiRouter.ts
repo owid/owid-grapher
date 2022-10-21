@@ -20,7 +20,11 @@ import {
     GrapherInterface,
     grapherKeysToSerialize,
 } from "../grapher/core/GrapherInterface.js"
-import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
+import {
+    GdocsContentSource,
+    OwidArticleTypeJSON,
+    SuggestedChartRevisionStatus,
+} from "../clientUtils/owidTypes.js"
 import {
     GrapherConfigPatch,
     BulkGrapherConfigResponse,
@@ -35,6 +39,7 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
+import { Gdoc } from "../db/model/Gdoc.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -62,6 +67,8 @@ import {
     getTagsByPostId,
 } from "../db/model/Post.js"
 import {
+    getArticleFromJSON,
+    isEmpty,
     omit,
     parseIntOrUndefined,
     set,
@@ -69,6 +76,13 @@ import {
 } from "../clientUtils/Util.js"
 
 import { Detail } from "../grapher/core/GrapherConstants.js"
+import { getErrors } from "../adminSiteClient/gdocsValidation.js"
+import {
+    checkFullDeployFallback,
+    checkHasChanges,
+    checkIsLightningUpdate,
+} from "../adminSiteClient/gdocsDeploy.js"
+import { dataSource } from "../db/dataSource.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -86,6 +100,27 @@ const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
         authorName: user.fullName,
         authorEmail: user.email,
         message: commitMessage,
+    })
+}
+
+const enqueueLightningChange = async (
+    user: CurrentUser,
+    commitMessage: string,
+    slug: string
+) => {
+    if (!BAKE_ON_CHANGE) {
+        console.log(
+            "Not triggering static build because BAKE_ON_CHANGE is false"
+        )
+        return
+    }
+
+    return new DeployQueueServer().enqueueChange({
+        timeISOString: new Date().toISOString(),
+        authorName: user.fullName,
+        authorEmail: user.email,
+        message: commitMessage,
+        slug,
     })
 }
 
@@ -2578,6 +2613,106 @@ apiRouter.put("/details/:id", async (req, res) => {
     }
 
     return { success: true }
+})
+
+apiRouter.get("/gdocs", async () => Gdoc.find())
+
+apiRouter.get("/gdocs/:id", async (req) => {
+    const { id } = req.params
+    const contentSource = req.query.contentSource as
+        | GdocsContentSource
+        | undefined
+
+    const gdoc = await Gdoc.findOneBy({ id })
+
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    if (contentSource === GdocsContentSource.Gdocs) {
+        await gdoc.updateWithDraft()
+    }
+    return gdoc
+})
+
+apiRouter.get("/gdocs/:id/validate", async (req) => {
+    const { id } = req.params
+
+    const gdoc = await Gdoc.findOneBy({ id })
+
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    return getErrors(gdoc)
+})
+
+/**
+ * Only supports creating a new empty Gdoc or updating an existing one. Does not
+ * support creating a new Gdoc from an existing one. Relevant updates will
+ * trigger a deploy.
+ */
+apiRouter.put("/gdocs/:id", async (req, res) => {
+    const { id } = req.params
+    const nextGdocJSON: OwidArticleTypeJSON = req.body
+
+    if (isEmpty(nextGdocJSON)) {
+        const newGdoc = new Gdoc(id)
+        // this will fail if the gdoc already exists, as opposed to a call to
+        // newGdoc.save().
+        await dataSource.getRepository(Gdoc).insert(newGdoc)
+        return newGdoc
+    }
+
+    const prevGdoc = await Gdoc.findOneBy({ id })
+    if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    const nextGdoc = getArticleFromJSON(nextGdocJSON)
+
+    //todo #gdocsvalidationserver: run validation before saving published
+    //articles, in addition to the first pass performed in front-end code (see
+    //#gdocsvalidationclient)
+
+    // If the deploy fails, the article would still be considered "published".
+    // Saving the article after enqueueing the change for deploy wouldn't solve
+    // this issue since the deploy queue runs indenpendently. It would simply
+    // prevent the change to be saved in the DB in case the enqueueing fails,
+    // which is unlikely. On the other hand, reversing the order "save then
+    // enqueue" might run the risk of a race condition, by which the deploy
+    // queue picks up the deploy before the store is updated, thus re-publishing
+    // the current unmodified version.
+
+    // Neither of these scenarios is very likely (race condition or failure to
+    // enqueue), so I opted for the version that matches the closest the current
+    // baking model, which is "bake what is persisted in the DB". Ultimately, a
+    // full sucessful deploy would resolve the state discrepancy either way.
+    await dataSource.getRepository(Gdoc).save(nextGdoc)
+
+    const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
+    if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
+        await enqueueLightningChange(
+            res.locals.user,
+            `Lightning update ${nextGdoc.slug}`,
+            nextGdoc.slug
+        )
+    } else if (checkFullDeployFallback(prevGdoc, nextGdoc, hasChanges)) {
+        const action =
+            prevGdoc.published && nextGdoc.published
+                ? "Updating"
+                : !prevGdoc.published && nextGdoc.published
+                ? "Publishing"
+                : "Unpublishing"
+        await triggerStaticBuild(res.locals.user, `${action} ${nextGdoc.slug}`)
+    }
+
+    return nextGdoc
+})
+
+apiRouter.delete("/gdocs/:id", async (req, res) => {
+    const { id } = req.params
+
+    const gdoc = await Gdoc.findOneBy({ id })
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    await Gdoc.delete(id)
+    await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
+    return {}
 })
 
 export { apiRouter }

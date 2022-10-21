@@ -142,6 +142,8 @@ import {
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
+    OwidArticleType,
+    OwidArticleTypeJSON,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds.js"
@@ -1246,3 +1248,30 @@ export function moveArrayItemToIndex<Item>(
 export const getIndexableKeys = Object.keys as <T extends object>(
     obj: T
 ) => Array<keyof T>
+
+export const formatDate = (date: Date): string => {
+    return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "2-digit",
+    })
+}
+
+/**
+ *
+ * Parses a gdoc article JSON with non-primitive types (Date)
+ *
+ * Note: if dates could also be found deeper in the JSON, it could make sense to
+ * write a custom JSON parser to handle that automatically for all keys. At this
+ * stage, the manual approach is probably simpler.
+ */
+export const getArticleFromJSON = (
+    json: OwidArticleTypeJSON
+): OwidArticleType => {
+    return {
+        ...json,
+        createdAt: new Date(json.createdAt),
+        publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
+        updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
+    }
+}

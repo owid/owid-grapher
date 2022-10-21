@@ -261,18 +261,21 @@ export interface KeyInsight {
     slug: string
 }
 
-export interface FullPost {
-    id: number
-    type: WP_PostType
-    slug: string
-    path: string
+export interface IndexPost {
     title: string
+    slug: string
     date: Date
-    modifiedDate: Date
     authors: string[]
-    content: string
     excerpt?: string
     imageUrl?: string
+}
+
+export interface FullPost extends IndexPost {
+    id: number
+    type: WP_PostType
+    path: string
+    modifiedDate: Date
+    content: string
     thumbnailUrl?: string
     imageId?: number
     postId?: number
@@ -321,6 +324,7 @@ export interface DeployChange {
     authorName?: string
     authorEmail?: string
     message?: string
+    slug?: string
 }
 
 export interface Deploy {
@@ -376,4 +380,74 @@ export enum AxisAlign {
 export interface GridParameters {
     rows: number
     columns: number
+}
+
+export interface OwidArticleBlock {
+    type: string
+    value: string | any
+}
+
+export interface OwidArticleType {
+    id: string
+    slug: string
+    content: OwidArticleContent
+    published: boolean
+    createdAt: Date
+    publishedAt: Date | null
+    updatedAt: Date | null
+}
+
+// see also: getArticleFromJSON()
+export interface OwidArticleTypeJSON
+    extends Omit<OwidArticleType, "createdAt" | "publishedAt" | "updatedAt"> {
+    createdAt: string
+    publishedAt: string | null
+    updatedAt: string | null
+}
+
+/**
+ * See ../adminSiteClient/gdocsValidation/getErrors() where these existence
+ * constraints are surfaced at runtime on the draft article
+ */
+export interface OwidArticleTypePublished extends OwidArticleType {
+    publishedAt: Date
+    updatedAt: Date
+    content: OwidArticleContentPublished
+}
+
+export interface OwidArticleContent {
+    body?: OwidArticleBlock[]
+    title?: string
+    subtitle?: string
+    template?: string
+    byline?: string | string[]
+    dateline?: string
+    excerpt?: string
+    refs?: OwidArticleBlock[]
+    summary?: OwidArticleBlock[]
+    citation?: OwidArticleBlock[]
+    "cover-image"?: any
+    "featured-image"?: any
+}
+
+export interface OwidArticleContentPublished extends OwidArticleContent {
+    body: OwidArticleBlock[]
+    title: string
+    byline: string | string[]
+    excerpt: string
+}
+
+export type GdocsPatch = Partial<OwidArticleType>
+
+export enum GdocsContentSource {
+    Internal = "internal",
+    Gdocs = "gdocs",
+}
+
+export enum SiteFooterContext {
+    gdocsPreview = "gdocsPreview", // the previewed version (in the admin)
+    gdocsArticle = "gdocsArticle", // the rendered version (on the site)
+    grapherPage = "grapherPage",
+    explorerPage = "explorerPage",
+    default = "default",
 }

@@ -126,12 +126,8 @@ body {
 .AdminLayout {
     height: 100%;
 
-    padding-top: 45px;
     > nav {
         background-color: #001c3d;
-        position: fixed;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 45px;
     }
@@ -145,11 +141,21 @@ body {
     padding-left: 160px;
 }
 
+.AdminLayout.fixedNav {
+    padding-top: 45px;
+    > nav {
+        position: fixed;
+        z-index: 2;
+        top: 0;
+    }
+}
+
 .AdminSidebar {
     position: fixed;
     left: 0;
+    top: 0;
     width: 160px;
-    height: calc(100% - 45px);
+    height: 100%;
 
     overflow-y: auto;
     background: #222d32;
@@ -667,7 +673,7 @@ body {
     }
 }
 
-main:not(.ChartEditorPage) {
+main:not(.ChartEditorPage):not(.GdocsEditPage) {
     padding: 2em;
 }
 
@@ -1229,5 +1235,87 @@ main:not(.ChartEditorPage) {
         // counteract the padding of  the codemirror input
         margin: -4px;
         outline: 1px solid #cbcbcb;
+    }
+}
+
+.GdocsAddForm {
+    ol {
+        list-style-position: inside;
+        & > li {
+            margin-bottom: 1rem;
+        }
+    }
+}
+
+.GdocsEditPage,
+.GdocsSettingsForm {
+    .success {
+        color: #52c41a;
+    }
+
+    .warning {
+        color: #faad14;
+    }
+
+    .error {
+        color: #ff4d4f;
+    }
+    .muted {
+        color: rgba(0, 0, 0, 0.25);
+    }
+}
+
+.GdocsEditPage {
+    .anticon svg {
+        vertical-align: unset; // undo reboot.css
+    }
+
+    .ant-tag svg.svg-inline--fa {
+        margin-right: 0.5em;
+    }
+
+    .admin-bar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px,
+            rgba(0, 0, 0, 0.24) 0px 1px 2px;
+        background: #fff;
+        &.draft {
+            background: repeating-linear-gradient(
+                135deg,
+                #f7f7f7,
+                #f7f7f7 10px,
+                #fff 10px,
+                #fff 20px
+            );
+        }
+    }
+}
+
+.GdocsSettingsForm {
+    .edit-in-gdocs {
+        position: relative;
+
+        a {
+            background-color: rgb(24, 144, 255, 0.8);
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+
+        &:hover a {
+            opacity: 1;
+        }
     }
 }

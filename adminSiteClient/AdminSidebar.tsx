@@ -34,6 +34,9 @@ export const AdminSidebar = (): JSX.Element => (
                 <Link to="/posts">
                     <FontAwesomeIcon icon={faFile} /> Posts
                 </Link>
+                <Link to="/gdocs">
+                    <FontAwesomeIcon icon={faFile} /> Google Docs
+                </Link>
             </li>
             <li>
                 <Link to="/explorers">

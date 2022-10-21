@@ -12,15 +12,18 @@ import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants.js"
+import classNames from "classnames"
 
 @observer
 export class AdminLayout extends React.Component<{
     noSidebar?: boolean
+    hasFixedNav?: boolean
     title?: string
     children: React.ReactNode
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
+    static defaultProps = { fixedNav: true }
 
     @observable private showFAQ: boolean = false
     @observable private showSidebar: boolean = false
@@ -64,7 +67,10 @@ export class AdminLayout extends React.Component<{
 
         return (
             <div
-                className={"AdminLayout" + (showSidebar ? " withSidebar" : "")}
+                className={classNames("AdminLayout", {
+                    withSidebar: showSidebar,
+                    fixedNav: this.props.hasFixedNav,
+                })}
             >
                 {isFAQ && <EditorFAQ onClose={this.onToggleFAQ} />}
                 <nav className="navbar navbar-dark bg-dark flex-row navbar-expand-lg">

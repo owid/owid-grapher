@@ -45,3 +45,7 @@ export const RECAPTCHA_SITE_KEY: string =
 
 export const TOPICS_CONTENT_GRAPH: boolean =
     process.env.TOPICS_CONTENT_GRAPH === "true" ?? false
+
+export const GDOCS_CLIENT_EMAIL: string = process.env.GDOCS_CLIENT_EMAIL ?? ""
+export const GDOCS_BASIC_ARTICLE_TEMPLATE_URL: string =
+    process.env.GDOCS_BASIC_ARTICLE_TEMPLATE_URL ?? ""
