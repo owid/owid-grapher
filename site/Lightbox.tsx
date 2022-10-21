@@ -10,6 +10,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
 
+export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
+
 const Lightbox = ({
     children,
     containerNode,
@@ -137,7 +139,7 @@ export const runLightbox = () => {
     }
     Array.from(
         document.querySelectorAll<HTMLImageElement>(
-            ".article-content img, .lightbox-image"
+            `.article-content img, .${LIGHTBOX_IMAGE_CLASS}`
         )
     ).forEach((img) => {
         if (img.closest("[data-no-lightbox]")) return
