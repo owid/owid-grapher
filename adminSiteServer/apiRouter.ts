@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as lodash from "lodash"
-import { getConnection } from "typeorm"
+import { transaction } from "../db/db.js"
 import express from "express"
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
@@ -1353,13 +1353,13 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 
     const { email, fullName } = req.body
 
-    await getConnection().transaction(async (manager) => {
+    await transaction(async (ctx) => {
         const user = new User()
         user.email = email
         user.fullName = fullName
         user.createdAt = new Date()
         user.updatedAt = new Date()
-        await manager.getRepository(User).save(user)
+        await ctx.manager.getRepository(User).save(user)
     })
 
     return { success: true }
