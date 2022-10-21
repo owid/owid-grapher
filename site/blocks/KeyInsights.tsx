@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { ScrollMenu, VisibilityContext } from "react-horizontal-scrolling-menu"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { KeyInsight } from "@ourworldindata/utils"
 import { getWindowUrl, setWindowUrl } from "@ourworldindata/utils"

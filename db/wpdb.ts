@@ -34,6 +34,9 @@ import {
     TopicId,
     GraphType,
     memoize,
+    IndexPost,
+    OwidArticleTypePublished,
+    orderBy,
 } from "@ourworldindata/utils"
 import { Topic } from "@ourworldindata/grapher"
 import {
@@ -41,6 +44,7 @@ import {
     WPPostTypeToGraphDocumentType,
 } from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
+import { Gdoc } from "./model/Gdoc.js"
 
 let _knexInstance: Knex
 
@@ -471,7 +475,7 @@ export const getPosts = async (
 ): Promise<any[]> => {
     if (!isWordpressAPIEnabled) return []
 
-    const perPage = 50
+    const perPage = 20
     const posts: PostRestApi[] = []
 
     for (const postType of postTypes) {
@@ -705,11 +709,41 @@ export const getFullPost = async (
     glossary: postApi.meta.owid_glossary_meta_field,
 })
 
-export const getBlogIndex = memoize(async (): Promise<FullPost[]> => {
+export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     // TODO: do not get post content in the first place
-    const posts = await getPosts([WP_PostType.Post], selectHomepagePosts)
-    return Promise.all(posts.map((post) => getFullPost(post, true)))
+    const wordpressPosts = await getPosts(
+        [WP_PostType.Post],
+        selectHomepagePosts
+    )
+
+    const wordpressPostsCards = await Promise.all(
+        wordpressPosts.map((post) => getFullPost(post, true))
+    )
+    const publishedGdocs = await Gdoc.getPublishedGdocs()
+
+    return orderBy(
+        [...wordpressPostsCards, ...mapGdocsToWordpressPosts(publishedGdocs)],
+        (post) => post.date.getTime(),
+        ["desc"]
+    )
 })
+
+const mapGdocsToWordpressPosts = (
+    gdocs: OwidArticleTypePublished[]
+): IndexPost[] => {
+    return gdocs.map((gdoc) => ({
+        title: gdoc.content.title,
+        slug: gdoc.slug,
+        date: gdoc.publishedAt,
+        authors: Array.isArray(gdoc.content.byline)
+            ? gdoc.content.byline
+            : [gdoc.content.byline],
+        excerpt: gdoc.content.excerpt,
+        imageUrl:
+            gdoc.content["featured-image"] ||
+            `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+    }))
+}
 
 export const getTopics = async (cursor: string = ""): Promise<Topic[]> => {
     if (!isWordpressAPIEnabled) return []

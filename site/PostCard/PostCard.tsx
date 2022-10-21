@@ -1,11 +1,11 @@
 import React from "react"
-import { FullPost } from "@ourworldindata/utils"
-import { formatAuthors, formatDate, formatUrls } from "../formatting.js"
+import { IndexPost, formatDate } from "@ourworldindata/utils"
+import { formatAuthors, formatUrls } from "../formatting.js"
 
-const PostCard = ({ post }: { post: FullPost }) => {
+const PostCard = ({ post }: { post: IndexPost }) => {
     return (
         <article className="post-card">
-            <a href={`/${post.path}`}>
+            <a href={`/${post.slug}`}>
                 {post.imageUrl && (
                     <div
                         className="cover-image"

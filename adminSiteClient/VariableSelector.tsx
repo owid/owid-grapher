@@ -421,7 +421,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @action.bound toggleVariable(variable: Variable) {
-        if (this.chosenVariables.includes(variable)) {
+        if (this.chosenVariables.map((v) => v.id).includes(variable.id)) {
             this.unselectVariable(variable)
         } else {
             this.selectVariable(variable)

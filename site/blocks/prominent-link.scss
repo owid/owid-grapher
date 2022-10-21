@@ -1,89 +1,108 @@
 .article-content .wp-block-owid-prominent-link {
+    background-color: $blue-10;
+    transition: all 0.1s;
+    margin: 32px 0;
+
     svg {
-        width: 0.4em;
-        height: 1em;
+        // magic numbers for positioning across various variations
+        width: 0.8em;
+        height: 0.7em;
+        margin-left: 0.6em;
+        margin-top: -0.1em;
         vertical-align: middle;
-        margin-left: 0.6rem;
         transition: all 0.2s;
     }
 
-    background-color: $blue-10;
-    border: 1px solid $blue-10;
-    border-radius: 2px;
-    transition: all 0.1s;
+    img {
+        padding: 0;
+        background: none;
+    }
 
     &:hover {
-        @include block-shadow;
-        border: 1px solid $blue-40;
         svg {
-            margin-left: 0.8rem;
+            transform: translateX(0.25em);
         }
     }
 
     a {
         @include cancel-link-styles;
+        display: flex;
+        flex-wrap: wrap;
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .content-wrapper {
+        display: flex;
+    }
+
+    figure {
+        margin: 0;
+        img {
+            margin: 0;
+            box-shadow: none;
+            max-width: 128px;
+        }
     }
 
     &[data-style="is-style-default"] {
-        @include left-media-columns;
-        margin-bottom: 2rem;
         a {
-            display: block;
-            padding: $padding-x-sm;
-            @include md-up {
-                padding: $padding-x-md;
-            }
+            padding: 24px;
+        }
+
+        figure {
+            margin-right: 24px;
         }
 
         h3 {
-            @include h3-style;
+            @include h2-bold;
             margin-top: 0;
+        }
+        &.with-image {
+            h3 {
+                margin-bottom: 24px;
+            }
         }
     }
 
     &[data-style="is-style-thin"] {
-        background-color: transparent;
-        margin-bottom: $vertical-spacing;
         .content-wrapper {
-            padding: 0.5rem;
-            background-color: $blue-10;
-        }
-        .content {
-            font-size: 0.9rem;
-            font-weight: lighter;
-            line-height: 1.2;
-            *:first-child {
-                margin-top: 0;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 64px;
+            margin-left: 24px;
+            padding: 8px;
+            padding-left: 0;
+
+            .title {
+                @include h3-bold;
+                margin: 0;
             }
-            *:last-child {
-                margin-bottom: 0;
+
+            .content {
+                @include body-3-medium;
             }
-        }
-        .title {
-            margin-top: $vertical-spacing * 0.25;
-            font-weight: bold;
-            line-height: 1;
         }
 
-        &.with-image a {
-            display: flex;
-            align-items: stretch;
-            figure {
-                flex: 0 0 5rem;
-                margin: 0.5rem;
-                @include md-up {
-                    margin: 0;
-                    align-self: center;
-                }
-                img {
-                    width: 100%;
-                    margin: 0;
-                    padding: 0;
-                    box-shadow: none;
-                }
+        &.with-image {
+            a {
+                flex-wrap: nowrap;
             }
-            .content-wrapper {
-                flex: 1;
+            figure {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                outline: 1px solid $blue-10;
+                outline-offset: -1px;
+                background: $white;
+                img {
+                    max-width: 96px;
+                    min-width: 96px;
+                    object-fit: cover;
+                    height: 64px;
+                }
             }
         }
     }

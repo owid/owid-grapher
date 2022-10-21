@@ -117,6 +117,7 @@
     font-size: 0.75rem;
     line-height: 1.33;
     font-weight: 900;
+    letter-spacing: 0.1rem;
     text-transform: uppercase;
 }
 
@@ -127,7 +128,7 @@
 @mixin body-1-regular {
     font-family: $sans-serif-font-stack;
     font-size: 1.125rem;
-    line-height: 1.33;
+    line-height: 1.55;
     font-weight: 400;
 }
 

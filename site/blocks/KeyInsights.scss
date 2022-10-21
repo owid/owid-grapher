@@ -78,7 +78,6 @@ $slide-content-height: $grapher-height;
     }
 
     .thumbs {
-        border-bottom: 1px solid #efefef;
         padding-bottom: 24px;
     }
 
@@ -92,6 +91,7 @@ $slide-content-height: $grapher-height;
         transition: background-color 0.2s;
         background-color: $white;
         text-align: left;
+        line-height: 1.5;
 
         &:hover {
             cursor: pointer;

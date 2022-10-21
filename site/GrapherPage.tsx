@@ -12,6 +12,7 @@ import {
     RelatedChart,
     serializeJSONForHTML,
     uniq,
+    SiteFooterContext,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -140,7 +141,10 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         </div>
                     )}
                 </main>
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter
+                    baseUrl={baseUrl}
+                    context={SiteFooterContext.grapherPage}
+                />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
             </body>
         </html>

@@ -1,23 +1,22 @@
 import React from "react"
-import { clone } from "@ourworldindata/utils"
+import { moveArrayItemToIndex, omit } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher, EntitySelectionMode } from "@ourworldindata/grapher"
-import {
-    EditableList,
-    EditableListItem,
-    EditableListItemProps,
-    ColorBox,
-    SelectField,
-    Section,
-} from "./Forms.js"
+import { ColorBox, SelectField, Section } from "./Forms.js"
 import { ChartEditor } from "./ChartEditor.js"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "@ourworldindata/core-table"
+import {
+    DragDropContext,
+    Draggable,
+    Droppable,
+    DropResult,
+} from "react-beautiful-dnd"
 
-interface EntityItemProps extends EditableListItemProps {
+interface EntityItemProps extends React.HTMLProps<HTMLDivElement> {
     grapher: Grapher
     entityName: EntityName
     onRemove?: () => void
@@ -53,11 +52,12 @@ class EntityItem extends React.Component<EntityItemProps> {
 
     render() {
         const { props, color } = this
-        const { entityName, ...rest } = props
+        const { entityName } = props
+        const rest = omit(props, ["entityName", "onRemove", "grapher"])
 
         return (
-            <EditableListItem
-                className="EditableListItem"
+            <div
+                className="list-group-item EditableListItem"
                 key={entityName}
                 {...rest}
             >
@@ -71,7 +71,7 @@ class EntityItem extends React.Component<EntityItemProps> {
                 <div className="clickable" onClick={this.onRemove}>
                     <FontAwesomeIcon icon={faTimes} />
                 </div>
-            </EditableListItem>
+            </div>
         )
     }
 }
@@ -84,28 +84,17 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
         this.props.grapher.selection.selectEntity(entityName)
     }
 
-    @action.bound onStartDrag(key: EntityName) {
-        this.dragKey = key
+    @action.bound onDragEnd(result: DropResult) {
+        const { selection } = this.props.grapher
+        const { source, destination } = result
+        if (!destination) return
 
-        const onDrag = action(() => {
-            this.dragKey = undefined
-            window.removeEventListener("mouseup", onDrag)
-        })
-
-        window.addEventListener("mouseup", onDrag)
-    }
-
-    @action.bound onMouseEnter(targetKey: EntityName) {
-        if (!this.dragKey || targetKey === this.dragKey) return
-
-        const selectedKeys = clone(
-            this.props.grapher.selection.selectedEntityNames
+        const newSelection = moveArrayItemToIndex(
+            selection.selectedEntityNames,
+            source.index,
+            destination.index
         )
-        const dragIndex = selectedKeys.indexOf(this.dragKey)
-        const targetIndex = selectedKeys.indexOf(targetKey)
-        selectedKeys.splice(dragIndex, 1)
-        selectedKeys.splice(targetIndex, 0, this.dragKey)
-        this.props.grapher.selection.setSelectedEntities(selectedKeys)
+        selection.setSelectedEntities(newSelection)
     }
 
     render() {
@@ -122,20 +111,46 @@ export class KeysSection extends React.Component<{ grapher: Grapher }> {
                         .concat(unselectedEntityNames)
                         .map((key) => ({ value: key }))}
                 />
-                <EditableList>
-                    {selectedEntityNames.map((entityName) => (
-                        <EntityItem
-                            key={entityName}
-                            grapher={grapher}
-                            entityName={entityName}
-                            onRemove={() =>
-                                selection.deselectEntity(entityName)
-                            }
-                            onMouseDown={() => this.onStartDrag(entityName)}
-                            onMouseEnter={() => this.onMouseEnter(entityName)}
-                        />
-                    ))}
-                </EditableList>
+                <DragDropContext onDragEnd={this.onDragEnd}>
+                    <Droppable droppableId="droppable">
+                        {(provided) => (
+                            <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                            >
+                                {selectedEntityNames.map(
+                                    (entityName, index) => (
+                                        <Draggable
+                                            key={entityName}
+                                            index={index}
+                                            draggableId={entityName}
+                                        >
+                                            {(provided) => (
+                                                <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                >
+                                                    <EntityItem
+                                                        key={entityName}
+                                                        grapher={grapher}
+                                                        entityName={entityName}
+                                                        onRemove={() =>
+                                                            selection.deselectEntity(
+                                                                entityName
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                            )}
+                                        </Draggable>
+                                    )
+                                )}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </DragDropContext>
             </Section>
         )
     }

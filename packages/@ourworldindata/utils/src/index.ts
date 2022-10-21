@@ -33,6 +33,14 @@ export {
     GitCommit,
     SerializedGridProgram,
     TocHeading,
+    GdocsContentSource,
+    OwidArticleTypeJSON,
+    OwidArticleTypePublished,
+    IndexPost,
+    OwidArticleType,
+    OwidArticleContent,
+    OwidArticleBlock,
+    SiteFooterContext,
     PostRow,
     Tag,
     EntryMeta,
@@ -166,6 +174,8 @@ export {
     moveArrayItemToIndex,
     getIndexableKeys,
     retryPromise,
+    getArticleFromJSON,
+    formatDate,
 } from "./Util.js"
 
 export {

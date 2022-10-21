@@ -1099,3 +1099,7 @@ export class Button extends React.Component<{
         )
     }
 }
+
+export const Help = ({ children }: { children: React.ReactNode }) => (
+    <small className="form-text text-muted">{children}</small>
+)

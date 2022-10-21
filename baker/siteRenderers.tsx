@@ -10,6 +10,7 @@ import { CovidPage } from "../site/CovidPage.js"
 import { SearchPage } from "../site/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
+import OwidArticlePage from "../site/gdocs/OwidArticlePage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
@@ -46,6 +47,7 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
+    OwidArticleType,
     PostRow,
     WP_PostType,
     Url,
@@ -88,6 +90,7 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
+import { Gdoc } from "../db/model/Gdoc.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -138,6 +141,24 @@ export const renderChartsPage = async (
 // Only used in the dev server
 export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
+
+export const renderGdocsPageBySlug = async (
+    slug: string
+): Promise<string | undefined> => {
+    const gdoc = await Gdoc.findOneBy({ slug })
+
+    if (!gdoc) {
+        throw new Error("Failed to render an unknown GDocs post: ${slug}.")
+    }
+
+    return renderGdocsArticle(gdoc)
+}
+
+export const renderGdocsArticle = (article: OwidArticleType) => {
+    return renderToHtmlPage(
+        <OwidArticlePage baseUrl={BAKED_BASE_URL} article={article} />
+    )
+}
 
 export const renderPageBySlug = async (slug: string) => {
     const post = await getPostBySlug(slug)

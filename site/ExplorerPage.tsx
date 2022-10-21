@@ -3,7 +3,7 @@ import {
     GRAPHER_PAGE_BODY_CLASS,
     LoadingIndicator,
 } from "@ourworldindata/grapher"
-import { serializeJSONForHTML } from "@ourworldindata/utils"
+import { serializeJSONForHTML, SiteFooterContext } from "@ourworldindata/utils"
 import React from "react"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
@@ -100,7 +100,10 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     <LoadingIndicator />
                 </main>
                 {wpContent && <ExplorerContent content={wpContent} />}
-                <SiteFooter baseUrl={baseUrl} />
+                <SiteFooter
+                    baseUrl={baseUrl}
+                    context={SiteFooterContext.explorerPage}
+                />
                 <script dangerouslySetInnerHTML={{ __html: inlineJs }} />
             </body>
         </html>

@@ -17,6 +17,7 @@ describe("parseQueueContent", () => {
                 ``, // empty line will be ignored
                 `invalid json`, // invalid json will be ignored
                 `{"authorName": "Tester", "message": "something two"}`,
+                `{"authorName": "Tester", "message": "lightning deploy", "slug": "article-lightning-deploy"}`, // the presence of a slug makes the change eligible to a lightning deploy
             ].join("\n")
         )
         expect(output[0].authorName).toEqual("Tester")
@@ -25,6 +26,7 @@ describe("parseQueueContent", () => {
         )
         expect(output[1].message).toEqual("something one")
         expect(output[2].message).toEqual("something two")
+        expect(output[3].slug).toEqual("article-lightning-deploy")
     })
 })
 

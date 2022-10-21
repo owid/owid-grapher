@@ -2345,6 +2345,7 @@ export class Grapher
         this.sortOrder = grapher.sortOrder
         this.sortColumnSlug = grapher.sortColumnSlug
         this.hideRelativeToggle = grapher.hideRelativeToggle
+        this.dimensions = grapher.dimensions
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
         this.hideTitleAnnotation = grapher.hideTitleAnnotation
@@ -2352,6 +2353,7 @@ export class Grapher
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions
         this.details = grapher.details
+        this.sourceDesc = grapher.sourceDesc
     }
 
     debounceMode = false

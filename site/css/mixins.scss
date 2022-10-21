@@ -63,15 +63,9 @@
     padding-top: 0;
 }
 
-@mixin grid-2 {
+@mixin grid($columns) {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    column-gap: 24px;
-}
-
-@mixin grid-12 {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    grid-template-columns: repeat($columns, 1fr);
     column-gap: 24px;
 }
 

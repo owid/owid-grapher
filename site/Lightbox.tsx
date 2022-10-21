@@ -9,6 +9,8 @@ import React, { useEffect, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch"
 
+export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
+
 const Lightbox = ({
     children,
     containerNode,
@@ -135,7 +137,9 @@ export const runLightbox = () => {
         document.body.appendChild(lightboxContainer)
     }
     Array.from(
-        document.querySelectorAll<HTMLImageElement>(".article-content img")
+        document.querySelectorAll<HTMLImageElement>(
+            `.article-content img, .${LIGHTBOX_IMAGE_CLASS}`
+        )
     ).forEach((img) => {
         if (img.closest("[data-no-lightbox]")) return
 

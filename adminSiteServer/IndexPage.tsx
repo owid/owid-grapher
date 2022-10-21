@@ -27,7 +27,7 @@ export const IndexPage = (props: {
                 <title>owid-admin</title>
                 <meta name="description" content="" />
                 <link
-                    href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&display=swap"
+                    href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,600,700&display=swap"
                     rel="stylesheet"
                 />
                 <link
@@ -37,6 +37,11 @@ export const IndexPage = (props: {
                 />
                 <link
                     href={webpackUrl("admin.css", "/admin")}
+                    rel="stylesheet"
+                    type="text/css"
+                />
+                <link
+                    href={webpackUrl("owid.css", "/admin")}
                     rel="stylesheet"
                     type="text/css"
                 />

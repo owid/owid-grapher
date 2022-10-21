@@ -20,8 +20,8 @@ import_db(){
 
 fillGrapherDb() {
     echo "==> Refreshing grapher database"
-    _mysql -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME;" 
-    
+    _mysql -e "DROP DATABASE IF EXISTS $GRAPHER_DB_NAME;CREATE DATABASE $GRAPHER_DB_NAME;"
+
     if [ -f "${DATA_FOLDER}/owid_metadata.sql.gz" ]; then
         echo "Importing live Grapher metadata database (owid_metadata)"
         import_db $DATA_FOLDER/owid_metadata.sql.gz
@@ -30,12 +30,14 @@ fillGrapherDb() {
         return 1;
     fi
 
-    if [ -f "${DATA_FOLDER}/owid_chartdata.sql.gz" ]; then
-        echo "Importing live Grapher chartdata database (owid_chartdata)"
-        import_db $DATA_FOLDER/owid_chartdata.sql.gz
-    else
-        echo "Skipping import of owid_chartdata (owid_chartdata.sql.gz missing in ${DATA_FOLDER})"
-        # This is a legitimate use case, so execution should continue.
+    if [ ! "${SKIP_CHARTDATA}" ]; then
+        if [ -f "${DATA_FOLDER}/owid_chartdata.sql.gz" -o "${SKIP_CHARTDATA}" ]; then
+            echo "Importing live Grapher chartdata database (owid_chartdata)"
+            import_db $DATA_FOLDER/owid_chartdata.sql.gz
+        else
+            echo "Skipping import of owid_chartdata (owid_chartdata.sql.gz missing in ${DATA_FOLDER})"
+            # This is a legitimate use case, so execution should continue.
+        fi
     fi
     echo "==> ✅ Grapher DB refresh complete"
 }

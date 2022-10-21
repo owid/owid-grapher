@@ -109,3 +109,21 @@ export const CLOUDFLARE_AUD: string = serverSettings.CLOUDFLARE_AUD ?? ""
 export const DATA_FILES_CHECKSUMS_DIRECTORY: string =
     serverSettings.DATA_FILES_CHECKSUMS_DIRECTORY ??
     `${BASE_DIR}/data_files_checksums`
+
+// Either remote catalog `https://owid-catalog.nyc3.digitaloceanspaces.com/` or local catalog `.../etl/data/`
+// Note that Cloudflare proxy on `https://catalog.ourworldindata.org` does not support range requests yet
+export const CATALOG_PATH: string =
+    serverSettings.CATALOG_PATH ??
+    "https://owid-catalog.nyc3.digitaloceanspaces.com/"
+
+// make and bash handle spaces in env variables differently.
+// no quotes - wait-for-mysql.sh will break: "PRIVATE: command not found"
+// quotes - wait-for-mysql.sh will work, but the variable will be double-quoted in node: '"-----BEGIN PRIVATE etc..."'
+// escaped spaces - wait-for-mysql.sh will work, but the backslashes will exist in node: "-----BEGIN\ PRIVATE\ etc..."
+export const GDOCS_PRIVATE_KEY: string = (
+    serverSettings.GDOCS_PRIVATE_KEY ?? ""
+)
+    .replaceAll('"', "")
+    .replaceAll("'", "")
+export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
+export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""

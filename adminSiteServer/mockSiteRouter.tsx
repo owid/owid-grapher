@@ -2,6 +2,7 @@ import express, { Router } from "express"
 import * as path from "path"
 import {
     renderFrontPage,
+    renderGdocsPageBySlug,
     renderPageBySlug,
     renderChartsPage,
     renderMenuJson,
@@ -128,7 +129,9 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     res.send(await grapherSlugToHtmlPage(req.params.slug))
 })
 
-mockSiteRouter.get("/", async (req, res) => res.send(await renderFrontPage()))
+mockSiteRouter.get("/", async (req, res) => {
+    res.send(await renderFrontPage())
+})
 
 mockSiteRouter.get("/donate", async (req, res) =>
     res.send(await renderDonatePage())
@@ -219,6 +222,11 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
 
 mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")
+
+    try {
+        res.send(await renderGdocsPageBySlug(slug))
+    } catch (e) {}
+
     try {
         res.send(await renderPageBySlug(slug))
     } catch (e) {

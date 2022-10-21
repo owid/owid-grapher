@@ -27,6 +27,7 @@ import {
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
+    renderGdocsArticle,
 } from "../baker/siteRenderers.js"
 import {
     bakeGrapherUrls,
@@ -35,7 +36,11 @@ import {
 } from "../baker/GrapherBakingUtils.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
-import { countries, FullPost } from "@ourworldindata/utils"
+import {
+    countries,
+    FullPost,
+    OwidArticleTypePublished,
+} from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -50,6 +55,7 @@ import {
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
+import { Gdoc } from "../db/model/Gdoc.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -63,7 +69,7 @@ export class SiteBaker {
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                total: 15,
+                total: 16,
             }
         )
     }
@@ -124,6 +130,14 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
+    async bakeGDocPost(post: OwidArticleTypePublished) {
+        const html = renderGdocsArticle(post)
+        const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
+        await fs.mkdirp(path.dirname(outPath))
+        await this.stageWrite(outPath, html)
+    }
+
+    // Bake an individual post/page
     private async bakePost(post: FullPost) {
         const html = await renderPost(post, this.baseUrl, this.grapherExports)
 
@@ -168,6 +182,32 @@ export class SiteBaker {
     }
 
     // Bake all Wordpress posts, both blog posts and entry pages
+
+    private async removeDeletedPosts() {
+        const postsApi = await wpdb.getPosts()
+
+        const postSlugs = []
+        for (const postApi of postsApi) {
+            const post = await wpdb.getFullPost(postApi)
+            postSlugs.push(post.slug)
+        }
+
+        const gdocPosts = await Gdoc.getPublishedGdocs()
+
+        for (const post of gdocPosts) {
+            postSlugs.push(post.slug)
+        }
+
+        // Delete any previously rendered posts that aren't in the database
+        for (const slug of this.getPostSlugsToRemove(postSlugs)) {
+            const outPath = `${this.bakedSiteDir}/${slug}.html`
+            await fs.unlink(outPath)
+            this.stage(outPath, `DELETING ${outPath}`)
+        }
+
+        this.progressBar.tick({ name: "✅ removed deleted posts" })
+    }
+
     private async bakePosts() {
         const postsApi = await wpdb.getPosts()
 
@@ -182,13 +222,20 @@ export class SiteBaker {
         // Maxes out resources (TODO: RCA)
         // await Promise.all(bakingPosts.map(post => this.bakePost(post)))
 
-        // Delete any previously rendered posts that aren't in the database
-        for (const slug of this.getPostSlugsToRemove(postSlugs)) {
-            const outPath = `${this.bakedSiteDir}/${slug}.html`
-            await fs.unlink(outPath)
-            this.stage(outPath, `DELETING ${outPath}`)
-        }
         this.progressBar.tick({ name: "✅ baked posts" })
+    }
+
+    // Bake all GDoc posts
+    async bakeGDocPosts() {
+        const posts = await Gdoc.getPublishedGdocs()
+
+        const postSlugs = []
+        for (const post of posts) {
+            postSlugs.push(post.slug)
+            await this.bakeGDocPost(post)
+        }
+
+        this.progressBar.tick({ name: "✅ baked google doc posts" })
     }
 
     // Bake unique individual pages
@@ -354,8 +401,10 @@ export class SiteBaker {
     async bakeAll() {
         // Ensure caches are correctly initialized
         this.flushCache()
+        await this.removeDeletedPosts()
         await this.bakeWordpressPages()
         await this._bakeNonWordpressPages()
+        await this.bakeGDocPosts()
         this.flushCache()
     }
 
