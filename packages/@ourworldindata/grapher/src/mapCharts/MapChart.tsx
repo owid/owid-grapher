@@ -718,7 +718,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
     } {
         const viewports = {
             World: { x: 0.565, y: 0.5, width: 1, height: 1 },
-            Europe: { x: 0.5, y: 0.22, width: 0.2, height: 0.2 },
+            Europe: { x: 0.53, y: 0.22, width: 0.2, height: 0.2 },
             Africa: { x: 0.49, y: 0.7, width: 0.21, height: 0.38 },
             NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
             SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },

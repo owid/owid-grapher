@@ -141,7 +141,8 @@ export async function getVariableData(
     const row = await variableQuery
     if (row === undefined) throw new Error(`Variable ${variableId} not found`)
 
-    const parquetDataExists = row.catalogPath && row.shortName
+    // use parquet only if CATALOG_PATH env var is set and we have path to catalog in MySQL
+    const parquetDataExists = row.catalogPath && row.shortName && CATALOG_PATH
 
     const results = parquetDataExists
         ? await readValuesFromParquet(variableId, row)
