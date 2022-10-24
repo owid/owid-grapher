@@ -13,6 +13,7 @@
   },
   "scripts": {
     "build": "tsup src/index.ts",
+    "buildTests": "tsc -p tsconfig.test.json",
     "watch": "tsup src/index.ts --watch"
   },
   "keywords": [],
