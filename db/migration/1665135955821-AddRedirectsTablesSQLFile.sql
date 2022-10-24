@@ -1,3 +1,7 @@
+-- This file is the SQL only content of the TypeORM migration of the same name.
+-- It exists for review purposes etc and is not intended to be run directly (although
+-- you can of course run fragments of this file against our MySQL database if you like)
+
 -- ----------------------------------------------
 -- TABLES
 -- table for manual bulk redirects, for example /app/uploads/* -> /uploads/:splat
