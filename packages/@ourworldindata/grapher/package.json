@@ -76,5 +76,5 @@
     "typescript": "~4.8.2",
     "url-parse": "^1.5.10"
   },
-  "license": "ISC"
+  "license": "MIT"
 }

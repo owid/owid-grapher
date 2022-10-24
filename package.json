@@ -267,5 +267,6 @@
     "workspaces": [
         "packages/@ourworldindata/*",
         "."
-    ]
+    ],
+    "license": "MIT"
 }
