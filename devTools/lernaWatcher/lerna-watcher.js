@@ -7,25 +7,22 @@
  *
  * Hopefully lerna will add the ability to pipe stdout in parallel mode soon :~)
  */
-const fs = require("fs")
+const chokidar = require("chokidar")
 const path = require("path")
-const debounce = require("lodash/debounce.js")
 const { execSync } = require("child_process")
-
-const packageDirectory = path.join(__dirname, "../../packages/@ourworldindata")
 
 console.log("watching packages/@ourworldindata")
 
-fs.watch(
-    packageDirectory,
-    { recursive: true },
-    debounce((_, filename) => {
-        if (filename.includes("/src/")) {
-            try {
-                execSync("npx lerna run build", { stdio: "inherit" })
-            } catch (e) {
-                console.log(e)
-            }
-        }
-    }, 1000)
-)
+function execLernaBuild() {
+    try {
+        execSync("npx lerna run build", { stdio: "inherit" })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+chokidar
+    .watch(path.join(__dirname, "../../packages/@ourworldindata/*/src/**"), {
+        persistent: true,
+    })
+    .on("change", execLernaBuild)
