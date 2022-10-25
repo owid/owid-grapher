@@ -229,6 +229,12 @@ yarn testPrettierAll`
             restartAdminServer: `pm2 restart ${target}`,
             stopDeployQueueServer: `pm2 stop ${target}-deploy-queue`,
             bakeSiteOnStagingServer: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
+            syncBakedDataToS3: `cd ${finalTargetDir} && aws --endpoint=https://nyc3.digitaloceanspaces.com s3 sync bakedSite/grapher s3://owid-catalog/bake/${target}/grapher --acl public-read`,
+            pruneBakedVariables: `cd ${finalTargetDir} && rm -rf bakedSite/grapher/data/variables/`,
+            pruneBakedExports: `cd ${finalTargetDir} && rm -rf bakedSite/grapher/exports/`,
+            // TODO: this hasn't been tested
+            redirectVariables: `cd ${finalTargetDir} && echo "" >> bakedSite/_redirects && echo "/grapher/data/* https://catalog.ourworldindata.org/bake/${target}/grapher/data/:splat 301" >> bakedSite/_redirects`,
+            redirectExports: `cd ${finalTargetDir} && echo "/grapher/exports/* https://catalog.ourworldindata.org/bake/${target}/grapher/exports/:splat 301" >> bakedSite/_redirects`,
             deployToNetlify: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
             restartQueue: `pm2 start ${target}-deploy-queue`,
         }
