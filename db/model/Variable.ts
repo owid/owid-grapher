@@ -92,8 +92,6 @@ const initDuckDB = (): any => {
     return ddb
 }
 
-const ddb = initDuckDB()
-
 export function parseVariableRows(
     plainRows: UnparsedVariableRow[]
 ): VariableRow[] {
@@ -495,6 +493,9 @@ export const fetchEntities = async (
 }
 
 export const executeSQL = async (sql: string): Promise<any[]> => {
+    // DuckDB must be initialized in a process, copying DB object from the parent process
+    // gives random segfaults. It is not a problem though, as the initialization is fast (~few ms)
+    const ddb = initDuckDB()
     const con = ddb.connect()
     try {
         return util.promisify(con.all).bind(con)(sql)
