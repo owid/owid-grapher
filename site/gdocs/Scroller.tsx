@@ -1,10 +1,10 @@
 import React, { useState, useRef } from "react"
 import { InView } from "react-intersection-observer"
-import { OwidArticleBlock } from "@ourworldindata/utils"
+import { BlockScroller, OwidArticleBlock } from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../hooks.js"
 
-export default function Scroller({ d }: any) {
+export default function Scroller({ d }: { d: BlockScroller }) {
     let lastUrl: string
     const figureURLs = d.value.reduce(
         (memo: string[], { type, value }: OwidArticleBlock) => {
@@ -32,7 +32,9 @@ export default function Scroller({ d }: any) {
                 <div className={"stickyFigure"} ref={refChartContainer}>
                     <figure
                         // Use unique `key` to force React to re-render tree
-                        key={figureSrc}
+                        // TODO: this as any cast should be removed - we don't know
+                        // that figureSrc is going to be a string
+                        key={figureSrc as any}
                         data-grapher-src={figureSrc}
                         style={{
                             width: "100%",

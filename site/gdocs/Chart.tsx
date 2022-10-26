@@ -1,10 +1,10 @@
 import React from "react"
 import { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
-import { OwidArticleBlock } from "@ourworldindata/utils"
+import { BlockChart } from "@ourworldindata/utils"
 
-export default function Chart({ d }: { d: OwidArticleBlock }) {
-    let content
+export default function Chart({ d }: { d: BlockChart }) {
+    let content: JSX.Element
 
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)

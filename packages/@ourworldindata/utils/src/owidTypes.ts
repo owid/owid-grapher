@@ -382,10 +382,107 @@ export interface GridParameters {
     columns: number
 }
 
-export interface OwidArticleBlock {
-    type: string
-    value: string | any
+export interface BlockAsideValue {
+    position: string
+    caption: string
 }
+
+export interface BlockAside {
+    type: "aside"
+    value: BlockAsideValue
+}
+
+export interface BlockChartValue {
+    url: string
+    height?: string
+    row: string
+    column: string
+    // TODO: position is used as a classname apparently? Should be renamed or split
+    position?: string
+    caption?: string
+}
+export interface BlockChart {
+    type: "chart"
+    value: BlockChartValue | string
+}
+
+export interface BlockScroller {
+    type: "scroller"
+    value: OwidArticleBlock[]
+}
+
+export interface ChartStorySlide {
+    narrative: string
+    chart: string
+    technical?: string[]
+}
+
+export interface ChartStoryValue {
+    slides: ChartStorySlide[]
+}
+
+export interface BlockChartStory {
+    type: "chart-story"
+    value: ChartStoryValue
+}
+export interface BlockFixedGraphic {
+    type: "fixed-graphic"
+    value: OwidArticleBlock[]
+}
+export interface BlockImageValue {
+    src: string
+}
+export interface BlockImage {
+    type: "image"
+    value: BlockImageValue
+}
+export interface BlockList {
+    type: "list"
+    value: string[]
+}
+export interface BlockPullQuote {
+    type: "pull-quote"
+    value: string[]
+}
+export interface RecircItem {
+    article: string
+    author: string
+    url: string
+}
+
+export interface BlockRecircValue {
+    title: string
+    list: RecircItem[]
+}
+export interface BlockRecirc {
+    type: "recirc"
+    value: BlockRecircValue[]
+}
+export interface BlockText {
+    type: "text"
+    value: string
+}
+export interface BlockUrl {
+    type: "url"
+    value: string
+}
+export interface BlockPosition {
+    type: "position"
+    value: string
+}
+export type OwidArticleBlock =
+    | BlockAside
+    | BlockChart
+    | BlockScroller
+    | BlockChartStory
+    | BlockFixedGraphic
+    | BlockImage
+    | BlockList
+    | BlockPullQuote
+    | BlockRecirc
+    | BlockText
+    | BlockUrl // do we want this here? It's used inside Scroller only atm
+    | BlockPosition
 
 export interface OwidArticleType {
     id: string

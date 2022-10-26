@@ -1,11 +1,15 @@
 import React from "react"
 import ArticleBlock from "./ArticleBlock"
-import { OwidArticleBlock } from "@ourworldindata/utils"
+import {
+    OwidArticleBlock,
+    BlockFixedGraphic,
+    BlockPosition,
+} from "@ourworldindata/utils"
 
-export default function FixedSection({ d }: { d: OwidArticleBlock }) {
-    const position = d.value.find(
-        (_d: OwidArticleBlock) => _d.type === "position"
-    )
+export default function FixedSection({ d }: { d: BlockFixedGraphic }) {
+    const position: BlockPosition | undefined = d.value.find(
+        (_d) => _d.type === "position"
+    ) as BlockPosition | undefined
     return (
         <section className={`fixedSection ${position ? position.value : ""}`}>
             <div className={"fixedSectionGraphic"}>
@@ -13,10 +17,11 @@ export default function FixedSection({ d }: { d: OwidArticleBlock }) {
                     .filter(
                         (_d: OwidArticleBlock) =>
                             !["text", "position"].includes(_d.type) ||
-                            _d.value.startsWith("<img src=")
+                            (_d.type === "text" &&
+                                _d.value.startsWith("<img src="))
                     )
                     .map((_d: OwidArticleBlock, j: number) => {
-                        return <ArticleBlock key={j} d={_d} />
+                        return <ArticleBlock key={j} b={_d} />
                     })}
             </div>
             <div className={"fixedSectionContent"}>
@@ -27,7 +32,7 @@ export default function FixedSection({ d }: { d: OwidArticleBlock }) {
                             !_d.value.startsWith("<img src=")
                     )
                     .map((_d: OwidArticleBlock, j: number) => {
-                        return <ArticleBlock key={j} d={_d} />
+                        return <ArticleBlock key={j} b={_d} />
                     })}
             </div>
         </section>
