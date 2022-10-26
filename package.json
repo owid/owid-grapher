@@ -182,6 +182,7 @@
         "react-codemirror2": "^7.2.1",
         "react-color": "^2.18.1",
         "react-dom": "^16.14.0",
+        "react-error-boundary": "^3.1.4",
         "react-flip-toolkit": "^7.0.9",
         "react-horizontal-scrolling-menu": "^2.7.1",
         "react-intersection-observer": "^9.4.0",
