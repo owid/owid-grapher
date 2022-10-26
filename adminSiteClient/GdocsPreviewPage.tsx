@@ -194,6 +194,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             </IconBadge>
                             <GdocsMoreMenu
                                 gdoc={gdoc}
+                                onDebug={() => setDiffOpen(true)}
                                 onUnpublish={doUnpublish}
                                 onDelete={onDelete}
                             />
