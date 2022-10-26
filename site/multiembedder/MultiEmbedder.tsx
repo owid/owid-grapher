@@ -141,6 +141,8 @@ class MultiEmbedder {
         const common: GrapherProgrammaticInterface = {
             isEmbeddedInAnOwidPage: true,
             queryStr,
+            adminBaseUrl: ADMIN_BASE_URL,
+            bakedGrapherURL: BAKED_BASE_URL,
         }
 
         const html = await fetchText(fullUrl)
@@ -172,8 +174,6 @@ class MultiEmbedder {
                     ),
                 },
                 annotation,
-                adminBaseUrl: ADMIN_BASE_URL,
-                bakedGrapherURL: BAKED_BASE_URL,
             }
             if (config.manager?.selection)
                 this.graphersAndExplorersToUpdate.add(config.manager.selection)
