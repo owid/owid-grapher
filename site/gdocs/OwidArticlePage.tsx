@@ -70,7 +70,7 @@ export default function OwidArticlePage({
             <body>
                 <SiteHeader baseUrl={baseUrl} />
                 <div id="owid-article-root">
-                    <OwidArticle {...article} />
+                    <OwidArticle article={article} isPreviewing={false} />
                 </div>
                 <SiteFooter
                     baseUrl={baseUrl}

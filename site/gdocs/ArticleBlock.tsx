@@ -74,22 +74,28 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
         return content
     }
 
-    if (d.type === "text") {
-        if (d.value.trim() === "") {
-            return null
+    try {
+        if (d.type === "text") {
+            if (d.value.trim() === "") {
+                return null
+            }
+            return (
+                <div
+                    dangerouslySetInnerHTML={{
+                        __html:
+                            d.value.startsWith("<div") ||
+                            d.value.trim() === "<hr />"
+                                ? d.value.replace(/\\:/g, ":")
+                                : `<p>${d.value.replace(/\\:/g, ":")}</p>`,
+                    }}
+                />
+            )
+        } else {
+            return handleArchie(d, "")
         }
-        return (
-            <div
-                dangerouslySetInnerHTML={{
-                    __html:
-                        d.value.startsWith("<div") ||
-                        d.value.trim() === "<hr />"
-                            ? d.value.replace(/\\:/g, ":")
-                            : `<p>${d.value.replace(/\\:/g, ":")}</p>`,
-                }}
-            />
-        )
-    } else {
-        return handleArchie(d, "")
+    } catch (e) {
+        console.error("got an error")
+        console.log(e)
+        return null
     }
 }

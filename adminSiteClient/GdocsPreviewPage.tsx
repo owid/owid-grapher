@@ -222,7 +222,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     />
                 </Drawer>
 
-                <OwidArticle {...gdoc} />
+                <OwidArticle article={gdoc} isPreviewing={true} />
             </main>
         </AdminLayout>
     ) : null
