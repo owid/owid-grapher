@@ -29,7 +29,7 @@ import {
 } from "../../explorer/ExplorerConstants.js"
 import {
     ADMIN_BASE_URL,
-    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 
@@ -142,7 +142,7 @@ class MultiEmbedder {
             isEmbeddedInAnOwidPage: true,
             queryStr,
             adminBaseUrl: ADMIN_BASE_URL,
-            bakedGrapherURL: BAKED_BASE_URL,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
         }
 
         const html = await fetchText(fullUrl)
