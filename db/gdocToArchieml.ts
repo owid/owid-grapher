@@ -3,7 +3,7 @@
 
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
-import { OwidArticleContent } from "@ourworldindata/utils"
+import { OwidArticleBlock, OwidArticleContent } from "@ourworldindata/utils"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
@@ -11,6 +11,11 @@ export interface DocToArchieMLOptions {
     client?: docs_v1.Docs
     google?: GoogleApis
     imageHandler?: any
+}
+
+interface ElementMemo {
+    isInList: boolean
+    body: OwidArticleBlock[]
 }
 
 export const gdocToArchieML = async ({
@@ -51,14 +56,14 @@ export const gdocToArchieML = async ({
 
     // Parse lists and include lowercase vals
     parsed.body = parsed.body.reduce(
-        (memo: any, d: any) => {
+        (memo: ElementMemo, d: OwidArticleBlock) => {
             Object.keys(d).forEach((k) => {
-                d[k.toLowerCase()] = d[k]
+                ;(d as any)[k.toLowerCase()] = (d as any)[k]
             })
 
             if (d.type === "text" && d.value.startsWith("* ")) {
                 if (memo.isInList) {
-                    memo.body[memo.body.length - 1].value.push(
+                    ;(memo.body[memo.body.length - 1].value as any).push(
                         d.value.replace("* ", "").trim()
                     )
                 } else {
@@ -86,7 +91,10 @@ export const gdocToArchieML = async ({
     return parsed
 }
 
-async function readElements(document: any, imageHandler: any): Promise<any> {
+async function readElements(
+    document: docs_v1.Schema$Document,
+    imageHandler: any
+): Promise<any> {
     // prepare the text holder
     let text = ""
 
@@ -110,10 +118,9 @@ async function readElements(document: any, imageHandler: any): Promise<any> {
 
                 let idx = 0
 
-                const taggedText = (text: string): string => {
+                const taggedText = function (text: string) {
                     if (
-                        paragraph.paragraphStyle &&
-                        paragraph.paragraphStyle.namedStyleType.includes(
+                        paragraph.paragraphStyle?.namedStyleType?.includes(
                             "HEADING"
                         )
                     ) {
@@ -122,7 +129,11 @@ async function readElements(document: any, imageHandler: any): Promise<any> {
                                 "HEADING_",
                                 ""
                             )
-                        return `<h${headingLevel}>${text.trim()}</h${headingLevel}>\n`
+                        return `
+{.header}
+text: ${text.trim()}
+level: ${headingLevel}
+{}`
                     }
                     return text
                 }

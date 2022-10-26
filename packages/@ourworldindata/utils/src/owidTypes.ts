@@ -470,6 +470,15 @@ export interface BlockPosition {
     type: "position"
     value: string
 }
+
+export interface BlockHeaderValue {
+    text: string
+    level: string
+}
+export interface BlockHeader {
+    type: "header"
+    value: BlockHeaderValue
+}
 export type OwidArticleBlock =
     | BlockAside
     | BlockChart
@@ -483,6 +492,7 @@ export type OwidArticleBlock =
     | BlockText
     | BlockUrl // do we want this here? It's used inside Scroller only atm
     | BlockPosition
+    | BlockHeader
 
 export interface OwidArticleType {
     id: string

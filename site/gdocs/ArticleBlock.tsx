@@ -68,6 +68,22 @@ export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
             .with({ type: "position" }, (block) => (
                 <a href={block.value}>{block.value}</a>
             ))
+            .with({ type: "header", value: { level: "1" } }, (block) => (
+                <h1>{block.value.text}</h1>
+            ))
+            .with({ type: "header", value: { level: "2" } }, (block) => (
+                <h2>{block.value.text}</h2>
+            ))
+            .with({ type: "header", value: { level: "3" } }, (block) => (
+                <h3>{block.value.text}</h3>
+            ))
+            .with({ type: "header" }, (block) => (
+                // Should throw in the future but for now just for debugging
+                <h3>
+                    invalid header level - {block.value.text} -{" "}
+                    {block.value.level}
+                </h3>
+            ))
             .exhaustive()
 
         // if (_type === "chart-grid") {
