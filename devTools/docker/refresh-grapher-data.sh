@@ -9,6 +9,7 @@ set -o nounset
 : "${GRAPHER_DB_HOST:?Need to set GRAPHER_DB_HOST non-empty}"
 : "${GRAPHER_DB_PORT:?Need to set GRAPHER_DB_PORT non-empty}"
 : "${DATA_FOLDER:?Need to set DATA_FOLDER non-empty}"
+SHOULD_SKIP_CHARTDATA="${SKIP_CHARTDATA:-}"
 
 _mysql() {
     mysql --default-character-set=utf8mb4 -h"$GRAPHER_DB_HOST" -u"$GRAPHER_DB_USER" -p"$GRAPHER_DB_PASS" -P "${GRAPHER_DB_PORT}" "$@"
@@ -30,8 +31,8 @@ fillGrapherDb() {
         return 1;
     fi
 
-    if [ ! "${SKIP_CHARTDATA}" ]; then
-        if [ -f "${DATA_FOLDER}/owid_chartdata.sql.gz" -o "${SKIP_CHARTDATA}" ]; then
+    if [ ! "${SHOULD_SKIP_CHARTDATA}" ]; then
+        if [ -f "${DATA_FOLDER}/owid_chartdata.sql.gz" -o "${SHOULD_SKIP_CHARTDATA}" ]; then
             echo "Importing live Grapher chartdata database (owid_chartdata)"
             import_db $DATA_FOLDER/owid_chartdata.sql.gz
         else
