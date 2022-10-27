@@ -1,3 +1,9 @@
 .owidArticle .sdg-grid {
-    @include grid(6);
+    @include grid(12);
+    // Centering last row
+    &:before {
+        content: "";
+        grid-column: 1 / 2;
+        grid-row: 3;
+    }
 }

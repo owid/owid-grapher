@@ -58,6 +58,7 @@ const SDGTile = ({
         height: "193px", // todo
         textAlign: "center",
         padding: "0 20px",
+        gridColumn: "span 2",
     } as React.CSSProperties
 
     const styleNumber = {
