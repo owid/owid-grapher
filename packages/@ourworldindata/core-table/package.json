@@ -8,7 +8,7 @@
   },
   "types": "dist",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf ./dist && tsc --build",
     "watch": "tsc --watch"
   },
   "keywords": [],
