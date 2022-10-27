@@ -3,18 +3,23 @@ import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
 
 export default function SDGGrid({ d }: { d: OwidArticleBlock }) {
     return (
-        <ul className="sdg-grid">
-            {d.value.map((tile: { goal: string; link: string }, i: number) => {
-                return (
-                    <SDGTile
-                        key={i}
-                        number={i + 1}
-                        goal={tile.goal}
-                        link={tile.link}
-                    />
-                )
-            })}
-        </ul>
+        <div className="sdg-grid">
+            <h2>The 17 goals</h2>
+            <ul>
+                {d.value.map(
+                    (tile: { goal: string; link: string }, i: number) => {
+                        return (
+                            <SDGTile
+                                key={i}
+                                number={i + 1}
+                                goal={tile.goal}
+                                link={tile.link}
+                            />
+                        )
+                    }
+                )}
+            </ul>
+        </div>
     )
 }
 
