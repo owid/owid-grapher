@@ -21,6 +21,10 @@ import { getVariableData } from "../../db/model/Variable.js"
 import { GrapherInterface } from "@ourworldindata/grapher"
 import _ from "lodash"
 import * as util from "util"
+import {
+    BAKED_GRAPHER_URL,
+    BAKED_BASE_URL,
+} from "../../settings/serverSettings.js"
 
 export const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
@@ -263,7 +267,11 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     // they keep a stateful variable in clientutils. To minimize differences
     // between consecutive runs we reset this id here before every export
     TESTING_ONLY_reset_guid()
-    const grapher = initGrapherForSvgExport(configAndData.config)
+    const grapher = initGrapherForSvgExport({
+        ...configAndData.config,
+        adminBaseUrl: BAKED_BASE_URL,
+        bakedGrapherURL: BAKED_GRAPHER_URL,
+    })
     const { width, height } = grapher.idealBounds
     const outFilename = buildSvgOutFilename(
         configAndData.config.slug!,

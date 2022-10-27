@@ -1,4 +1,8 @@
-import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherInterface,
+    GrapherProgrammaticInterface,
+} from "@ourworldindata/grapher"
 import { MultipleOwidVariableDataDimensionsMap } from "@ourworldindata/utils"
 import * as fs from "fs-extra"
 import * as path from "path"
@@ -115,7 +119,7 @@ export async function bakeGrapherToSvg(
 }
 
 export function initGrapherForSvgExport(
-    jsonConfig: GrapherInterface,
+    jsonConfig: GrapherProgrammaticInterface,
     queryStr: string = ""
 ) {
     const grapher = new Grapher({
