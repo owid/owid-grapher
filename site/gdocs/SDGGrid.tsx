@@ -22,10 +22,8 @@ const sdgColors = [
 ]
 
 export default function SDGGrid({ d }: { d: OwidArticleBlock }) {
-    const styleGrid = { gridColumn: "2 / 14", rowGap: "var(--grid-gap)" }
-
     return (
-        <ul className="sdg-grid" style={styleGrid}>
+        <ul className="sdg-grid">
             {d.value.map((tile: { goal: string }, i: number) => {
                 return (
                     <SDGTile
@@ -58,7 +56,6 @@ const SDGTile = ({
         height: "193px", // todo
         textAlign: "center",
         padding: "0 20px",
-        gridColumn: "span 2",
     } as React.CSSProperties
 
     const styleNumber = {
