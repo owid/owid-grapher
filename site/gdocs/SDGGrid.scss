@@ -1,6 +1,39 @@
 .owidArticle .sdg-grid {
     // todo: responsive
 
+    .tile {
+        list-style-type: none;
+        a {
+            display: flex;
+            flex-direction: column;
+            height: 193px; // todo
+            text-align: center;
+            padding: 0 20px;
+            border: 2px solid var(--sdg-color);
+            text-decoration: none;
+            color: $blue-100;
+            &:hover {
+                background-color: var(--sdg-color);
+                color: $white;
+
+                .number {
+                    text-decoration-color: $white;
+                }
+            }
+        }
+
+        .number {
+            display: inline-block;
+            margin: 0;
+            text-decoration: underline 2px solid $blue-20;
+            text-underline-offset: 24px;
+        }
+
+        .goal {
+            margin: auto;
+        }
+    }
+
     @include lg-up {
         @include grid(12);
         row-gap: $grid-gap;
@@ -12,7 +45,7 @@
             grid-column: 1 / 2;
             grid-row: 3;
         }
-        .sdg-grid--tile {
+        .tile {
             grid-column: span 2;
         }
     }
