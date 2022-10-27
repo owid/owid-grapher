@@ -15,7 +15,7 @@ console.log("watching packages/@ourworldindata")
 
 function execLernaBuild() {
     try {
-        execSync("npx lerna run build", { stdio: "inherit" })
+        execSync("yarn lerna run build", { stdio: "inherit" })
     } catch (e) {
         console.log(e)
     }

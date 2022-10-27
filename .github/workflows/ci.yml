@@ -19,7 +19,7 @@ jobs:
               run: yarn buildTsc
 
             - name: Run tsc buildTests
-              run: npx lerna run buildTests
+              run: yarn lerna run buildTests
 
             - name: Run jest
               run: yarn testJest
