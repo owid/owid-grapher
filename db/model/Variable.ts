@@ -23,7 +23,6 @@ import {
 import { OwidSource } from "../../clientUtils/OwidSource.js"
 import { CATALOG_PATH } from "../../settings/serverSettings.js"
 import * as util from "util"
-const duckdb = require("duckdb")
 
 export interface VariableRow {
     id: number
@@ -86,6 +85,8 @@ export type Field = keyof VariableRow
 export const variableTable = "variables"
 
 const initDuckDB = (): any => {
+    // require on top level could cause segfaults in combination with workerpool
+    const duckdb = require("duckdb")
     const ddb = new duckdb.Database(":memory:")
     ddb.exec("INSTALL httpfs;")
     ddb.exec("LOAD httpfs;")
