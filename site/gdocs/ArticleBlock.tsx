@@ -9,6 +9,7 @@ import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
 import { OwidArticleBlock } from "@ourworldindata/utils"
+import SDGGrid from "./SDGGrid.js"
 
 export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {
@@ -69,6 +70,8 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
             content = <List d={d} key={key} />
         } else if (_type === "image") {
             content = <Image d={d} key={key} />
+        } else if (_type === "sdg-grid") {
+            content = <SDGGrid d={d} key={key} />
         }
 
         return content
