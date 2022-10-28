@@ -120,7 +120,6 @@
         "css-loader": "^6.7.1",
         "css-minimizer-webpack-plugin": "^4.1.0",
         "d3": "^6.1.1",
-        "d3-geo-projection": "^3.0.0",
         "dayjs": "^1.11.5",
         "decko": "^1.2.0",
         "dotenv": "^16.0.1",

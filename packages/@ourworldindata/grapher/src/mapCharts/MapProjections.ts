@@ -4,7 +4,8 @@ import {
     geoAzimuthalEqualArea,
     GeoPath,
 } from "d3-geo"
-import { geoRobinson, geoPatterson } from "d3-geo-projection"
+
+import { geoRobinson, geoPatterson } from "./d3-geo-projection.js"
 
 // https://github.com/d3/d3-geo-projection/issues/202
 // todo: would be nice to get propert types for this and not have to run different code during testing
