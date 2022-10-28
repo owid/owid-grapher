@@ -384,6 +384,60 @@ export interface GridParameters {
     columns: number
 }
 
+export interface SpanText {
+    type: "span-text"
+    text: string
+}
+export interface SpanFallback {
+    type: "span-fallback"
+    children: Span[]
+}
+
+export interface SpanLink {
+    type: "span-link"
+    children: Span[]
+    url: string
+}
+export interface SpanNewline {
+    type: "span-newline"
+}
+export interface SpanItalic {
+    type: "span-italic"
+    children: Span[]
+}
+export interface SpanBold {
+    type: "span-bold"
+    children: Span[]
+}
+export interface SpanUnderline {
+    type: "span-underline"
+    children: Span[]
+}
+export interface SpanSubscript {
+    type: "span-subscript"
+    children: Span[]
+}
+export interface SpanSuperscript {
+    type: "span-superscript"
+    children: Span[]
+}
+export interface SpanQuote {
+    type: "span-quote"
+    children: Span[]
+}
+
+export type Span =
+    | SpanText
+    | SpanLink
+    | SpanNewline
+    | SpanItalic
+    | SpanBold
+    | SpanUnderline
+    | SpanSubscript
+    | SpanSuperscript
+    | SpanQuote
+    | SpanFallback
+
 export interface BlockAsideValue {
     position: string
     caption: string
@@ -464,6 +518,15 @@ export interface BlockText {
     type: "text"
     value: string
 }
+
+export interface BlockStructuredText {
+    type: "structured-text"
+    value: Span[]
+}
+export interface BlockHtml {
+    type: "html"
+    value: string
+}
 export interface BlockUrl {
     type: "url"
     value: string
@@ -495,6 +558,8 @@ export type OwidArticleBlock =
     | BlockUrl // do we want this here? It's used inside Scroller only atm
     | BlockPosition
     | BlockHeader
+    | BlockStructuredText
+    | BlockHtml
 
 export interface OwidArticleType {
     id: string
