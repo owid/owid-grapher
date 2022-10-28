@@ -2,6 +2,13 @@
     grid-column: 4 / span 8;
     background-color: $beige;
 
+    .sdg-toc-toggle {
+        @include h2-bold;
+        display: flex;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
     ul {
         list-style-type: none;
     }
