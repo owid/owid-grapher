@@ -41,15 +41,15 @@ export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
                                     isSubheading ? "subsection" : "section"
                                 }
                             >
-                                {supertitle ? (
-                                    <span className="supertitle">
-                                        {supertitle}
-                                    </span>
-                                ) : null}
                                 <a
                                     href={`#${slug}`}
                                     data-track-note="sdg-toc-link"
                                 >
+                                    {supertitle ? (
+                                        <span className="supertitle">
+                                            {supertitle}
+                                        </span>
+                                    ) : null}
                                     {title}
                                 </a>
                                 {!isSubheading && (
