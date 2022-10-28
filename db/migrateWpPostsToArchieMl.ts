@@ -59,6 +59,8 @@ function spanFallback(node: CheerioElement): SpanFallback {
     }
 }
 
+// TODO: add context for per post stats and error message context
+
 function projectToSpan(node: CheerioElement): Span | undefined {
     if (node.type === "comment") return undefined
     else if (node.type === "text")
@@ -83,8 +85,20 @@ function projectToSpan(node: CheerioElement): Span | undefined {
             })
             .with("br", (): Span => ({ type: "span-newline" }))
             .with("cite", () => spanFallback(node))
-            .with("code", () => spanFallback(node))
-            .otherwise(() => undefined)
+            .with("code", () => spanFallback(node)) // TODO: should get a style
+            .with(
+                "em",
+                (): SpanItalic => ({
+                    type: "span-italic",
+                    children:
+                        _.compact(node.children?.map(projectToSpan)) ?? [],
+                })
+            )
+
+            .otherwise(() => {
+                console.log("unhandled tag", node.tagName)
+                return spanFallback(node)
+            })
     }
     return undefined
 }
@@ -114,6 +128,8 @@ function projectToArchieML(node: CheerioElement): OwidArticleBlock[] {
             ])
             .with("body", unwrapNode)
             .with("center", unwrapNode) // might want to translate this to a block with a centered style?
+            .with("details", unwrapNode)
+            .with("div", unwrapNode)
 
             .otherwise(() => [])
         return content
