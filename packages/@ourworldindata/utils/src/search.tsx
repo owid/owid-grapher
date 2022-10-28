@@ -1,7 +1,6 @@
-import { flatten } from "./Util.js"
+import { flatten, drop, escapeRegExp, sortBy } from "./Util.js"
 import chunk from "chunk-text"
 import { htmlToText } from "html-to-text"
-import { drop, escapeRegExp, sortBy } from "lodash"
 import React from "react"
 
 export interface SearchWord {

@@ -1,7 +1,7 @@
 import { match } from "ts-pattern"
 import parse from "s-expression"
 import pointer from "json8-pointer"
-import { isArray, tail, without } from "lodash"
+import { isArray, tail, without } from "./Util.js"
 // This type models what we get from the s-expression library. This library
 // transforms lists in S-Expressions into array, strings inside double quotes
 // as String (note the uppercase! It really uses the rarely used String object) and

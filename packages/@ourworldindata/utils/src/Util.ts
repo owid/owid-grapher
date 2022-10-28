@@ -8,6 +8,7 @@ import countBy from "lodash/countBy.js"
 import debounce from "lodash/debounce.js"
 import difference from "lodash/difference.js"
 import drop from "lodash/drop.js"
+import escapeRegExp from "lodash/escapeRegExp.js"
 import extend from "lodash/extend.js"
 import findIndex from "lodash/findIndex.js"
 import findLastIndex from "lodash/findLastIndex.js"
@@ -21,6 +22,7 @@ import isArray from "lodash/isArray.js"
 import isBoolean from "lodash/isBoolean.js"
 import isEmpty from "lodash/isEmpty.js"
 import isEqual from "lodash/isEqual.js"
+import isNil from "lodash/isNil.js"
 import isNull from "lodash/isNull.js"
 import isNumber from "lodash/isNumber.js"
 import isObject from "lodash/isObject.js"
@@ -52,6 +54,7 @@ import sortedUniqBy from "lodash/sortedUniqBy.js"
 import startCase from "lodash/startCase.js"
 import sum from "lodash/sum.js"
 import sumBy from "lodash/sumBy.js"
+import tail from "lodash/tail.js"
 import takeWhile from "lodash/takeWhile.js"
 import throttle from "lodash/throttle.js"
 import toString from "lodash/toString.js"
@@ -72,6 +75,7 @@ export {
     debounce,
     difference,
     drop,
+    escapeRegExp,
     extend,
     findIndex,
     findLastIndex,
@@ -85,6 +89,7 @@ export {
     isBoolean,
     isEmpty,
     isEqual,
+    isNil,
     isNull,
     isNumber,
     isString,
@@ -114,6 +119,7 @@ export {
     startCase,
     sum,
     sumBy,
+    tail,
     takeWhile,
     throttle,
     toString,
