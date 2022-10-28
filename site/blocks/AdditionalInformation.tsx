@@ -106,6 +106,7 @@ const AdditionalInformation = ({
             className={classes.join(" ")}
         >
             <h3
+                className="additional-information__heading"
                 onClick={onClickHandler}
                 data-track-note="additional-information-toggle"
             >

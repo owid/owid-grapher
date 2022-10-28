@@ -43,7 +43,6 @@
     margin-bottom: 1rem;
     text-align: center;
     line-height: 0;
-
     width: 100%;
 
     > a {
@@ -61,7 +60,7 @@
         box-shadow: 0px 0px 4px #000;
     }
 
-    img {
+    &.grapherPreview img {
         margin: 0;
         padding: 0;
         width: 100%;
