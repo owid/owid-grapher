@@ -1,0 +1,28 @@
+.sdg-toc {
+    grid-column: 4 / span 8;
+    background-color: $beige;
+
+    ul {
+        list-style-type: none;
+    }
+
+    li.section {
+        .supertitle {
+            display: block;
+            color: $blue-60;
+        }
+        a {
+            @include owid-link-90; // todo: probably not needed after the style reconcialiation
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+        svg {
+            font-size: 0.75em;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+    }
+}
