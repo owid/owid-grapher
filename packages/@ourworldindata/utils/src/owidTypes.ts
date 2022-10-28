@@ -423,6 +423,7 @@ export interface OwidArticleContent {
     byline?: string | string[]
     dateline?: string
     excerpt?: string
+    toc?: TocHeading[]
     refs?: OwidArticleBlock[]
     summary?: OwidArticleBlock[]
     citation?: OwidArticleBlock[]

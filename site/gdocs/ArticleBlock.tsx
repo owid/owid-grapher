@@ -8,11 +8,18 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { OwidArticleBlock } from "@ourworldindata/utils"
+import { OwidArticleBlock, TocHeading } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary } from "./BlockErrorBoundary"
+import SDGTableOfContents from "./SDGTableOfContents.js"
 
-export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
+export default function ArticleBlock({
+    d,
+    toc,
+}: {
+    d: OwidArticleBlock
+    toc?: TocHeading[]
+}) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {
         const _type = d.type.toLowerCase()
         let content: any = JSON.stringify(d)
@@ -73,6 +80,8 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
             content = <Image d={d} key={key} />
         } else if (_type === "sdg-grid") {
             content = <SDGGrid d={d} key={key} />
+        } else if (_type === "sdg-toc" && toc) {
+            content = <SDGTableOfContents toc={toc} />
         }
 
         return <BlockErrorBoundary>{content}</BlockErrorBoundary>
