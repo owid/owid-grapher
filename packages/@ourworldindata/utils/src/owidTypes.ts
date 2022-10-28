@@ -157,6 +157,8 @@ export interface PostRow {
     content: string
     published_at: Date | null
     updated_at: Date
+    archieml: string
+    archieml_update_statistics: string
 }
 
 export interface Tag extends TagReactTagAutocomplete {
