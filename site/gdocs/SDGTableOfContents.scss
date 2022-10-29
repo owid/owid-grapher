@@ -4,6 +4,14 @@
     padding: 40px 0;
     background-color: $beige;
 
+    &.open::before {
+        grid-column: span 1;
+        grid-row: span 2;
+        content: "";
+        border-right: 1px solid #ffd3d3;
+        margin-right: $grid-gap;
+    }
+
     .sdg-toc-toggle {
         grid-column: 2 / span 6;
         @include h2-bold;

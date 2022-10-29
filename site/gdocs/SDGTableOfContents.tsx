@@ -4,6 +4,7 @@ import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import classNames from "classnames"
 
 const VERTICAL_TAB_CHAR = "\u000b"
 
@@ -26,7 +27,7 @@ export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
     })
 
     return (
-        <nav className="sdg-toc">
+        <nav className={classNames("sdg-toc", { open: isOpen })}>
             <div
                 onClick={toggleIsOpen}
                 className="sdg-toc-toggle"
