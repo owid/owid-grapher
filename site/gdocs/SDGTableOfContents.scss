@@ -1,15 +1,21 @@
 .sdg-toc {
     grid-column: 4 / span 8;
+    @include grid(8);
+    padding: 40px 0;
     background-color: $beige;
 
     .sdg-toc-toggle {
+        grid-column: 2 / span 6;
         @include h2-bold;
+        margin: 0;
         display: flex;
         justify-content: space-between;
         cursor: pointer;
     }
 
     ul {
+        grid-column: 2 / span 6;
+        margin-top: 24px;
         list-style-type: none;
     }
 
@@ -34,6 +40,7 @@
             @include body-2-semibold;
             .supertitle {
                 display: block;
+                margin-bottom: 8px;
             }
         }
 
@@ -45,6 +52,15 @@
                     content: " ";
                 }
             }
+        }
+        &.section + .subsection {
+            margin-top: 8px;
+        }
+
+        &.subsection + .section {
+            margin-top: 24px;
+            border-top: 1px solid $blue-20;
+            padding-top: 24px;
         }
     }
 }
