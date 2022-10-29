@@ -21,8 +21,11 @@
         cursor: pointer;
     }
 
-    ul {
+    .sdg-toc-content {
         grid-column: 2 / span 6;
+    }
+
+    ul {
         margin-top: 24px;
         list-style-type: none;
     }

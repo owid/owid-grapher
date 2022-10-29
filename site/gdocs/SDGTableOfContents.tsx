@@ -5,14 +5,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import classNames from "classnames"
+import AnimateHeight from "react-animate-height"
 
 const VERTICAL_TAB_CHAR = "\u000b"
 
 export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
-    const [isOpen, setIsOpen] = useState(true)
+    const [height, setHeight] = useState<"auto" | 0>(0)
+    const [isOpen, setIsOpen] = useState(false)
 
     const toggleIsOpen = () => {
-        setIsOpen(!isOpen)
+        setHeight(height === 0 ? "auto" : 0)
     }
 
     const tocHeadingsWithSupertitle = toc.map((heading) => {
@@ -38,7 +40,17 @@ export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
                     <FontAwesomeIcon icon={isOpen ? faMinus : faPlus} />
                 </div>
             </div>
-            {isOpen && (
+            <AnimateHeight
+                className="sdg-toc-content"
+                height={height}
+                onHeightAnimationStart={(newHeight) => {
+                    if (newHeight != 0) setIsOpen(true)
+                }}
+                onHeightAnimationEnd={(newHeight) => {
+                    if (newHeight === 0) setIsOpen(false)
+                }}
+                animateOpacity
+            >
                 <ul>
                     {tocHeadingsWithSupertitle.map(
                         (
@@ -69,7 +81,7 @@ export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
                         )
                     )}
                 </ul>
-            )}
+            </AnimateHeight>
         </nav>
     )
 }
