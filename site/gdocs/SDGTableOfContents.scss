@@ -31,12 +31,14 @@
             margin-left: 10px;
         }
         &.section {
+            @include body-2-semibold;
             .supertitle {
                 display: block;
             }
         }
 
         &.subsection {
+            @include body-3-medium;
             margin-left: 24px;
             .supertitle {
                 &::after {
