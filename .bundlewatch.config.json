@@ -2,7 +2,7 @@
     "files": [
         {
             "path": "./itsJustJavascript/webpack/commons.js",
-            "maxSize": "1.1MB"
+            "maxSize": "1.2MB"
         },
         {
             "path": "./itsJustJavascript/webpack/vendors.js",
