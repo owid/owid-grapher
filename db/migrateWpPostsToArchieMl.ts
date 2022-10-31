@@ -28,8 +28,10 @@ import {
     SpanText,
     SpanUnderline,
     SpanFallback,
+    BlockStructuredText,
 } from "../clientUtils/owidTypes.js"
 import { match } from "ts-pattern"
+import { traverseNode } from "./analyzeWpPosts.js"
 
 // const argv = parseArgs(process.argv.slice(2))
 
@@ -62,8 +64,7 @@ function spanFallback(node: CheerioElement): SpanFallback {
 // TODO: add context for per post stats and error message context
 
 function projectToSpan(node: CheerioElement): Span | undefined {
-    if (node.type === "comment") return undefined
-    else if (node.type === "text")
+    if (node.type === "text")
         return { type: "span-text", text: node.data ?? "" }
     else if (node.type === "tag") {
         return match(node.tagName)
@@ -97,44 +98,188 @@ function projectToSpan(node: CheerioElement): Span | undefined {
 
             .otherwise(() => {
                 console.log("unhandled tag", node.tagName)
-                return spanFallback(node)
+                return undefined
             })
     }
     return undefined
 }
 
-function unwrapNode(node: CheerioElement): OwidArticleBlock[] {
-    return [...node.children.flatMap(projectToArchieML)]
+function unwrapNode(node: CheerioElement): ArchieMlTransformationResult {
+    const children = node.children.map(projectToArchieML)
+    return joinArchieMLTransformationResults(children)
 }
 
-function projectToArchieML(node: CheerioElement): OwidArticleBlock[] {
-    if (node.type === "comment") return []
-    else if (node.type === "text")
-        return [{ type: "text", value: node.data ?? "" }]
+interface ArchieMlTransformationError {
+    name: string
+    details: string
+}
+
+interface ArchieMlTransformationResult {
+    errors: ArchieMlTransformationError[]
+    content: OwidArticleBlock[]
+}
+
+function joinArchieMLTransformationResults(
+    results: ArchieMlTransformationResult[]
+): ArchieMlTransformationResult {
+    const errors = lodash.flatten(results.map((r) => r.errors))
+    const content = lodash.flatten(results.map((r) => r.content))
+    return { errors, content }
+}
+
+function consolidateSpans(blocks: OwidArticleBlock[]) {
+    const newBlocks: OwidArticleBlock[] = []
+    let currentBlock: BlockStructuredText | undefined = undefined
+    for (const block of blocks) {
+        if (block.type === "structured-text")
+            if (currentBlock === undefined) currentBlock = block
+            else
+                currentBlock = {
+                    type: "structured-text",
+                    value: [...currentBlock.value, ...block.value],
+                }
+        else {
+            if (currentBlock !== undefined) {
+                newBlocks.push(currentBlock)
+                currentBlock = undefined
+                newBlocks.push(block)
+            }
+        }
+    }
+    return newBlocks
+}
+
+function findRecursive(
+    nodes: CheerioElement[],
+    tagName: string
+): CheerioElement | undefined {
+    for (const node of nodes) {
+        if (node.tagName === tagName) return node
+        else {
+            const result = findRecursive(node.children ?? [], tagName)
+            if (result !== undefined) return result
+        }
+    }
+    return undefined
+}
+
+function projectToArchieML(node: CheerioElement): ArchieMlTransformationResult {
+    if (node.type === "comment") return { errors: [], content: [] }
+    const span = projectToSpan(node)
+    if (span)
+        return {
+            errors: [],
+            content: [{ type: "structured-text", value: [span] }],
+        }
     else if (node.type === "tag") {
-        const content: OwidArticleBlock[] = match(node.tagName)
+        const result: ArchieMlTransformationResult = match(node.tagName)
             .with("address", unwrapNode)
-            .with("blockquote", (): BlockPullQuote[] => [
-                {
-                    type: "pull-quote",
-                    // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
-                    value: node.children
-                        .flatMap(projectToArchieML)
-                        .filter(
-                            (item): item is BlockText => item.type === "text"
-                        )
-                        .map((item) => item.value),
-                },
-            ])
+            .with("blockquote", () => {
+                const childElements = joinArchieMLTransformationResults(
+                    node.children.map(projectToArchieML)
+                )
+                const cleanedChildElements = consolidateSpans(
+                    childElements.content
+                )
+                if (
+                    cleanedChildElements.length !== 1 ||
+                    cleanedChildElements[0].type !== "structured-text"
+                )
+                    return {
+                        errors: [
+                            {
+                                name: "blockquote content is not just text",
+                                details: ``,
+                            },
+                        ],
+                        content: [],
+                    }
+
+                return {
+                    errors: [],
+                    content: [
+                        {
+                            type: "pull-quote",
+                            // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
+                            value: cleanedChildElements[0].value,
+                        },
+                    ],
+                }
+            })
             .with("body", unwrapNode)
             .with("center", unwrapNode) // might want to translate this to a block with a centered style?
             .with("details", unwrapNode)
             .with("div", unwrapNode)
+            .with("figure", () => {
+                const errors: ArchieMlTransformationError[] = []
+                const [figcaptionChildren, otherChildren] = _.partition(
+                    node.children,
+                    (n) => n.tagName === "figcaption"
+                )
+                let figcaptionElement: BlockStructuredText | undefined =
+                    undefined
+                if (figcaptionChildren.length > 1) {
+                    errors.push({
+                        name: "too many figcaption elements",
+                        details: `Found ${figcaptionChildren.length} elements`,
+                    })
+                } else {
+                    const figCaption =
+                        figcaptionChildren.length > 0
+                            ? projectToArchieML(figcaptionChildren[0])
+                            : undefined
+                    if (figCaption)
+                        if (figCaption.content.length > 1)
+                            errors.push({
+                                name: "too many figcaption elements after archieml transform",
+                                details: `Found ${figCaption.content.length} elements after transforming to archieml`,
+                            })
+                        else {
+                            const element = figCaption.content[0]
+                            if (element?.type === "structured-text")
+                                figcaptionElement = element
+                            else
+                                errors.push({
+                                    name: "figcaption element is not structured text",
+                                    details: `Found ${element?.type} element after transforming to archieml`,
+                                })
+                        }
+                }
+                const image = findRecursive(otherChildren, "img")
+                if (!image) {
+                    // TODO: this is a legitimate case, there may be other content in a figure
+                    // but for now we treat it as an error and see how often this error happens
+                    errors.push({
+                        name: "no image found in figure",
+                        details: `Found ${otherChildren.length} elements`,
+                    })
+                }
 
-            .otherwise(() => [])
-        return content
-    }
-    return []
+                return {
+                    errors,
+                    content: [
+                        {
+                            type: "image",
+                            value: {
+                                src: image?.attribs.src ?? "",
+                                caption: figcaptionElement,
+                            },
+                        },
+                    ],
+                }
+            })
+            .otherwise(() => ({ errors: [], content: [] }))
+        return result
+    } else
+        return {
+            errors: [
+                {
+                    name: "unkown-element-tag",
+                    details: `type was ${node.type}`,
+                },
+            ],
+            content: [],
+        }
 }
 
 const migrate = async (): Promise<void> => {

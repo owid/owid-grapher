@@ -487,6 +487,7 @@ export interface BlockFixedGraphic {
 }
 export interface BlockImageValue {
     src: string
+    caption?: string
 }
 export interface BlockImage {
     type: "image"
