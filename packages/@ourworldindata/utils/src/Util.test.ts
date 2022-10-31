@@ -24,6 +24,7 @@ import {
     numberMagnitude,
     urlToSlug,
     toRectangularMatrix,
+    slugifySameCase,
 } from "./Util.js"
 import { SortOrder } from "./owidTypes.js"
 
@@ -502,5 +503,21 @@ describe(toRectangularMatrix, () => {
             [1, 2, 3, 4],
         ]
         expect(toRectangularMatrix(arr, undefined)).toEqual(expected)
+    })
+})
+
+describe("slugifySameCase", () => {
+    const cases = [
+        [" *hello world*   ", ""],
+        [" *hello world*afterwards   ", "afterwards"],
+        [" *hello world*afterwards one two  ", "afterwards-one-two"],
+        ["with-dashes", "with-dashes"],
+        ["//", ""],
+        ["hello//world", "helloworld"],
+        ["  hello//world  ", "helloworld"],
+    ]
+
+    cases.forEach(([input, output]) => {
+        expect(slugifySameCase(input)).toBe(output)
     })
 })

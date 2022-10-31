@@ -423,11 +423,12 @@ export const isVisible = (elm: HTMLElement | null): boolean => {
 // Take an arbitrary string and turn it into a nice url slug
 export const slugify = (str: string): string =>
     slugifySameCase(str.toLowerCase())
+
 export const slugifySameCase = (str: string): string =>
     str
+        .trim()
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
-        .trim()
         .replace(/ +/g, "-")
 
 // Unique number for this execution context
