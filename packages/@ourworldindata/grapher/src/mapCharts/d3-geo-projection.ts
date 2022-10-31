@@ -1,5 +1,5 @@
 // Duplication of d3-geo-projection.geoPatterson && d3-geo-projection.geoRobinson
-// for webpack bundlesize purposes
+// for webpack bundlesize purposes, as the original module wasn't tree-shakeable
 import { geoProjection, GeoProjection } from "d3-geo"
 
 const epsilon = 1e-6
@@ -9,6 +9,7 @@ const halfPi = pi / 2
 const degrees = 180 / pi
 const radians = pi / 180
 
+// https://github.com/d3/d3-geo-projection/blob/main/src/patterson.js
 const pattersonK1 = 1.0148,
     pattersonK2 = 0.23185,
     pattersonK3 = -0.14499,
@@ -58,6 +59,7 @@ export function geoPatterson(): GeoProjection {
     return geoProjection(pattersonRaw).scale(139.319)
 }
 
+// https://github.com/d3/d3-geo-projection/blob/main/src/robinson.js
 const K = [
     [0.9986, -0.062],
     [1.0, 0.0],
