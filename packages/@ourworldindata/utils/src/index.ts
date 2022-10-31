@@ -394,7 +394,6 @@ export {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
-    htmlToPlaintext,
     chunkWords,
     chunkSentences,
     chunkParagraphs,

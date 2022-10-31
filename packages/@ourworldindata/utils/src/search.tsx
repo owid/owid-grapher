@@ -1,6 +1,5 @@
 import { flatten, drop, escapeRegExp, sortBy } from "./Util.js"
 import chunk from "chunk-text"
-import { htmlToText } from "html-to-text"
 import React from "react"
 
 export interface SearchWord {
@@ -152,15 +151,6 @@ export function highlightFunctionForSearchWords(
         } else return text
     }
 }
-
-export const htmlToPlaintext = (html: string): string =>
-    htmlToText(html, {
-        tables: true,
-        ignoreHref: true,
-        wordwrap: false,
-        uppercaseHeadings: false,
-        ignoreImage: true,
-    })
 
 export const chunkWords = (text: string, maxChunkLength: number): string[] =>
     chunk(text, maxChunkLength)
