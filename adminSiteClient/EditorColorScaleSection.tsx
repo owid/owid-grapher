@@ -44,6 +44,7 @@ export class EditorColorScaleSection extends React.Component<{
     scale: ColorScale
     chartType: ChartTypeName
     features: EditorColorScaleSectionFeatures
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     render() {
@@ -53,6 +54,7 @@ export class EditorColorScaleSection extends React.Component<{
                     scale={this.props.scale}
                     onChange={this.props.onChange}
                     chartType={this.props.chartType}
+                    showLineChartColors={this.props.showLineChartColors}
                 />
                 <ColorLegendSection
                     scale={this.props.scale}
@@ -130,6 +132,7 @@ class ColorLegendSection extends React.Component<{
 class ColorsSection extends React.Component<{
     scale: ColorScale
     chartType: ChartTypeName
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     @action.bound onColorScheme(selected: ColorSchemeOption) {
@@ -263,6 +266,7 @@ class ColorsSection extends React.Component<{
                 <ColorSchemeEditor
                     scale={scale}
                     onChange={this.props.onChange}
+                    showLineChartColors={this.props.showLineChartColors}
                 />
             </Section>
         )
@@ -272,6 +276,7 @@ class ColorsSection extends React.Component<{
 @observer
 class ColorSchemeEditor extends React.Component<{
     scale: ColorScale
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     render() {
@@ -287,6 +292,9 @@ class ColorSchemeEditor extends React.Component<{
                                     scale={scale}
                                     bin={bin}
                                     index={index}
+                                    showLineChartColors={
+                                        this.props.showLineChartColors
+                                    }
                                     onChange={this.props.onChange}
                                 />
                             )
@@ -296,6 +304,9 @@ class ColorSchemeEditor extends React.Component<{
                                 key={index}
                                 scale={scale}
                                 bin={bin}
+                                showLineChartColors={
+                                    this.props.showLineChartColors
+                                }
                                 onChange={this.props.onChange}
                             />
                         )
@@ -377,6 +388,7 @@ class NumericBinView extends React.Component<{
     scale: ColorScale
     bin: NumericBin
     index: number
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     @action.bound onColor(color: Color | undefined) {
@@ -446,7 +458,11 @@ class NumericBinView extends React.Component<{
                 <div className="clickable" onClick={this.onAddAfter}>
                     <FontAwesomeIcon icon={faPlus} />
                 </div>
-                <ColorBox color={bin.color} onColor={this.onColor} />
+                <ColorBox
+                    color={bin.color}
+                    onColor={this.onColor}
+                    showLineChartColors={this.props.showLineChartColors}
+                />
                 <div className="range">
                     <span>
                         {bin.props.isOpenLeft
@@ -478,6 +494,7 @@ class NumericBinView extends React.Component<{
 class CategoricalBinView extends React.Component<{
     scale: ColorScale
     bin: CategoricalBin
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     @action.bound onColor(color: Color | undefined) {
@@ -521,7 +538,11 @@ class CategoricalBinView extends React.Component<{
 
         return (
             <EditableListItem className="categorical">
-                <ColorBox color={bin.color} onColor={this.onColor} />
+                <ColorBox
+                    color={bin.color}
+                    onColor={this.onColor}
+                    showLineChartColors={this.props.showLineChartColors}
+                />
                 <TextField value={bin.value} disabled={true} onValue={noop} />
                 <Toggle
                     label="Hide"

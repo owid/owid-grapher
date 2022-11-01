@@ -165,6 +165,7 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                         <EditorColorScaleSection
                             scale={colorScale}
                             chartType={ChartTypeName.WorldMap}
+                            showLineChartColors={false}
                             features={{
                                 visualScaling: true,
                                 legendDescription: false,

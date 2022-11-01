@@ -44,6 +44,10 @@ export { ColorScale } from "./color/ColorScale"
 export { ColorScaleConfig } from "./color/ColorScaleConfig"
 export { ColorScheme } from "./color/ColorScheme"
 export { ColorSchemeName } from "./color/ColorConstants"
+export {
+    getColorNameOwidDistinctAndSematicPalettes,
+    getColorNameOwidDistinctLinesAndSematicPalettes,
+} from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
 export { ComparisonLineConfig } from "./scatterCharts/ComparisonLine"
 export { DimensionSlot } from "./chart/DimensionSlot"
