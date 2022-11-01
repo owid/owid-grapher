@@ -75,6 +75,11 @@ export enum ColorSchemeName {
     BinaryMapPaletteC = "BinaryMapPaletteC",
     BinaryMapPaletteD = "BinaryMapPaletteD",
     BinaryMapPaletteE = "BinaryMapPaletteE",
+    SingleColorGradientDenim = "SingleColorGradientDenim",
+    SingleColorGradientTeal = "SingleColorGradientTeal",
+    SingleColorGradientPurple = "SingleColorGradientPurple",
+    SingleColorGradientDustyCoral = "SingleColorGradientDustyCoral",
+    SingleColorGradientDarkCopper = "SingleColorGradientDarkCopper",
 }
 
 export const OwidNoDataGray = "#6e7581"

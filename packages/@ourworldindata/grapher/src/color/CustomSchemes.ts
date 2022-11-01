@@ -1,4 +1,5 @@
-import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants"
+import { keys, omit } from "@ourworldindata/utils"
+import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants.js"
 
 export const CustomColorSchemes: ColorSchemeInterface[] = []
 
@@ -35,11 +36,19 @@ export const OwidDistinctColors = {
 // contrast against a white background for thin lines or text elements
 export const DarkerOwidDistinctColors = {
     DarkOrangeDarker: "#BE5915",
-    LightTealDarker: "#2C8465",
-    CamelDarker: "#996D39",
     PeachDarker: "#C4523E",
+    LightTealDarker: "#2C8465",
     TurquoiseDarker: "#008291",
+    CamelDarker: "#996D39",
+    TealishGreenDarker: "#00875E",
+    DustyCoralDarker: "#C15065",
+    CopperDarker: "#B16214",
     LimeDarker: "#338711",
+}
+
+export const FullDarkerOwidDistinctColors = {
+    ...omit(OwidDistinctColors, keys(DarkerOwidDistinctColors)),
+    ...DarkerOwidDistinctColors,
 }
 
 // Below are 5 variations of the same colors in different permutations
@@ -140,16 +149,30 @@ export const OwidDistinctColorScheme = {
 CustomColorSchemes.push(OwidDistinctColorScheme)
 
 const OwidDistinctLinesPalette = [
-    OwidDistinctColors.DustyCoral,
-    DarkerOwidDistinctColors.LightTealDarker,
-    DarkerOwidDistinctColors.DarkOrangeDarker,
     OwidDistinctColors.Purple,
-    OwidDistinctColors.Fuchsia,
-    OwidDistinctColors.DarkOliveGreen,
+    DarkerOwidDistinctColors.DarkOrangeDarker,
+    DarkerOwidDistinctColors.LightTealDarker,
     OwidDistinctColors.Blue,
     OwidDistinctColors.Maroon,
     DarkerOwidDistinctColors.CamelDarker,
     OwidDistinctColors.MidnightBlue,
+    DarkerOwidDistinctColors.DustyCoralDarker,
+    OwidDistinctColors.DarkOliveGreen,
+    OwidDistinctColors.DarkCopper,
+    DarkerOwidDistinctColors.PeachDarker,
+    OwidDistinctColors.Mauve,
+    DarkerOwidDistinctColors.TurquoiseDarker,
+    OwidDistinctColors.OliveGreen,
+    OwidDistinctColors.Cherry,
+    OwidDistinctColors.Teal,
+    OwidDistinctColors.RustyOrange,
+    OwidDistinctColors.Denim,
+    OwidDistinctColors.Fuchsia,
+    DarkerOwidDistinctColors.TealishGreenDarker,
+    DarkerOwidDistinctColors.CopperDarker,
+    OwidDistinctColors.DarkMauve,
+    DarkerOwidDistinctColors.LimeDarker,
+    OwidDistinctColors.Coral,
 ]
 
 export const OwidDistinctLinesColorScheme = {
@@ -377,6 +400,109 @@ export const SingleColorDarkCopper = {
 }
 
 CustomColorSchemes.push(SingleColorDarkCopper)
+
+export const SingleColorGradientDenim = {
+    name: ColorSchemeName.SingleColorGradientDenim,
+    displayName: "Single color gradient: Denim",
+    singleColorScale: true,
+    isDistinct: false,
+    colorSets: [
+        [
+            "#00173e",
+            "#152a55",
+            "#273f6c",
+            "#3a5484",
+            "#4e6b9e",
+            "#6683b5",
+            "#7f9bcd",
+            "#98b3e6",
+            "#b2ccff",
+        ],
+    ],
+}
+CustomColorSchemes.push(SingleColorGradientDenim)
+export const SingleColorGradientTeal = {
+    name: ColorSchemeName.SingleColorGradientTeal,
+    displayName: "Single color gradient: Teal",
+    singleColorScale: true,
+    isDistinct: false,
+    colorSets: [
+        [
+            "#002926",
+            "#003f3b",
+            "#005551",
+            "#006e68",
+            "#088780",
+            "#339f98",
+            "#51b7b0",
+            "#6cd1c9",
+            "#86ebe3",
+        ],
+    ],
+}
+CustomColorSchemes.push(SingleColorGradientTeal)
+
+export const SingleColorGradientPurple = {
+    name: ColorSchemeName.SingleColorGradientPurple,
+    displayName: "Single color gradient: Purple",
+    singleColorScale: true,
+    isDistinct: false,
+    colorSets: [
+        [
+            "#3d1161",
+            "#542777",
+            "#6b3d8f",
+            "#8354a2",
+            "#9c6bb4",
+            "#b484c6",
+            "#cd9dd9",
+            "#e5b7ec",
+            "#ffd1ff",
+        ],
+    ],
+}
+CustomColorSchemes.push(SingleColorGradientPurple)
+
+export const SingleColorGradientDustyCoral = {
+    name: ColorSchemeName.SingleColorGradientDustyCoral,
+    displayName: "Single color gradient: DustyCoral",
+    singleColorScale: true,
+    isDistinct: false,
+    colorSets: [
+        [
+            "#580014",
+            "#711626",
+            "#8b293a",
+            "#a53c4e",
+            "#bf4e63",
+            "#d1697b",
+            "#e18495",
+            "#f09dae",
+            "#ffb8c9",
+        ],
+    ],
+}
+CustomColorSchemes.push(SingleColorGradientDustyCoral)
+export const SingleColorGradientDarkCopper = {
+    name: ColorSchemeName.SingleColorGradientDarkCopper,
+    displayName: "Single color gradient: DarkCopper",
+    singleColorScale: true,
+    isDistinct: false,
+    colorSets: [
+        [
+            "#390000",
+            "#501510",
+            "#692919",
+            "#823d21",
+            "#9c532a",
+            "#b46a40",
+            "#cd8257",
+            "#e69a6e",
+            "#ffb285",
+        ],
+    ],
+}
+CustomColorSchemes.push(SingleColorGradientDarkCopper)
 
 export const BinaryMapPaletteA = {
     name: ColorSchemeName.BinaryMapPaletteA,
