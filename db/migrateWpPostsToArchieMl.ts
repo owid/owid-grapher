@@ -114,14 +114,14 @@ interface ArchieMlTransformationError {
     details: string
 }
 
-interface ArchieMlTransformationResult {
+interface ArchieMlTransformationResult<T> {
     errors: ArchieMlTransformationError[]
-    content: OwidArticleBlock[]
+    content: T[]
 }
 
-function joinArchieMLTransformationResults(
-    results: ArchieMlTransformationResult[]
-): ArchieMlTransformationResult {
+function joinArchieMLTransformationResults<T>(
+    results: ArchieMlTransformationResult<T>[]
+): ArchieMlTransformationResult<T> {
     const errors = lodash.flatten(results.map((r) => r.errors))
     const content = lodash.flatten(results.map((r) => r.content))
     return { errors, content }
@@ -149,6 +149,69 @@ function consolidateSpans(blocks: OwidArticleBlock[]) {
     return newBlocks
 }
 
+function tempFlattenSpansToString(spans: Span[]): string {
+    if (spans.length === 0) return ""
+    else {
+        const result = spans
+            .map((span) =>
+                match(span)
+                    .with({ type: "span-text" }, (span) => span.text)
+                    .with(
+                        { type: "span-link" },
+                        (span) =>
+                            `<a href="${span.url}">${tempFlattenSpansToString(
+                                span.children
+                            )}</a>`
+                    )
+                    .with({ type: "span-newline" }, () => "</br>")
+                    .with(
+                        { type: "span-italic" },
+                        (span) =>
+                            `<i>${tempFlattenSpansToString(span.children)}</i>`
+                    )
+                    .with(
+                        { type: "span-bold" },
+                        (span) =>
+                            `<b>${tempFlattenSpansToString(span.children)}</b>`
+                    )
+                    .with(
+                        { type: "span-underline" },
+                        (span) =>
+                            `<u>${tempFlattenSpansToString(span.children)}</u>`
+                    )
+                    .with(
+                        { type: "span-subscript" },
+                        (span) =>
+                            `<sub>${tempFlattenSpansToString(
+                                span.children
+                            )}</sub>`
+                    )
+                    .with(
+                        { type: "span-superscript" },
+                        (span) =>
+                            `<sup>${tempFlattenSpansToString(
+                                span.children
+                            )}</sup>`
+                    )
+                    .with(
+                        { type: "span-quote" },
+                        (span) =>
+                            `<q>${tempFlattenSpansToString(span.children)}</q>`
+                    )
+                    .with(
+                        { type: "span-fallback" },
+                        (span) =>
+                            `<span>${tempFlattenSpansToString(
+                                span.children
+                            )}</span>`
+                    )
+                    .exhaustive()
+            )
+            .join("")
+        return result
+    }
+}
+
 function findRecursive(
     nodes: CheerioElement[],
     tagName: string
@@ -163,7 +226,9 @@ function findRecursive(
     return undefined
 }
 
-function projectToArchieML(node: CheerioElement): ArchieMlTransformationResult {
+function projectToArchieML(
+    node: CheerioElement
+): ArchieMlTransformationResult<OwidArticleBlock> {
     if (node.type === "comment") return { errors: [], content: [] }
     const span = projectToSpan(node)
     if (span)
@@ -172,44 +237,54 @@ function projectToArchieML(node: CheerioElement): ArchieMlTransformationResult {
             content: [{ type: "structured-text", value: [span] }],
         }
     else if (node.type === "tag") {
-        const result: ArchieMlTransformationResult = match(node.tagName)
+        const result: ArchieMlTransformationResult<OwidArticleBlock> = match(
+            node.tagName
+        )
             .with("address", unwrapNode)
-            .with("blockquote", () => {
-                const childElements = joinArchieMLTransformationResults(
-                    node.children.map(projectToArchieML)
-                )
-                const cleanedChildElements = consolidateSpans(
-                    childElements.content
-                )
-                if (
-                    cleanedChildElements.length !== 1 ||
-                    cleanedChildElements[0].type !== "structured-text"
-                )
+            .with(
+                "blockquote",
+                (): ArchieMlTransformationResult<BlockPullQuote> => {
+                    const childElements = joinArchieMLTransformationResults(
+                        node.children.map(projectToArchieML)
+                    )
+                    const cleanedChildElements = consolidateSpans(
+                        childElements.content
+                    )
+                    if (
+                        cleanedChildElements.length !== 1 ||
+                        cleanedChildElements[0].type !== "structured-text"
+                    )
+                        return {
+                            errors: [
+                                {
+                                    name: "blockquote content is not just text",
+                                    details: ``,
+                                },
+                            ],
+                            content: [],
+                        }
+
                     return {
-                        errors: [
+                        errors: [],
+                        content: [
                             {
-                                name: "blockquote content is not just text",
-                                details: ``,
+                                type: "pull-quote",
+                                // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
+                                value: [
+                                    tempFlattenSpansToString(
+                                        cleanedChildElements[0].value
+                                    ),
+                                ],
                             },
                         ],
-                        content: [],
                     }
-
-                return {
-                    errors: [],
-                    content: [
-                        {
-                            type: "pull-quote",
-                            // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
-                            value: cleanedChildElements[0].value,
-                        },
-                    ],
                 }
-            })
+            )
             .with("body", unwrapNode)
             .with("center", unwrapNode) // might want to translate this to a block with a centered style?
             .with("details", unwrapNode)
             .with("div", unwrapNode)
+            .with("figcaption", unwrapNode)
             .with("figure", () => {
                 const errors: ArchieMlTransformationError[] = []
                 const [figcaptionChildren, otherChildren] = _.partition(
