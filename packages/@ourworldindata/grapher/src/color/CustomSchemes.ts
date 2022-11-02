@@ -634,8 +634,6 @@ export function getColorNameOwidDistinctAndSemanticPalettes(
 export function getColorNameOwidDistinctLinesAndSemanticPalettes(
     color: string
 ): string[] {
-    console.log("color", color)
-    console.log(EnergyColorsLinesNames)
     return getColorNameAndSemanticPalettes(
         color,
         OwidDistinctLinesColorNames,
