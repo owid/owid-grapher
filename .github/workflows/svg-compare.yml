@@ -63,7 +63,7 @@ jobs:
             # reason to mark this action as failed.
             - name: Fail with error message if we had differences
               if: ${{ steps.run-verify-graphs.outcome == 'failure' && env.PUSH_BRANCH_NAME != 'master' }}
-              uses: actions/github-script@v3
+              uses: actions/github-script@v6
               with:
                   script: |
                       core.setFailed('SVGs were different from reference! Please check diffs at https://github.com/owid/owid-grapher-svgs/commits/${{ env.PUSH_BRANCH_NAME }}')
