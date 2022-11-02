@@ -10,45 +10,14 @@ import List from "./List"
 import Image from "./Image"
 import { OwidArticleBlock } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
-import { ErrorBoundary } from "react-error-boundary"
-
-const ErrorFallback = ({
-    error,
-    resetErrorBoundary,
-}: {
-    error: Error
-    resetErrorBoundary: VoidFunction
-}): JSX.Element => {
-    return (
-        <div
-            style={{
-                textAlign: "center",
-                backgroundColor: "rgba(255,0,0,0.1)",
-                padding: "20px",
-            }}
-        >
-            <h3>Error while rendering the block</h3>
-            Please check the source content.
-            <div>
-                <button style={{ margin: "10px" }} onClick={resetErrorBoundary}>
-                    Try again
-                </button>
-            </div>
-            <div>{error.message}</div>
-        </div>
-    )
-}
+import { BlockErrorBoundary } from "./BlockErrorBoundary"
 
 export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {
         const _type = d.type.toLowerCase()
         let content: any = JSON.stringify(d)
         if (_type === "chart") {
-            content = (
-                <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Chart d={d} key={key} />
-                </ErrorBoundary>
-            )
+            content = <Chart d={d} key={key} />
         } else if (_type === "aside") {
             content = (
                 <figure
@@ -106,7 +75,7 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
             content = <SDGGrid d={d} key={key} />
         }
 
-        return content
+        return <BlockErrorBoundary>{content}</BlockErrorBoundary>
     }
 
     if (d.type === "text") {
