@@ -153,7 +153,7 @@ class MultiEmbedder {
                 html,
                 EMBEDDED_EXPLORER_GRAPHER_CONFIGS
             )
-            if (grapherConfigs && isArray(grapherConfigs)) {
+            if (isArray(grapherConfigs)) {
                 grapherConfigs = grapherConfigs.map((grapherConfig) => ({
                     ...grapherConfig,
                     adminBaseUrl: ADMIN_BASE_URL,
