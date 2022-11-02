@@ -28,7 +28,7 @@ The database dumps we provide has all migrations already applied.
 Run:
 
 ```sh
-yarn typeorm migration:create -n MigrationName
+yarn typeorm migration:create db/migration/MigrationName
 ```
 
 And then populate the file with the SQL statements to alter the tables, using [past migration files](./migration) for reference if needed. Don't forget to rebuild the JavaScript artifacts now from TypeScript view `yarn buildTsc`, then run migrations with `yarn runDbMigrations`.
