@@ -14,6 +14,7 @@ import {
     deserializeJSONFromHTML,
     fetchText,
     getWindowUrl,
+    isArray,
     isMobile,
     isPresent,
     Url,
@@ -148,13 +149,21 @@ class MultiEmbedder {
         const html = await fetchText(fullUrl)
 
         if (isExplorer) {
+            let grapherConfigs = deserializeJSONFromHTML(
+                html,
+                EMBEDDED_EXPLORER_GRAPHER_CONFIGS
+            )
+            if (grapherConfigs && isArray(grapherConfigs)) {
+                grapherConfigs = grapherConfigs.map((grapherConfig) => ({
+                    ...grapherConfig,
+                    adminBaseUrl: ADMIN_BASE_URL,
+                    bakedGrapherURL: BAKED_GRAPHER_URL,
+                }))
+            }
             const props: ExplorerProps = {
                 ...common,
                 ...deserializeJSONFromHTML(html, EMBEDDED_EXPLORER_DELIMITER),
-                grapherConfigs: deserializeJSONFromHTML(
-                    html,
-                    EMBEDDED_EXPLORER_GRAPHER_CONFIGS
-                ),
+                grapherConfigs,
                 queryStr,
                 selection: new SelectionArray(
                     this.selection.selectedEntityNames
