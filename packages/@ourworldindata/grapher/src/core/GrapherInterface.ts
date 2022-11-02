@@ -185,4 +185,6 @@ export const grapherKeysToSerialize = [
     "relatedQuestions",
     "topicIds",
     "details",
+    "adminBaseUrl",
+    "bakedGrapherURL",
 ]

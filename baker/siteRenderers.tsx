@@ -30,6 +30,8 @@ import {
     BLOG_POSTS_PER_PAGE,
 } from "../settings/serverSettings.js"
 import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
     RECAPTCHA_SITE_KEY,
 } from "../settings/clientSettings.js"
@@ -546,6 +548,8 @@ export const renderExplorerPage = async (
         const config: GrapherProgrammaticInterface = JSON.parse(row.config)
         config.id = row.id // Ensure each grapher has an id
         config.manuallyProvideData = true
+        config.adminBaseUrl = ADMIN_BASE_URL
+        config.bakedGrapherURL = BAKED_GRAPHER_URL
         return new Grapher(config).toObject()
     })
 
