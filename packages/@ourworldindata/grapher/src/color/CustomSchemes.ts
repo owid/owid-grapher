@@ -42,9 +42,6 @@ export const DarkerOwidDistinctColors: Record<string, string> = {
     LightTealDarker: "#2C8465",
     TurquoiseDarker: "#008291",
     CamelDarker: "#996D39",
-    TealishGreenDarker: "#00875E",
-    DustyCoralDarker: "#C15065",
-    CopperDarker: "#B16214",
     LimeDarker: "#338711",
 }
 
@@ -54,10 +51,6 @@ const darkerColorReplacementsHexToReplacementColorName = {
     [OwidDistinctColors.LightTeal]: DarkerOwidDistinctColors.LightTealDarker,
     [OwidDistinctColors.Turquoise]: DarkerOwidDistinctColors.TurquoiseDarker,
     [OwidDistinctColors.Camel]: DarkerOwidDistinctColors.CamelDarker,
-    [OwidDistinctColors.TealishGreen]:
-        DarkerOwidDistinctColors.TealishGreenDarker,
-    [OwidDistinctColors.DustyCoral]: DarkerOwidDistinctColors.DustyCoralDarker,
-    [OwidDistinctColors.Copper]: DarkerOwidDistinctColors.CopperDarker,
     [OwidDistinctColors.Lime]: DarkerOwidDistinctColors.LimeDarker,
 } as Record<string, string>
 
@@ -167,15 +160,16 @@ export const OwidDistinctColorScheme = {
 CustomColorSchemes.push(OwidDistinctColorScheme)
 
 const OwidDistinctLinesPalette = [
-    OwidDistinctColors.Purple,
-    DarkerOwidDistinctColors.DarkOrangeDarker,
+    OwidDistinctColors.DustyCoral,
     DarkerOwidDistinctColors.LightTealDarker,
+    DarkerOwidDistinctColors.DarkOrangeDarker,
+    OwidDistinctColors.Purple,
+    OwidDistinctColors.Fuchsia,
+    OwidDistinctColors.DarkOliveGreen,
     OwidDistinctColors.Blue,
     OwidDistinctColors.Maroon,
     DarkerOwidDistinctColors.CamelDarker,
     OwidDistinctColors.MidnightBlue,
-    DarkerOwidDistinctColors.DustyCoralDarker,
-    OwidDistinctColors.DarkOliveGreen,
     OwidDistinctColors.DarkCopper,
     DarkerOwidDistinctColors.PeachDarker,
     OwidDistinctColors.Mauve,
@@ -185,9 +179,8 @@ const OwidDistinctLinesPalette = [
     OwidDistinctColors.Teal,
     OwidDistinctColors.RustyOrange,
     OwidDistinctColors.Denim,
-    OwidDistinctColors.Fuchsia,
-    DarkerOwidDistinctColors.TealishGreenDarker,
-    DarkerOwidDistinctColors.CopperDarker,
+    OwidDistinctColors.TealishGreen,
+    OwidDistinctColors.Copper,
     OwidDistinctColors.DarkMauve,
     DarkerOwidDistinctColors.LimeDarker,
     OwidDistinctColors.Coral,
