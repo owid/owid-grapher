@@ -276,25 +276,22 @@ export const OwidEnergy = {
 }
 CustomColorSchemes.push(OwidCategoricalEScheme)
 
-const EnergyColorsLinesPalette: string[] = EnergyColorPalette.map((color) =>
-    color in darkerColorReplacementsHexToReplacementColorName
-        ? darkerColorReplacementsHexToReplacementColorName[color]
-        : color
-)
-const EnergyColorsLinesNames = Object.fromEntries(
-    Object.entries(EnergyColorsNames).map(([k, v]) => [
-        darkerColorReplacementsHexToReplacementColorName[k],
-        v,
-    ])
-)
-
-export const OwidEnergyLines = {
-    name: ColorSchemeName["OwidEnergyLines"],
-    displayName: "OWID Energy (Lines)",
-    singleColorScale: false,
-    isDistinct: true,
-    colorSets: [EnergyColorsLinesPalette],
+function getModifiedLinesNames(
+    colorNames: Record<string, string>
+): Record<string, string> {
+    return Object.fromEntries(
+        Object.entries(colorNames).map(([k, v]) => [
+            k in darkerColorReplacementsHexToReplacementColorName
+                ? darkerColorReplacementsHexToReplacementColorName[k]
+                : k,
+            v,
+        ])
+    )
 }
+
+const EnergyColorsLinesNames = getModifiedLinesNames(EnergyColorsNames)
+
+export const OwidEnergyLines = getModifiedLinesColorScheme(OwidEnergy)
 CustomColorSchemes.push(OwidEnergyLines)
 
 CustomColorSchemes.push({
@@ -368,25 +365,29 @@ export const ContinentColorsColorScheme = {
 
 CustomColorSchemes.push(ContinentColorsColorScheme)
 
-const ContinentColorsLines = ContinentColorPalette.map((color) =>
-    color in darkerColorReplacementsHexToReplacementColorName
-        ? darkerColorReplacementsHexToReplacementColorName[color]
-        : color
-)
-const ContinentColorsLinesNames = Object.fromEntries(
-    Object.entries(ContinentColorsNames).map(([k, v]) => [
-        darkerColorReplacementsHexToReplacementColorName[k],
-        v,
-    ])
-)
+function getModifiedLinesColorScheme(
+    colorScheme: ColorSchemeInterface
+): ColorSchemeInterface {
+    const colors = colorScheme.colorSets[0]
+    const modifiedColors = colors.map((color) =>
+        color in darkerColorReplacementsHexToReplacementColorName
+            ? darkerColorReplacementsHexToReplacementColorName[color]
+            : color
+    )
 
-export const ContinentColorsLinesColorScheme = {
-    name: ColorSchemeName["ContinentsLines"],
-    displayName: "Continents (Lines)",
-    singleColorScale: false,
-    isDistinct: true,
-    colorSets: [ContinentColorsLines],
+    return {
+        ...colorScheme,
+        colorSets: [modifiedColors],
+        name: colorScheme.name + "Lines",
+        displayName: (colorScheme.displayName ?? "") + " (Lines)",
+    }
 }
+
+const ContinentColorsLinesNames = getModifiedLinesNames(ContinentColorsNames)
+
+export const ContinentColorsLinesColorScheme = getModifiedLinesColorScheme(
+    ContinentColorsColorScheme
+)
 
 CustomColorSchemes.push(ContinentColorsLinesColorScheme)
 
@@ -595,46 +596,52 @@ CustomColorSchemes.push(BinaryMapPaletteE)
 
 export const DefaultColorScheme = OwidDistinctColorScheme
 
-export function getColorNameOwidDistinctAndSematicPalettes(
-    color: string
+export function getColorNameAndSemanticPalettes(
+    color: string,
+    baseColorSchemeNames: Record<string, string>,
+    continentsColorSchemeNames: Record<string, string>,
+    energyColorSchemeNames: Record<string, string>
 ): string[] {
     const colorNameStandardized = color.toUpperCase()
     const owidDistinct =
-        colorNameStandardized in OwidDistinctColorsNames
-            ? `🎨 ${OwidDistinctColorsNames[colorNameStandardized]}`
+        colorNameStandardized in baseColorSchemeNames
+            ? `🎨 ${baseColorSchemeNames[colorNameStandardized]}`
             : ""
     const continents =
-        colorNameStandardized in ContinentColorsNames
-            ? `🌍 ${ContinentColorsNames[colorNameStandardized]}`
+        colorNameStandardized in continentsColorSchemeNames
+            ? `🌍 ${continentsColorSchemeNames[colorNameStandardized]}`
             : ""
     const energy =
-        colorNameStandardized in EnergyColorsNames
-            ? `⚡ ${EnergyColorsNames[colorNameStandardized]}`
+        colorNameStandardized in energyColorSchemeNames
+            ? `⚡ ${energyColorSchemeNames[colorNameStandardized]}`
             : ""
     const lines = [owidDistinct, continents, energy].filter((x) => x !== "")
 
     return lines
 }
 
-export function getColorNameOwidDistinctLinesAndSematicPalettes(
+export function getColorNameOwidDistinctAndSemanticPalettes(
     color: string
 ): string[] {
-    const colorNameStandardized = color.toUpperCase()
-    const owidDistinct =
-        colorNameStandardized in OwidDistinctLinesColorNames
-            ? `🎨 ${OwidDistinctLinesColorNames[colorNameStandardized]}`
-            : ""
-    const continents =
-        colorNameStandardized in ContinentColorsLinesNames
-            ? `🌍 ${ContinentColorsLinesNames[colorNameStandardized]}`
-            : ""
-    const energy =
-        colorNameStandardized in EnergyColorsLinesNames
-            ? `⚡ ${EnergyColorsLinesNames[colorNameStandardized]}`
-            : ""
-    const lines = [owidDistinct, continents, energy].filter((x) => x !== "")
+    return getColorNameAndSemanticPalettes(
+        color,
+        OwidDistinctColorsNames,
+        ContinentColorsNames,
+        EnergyColorsNames
+    )
+}
 
-    return lines
+export function getColorNameOwidDistinctLinesAndSemanticPalettes(
+    color: string
+): string[] {
+    console.log("color", color)
+    console.log(EnergyColorsLinesNames)
+    return getColorNameAndSemanticPalettes(
+        color,
+        OwidDistinctLinesColorNames,
+        ContinentColorsLinesNames,
+        EnergyColorsLinesNames
+    )
 }
 
 // Perceptual color scales from https://github.com/politiken-journalism/scale-color-perceptual
