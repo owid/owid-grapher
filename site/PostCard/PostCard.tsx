@@ -1,6 +1,5 @@
 import React from "react"
-import { IndexPost } from "../../clientUtils/owidTypes.js"
-import { formatDate } from "../../clientUtils/Util.js"
+import { IndexPost, formatDate } from "@ourworldindata/utils"
 import { formatAuthors, formatUrls } from "../formatting.js"
 
 const PostCard = ({ post }: { post: IndexPost }) => {

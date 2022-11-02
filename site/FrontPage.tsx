@@ -16,10 +16,10 @@ import {
     NewsletterSubscriptionContext,
 } from "../site/NewsletterSubscription.js"
 import {
-    IndexPost,
     CategoryWithEntries,
     EntryNode,
-} from "../clientUtils/owidTypes.js"
+    IndexPost,
+} from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
 
 const splitOnLastWord = (str: string) => {

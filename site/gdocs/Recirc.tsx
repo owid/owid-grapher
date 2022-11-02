@@ -1,5 +1,5 @@
 import React from "react"
-import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
+import { OwidArticleBlock } from "@ourworldindata/utils"
 
 export default function Recirc({ d }: { d: OwidArticleBlock }) {
     return (

@@ -12,7 +12,7 @@ import {
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
     SearchWord,
-} from "../clientUtils/search.js"
+} from "@ourworldindata/utils"
 
 @observer
 export class DatasetsIndexPage extends React.Component {

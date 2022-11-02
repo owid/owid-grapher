@@ -1,4 +1,4 @@
-import { SiteFooterContext } from "../clientUtils/owidTypes.js"
+import { SiteFooterContext } from "@ourworldindata/utils"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { runBlocks } from "./blocks/index.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"

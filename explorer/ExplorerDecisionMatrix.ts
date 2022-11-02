@@ -1,13 +1,13 @@
 import { observable, computed, action } from "mobx"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
-import { differenceObj, trimObject } from "../clientUtils/Util.js"
-import { ColumnTypeNames } from "../coreTable/CoreColumnDef.js"
-import { CoreTable } from "../coreTable/CoreTable.js"
+import { queryParamsToStr } from "@ourworldindata/utils"
+import { differenceObj, trimObject } from "@ourworldindata/utils"
 import {
+    ColumnTypeNames,
+    CoreTable,
     detectDelimiter,
     parseDelimited,
     isCellEmpty,
-} from "../coreTable/CoreTableUtils.js"
+} from "@ourworldindata/core-table"
 import { GridBoolean } from "../gridLang/GridLangConstants.js"
 import {
     ChoiceMap,

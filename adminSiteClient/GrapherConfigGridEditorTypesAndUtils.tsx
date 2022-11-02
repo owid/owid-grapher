@@ -1,36 +1,40 @@
-import { QueryParams, queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,
     BooleanAtom,
+    BooleanOperation,
+    checkIsPlainObjectWithGuard,
     ComparisonOperator,
+    EditorOption,
     EqualityComparision,
     EqualityOperator,
+    excludeUndefined,
+    FieldDescription,
+    GrapherConfigPatch,
+    isArray,
     JsonPointerSymbol,
+    JSONPreciselyTyped,
     Negation,
+    NullCheckOperation,
+    NullCheckOperator,
     NumberAtom,
     NumericComparison,
     Operation,
+    OperationContext,
+    parseToOperation,
+    QueryParams,
+    queryParamsToStr,
     SqlColumnName,
     StringAtom,
     StringContainsOperation,
-    NullCheckOperation,
-    NullCheckOperator,
     StringOperation,
-    BooleanOperation,
-    OperationContext,
-    parseToOperation,
-    JSONPreciselyTyped,
-} from "../clientUtils/SqlFilterSExpression.js"
+    VariableAnnotationsResponseRow,
+} from "@ourworldindata/utils"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import {
-    VariableAnnotationsResponseRow,
-    GrapherConfigPatch,
-} from "../clientUtils/AdminSessionTypes.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import AntdConfig from "react-awesome-query-builder/lib/config/antd"
 import {
     BasicConfig,
@@ -48,16 +52,7 @@ import {
     ImmutableTree,
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
-import {
-    excludeUndefined,
-    isArray,
-    checkIsPlainObjectWithGuard,
-} from "../clientUtils/Util.js"
 import { isNil } from "lodash"
-import {
-    EditorOption,
-    FieldDescription,
-} from "../clientUtils/schemaProcessing.js"
 
 export function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow

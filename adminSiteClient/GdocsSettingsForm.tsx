@@ -1,5 +1,5 @@
 import React from "react"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "@ourworldindata/utils"
 import { ErrorMessage, ExcerptHandler } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
 import {

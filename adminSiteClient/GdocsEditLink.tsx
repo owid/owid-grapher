@@ -1,7 +1,7 @@
 import React from "react"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "@ourworldindata/utils"
 
 export const GdocsEditLink = ({
     gdoc,

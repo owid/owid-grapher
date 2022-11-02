@@ -1,8 +1,9 @@
 import {
     OwidArticleContent,
     OwidArticleType,
-} from "../clientUtils/owidTypes.js"
-import { isEqual, omit } from "../clientUtils/Util.js"
+    isEqual,
+    omit,
+} from "@ourworldindata/utils"
 
 export const checkFullDeployFallback = (
     prevGdoc: OwidArticleType,

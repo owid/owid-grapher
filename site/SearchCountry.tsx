@@ -1,8 +1,7 @@
 import React, { useState } from "react"
 import ReactDOM from "react-dom"
 import Select from "react-select"
-import { countries } from "../clientUtils/countries.js"
-import { sortBy } from "../clientUtils/Util.js"
+import { countries, sortBy } from "@ourworldindata/utils"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 

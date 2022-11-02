@@ -2,7 +2,7 @@ import React from "react"
 import { Dropdown, Menu, Button, Modal } from "antd"
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons/faEllipsisVertical"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "@ourworldindata/utils"
 
 enum GdocsMoreMenuAction {
     Delete = "delete",

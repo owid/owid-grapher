@@ -1,9 +1,13 @@
-import React from "react"
-import { observable, action } from "mobx"
+import { action, observable } from "mobx"
 import { observer } from "mobx-react"
+import React from "react"
 
-import { Bounds } from "../clientUtils/Bounds.js"
-import { Grapher } from "../grapher/core/Grapher.js"
+import { Grapher } from "@ourworldindata/grapher"
+import { Bounds } from "@ourworldindata/utils"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
 
 // Wrapper for Grapher that uses css on figure element to determine the bounds
 @observer
@@ -38,7 +42,14 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
             // This is especially important for SearchResults, where the preview chart can change as
             // the search query changes.
             <figure data-grapher-src ref={this.base}>
-                {this.bounds && <Grapher key={props.slug} {...props} />}
+                {this.bounds && (
+                    <Grapher
+                        key={props.slug}
+                        {...props}
+                        adminBaseUrl={ADMIN_BASE_URL}
+                        bakedGrapherURL={BAKED_GRAPHER_URL}
+                    />
+                )}
             </figure>
         )
     }

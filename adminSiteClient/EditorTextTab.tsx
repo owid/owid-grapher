@@ -1,33 +1,31 @@
-import React from "react"
-import { action, computed, runInAction } from "mobx"
-import { observer } from "mobx-react"
-import { ChartEditor } from "./ChartEditor.js"
-import {
-    Toggle,
-    Section,
-    BindString,
-    BindAutoString,
-    AutoTextField,
-    RadioGroup,
-    TextField,
-    Button,
-} from "./Forms.js"
-import { LogoOption } from "../grapher/captionedChart/Logos.js"
-import slugify from "slugify"
-import {
-    RelatedQuestionsConfig,
-    Topic,
-} from "../grapher/core/GrapherConstants.js"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     getErrorMessageRelatedQuestionUrl,
     Grapher,
-} from "../grapher/core/Grapher.js" // fix.
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+    LogoOption,
+    RelatedQuestionsConfig,
+    Topic,
+} from "@ourworldindata/grapher"
+import { getIndexableKeys } from "@ourworldindata/utils"
+import { action, computed, runInAction } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
 import Select from "react-select"
+import slugify from "slugify"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { getIndexableKeys } from "../clientUtils/Util.js"
+import { ChartEditor } from "./ChartEditor.js"
+import {
+    AutoTextField,
+    BindAutoString,
+    BindString,
+    Button,
+    RadioGroup,
+    Section,
+    TextField,
+    Toggle,
+} from "./Forms.js"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {

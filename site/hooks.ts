@@ -1,7 +1,7 @@
 import { useEffect, RefObject, useState, useRef } from "react"
 import throttle from "lodash/throttle.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import { debounce } from "../clientUtils/Util.js"
+import { debounce } from "@ourworldindata/utils"
 
 export const useTriggerWhenClickOutside = (
     container: RefObject<HTMLElement>,

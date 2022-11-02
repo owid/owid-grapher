@@ -1,4 +1,4 @@
-import { SubNavId } from "../clientUtils/owidTypes.js"
+import { SubNavId } from "@ourworldindata/utils"
 import {
     CellDef,
     BooleanCellDef,

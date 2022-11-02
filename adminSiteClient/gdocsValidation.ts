@@ -1,7 +1,4 @@
-import {
-    OwidArticleContent,
-    OwidArticleType,
-} from "../clientUtils/owidTypes.js"
+import { OwidArticleContent, OwidArticleType } from "@ourworldindata/utils"
 
 export enum ErrorMessageType {
     Error = "error",

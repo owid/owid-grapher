@@ -1,7 +1,7 @@
 import React from "react"
-import { useState, useRef } from "react"
+import { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
-import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
+import { OwidArticleBlock } from "@ourworldindata/utils"
 
 export default function Chart({ d }: { d: OwidArticleBlock }) {
     let content

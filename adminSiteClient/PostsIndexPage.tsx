@@ -4,7 +4,7 @@ import { observable, computed, action, runInAction } from "mobx"
 import fuzzysort from "fuzzysort"
 import * as lodash from "lodash"
 
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
+import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, EditableTags, Timeago } from "./Forms.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"

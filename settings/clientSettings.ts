@@ -9,7 +9,7 @@ import findBaseDir from "./findBaseDir.js"
 const baseDir = findBaseDir(__dirname)
 if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 
-import { parseIntOrUndefined } from "../clientUtils/Util.js"
+import { parseIntOrUndefined } from "@ourworldindata/utils"
 
 export const ENV: "development" | "production" =
     process.env.ENV === "production" ? "production" : "development"

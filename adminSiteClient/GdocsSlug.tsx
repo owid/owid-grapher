@@ -1,7 +1,6 @@
 import { Col, Input, Row, Space, Switch } from "antd"
 import React, { useEffect, useState } from "react"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
-import { slugify } from "../clientUtils/Util.js"
+import { OwidArticleType, slugify } from "@ourworldindata/utils"
 import { Help } from "./Forms.js"
 import {
     ErrorMessage,

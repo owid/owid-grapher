@@ -1,18 +1,17 @@
-import React from "react"
-import ReactDOM from "react-dom"
-import { observer } from "mobx-react"
-import { computed } from "mobx"
-import { union } from "../../clientUtils/Util.js"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { EntityName } from "@ourworldindata/core-table"
 import {
     getSelectedEntityNamesParam,
     migrateSelectedEntityNamesParam,
+    SelectionArray,
     setSelectedEntityNamesParam,
-} from "../../grapher/core/EntityUrlBuilder.js"
-import { SelectionArray } from "../../grapher/selection/SelectionArray.js"
-import { Url } from "../../clientUtils/urls/Url.js"
-import { EntityName } from "../../coreTable/OwidTableConstants.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+} from "@ourworldindata/grapher"
+import { union, Url } from "@ourworldindata/utils"
+import { computed } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
+import ReactDOM from "react-dom"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 

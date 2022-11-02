@@ -19,12 +19,12 @@ import {
     FormattedPost,
     FormattingOptions,
     TocHeading,
-} from "../clientUtils/owidTypes.js"
+    omit,
+} from "@ourworldindata/utils"
 import { Breadcrumb } from "./Breadcrumb/Breadcrumb.js"
 import { Byline } from "./Byline.js"
 import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
-import { omit } from "../clientUtils/Util.js"
 import StickyNav from "./blocks/StickyNav.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
 

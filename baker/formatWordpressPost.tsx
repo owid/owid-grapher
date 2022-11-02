@@ -16,9 +16,9 @@ import {
     JsonError,
     TocHeading,
     WP_BlockType,
-} from "../clientUtils/owidTypes.js"
+} from "@ourworldindata/utils"
 import { Footnote } from "../site/Footnote.js"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
+import { LoadingIndicator } from "@ourworldindata/grapher"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { DataToken } from "../site/DataToken.js"

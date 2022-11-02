@@ -1,7 +1,7 @@
 import React from "react"
 import { bind } from "decko"
 import classnames from "classnames"
-import { SortOrder } from "../../coreTable/CoreTableConstants.js"
+import { SortOrder } from "@ourworldindata/core-table"
 import { CovidSortKey } from "./CovidTypes.js"
 import { CovidTableSortIcon } from "./CovidTableSortIcon.js"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants.js"

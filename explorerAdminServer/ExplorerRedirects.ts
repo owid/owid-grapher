@@ -1,4 +1,4 @@
-import { CoreTable } from "../coreTable/CoreTable.js"
+import { CoreTable } from "@ourworldindata/core-table"
 import { ExplorerUrlMigrationId } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
 
 const explorerRedirectTableMatrix = [

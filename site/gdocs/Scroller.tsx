@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react"
 import { InView } from "react-intersection-observer"
-import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
+import { OwidArticleBlock } from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../hooks.js"
 

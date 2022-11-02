@@ -1,10 +1,6 @@
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import {
-    FullPost,
-    WP_BlockClass,
-    WP_BlockType,
-} from "../../clientUtils/owidTypes.js"
+import { FullPost, WP_BlockClass, WP_BlockType } from "@ourworldindata/utils"
 import { RelatedCharts } from "./RelatedCharts.js"
 
 export const AllCharts = ({ post }: { post: FullPost }) => {

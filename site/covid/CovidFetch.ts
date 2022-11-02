@@ -1,12 +1,11 @@
 import { csvParse } from "d3-dsv"
-import dayjs from "../../clientUtils/dayjs.js"
-
 import {
+    dayjs,
     fetchText,
     retryPromise,
     memoize,
     parseIntOrUndefined,
-} from "../../clientUtils/Util.js"
+} from "@ourworldindata/utils"
 
 import { CovidSeries } from "./CovidTypes.js"
 import { JHU_DATA_URL, TESTS_DATA_URL } from "./CovidConstants.js"

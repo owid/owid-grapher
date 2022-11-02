@@ -1,4 +1,4 @@
-import { GrapherAnalytics } from "../grapher/core/GrapherAnalytics.js" // todo: make these less tightly coupled
+import { GrapherAnalytics } from "@ourworldindata/grapher"
 
 export class SiteAnalytics extends GrapherAnalytics {
     logCovidCountryProfileSearch(country: string) {

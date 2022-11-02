@@ -1,9 +1,7 @@
-import { omit } from "../../clientUtils/Util.js"
-import { QueryParams } from "../../clientUtils/urls/UrlUtils.js"
-import { ExplorerUrlMigrationSpec } from "./ExplorerUrlMigrations.js"
-import { legacyToCurrentGrapherUrl } from "../../grapher/core/GrapherUrlMigrations.js"
-import { Url } from "../../clientUtils/urls/Url.js"
+import { legacyToCurrentGrapherUrl } from "@ourworldindata/grapher"
+import { omit, QueryParams, Url } from "@ourworldindata/utils"
 import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants.js"
+import { ExplorerUrlMigrationSpec } from "./ExplorerUrlMigrations.js"
 
 const covidMetricFromLegacyQueryParams = (queryParams: QueryParams) => {
     if (queryParams.casesMetric) {

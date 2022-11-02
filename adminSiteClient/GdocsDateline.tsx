@@ -1,8 +1,7 @@
 import { Col, Row } from "antd"
 import { Dayjs } from "dayjs"
-import dayjs from "../clientUtils/dayjs"
+import { dayjs, OwidArticleType } from "@ourworldindata/utils"
 import React from "react"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
 import DatePicker from "./DatePicker.js"
 import { GdocsSettingsContentField } from "./GdocsSettingsContentField.js"
 import {

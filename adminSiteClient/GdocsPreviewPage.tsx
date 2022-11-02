@@ -7,7 +7,8 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import {
     OwidArticleType,
     OwidArticleTypeJSON,
-} from "../clientUtils/owidTypes.js"
+    getArticleFromJSON,
+} from "@ourworldindata/utils"
 import { Button, Col, Drawer, Modal, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
@@ -28,7 +29,6 @@ import {
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
-import { getArticleFromJSON } from "../clientUtils/Util.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {

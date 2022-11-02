@@ -3,7 +3,7 @@ import {
     OwidArticleContent,
     OwidArticleType,
     OwidArticleTypePublished,
-} from "../../clientUtils/owidTypes.js"
+} from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,

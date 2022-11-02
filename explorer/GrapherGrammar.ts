@@ -1,24 +1,24 @@
 import {
-    Grammar,
-    StringCellDef,
-    SlugsDeclarationCellDef,
-    IntegerCellDef,
-    SlugDeclarationCellDef,
-    BooleanCellDef,
-    EnumCellDef,
-    NumericCellDef,
-    CellDef,
-    UrlCellDef,
-} from "../gridLang/GridLangConstants.js"
-import {
     ChartTypeName,
+    ColorSchemes,
     FacetAxisDomain,
     FacetStrategy,
     GrapherTabOption,
     StackMode,
-} from "../grapher/core/GrapherConstants.js"
-import { ColorSchemes } from "../grapher/color/ColorSchemes.js"
-import { SortBy, SortOrder } from "../clientUtils/owidTypes.js"
+} from "@ourworldindata/grapher"
+import { SortBy, SortOrder } from "@ourworldindata/utils"
+import {
+    BooleanCellDef,
+    CellDef,
+    EnumCellDef,
+    Grammar,
+    IntegerCellDef,
+    NumericCellDef,
+    SlugDeclarationCellDef,
+    SlugsDeclarationCellDef,
+    StringCellDef,
+    UrlCellDef,
+} from "../gridLang/GridLangConstants.js"
 
 const toTerminalOptions = (keywords: string[]): CellDef[] => {
     return keywords.map((keyword) => ({

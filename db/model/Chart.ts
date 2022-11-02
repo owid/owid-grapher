@@ -12,8 +12,10 @@ import * as db from "../db.js"
 import { getDataForMultipleVariables } from "./Variable.js"
 import { User } from "./User.js"
 import { ChartRevision } from "./ChartRevision.js"
-import { MultipleOwidVariableDataDimensionsMap } from "../../clientUtils/OwidVariable.js"
-import { Tag } from "../../clientUtils/owidTypes.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    Tag,
+} from "@ourworldindata/utils"
 
 // XXX hardcoded filtering to public parent tags
 const PUBLIC_TAG_PARENT_IDS = [

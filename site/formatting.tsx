@@ -8,8 +8,9 @@ import {
     WP_BlockClass,
     WP_ColumnStyle,
     WP_PostType,
-} from "../clientUtils/owidTypes.js"
-import { formatDate, last } from "../clientUtils/Util.js"
+    last,
+    formatDate,
+} from "@ourworldindata/utils"
 import { BAKED_BASE_URL, WORDPRESS_URL } from "../settings/serverSettings.js"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
 import {

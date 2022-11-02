@@ -1,7 +1,7 @@
 import React, { useContext } from "react"
 import { observable } from "mobx"
 import { createContext, useState } from "react"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
 

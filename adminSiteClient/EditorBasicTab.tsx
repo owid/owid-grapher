@@ -9,30 +9,31 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import {
+    ChartTypeName,
+    DimensionSlot,
+    EntitySelectionMode,
+    StackMode,
+    WorldEntityName,
+} from "@ourworldindata/grapher"
+import {
+    DimensionProperty,
     moveArrayItemToIndex,
+    OwidVariableId,
     sample,
     sampleSize,
     startCase,
-} from "../clientUtils/Util.js"
-import {
-    EntitySelectionMode,
-    ChartTypeName,
-    WorldEntityName,
-    StackMode,
-} from "../grapher/core/GrapherConstants.js"
-import { Toggle, SelectField, FieldsRow, Section } from "./Forms.js"
-import { ChartEditor } from "./ChartEditor.js"
+    OwidChartDimensionInterface,
+} from "@ourworldindata/utils"
+import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
+import { ChartEditor } from "./ChartEditor.js"
 import { DimensionCard } from "./DimensionCard.js"
-import { DimensionSlot } from "../grapher/chart/DimensionSlot.js"
-import { DimensionProperty, OwidVariableId } from "../clientUtils/owidTypes.js"
 import {
     DragDropContext,
     Droppable,
     Draggable,
     DropResult,
 } from "react-beautiful-dnd"
-import { OwidChartDimensionInterface } from "../clientUtils/OwidVariableDisplayConfigInterface.js"
 
 @observer
 class DimensionSlotView extends React.Component<{

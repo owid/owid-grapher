@@ -19,3 +19,7 @@ runs:
         - name: Install dependencies
           run: yarn --frozen-lockfile --network-concurrency 1
           shell: bash
+
+        - name: Build packages
+          run: yarn buildLerna
+          shell: bash

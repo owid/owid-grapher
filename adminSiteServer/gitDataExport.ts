@@ -10,7 +10,7 @@ import {
 import * as db from "../db/db.js"
 import filenamify from "filenamify"
 import { execFormatted } from "../db/execWrapper.js"
-import { JsonError } from "../clientUtils/owidTypes.js"
+import { JsonError } from "@ourworldindata/utils"
 
 const datasetToReadme = async (dataset: Dataset): Promise<string> => {
     const source = await Source.findOneBy({ datasetId: dataset.id })

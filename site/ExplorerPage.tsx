@@ -1,22 +1,23 @@
-import React from "react"
-import { Head } from "../site/Head.js"
-import { SiteHeader } from "../site/SiteHeader.js"
-import { SiteFooter } from "../site/SiteFooter.js"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
-import { IFrameDetector } from "../site/IframeDetector.js"
-import { SiteSubnavigation } from "../site/SiteSubnavigation.js"
 import {
-    EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
+    GrapherInterface,
+    GRAPHER_PAGE_BODY_CLASS,
+    LoadingIndicator,
+} from "@ourworldindata/grapher"
+import { serializeJSONForHTML, SiteFooterContext } from "@ourworldindata/utils"
+import React from "react"
+import {
     EMBEDDED_EXPLORER_DELIMITER,
+    EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
     ExplorerContainerId,
     EXPLORERS_ROUTE_FOLDER,
 } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { serializeJSONForHTML } from "../clientUtils/serializers.js"
-import { GRAPHER_PAGE_BODY_CLASS } from "../grapher/core/GrapherConstants.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
-import { SiteFooterContext } from "../clientUtils/owidTypes.js"
+import { Head } from "../site/Head.js"
+import { IFrameDetector } from "../site/IframeDetector.js"
+import { SiteFooter } from "../site/SiteFooter.js"
+import { SiteHeader } from "../site/SiteHeader.js"
+import { SiteSubnavigation } from "../site/SiteSubnavigation.js"
 
 interface ExplorerPageSettings {
     program: ExplorerProgram

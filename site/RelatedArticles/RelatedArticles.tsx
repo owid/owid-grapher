@@ -1,5 +1,5 @@
 import React from "react"
-import { PostReference } from "../../clientUtils/owidTypes.js"
+import { PostReference } from "@ourworldindata/utils"
 import { BAKED_BASE_URL } from "../../settings/serverSettings.js"
 
 export const RelatedArticles = ({

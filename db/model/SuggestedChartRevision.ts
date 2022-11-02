@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm"
 
-import { SuggestedChartRevisionStatus } from "../../clientUtils/owidTypes.js"
+import { SuggestedChartRevisionStatus } from "@ourworldindata/utils"
 
 @Entity("suggested_chart_revisions")
 export class SuggestedChartRevision extends BaseEntity {

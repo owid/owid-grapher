@@ -12,12 +12,6 @@
 
 This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure.
 
-⚠️
-
-**Note: As of April 5th 2022, we have [changed](https://github.com/owid/owid-grapher/pull/1359) the environment variable naming and MySQL port used by the database. If you've been running this project since before then, please update your `.env` and MySQL client accordingly (see the [example file](./.env.example-grapher) as a reference for the required changes).**
-
-⚠️
-
 We're gradually making steps towards making our work more reusable, however we still prioritize [needs specific to our project](#why-did-we-start-this-project) that can be at odds with making our tools reusable.
 
 You are still very welcome to reuse and adapt any of our code for your own purposes, and we welcome [contributions](CONTRIBUTING.md)!
@@ -28,11 +22,13 @@ You are still very welcome to reuse and adapt any of our code for your own purpo
 
 Multiple projects are maintained in this repo:
 
-### [Grapher](grapher/)
+### [Grapher](packages/%40ourworldindata/grapher/)
 
 A client-side interactive data visualization library used by almost every chart on Our World in Data.
 
 All grapher data is stored in a MySQL database that contains both JSON configuration objects for individual charts as well as the data values that they ingest.
+
+The Grapher project is built with [Lerna](https://github.com/lerna/lerna/) and [tsup](https://github.com/egoist/tsup).
 
 ### [Explorer](explorer/)
 

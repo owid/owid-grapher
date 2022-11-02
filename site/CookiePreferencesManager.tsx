@@ -4,7 +4,7 @@ import { useEffect, useReducer } from "react"
 import Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"
-import dayjs from "../clientUtils/dayjs.js"
+import { dayjs } from "@ourworldindata/utils"
 
 export enum PreferenceType {
     Analytics = "a",

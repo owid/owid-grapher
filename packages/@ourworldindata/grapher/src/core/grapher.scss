@@ -1,0 +1,160 @@
+$sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
+$serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
+
+// Variables duplicated from site CSS
+$blue-10: #ebeef2;
+$blue-100: #002147;
+$blue-20: #dbe5f0;
+$blue-40: #98a9bd;
+$blue-50: #6e87a2;
+$blue-90: #1d3d63;
+$controls-color: #0073e6;
+$gray-10: #f7f7f7;
+$gray-10: #fafbfd;
+$light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.08) 0px 2px 2px;
+$oxford-blue: #002147;
+$text-color: #1d3d63;
+$white: #fff;
+
+// These should be between 0–100 in order to avoid conflicting with
+// site dropdowns, search overlays, etc.
+$zindex-chart: 1;
+$zindex-tab: 1;
+$zindex-global-entity-select: 11;
+$zindex-Tooltip: 20;
+
+@import "../controls/entityPicker/EntityPicker.scss";
+@import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
+@import "../controls/CommandPalette.scss";
+@import "../controls/ScaleSelector.scss";
+@import "../controls/Controls.scss";
+@import "../timeline/TimelineComponent.scss";
+@import "../controls/ShareMenu.scss";
+@import "../noDataModal/NoDataModal.scss";
+@import "../controls/CollapsibleList/CollapsibleList.scss";
+@import "../controls/ControlsRow.scss";
+@import "../captionedChart/CaptionedChart.scss";
+@import "../controls/EntitySelectorModal.scss";
+@import "../controls/AddEntityButton.scss";
+@import "../downloadTab/DownloadTab.scss";
+@import "../dataTable/DataTable.scss";
+@import "../sourcesTab/SourcesTab.scss";
+@import "../mapCharts/MapTooltip.scss";
+@import "../sparkBars/SparkBars.scss";
+@import "../loadingIndicator/LoadingIndicator.scss";
+@import "../text/MarkdownTextWrap.scss";
+@import "../detailsOnDemand/detailsOnDemand.scss";
+
+.GrapherComponent,
+.GrapherComponent p,
+.GrapherComponent ul,
+.GrapherComponent ol {
+    font-family: $sans-serif-font-stack;
+}
+
+.GrapherComponent {
+    display: inline-block;
+    border-bottom: none;
+    border-radius: 2px;
+    text-align: left;
+
+    line-height: 1em;
+
+    background: white;
+    color: #333;
+
+    position: relative;
+
+    /* Hidden overflow x so that tooltips don't cause scrollbars */
+    overflow: hidden;
+
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+    z-index: $zindex-chart;
+
+    * {
+        box-sizing: border-box;
+    }
+
+    button {
+        background: none;
+        border: none;
+    }
+
+    .btn {
+        font-size: 0.8em;
+        white-space: normal;
+    }
+
+    .flash {
+        margin: 10px;
+    }
+
+    .clickable {
+        cursor: pointer;
+
+        a {
+            text-decoration: none;
+            &:visited {
+                color: initial;
+            }
+        }
+    }
+    input[type="checkbox"] {
+        cursor: pointer;
+    }
+
+    /* Make World line slightly thicker */
+    svg .key-World_0 polyline {
+        stroke-width: 2 !important;
+    }
+
+    .projection .nv-line {
+        stroke-dasharray: 3, 3;
+    }
+
+    .projection .nv-point {
+        fill: #fff;
+        stroke-width: 1;
+        opacity: 0.5;
+    }
+
+    .projection .nv-point.hover {
+        stroke-width: 4;
+    }
+
+    a {
+        cursor: pointer;
+        color: #0645ad;
+        fill: #0645ad;
+        border-bottom: none;
+    }
+
+    h2 {
+        font-size: 2em;
+        margin-top: 0;
+        margin-bottom: 0.8em;
+        font-weight: 500;
+        line-height: 1.1;
+    }
+
+    .unstroked {
+        display: none;
+    }
+
+    .DownloadTab,
+    .tableTab,
+    .sourcesTab {
+        z-index: $zindex-tab;
+    }
+}
+
+.GrapherComponent.isExportingToSvgOrPng {
+    padding: 0 !important;
+}
+
+.Tooltip {
+    z-index: $zindex-Tooltip;
+}

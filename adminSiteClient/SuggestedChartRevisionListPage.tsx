@@ -6,11 +6,13 @@ import { Link } from "react-router-dom"
 
 import { TextField } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { uniq } from "../clientUtils/Util.js"
-import { SortOrder } from "../clientUtils/owidTypes.js"
+import {
+    uniq,
+    SortOrder,
+    getStylesForTargetHeight,
+} from "@ourworldindata/utils"
 import Select from "react-select"
-import { getStylesForTargetHeight } from "../clientUtils/react-select.js"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
+import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
 import {
     SuggestedChartRevisionList,
     SuggestedChartRevisionListItem,

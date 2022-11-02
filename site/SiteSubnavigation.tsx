@@ -1,7 +1,7 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
-import { SubNavId } from "../clientUtils/owidTypes.js"
+import { SubNavId } from "@ourworldindata/utils"
 
 export interface SubnavItem {
     label: string

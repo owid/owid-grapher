@@ -8,7 +8,7 @@ import {
     ExplorersRouteResponse,
 } from "../explorer/ExplorerConstants.js"
 import simpleGit, { SimpleGit } from "simple-git"
-import { GitCommit } from "../clientUtils/owidTypes.js"
+import { GitCommit } from "@ourworldindata/utils"
 
 export class ExplorerAdminServer {
     constructor(gitDir: string) {

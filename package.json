@@ -11,6 +11,7 @@
         "buildLocalBake": "node ./itsJustJavascript/baker/buildLocalBake.js",
         "buildStorybook": "build-storybook -c ./itsJustJavascript/.storybook -o .storybook/build",
         "buildTsc": "tsc -b -verbose",
+        "buildLerna": "lerna run build",
         "buildWebpack": "rm -rf itsJustJavascript/webpack && ENV=production webpack --mode production --config ./itsJustJavascript/webpack.config.js --progress",
         "buildWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn build",
         "cleanTsc": "rm -rf itsJustJavaScript && tsc -b -clean",
@@ -23,6 +24,7 @@
         "runPostUpdateHook": "node ./itsJustJavascript/baker/postUpdatedHook.js",
         "startAdminServer": "node ./itsJustJavascript/adminSiteServer/app.js",
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
+        "startLernaWatcher": "node ./devTools/lernaWatcher/lerna-watcher.js",
         "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
         "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
         "startTscServer": "tsc -b -verbose -watch",
@@ -48,6 +50,9 @@
         "@fortawesome/free-solid-svg-icons": "^6.2.0",
         "@fortawesome/react-fontawesome": "^0.2.0",
         "@handsontable/react": "^12.1.2",
+        "@ourworldindata/core-table": "*",
+        "@ourworldindata/grapher": "*",
+        "@ourworldindata/utils": "*",
         "@prettier/plugin-php": "^0.14.3",
         "@tippyjs/react": "^4.2.6",
         "@types/amplitude-js": "^7.0.1",
@@ -115,7 +120,6 @@
         "css-loader": "^6.7.1",
         "css-minimizer-webpack-plugin": "^4.1.0",
         "d3": "^6.1.1",
-        "d3-geo-projection": "^3.0.0",
         "dayjs": "^1.11.5",
         "decko": "^1.2.0",
         "dotenv": "^16.0.1",
@@ -147,6 +151,7 @@
         "json8-pointer": "^1.0.6",
         "jsonwebtoken": "^8.5.1",
         "knex": "^2.3.0",
+        "lerna": "^6.0.0",
         "linkifyjs": "^2.1.9",
         "lodash": "^4.17.20",
         "mathjax-full": "^3.1.0",
@@ -233,6 +238,7 @@
         "@types/opener": "^1.4.0",
         "@typescript-eslint/eslint-plugin": "^5.37.0",
         "@typescript-eslint/parser": "^5.37.0",
+        "chokidar": "^3.5.3",
         "cypress": "9.3.1",
         "eslint-config-prettier": "^8.5.0",
         "eslint-plugin-react": "^7.31.8",
@@ -256,5 +262,11 @@
         ">0.5%",
         "Firefox ESR",
         "not dead"
-    ]
+    ],
+    "name": "grapher",
+    "workspaces": [
+        "packages/@ourworldindata/*",
+        "."
+    ],
+    "license": "MIT"
 }

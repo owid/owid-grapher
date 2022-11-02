@@ -1,4 +1,4 @@
-import { mdParser } from "../../grapher/text/parser.js"
+import { mdParser } from "@ourworldindata/grapher"
 
 import parseArgs from "minimist"
 async function main(parsedArgs: parseArgs.ParsedArgs) {

@@ -2,8 +2,7 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { range } from "../clientUtils/Util.js"
-import { IndexPost } from "../clientUtils/owidTypes.js"
+import { range, IndexPost } from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
 
 export const BlogIndexPage = (props: {

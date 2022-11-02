@@ -1,11 +1,9 @@
 import React from "react"
-import dayjs from "../clientUtils/dayjs.js"
+import { dayjs, groupBy, PostRow } from "@ourworldindata/utils"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { TableOfContents } from "../site/TableOfContents.js"
-import { groupBy } from "../clientUtils/Util.js"
-import { PostRow } from "../clientUtils/owidTypes.js"
 
 type Entry = Pick<PostRow, "title" | "slug" | "published_at">
 

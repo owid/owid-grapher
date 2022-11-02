@@ -1,7 +1,7 @@
 import React, { createRef } from "react"
 import ReactDOM from "react-dom"
 import classnames from "classnames"
-import { throttle } from "../../clientUtils/Util.js"
+import { throttle } from "@ourworldindata/utils"
 
 function getTotalOffset(element: HTMLElement): {
     x: number

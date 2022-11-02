@@ -8,7 +8,7 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
+import { OwidArticleBlock } from "@ourworldindata/utils"
 
 export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {

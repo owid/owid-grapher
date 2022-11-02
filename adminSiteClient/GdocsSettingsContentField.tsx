@@ -1,9 +1,6 @@
 import React from "react"
 import { Input, InputProps } from "antd"
-import {
-    OwidArticleType,
-    OwidArticleContent,
-} from "../clientUtils/owidTypes.js"
+import { OwidArticleType, OwidArticleContent } from "@ourworldindata/utils"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 import {

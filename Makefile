@@ -45,6 +45,8 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 	@make check-port-3306
 	@echo '==> Building grapher'
 	yarn install
+	yarn lerna bootstrap
+	yarn lerna run build
 	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
@@ -55,6 +57,8 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -68,6 +72,8 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 	@make check-port-3306
 	@echo '==> Building grapher'
 	yarn install
+	yarn lerna bootstrap
+	yarn lerna run build
 	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
@@ -76,6 +82,8 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -90,6 +98,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 
 	@echo '==> Building grapher'
 	yarn install
+	yarn lerna bootstrap
+	yarn lerna run build
 	yarn run tsc -b
 	yarn buildWordpressPlugin
 
@@ -101,6 +111,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \

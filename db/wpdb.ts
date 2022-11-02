@@ -33,11 +33,12 @@ import {
     PostRestApi,
     TopicId,
     GraphType,
+    memoize,
     IndexPost,
     OwidArticleTypePublished,
-} from "../clientUtils/owidTypes.js"
-import { memoize, orderBy } from "../clientUtils/Util.js"
-import { Topic } from "../grapher/core/GrapherConstants.js"
+    orderBy,
+} from "@ourworldindata/utils"
+import { Topic } from "@ourworldindata/grapher"
 import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,

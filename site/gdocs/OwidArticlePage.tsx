@@ -7,10 +7,7 @@ import { CitationMeta } from "../CitationMeta.js"
 import { OwidArticle } from "./OwidArticle.js"
 import { get } from "lodash"
 
-import {
-    OwidArticleType,
-    SiteFooterContext,
-} from "../../clientUtils/owidTypes.js"
+import { OwidArticleType, SiteFooterContext } from "@ourworldindata/utils"
 
 declare global {
     interface Window {

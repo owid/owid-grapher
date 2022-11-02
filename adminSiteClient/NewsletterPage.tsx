@@ -5,7 +5,7 @@ import fuzzysort from "fuzzysort"
 import * as lodash from "lodash"
 
 import { AdminLayout } from "./AdminLayout.js"
-import { highlight as fuzzyHighlight } from "../grapher/controls/FuzzySearch.js"
+import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
 import { SearchField, FieldsRow, Timeago } from "./Forms.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { WORDPRESS_URL } from "../settings/clientSettings.js"

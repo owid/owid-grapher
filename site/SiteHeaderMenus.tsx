@@ -10,7 +10,7 @@ import {
 import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch.js"
 import classnames from "classnames"
-import { flatten } from "../clientUtils/Util.js"
+import { flatten, CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
 import { bind } from "decko"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
@@ -24,7 +24,6 @@ import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription.js"
-import { CategoryWithEntries, EntryMeta } from "../clientUtils/owidTypes.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { ENV } from "../settings/clientSettings.js"
 

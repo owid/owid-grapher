@@ -5,8 +5,9 @@ import Footnotes from "./Footnotes"
 import {
     OwidArticleBlock,
     OwidArticleType,
-} from "../../clientUtils/owidTypes.js"
-import { formatDate, getArticleFromJSON } from "../../clientUtils/Util.js"
+    formatDate,
+    getArticleFromJSON,
+} from "@ourworldindata/utils"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt } = props

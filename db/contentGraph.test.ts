@@ -5,8 +5,8 @@ import {
     GraphDocumentType,
     GraphType,
     TopicId,
-} from "../clientUtils/owidTypes.js"
-import { slugify } from "../clientUtils/Util.js"
+    slugify,
+} from "@ourworldindata/utils"
 import {
     addDocumentsToGraph,
     fortuneRecordTypes,

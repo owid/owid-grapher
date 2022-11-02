@@ -1,6 +1,6 @@
 import React from "react"
 import ArticleBlock from "./ArticleBlock"
-import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
+import { OwidArticleBlock } from "@ourworldindata/utils"
 
 export default function FixedSection({ d }: { d: OwidArticleBlock }) {
     const position = d.value.find(

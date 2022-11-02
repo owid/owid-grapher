@@ -1,11 +1,14 @@
 import * as db from "../../db/db.js"
 import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
-import { chunkParagraphs, htmlToPlaintext } from "../../clientUtils/search.js"
-import { countries } from "../../clientUtils/countries.js"
-import { FormattedPost } from "../../clientUtils/owidTypes.js"
+import {
+    chunkParagraphs,
+    countries,
+    FormattedPost,
+} from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
+import { htmlToText } from "html-to-text"
 
 interface Tag {
     id: number
@@ -52,7 +55,13 @@ const getPagesRecords = async () => {
         const rawPost = await wpdb.getFullPost(postApi)
 
         const post = await formatPost(rawPost, { footnotes: false })
-        const postText = htmlToPlaintext(post.html)
+        const postText = htmlToText(post.html, {
+            tables: true,
+            ignoreHref: true,
+            wordwrap: false,
+            uppercaseHeadings: false,
+            ignoreImage: true,
+        })
         const chunks = chunkParagraphs(postText, 1000)
 
         const tags = await getPostTags(post.id)

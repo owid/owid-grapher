@@ -15,24 +15,34 @@ import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import { getVariableData } from "../db/model/Variable.js"
-import { applyPatch } from "../clientUtils/patchHelper.js"
+import {
+    applyPatch,
+    BulkChartEditResponseRow,
+    BulkGrapherConfigResponse,
+    camelCaseProperties,
+    chartBulkUpdateAllowedColumnNamesAndTypes,
+    GdocsContentSource,
+    getArticleFromJSON,
+    GrapherConfigPatch,
+    isEmpty,
+    JsonError,
+    omit,
+    OperationContext,
+    OwidArticleTypeJSON,
+    parseIntOrUndefined,
+    parseToOperation,
+    PostRow,
+    set,
+    SuggestedChartRevisionStatus,
+    trimObject,
+    variableAnnotationAllowedColumnNamesAndTypes,
+    VariableAnnotationsResponseRow,
+} from "@ourworldindata/utils"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
-} from "../grapher/core/GrapherInterface.js"
-import {
-    GdocsContentSource,
-    OwidArticleTypeJSON,
-    SuggestedChartRevisionStatus,
-} from "../clientUtils/owidTypes.js"
-import {
-    GrapherConfigPatch,
-    BulkGrapherConfigResponse,
-    VariableAnnotationsResponseRow,
-    BulkChartEditResponseRow,
-    chartBulkUpdateAllowedColumnNamesAndTypes,
-    variableAnnotationAllowedColumnNamesAndTypes,
-} from "../clientUtils/AdminSessionTypes.js"
+    Detail,
+} from "@ourworldindata/grapher"
 import {
     CountryNameFormat,
     CountryDefByKey,
@@ -46,36 +56,20 @@ import {
 } from "./gitDataExport.js"
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
-import { camelCaseProperties } from "../clientUtils/string.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
-import { JsonError, PostRow } from "../clientUtils/owidTypes.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
-import {
-    OperationContext,
-    parseToOperation,
-} from "../clientUtils/SqlFilterSExpression.js"
 import {
     postsTable,
     setTagsForPost,
     select,
     getTagsByPostId,
 } from "../db/model/Post.js"
-import {
-    getArticleFromJSON,
-    isEmpty,
-    omit,
-    parseIntOrUndefined,
-    set,
-    trimObject,
-} from "../clientUtils/Util.js"
-
-import { Detail } from "../grapher/core/GrapherConstants.js"
 import { getErrors } from "../adminSiteClient/gdocsValidation.js"
 import {
     checkFullDeployFallback,

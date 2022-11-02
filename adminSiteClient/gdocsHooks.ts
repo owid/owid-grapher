@@ -4,8 +4,8 @@ import {
     OwidArticleType,
     OwidArticleTypeJSON,
     SiteFooterContext,
-} from "../clientUtils/owidTypes.js"
-import { getArticleFromJSON } from "../clientUtils/Util.js"
+    getArticleFromJSON,
+} from "@ourworldindata/utils"
 import { useDebounceCallback, useInterval } from "../site/hooks.js"
 import { runSiteFooterScripts } from "../site/runSiteFooterScripts.js"
 import { Admin } from "./Admin.js"

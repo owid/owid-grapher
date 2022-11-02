@@ -3,8 +3,7 @@
 
 import * as wpdb from "./wpdb.js"
 import * as db from "./db.js"
-import { keyBy } from "../clientUtils/Util.js"
-import { PostRow } from "../clientUtils/owidTypes.js"
+import { keyBy, PostRow } from "@ourworldindata/utils"
 import { postsTable, select } from "./model/Post.js"
 
 const zeroDateString = "0000-00-00 00:00:00"

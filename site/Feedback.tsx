@@ -8,7 +8,7 @@ import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { stringifyUnkownError } from "../clientUtils/Util.js"
+import { stringifyUnkownError } from "@ourworldindata/utils"
 
 const sendFeedback = async (feedback: Feedback) => {
     const json = {

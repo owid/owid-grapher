@@ -1,26 +1,31 @@
-import React from "react"
-import urljoin from "url-join"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
-import { Head } from "./Head.js"
-import {
-    PostReference,
-    PostRow,
-    RelatedChart,
-    SiteFooterContext,
-} from "../clientUtils/owidTypes.js"
-import { ChartListItemVariant } from "./ChartListItemVariant.js"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
-import { IFrameDetector } from "./IframeDetector.js"
-import { serializeJSONForHTML } from "../clientUtils/serializers.js"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
+    GrapherInterface,
     GRAPHER_PAGE_BODY_CLASS,
-} from "../grapher/core/GrapherConstants.js"
-import { flatten, uniq } from "../clientUtils/Util.js"
+    LoadingIndicator,
+} from "@ourworldindata/grapher"
+import {
+    flatten,
+    PostReference,
+    PostRow,
+    RelatedChart,
+    serializeJSONForHTML,
+    uniq,
+    SiteFooterContext,
+} from "@ourworldindata/utils"
+import React from "react"
+import urljoin from "url-join"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
+import { ChartListItemVariant } from "./ChartListItemVariant.js"
+import { Head } from "./Head.js"
+import { IFrameDetector } from "./IframeDetector.js"
 import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { SiteHeader } from "./SiteHeader.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -51,7 +56,11 @@ export const GrapherPage = (props: {
     const imageWidth: string = "1200"
     const imageHeight: string = "628"
 
-    const script = `const jsonConfig = ${serializeJSONForHTML(grapher)}
+    const script = `const jsonConfig = ${serializeJSONForHTML({
+        ...grapher,
+        adminBaseUrl: ADMIN_BASE_URL,
+        bakedGrapherURL: BAKED_GRAPHER_URL,
+    })}
 window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))

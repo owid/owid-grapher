@@ -1,4 +1,4 @@
-import { SortOrder } from "../../coreTable/CoreTableConstants.js"
+import { SortOrder } from "@ourworldindata/core-table"
 import { NounKey, NounGenerator } from "./CovidTypes.js"
 import { createNoun } from "./CovidUtils.js"
 

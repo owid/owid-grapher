@@ -1,11 +1,11 @@
 import { PageOverrides } from "../site/LongFormPage.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { urlToSlug } from "../clientUtils/Util.js"
 import {
+    urlToSlug,
     FormattingOptions,
     FullPost,
     JsonError,
-} from "../clientUtils/owidTypes.js"
+} from "@ourworldindata/utils"
 import { getPostBySlug, isPostCitable } from "../db/wpdb.js"
 import { getTopSubnavigationParentItem } from "../site/SiteSubnavigation.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"

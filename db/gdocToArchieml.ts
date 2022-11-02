@@ -3,7 +3,7 @@
 
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
-import { OwidArticleContent } from "../clientUtils/owidTypes.js"
+import { OwidArticleContent } from "@ourworldindata/utils"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]

@@ -1,6 +1,6 @@
-import { ColumnSlug, SerializedGridProgram } from "../clientUtils/owidTypes.js"
-import { SortOrder } from "../coreTable/CoreTableConstants.js"
-import { GrapherQueryParams } from "../grapher/core/GrapherInterface.js"
+import { SortOrder } from "@ourworldindata/core-table"
+import { GrapherQueryParams } from "@ourworldindata/grapher"
+import { ColumnSlug, SerializedGridProgram } from "@ourworldindata/utils"
 
 export enum ExplorerControlType {
     Radio = "Radio",

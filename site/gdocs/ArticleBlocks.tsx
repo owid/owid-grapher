@@ -1,6 +1,6 @@
 import React from "react"
 import ArticleBlock from "./ArticleBlock.js"
-import { OwidArticleBlock } from "../../clientUtils/owidTypes.js"
+import { OwidArticleBlock } from "@ourworldindata/utils"
 
 export const ArticleBlocks = ({ blocks }: { blocks: OwidArticleBlock[] }) => (
     <>

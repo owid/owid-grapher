@@ -1,5 +1,4 @@
-import { Url } from "../clientUtils/urls/Url.js"
-import { strToQueryParams } from "../clientUtils/urls/UrlUtils.js"
+import { Url, strToQueryParams } from "@ourworldindata/utils"
 import { formatUrls } from "../site/formatting.js"
 import * as redirects from "./redirects.js"
 import { resolveInternalRedirect } from "./redirects.js"
