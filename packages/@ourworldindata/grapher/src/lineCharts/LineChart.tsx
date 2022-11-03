@@ -80,7 +80,10 @@ import {
 import { ColorSchemeName, OwidNoDataGray } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import { darkenColorForHighContrastText } from "../color/ColorUtils"
+import {
+    darkenColorForHighContrastText,
+    darkenColorForLine,
+} from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
@@ -433,7 +436,11 @@ export class LineChart
                             r={this.lineStrokeWidth / 2 + 3.5}
                             fill={
                                 this.hasColorScale
-                                    ? this.getColorScaleColor(value.colorValue)
+                                    ? darkenColorForLine(
+                                          this.getColorScaleColor(
+                                              value.colorValue
+                                          )
+                                      )
                                     : series.color
                             }
                             stroke="#fff"
@@ -533,7 +540,9 @@ export class LineChart
                             const circleColor = isBlur
                                 ? BLUR_LINE_COLOR
                                 : this.hasColorScale
-                                ? this.getColorScaleColor(value.colorValue)
+                                ? darkenColorForLine(
+                                      this.getColorScaleColor(value.colorValue)
+                                  )
                                 : series.color
                             const textColor = isBlur
                                 ? "#ddd"
@@ -1086,7 +1095,9 @@ export class LineChart
                             x: round(horizontalAxis.place(point.x), 1),
                             y: round(verticalAxis.place(point.y), 1),
                             color: this.hasColorScale
-                                ? this.getColorScaleColor(point.colorValue)
+                                ? darkenColorForLine(
+                                      this.getColorScaleColor(point.colorValue)
+                                  )
                                 : series.color,
                         })
                     ),
