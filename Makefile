@@ -248,6 +248,7 @@ test:
 	@echo '==> Linting'
 	yarn
 	yarn run eslint
+	yarn lerna run buildTests
 	
 	@echo '==> Checking formatting'
 	yarn testPrettierChanged

@@ -38,7 +38,7 @@
         "testLint": "eslint .",
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "testPrettierChanged": "yarn fixPrettierChanged --check",
-        "testJest": "jest"
+        "testJest": "lerna run buildTests && jest"
     },
     "dependencies": {
         "@bugsnag/core": "^7.17.0",
