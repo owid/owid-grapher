@@ -14,11 +14,7 @@ either way, but we might still want to catch client-side errors in the future.
 
 const DebugContext = createContext<true | undefined>(undefined)
 
-export const DebugProvider = ({
-    children,
-}: {
-    children: React.ReactNode
-}) => {
+export const DebugProvider = ({ children }: { children: React.ReactNode }) => {
     return (
         <DebugContext.Provider value={true}>{children}</DebugContext.Provider>
     )
@@ -26,7 +22,7 @@ export const DebugProvider = ({
 
 export const useDebug = () => {
     const context = React.useContext(DebugContext)
-    
+
     // This will come handy when the context is used in more scenarios, with a
     // payload, to simplify existence checks in consumers. Right now, the
     // absence of context is a feature (see above).
