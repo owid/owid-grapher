@@ -1,11 +1,8 @@
 import * as db from "../../db/db.js"
 import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
-import {
-    chunkParagraphs,
-    countries,
-    FormattedPost,
-} from "@ourworldindata/utils"
+import { chunkParagraphs } from "../chunk.js"
+import { countries, FormattedPost } from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"

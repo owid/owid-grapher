@@ -394,9 +394,6 @@ export {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
     highlightFunctionForSearchWords,
-    chunkWords,
-    chunkSentences,
-    chunkParagraphs,
 } from "./search.js"
 
 export { findUrlsInText, camelCaseProperties } from "./string.js"
