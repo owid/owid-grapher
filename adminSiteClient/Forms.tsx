@@ -498,6 +498,7 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
 export class ColorBox extends React.Component<{
     color: string | undefined
     onColor: (color: string | undefined) => void
+    showLineChartColors: boolean
 }> {
     render() {
         const { color } = this.props
@@ -512,6 +513,7 @@ export class ColorBox extends React.Component<{
                         <Colorpicker
                             color={color}
                             onColor={this.props.onColor}
+                            showLineChartColors={this.props.showLineChartColors}
                         />
                         <div
                             style={{
