@@ -101,7 +101,7 @@ export {
     SpanFallback,
     SpanNewline,
     SpanQuote,
-    SpanText,
+    SpanSimpleText,
     ChartStoryValue,
 } from "./owidTypes.js"
 

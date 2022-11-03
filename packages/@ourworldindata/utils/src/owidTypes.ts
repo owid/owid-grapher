@@ -384,7 +384,7 @@ export interface GridParameters {
     columns: number
 }
 
-export interface SpanText {
+export interface SpanSimpleText {
     type: "span-text"
     text: string
 }
@@ -427,7 +427,7 @@ export interface SpanQuote {
 }
 
 export type Span =
-    | SpanText
+    | SpanSimpleText
     | SpanLink
     | SpanNewline
     | SpanItalic
@@ -495,26 +495,29 @@ export interface BlockImage {
 }
 export interface BlockList {
     type: "list"
-    value: string[]
+    value: OwidArticleBlock[]
 }
 export interface BlockPullQuote {
     type: "pull-quote"
-    value: string[]
+    value: SpanSimpleText[]
 }
 export interface RecircItem {
-    article: string
-    author: string
-    url: string
+    article: SpanSimpleText
+    author: SpanSimpleText
+    url: SpanSimpleText
 }
 
 export interface BlockRecircValue {
-    title: string
+    title: SpanSimpleText
     list: RecircItem[]
 }
 export interface BlockRecirc {
     type: "recirc"
     value: BlockRecircValue[]
 }
+// TODO: this is a native ArchieML construct
+// but we might want to use BlockStructuredText instead
+// everywhere. Not sure yet if this will be possible.
 export interface BlockText {
     type: "text"
     value: string
@@ -534,12 +537,12 @@ export interface BlockUrl {
 }
 export interface BlockPosition {
     type: "position"
-    value: string
+    value: "left" | "right"
 }
 
 export interface BlockHeaderValue {
-    text: string
-    level: string
+    text: SpanSimpleText
+    level: number
 }
 export interface BlockHeader {
     type: "header"

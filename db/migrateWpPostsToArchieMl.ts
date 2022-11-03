@@ -1,4 +1,4 @@
-// Script to export the data_values for all variables attached to charts
+// WIP: Script to export the data_values for all variables attached to charts
 
 import * as db from "./db.js"
 import _, * as lodash from "lodash"
@@ -14,19 +14,11 @@ import {
 } from "../settings/serverSettings.js"
 import {
     BlockPullQuote,
-    BlockText,
     OwidArticleBlock,
-    OwidArticleContent,
     Span,
     SpanLink,
     SpanBold,
     SpanItalic,
-    SpanNewline,
-    SpanQuote,
-    SpanSubscript,
-    SpanSuperscript,
-    SpanText,
-    SpanUnderline,
     SpanFallback,
     BlockStructuredText,
     BlockImage,
@@ -34,16 +26,7 @@ import {
 import { match } from "ts-pattern"
 import { traverseNode } from "./analyzeWpPosts.js"
 
-// const argv = parseArgs(process.argv.slice(2))
-
-// function traverseNode(
-//     node: CheerioElement,
-//     depth: number,
-//     handler: (elem: CheerioElement, depth: number) => void
-// ): void {
-//     handler(node, depth)
-//     node.children?.forEach((elem) => traverseNode(elem, depth + 1, handler))
-// }
+// Note: all of this code is heavvy WIP - please ignore it for now
 
 function mapCheerioChildren(
     node: CheerioElement,
@@ -348,6 +331,7 @@ function projectToArchieML(
                     ],
                 }
             })
+            // TODO: this is missing a lot of html tags still
             .otherwise(() => ({ errors: [], content: [] }))
         return result
     } else
