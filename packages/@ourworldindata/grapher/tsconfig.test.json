@@ -1,5 +1,5 @@
 {
-    "include": ["src/**/*", "stories.jsdom.test"],
+    "include": ["src/**/*"],
     "compilerOptions": {
         "target": "es2016" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
         "jsx": "react" /* Specify what JSX code is generated. */,
