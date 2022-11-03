@@ -29,7 +29,8 @@ import {
     SpanUnderline,
     SpanFallback,
     BlockStructuredText,
-} from "../clientUtils/owidTypes.js"
+    BlockImage,
+} from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { traverseNode } from "./analyzeWpPosts.js"
 
@@ -104,7 +105,9 @@ function projectToSpan(node: CheerioElement): Span | undefined {
     return undefined
 }
 
-function unwrapNode(node: CheerioElement): ArchieMlTransformationResult {
+function unwrapNode(
+    node: CheerioElement
+): ArchieMlTransformationResult<OwidArticleBlock> {
     const children = node.children.map(projectToArchieML)
     return joinArchieMLTransformationResults(children)
 }
@@ -285,7 +288,7 @@ function projectToArchieML(
             .with("details", unwrapNode)
             .with("div", unwrapNode)
             .with("figcaption", unwrapNode)
-            .with("figure", () => {
+            .with("figure", (): ArchieMlTransformationResult<BlockImage> => {
                 const errors: ArchieMlTransformationError[] = []
                 const [figcaptionChildren, otherChildren] = _.partition(
                     node.children,
@@ -337,7 +340,9 @@ function projectToArchieML(
                             type: "image",
                             value: {
                                 src: image?.attribs.src ?? "",
-                                caption: figcaptionElement,
+                                caption: tempFlattenSpansToString(
+                                    figcaptionElement?.value ?? []
+                                ),
                             },
                         },
                     ],

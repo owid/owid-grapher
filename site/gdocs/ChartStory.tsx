@@ -4,7 +4,7 @@ import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons/faCircleArr
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { useEmbedChart } from "../hooks.js"
-import { ChartStoryValue } from "../../clientUtils/owidTypes.js"
+import { ChartStoryValue } from "@ourworldindata/utils"
 
 export default function ChartStory(props: ChartStoryValue) {
     const { slides } = props
