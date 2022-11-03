@@ -8,7 +8,7 @@ export const BlockErrorBoundary = ({
     children: React.ReactNode
 }) => {
     const debug = useDebug()
-    return debug.isPreviewing ? (
+    return debug ? (
         <ErrorBoundary FallbackComponent={BlockErrorFallback}>
             {children}
         </ErrorBoundary>
