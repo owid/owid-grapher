@@ -1,4 +1,4 @@
-import { flatten } from "./Util.js"
+import { flatten } from "@ourworldindata/utils"
 import chunk from "chunk-text"
 
 export const chunkWords = (text: string, maxChunkLength: number): string[] =>
