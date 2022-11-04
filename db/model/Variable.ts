@@ -83,6 +83,7 @@ export const variableTable = "variables"
 
 const initDuckDB = (): any => {
     // require on top level could cause segfaults in combination with workerpool
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const duckdb = require("duckdb")
     const ddb = new duckdb.Database(":memory:")
     ddb.exec("INSTALL httpfs;")
