@@ -24,27 +24,34 @@ $zindex-tab: 1;
 $zindex-global-entity-select: 11;
 $zindex-Tooltip: 20;
 
-@import "../controls/entityPicker/EntityPicker.scss";
-@import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
-@import "../controls/CommandPalette.scss";
-@import "../controls/ScaleSelector.scss";
-@import "../controls/Controls.scss";
-@import "../timeline/TimelineComponent.scss";
-@import "../controls/ShareMenu.scss";
-@import "../noDataModal/NoDataModal.scss";
-@import "../controls/CollapsibleList/CollapsibleList.scss";
-@import "../controls/ControlsRow.scss";
-@import "../captionedChart/CaptionedChart.scss";
-@import "../controls/EntitySelectorModal.scss";
-@import "../controls/AddEntityButton.scss";
-@import "../downloadTab/DownloadTab.scss";
-@import "../dataTable/DataTable.scss";
-@import "../sourcesTab/SourcesTab.scss";
-@import "../mapCharts/MapTooltip.scss";
-@import "../sparkBars/SparkBars.scss";
-@import "../loadingIndicator/LoadingIndicator.scss";
-@import "../text/MarkdownTextWrap.scss";
-@import "../detailsOnDemand/detailsOnDemand.scss";
+// All styles are scoped to GrapherComponent only, to prevent rule leaking
+// and low-specificity rules from the site CSS trumping these ones.
+// You can use sass's "&" syntax at the top level of one of these files
+// if you want to write a rule that requires .GrapherComponent to have a second class.
+// e.g. &.narrow is equivalent to .GrapherComponent.narrow
+.GrapherComponent {
+    @import "../controls/entityPicker/EntityPicker.scss";
+    @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
+    @import "../controls/CommandPalette.scss";
+    @import "../controls/ScaleSelector.scss";
+    @import "../controls/Controls.scss";
+    @import "../timeline/TimelineComponent.scss";
+    @import "../controls/ShareMenu.scss";
+    @import "../noDataModal/NoDataModal.scss";
+    @import "../controls/CollapsibleList/CollapsibleList.scss";
+    @import "../controls/ControlsRow.scss";
+    @import "../captionedChart/CaptionedChart.scss";
+    @import "../controls/EntitySelectorModal.scss";
+    @import "../controls/AddEntityButton.scss";
+    @import "../downloadTab/DownloadTab.scss";
+    @import "../dataTable/DataTable.scss";
+    @import "../sourcesTab/SourcesTab.scss";
+    @import "../mapCharts/MapTooltip.scss";
+    @import "../sparkBars/SparkBars.scss";
+    @import "../loadingIndicator/LoadingIndicator.scss";
+    @import "../text/MarkdownTextWrap.scss";
+    @import "../detailsOnDemand/detailsOnDemand.scss";
+}
 
 .GrapherComponent,
 .GrapherComponent p,

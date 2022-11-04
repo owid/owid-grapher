@@ -1,3 +1,7 @@
+&.narrow .datasource-wrapper {
+    padding: 0;
+}
+
 .sourcesTab,
 .DownloadTab {
     padding: 1rem;
@@ -59,8 +63,4 @@
 }
 .datasource-additional p {
     margin-top: 0.3em;
-}
-
-.GrapherComponent.narrow .datasource-wrapper {
-    padding: 0;
 }
