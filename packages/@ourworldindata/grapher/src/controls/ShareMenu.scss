@@ -2,6 +2,10 @@ $zindex-ControlsFooterMenu: 3;
 $zindex-ControlsFooter: 2;
 $zindex-embedMenu: 12;
 
+&.mobile .ShareMenu .btn-embed {
+    display: none;
+}
+
 .ShareMenu {
     position: absolute;
     right: 1em;
@@ -80,8 +84,4 @@ $zindex-embedMenu: 12;
 .embedMenu textarea {
     width: 100%;
     height: 80%;
-}
-
-.GrapherComponent.mobile .ShareMenu .btn-embed {
-    display: none;
 }
