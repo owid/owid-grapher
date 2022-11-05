@@ -275,7 +275,7 @@ export function getLogicOperator(str: string): BinaryLogicOperators {
 export function getComparisonOperator(
     str: string
 ): ComparisonOperator | undefined {
-    return match(str)
+    return match(str) 
         .with("less", () => ComparisonOperator.less)
         .with("less_or_equal", () => ComparisonOperator.lessOrEqual)
         .with("greater", () => ComparisonOperator.greater)

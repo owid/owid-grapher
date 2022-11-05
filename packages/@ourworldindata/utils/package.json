@@ -29,7 +29,7 @@
     "string-pixel-width": "^1.10.0",
     "striptags": "^3.2.0",
     "timezone-mock": "^1.0.18",
-    "ts-pattern": "^3.3.3",
+    "ts-pattern": "^4.0.4",
     "url-parse": "^1.5.10"
 },
 "devDependencies": {

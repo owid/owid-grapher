@@ -14,7 +14,7 @@ import { match } from "ts-pattern"
 function renderSpans(spans: Span[]) {
     return spans.map((span, i) =>
         match(span)
-            .with({ type: "span-text" }, (span) => (
+            .with({ type: "span-simple-text" }, (span) => (
                 <React.Fragment key={i}>{span.text}</React.Fragment>
             ))
             .with({ type: "span-link" }, (span) => (
@@ -107,22 +107,22 @@ export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
             .with({ type: "position" }, (block) => (
                 <a href={block.value}>{block.value}</a>
             ))
-            .with({ type: "header", value: { level: "1" } }, (block) => (
+            .with({ type: "header", value: { level: 1 } }, (block) => (
                 <h1>{block.value.text}</h1>
             ))
-            .with({ type: "header", value: { level: "2" } }, (block) => (
+            .with({ type: "header", value: { level: 2 } }, (block) => (
                 <h2>{block.value.text}</h2>
             ))
-            .with({ type: "header", value: { level: "3" } }, (block) => (
+            .with({ type: "header", value: { level: 3 } }, (block) => (
                 <h3>{block.value.text}</h3>
             ))
-            .with({ type: "header", value: { level: "4" } }, (block) => (
+            .with({ type: "header", value: { level: 4} }, (block) => (
                 <h4>{block.value.text}</h4>
             ))
-            .with({ type: "header", value: { level: "5" } }, (block) => (
+            .with({ type: "header", value: { level: 5 } }, (block) => (
                 <h5>{block.value.text}</h5>
             ))
-            .with({ type: "header", value: { level: "6" } }, (block) => (
+            .with({ type: "header", value: { level: 6  } }, (block) => (
                 <h6>{block.value.text}</h6>
             ))
             .with({ type: "header" }, (block) => (
@@ -132,13 +132,15 @@ export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
                     {block.value.level}
                 </h3>
             ))
-            .with({ type: "structured-text" }, (block) => (
-                <React.Fragment>{renderSpans(block.value)}</React.Fragment>
-            ))
+            // .with({ type: "structured-text" }, (block) => (
+            //     <React.Fragment>{renderSpans(block.value)}</React.Fragment>
+            // ))
             .with({ type: "html" }, (block) => (
                 <div dangerouslySetInnerHTML={{ __html: block.value }} />
             ))
-
+            .with({ type: "horizontal-rule"}, () => (
+                <hr></hr>
+            ))
             .exhaustive()
 
         // if (_type === "chart-grid") {

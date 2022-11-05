@@ -51,7 +51,7 @@ function projectToSpan(node: CheerioElement): Span | undefined {
     if (node.type === "text")
         return { type: "span-text", text: node.data ?? "" }
     else if (node.type === "tag") {
-        return match(node.tagName)
+        return match(node.tagName) 
             .with("a", (): SpanLink => {
                 const url = node.attribs.href
                 const children =
