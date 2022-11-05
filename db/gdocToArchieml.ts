@@ -3,19 +3,38 @@
 
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
-import { OwidArticleBlock, OwidArticleContent } from "@ourworldindata/utils"
+import {
+    OwidArticleBlock,
+    OwidArticleContent,
+    Span,
+    BlockHorizontalRule,
+    SpanSimpleText,
+    BlockImage,
+    BlockList,
+    BlockHeader, 
+} from "@ourworldindata/utils"
+import {match, Pattern } from "ts-pattern"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
     auth: docs_v1.Params$Resource$Documents$Get["auth"]
     client?: docs_v1.Docs
     google?: GoogleApis
-    imageHandler?: any
+    imageHandler?: (elementId: string, doc: docs_v1.Schema$Document) => Promise<BlockImage>
 }
 
 interface ElementMemo {
     isInList: boolean
     body: OwidArticleBlock[]
+}
+
+const serializeOwidArticleBlockToArchieMLString = (block: OwidArticleBlock) : string => { 
+
+    const content = match(block).with({type: Pattern.union("position", "url", "html", "text")}, b => b.value).otherwise(() => "")
+    return `
+{.${block.type}}
+{}
+    `
 }
 
 export const gdocToArchieML = async ({
@@ -63,7 +82,8 @@ export const gdocToArchieML = async ({
 
             if (d.type === "text" && d.value.startsWith("* ")) {
                 if (memo.isInList) {
-                    ;(memo.body[memo.body.length - 1].value as any).push(
+                    (memo.body[memo.body.length - 1] as BlockList).value.push(
+                        // TODO: this assumes that lists only contain simple text
                         d.value.replace("* ", "").trim()
                     )
                 } else {
@@ -93,8 +113,8 @@ export const gdocToArchieML = async ({
 
 async function readElements(
     document: docs_v1.Schema$Document,
-    imageHandler: any
-): Promise<any> {
+    imageHandler: ((elementId: string, doc: docs_v1.Schema$Document) => Promise<BlockImage>) | undefined
+): Promise<string> {
     // prepare the text holder
     let text = ""
 
@@ -107,18 +127,19 @@ async function readElements(
     for (const element of document.body.content) {
         if (element.paragraph) {
             // get the paragraph within the element
-            const paragraph = element.paragraph
+            const paragraph: docs_v1.Schema$Paragraph = element.paragraph
 
             // this is a list
             const needsBullet = paragraph.bullet != null
 
             if (paragraph.elements) {
                 // all values in the element
-                const values = paragraph.elements
+                const values: docs_v1.Schema$ParagraphElement[] =
+                    paragraph.elements
 
                 let idx = 0
 
-                const taggedText = function (text: string) {
+                const taggedText = function (text: string): string {
                     if (
                         paragraph.paragraphStyle?.namedStyleType?.includes(
                             "HEADING"
@@ -129,10 +150,11 @@ async function readElements(
                                 "HEADING_",
                                 ""
                             )
+                        const header : BlockHeader = { type: "header", value: { text: {text.trim()}, level: Number.parseInt(headingLevel)}}
                         return `
 {.header}
 text: ${text.trim()}
-level: ${headingLevel}
+level: ${Number.parseInt(headingLevel)}
 {}`
                     }
                     return text
@@ -163,10 +185,10 @@ level: ${headingLevel}
 }
 
 async function readParagraphElement(
-    element: any,
-    data: any,
-    imageHandler?: any
-): Promise<any> {
+    element: docs_v1.Schema$ParagraphElement,
+    data: docs_v1.Schema$Document,
+    imageHandler?:  ((elementId: string, doc: docs_v1.Schema$Document) => Promise<BlockImage>) | undefined
+): Promise<Span | BlockHorizontalRule | BlockImage | null> {
     // pull out the text
 
     const textRun = element.textRun
@@ -176,37 +198,38 @@ async function readParagraphElement(
         // sometimes the content isn't there, and if so, make it an empty string
         // console.log(element);
 
-        let content = textRun.content || ""
+        const content = textRun.content || ""
+
+        let span: Span = { type: "span-simple-text", text: content }
 
         // step through optional text styles to check for an associated URL
-        if (!textRun.textStyle) return content
+        if (!textRun.textStyle) return span
+
+        if (textRun.textStyle.link?.url)
+            span = {
+                type: "span-link",
+                url: textRun.textStyle.link!.url!,
+                children: [span],
+            }
 
         // console.log(textRun);
         if (textRun.textStyle.italic) {
-            content = `<em>${content}</em>`
+            span = { type: "span-italic", children: [span] }
         }
         if (textRun.textStyle.bold) {
-            content = `<b>${content}</b>`
+            span = { type: "span-bold", children: [span] }
         }
 
-        if (!textRun.textStyle.link) return content
-        if (!textRun.textStyle.link.url) return content
-
-        // if we got this far there's a URL key, grab it...
-        const url = textRun.textStyle.link.url
-
-        // ...but sometimes that's empty too
-        if (url) {
-            return `<a href="${url}">${content}</a>`
-        } else {
-            return content
-        }
+        return span
     } else if (element.inlineObjectElement && imageHandler) {
         const objectId = element.inlineObjectElement.inlineObjectId
-        return await imageHandler(objectId, data)
+        if (objectId)
+            return await imageHandler(objectId, data)
+        else   
+            return null
     } else if (element.horizontalRule) {
-        return `<hr />`
+        return { type: "horizontal-rule" }
     } else {
-        return ""
+        return null
     }
 }

@@ -91,6 +91,7 @@ export {
     BlockHeader,
     BlockStructuredText,
     BlockHtml,
+    BlockHorizontalRule,
     Span,
     SpanBold,
     SpanItalic,

@@ -385,7 +385,7 @@ export interface GridParameters {
 }
 
 export interface SpanSimpleText {
-    type: "span-text"
+    type: "span-simple-text"
     text: string
 }
 export interface SpanFallback {
@@ -438,8 +438,11 @@ export type Span =
     | SpanQuote
     | SpanFallback
 
+export type BlockPositionChoice = "right" | "left"
+export type ChartPositionChoice = "featured"
+
 export interface BlockAsideValue {
-    position: string
+    position: string // use BlockPositionChoice in matching Enriched block
     caption: string
 }
 
@@ -454,7 +457,7 @@ export interface BlockChartValue {
     row: string
     column: string
     // TODO: position is used as a classname apparently? Should be renamed or split
-    position?: string
+    position?: string // use ChartPositionChoice in matching Enriched block
     caption?: string
 }
 export interface BlockChart {
@@ -493,22 +496,28 @@ export interface BlockImage {
     type: "image"
     value: BlockImageValue
 }
+// TODO: This is what lists staring with * are converted to in gdocToArhcieml
+// It might also be what is used inside recirc elements but there it's not a simple
+// string IIRC - check this
 export interface BlockList {
     type: "list"
-    value: OwidArticleBlock[]
+    value: string[]
 }
 export interface BlockPullQuote {
     type: "pull-quote"
-    value: SpanSimpleText[]
+    value: string[]
 }
 export interface RecircItem {
-    article: SpanSimpleText
-    author: SpanSimpleText
-    url: SpanSimpleText
+    article: string
+    author: string
+    url: string
 }
 
+export interface BlockHorizontalRule {
+    type: "horizontal-rule"
+}
 export interface BlockRecircValue {
-    title: SpanSimpleText
+    title: string
     list: RecircItem[]
 }
 export interface BlockRecirc {
@@ -537,11 +546,11 @@ export interface BlockUrl {
 }
 export interface BlockPosition {
     type: "position"
-    value: "left" | "right"
+    value: string // use BlockPositionChoice in matching Enriched block
 }
 
 export interface BlockHeaderValue {
-    text: SpanSimpleText
+    text: string
     level: number
 }
 export interface BlockHeader {
@@ -562,8 +571,15 @@ export type OwidArticleBlock =
     | BlockUrl // do we want this here? It's used inside Scroller only atm
     | BlockPosition
     | BlockHeader
-    | BlockStructuredText
     | BlockHtml
+    | BlockHorizontalRule
+
+// TODO: create matching types to the blocks above
+// but with strings replaced by specific Spans that indicate
+// if there can be only simple text content or span elements with 
+// structure
+export type OwidArticleEnrichedBlock = 
+    | BlockStructuredText
 
 export interface OwidArticleType {
     id: string
