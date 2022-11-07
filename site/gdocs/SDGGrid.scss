@@ -1,0 +1,67 @@
+.owidArticle .sdg-grid {
+    @include grid(14);
+    grid-column: 1 / -1;
+    padding: 50px 0;
+    background-color: $gray-10;
+
+    h2 {
+        @include h1-semibold;
+        grid-column: 2 / 14;
+        margin: 0 0 40px;
+        text-align: center;
+    }
+
+    .tile {
+        list-style-type: none;
+        a {
+            display: flex;
+            flex-direction: column;
+            height: 193px;
+            text-align: center;
+            padding: 0 20px;
+            border: 2px solid var(--sdg-color);
+            text-decoration: none;
+            color: $blue-100;
+            background-color: $white;
+            transition: 0.15s all;
+            &:hover {
+                background-color: var(--sdg-color);
+                color: $white;
+
+                .number {
+                    text-decoration-color: $white;
+                }
+            }
+        }
+
+        .number {
+            display: inline-block;
+            margin: 0;
+            text-decoration: underline 2px solid $blue-20;
+            text-underline-offset: 24px;
+        }
+
+        .goal {
+            margin: auto;
+        }
+    }
+
+    // todo: responsive
+    ul {
+        @include lg-up {
+            @include grid(12);
+            row-gap: $grid-gap;
+            grid-column: 2 / 14;
+
+            // Centering last row
+            &:before {
+                content: "";
+                grid-column: 1 / 2;
+                grid-row: 3;
+            }
+            .tile {
+                grid-column: span 2;
+            }
+        }
+    }
+}
