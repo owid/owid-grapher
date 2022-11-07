@@ -35,7 +35,7 @@
         {
             "label": "startTscServer",
             "type": "shell",
-            "command": "source ~/.bashrc;yarn startTscServer",
+            "command": "yarn startTscServer",
             "problemMatcher": ["$tsc-watch"],
             "isBackground": true,
             "presentation": {
