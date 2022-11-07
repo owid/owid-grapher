@@ -7,11 +7,11 @@ import { useEmbedChart } from "../hooks.js"
 export default function Scroller({ d }: { d: BlockScroller }) {
     let lastUrl: string
     const figureURLs = d.value.reduce(
-        (memo: string[], { type, value }: OwidArticleBlock) => {
-            if (type === "url") {
-                lastUrl = value
+        (memo: string[], block: OwidArticleBlock) => {
+            if (block.type === "url") {
+                lastUrl = block.value
             }
-            if (type === "text") {
+            if (block.type === "text") {
                 memo = [...memo, lastUrl]
             }
             return memo

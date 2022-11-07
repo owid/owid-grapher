@@ -25,6 +25,8 @@ import {
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { traverseNode } from "./analyzeWpPosts.js"
+import { OwidArticleEnrichedBlock } from "@ourworldindata/utils/dist/owidTypes.js"
+import { consolidateSpans, tempFlattenSpansToString } from "./gdocToArchieml.js"
 
 // Note: all of this code is heavvy WIP - please ignore it for now
 
@@ -40,7 +42,7 @@ function mapCheerioChildren(
 
 function spanFallback(node: CheerioElement): SpanFallback {
     return {
-        type: "span-fallback",
+        spanType: "span-fallback",
         children: _.compact(node.children?.map(projectToSpan)) ?? [],
     }
 }
@@ -49,32 +51,32 @@ function spanFallback(node: CheerioElement): SpanFallback {
 
 function projectToSpan(node: CheerioElement): Span | undefined {
     if (node.type === "text")
-        return { type: "span-text", text: node.data ?? "" }
+        return { spanType: "span-simple-text", text: node.data ?? "" }
     else if (node.type === "tag") {
-        return match(node.tagName) 
+        return match(node.tagName)
             .with("a", (): SpanLink => {
                 const url = node.attribs.href
                 const children =
                     _.compact(node.children?.map(projectToSpan)) ?? []
-                return { type: "span-link", children, url }
+                return { spanType: "span-link", children, url }
             })
             .with("b", (): SpanBold => {
                 const children =
                     _.compact(node.children?.map(projectToSpan)) ?? []
-                return { type: "span-bold", children }
+                return { spanType: "span-bold", children }
             })
             .with("i", (): SpanItalic => {
                 const children =
                     _.compact(node.children?.map(projectToSpan)) ?? []
-                return { type: "span-italic", children }
+                return { spanType: "span-italic", children }
             })
-            .with("br", (): Span => ({ type: "span-newline" }))
+            .with("br", (): Span => ({ spanType: "span-newline" }))
             .with("cite", () => spanFallback(node))
             .with("code", () => spanFallback(node)) // TODO: should get a style
             .with(
                 "em",
                 (): SpanItalic => ({
-                    type: "span-italic",
+                    spanType: "span-italic",
                     children:
                         _.compact(node.children?.map(projectToSpan)) ?? [],
                 })
@@ -90,7 +92,7 @@ function projectToSpan(node: CheerioElement): Span | undefined {
 
 function unwrapNode(
     node: CheerioElement
-): ArchieMlTransformationResult<OwidArticleBlock> {
+): ArchieMlTransformationResult<OwidArticleBlock | OwidArticleEnrichedBlock> {
     const children = node.children.map(projectToArchieML)
     return joinArchieMLTransformationResults(children)
 }
@@ -113,91 +115,6 @@ function joinArchieMLTransformationResults<T>(
     return { errors, content }
 }
 
-function consolidateSpans(blocks: OwidArticleBlock[]) {
-    const newBlocks: OwidArticleBlock[] = []
-    let currentBlock: BlockStructuredText | undefined = undefined
-    for (const block of blocks) {
-        if (block.type === "structured-text")
-            if (currentBlock === undefined) currentBlock = block
-            else
-                currentBlock = {
-                    type: "structured-text",
-                    value: [...currentBlock.value, ...block.value],
-                }
-        else {
-            if (currentBlock !== undefined) {
-                newBlocks.push(currentBlock)
-                currentBlock = undefined
-                newBlocks.push(block)
-            }
-        }
-    }
-    return newBlocks
-}
-
-function tempFlattenSpansToString(spans: Span[]): string {
-    if (spans.length === 0) return ""
-    else {
-        const result = spans
-            .map((span) =>
-                match(span)
-                    .with({ type: "span-text" }, (span) => span.text)
-                    .with(
-                        { type: "span-link" },
-                        (span) =>
-                            `<a href="${span.url}">${tempFlattenSpansToString(
-                                span.children
-                            )}</a>`
-                    )
-                    .with({ type: "span-newline" }, () => "</br>")
-                    .with(
-                        { type: "span-italic" },
-                        (span) =>
-                            `<i>${tempFlattenSpansToString(span.children)}</i>`
-                    )
-                    .with(
-                        { type: "span-bold" },
-                        (span) =>
-                            `<b>${tempFlattenSpansToString(span.children)}</b>`
-                    )
-                    .with(
-                        { type: "span-underline" },
-                        (span) =>
-                            `<u>${tempFlattenSpansToString(span.children)}</u>`
-                    )
-                    .with(
-                        { type: "span-subscript" },
-                        (span) =>
-                            `<sub>${tempFlattenSpansToString(
-                                span.children
-                            )}</sub>`
-                    )
-                    .with(
-                        { type: "span-superscript" },
-                        (span) =>
-                            `<sup>${tempFlattenSpansToString(
-                                span.children
-                            )}</sup>`
-                    )
-                    .with(
-                        { type: "span-quote" },
-                        (span) =>
-                            `<q>${tempFlattenSpansToString(span.children)}</q>`
-                    )
-                    .with(
-                        { type: "span-fallback" },
-                        (span) =>
-                            `<span>${tempFlattenSpansToString(
-                                span.children
-                            )}</span>`
-                    )
-                    .exhaustive()
-            )
-            .join("")
-        return result
-    }
-}
-
 function findRecursive(
     nodes: CheerioElement[],
     tagName: string
@@ -214,7 +131,7 @@ function findRecursive(
 
 function projectToArchieML(
     node: CheerioElement
-): ArchieMlTransformationResult<OwidArticleBlock> {
+): ArchieMlTransformationResult<OwidArticleBlock | OwidArticleEnrichedBlock> {
     if (node.type === "comment") return { errors: [], content: [] }
     const span = projectToSpan(node)
     if (span)
@@ -223,12 +140,12 @@ function projectToArchieML(
             content: [{ type: "structured-text", value: [span] }],
         }
     else if (node.type === "tag") {
-        const result: ArchieMlTransformationResult<OwidArticleBlock> = match(
-            node.tagName
-        )
-            .with("address", unwrapNode)
+        const result: ArchieMlTransformationResult<
+            OwidArticleBlock | OwidArticleEnrichedBlock
+        > = match(node)
+            .with({ tagName: "address" }, unwrapNode)
             .with(
-                "blockquote",
+                { tagName: "blockquote" },
                 (): ArchieMlTransformationResult<BlockPullQuote> => {
                     const childElements = joinArchieMLTransformationResults(
                         node.children.map(projectToArchieML)
@@ -266,71 +183,74 @@ function projectToArchieML(
                     }
                 }
             )
-            .with("body", unwrapNode)
-            .with("center", unwrapNode) // might want to translate this to a block with a centered style?
-            .with("details", unwrapNode)
-            .with("div", unwrapNode)
-            .with("figcaption", unwrapNode)
-            .with("figure", (): ArchieMlTransformationResult<BlockImage> => {
-                const errors: ArchieMlTransformationError[] = []
-                const [figcaptionChildren, otherChildren] = _.partition(
-                    node.children,
-                    (n) => n.tagName === "figcaption"
-                )
-                let figcaptionElement: BlockStructuredText | undefined =
-                    undefined
-                if (figcaptionChildren.length > 1) {
-                    errors.push({
-                        name: "too many figcaption elements",
-                        details: `Found ${figcaptionChildren.length} elements`,
-                    })
-                } else {
-                    const figCaption =
-                        figcaptionChildren.length > 0
-                            ? projectToArchieML(figcaptionChildren[0])
-                            : undefined
-                    if (figCaption)
-                        if (figCaption.content.length > 1)
-                            errors.push({
-                                name: "too many figcaption elements after archieml transform",
-                                details: `Found ${figCaption.content.length} elements after transforming to archieml`,
-                            })
-                        else {
-                            const element = figCaption.content[0]
-                            if (element?.type === "structured-text")
-                                figcaptionElement = element
-                            else
+            .with({ tagName: "body" }, unwrapNode)
+            .with({ tagName: "center" }, unwrapNode) // might want to translate this to a block with a centered style?
+            .with({ tagName: "details" }, unwrapNode)
+            .with({ tagName: "div" }, unwrapNode)
+            .with({ tagName: "figcaption" }, unwrapNode)
+            .with(
+                { tagName: "figure" },
+                (): ArchieMlTransformationResult<BlockImage> => {
+                    const errors: ArchieMlTransformationError[] = []
+                    const [figcaptionChildren, otherChildren] = _.partition(
+                        node.children,
+                        (n) => n.tagName === "figcaption"
+                    )
+                    let figcaptionElement: BlockStructuredText | undefined =
+                        undefined
+                    if (figcaptionChildren.length > 1) {
+                        errors.push({
+                            name: "too many figcaption elements",
+                            details: `Found ${figcaptionChildren.length} elements`,
+                        })
+                    } else {
+                        const figCaption =
+                            figcaptionChildren.length > 0
+                                ? projectToArchieML(figcaptionChildren[0])
+                                : undefined
+                        if (figCaption)
+                            if (figCaption.content.length > 1)
                                 errors.push({
-                                    name: "figcaption element is not structured text",
-                                    details: `Found ${element?.type} element after transforming to archieml`,
+                                    name: "too many figcaption elements after archieml transform",
+                                    details: `Found ${figCaption.content.length} elements after transforming to archieml`,
                                 })
-                        }
-                }
-                const image = findRecursive(otherChildren, "img")
-                if (!image) {
-                    // TODO: this is a legitimate case, there may be other content in a figure
-                    // but for now we treat it as an error and see how often this error happens
-                    errors.push({
-                        name: "no image found in figure",
-                        details: `Found ${otherChildren.length} elements`,
-                    })
-                }
+                            else {
+                                const element = figCaption.content[0]
+                                if (element?.type === "structured-text")
+                                    figcaptionElement = element
+                                else
+                                    errors.push({
+                                        name: "figcaption element is not structured text",
+                                        details: `Found ${element?.type} element after transforming to archieml`,
+                                    })
+                            }
+                    }
+                    const image = findRecursive(otherChildren, "img")
+                    if (!image) {
+                        // TODO: this is a legitimate case, there may be other content in a figure
+                        // but for now we treat it as an error and see how often this error happens
+                        errors.push({
+                            name: "no image found in figure",
+                            details: `Found ${otherChildren.length} elements`,
+                        })
+                    }
 
-                return {
-                    errors,
-                    content: [
-                        {
-                            type: "image",
-                            value: {
-                                src: image?.attribs.src ?? "",
-                                caption: tempFlattenSpansToString(
-                                    figcaptionElement?.value ?? []
-                                ),
+                    return {
+                        errors,
+                        content: [
+                            {
+                                type: "image",
+                                value: {
+                                    src: image?.attribs.src ?? "",
+                                    caption: tempFlattenSpansToString(
+                                        figcaptionElement?.value ?? []
+                                    ),
+                                },
                             },
-                        },
-                    ],
+                        ],
+                    }
                 }
-            })
+            )
             // TODO: this is missing a lot of html tags still
             .otherwise(() => ({ errors: [], content: [] }))
         return result

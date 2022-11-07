@@ -5,7 +5,7 @@ export default function Recirc({ d }: { d: BlockRecirc }) {
     return (
         <div className={"recirc"}>
             <div className={"recircContent"}>
-                <div className={"blackCaps"}>{d.value[0]?.title.text}</div>
+                <div className={"blackCaps"}>{d.value[0]?.title}</div>
                 <div>
                     {d.value[0]?.list.map(
                         ({ article, author, url }, j: number) => {

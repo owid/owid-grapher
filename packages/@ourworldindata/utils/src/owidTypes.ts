@@ -384,45 +384,45 @@ export interface GridParameters {
     columns: number
 }
 
-export interface SpanSimpleText {
-    type: "span-simple-text"
+export type SpanSimpleText = {
+    spanType: "span-simple-text"
     text: string
 }
-export interface SpanFallback {
-    type: "span-fallback"
+export type SpanFallback = {
+    spanType: "span-fallback"
     children: Span[]
 }
 
-export interface SpanLink {
-    type: "span-link"
+export type SpanLink = {
+    spanType: "span-link"
     children: Span[]
     url: string
 }
-export interface SpanNewline {
-    type: "span-newline"
+export type SpanNewline = {
+    spanType: "span-newline"
 }
-export interface SpanItalic {
-    type: "span-italic"
+export type SpanItalic = {
+    spanType: "span-italic"
     children: Span[]
 }
-export interface SpanBold {
-    type: "span-bold"
+export type SpanBold = {
+    spanType: "span-bold"
     children: Span[]
 }
-export interface SpanUnderline {
-    type: "span-underline"
+export type SpanUnderline = {
+    spanType: "span-underline"
     children: Span[]
 }
-export interface SpanSubscript {
-    type: "span-subscript"
+export type SpanSubscript = {
+    spanType: "span-subscript"
     children: Span[]
 }
-export interface SpanSuperscript {
-    type: "span-superscript"
+export type SpanSuperscript = {
+    spanType: "span-superscript"
     children: Span[]
 }
-export interface SpanQuote {
-    type: "span-quote"
+export type SpanQuote = {
+    spanType: "span-quote"
     children: Span[]
 }
 
@@ -441,17 +441,17 @@ export type Span =
 export type BlockPositionChoice = "right" | "left"
 export type ChartPositionChoice = "featured"
 
-export interface BlockAsideValue {
+export type BlockAsideValue = {
     position: string // use BlockPositionChoice in matching Enriched block
     caption: string
 }
 
-export interface BlockAside {
+export type BlockAside = {
     type: "aside"
     value: BlockAsideValue
 }
 
-export interface BlockChartValue {
+export type BlockChartValue = {
     url: string
     height?: string
     row: string
@@ -460,100 +460,97 @@ export interface BlockChartValue {
     position?: string // use ChartPositionChoice in matching Enriched block
     caption?: string
 }
-export interface BlockChart {
+export type BlockChart = {
     type: "chart"
     value: BlockChartValue | string
 }
 
-export interface BlockScroller {
+export type BlockScroller = {
     type: "scroller"
     value: OwidArticleBlock[]
 }
 
-export interface ChartStorySlide {
+export type ChartStoryValue = {
     narrative: string
     chart: string
     technical?: string[]
 }
 
-export interface ChartStoryValue {
-    slides: ChartStorySlide[]
-}
-
-export interface BlockChartStory {
+export type BlockChartStory = {
     type: "chart-story"
-    value: ChartStoryValue
+    value: ChartStoryValue[]
 }
-export interface BlockFixedGraphic {
+export type BlockFixedGraphic = {
     type: "fixed-graphic"
     value: OwidArticleBlock[]
 }
-export interface BlockImageValue {
+export type BlockImageValue = {
     src: string
     caption?: string
 }
-export interface BlockImage {
+export type BlockImage = {
     type: "image"
     value: BlockImageValue
 }
 // TODO: This is what lists staring with * are converted to in gdocToArhcieml
 // It might also be what is used inside recirc elements but there it's not a simple
 // string IIRC - check this
-export interface BlockList {
+export type BlockList = {
     type: "list"
     value: string[]
 }
-export interface BlockPullQuote {
+export type BlockPullQuote = {
     type: "pull-quote"
     value: string[]
 }
-export interface RecircItem {
+export type RecircItem = {
     article: string
     author: string
     url: string
 }
 
-export interface BlockHorizontalRule {
+export type BlockHorizontalRule = {
     type: "horizontal-rule"
+    value?: string // dummy value to unify block shapse
 }
-export interface BlockRecircValue {
+export type BlockRecircValue = {
     title: string
     list: RecircItem[]
 }
-export interface BlockRecirc {
+export type BlockRecirc = {
     type: "recirc"
     value: BlockRecircValue[]
 }
 // TODO: this is a native ArchieML construct
 // but we might want to use BlockStructuredText instead
 // everywhere. Not sure yet if this will be possible.
-export interface BlockText {
+export type BlockText = {
     type: "text"
     value: string
 }
 
-export interface BlockStructuredText {
+export type BlockStructuredText = {
     type: "structured-text"
     value: Span[]
 }
-export interface BlockHtml {
+export type BlockHtml = {
     type: "html"
     value: string
 }
-export interface BlockUrl {
+export type BlockUrl = {
     type: "url"
     value: string
 }
-export interface BlockPosition {
+export type BlockPosition = {
     type: "position"
     value: string // use BlockPositionChoice in matching Enriched block
 }
 
-export interface BlockHeaderValue {
+export type BlockHeaderValue = {
     text: string
     level: number
 }
-export interface BlockHeader {
+export type BlockHeader = {
     type: "header"
     value: BlockHeaderValue
 }
@@ -576,10 +573,9 @@ export type OwidArticleBlock =
 
 // TODO: create matching types to the blocks above
 // but with strings replaced by specific Spans that indicate
-// if there can be only simple text content or span elements with 
+// if there can be only simple text content or span elements with
 // structure
-export type OwidArticleEnrichedBlock = 
-    | BlockStructuredText
+export type OwidArticleEnrichedBlock = BlockStructuredText
 
 export interface OwidArticleType {
     id: string
