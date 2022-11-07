@@ -10,9 +10,32 @@
             }
         },
         {
+            "label": "startLernaWatcher",
+            "type": "shell",
+            "command": "yarn startLernaWatcher",
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "Error: Command failed",
+                    "kind": "file",
+                    "message": 0,
+                    "file": 1
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "watching packages",
+                    "endsPattern": "watching packages"
+                }
+            },
+            "isBackground": true,
+            "presentation": {
+                "group": "watch2",
+                "reveal": "silent"
+            }
+        },
+        {
             "label": "startTscServer",
             "type": "shell",
-            "command": "yarn startTscServer",
+            "command": "source ~/.bashrc;yarn startTscServer",
             "problemMatcher": ["$tsc-watch"],
             "isBackground": true,
             "presentation": {
@@ -22,7 +45,7 @@
         {
             "label": "startSiteFront",
             "type": "shell",
-            "command": "yarn startSiteFront",
+            "command": "yarn startSiteFront --no-web-socket-server", // WS need to be somewhat proxied in nginx. This could be done later.
             "isBackground": true,
             "presentation": {
                 "group": "watch"
@@ -40,6 +63,16 @@
                     "endsPattern": "webpack [\\S]+ compiled"
                 }
             }
+        },
+        {
+            "label": "start (remote)",
+            "dependsOn": [
+                "startTscServer",
+                "startSiteFront",
+                "startLernaWatcher"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
         },
         {
             "label": "start (full)",

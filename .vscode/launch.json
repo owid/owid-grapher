@@ -21,6 +21,13 @@
             "type": "pwa-node"
         },
         {
+            "name": "Remote dev",
+            "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
+            "request": "launch",
+            "preLaunchTask": "start (remote)",
+            "type": "node"
+        },
+        {
             "name": "Build content graph",
             "program": "${workspaceFolder}/itsJustJavascript/db/contentGraph.js",
             "request": "launch",
