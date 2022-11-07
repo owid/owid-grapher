@@ -23,6 +23,7 @@
             text-decoration: none;
             color: $blue-100;
             background-color: $white;
+            transition: 0.15s all;
             &:hover {
                 background-color: var(--sdg-color);
                 color: $white;
