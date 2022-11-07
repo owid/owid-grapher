@@ -26,7 +26,7 @@ import {
 import { match } from "ts-pattern"
 import { traverseNode } from "./analyzeWpPosts.js"
 import { OwidArticleEnrichedBlock } from "@ourworldindata/utils/dist/owidTypes.js"
-import { consolidateSpans, spansToHtmlString } from "./gdocToArchieml.js"
+import { consolidateSpans, spansToHtmlString } from "./gdocUtils.js"
 
 // Note: all of this code is heavvy WIP - please ignore it for now
 
