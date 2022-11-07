@@ -67,9 +67,9 @@
         {
             "label": "start (remote)",
             "dependsOn": [
+                "startLernaWatcher",
                 "startTscServer",
-                "startSiteFront",
-                "startLernaWatcher"
+                "startSiteFront"
             ],
             "dependsOrder": "sequence",
             "problemMatcher": []
