@@ -26,7 +26,7 @@ import {
 import { match } from "ts-pattern"
 import { traverseNode } from "./analyzeWpPosts.js"
 import { OwidArticleEnrichedBlock } from "@ourworldindata/utils/dist/owidTypes.js"
-import { consolidateSpans, tempFlattenSpansToString } from "./gdocToArchieml.js"
+import { consolidateSpans, spansToHtmlString } from "./gdocToArchieml.js"
 
 // Note: all of this code is heavvy WIP - please ignore it for now
 
@@ -174,7 +174,7 @@ function projectToArchieML(
                                 type: "pull-quote",
                                 // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
                                 value: [
-                                    tempFlattenSpansToString(
+                                    spansToHtmlString(
                                         cleanedChildElements[0].value
                                     ),
                                 ],
@@ -242,7 +242,7 @@ function projectToArchieML(
                                 type: "image",
                                 value: {
                                     src: image?.attribs.src ?? "",
-                                    caption: tempFlattenSpansToString(
+                                    caption: spansToHtmlString(
                                         figcaptionElement?.value ?? []
                                     ),
                                 },

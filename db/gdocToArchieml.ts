@@ -42,17 +42,17 @@ function appendDotEndIfMultiline(line: string): string {
     return line
 }
 
-function serializeKeyValue(key: string, val: string): string {
+function keyValueToArchieMlString(key: string, val: string): string {
     return `${key}: ${appendDotEndIfMultiline(val)}`
 }
 
-function* serializeStringProperties(properties: [string, string][]) {
+function* stringPropertiesToArchieMlString(properties: [string, string][]) {
     for (const [k, v] of properties) {
-        yield serializeKeyValue(k, v)
+        yield keyValueToArchieMlString(k, v)
     }
 }
 
-function serializeObjectBlock<T>(
+function objectBlockToArchieMlString<T>(
     type: string,
     block: T,
     contentSerializer: (block: T) => string
@@ -64,23 +64,23 @@ ${contentSerializer(block)}
 `
 }
 
-function serializeStringOnlyObject(obj: {
+function stringOnlyObjectToArchieMlString(obj: {
     type: string
     value: Record<string, string>
 }): string {
     const serializeFn = (b: Record<string, string>) =>
-        [...serializeStringProperties(Object.entries(b))].join("\n")
-    return serializeObjectBlock(obj.type, obj.value, serializeFn)
+        [...stringPropertiesToArchieMlString(Object.entries(b))].join("\n")
+    return objectBlockToArchieMlString(obj.type, obj.value, serializeFn)
 }
 
-function serializeSingleStringObject(obj: {
+function singleStringObjectToArchieMlString(obj: {
     type: string
     value: string
 }): string {
-    return serializeKeyValue(obj.type, obj.value)
+    return keyValueToArchieMlString(obj.type, obj.value)
 }
 
-function serializeBlockList<T>(
+function blockListToArchieMlString<T>(
     blockname: string,
     blocks: T[],
     contentSerializer: (block: T) => string,
@@ -94,32 +94,33 @@ ${content}
 `
 }
 
-function serializeRecircContent(content: BlockRecircValue): string {
-    const list = serializeBlockList(
+function recircContentToArchieMlString(content: BlockRecircValue): string {
+    const list = blockListToArchieMlString(
         "list",
         content.list,
-        (b) => [...serializeStringProperties(Object.entries(b))].join("\n"),
+        (b) =>
+            [...stringPropertiesToArchieMlString(Object.entries(b))].join("\n"),
         false
     )
     return `
-${serializeKeyValue("title", content.title)}
+${keyValueToArchieMlString("title", content.title)}
 ${list}
 `
 }
 
-function serializeRecirc(recirc: BlockRecirc): string {
-    return serializeBlockList(
+function recircToArchieMlString(recirc: BlockRecirc): string {
+    return blockListToArchieMlString(
         recirc.type,
         recirc.value,
-        serializeRecircContent,
+        recircContentToArchieMlString,
         false
     )
 }
 
-function serializeChartStoryValue(value: ChartStoryValue): string {
-    const narrative = serializeKeyValue("narrative", value.narrative)
-    const chart = serializeKeyValue("chart", value.chart)
-    const technicalText = serializeBlockList(
+function chartStoryValueToArchieMlString(value: ChartStoryValue): string {
+    const narrative = keyValueToArchieMlString("narrative", value.narrative)
+    const chart = keyValueToArchieMlString("chart", value.chart)
+    const technicalText = blockListToArchieMlString(
         "technical",
         value.technical!,
         (line) => `* ${line}`,
@@ -132,60 +133,64 @@ ${technicalText}
 `
 }
 
-function serializeHeader(block: BlockHeader): string {
-    return serializeObjectBlock(block.type, block.value, (header) =>
+function headerToArchieMlString(block: BlockHeader): string {
+    return objectBlockToArchieMlString(block.type, block.value, (header) =>
         [
-            serializeKeyValue("text", header.text),
-            serializeKeyValue("level", header.level.toString()),
+            keyValueToArchieMlString("text", header.text),
+            keyValueToArchieMlString("level", header.level.toString()),
         ].join("\n")
     )
 }
 
-const serializeOwidArticleBlockToArchieMLString = (
-    block: OwidArticleBlock
-): string => {
+const owidArticleBlockToArchieMLString = (block: OwidArticleBlock): string => {
     const content = match(block)
         .with(
             { type: P.union("position", "url", "html", "text") },
-            serializeSingleStringObject
+            singleStringObjectToArchieMlString
         )
-        .with({ type: "chart", value: P.string }, serializeSingleStringObject)
+        .with(
+            { type: "chart", value: P.string },
+            singleStringObjectToArchieMlString
+        )
         .with({ type: "chart" }, (b) =>
-            serializeStringOnlyObject({
+            stringOnlyObjectToArchieMlString({
                 type: "chart",
                 value: b.value as unknown as BlockChartValue,
             })
         )
-        .with({ type: P.union("aside", "image") }, serializeStringOnlyObject)
+        .with(
+            { type: P.union("aside", "image") },
+            stringOnlyObjectToArchieMlString
+        )
         .with({ type: "scroller" }, (b) =>
-            serializeBlockList(
+            blockListToArchieMlString(
                 block.type,
                 b.value,
-                serializeOwidArticleBlockToArchieMLString,
+                owidArticleBlockToArchieMLString,
                 true
             )
         )
-        .with({ type: "recirc" }, (b) => serializeRecirc(b))
+        .with({ type: "recirc" }, (b) => recircToArchieMlString(b))
         .with({ type: "chart-story" }, (b) =>
-            serializeBlockList(
+            blockListToArchieMlString(
                 block.type,
                 b.value,
-                serializeChartStoryValue,
+                chartStoryValueToArchieMlString,
                 false
             )
         )
         .with({ type: "horizontal-rule" }, (b) =>
-            serializeKeyValue(block.type, "<hr/>")
+            keyValueToArchieMlString(block.type, "<hr/>")
         )
         .with({ type: P.union("pull-quote", "list") }, (b) =>
-            serializeBlockList(block.type, b.value, (line) => line, true)
+            blockListToArchieMlString(block.type, b.value, (line) => line, true)
         )
-        .with({ type: "header" }, serializeHeader)
+        .with({ type: "header" }, headerToArchieMlString)
         .with({ type: "fixed-graphic" }, (b) =>
-            serializeBlockList(
+            blockListToArchieMlString(
                 block.type,
                 b.value,
-                serializeOwidArticleBlockToArchieMLString,
+                owidArticleBlockToArchieMLString,
                 true
             )
         )
@@ -217,52 +222,50 @@ export function consolidateSpans(
     return newBlocks
 }
 
-function flattenSpanToString(s: Span): string {
+function spanToHtmlString(s: Span): string {
     return match(s)
         .with({ spanType: "span-simple-text" }, (span) => span.text)
         .with(
             { spanType: "span-link" },
             (span) =>
-                `<a href="${span.url}">${tempFlattenSpansToString(
-                    span.children
-                )}</a>`
+                `<a href="${span.url}">${spansToHtmlString(span.children)}</a>`
         )
         .with({ spanType: "span-newline" }, () => "</br>")
         .with(
             { spanType: "span-italic" },
-            (span) => `<i>${tempFlattenSpansToString(span.children)}</i>`
+            (span) => `<i>${spansToHtmlString(span.children)}</i>`
         )
         .with(
             { spanType: "span-bold" },
-            (span) => `<b>${tempFlattenSpansToString(span.children)}</b>`
+            (span) => `<b>${spansToHtmlString(span.children)}</b>`
         )
         .with(
             { spanType: "span-underline" },
-            (span) => `<u>${tempFlattenSpansToString(span.children)}</u>`
+            (span) => `<u>${spansToHtmlString(span.children)}</u>`
         )
         .with(
             { spanType: "span-subscript" },
-            (span) => `<sub>${tempFlattenSpansToString(span.children)}</sub>`
+            (span) => `<sub>${spansToHtmlString(span.children)}</sub>`
         )
         .with(
             { spanType: "span-superscript" },
-            (span) => `<sup>${tempFlattenSpansToString(span.children)}</sup>`
+            (span) => `<sup>${spansToHtmlString(span.children)}</sup>`
         )
         .with(
             { spanType: "span-quote" },
-            (span) => `<q>${tempFlattenSpansToString(span.children)}</q>`
+            (span) => `<q>${spansToHtmlString(span.children)}</q>`
         )
         .with(
             { spanType: "span-fallback" },
-            (span) => `<span>${tempFlattenSpansToString(span.children)}</span>`
+            (span) => `<span>${spansToHtmlString(span.children)}</span>`
         )
         .exhaustive()
 }
 
-export function tempFlattenSpansToString(spans: Span[]): string {
+export function spansToHtmlString(spans: Span[]): string {
     if (spans.length === 0) return ""
     else {
-        const result = spans.map(flattenSpanToString).join("")
+        const result = spans.map(spanToHtmlString).join("")
         return result
     }
 }
@@ -392,7 +395,7 @@ async function readElements(
                                 level: Number.parseInt(headingLevel, 10),
                             },
                         }
-                        return serializeOwidArticleBlockToArchieMLString(header)
+                        return owidArticleBlockToArchieMLString(header)
                     }
                     return text
                 }
@@ -414,11 +417,9 @@ async function readElements(
                     const fragmentText = match(parsedElement)
                         .with(
                             { type: P.union("image", "horizontal-rule") },
-                            serializeOwidArticleBlockToArchieMLString
+                            owidArticleBlockToArchieMLString
                         )
-                        .with({ spanType: P.any }, (s) =>
-                            flattenSpanToString(s)
-                        )
+                        .with({ spanType: P.any }, (s) => spanToHtmlString(s))
                         .with(P.nullish, () => "")
                         .exhaustive()
                     elementText += `${prefix}${fragmentText}`
