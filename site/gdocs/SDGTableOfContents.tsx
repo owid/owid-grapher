@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { TocHeading } from "../../clientUtils/owidTypes.js"
+import { TocHeading } from "@ourworldindata/utils"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
