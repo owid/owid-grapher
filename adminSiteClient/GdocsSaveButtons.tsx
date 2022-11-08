@@ -5,7 +5,7 @@ import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExcla
 import { faBolt } from "@fortawesome/free-solid-svg-icons/faBolt"
 import { ErrorMessage } from "./gdocsValidation.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "@ourworldindata/utils"
 
 export const GdocsSaveButtons = ({
     published,

@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 import { stringify } from "safe-stable-stringify"
-import { OwidArticleType } from "../clientUtils/owidTypes.js"
+import { OwidArticleType } from "@ourworldindata/utils"
 
 export const GdocsDiff = ({
     originalGdoc,
