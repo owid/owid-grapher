@@ -21,7 +21,7 @@ const BlockErrorFallback = ({
     error,
     resetErrorBoundary,
 }: {
-    error: Error
+    error?: Error
     resetErrorBoundary: VoidFunction
 }): JSX.Element => {
     return (
@@ -39,7 +39,7 @@ const BlockErrorFallback = ({
                     Try again
                 </button>
             </div>
-            <div>{error.message}</div>
+            <div>{error?.message}</div>
         </div>
     )
 }
