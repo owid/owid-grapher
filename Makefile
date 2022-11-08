@@ -231,9 +231,6 @@ deploy:
 	
 	@echo '==> Building...'
 	yarn
-	yarn nx reset
-	yarn lerna bootstrap
-	yarn lerna run build
 	yarn run tsc -b
 	
 	@echo '==> Deploying...'
@@ -246,9 +243,6 @@ stage:
 	
 	@echo '==> Building...'
 	yarn
-	yarn nx reset
-	yarn lerna bootstrap
-	yarn lerna run build
 	yarn run tsc -b
 	
 	@echo '==> Deploying to $(STAGING)...'
