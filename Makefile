@@ -238,6 +238,7 @@ deploy:
 	yarn buildAndDeploySite live
 
 stage:
+	@echo '==> Preparing to deploy to $(STAGING)'
 	@echo '==> Starting from a clean slate...'
 	rm -rf itsJustJavascript
 	
@@ -246,7 +247,7 @@ stage:
 	yarn nx reset
 	yarn run tsc -b
 	
-	@echo '==> Deploying to staging...'
+	@echo '==> Deploying to $(STAGING)...'
 	yarn buildAndDeploySite $(STAGING)
 
 test: 
