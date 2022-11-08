@@ -35,8 +35,7 @@
             color: $blue-60;
         }
         a {
-            @include owid-link-90; // todo: probably not needed after the style reconcialiation
-            text-decoration: none;
+            color: $blue-90;
 
             &:hover {
                 text-decoration: underline;
