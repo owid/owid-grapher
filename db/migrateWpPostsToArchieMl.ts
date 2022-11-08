@@ -2,31 +2,22 @@
 
 import * as db from "./db.js"
 import _, * as lodash from "lodash"
-import parseArgs from "minimist"
 import * as cheerio from "cheerio"
 
 import {
-    GRAPHER_DB_NAME,
-    GRAPHER_DB_USER,
-    GRAPHER_DB_PASS,
-    GRAPHER_DB_HOST,
-    GRAPHER_DB_PORT,
-} from "../settings/serverSettings.js"
-import {
-    BlockPullQuote,
-    OwidArticleBlock,
-    Span,
-    SpanLink,
-    SpanBold,
-    SpanItalic,
-    SpanFallback,
-    BlockStructuredText,
-    BlockImage,
+    RawBlockPullQuote,
+    OwidRawArticleBlock,
+    EnrichedBlockText,
+    RawBlockImage,
+    OwidEnrichedArticleBlock,
+    RawBlockText,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { traverseNode } from "./analyzeWpPosts.js"
-import { OwidArticleEnrichedBlock } from "@ourworldindata/utils/dist/owidTypes.js"
-import { consolidateSpans, spansToHtmlString } from "./gdocUtils.js"
+import {
+    cheerioToSpan,
+    consolidateSpans,
+    spansToHtmlString,
+} from "./gdocUtils.js"
 
 // Note: all of this code is heavvy WIP - please ignore it for now
 
@@ -40,65 +31,26 @@ function mapCheerioChildren(
     })
 }
 
-function spanFallback(node: CheerioElement): SpanFallback {
-    return {
-        spanType: "span-fallback",
-        children: _.compact(node.children?.map(projectToSpan)) ?? [],
-    }
-}
-
 // TODO: add context for per post stats and error message context
-
-function projectToSpan(node: CheerioElement): Span | undefined {
-    if (node.type === "text")
-        return { spanType: "span-simple-text", text: node.data ?? "" }
-    else if (node.type === "tag") {
-        return match(node.tagName)
-            .with("a", (): SpanLink => {
-                const url = node.attribs.href
-                const children =
-                    _.compact(node.children?.map(projectToSpan)) ?? []
-                return { spanType: "span-link", children, url }
-            })
-            .with("b", (): SpanBold => {
-                const children =
-                    _.compact(node.children?.map(projectToSpan)) ?? []
-                return { spanType: "span-bold", children }
-            })
-            .with("i", (): SpanItalic => {
-                const children =
-                    _.compact(node.children?.map(projectToSpan)) ?? []
-                return { spanType: "span-italic", children }
-            })
-            .with("br", (): Span => ({ spanType: "span-newline" }))
-            .with("cite", () => spanFallback(node))
-            .with("code", () => spanFallback(node)) // TODO: should get a style
-            .with(
-                "em",
-                (): SpanItalic => ({
-                    spanType: "span-italic",
-                    children:
-                        _.compact(node.children?.map(projectToSpan)) ?? [],
-                })
-            )
-
-            .otherwise(() => {
-                console.log("unhandled tag", node.tagName)
-                return undefined
-            })
-    }
-    return undefined
-}
 
 function unwrapNode(
     node: CheerioElement
-): ArchieMlTransformationResult<OwidArticleBlock | OwidArticleEnrichedBlock> {
-    const children = node.children.map(projectToArchieML)
+): ArchieMlTransformationResult<OwidRawArticleBlock> {
+    const children = node.children.map(cheerioToArchieML)
     return joinArchieMLTransformationResults(children)
 }
 
+type ErrorNames =
+    | "blockquote content is not just text"
+    | "too many figcaption elements"
+    | "too many figcaption elements after archieml transform"
+    | "too many figcaption elements after archieml transform"
+    | "figcaption element is not structured text"
+    | "unkown element tag"
+
 interface ArchieMlTransformationError {
-    name: string
+    name: ErrorNames
+
     details: string
 }
 
@@ -129,33 +81,35 @@ function findRecursive(
     return undefined
 }
 
-function projectToArchieML(
+function cheerioToArchieML(
     node: CheerioElement
-): ArchieMlTransformationResult<OwidArticleBlock | OwidArticleEnrichedBlock> {
+): ArchieMlTransformationResult<OwidRawArticleBlock> {
     if (node.type === "comment") return { errors: [], content: [] }
-    const span = projectToSpan(node)
+    const span = cheerioToSpan(node)
     if (span)
         return {
             errors: [],
-            content: [{ type: "structured-text", value: [span] }],
+            // TODO: below should be a list of spans and a rich text block
+            content: [{ type: "text", value: spansToHtmlString([span]) }],
         }
     else if (node.type === "tag") {
-        const result: ArchieMlTransformationResult<
-            OwidArticleBlock | OwidArticleEnrichedBlock
-        > = match(node)
+        const result: ArchieMlTransformationResult<OwidRawArticleBlock> = match(
+            node
+        )
             .with({ tagName: "address" }, unwrapNode)
             .with(
                 { tagName: "blockquote" },
-                (): ArchieMlTransformationResult<BlockPullQuote> => {
+                (): ArchieMlTransformationResult<RawBlockPullQuote> => {
                     const childElements = joinArchieMLTransformationResults(
-                        node.children.map(projectToArchieML)
+                        node.children.map(cheerioToArchieML)
                     )
-                    const cleanedChildElements = consolidateSpans(
-                        childElements.content
-                    )
+                    // TODO: put this in place again
+                    // const cleanedChildElements = consolidateSpans(
+                    //     childElements.content
+                    // )
                     if (
-                        cleanedChildElements.length !== 1 ||
-                        cleanedChildElements[0].type !== "structured-text"
+                        childElements.content.length !== 1 ||
+                        childElements.content[0].type !== "text"
                     )
                         return {
                             errors: [
@@ -173,11 +127,7 @@ function projectToArchieML(
                             {
                                 type: "pull-quote",
                                 // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
-                                value: [
-                                    spansToHtmlString(
-                                        cleanedChildElements[0].value
-                                    ),
-                                ],
+                                value: [childElements.content[0].value],
                             },
                         ],
                     }
@@ -190,14 +140,13 @@ function projectToArchieML(
             .with({ tagName: "figcaption" }, unwrapNode)
             .with(
                 { tagName: "figure" },
-                (): ArchieMlTransformationResult<BlockImage> => {
+                (): ArchieMlTransformationResult<RawBlockImage> => {
                     const errors: ArchieMlTransformationError[] = []
                     const [figcaptionChildren, otherChildren] = _.partition(
                         node.children,
                         (n) => n.tagName === "figcaption"
                     )
-                    let figcaptionElement: BlockStructuredText | undefined =
-                        undefined
+                    let figcaptionElement: RawBlockText | undefined = undefined
                     if (figcaptionChildren.length > 1) {
                         errors.push({
                             name: "too many figcaption elements",
@@ -206,7 +155,7 @@ function projectToArchieML(
                     } else {
                         const figCaption =
                             figcaptionChildren.length > 0
-                                ? projectToArchieML(figcaptionChildren[0])
+                                ? cheerioToArchieML(figcaptionChildren[0])
                                 : undefined
                         if (figCaption)
                             if (figCaption.content.length > 1)
@@ -216,7 +165,7 @@ function projectToArchieML(
                                 })
                             else {
                                 const element = figCaption.content[0]
-                                if (element?.type === "structured-text")
+                                if (element?.type === "text")
                                     figcaptionElement = element
                                 else
                                     errors.push({
@@ -230,7 +179,7 @@ function projectToArchieML(
                         // TODO: this is a legitimate case, there may be other content in a figure
                         // but for now we treat it as an error and see how often this error happens
                         errors.push({
-                            name: "no image found in figure",
+                            name: "too many figcaption elements after archieml transform",
                             details: `Found ${otherChildren.length} elements`,
                         })
                     }
@@ -242,9 +191,7 @@ function projectToArchieML(
                                 type: "image",
                                 value: {
                                     src: image?.attribs.src ?? "",
-                                    caption: spansToHtmlString(
-                                        figcaptionElement?.value ?? []
-                                    ),
+                                    caption: figcaptionElement?.value,
                                 },
                             },
                         ],
@@ -258,7 +205,7 @@ function projectToArchieML(
         return {
             errors: [
                 {
-                    name: "unkown-element-tag",
+                    name: "unkown element tag",
                     details: `type was ${node.type}`,
                 },
             ],
@@ -279,7 +226,7 @@ const migrate = async (): Promise<void> => {
         const $: CheerioStatic = cheerio.load(post.content)
         const archieMlBodyElements = $("body")
             .toArray()
-            .flatMap(projectToArchieML)
+            .flatMap(cheerioToArchieML)
         console.log(archieMlBodyElements)
     }
 

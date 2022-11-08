@@ -1,17 +1,8 @@
 // Script to export the data_values for all variables attached to charts
 
 import * as db from "./db.js"
-import _, * as lodash from "lodash"
-import parseArgs from "minimist"
+import _ from "lodash"
 import * as cheerio from "cheerio"
-
-import {
-    GRAPHER_DB_NAME,
-    GRAPHER_DB_USER,
-    GRAPHER_DB_PASS,
-    GRAPHER_DB_HOST,
-    GRAPHER_DB_PORT,
-} from "../settings/serverSettings.js"
 
 // const argv = parseArgs(process.argv.slice(2))
 

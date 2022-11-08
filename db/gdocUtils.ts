@@ -1,22 +1,24 @@
-import { load } from "archieml"
-import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
 import {
-    OwidArticleBlock,
-    OwidArticleContent,
+    OwidRawArticleBlock,
     Span,
-    BlockHorizontalRule,
-    SpanSimpleText,
-    BlockImage,
-    BlockList,
-    BlockHeader,
-    BlockStructuredText,
-    BlockChartValue,
-    BlockRecirc,
-    BlockRecircValue,
-    ChartStoryValue,
-    OwidArticleEnrichedBlock,
+    RawBlockHeader,
+    EnrichedBlockText,
+    RawBlockChartValue,
+    RawBlockRecirc,
+    RawBlockRecircValue,
+    RawChartStoryValue,
+    OwidEnrichedArticleBlock,
+    SpanLink,
+    SpanBold,
+    SpanItalic,
+    SpanFallback,
+    SpanQuote,
+    SpanSuperscript,
+    SpanSubscript,
+    SpanUnderline,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
+import _ from "lodash"
 
 function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n.end"
@@ -78,7 +80,7 @@ ${content}
 }
 
 export function recircContentToArchieMlString(
-    content: BlockRecircValue
+    content: RawBlockRecircValue
 ): string {
     const list = blockListToArchieMlString(
         "list",
@@ -93,7 +95,7 @@ ${list}
 `
 }
 
-export function recircToArchieMlString(recirc: BlockRecirc): string {
+export function recircToArchieMlString(recirc: RawBlockRecirc): string {
     return blockListToArchieMlString(
         recirc.type,
         recirc.value,
@@ -103,7 +105,7 @@ export function recircToArchieMlString(recirc: BlockRecirc): string {
 }
 
 export function chartStoryValueToArchieMlString(
-    value: ChartStoryValue
+    value: RawChartStoryValue
 ): string {
     const narrative = keyValueToArchieMlString("narrative", value.narrative)
     const chart = keyValueToArchieMlString("chart", value.chart)
@@ -120,7 +122,7 @@ ${technicalText}
 `
 }
 
-export function headerToArchieMlString(block: BlockHeader): string {
+export function headerToArchieMlString(block: RawBlockHeader): string {
     return objectBlockToArchieMlString(block.type, block.value, (header) =>
         [
             keyValueToArchieMlString("text", header.text),
@@ -130,7 +132,7 @@ export function headerToArchieMlString(block: BlockHeader): string {
 }
 
 export const owidArticleBlockToArchieMLString = (
-    block: OwidArticleBlock
+    block: OwidRawArticleBlock
 ): string => {
     const content = match(block)
         .with(
@@ -144,7 +146,7 @@ export const owidArticleBlockToArchieMLString = (
         .with({ type: "chart" }, (b) =>
             stringOnlyObjectToArchieMlString({
                 type: "chart",
-                value: b.value as unknown as BlockChartValue,
+                value: b.value as unknown as RawBlockChartValue,
             })
         )
         .with(
@@ -188,17 +190,18 @@ export const owidArticleBlockToArchieMLString = (
 }
 
 export function consolidateSpans(
-    blocks: (OwidArticleBlock | OwidArticleEnrichedBlock)[]
-): (OwidArticleBlock | BlockStructuredText)[] {
-    const newBlocks: (OwidArticleBlock | OwidArticleEnrichedBlock)[] = []
-    let currentBlock: BlockStructuredText | undefined = undefined
+    blocks: OwidEnrichedArticleBlock[]
+): OwidEnrichedArticleBlock[] {
+    const newBlocks: OwidEnrichedArticleBlock[] = []
+    let currentBlock: EnrichedBlockText | undefined = undefined
     for (const block of blocks) {
-        if (block.type === "structured-text")
+        if (block.type === "text")
             if (currentBlock === undefined) currentBlock = block
             else
                 currentBlock = {
-                    type: "structured-text",
+                    type: "text",
                     value: [...currentBlock.value, ...block.value],
+                    parseErrors: [],
                 }
         else {
             if (currentBlock !== undefined) {
@@ -257,4 +260,87 @@ export function spansToHtmlString(spans: Span[]): string {
         const result = spans.map(spanToHtmlString).join("")
         return result
     }
+}
+
+function spanFallback(node: CheerioElement): SpanFallback {
+    return {
+        spanType: "span-fallback",
+        children: _.compact(node.children?.map(cheerioToSpan)) ?? [],
+    }
+}
+
+export function htmlToSpans(html: string): Span[] {
+    const $ = cheerio.load(html)
+    const nodes = $("body").toArray()
+    return _.compact(nodes.map(cheerioToSpan)) ?? []
+}
+
+export function cheerioToSpan(node: CheerioElement): Span | undefined {
+    if (node.type === "text")
+        return { spanType: "span-simple-text", text: node.data ?? "" }
+    else if (node.type === "tag") {
+        return match(node.tagName)
+            .with("a", (): SpanLink => {
+                const url = node.attribs.href
+                const children =
+                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-link", children, url }
+            })
+            .with("b", (): SpanBold => {
+                const children =
+                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-bold", children }
+            })
+            .with("i", (): SpanItalic => {
+                const children =
+                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-italic", children }
+            })
+            .with("br", (): Span => ({ spanType: "span-newline" }))
+            .with("cite", () => spanFallback(node))
+            .with("code", () => spanFallback(node)) // TODO: should get a style
+            .with(
+                "em",
+                (): SpanItalic => ({
+                    spanType: "span-italic",
+                    children:
+                        _.compact(node.children?.map(cheerioToSpan)) ?? [],
+                })
+            )
+            .with(
+                "q",
+                (): SpanQuote => ({
+                    spanType: "span-quote",
+                    children:
+                        _.compact(node.children?.map(cheerioToSpan)) ?? [],
+                })
+            )
+            .with("small", () => spanFallback(node))
+            .with("span", () => spanFallback(node))
+            .with("strong", (): SpanBold => {
+                const children =
+                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-bold", children }
+            })
+            .with("sup", (): SpanSuperscript => {
+                const children =
+                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-superscript", children }
+            })
+            .with("sub", (): SpanSubscript => {
+                const children =
+                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-subscript", children }
+            })
+            .with("u", (): SpanUnderline => {
+                const children =
+                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                return { spanType: "span-underline", children }
+            })
+            .with("wbr", () => spanFallback(node))
+            .otherwise(() => {
+                return undefined
+            })
+    }
+    return undefined
 }

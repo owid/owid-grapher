@@ -4,23 +4,22 @@
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
 import {
-    OwidArticleBlock,
+    OwidRawArticleBlock,
     OwidArticleContent,
     Span,
-    BlockHorizontalRule,
-    SpanSimpleText,
-    BlockImage,
-    BlockList,
-    BlockHeader,
-    BlockStructuredText,
-    BlockChartValue,
-    BlockRecirc,
-    BlockRecircValue,
-    ChartStoryValue,
-    OwidArticleEnrichedBlock,
+    RawBlockHorizontalRule,
+    RawBlockImage,
+    RawBlockList,
+    RawBlockHeader,
+    OwidEnrichedArticleBlock,
 } from "@ourworldindata/utils"
-import { owidArticleBlockToArchieMLString, spanToHtmlString } from "./gdocUtils"
+import {
+    htmlToSpans,
+    owidArticleBlockToArchieMLString,
+    spanToHtmlString,
+} from "./gdocUtils"
 import { match, P } from "ts-pattern"
+import { EnrichedBlockAside } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
@@ -30,12 +29,34 @@ export interface DocToArchieMLOptions {
     imageHandler?: (
         elementId: string,
         doc: docs_v1.Schema$Document
-    ) => Promise<BlockImage>
+    ) => Promise<RawBlockImage>
 }
 
 interface ElementMemo {
     isInList: boolean
-    body: OwidArticleBlock[]
+    body: OwidRawArticleBlock[]
+}
+
+function transformRawBlocksToEnhancedBlocks(
+    block: OwidRawArticleBlock
+): OwidEnrichedArticleBlock | null {
+    return match(block)
+        .with({ type: "aside" }, (aside): EnrichedBlockAside => {
+            const position =
+                aside.value.position === "left" ||
+                aside.value.position === "right"
+                    ? aside.value.position
+                    : undefined
+            const caption = htmlToSpans(aside.value.caption)
+
+            return {
+                type: "aside",
+                caption,
+                position,
+                parseErrors: [],
+            }
+        })
+        .otherwise(() => null)
 }
 
 export const gdocToArchieML = async ({
@@ -76,14 +97,16 @@ export const gdocToArchieML = async ({
 
     // Parse lists and include lowercase vals
     parsed.body = parsed.body.reduce(
-        (memo: ElementMemo, d: OwidArticleBlock) => {
+        (memo: ElementMemo, d: OwidRawArticleBlock) => {
             Object.keys(d).forEach((k) => {
                 ;(d as any)[k.toLowerCase()] = (d as any)[k]
             })
 
             if (d.type === "text" && d.value.startsWith("* ")) {
                 if (memo.isInList) {
-                    ;(memo.body[memo.body.length - 1] as BlockList).value.push(
+                    ;(
+                        memo.body[memo.body.length - 1] as RawBlockList
+                    ).value.push(
                         // TODO: this assumes that lists only contain simple text
                         d.value.replace("* ", "").trim()
                     )
@@ -118,7 +141,7 @@ async function readElements(
         | ((
               elementId: string,
               doc: docs_v1.Schema$Document
-          ) => Promise<BlockImage>)
+          ) => Promise<RawBlockImage>)
         | undefined
 ): Promise<string> {
     // prepare the text holder
@@ -156,7 +179,7 @@ async function readElements(
                                 "HEADING_",
                                 ""
                             )
-                        const header: BlockHeader = {
+                        const header: RawBlockHeader = {
                             type: "header",
                             value: {
                                 text: text.trim(),
@@ -208,9 +231,9 @@ async function readParagraphElement(
         | ((
               elementId: string,
               doc: docs_v1.Schema$Document
-          ) => Promise<BlockImage>)
+          ) => Promise<RawBlockImage>)
         | undefined
-): Promise<Span | BlockHorizontalRule | BlockImage | null> {
+): Promise<Span | RawBlockHorizontalRule | RawBlockImage | null> {
     // pull out the text
 
     const textRun = element.textRun
