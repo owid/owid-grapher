@@ -227,11 +227,11 @@ wordpress/web/app/uploads/2022:
 
 deploy:
 	@echo '==> Starting from a clean slate...'
-	yarn nx reset
 	rm -rf itsJustJavascript
 	
 	@echo '==> Building...'
 	yarn
+	yarn nx reset
 	yarn run tsc -b
 	
 	@echo '==> Deploying...'
@@ -239,11 +239,11 @@ deploy:
 
 stage:
 	@echo '==> Starting from a clean slate...'
-	yarn nx reset
 	rm -rf itsJustJavascript
 	
 	@echo '==> Building...'
 	yarn
+	yarn nx reset
 	yarn run tsc -b
 	
 	@echo '==> Deploying to staging...'
