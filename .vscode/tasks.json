@@ -10,23 +10,9 @@
             }
         },
         {
-            "label": "startLernaWatcher",
+            "label": "buildLerna",
             "type": "shell",
-            "command": "yarn startLernaWatcher",
-            "problemMatcher": {
-                "pattern": {
-                    "regexp": "Error: Command failed",
-                    "kind": "file",
-                    "message": 0,
-                    "file": 1
-                },
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": "watching packages",
-                    "endsPattern": "watching packages"
-                }
-            },
-            "isBackground": true,
+            "command": "yarn buildLerna",
             "presentation": {
                 "group": "watch2",
                 "reveal": "silent"
@@ -66,11 +52,7 @@
         },
         {
             "label": "start (remote)",
-            "dependsOn": [
-                "startLernaWatcher",
-                "startTscServer",
-                "startSiteFront"
-            ],
+            "dependsOn": ["buildLerna", "startTscServer", "startSiteFront"],
             "dependsOrder": "sequence",
             "problemMatcher": []
         },
