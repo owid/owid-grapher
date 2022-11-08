@@ -3,6 +3,7 @@
     @include grid(8);
     padding: 40px 0;
     background-color: $beige;
+    cursor: pointer;
 
     &.open::before {
         grid-column: span 1;
@@ -19,6 +20,9 @@
         display: flex;
         justify-content: space-between;
         cursor: pointer;
+        border: none;
+        color: $blue-90;
+        background-color: transparent;
     }
 
     .sdg-toc-content {

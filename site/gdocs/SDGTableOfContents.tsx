@@ -9,6 +9,8 @@ import AnimateHeight from "react-animate-height"
 
 const VERTICAL_TAB_CHAR = "\u000b"
 
+// See ARIA roles: https://w3c.github.io/aria-practices/examples/menu-button/menu-button-links.html
+
 export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
     const [height, setHeight] = useState<"auto" | 0>(0)
     const [isOpen, setIsOpen] = useState(false)
@@ -29,17 +31,27 @@ export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
     })
 
     return (
-        <nav className={classNames("sdg-toc", { open: isOpen })}>
-            <div
-                onClick={toggleIsOpen}
+        <nav
+            className={classNames("sdg-toc", { open: isOpen })}
+            role="button"
+            onClick={toggleIsOpen}
+            aria-haspopup="true"
+            aria-controls="sdg-toc-menu"
+            data-track-note="sdg-toc-toggle"
+        >
+            <button
+                id="sdg-toc-menu-button"
                 className="sdg-toc-toggle"
+                onClick={toggleIsOpen}
+                aria-haspopup="true"
+                aria-controls="sdg-toc-menu"
                 data-track-note="sdg-toc-toggle"
             >
-                <div>Index</div>
-                <div>
+                <span>Index</span>
+                <span>
                     <FontAwesomeIcon icon={isOpen ? faMinus : faPlus} />
-                </div>
-            </div>
+                </span>
+            </button>
             <AnimateHeight
                 className="sdg-toc-content"
                 height={height}
@@ -51,7 +63,11 @@ export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
                 }}
                 animateOpacity
             >
-                <ul>
+                <ul
+                    id="sdg-toc-menu"
+                    role="menu"
+                    aria-labelledby="sdg-toc-menu-button"
+                >
                     {tocHeadingsWithSupertitle.map(
                         (
                             { title, supertitle, isSubheading, slug },
@@ -62,10 +78,13 @@ export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
                                 className={
                                     isSubheading ? "subsection" : "section"
                                 }
+                                role="none"
                             >
                                 <a
                                     href={`#${slug}`}
                                     data-track-note="sdg-toc-link"
+                                    role="menuitem"
+                                    onClick={(e) => e.stopPropagation()}
                                 >
                                     {supertitle ? (
                                         <span className="supertitle">
