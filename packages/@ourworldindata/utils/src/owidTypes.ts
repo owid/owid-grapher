@@ -427,6 +427,24 @@ export interface OwidArticleContent {
     summary?: OwidArticleBlock[]
     citation?: OwidArticleBlock[]
     "cover-image"?: any
+    "cover-color"?:
+        | "sdg-color-1"
+        | "sdg-color-2"
+        | "sdg-color-3"
+        | "sdg-color-4"
+        | "sdg-color-5"
+        | "sdg-color-6"
+        | "sdg-color-7"
+        | "sdg-color-8"
+        | "sdg-color-9"
+        | "sdg-color-10"
+        | "sdg-color-11"
+        | "sdg-color-12"
+        | "sdg-color-13"
+        | "sdg-color-14"
+        | "sdg-color-15"
+        | "sdg-color-16"
+        | "sdg-color-17"
     "featured-image"?: any
 }
 
