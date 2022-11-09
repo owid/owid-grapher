@@ -4,12 +4,11 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    display: grid;
+    @include grid(12);
     grid-template-columns: calc((100vw - 1280px) / 2) repeat(12, 1fr) calc(
             (100vw - 1280px) / 2
         );
     grid-template-rows: auto;
-    column-gap: 24px;
     /* max-width: 1440px; */
     margin: 0 auto;
     background-color: #fff;
@@ -164,10 +163,8 @@
     display: contents;
     position: relative;
 
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    @include grid(12);
     grid-template-rows: auto;
-    column-gap: 24px;
     grid-column: 2 / -2;
     border-bottom: solid 1px #dbe5f0;
     padding-bottom: 32px;
@@ -395,14 +392,11 @@
 }
 
 .owidArticle .stickySection {
-    display: grid;
+    @include grid(12);
     grid-column: 2 / -2;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
     grid-template-rows: auto;
     /* height: 100vh; */
     position: relative;
-    column-gap: 24px;
 }
 
 .owidArticle .stickyFigure {
