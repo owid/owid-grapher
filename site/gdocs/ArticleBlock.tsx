@@ -8,61 +8,24 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { OwidRawArticleBlock, Span } from "@ourworldindata/utils"
+import { OwidEnrichedArticleBlock, Span } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
+import { renderSpans } from "./utils"
+import Paragraph from "./Paragraph.js"
 
-function renderSpans(spans: Span[]) {
-    return spans.map((span, i) =>
-        match(span)
-            .with({ spanType: "span-simple-text" }, (span) => (
-                <React.Fragment key={i}>{span.text}</React.Fragment>
-            ))
-            .with({ spanType: "span-link" }, (span) => (
-                <a key={i} href={span.url}>
-                    {renderSpans(span.children)}
-                </a>
-            ))
-            .with({ spanType: "span-newline" }, (span) => <br key={i} />)
-            .with({ spanType: "span-italic" }, (span) => (
-                <em key={i}>{renderSpans(span.children)}</em>
-            ))
-            .with({ spanType: "span-bold" }, (span) => (
-                <strong key={i}>{renderSpans(span.children)}</strong>
-            ))
-            .with({ spanType: "span-underline" }, (span) => (
-                <u key={i}>{renderSpans(span.children)}</u>
-            ))
-            .with({ spanType: "span-subscript" }, (span) => (
-                <sub key={i}>{renderSpans(span.children)}</sub>
-            ))
-            .with({ spanType: "span-superscript" }, (span) => (
-                <sup key={i}>{renderSpans(span.children)}</sup>
-            ))
-            .with({ spanType: "span-quote" }, (span) => (
-                <q key={i}>{renderSpans(span.children)}</q>
-            ))
-            .with({ spanType: "span-fallback" }, (span) => (
-                <React.Fragment key={i}>
-                    {renderSpans(span.children)}
-                </React.Fragment>
-            ))
-            .exhaustive()
-    )
-}
-
-export default function ArticleBlock({ b }: { b: OwidRawArticleBlock }) {
-    const handleArchie = (block: OwidRawArticleBlock, key: string) => {
+export default function ArticleBlock({ b }: { b: OwidEnrichedArticleBlock }) {
+    const handleArchie = (block: OwidEnrichedArticleBlock, key: string) => {
         block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
         const content: JSX.Element | null = match(block)
             .with({ type: "aside" }, (aside) => (
                 <figure
                     key={key}
                     className={`aside-text ${
-                        aside.value.position ? aside.value.position : ""
+                        aside.position ? aside.position : ""
                     }`}
                 >
-                    {aside.value.caption ? (
-                        <figcaption>{aside.value.caption}</figcaption>
+                    {aside.caption ? (
+                        <figcaption>{renderSpans(aside.caption)}</figcaption>
                     ) : null}
                 </figure>
             ))
@@ -82,59 +45,32 @@ export default function ArticleBlock({ b }: { b: OwidRawArticleBlock }) {
             ))
             .with({ type: "recirc" }, (block) => <Recirc d={block} key={key} />)
             .with({ type: "list" }, (block) => <List d={block} key={key} />)
-            .with({ type: "text" }, (block) => {
-                if (block.value.trim() === "") {
-                    return null
-                }
-                return (
-                    <div
-                        dangerouslySetInnerHTML={{
-                            __html:
-                                block.value.startsWith("<div") ||
-                                block.value.trim() === "<hr />"
-                                    ? block.value.replace(/\\:/g, ":")
-                                    : `<p>${block.value.replace(
-                                          /\\:/g,
-                                          ":"
-                                      )}</p>`,
-                        }}
-                    />
-                )
-            })
-            .with({ type: "url" }, (block) => (
-                <a href={block.value}>{block.value}</a>
+            .with({ type: "text" }, (block) => (
+                <Paragraph d={block} key={key} />
             ))
-            .with({ type: "position" }, (block) => (
-                <a href={block.value}>{block.value}</a>
+            .with({ type: "header", level: 1 }, (block) => (
+                <h1>{block.text.text}</h1>
             ))
-            .with({ type: "header", value: { level: 1 } }, (block) => (
-                <h1>{block.value.text}</h1>
+            .with({ type: "header", level: 2 }, (block) => (
+                <h2>{block.text.text}</h2>
             ))
-            .with({ type: "header", value: { level: 2 } }, (block) => (
-                <h2>{block.value.text}</h2>
+            .with({ type: "header", level: 3 }, (block) => (
+                <h3>{block.text.text}</h3>
             ))
-            .with({ type: "header", value: { level: 3 } }, (block) => (
-                <h3>{block.value.text}</h3>
+            .with({ type: "header", level: 4 }, (block) => (
+                <h4>{block.text.text}</h4>
             ))
-            .with({ type: "header", value: { level: 4 } }, (block) => (
-                <h4>{block.value.text}</h4>
+            .with({ type: "header", level: 5 }, (block) => (
+                <h5>{block.text.text}</h5>
             ))
-            .with({ type: "header", value: { level: 5 } }, (block) => (
-                <h5>{block.value.text}</h5>
+            .with({ type: "header", level: 6 }, (block) => (
+                <h6>{block.text.text}</h6>
             ))
-            .with({ type: "header", value: { level: 6 } }, (block) => (
-                <h6>{block.value.text}</h6>
-            ))
-            .with({ type: "header" }, (block) => (
-                // Should throw in the future but for now just for debugging
-                <h3>
-                    invalid header level - {block.value.text} -{" "}
-                    {block.value.level}
-                </h3>
-            ))
-            // .with({ type: "structured-text" }, (block) => (
-            //     <React.Fragment>{renderSpans(block.value)}</React.Fragment>
-            // ))
+            .with(
+                { type: "header" },
+                // during parsing we take care of level being in a valid range
+                () => null
+            )
             .with({ type: "html" }, (block) => (
                 <div dangerouslySetInnerHTML={{ __html: block.value }} />
             ))

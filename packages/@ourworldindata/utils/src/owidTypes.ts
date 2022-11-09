@@ -443,6 +443,8 @@ export type ChartPositionChoice = "featured"
 
 export type ParseError = {
     message: string
+    hint?: string
+    isWarningOnly?: boolean
 }
 
 export type EnrichedBlockWithParseErrors = {
@@ -450,23 +452,23 @@ export type EnrichedBlockWithParseErrors = {
 }
 
 export type RawBlockAsideValue = {
-    position: string // use BlockPositionChoice in matching Enriched block
-    caption: string
+    position?: string // use BlockPositionChoice in matching Enriched block
+    caption?: string
 }
 
 export type RawBlockAside = {
     type: "aside"
-    value: RawBlockAsideValue
+    value: RawBlockAsideValue | string
 }
 
 export type EnrichedBlockAside = {
     type: "aside"
-    position: BlockPositionChoice | undefined
+    position?: BlockPositionChoice | undefined
     caption: Span[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockChartValue = {
-    url: string
+    url?: string
     height?: string
     row?: string
     column?: string
@@ -482,11 +484,11 @@ export type RawBlockChart = {
 export type EnrichedBlockChart = {
     type: "chart"
     url: string
-    height?: string
-    row?: string
-    column?: string
-    position?: BlockPositionChoice
-    caption?: Span[]
+    height: string | undefined
+    row: string | undefined
+    column: string | undefined
+    position: ChartPositionChoice | undefined
+    caption: Span[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockScroller = {
@@ -495,7 +497,7 @@ export type RawBlockScroller = {
 }
 
 export type EnrichedScrollerItem = {
-    url: string
+    url: string // TODO: should this be transformed into an EnrichedBlockChart?
     text: EnrichedBlockText
 }
 
@@ -505,20 +507,20 @@ export type EnrichedBlockScroller = {
 } & EnrichedBlockWithParseErrors
 
 export type RawChartStoryValue = {
-    narrative: string
-    chart: string
+    narrative?: string
+    chart?: string
     technical?: string[]
 }
 
 export type RawBlockChartStory = {
     type: "chart-story"
-    value: RawChartStoryValue[]
+    value: RawChartStoryValue[] | string
 }
 
 export type EnrichedChartStoryItem = {
     narrative: EnrichedBlockText
     chart: EnrichedBlockChart
-    technical?: EnrichedBlockText[]
+    technical: EnrichedBlockText[]
 }
 
 export type EnrichedBlockChartStory = {
@@ -528,22 +530,22 @@ export type EnrichedBlockChartStory = {
 
 export type RawBlockFixedGraphic = {
     type: "fixed-graphic"
-    value: OwidRawArticleBlock[]
+    value: OwidRawArticleBlock[] | string
 }
 
 export type EnrichedBlockFixedGraphic = {
     type: "fixed-graphic"
-    graphic: EnrichedBlockChart | EnrichedBlockChart
+    graphic: EnrichedBlockChart | EnrichedBlockImage
     position: BlockPositionChoice | undefined
     text: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 export type RawBlockImageValue = {
-    src: string
+    src?: string
     caption?: string
 }
 export type RawBlockImage = {
     type: "image"
-    value: RawBlockImageValue
+    value: RawBlockImageValue | string
 }
 
 export type EnrichedBlockImage = {
@@ -557,7 +559,7 @@ export type EnrichedBlockImage = {
 // string IIRC - check this
 export type RawBlockList = {
     type: "list"
-    value: string[]
+    value: string[] | string
 }
 
 export type EnrichedBlockList = {
@@ -567,7 +569,7 @@ export type EnrichedBlockList = {
 
 export type RawBlockPullQuote = {
     type: "pull-quote"
-    value: string[]
+    value: string[] | string
 }
 
 export type EnrichedBlockPullQuote = {
@@ -585,18 +587,18 @@ export type EnrichedBlockHorizontalRule = {
 } & EnrichedBlockWithParseErrors
 
 export type RawRecircItem = {
-    article: string
-    author: string
-    url: string
+    article?: string
+    author?: string
+    url?: string
 }
 
 export type RawBlockRecircValue = {
-    title: string
-    list: RawRecircItem[]
+    title?: string
+    list?: RawRecircItem[]
 }
 export type RawBlockRecirc = {
     type: "recirc"
-    value: RawBlockRecircValue[]
+    value: RawBlockRecircValue[] | string
 }
 
 export type EnrichedRecircItem = {
@@ -607,7 +609,8 @@ export type EnrichedRecircItem = {
 
 export type EnrichedBlockRecirc = {
     type: "recirc"
-    value: EnrichedRecircItem[]
+    title: SpanSimpleText
+    items: EnrichedRecircItem[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockText = {
@@ -618,6 +621,11 @@ export type RawBlockText = {
 export type EnrichedBlockText = {
     type: "text"
     value: Span[]
+} & EnrichedBlockWithParseErrors
+
+export type EnrichedBlockSimpleText = {
+    type: "simple-text"
+    value: SpanSimpleText
 } & EnrichedBlockWithParseErrors
 export type RawBlockHtml = {
     type: "html"
@@ -641,12 +649,12 @@ export type RawBlockPosition = {
 // There is no EnrichedBlockUrl because Position blocks only exist inside FixedGraphics;
 // they are subsumed into FixedGraphic blocks during enrichment
 export type RawBlockHeaderValue = {
-    text: string
-    level: number
+    text?: string
+    level?: number
 }
 export type RawBlockHeader = {
     type: "header"
-    value: RawBlockHeaderValue
+    value: RawBlockHeaderValue | string
 }
 
 export type EnrichedBlockHeader = {
@@ -715,22 +723,22 @@ export interface OwidArticleTypePublished extends OwidArticleType {
 }
 
 export interface OwidArticleContent {
-    body?: OwidRawArticleBlock[]
+    body?: OwidEnrichedArticleBlock[]
     title?: string
     subtitle?: string
     template?: string
     byline?: string | string[]
     dateline?: string
     excerpt?: string
-    refs?: OwidRawArticleBlock[]
-    summary?: OwidRawArticleBlock[]
-    citation?: OwidRawArticleBlock[]
+    refs?: EnrichedBlockText[]
+    summary?: EnrichedBlockText[]
+    citation?: EnrichedBlockSimpleText[]
     "cover-image"?: any
     "featured-image"?: any
 }
 
 export interface OwidArticleContentPublished extends OwidArticleContent {
-    body: OwidRawArticleBlock[]
+    body: OwidEnrichedArticleBlock[]
     title: string
     byline: string | string[]
     excerpt: string

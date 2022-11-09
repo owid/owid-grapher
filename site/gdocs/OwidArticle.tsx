@@ -3,11 +3,12 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks"
 import Footnotes from "./Footnotes"
 import {
-    OwidRawArticleBlock,
+    OwidEnrichedArticleBlock,
     OwidArticleType,
     formatDate,
     getArticleFromJSON,
 } from "@ourworldindata/utils"
+import { renderSpans } from "./utils.js"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt } = props
@@ -48,22 +49,11 @@ export function OwidArticle(props: OwidArticleType) {
 
             {content.refs ? <Footnotes d={content.refs} /> : null}
 
-            {content.citation &&
-            content.citation.some(
-                (d: OwidRawArticleBlock) => d.type === "text"
-            ) ? (
+            {content.citation ? (
                 <div>
                     <h3>Please cite this article as:</h3>
                     <pre>
-                        <code>
-                            {content.citation.map((d: OwidRawArticleBlock) => {
-                                if (d.type === "text") {
-                                    return d.value
-                                } else {
-                                    return ""
-                                }
-                            })}
-                        </code>
+                        <code>{renderSpans(content.citation)}</code>
                     </pre>
                 </div>
             ) : null}

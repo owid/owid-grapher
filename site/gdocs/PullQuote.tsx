@@ -1,10 +1,10 @@
 import React from "react"
-import { RawBlockPullQuote } from "@ourworldindata/utils"
-
-export default function PullQuote({ d }: { d: RawBlockPullQuote }) {
+import { EnrichedBlockPullQuote } from "@ourworldindata/utils"
+import { renderSpans } from "./utils"
+export default function PullQuote({ d }: { d: EnrichedBlockPullQuote }) {
     return (
         <blockquote className={"pullQuote"}>
-            {d.value.map((d: any) => d.value).join("\n")}
+            {d.text.map((d: any) => d.value).join("\n")}
         </blockquote>
     )
 }

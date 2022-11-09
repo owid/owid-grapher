@@ -12,14 +12,19 @@ import {
     RawBlockList,
     RawBlockHeader,
     OwidEnrichedArticleBlock,
+    EnrichedBlockAside,
+    BlockPositionChoice,
+    ParseError,
+    EnrichedBlockText,
 } from "@ourworldindata/utils"
 import {
+    htmlToEnrichedTextBlock,
+    htmlToSimpleTextBlock,
     htmlToSpans,
-    OwidRawArticleBlockToArchieMLString,
+    owidRawArticleBlockToArchieMLString,
     spanToHtmlString,
 } from "./gdocUtils"
 import { match, P } from "ts-pattern"
-import { EnrichedBlockAside } from "@ourworldindata/utils/dist/owidTypes.js"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
@@ -37,11 +42,37 @@ interface ElementMemo {
     body: OwidRawArticleBlock[]
 }
 
-function transformRawBlocksToEnhancedBlocks(
+function parseRawBlocksToEnhancedBlocks(
     block: OwidRawArticleBlock
 ): OwidEnrichedArticleBlock | null {
     return match(block)
         .with({ type: "aside" }, (aside): EnrichedBlockAside => {
+            const hint = `Make sure the block looks like this:
+            {aside}
+            caption: FORMATTED PARAGRAPH
+            position?: left | right
+            {}`
+            const createError = (
+                error: ParseError,
+                caption: Span[] = [],
+                position: BlockPositionChoice | undefined = undefined
+            ): EnrichedBlockAside => ({
+                type: "aside",
+                caption,
+                position,
+                parseErrors: [{ hint, ...error }],
+            })
+
+            if (typeof aside.value === "string")
+                return createError({
+                    message: "Value is a string, not an object with properties",
+                })
+
+            if (!aside.value.caption)
+                return createError({
+                    message: "Caption property is missing",
+                })
+
             const position =
                 aside.value.position === "left" ||
                 aside.value.position === "right"
@@ -93,9 +124,7 @@ export const gdocToArchieML = async ({
 
     const parsed = load(text)
 
-    parsed.refs = refs
-
-    // Parse lists and include lowercase vals
+    // Parse lists and include lowercase vals-
     parsed.body = parsed.body.reduce(
         (memo: ElementMemo, d: OwidRawArticleBlock) => {
             Object.keys(d).forEach((k) => {
@@ -105,8 +134,9 @@ export const gdocToArchieML = async ({
             if (d.type === "text" && d.value.startsWith("* ")) {
                 if (memo.isInList) {
                     ;(
-                        memo.body[memo.body.length - 1] as RawBlockList
-                    ).value.push(
+                        (memo.body[memo.body.length - 1] as RawBlockList)
+                            .value as string[]
+                    ).push(
                         // TODO: this assumes that lists only contain simple text
                         d.value.replace("* ", "").trim()
                     )
@@ -130,6 +160,24 @@ export const gdocToArchieML = async ({
             body: [],
         }
     ).body
+
+    // Parse elements of the ArchieML into enrichedBlocks
+    parsed.body = parseRawBlocksToEnhancedBlocks(parsed.body)
+    parsed.refs = refs.map(htmlToEnrichedTextBlock)
+    const summary: string | string[] | undefined = parsed.summary
+    parsed.summary =
+        summary === undefined
+            ? undefined
+            : typeof summary === "string"
+            ? [htmlToEnrichedTextBlock(summary)]
+            : summary.map(htmlToEnrichedTextBlock)
+    const citation: string | string[] | undefined = parsed.citation
+    parsed.citation =
+        citation === undefined
+            ? undefined
+            : typeof citation === "string"
+            ? htmlToSimpleTextBlock(citation)
+            : citation.map(htmlToSimpleTextBlock)
 
     // pass text to ArchieML and return results
     return parsed
@@ -186,7 +234,7 @@ async function readElements(
                                 level: Number.parseInt(headingLevel, 10),
                             },
                         }
-                        return OwidRawArticleBlockToArchieMLString(header)
+                        return owidRawArticleBlockToArchieMLString(header)
                     }
                     return text
                 }
@@ -208,7 +256,7 @@ async function readElements(
                     const fragmentText = match(parsedElement)
                         .with(
                             { type: P.union("image", "horizontal-rule") },
-                            OwidRawArticleBlockToArchieMLString
+                            owidRawArticleBlockToArchieMLString
                         )
                         .with({ spanType: P.any }, (s) => spanToHtmlString(s))
                         .with(P.nullish, () => "")

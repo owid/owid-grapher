@@ -1,6 +1,9 @@
+import { EnrichedBlockText } from "@ourworldindata/utils/dist/index.js"
 import React from "react"
+import Paragraph from "./Paragraph.js"
+import { renderSpans } from "./utils"
 
-export default function Footnotes({ d }: any) {
+export default function Footnotes({ d }: { d: EnrichedBlockText[] }) {
     if (!d || !d.length) {
         return null
     }
@@ -8,15 +11,11 @@ export default function Footnotes({ d }: any) {
         <section className={"footnoteContainer"}>
             <h2>Endnotes</h2>
             <ol className={"footnotes"}>
-                {d.map((footnote: string, i: number) => {
+                {d.map((footnote: EnrichedBlockText, i: number) => {
                     return (
-                        <li
-                            key={i}
-                            className={"footnote"}
-                            dangerouslySetInnerHTML={{
-                                __html: footnote.replace(/\n+/g, "<br/><br/>"),
-                            }}
-                        />
+                        <li key={i} className={"footnote"}>
+                            <Paragraph d={footnote} />
+                        </li>
                     )
                 })}
             </ol>

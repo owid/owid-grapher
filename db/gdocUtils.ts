@@ -16,17 +16,23 @@ import {
     SpanUnderline,
     RawBlockRecircValue,
     RawBlockRecirc,
+    EnrichedBlockSimpleText,
+    SpanSimpleText,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import _ from "lodash"
+import _, { partition } from "lodash"
 
 function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n.end"
     return line
 }
 
-export function keyValueToArchieMlString(key: string, val: string): string {
-    return `${key}: ${appendDotEndIfMultiline(val)}`
+export function keyValueToArchieMlString(
+    key: string,
+    val: string | undefined
+): string {
+    if (val !== undefined) return `${key}: ${appendDotEndIfMultiline(val)}`
+    return ""
 }
 
 export function* stringPropertiesToArchieMlString(
@@ -51,10 +57,15 @@ ${contentSerializer(block)}
 
 export function stringOnlyObjectToArchieMlString(obj: {
     type: string
-    value: Record<string, string>
+    value: Record<string, string> | string
 }): string {
-    const serializeFn = (b: Record<string, string>) =>
-        [...stringPropertiesToArchieMlString(Object.entries(b))].join("\n")
+    const val = obj.value
+    const serializeFn = () =>
+        typeof val === "string"
+            ? val
+            : [...stringPropertiesToArchieMlString(Object.entries(val))].join(
+                  "\n"
+              )
     return objectBlockToArchieMlString(obj.type, obj.value, serializeFn)
 }
 
@@ -67,10 +78,12 @@ export function singleStringObjectToArchieMlString(obj: {
 
 export function blockListToArchieMlString<T>(
     blockname: string,
-    blocks: T[],
+    blocks: T[] | string,
     contentSerializer: (block: T) => string,
     isFreeformArray: boolean
 ): string {
+    if (typeof blocks === "string")
+        return keyValueToArchieMlString(blockname, blocks)
     const content = blocks.map(contentSerializer).join("\n")
     return `
 [.${isFreeformArray ? "+" : ""}${blockname}]
@@ -84,13 +97,13 @@ export function recircContentToArchieMlString(
 ): string {
     const list = blockListToArchieMlString(
         "list",
-        content.list,
+        content.list ?? [],
         (b) =>
             [...stringPropertiesToArchieMlString(Object.entries(b))].join("\n"),
         false
     )
     return `
-${keyValueToArchieMlString("title", content.title)}
+${keyValueToArchieMlString("title", content.title ?? "")}
 ${list}
 `
 }
@@ -98,7 +111,7 @@ ${list}
 export function recircToArchieMlString(recirc: RawBlockRecirc): string {
     return blockListToArchieMlString(
         recirc.type,
-        recirc.value,
+        typeof recirc.value !== "string" ? recirc.value : [],
         recircContentToArchieMlString,
         false
     )
@@ -107,7 +120,7 @@ export function recircToArchieMlString(recirc: RawBlockRecirc): string {
 export function chartStoryValueToArchieMlString(
     value: RawChartStoryValue
 ): string {
-    const narrative = keyValueToArchieMlString("narrative", value.narrative)
+    const narrative = keyValueToArchieMlString("narrative", value?.narrative)
     const chart = keyValueToArchieMlString("chart", value.chart)
     const technicalText = blockListToArchieMlString(
         "technical",
@@ -123,15 +136,17 @@ ${technicalText}
 }
 
 export function headerToArchieMlString(block: RawBlockHeader): string {
-    return objectBlockToArchieMlString(block.type, block.value, (header) =>
-        [
-            keyValueToArchieMlString("text", header.text),
-            keyValueToArchieMlString("level", header.level.toString()),
+    const val = block.value
+    if (typeof val === "string") return keyValueToArchieMlString("header", val)
+    return objectBlockToArchieMlString(block.type, block.value, () => {
+        return [
+            keyValueToArchieMlString("text", val?.text),
+            keyValueToArchieMlString("level", val?.level?.toString()),
         ].join("\n")
-    )
+    })
 }
 
-export const OwidRawArticleBlockToArchieMLString = (
+export const owidRawArticleBlockToArchieMLString = (
     block: OwidRawArticleBlock
 ): string => {
     const content = match(block)
@@ -157,7 +172,7 @@ export const OwidRawArticleBlockToArchieMLString = (
             blockListToArchieMlString(
                 block.type,
                 b.value,
-                OwidRawArticleBlockToArchieMLString,
+                owidRawArticleBlockToArchieMLString,
                 true
             )
         )
@@ -181,7 +196,7 @@ export const OwidRawArticleBlockToArchieMLString = (
             blockListToArchieMlString(
                 block.type,
                 b.value,
-                OwidRawArticleBlockToArchieMLString,
+                owidRawArticleBlockToArchieMLString,
                 true
             )
         )
@@ -269,6 +284,40 @@ function spanFallback(node: CheerioElement): SpanFallback {
     }
 }
 
+export function htmlToEnrichedTextBlock(html: string): EnrichedBlockText {
+    return {
+        type: "text",
+        value: htmlToSpans(html),
+        parseErrors: [],
+    }
+}
+
+export function htmlToSimpleTextBlock(html: string): EnrichedBlockSimpleText {
+    const spans = htmlToSpans(html)
+    const [simpleTextSpans, otherSpans] = partition(
+        spans,
+        (s) => s.spanType === "span-simple-text"
+    )
+    const simpleText: SpanSimpleText = {
+        spanType: "span-simple-text",
+        text: simpleTextSpans.map((s) => (s as SpanSimpleText).text).join(" "),
+    }
+    const parseErrors =
+        otherSpans.length > 0
+            ? [
+                  {
+                      message:
+                          "Formatted text fragments found in simple text block",
+                  },
+              ]
+            : []
+    return {
+        type: "simple-text",
+        value: simpleText,
+        parseErrors: parseErrors,
+    }
+}
+
 export function htmlToSpans(html: string): Span[] {
     const $ = cheerio.load(html)
     const nodes = $("body").toArray()
@@ -277,7 +326,11 @@ export function htmlToSpans(html: string): Span[] {
 
 export function cheerioToSpan(node: CheerioElement): Span | undefined {
     if (node.type === "text")
-        return { spanType: "span-simple-text", text: node.data ?? "" }
+        // The regex replace takes care of the ArchieML escaping of :
+        return {
+            spanType: "span-simple-text",
+            text: node.data?.replace(/\\:/g, ":") ?? "",
+        }
     else if (node.type === "tag") {
         return match(node.tagName)
             .with("a", (): SpanLink => {

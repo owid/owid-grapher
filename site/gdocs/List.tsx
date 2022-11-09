@@ -1,11 +1,11 @@
 import React from "react"
-import { RawBlockList } from "@ourworldindata/utils"
-
-export default function List({ d }: { d: RawBlockList }) {
+import { EnrichedBlockList, EnrichedBlockText } from "@ourworldindata/utils"
+import { renderSpans } from "./utils"
+export default function List({ d }: { d: EnrichedBlockList }) {
     return (
         <ul className={"list"}>
-            {d.value.map((_d: string, i: number) => {
-                return <li key={i}>{_d}</li>
+            {d.items.map((_d: EnrichedBlockText, i: number) => {
+                return <li key={i}>{renderSpans(_d.value)}</li>
             })}
         </ul>
     )

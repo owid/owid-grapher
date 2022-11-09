@@ -1,25 +1,18 @@
 import React, { useState, useRef } from "react"
 import { InView } from "react-intersection-observer"
-import { RawBlockScroller, OwidRawArticleBlock } from "@ourworldindata/utils"
+import {
+    EnrichedBlockScroller,
+    EnrichedBlockText,
+    OwidEnrichedArticleBlock,
+} from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../hooks.js"
-
-export default function Scroller({ d }: { d: RawBlockScroller }) {
+import { renderSpans } from "./utils"
+import { EnrichedScrollerItem } from "@ourworldindata/utils/dist/owidTypes.js"
+export default function Scroller({ d }: { d: EnrichedBlockScroller }) {
     let lastUrl: string
-    const figureURLs = d.value.reduce(
-        (memo: string[], block: OwidRawArticleBlock) => {
-            if (block.type === "url") {
-                lastUrl = block.value
-            }
-            if (block.type === "text") {
-                memo = [...memo, lastUrl]
-            }
-            return memo
-        },
-        []
-    )
 
-    const [figureSrc, setFigureSrc] = useState(d.value[0].value)
+    const [figureSrc, setFigureSrc] = useState(d.blocks[0].url)
 
     const refChartContainer = useRef<HTMLDivElement>(null)
 
@@ -45,24 +38,22 @@ export default function Scroller({ d }: { d: RawBlockScroller }) {
                 </div>
             ) : null}
             <div className={"stickyContent"}>
-                {d.value
-                    .filter((_d: OwidRawArticleBlock) => _d.type === "text")
-                    .map(({ value }: OwidRawArticleBlock, i: number) => {
-                        return (
-                            <InView
-                                key={i}
-                                threshold={0.67}
-                                onChange={(isVisible: boolean) => {
-                                    if (isVisible) {
-                                        setFigureSrc(figureURLs[i])
-                                        setActiveChartIdx(i)
-                                    }
-                                }}
-                            >
-                                <p>{value}</p>
-                            </InView>
-                        )
-                    })}
+                {d.blocks.map((value: EnrichedScrollerItem, i: number) => {
+                    return (
+                        <InView
+                            key={i}
+                            threshold={0.67}
+                            onChange={(isVisible: boolean) => {
+                                if (isVisible) {
+                                    setFigureSrc(value.url)
+                                    setActiveChartIdx(i)
+                                }
+                            }}
+                        >
+                            <p>{renderSpans(value.text.value)}</p>
+                        </InView>
+                    )
+                })}
             </div>
         </section>
     )
