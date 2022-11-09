@@ -14,19 +14,28 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
+.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate
+
 help:
 	@echo 'Available commands:'
 	@echo
 	@echo '  GRAPHER ONLY'
 	@echo '  make up            start dev environment via docker-compose and tmux'
 	@echo '  make down          stop any services still running'
-	@echo '  make refresh       download a new grapher snapshot and update MySQL'
+	@echo '  make refresh       (while up) download a new grapher snapshot and update MySQL'
+	@echo '  make refresh.meta  (while up) refresh grapher metadata only'
+	@echo '  make migrate       (while up) run any outstanding db migrations'
+	@echo '  make test          run full suite of CI checks including unit tests'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
 	@echo '  make up.full       start dev environment via docker-compose and tmux'
 	@echo '  make down.full     stop any services still running'
 	@echo '  make refresh.wp    download a new wordpress snapshot and update MySQL'
 	@echo '  make refresh.full  do a full MySQL update of both wordpress and grapher'
+	@echo
+	@echo '  OPS (staff-only)'
+	@echo '  make deploy        Deploy your local site to production'
+	@echo '  make stage         Deploy your local site to staging'
 	@echo
 
 up: export DEBUG = 'knex:query'
@@ -36,6 +45,8 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 	@make check-port-3306
 	@echo '==> Building grapher'
 	yarn install
+	yarn lerna bootstrap
+	yarn lerna run build
 	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
@@ -46,6 +57,8 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -59,6 +72,8 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 	@make check-port-3306
 	@echo '==> Building grapher'
 	yarn install
+	yarn lerna bootstrap
+	yarn lerna run build
 	yarn run tsc -b
 
 	@echo '==> Starting dev environment'
@@ -67,6 +82,8 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -81,6 +98,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 
 	@echo '==> Building grapher'
 	yarn install
+	yarn lerna bootstrap
+	yarn lerna run build
 	yarn run tsc -b
 	yarn buildWordpressPlugin
 
@@ -93,6 +112,8 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 			set remain-on-exit on \; \
 		new-window -n webpack 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
+			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
@@ -100,12 +121,23 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 		set -g mouse on \
 		|| make down.full
 
+migrate:
+	@echo '==> Running DB migrations'
+	yarn && yarn buildTsc && yarn runDbMigrations
+
 refresh:
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-mysql.sh
 
 	@echo '==> Updating grapher database'
 	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-grapher-data.sh
+
+refresh.meta:
+	@echo '==> Downloading chart metadata'
+	./devTools/docker/download-grapher-metadata-mysql.sh
+	
+	@echo '==> Updating grapher database'
+	@. ./.env && DATA_FOLDER=tmp-downloads SKIP_CHARTDATA=1 ./devTools/docker/refresh-grapher-data.sh
 
 refresh.wp:
 	@echo '==> Downloading wordpress data'
@@ -189,3 +221,52 @@ wordpress/.env:
 wordpress/web/app/uploads/2022:
 	@echo '==> Downloading wordpress uploads'
 	./devTools/docker/download-wordpress-uploads.sh
+
+deploy:
+	@echo '==> Starting from a clean slate...'
+	rm -rf itsJustJavascript
+	
+	@echo '==> Building...'
+	yarn
+	yarn run tsc -b
+	
+	@echo '==> Deploying...'
+	yarn buildAndDeploySite live
+
+stage:
+	@echo '==> Starting from a clean slate...'
+	rm -rf itsJustJavascript
+	
+	@echo '==> Building...'
+	yarn
+	yarn run tsc -b
+	
+	@echo '==> Deploying to staging...'
+	yarn buildAndDeploySite staging
+
+test: 
+	@echo '==> Linting'
+	yarn
+	yarn run eslint
+	yarn lerna run buildTests
+	
+	@echo '==> Checking formatting'
+	yarn testPrettierChanged
+	
+	@echo '==> Running tests'
+	yarn run jest --all
+
+lint:
+	@echo '==> Linting'
+	yarn
+	yarn run eslint
+
+check-formatting:
+	@echo '==> Checking formatting'
+	yarn
+	yarn testPrettierChanged
+
+unittest:
+	@echo '==> Running tests'
+	yarn
+	yarn run jest --all

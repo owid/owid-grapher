@@ -5,9 +5,5 @@
         "rootDir": ".",
         "emitDecoratorMetadata": true // must be enabled for typeorm
     },
-    "references": [
-        { "path": "../clientUtils" },
-        { "path": "../settings" },
-        { "path": "../grapher" }
-    ]
+    "references": [{ "path": "../settings" }]
 }

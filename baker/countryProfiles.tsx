@@ -1,15 +1,14 @@
 import React from "react"
 import * as db from "../db/db.js"
 import { CountriesIndexPage } from "../site/CountriesIndexPage.js"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
     CountryProfilePage,
 } from "../site/CountryProfilePage.js"
 import { SiteBaker } from "./SiteBaker.js"
-import { countries, getCountry } from "../clientUtils/countries.js"
-import { JsonError } from "../clientUtils/owidTypes.js"
+import { countries, getCountry, JsonError } from "@ourworldindata/utils"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import {
     parseVariableRows,

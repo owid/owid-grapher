@@ -1,0 +1,11 @@
+{
+    "tasksRunnerOptions": {
+        "default": {
+            "runner": "nx/tasks-runners/default",
+            "options": {
+                "cacheableOperations": ["build"]
+            }
+        }
+    },
+    "$schema": "./node_modules/nx/schemas/nx-schema.json"
+}

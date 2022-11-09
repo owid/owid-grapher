@@ -13,7 +13,7 @@ import { User } from "./User.js"
 import { Source } from "./Source.js"
 
 import * as db from "../db.js"
-import { arrToCsvRow, slugify } from "../../clientUtils/Util.js"
+import { arrToCsvRow, slugify } from "@ourworldindata/utils"
 import filenamify from "filenamify"
 import { VariableRow, variableTable } from "./Variable.js"
 
@@ -123,7 +123,7 @@ export class Dataset extends BaseEntity {
     // Return object representing datapackage.json for this dataset
     async toDatapackage(): Promise<any> {
         // XXX
-        const sources = await Source.find({ datasetId: this.id })
+        const sources = await Source.findBy({ datasetId: this.id })
         const variables = (await db
             .knexTable(variableTable)
             .where({ datasetId: this.id })) as VariableRow[]

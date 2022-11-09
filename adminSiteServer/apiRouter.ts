@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as lodash from "lodash"
-import { getConnection } from "typeorm"
+import { transaction } from "../db/db.js"
 import express from "express"
 import * as db from "../db/db.js"
 import * as wpdb from "../db/wpdb.js"
@@ -15,60 +15,68 @@ import { expectInt, isValidSlug } from "../serverUtils/serverUtil.js"
 import { OldChart, Chart, getGrapherById } from "../db/model/Chart.js"
 import { Request, Response, CurrentUser } from "./authentication.js"
 import { getVariableData } from "../db/model/Variable.js"
-import { applyPatch } from "../clientUtils/patchHelper.js"
+import {
+    applyPatch,
+    BulkChartEditResponseRow,
+    BulkGrapherConfigResponse,
+    camelCaseProperties,
+    chartBulkUpdateAllowedColumnNamesAndTypes,
+    GdocsContentSource,
+    getArticleFromJSON,
+    GrapherConfigPatch,
+    isEmpty,
+    JsonError,
+    omit,
+    OperationContext,
+    OwidArticleTypeJSON,
+    parseIntOrUndefined,
+    parseToOperation,
+    PostRow,
+    set,
+    SuggestedChartRevisionStatus,
+    trimObject,
+    variableAnnotationAllowedColumnNamesAndTypes,
+    VariableAnnotationsResponseRow,
+} from "@ourworldindata/utils"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
-} from "../grapher/core/GrapherInterface.js"
-import { SuggestedChartRevisionStatus } from "../clientUtils/owidTypes.js"
-import {
-    GrapherConfigPatch,
-    BulkGrapherConfigResponse,
-    VariableAnnotationsResponseRow,
-    BulkChartEditResponseRow,
-    chartBulkUpdateAllowedColumnNamesAndTypes,
-    variableAnnotationAllowedColumnNamesAndTypes,
-} from "../clientUtils/AdminSessionTypes.js"
+    Detail,
+} from "@ourworldindata/grapher"
 import {
     CountryNameFormat,
     CountryDefByKey,
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
+import { Gdoc } from "../db/model/Gdoc.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
 } from "./gitDataExport.js"
 import { ChartRevision } from "../db/model/ChartRevision.js"
 import { SuggestedChartRevision } from "../db/model/SuggestedChartRevision.js"
-import { camelCaseProperties } from "../clientUtils/string.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { denormalizeLatestCountryData } from "../baker/countryProfiles.js"
 import { PostReference, ChartRedirect } from "../adminSiteClient/ChartEditor.js"
 import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
-import { JsonError, PostRow } from "../clientUtils/owidTypes.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
 
-import {
-    OperationContext,
-    parseToOperation,
-} from "../clientUtils/SqlFilterSExpression.js"
 import {
     postsTable,
     setTagsForPost,
     select,
     getTagsByPostId,
 } from "../db/model/Post.js"
+import { getErrors } from "../adminSiteClient/gdocsValidation.js"
 import {
-    omit,
-    parseIntOrUndefined,
-    set,
-    trimObject,
-} from "../clientUtils/Util.js"
-
-import { Detail } from "../grapher/core/GrapherConstants.js"
+    checkFullDeployFallback,
+    checkHasChanges,
+    checkIsLightningUpdate,
+} from "../adminSiteClient/gdocsDeploy.js"
+import { dataSource } from "../db/dataSource.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -86,6 +94,27 @@ const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
         authorName: user.fullName,
         authorEmail: user.email,
         message: commitMessage,
+    })
+}
+
+const enqueueLightningChange = async (
+    user: CurrentUser,
+    commitMessage: string,
+    slug: string
+) => {
+    if (!BAKE_ON_CHANGE) {
+        console.log(
+            "Not triggering static build because BAKE_ON_CHANGE is false"
+        )
+        return
+    }
+
+    return new DeployQueueServer().enqueueChange({
+        timeISOString: new Date().toISOString(),
+        authorName: user.fullName,
+        authorEmail: user.email,
+        message: commitMessage,
+        slug,
     })
 }
 
@@ -1269,18 +1298,19 @@ apiRouter.get("/users.json", async (req: Request, res: Response) => ({
 }))
 
 apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => ({
-    user: await User.findOne(req.params.userId, {
-        select: [
-            "id",
-            "email",
-            "fullName",
-            "isActive",
-            "isSuperuser",
-            "createdAt",
-            "updatedAt",
-            "lastLogin",
-            "lastSeen",
-        ],
+    user: await User.findOne({
+        where: { id: parseIntOrUndefined(req.params.userId) },
+        select: {
+            id: true,
+            email: true,
+            fullName: true,
+            isActive: true,
+            isSuperuser: true,
+            createdAt: true,
+            updatedAt: true,
+            lastLogin: true,
+            lastSeen: true,
+        },
     }),
 }))
 
@@ -1300,7 +1330,8 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
     if (!res.locals.user.isSuperuser)
         throw new JsonError("Permission denied", 403)
 
-    const user = await User.findOne(req.params.userId)
+    const userId = parseIntOrUndefined(req.params.userId)
+    const user = await User.findOneBy({ id: userId })
     if (!user) throw new JsonError("No such user", 404)
 
     user.fullName = req.body.fullName
@@ -1316,13 +1347,13 @@ apiRouter.post("/users/add", async (req: Request, res: Response) => {
 
     const { email, fullName } = req.body
 
-    await getConnection().transaction(async (manager) => {
+    await transaction(async (ctx) => {
         const user = new User()
         user.email = email
         user.fullName = fullName
         user.createdAt = new Date()
         user.updatedAt = new Date()
-        await manager.getRepository(User).save(user)
+        await ctx.manager.getRepository(User).save(user)
     })
 
     return { success: true }
@@ -1794,7 +1825,7 @@ apiRouter.get("/datasets/:datasetId.json", async (req: Request) => {
 
 apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
     const datasetId = expectInt(req.params.datasetId)
-    const dataset = await Dataset.findOne({ id: datasetId })
+    const dataset = await Dataset.findOneBy({ id: datasetId })
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
     await db.transaction(async (t) => {
@@ -1892,7 +1923,7 @@ apiRouter.delete(
     async (req: Request, res: Response) => {
         const datasetId = expectInt(req.params.datasetId)
 
-        const dataset = await Dataset.findOne({ id: datasetId })
+        const dataset = await Dataset.findOneBy({ id: datasetId })
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
         await db.transaction(async (t) => {
@@ -1935,7 +1966,7 @@ apiRouter.post(
     async (req: Request, res: Response) => {
         const datasetId = expectInt(req.params.datasetId)
 
-        const dataset = await Dataset.findOne({ id: datasetId })
+        const dataset = await Dataset.findOneBy({ id: datasetId })
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
         if (req.body.republish) {
@@ -2576,6 +2607,106 @@ apiRouter.put("/details/:id", async (req, res) => {
     }
 
     return { success: true }
+})
+
+apiRouter.get("/gdocs", async () => Gdoc.find())
+
+apiRouter.get("/gdocs/:id", async (req) => {
+    const { id } = req.params
+    const contentSource = req.query.contentSource as
+        | GdocsContentSource
+        | undefined
+
+    const gdoc = await Gdoc.findOneBy({ id })
+
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    if (contentSource === GdocsContentSource.Gdocs) {
+        await gdoc.updateWithDraft()
+    }
+    return gdoc
+})
+
+apiRouter.get("/gdocs/:id/validate", async (req) => {
+    const { id } = req.params
+
+    const gdoc = await Gdoc.findOneBy({ id })
+
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    return getErrors(gdoc)
+})
+
+/**
+ * Only supports creating a new empty Gdoc or updating an existing one. Does not
+ * support creating a new Gdoc from an existing one. Relevant updates will
+ * trigger a deploy.
+ */
+apiRouter.put("/gdocs/:id", async (req, res) => {
+    const { id } = req.params
+    const nextGdocJSON: OwidArticleTypeJSON = req.body
+
+    if (isEmpty(nextGdocJSON)) {
+        const newGdoc = new Gdoc(id)
+        // this will fail if the gdoc already exists, as opposed to a call to
+        // newGdoc.save().
+        await dataSource.getRepository(Gdoc).insert(newGdoc)
+        return newGdoc
+    }
+
+    const prevGdoc = await Gdoc.findOneBy({ id })
+    if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    const nextGdoc = getArticleFromJSON(nextGdocJSON)
+
+    //todo #gdocsvalidationserver: run validation before saving published
+    //articles, in addition to the first pass performed in front-end code (see
+    //#gdocsvalidationclient)
+
+    // If the deploy fails, the article would still be considered "published".
+    // Saving the article after enqueueing the change for deploy wouldn't solve
+    // this issue since the deploy queue runs indenpendently. It would simply
+    // prevent the change to be saved in the DB in case the enqueueing fails,
+    // which is unlikely. On the other hand, reversing the order "save then
+    // enqueue" might run the risk of a race condition, by which the deploy
+    // queue picks up the deploy before the store is updated, thus re-publishing
+    // the current unmodified version.
+
+    // Neither of these scenarios is very likely (race condition or failure to
+    // enqueue), so I opted for the version that matches the closest the current
+    // baking model, which is "bake what is persisted in the DB". Ultimately, a
+    // full sucessful deploy would resolve the state discrepancy either way.
+    await dataSource.getRepository(Gdoc).save(nextGdoc)
+
+    const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
+    if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
+        await enqueueLightningChange(
+            res.locals.user,
+            `Lightning update ${nextGdoc.slug}`,
+            nextGdoc.slug
+        )
+    } else if (checkFullDeployFallback(prevGdoc, nextGdoc, hasChanges)) {
+        const action =
+            prevGdoc.published && nextGdoc.published
+                ? "Updating"
+                : !prevGdoc.published && nextGdoc.published
+                ? "Publishing"
+                : "Unpublishing"
+        await triggerStaticBuild(res.locals.user, `${action} ${nextGdoc.slug}`)
+    }
+
+    return nextGdoc
+})
+
+apiRouter.delete("/gdocs/:id", async (req, res) => {
+    const { id } = req.params
+
+    const gdoc = await Gdoc.findOneBy({ id })
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+    await Gdoc.delete(id)
+    await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
+    return {}
 })
 
 export { apiRouter }

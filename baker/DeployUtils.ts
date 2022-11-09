@@ -3,7 +3,8 @@ import { SiteBaker } from "../baker/SiteBaker.js"
 import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { DeployChange } from "../clientUtils/owidTypes.js"
+import { DeployChange, OwidArticleTypePublished } from "@ourworldindata/utils"
+import { Gdoc } from "../db/model/Gdoc.js"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -27,16 +28,25 @@ const defaultCommitMessage = async (): Promise<string> => {
  */
 const bakeAndDeploy = async (
     message?: string,
-    email?: string,
-    name?: string
+    lightningQueue?: DeployChange[]
 ) => {
     message = message ?? (await defaultCommitMessage())
 
     const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
 
     try {
-        await baker.bakeAll()
-        await baker.deployToNetlifyAndPushToGitPush(message, email, name)
+        if (lightningQueue?.length) {
+            for (const change of lightningQueue) {
+                const gdoc = (await Gdoc.findOneByOrFail({
+                    published: true,
+                    slug: change.slug,
+                })) as OwidArticleTypePublished
+                await baker.bakeGDocPost(gdoc)
+            }
+        } else {
+            await baker.bakeAll()
+        }
+        await baker.deployToNetlifyAndPushToGitPush(message)
     } catch (err) {
         logErrorAndMaybeSendToSlack(err)
         throw err
@@ -120,15 +130,23 @@ export const deployIfQueueIsNotEmpty = async () => {
         // Truncate file immediately. Ideally this would be an atomic action, otherwise it's
         // possible that another process writes to this file in the meantime...
         await deployQueueServer.clearQueueFile()
-        // Write to `.deploying` file to be able to recover the deploy message
+        // Write to `.pending` file to be able to recover the deploy message
         // in case of failure.
         await deployQueueServer.writePendingFile(deployContent)
-        const message = generateCommitMsg(
-            deployQueueServer.parseQueueContent(deployContent)
-        )
+
+        const parsedQueue = deployQueueServer.parseQueueContent(deployContent)
+
+        const message = generateCommitMsg(parsedQueue)
         console.log(`Deploying site...\n---\n${message}\n---`)
         try {
-            await bakeAndDeploy(message)
+            await bakeAndDeploy(
+                message,
+                // If every DeployChange is a lightning change, then we can do a
+                // lightning deploy. In the future, we might want to separate
+                // lightning updates from regular deploys so we could prioritize
+                // them, no matter the content of the queue.
+                parsedQueue.every(isLightningChange) ? parsedQueue : undefined
+            )
             await deployQueueServer.deletePendingFile()
         } catch (err) {
             failures++
@@ -138,3 +156,5 @@ export const deployIfQueueIsNotEmpty = async () => {
     }
     deploying = false
 }
+
+const isLightningChange = (item: DeployChange) => item.slug

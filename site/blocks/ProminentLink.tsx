@@ -1,18 +1,17 @@
-import React from "react"
-import ReactDOM from "react-dom"
-import { observer } from "mobx-react"
-import { computed } from "mobx"
-import { union } from "../../clientUtils/Util.js"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { EntityName } from "@ourworldindata/core-table"
 import {
     getSelectedEntityNamesParam,
     migrateSelectedEntityNamesParam,
+    SelectionArray,
     setSelectedEntityNamesParam,
-} from "../../grapher/core/EntityUrlBuilder.js"
-import { SelectionArray } from "../../grapher/selection/SelectionArray.js"
-import { Url } from "../../clientUtils/urls/Url.js"
-import { EntityName } from "../../coreTable/OwidTableConstants.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+} from "@ourworldindata/grapher"
+import { union, Url } from "@ourworldindata/utils"
+import { computed } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
+import ReactDOM from "react-dom"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -75,7 +74,7 @@ export class ProminentLink extends React.Component<{
         }
 
         const renderContent = () => {
-            return this.props.content ? (
+            return this.props.content?.trim() ? (
                 <div
                     className="content"
                     dangerouslySetInnerHTML={{
@@ -90,7 +89,6 @@ export class ProminentLink extends React.Component<{
                 <>
                     {renderImage()}
                     <div className="content-wrapper">
-                        {renderContent()}
                         {this.props.title ? (
                             <div className="title">
                                 <span
@@ -101,6 +99,7 @@ export class ProminentLink extends React.Component<{
                                 <FontAwesomeIcon icon={faArrowRight} />
                             </div>
                         ) : null}
+                        {renderContent()}
                     </div>
                 </>
             )
@@ -110,7 +109,7 @@ export class ProminentLink extends React.Component<{
             return (
                 <>
                     {this.props.title ? (
-                        <h3>
+                        <h3 className="title">
                             <span
                                 dangerouslySetInnerHTML={{
                                     __html: this.props.title,

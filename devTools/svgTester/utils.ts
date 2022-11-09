@@ -1,28 +1,32 @@
-import * as stream from "stream"
-import * as path from "path"
-import { getVariableData } from "../../db/model/Variable.js"
-import {
-    initGrapherForSvgExport,
-    buildSvgOutFilename,
-} from "../../baker/GrapherImageBaker.js"
-import { createGunzip, createGzip } from "zlib"
-import * as fs from "fs-extra"
-import getStream from "get-stream"
+import { ChartTypeName } from "@ourworldindata/grapher"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
-} from "../../clientUtils/OwidVariable.js"
-import { ChartTypeName } from "../../grapher/core/GrapherConstants.js"
+    TESTING_ONLY_reset_guid,
+} from "@ourworldindata/utils"
+import * as fs from "fs-extra"
+import getStream from "get-stream"
 import md5 from "md5"
+import * as path from "path"
+import * as stream from "stream"
+import { createGunzip, createGzip } from "zlib"
+import {
+    buildSvgOutFilename,
+    initGrapherForSvgExport,
+} from "../../baker/GrapherImageBaker.js"
+import { getVariableData } from "../../db/model/Variable.js"
 
-import * as util from "util"
-import { GrapherInterface } from "../../grapher/core/GrapherInterface.js"
-import { TESTING_ONLY_reset_guid } from "../../clientUtils/Util.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import _ from "lodash"
+import * as util from "util"
+import {
+    BAKED_GRAPHER_URL,
+    BAKED_BASE_URL,
+} from "../../settings/serverSettings.js"
 
-const CONFIG_FILENAME: string = "config.json"
+export const CONFIG_FILENAME: string = "config.json"
 const RESULTS_FILENAME = "results.csv"
 export const SVG_CSV_HEADER = `grapherId,slug,chartType,md5,svgFilename`
 
@@ -263,7 +267,11 @@ export async function renderSvg(dir: string): Promise<[string, SvgRecord]> {
     // they keep a stateful variable in clientutils. To minimize differences
     // between consecutive runs we reset this id here before every export
     TESTING_ONLY_reset_guid()
-    const grapher = initGrapherForSvgExport(configAndData.config)
+    const grapher = initGrapherForSvgExport({
+        ...configAndData.config,
+        adminBaseUrl: BAKED_BASE_URL,
+        bakedGrapherURL: BAKED_GRAPHER_URL,
+    })
     const { width, height } = grapher.idealBounds
     const outFilename = buildSvgOutFilename(
         configAndData.config.slug!,
@@ -441,6 +449,7 @@ export interface RenderJobDescription {
     referenceDir: string
     outDir: string
     verbose: boolean
+    suffix?: string
 }
 
 export async function renderAndVerifySvg({
@@ -449,6 +458,7 @@ export async function renderAndVerifySvg({
     referenceDir,
     outDir,
     verbose,
+    suffix,
 }: RenderJobDescription): Promise<VerifyResult> {
     try {
         if (!dir) throw "Dir was not defined"
@@ -470,7 +480,11 @@ export async function renderAndVerifySvg({
         switch (validationResult.kind) {
             case "difference":
                 logDifferencesToConsole(svgRecord, validationResult)
-                const outputPath = path.join(outDir, svgRecord.svgFilename)
+                const pathFragments = path.parse(svgRecord.svgFilename)
+                const outputPath = path.join(
+                    outDir,
+                    pathFragments.name + suffix + pathFragments.ext
+                )
                 const cleanedSvg = prepareSvgForComparision(svg)
                 await fs.writeFile(outputPath, cleanedSvg)
         }

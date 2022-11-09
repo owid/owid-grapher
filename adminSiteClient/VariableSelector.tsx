@@ -1,6 +1,15 @@
 import React from "react"
 import * as lodash from "lodash"
-import { groupBy, isString, sortBy } from "../clientUtils/Util.js"
+import {
+    groupBy,
+    isString,
+    sortBy,
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+    SearchWord,
+    OwidVariableId,
+} from "@ourworldindata/utils"
 import {
     computed,
     action,
@@ -9,12 +18,6 @@ import {
     runInAction,
     IReactionDisposer,
 } from "mobx"
-import {
-    buildSearchWordsFromSearchString,
-    filterFunctionForSearchWords,
-    highlightFunctionForSearchWords,
-    SearchWord,
-} from "../clientUtils/search.js"
 import { observer } from "mobx-react"
 import Select from "react-select"
 
@@ -23,8 +26,7 @@ import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
 
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor.js"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms.js"
-import { OwidVariableId } from "../clientUtils/owidTypes.js"
-import { DimensionSlot } from "../grapher/chart/DimensionSlot.js"
+import { DimensionSlot } from "@ourworldindata/grapher"
 
 interface VariableSelectorProps {
     editor: ChartEditor
@@ -419,7 +421,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @action.bound toggleVariable(variable: Variable) {
-        if (this.chosenVariables.includes(variable)) {
+        if (this.chosenVariables.map((v) => v.id).includes(variable.id)) {
             this.unselectVariable(variable)
         } else {
             this.selectVariable(variable)

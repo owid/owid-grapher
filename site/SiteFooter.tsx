@@ -2,10 +2,12 @@ import React from "react"
 import { webpackUrl } from "../site/webpackUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import { SiteFooterContext } from "@ourworldindata/utils"
 
 interface SiteFooterProps {
     hideDonate?: boolean
     baseUrl: string
+    context?: SiteFooterContext
 }
 
 export const SiteFooter = (props: SiteFooterProps) => (
@@ -262,7 +264,9 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <script src={webpackUrl("owid.js", props.baseUrl)} />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `window.runSiteFooterScripts()`, // todo: gotta be a better way.
+                    __html: `window.runSiteFooterScripts(${JSON.stringify(
+                        props.context
+                    )})`, // todo: gotta be a better way.
                 }}
             />
         </footer>

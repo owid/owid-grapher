@@ -1,0 +1,95 @@
+// added to the body of a page via formattingOptions
+// scopes styles just to topic pages when necessary
+.topic-page {
+    .page.large-banner .article-titles {
+        margin-bottom: 0;
+    }
+
+    .article-content > section:not(:first-of-type),
+    section {
+        margin: 0;
+        padding: 0;
+    }
+
+    // specificity overrides for "titling" mixin
+    .large-banner h1.entry-title {
+        @include md-down {
+            @include display-1-semibold;
+            margin-bottom: 0;
+        }
+        @include md-up {
+            @include display-1-semibold;
+            margin-bottom: 0;
+        }
+    }
+
+    .authors-byline {
+        @include body-1-regular;
+    }
+
+    h2 {
+        @include h1-semibold;
+    }
+
+    .front-matter {
+        p {
+            @include body-1-regular;
+        }
+    }
+
+    .article-content > section > h3 {
+        @include h1-semibold;
+        border-top: none;
+        text-align: center;
+        padding-bottom: 40px;
+        margin-bottom: 0;
+
+        // Explorer and All Our Charts sections
+        &[id*="explore"] {
+            // faking a page-wide gray background until sections are reworked
+            background: $gray-10;
+            box-shadow: min(50vw, 1280px) 0px 0 0 $gray-10,
+                max(-50vw, -1280px) 0px 0 0 $gray-10;
+            + figure,
+            + div {
+                background: $gray-10;
+                box-shadow: min(50vw, 1280px) 0px 0 0 $gray-10,
+                    max(-50vw, -1280px) 0px 0 0 $gray-10;
+                padding-bottom: 48px;
+
+                .expandable-paragraph {
+                    p {
+                        @include body-2-regular;
+                    }
+
+                    &::after {
+                        background: linear-gradient(
+                            rgba(255, 255, 255, 0),
+                            $gray-10
+                        );
+                    }
+                }
+            }
+        }
+
+        &[id*="all-our"] {
+            // faking a page-wide gray background until sections are reworked
+            background: $gray-10;
+            box-shadow: 50vw 0px 0 0 $gray-10, -50vw 0px 0 0 $gray-10;
+            + .wp-block-full-content-width .related-charts {
+                background: $gray-10;
+                box-shadow: 50vw 0px 0 0 $gray-10, -50vw 0px 0 0 $gray-10;
+                padding-bottom: 48px;
+            }
+        }
+    }
+
+    .key-insights-heading {
+        margin-bottom: 32px;
+    }
+
+    .article-footer {
+        border-top: none;
+        padding-top: 0;
+    }
+}

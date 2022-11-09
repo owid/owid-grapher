@@ -4,8 +4,9 @@ import {
     GraphDocumentType,
     GraphType,
     WP_PostType,
-} from "../clientUtils/owidTypes.js"
-import { once, isEmpty } from "../clientUtils/Util.js"
+    once,
+    isEmpty,
+} from "@ourworldindata/utils"
 import { queryMysql } from "./db.js"
 import { ENTRIES_CATEGORY_ID, getDocumentsInfo } from "./wpdb.js"
 

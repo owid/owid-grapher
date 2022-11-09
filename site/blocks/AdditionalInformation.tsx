@@ -34,7 +34,7 @@ const AdditionalInformation = ({
     variation: string
     defaultOpen: boolean
 }) => {
-    const [height, setHeight] = useState<number | string>(
+    const [height, setHeight] = useState<number | "auto">(
         defaultOpen ? "auto" : 0
     )
     const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen)
@@ -106,13 +106,14 @@ const AdditionalInformation = ({
             className={classes.join(" ")}
         >
             <h3
+                className="additional-information__heading"
                 onClick={onClickHandler}
                 data-track-note="additional-information-toggle"
             >
                 <FontAwesomeIcon icon={faAngleRight} />
                 {title}
             </h3>
-            <AnimateHeight height={height} animateOpacity={true}>
+            <AnimateHeight height={height} animateOpacity={true} duration={250}>
                 {variation === VARIATION_MERGE_LEFT
                     ? renderMergeLeftVariation()
                     : renderFullWidthVariation()}

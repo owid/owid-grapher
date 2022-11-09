@@ -11,8 +11,6 @@
         { "path": "../explorerAdminServer" },
         { "path": "../gitCms" },
         { "path": "../adminSiteClient" },
-        { "path": "../grapher" },
-        { "path": "../clientUtils" },
         { "path": "../settings" },
         { "path": "../baker" },
         { "path": "../serverUtils" }

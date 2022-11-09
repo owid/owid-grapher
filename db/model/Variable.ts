@@ -1,29 +1,30 @@
 import * as lodash from "lodash"
+import _ from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
-} from "../../clientUtils/OwidVariableDisplayConfigInterface.js"
-import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     OwidVariableDimensionValueFull,
     OwidVariableDimensionValuePartial,
     OwidVariableMixedData,
     OwidVariableWithSourceAndType,
-} from "../../clientUtils/OwidVariable.js"
-import { arrToCsvRow, omitNullableValues } from "../../clientUtils/Util.js"
-import {
+    arrToCsvRow,
+    omitNullableValues,
     DataValueQueryArgs,
     DataValueResult,
     OwidVariableId,
-} from "../../clientUtils/owidTypes.js"
-import { OwidSource } from "../../clientUtils/OwidSource.js"
+    OwidSource,
+} from "@ourworldindata/utils"
+import { CATALOG_PATH } from "../../settings/serverSettings.js"
+import * as util from "util"
 
 export interface VariableRow {
     id: number
     name: string
+    shortName?: string
     code: string | null
     unit: string
     shortUnit: string | null
@@ -36,6 +37,42 @@ export interface VariableRow {
     coverage?: string
     timespan?: string
     columnOrder?: number
+    catalogPath?: string
+    dimensions?: Dimensions
+}
+
+interface EntityRow {
+    entityId: number
+    entityName: string
+    entityCode: string
+}
+
+interface Dimensions {
+    originalName: string
+    originalShortName: string
+    filters: {
+        name: string
+        value: string
+    }[]
+}
+
+export type VariableQueryRow = Readonly<
+    UnparsedVariableRow & {
+        display: string
+        datasetName: string
+        nonRedistributable: number
+        sourceName: string
+        sourceDescription: string
+        dimensions: string
+    }
+>
+
+interface DataRow {
+    value: string
+    year: number
+    entityId: number
+    entityName: string
+    entityCode: string
 }
 
 export type UnparsedVariableRow = VariableRow & { display: string }
@@ -44,6 +81,16 @@ export type Field = keyof VariableRow
 
 export const variableTable = "variables"
 
+const initDuckDB = (): any => {
+    // require on top level could cause segfaults in combination with workerpool
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const duckdb = require("duckdb")
+    const ddb = new duckdb.Database(":memory:")
+    ddb.exec("INSTALL httpfs;")
+    ddb.exec("LOAD httpfs;")
+    return ddb
+}
+
 export function parseVariableRows(
     plainRows: UnparsedVariableRow[]
 ): VariableRow[] {
@@ -51,6 +98,10 @@ export function parseVariableRows(
         row.display = row.display ? JSON.parse(row.display) : undefined
     }
     return plainRows
+}
+
+export function normalizeEntityName(entityName: string): string {
+    return entityName.toLowerCase().trim()
 }
 
 // TODO: we'll want to split this into getVariableData and getVariableMetadata once
@@ -67,6 +118,7 @@ export async function getVariableData(
             nonRedistributable: number
             sourceName: string
             sourceDescription: string
+            dimensions: string
         }
     >
 
@@ -86,26 +138,15 @@ export async function getVariableData(
         [variableId]
     )
 
-    const dataQuery = db.queryMysql(
-        `
-        SELECT
-            value,
-            year,
-            entities.id AS entityId,
-            entities.name AS entityName,
-            entities.code AS entityCode
-        FROM data_values
-        LEFT JOIN entities ON data_values.entityId = entities.id
-        WHERE data_values.variableId = ?
-        ORDER BY
-            year ASC
-        `,
-        [variableId]
-    )
-
     const row = await variableQuery
-
     if (row === undefined) throw new Error(`Variable ${variableId} not found`)
+
+    // use parquet only if CATALOG_PATH env var is set and we have path to catalog in MySQL
+    const parquetDataExists = row.catalogPath && row.shortName && CATALOG_PATH
+
+    const results = parquetDataExists
+        ? await readValuesFromParquet(variableId, row)
+        : await readValuesFromMysql(variableId)
 
     const {
         sourceId,
@@ -141,7 +182,6 @@ export async function getVariableData(
     const entityMap = new Map<number, OwidVariableDimensionValueFull>()
     const yearMap = new Map<number, OwidVariableDimensionValuePartial>()
 
-    const results = await dataQuery
     let encounteredFloatDataValues = false
     let encounteredIntDataValues = false
     let encounteredStringDataValues = false
@@ -368,4 +408,134 @@ export const getOwidVariableDisplayConfig = async (
     )
     if (!row.display) return
     return JSON.parse(row.display)
+}
+
+const readValuesFromMysql = async (
+    variableId: OwidVariableId
+): Promise<DataRow[]> => {
+    return db.queryMysql(
+        `
+        SELECT
+            value,
+            year,
+            entities.id AS entityId,
+            entities.name AS entityName,
+            entities.code AS entityCode
+        FROM data_values
+        LEFT JOIN entities ON data_values.entityId = entities.id
+        WHERE data_values.variableId = ?
+        ORDER BY
+            year ASC
+        `,
+        [variableId]
+    )
+}
+
+export const constructParquetQuery = (row: VariableQueryRow): string => {
+    let shortName
+    let where
+
+    if (row.dimensions) {
+        const dimensions: Dimensions = JSON.parse(row.dimensions)
+        shortName = dimensions.originalShortName
+        where = dimensions.filters
+            .map((filter) => `${filter.name} = '${filter.value}'`)
+            .join(" and ")
+    } else {
+        shortName = row.shortName
+        where = "1 = 1"
+    }
+
+    const uri = `${_.trimEnd(CATALOG_PATH, "/")}/${row.catalogPath!}.parquet`
+
+    // backported variables use entity_id, entity_code and entity_name instead of country
+    // TODO: it might be easier to keep backported variables in the same format as grapher
+    // variables, i.e. with just country
+    if (row.catalogPath!.startsWith("backport/")) {
+        return `
+            select
+                ${shortName} as value,
+                year,
+                entity_name as entityName,
+                entity_code as entityCode,
+                entity_id as entityId
+            from read_parquet('${uri}')
+            where ${shortName} is not null and ${where}
+            order by year asc
+        `
+    } else {
+        return `
+            select
+                ${shortName} as value,
+                year,
+                country as entityName
+            from read_parquet('${uri}')
+            where ${shortName} is not null and ${where}
+            order by year asc
+        `
+    }
+}
+
+export const fetchEntities = async (
+    entityNames: string[]
+): Promise<EntityRow[]> => {
+    return db.queryMysql(
+        `
+            SELECT
+                entities.id AS entityId,
+                entities.name AS entityName,
+                entities.code AS entityCode
+            FROM entities WHERE LOWER(name) in (?)
+            `,
+        [_(entityNames).map(normalizeEntityName).uniq().value()]
+    )
+}
+
+export const executeSQL = async (sql: string): Promise<any[]> => {
+    // DuckDB must be initialized in a process, copying DB object from the parent process
+    // gives random segfaults. It is not a problem though, as the initialization is fast (~few ms)
+    const ddb = initDuckDB()
+    const con = ddb.connect()
+    try {
+        return util.promisify(con.all).bind(con)(sql)
+    } catch (error: any) {
+        throw new Error(`${error.message}\n${sql}`)
+    }
+}
+
+export const readValuesFromParquet = async (
+    variableId: OwidVariableId,
+    row: VariableQueryRow
+): Promise<DataRow[]> => {
+    const sql = constructParquetQuery(row)
+
+    const results = await executeSQL(sql)
+
+    if (results.length == 0) {
+        console.warn(`No values found for variable ${variableId}`)
+        return results
+    }
+
+    // backported variables already have entity info
+    if (results[0].entityId) {
+        return results
+    }
+
+    const entityInfo = await fetchEntities(_.map(results, "entityName"))
+
+    // merge results with entity info
+    const entityInfoDict = _.keyBy(entityInfo, (e) =>
+        normalizeEntityName(e.entityName)
+    )
+    return results.map((row: any) => {
+        const normEntityName = normalizeEntityName(row.entityName)
+        if (!entityInfoDict[normEntityName]) {
+            throw new Error(
+                `Missing entity ${row.entityName} for variable ${variableId}`
+            )
+        }
+        row.entityId = entityInfoDict[normEntityName].entityId
+        row.entityCode = entityInfoDict[normEntityName].entityCode
+        return row
+    })
 }

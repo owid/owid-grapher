@@ -1,4 +1,4 @@
-import { SubNavId } from "../clientUtils/owidTypes.js"
+import { SubNavId } from "@ourworldindata/utils"
 import {
     CellDef,
     BooleanCellDef,
@@ -98,6 +98,12 @@ export const ExplorerGrammar: Grammar = {
         ...BooleanCellDef,
         keyword: "isPublished",
         description: "Set to true to make this Explorer public.",
+    },
+    indexViewsSeparately: {
+        ...BooleanCellDef,
+        keyword: "indexViewsSeparately",
+        description:
+            "Set to true to make Google index every view of this explorer, rather than only indexing the default view.",
     },
     wpBlockId: {
         ...IntegerCellDef,

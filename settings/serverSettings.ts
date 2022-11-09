@@ -11,7 +11,7 @@ if (baseDir === undefined) throw new Error("could not locate base package.json")
 dotenv.config({ path: `${baseDir}/.env` })
 
 import * as clientSettings from "./clientSettings.js"
-import { parseIntOrUndefined } from "../clientUtils/Util.js"
+import { parseIntOrUndefined } from "@ourworldindata/utils"
 
 const serverSettings = process.env ?? {}
 
@@ -109,3 +109,21 @@ export const CLOUDFLARE_AUD: string = serverSettings.CLOUDFLARE_AUD ?? ""
 export const DATA_FILES_CHECKSUMS_DIRECTORY: string =
     serverSettings.DATA_FILES_CHECKSUMS_DIRECTORY ??
     `${BASE_DIR}/data_files_checksums`
+
+// Either remote catalog `https://owid-catalog.nyc3.digitaloceanspaces.com/` or local catalog `.../etl/data/`
+// Note that Cloudflare proxy on `https://catalog.ourworldindata.org` does not support range requests yet
+// It is empty (turned off) by default for now, in the future it should be
+// `https://owid-catalog.nyc3.digitaloceanspaces.com/` by default
+export const CATALOG_PATH: string = serverSettings.CATALOG_PATH ?? ""
+
+// make and bash handle spaces in env variables differently.
+// no quotes - wait-for-mysql.sh will break: "PRIVATE: command not found"
+// quotes - wait-for-mysql.sh will work, but the variable will be double-quoted in node: '"-----BEGIN PRIVATE etc..."'
+// escaped spaces - wait-for-mysql.sh will work, but the backslashes will exist in node: "-----BEGIN\ PRIVATE\ etc..."
+export const GDOCS_PRIVATE_KEY: string = (
+    serverSettings.GDOCS_PRIVATE_KEY ?? ""
+)
+    .replaceAll('"', "")
+    .replaceAll("'", "")
+export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
+export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""

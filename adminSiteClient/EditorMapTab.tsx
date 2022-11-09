@@ -1,24 +1,24 @@
-import React from "react"
-import { computed, action } from "mobx"
-import { observer } from "mobx-react"
-import { isEmpty } from "../clientUtils/Util.js"
 import {
+    ChartDimension,
+    ChartTypeName,
+    MapChart,
+    MapConfig,
     MapProjectionLabels,
     MapProjectionName,
-} from "../grapher/mapCharts/MapProjections.js"
+} from "@ourworldindata/grapher"
+import { isEmpty, OwidVariableId } from "@ourworldindata/utils"
+import { action, computed } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
 import { ChartEditor } from "./ChartEditor.js"
+import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import {
-    NumericSelectField,
     NumberField,
+    NumericSelectField,
+    Section,
     SelectField,
     Toggle,
-    Section,
 } from "./Forms.js"
-import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
-import { OwidVariableId } from "../clientUtils/owidTypes.js"
-import { MapConfig } from "../grapher/mapCharts/MapConfig.js"
-import { ChartDimension } from "../grapher/chart/ChartDimension.js"
-import { MapChart } from "../grapher/mapCharts/MapChart.js"
 
 @observer
 class VariableSection extends React.Component<{
@@ -164,6 +164,8 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                         <TimelineSection mapConfig={mapConfig} />
                         <EditorColorScaleSection
                             scale={colorScale}
+                            chartType={ChartTypeName.WorldMap}
+                            showLineChartColors={false}
                             features={{
                                 visualScaling: true,
                                 legendDescription: false,

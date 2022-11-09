@@ -5,10 +5,8 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../grapher" },
         { "path": "../explorer" },
         { "path": "../explorerAdminClient" },
-        { "path": "../clientUtils" },
         { "path": "../settings" },
         { "path": "../site" }
     ]

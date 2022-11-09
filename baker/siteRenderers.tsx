@@ -10,6 +10,7 @@ import { CovidPage } from "../site/CovidPage.js"
 import { SearchPage } from "../site/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
+import OwidArticlePage from "../site/gdocs/OwidArticlePage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
@@ -29,6 +30,8 @@ import {
     BLOG_POSTS_PER_PAGE,
 } from "../settings/serverSettings.js"
 import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
     RECAPTCHA_SITE_KEY,
 } from "../settings/clientSettings.js"
@@ -37,18 +40,21 @@ import {
     EntriesForYearPage,
 } from "../site/EntriesByYearPage.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
-import { getCountry, Country } from "../clientUtils/countries.js"
-import { memoize } from "../clientUtils/Util.js"
-import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import {
+    getCountry,
+    Country,
+    memoize,
     FormattedPost,
     FormattingOptions,
     FullPost,
     JsonError,
     KeyInsight,
+    OwidArticleType,
     PostRow,
     WP_PostType,
-} from "../clientUtils/owidTypes.js"
+    Url,
+} from "@ourworldindata/utils"
+import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
@@ -63,7 +69,6 @@ import {
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
-import { Url } from "../clientUtils/urls/Url.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
@@ -71,13 +76,13 @@ import {
     KeyInsightsSlides,
     KEY_INSIGHTS_CLASS_NAME,
 } from "../site/blocks/KeyInsights.js"
-import { formatUrls } from "../site/formatting.js"
+import { formatUrls, KEY_INSIGHTS_H2_CLASSNAME } from "../site/formatting.js"
 
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
 import {
+    GrapherInterface,
     Grapher,
     GrapherProgrammaticInterface,
-} from "../grapher/core/Grapher.js"
+} from "@ourworldindata/grapher"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { ExplorerPageUrlMigrationSpec } from "../explorer/urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import { ExplorerPage } from "../site/ExplorerPage.js"
@@ -87,6 +92,7 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { ExplorerFullQueryParams } from "../explorer/ExplorerConstants.js"
 import { resolveInternalRedirect } from "./redirects.js"
 import { postsTable } from "../db/model/Post.js"
+import { Gdoc } from "../db/model/Gdoc.js"
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
@@ -137,6 +143,24 @@ export const renderChartsPage = async (
 // Only used in the dev server
 export const renderCovidPage = () =>
     renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
+
+export const renderGdocsPageBySlug = async (
+    slug: string
+): Promise<string | undefined> => {
+    const gdoc = await Gdoc.findOneBy({ slug })
+
+    if (!gdoc) {
+        throw new Error("Failed to render an unknown GDocs post: ${slug}.")
+    }
+
+    return renderGdocsArticle(gdoc)
+}
+
+export const renderGdocsArticle = (article: OwidArticleType) => {
+    return renderToHtmlPage(
+        <OwidArticlePage baseUrl={BAKED_BASE_URL} article={article} />
+    )
+}
 
 export const renderPageBySlug = async (slug: string) => {
     const post = await getPostBySlug(slug)
@@ -524,6 +548,8 @@ export const renderExplorerPage = async (
         const config: GrapherProgrammaticInterface = JSON.parse(row.config)
         config.id = row.id // Ensure each grapher has an id
         config.manuallyProvideData = true
+        config.adminBaseUrl = ADMIN_BASE_URL
+        config.bakedGrapherURL = BAKED_GRAPHER_URL
         return new Grapher(config).toObject()
     })
 
@@ -618,7 +644,9 @@ export const renderKeyInsights = async (
 
         const rendered = ReactDOMServer.renderToString(
             <>
-                <h3 id={slug}>{title}</h3>
+                <h2 id={slug} className={KEY_INSIGHTS_H2_CLASSNAME}>
+                    {title}
+                </h2>
                 <div className={`${KEY_INSIGHTS_CLASS_NAME}`}>
                     <div className="block-wrapper">
                         <KeyInsightsThumbs titles={titles} />

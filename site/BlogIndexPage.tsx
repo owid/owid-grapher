@@ -2,12 +2,11 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { range } from "../clientUtils/Util.js"
-import { FullPost } from "../clientUtils/owidTypes.js"
+import { range, IndexPost } from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
 
 export const BlogIndexPage = (props: {
-    posts: FullPost[]
+    posts: IndexPost[]
     pageNum: number
     numPages: number
     baseUrl: string

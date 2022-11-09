@@ -10,6 +10,15 @@
             }
         },
         {
+            "label": "buildLerna",
+            "type": "shell",
+            "command": "yarn buildLerna",
+            "presentation": {
+                "group": "watch2",
+                "reveal": "silent"
+            }
+        },
+        {
             "label": "startTscServer",
             "type": "shell",
             "command": "yarn startTscServer",
@@ -22,7 +31,7 @@
         {
             "label": "startSiteFront",
             "type": "shell",
-            "command": "yarn startSiteFront",
+            "command": "yarn startSiteFront --no-web-socket-server", // WS need to be somewhat proxied in nginx. This could be done later.
             "isBackground": true,
             "presentation": {
                 "group": "watch"
@@ -40,6 +49,12 @@
                     "endsPattern": "webpack [\\S]+ compiled"
                 }
             }
+        },
+        {
+            "label": "start (remote)",
+            "dependsOn": ["buildLerna", "startTscServer", "startSiteFront"],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
         },
         {
             "label": "start (full)",

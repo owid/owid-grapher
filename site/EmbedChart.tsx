@@ -1,16 +1,15 @@
-import React from "react"
-import { observer } from "mobx-react"
+import { Grapher } from "@ourworldindata/grapher"
+import { deserializeJSONFromHTML, Url } from "@ourworldindata/utils"
 import {
+    autorun,
     computed,
+    IReactionDisposer,
     observable,
     runInAction,
-    autorun,
-    IReactionDisposer,
 } from "mobx"
-import { Grapher } from "../grapher/core/Grapher.js"
+import { observer } from "mobx-react"
+import React from "react"
 import { GrapherFigureView } from "./GrapherFigureView.js"
-import { deserializeJSONFromHTML } from "../clientUtils/serializers.js"
-import { Url } from "../clientUtils/urls/Url.js"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {

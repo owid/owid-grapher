@@ -19,7 +19,7 @@
     }
 
     .shaded-box {
-        border: 2px solid $primary-color;
+        border: 2px solid $oxford-blue;
         padding: 2rem;
 
         @include sm-only {
@@ -58,7 +58,7 @@
     }
 
     button[type="submit"] {
-        background-color: $primary-color;
+        background-color: $oxford-blue;
         font-weight: 700;
         color: white;
         border: none;
@@ -79,7 +79,7 @@
     .custom-amount-input {
         background-color: transparent;
         border: none;
-        border-bottom: 1px dotted $primary-color;
+        border-bottom: 1px dotted $oxford-blue;
         width: 4.25rem;
         outline: none;
         color: inherit;
@@ -88,12 +88,12 @@
         font-weight: 700;
 
         &::placeholder {
-            color: $primary-color-400;
+            color: $blue-40;
             transition: color 150ms linear;
         }
 
         &:focus::placeholder {
-            color: $primary-color-200;
+            color: $blue-20;
         }
     }
 }

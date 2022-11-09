@@ -1,7 +1,7 @@
 import React, { createRef } from "react"
 import ReactDOM from "react-dom"
 import classnames from "classnames"
-import { throttle } from "../../clientUtils/Util.js"
+import { throttle } from "@ourworldindata/utils"
 
 function getTotalOffset(element: HTMLElement): {
     x: number
@@ -166,11 +166,15 @@ class StickyNav extends React.Component<
             <>
                 <style>
                     {/* add scroll-margin-top to all elements with an ID */}
+                    {/* increase top margin for sticky columns so the nav doesn't obscure them */}
                     {`
                     [id] {
                          scroll-margin-top:${
                              STICKY_NAV_HEIGHT + HEADING_SCROLL_MARGIN
                          }px;
+                    }
+                    .wp-sticky-container {
+                        top: 70px;
                     }`}
                 </style>
                 <ul className="sticky-nav-container" ref={this.ulRef}>

@@ -5,8 +5,11 @@ import { observable, computed, action } from "mobx"
 import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp.js"
-import { Json, stringifyUnkownError } from "../clientUtils/Util.js"
-import { queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
+import {
+    Json,
+    stringifyUnkownError,
+    queryParamsToStr,
+} from "@ourworldindata/utils"
 
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 

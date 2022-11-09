@@ -12,7 +12,7 @@ import { BCryptHasher } from "../db/hashers.js"
 import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
 import { ADMIN_BASE_URL, ENV } from "../settings/serverSettings.js"
-import { JsonError } from "../clientUtils/owidTypes.js"
+import { JsonError } from "@ourworldindata/utils"
 
 export type CurrentUser = User
 
@@ -84,7 +84,7 @@ export async function authCloudflareSSOMiddleware(
         return next()
     }
 
-    const user = await User.findOne({ email: payload.email })
+    const user = await User.findOneBy({ email: payload.email })
     if (!user) return next("User not found. Please contact an administrator.")
 
     // Authenticate as the user stored in the token
@@ -124,7 +124,7 @@ export async function authMiddleware(
     res: express.Response,
     next: express.NextFunction
 ) {
-    let user: CurrentUser | undefined
+    let user: CurrentUser | null = null
     let session: Session | undefined
 
     const sessionid = req.cookies["sessionid"]
@@ -145,7 +145,7 @@ export async function authMiddleware(
                 sessionData.split(":").slice(1).join(":")
             )
 
-            user = await User.findOne({ email: sessionJson.user_email })
+            user = await User.findOneBy({ email: sessionJson.user_email })
             if (!user)
                 throw new JsonError("Invalid session (no such user)", 500)
             session = { id: sessionid, expiryDate: rows[0].expiry_date }
@@ -159,7 +159,7 @@ export async function authMiddleware(
     // Authed urls shouldn't be cached
     res.set("Cache-Control", "public, max-age=0, must-revalidate")
 
-    if (user && user.isActive) {
+    if (user?.isActive) {
         res.locals.session = session
         res.locals.user = user
         return next()
@@ -207,7 +207,7 @@ export async function logInWithCredentials(
     email: string,
     password: string
 ): Promise<Session> {
-    const user = await User.findOne({ email: email })
+    const user = await User.findOneBy({ email: email })
     if (!user) throw new Error("No such user")
 
     const hasher = new BCryptHasher()

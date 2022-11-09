@@ -4,9 +4,5 @@
         "outDir": "../../itsJustJavascript/devTools/dodParserTestGenerator",
         "rootDir": "."
     },
-    "references": [
-        { "path": "../../grapher" },
-        { "path": "../../clientUtils" },
-        { "path": "../../settings" }
-    ]
+    "references": [{ "path": "../../settings" }]
 }

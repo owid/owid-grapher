@@ -12,8 +12,10 @@ import * as db from "../db.js"
 import { getDataForMultipleVariables } from "./Variable.js"
 import { User } from "./User.js"
 import { ChartRevision } from "./ChartRevision.js"
-import { MultipleOwidVariableDataDimensionsMap } from "../../clientUtils/OwidVariable.js"
-import { Tag } from "../../clientUtils/owidTypes.js"
+import {
+    MultipleOwidVariableDataDimensionsMap,
+    Tag,
+} from "@ourworldindata/utils"
 
 // XXX hardcoded filtering to public parent tags
 const PUBLIC_TAG_PARENT_IDS = [
@@ -65,13 +67,13 @@ export class Chart extends BaseEntity {
         return slugToId
     }
 
-    static async getBySlug(slug: string): Promise<Chart | undefined> {
+    static async getBySlug(slug: string): Promise<Chart | null> {
         const slugsById = await this.mapSlugsToIds()
-        return await Chart.findOne({ id: slugsById[slug] })
+        return await Chart.findOneBy({ id: slugsById[slug] })
     }
 
-    static async getById(id: number): Promise<Chart | undefined> {
-        return await Chart.findOne({ id })
+    static async getById(id: number): Promise<Chart | null> {
+        return await Chart.findOneBy({ id })
     }
 
     static async setTags(chartId: number, tags: Tag[]): Promise<void> {

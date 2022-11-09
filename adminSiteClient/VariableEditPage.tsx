@@ -15,15 +15,18 @@ import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms.js"
 import {
     OwidVariableWithDataAndSource,
     OwidVariableDisplayConfig,
-} from "../clientUtils/OwidVariable.js"
-import { Grapher } from "../grapher/core/Grapher.js"
+    DimensionProperty,
+    EPOCH_DATE,
+} from "@ourworldindata/utils"
 import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
-import { GrapherTabOption } from "../grapher/core/GrapherConstants.js"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import { DimensionProperty, EPOCH_DATE } from "../clientUtils/owidTypes.js"
+import {
+    Grapher,
+    GrapherTabOption,
+    GrapherInterface,
+} from "@ourworldindata/grapher"
 
 interface VariablePageData
     extends Omit<OwidVariableWithDataAndSource, "source"> {

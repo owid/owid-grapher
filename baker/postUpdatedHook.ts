@@ -4,9 +4,10 @@ import parseArgs from "minimist"
 import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { exit } from "../db/cleanup.js"
-import { PostRow } from "../clientUtils/owidTypes.js"
+import { PostRow } from "@ourworldindata/utils"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
+import { buildReusableBlocksResolver } from "../db/syncPostsToGrapher.js"
 import { postsTable, select } from "../db/model/Post.js"
 const argv = parseArgs(process.argv.slice(2))
 
@@ -20,6 +21,7 @@ const syncPostToGrapher = async (
         "SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'",
         [postId]
     )
+    const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
 
     const matchingRows = await db.knexTable(postsTable).where({ id: postId })
     const existsInGrapher = !!matchingRows.length
@@ -48,13 +50,20 @@ const syncPostToGrapher = async (
         if (!postRow && existsInGrapher)
             // Delete from grapher
             await transaction.table(postsTable).where({ id: postId }).delete()
-        else if (postRow && !existsInGrapher)
-            await transaction.table(postsTable).insert(postRow)
-        else if (postRow && existsInGrapher)
-            await transaction
-                .table(postsTable)
-                .where("id", "=", postRow.id)
-                .update(postRow)
+        else if (postRow) {
+            const contentWithBlocksInlined = dereferenceReusableBlocksFn(
+                postRow.content
+            )
+            postRow.content = contentWithBlocksInlined
+
+            if (!existsInGrapher)
+                await transaction.table(postsTable).insert(postRow)
+            else if (existsInGrapher)
+                await transaction
+                    .table(postsTable)
+                    .where("id", "=", postRow.id)
+                    .update(postRow)
+        }
     })
 
     const newPost = (

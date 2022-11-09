@@ -12,7 +12,7 @@ import {
 } from "../../settings/clientSettings.js"
 
 import stripe from "./stripe.js"
-import { stringifyUnkownError } from "../../clientUtils/Util.js"
+import { stringifyUnkownError } from "@ourworldindata/utils"
 
 type Interval = "once" | "monthly"
 

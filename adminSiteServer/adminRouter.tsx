@@ -18,7 +18,7 @@ import {
     parseIntOrUndefined,
     slugify,
     stringifyUnkownError,
-} from "../clientUtils/Util.js"
+} from "@ourworldindata/utils"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_PREVIEW_ROUTE,

@@ -4,5 +4,5 @@
         "outDir": "../itsJustJavascript/gridLang",
         "rootDir": "."
     },
-    "references": [{ "path": "../clientUtils" }, { "path": "../coreTable" }]
+    "references": []
 }

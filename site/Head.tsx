@@ -3,13 +3,14 @@ import { webpackUrl } from "../site/webpackUtils.js"
 
 export const Head = (props: {
     canonicalUrl: string
+    hideCanonicalUrl?: boolean
     pageTitle?: string
     pageDesc?: string
     imageUrl?: string
     children?: any
     baseUrl: string
 }) => {
-    const { canonicalUrl, baseUrl } = props
+    const { canonicalUrl, hideCanonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
     const fullPageTitle = props.pageTitle
         ? `${props.pageTitle} - Our World in Data`
@@ -27,7 +28,7 @@ export const Head = (props: {
             />
             <title>{fullPageTitle}</title>
             <meta name="description" content={pageDesc} />
-            <link rel="canonical" href={canonicalUrl} />
+            {!hideCanonicalUrl && <link rel="canonical" href={canonicalUrl} />}
             <link
                 rel="alternate"
                 type="application/atom+xml"
@@ -51,11 +52,11 @@ export const Head = (props: {
             <meta name="twitter:description" content={pageDesc} />
             <meta name="twitter:image" content={imageUrl} />
             <link
-                href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&display=swap"
+                href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,600,700&display=swap"
                 rel="stylesheet"
             />
-            <link rel="stylesheet" href={webpackUrl("commons.css", baseUrl)} />
             <link rel="stylesheet" href={webpackUrl("owid.css", baseUrl)} />
+            <link rel="stylesheet" href={webpackUrl("commons.css", baseUrl)} />
             {props.children}
         </head>
     )

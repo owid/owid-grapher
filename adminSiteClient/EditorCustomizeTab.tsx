@@ -2,8 +2,8 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor.js"
-import { Grapher } from "../grapher/core/Grapher.js"
-import { ComparisonLineConfig } from "../grapher/scatterCharts/ComparisonLine.js"
+import { Grapher } from "@ourworldindata/grapher"
+import { ComparisonLineConfig } from "@ourworldindata/grapher"
 import {
     NumberField,
     Toggle,
@@ -14,7 +14,16 @@ import {
     Button,
     RadioGroup,
 } from "./Forms.js"
-import { debounce, isEqual, omit, trimObject } from "../clientUtils/Util.js"
+import {
+    debounce,
+    isEqual,
+    omit,
+    trimObject,
+    TimeBoundValue,
+    SortOrder,
+    SortBy,
+    SortConfig,
+} from "@ourworldindata/utils"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -23,14 +32,12 @@ import {
     ColorSchemeOption,
 } from "./ColorSchemeDropdown.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
-import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
-import { TimeBoundValue } from "../clientUtils/TimeBounds.js"
 import {
+    ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
-} from "../grapher/core/GrapherConstants.js"
+} from "@ourworldindata/grapher"
 import Select from "react-select"
-import { SortOrder, SortBy, SortConfig } from "../clientUtils/owidTypes.js"
 @observer
 export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
@@ -64,6 +71,7 @@ export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
                         <ColorSchemeDropdown
                             value={grapher.baseColorScheme || "default"}
                             onChange={this.onChange}
+                            chartType={this.props.grapher.type}
                             invertedColorScheme={!!grapher.invertColorScheme}
                             additionalOptions={[
                                 {
@@ -577,6 +585,8 @@ export class EditorCustomizeTab extends React.Component<{
                 {grapher.chartInstanceExceptMap.colorScale && (
                     <EditorColorScaleSection
                         scale={grapher.chartInstanceExceptMap.colorScale}
+                        chartType={grapher.type}
+                        showLineChartColors={grapher.isLineChart}
                         features={{
                             visualScaling: true,
                             legendDescription: true,

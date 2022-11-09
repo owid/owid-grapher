@@ -1,35 +1,39 @@
 import React from "react"
-import { observable, action, reaction, IReactionDisposer, when } from "mobx"
+import {
+    observable,
+    action,
+    reaction,
+    IReactionDisposer,
+    when,
+    computed,
+} from "mobx"
 import { observer } from "mobx-react"
 import {
+    ChartTypeName,
+    DimensionSlot,
+    EntitySelectionMode,
+    StackMode,
+    WorldEntityName,
+} from "@ourworldindata/grapher"
+import {
+    DimensionProperty,
     moveArrayItemToIndex,
+    OwidVariableId,
     sample,
     sampleSize,
     startCase,
-} from "../clientUtils/Util.js"
-import {
-    EntitySelectionMode,
-    ChartTypeName,
-    WorldEntityName,
-    StackMode,
-} from "../grapher/core/GrapherConstants.js"
-import {
-    Toggle,
-    SelectField,
-    EditableList,
-    FieldsRow,
-    Section,
-} from "./Forms.js"
-import { ChartEditor } from "./ChartEditor.js"
+    OwidChartDimensionInterface,
+} from "@ourworldindata/utils"
+import { FieldsRow, Section, SelectField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
+import { ChartEditor } from "./ChartEditor.js"
 import { DimensionCard } from "./DimensionCard.js"
-import { DimensionSlot } from "../grapher/chart/DimensionSlot.js"
 import {
-    ColumnSlug,
-    DimensionProperty,
-    OwidVariableId,
-} from "../clientUtils/owidTypes.js"
-import { ChartDimension } from "../grapher/chart/ChartDimension.js"
+    DragDropContext,
+    Droppable,
+    Draggable,
+    DropResult,
+} from "react-beautiful-dnd"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -46,7 +50,6 @@ class DimensionSlotView extends React.Component<{
 
     @action.bound private onAddVariables(variableIds: OwidVariableId[]) {
         const { slot } = this.props
-        const { grapher } = this.props.editor
 
         const dimensionConfigs = variableIds.map((id) => {
             const existingDimension = slot.dimensions.find(
@@ -60,30 +63,21 @@ class DimensionSlotView extends React.Component<{
             )
         })
 
-        grapher.setDimensionsForProperty(slot.property, dimensionConfigs)
-
-        grapher.updateAuthoredVersion({
-            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
-        })
-
         this.isSelectingVariables = false
+
+        this.updateDimensionsAndRebuildTable(dimensionConfigs)
     }
 
     @action.bound private onRemoveDimension(variableId: OwidVariableId) {
-        const { slot } = this.props
-        const { grapher } = this.props.editor
-
-        this.grapher.setDimensionsForProperty(
-            slot.property,
+        this.updateDimensionsAndRebuildTable(
             this.props.slot.dimensions.filter(
                 (d) => d.variableId !== variableId
             )
         )
+    }
 
-        grapher.updateAuthoredVersion({
-            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
-        })
-        grapher.rebuildInputOwidTable()
+    @action.bound private onChangeDimension() {
+        this.updateDimensionsAndRebuildTable()
     }
 
     private updateDefaults() {
@@ -110,22 +104,6 @@ class DimensionSlotView extends React.Component<{
     }
 
     componentDidMount() {
-        this.disposers.push(
-            reaction(
-                () => this.props.slot.dimensions,
-                () => {
-                    if (
-                        this.props.slot.dimensions.length !==
-                        this.dimensionsInDisplayOrder.length
-                    )
-                        this.dimensionsInDisplayOrder = [
-                            ...this.props.slot.dimensions,
-                        ]
-                },
-                { fireImmediately: true }
-            )
-        )
-
         // We want to add the reaction only after the grapher is loaded, so we don't update the initial chart (as configured) by accident.
         when(
             () => this.grapher.isReady,
@@ -146,105 +124,109 @@ class DimensionSlotView extends React.Component<{
         this.disposers.forEach((dispose) => dispose())
     }
 
-    @observable private draggingColumnSlug?: ColumnSlug
-    @observable private dimensionsInDisplayOrder: ChartDimension[] = []
-
-    @action.bound private updateLegacySelectionAndRebuildTable() {
+    @action.bound private updateDimensionsAndRebuildTable(
+        updatedDimensions?: OwidChartDimensionInterface[]
+    ) {
         const { grapher } = this.props.editor
 
-        grapher.setDimensionsForProperty(
-            this.props.slot.property,
-            this.dimensionsInDisplayOrder
-        )
+        if (updatedDimensions) {
+            grapher.setDimensionsForProperty(
+                this.props.slot.property,
+                updatedDimensions
+            )
+        }
+
         this.grapher.updateAuthoredVersion({
             dimensions: grapher.dimensions.map((dim) => dim.toObject()),
         })
+        grapher.seriesColorMap?.clear()
         this.grapher.rebuildInputOwidTable()
     }
 
-    @action.bound private onMouseUp() {
-        this.draggingColumnSlug = undefined
-        window.removeEventListener("mouseup", this.onMouseUp)
+    @action.bound private onDragEnd(result: DropResult) {
+        const { source, destination } = result
+        if (!destination) return
 
-        this.updateLegacySelectionAndRebuildTable()
-    }
-
-    @action.bound onBlur() {
-        this.updateLegacySelectionAndRebuildTable()
-    }
-
-    @action.bound private onStartDrag(targetSlug: ColumnSlug) {
-        this.draggingColumnSlug = targetSlug
-
-        window.addEventListener("mouseup", this.onMouseUp)
-    }
-
-    @action.bound private onMouseEnter(targetSlug: ColumnSlug) {
-        if (!this.draggingColumnSlug || targetSlug === this.draggingColumnSlug)
-            return
-
-        const dimensionsClone = [...this.props.slot.dimensions]
-
-        const dragIndex = dimensionsClone.findIndex(
-            (dim) => dim.slug === this.draggingColumnSlug
-        )
-        const targetIndex = dimensionsClone.findIndex(
-            (dim) => dim.slug === targetSlug
+        const dimensions = moveArrayItemToIndex(
+            this.props.slot.dimensions,
+            source.index,
+            destination.index
         )
 
-        this.dimensionsInDisplayOrder = moveArrayItemToIndex(
-            dimensionsClone,
-            dragIndex,
-            targetIndex
-        )
+        this.updateDimensionsAndRebuildTable(dimensions)
+    }
+
+    @computed get isDndEnabled() {
+        // we cannot move variables between slots, so only enable drag and drop if there's more than
+        // one variable in the slot
+        return this.props.slot.dimensions.length > 1
     }
 
     render() {
         const { isSelectingVariables } = this
         const { slot, editor } = this.props
+        const dimensions = slot.dimensions
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
 
         return (
-            <div onBlur={this.onBlur}>
+            <div>
                 <h5>{slot.name}</h5>
-                <EditableList>
-                    {this.dimensionsInDisplayOrder.map((dim) => {
-                        return (
-                            dim.property === slot.property && (
-                                <DimensionCard
-                                    key={dim.columnSlug}
-                                    dimension={dim}
-                                    editor={editor}
-                                    onEdit={
-                                        slot.allowMultiple
-                                            ? undefined
-                                            : action(
-                                                  () =>
-                                                      (this.isSelectingVariables =
-                                                          true)
-                                              )
-                                    }
-                                    onMouseDown={() =>
-                                        dim.property === "y" &&
-                                        this.onStartDrag(dim.columnSlug)
-                                    }
-                                    onMouseEnter={() =>
-                                        dim.property === "y" &&
-                                        this.onMouseEnter(dim.columnSlug)
-                                    }
-                                    onRemove={
-                                        slot.isOptional
-                                            ? () =>
-                                                  this.onRemoveDimension(
-                                                      dim.variableId
-                                                  )
-                                            : undefined
-                                    }
-                                />
-                            )
-                        )
-                    })}
-                </EditableList>
+                <DragDropContext onDragEnd={this.onDragEnd}>
+                    <Droppable droppableId="droppable">
+                        {(provided) => (
+                            <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                            >
+                                {dimensions.map((dim, index) => (
+                                    <Draggable
+                                        key={dim.variableId}
+                                        index={index}
+                                        draggableId={`${dim.variableId}`}
+                                        isDragDisabled={!this.isDndEnabled}
+                                    >
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                            >
+                                                <DimensionCard
+                                                    dimension={dim}
+                                                    editor={editor}
+                                                    onChange={
+                                                        this.onChangeDimension
+                                                    }
+                                                    onEdit={
+                                                        slot.allowMultiple
+                                                            ? undefined
+                                                            : action(
+                                                                  () =>
+                                                                      (this.isSelectingVariables =
+                                                                          true)
+                                                              )
+                                                    }
+                                                    onRemove={
+                                                        slot.isOptional
+                                                            ? () =>
+                                                                  this.onRemoveDimension(
+                                                                      dim.variableId
+                                                                  )
+                                                            : undefined
+                                                    }
+                                                    isDndEnabled={
+                                                        this.isDndEnabled
+                                                    }
+                                                />
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </DragDropContext>
                 {canAddMore && (
                     <div
                         className="dimensionSlot"
@@ -281,13 +263,15 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 
         return (
             <Section name="Add variables">
-                {dimensionSlots.map((slot) => (
-                    <DimensionSlotView
-                        key={slot.name}
-                        slot={slot}
-                        editor={props.editor}
-                    />
-                ))}
+                <div className="VariableSlots">
+                    {dimensionSlots.map((slot) => (
+                        <DimensionSlotView
+                            key={slot.name}
+                            slot={slot}
+                            editor={props.editor}
+                        />
+                    ))}
+                </div>
             </Section>
         )
     }
@@ -322,7 +306,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
 
         if (!hasSize)
             grapher.addDimension({
-                variableId: 72,
+                variableId: 525709,
                 property: DimensionProperty.size,
             })
     }

@@ -7,7 +7,7 @@ import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { Deploy, DeployStatus } from "../clientUtils/owidTypes.js"
+import { Deploy, DeployStatus } from "@ourworldindata/utils"
 import { Timeago } from "./Forms.js"
 
 const statusLabel: Record<DeployStatus, string> = {

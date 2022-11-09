@@ -15,7 +15,7 @@ export const webpackUrl = (
 ) => {
     if (isProduction) {
         // Read the real asset name from the manifest in case it has a hashed filename
-        if (!manifest)
+        if (!manifest) {
             manifest = JSON.parse(
                 fs
                     .readFileSync(
@@ -23,6 +23,10 @@ export const webpackUrl = (
                     )
                     .toString("utf8")
             )
+        }
+        if (!manifest[assetName]) {
+            console.error(`Error: ${assetName} not found in webpack output`)
+        }
         if (baseUrl) return urljoin(baseUrl, "/assets", manifest[assetName])
         else return urljoin("/", "assets", manifest[assetName])
     }

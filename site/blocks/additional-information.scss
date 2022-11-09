@@ -1,6 +1,6 @@
 .wp-block-owid-additional-information {
     margin-bottom: 2rem;
-    h3 {
+    h3.additional-information__heading {
         @include h3-style;
         display: flex;
         align-items: center;
@@ -8,20 +8,20 @@
         transition: background-color 0.2s;
         &:hover {
             cursor: pointer;
-            background-color: $primary-color-100;
             svg {
-                margin-right: $padding-x-md;
+                margin-right: 32px;
             }
         }
         svg {
-            margin-right: $padding-x-sm;
+            margin-right: 24px;
             transition: all 0.2s;
         }
     }
     &.open {
-        h3 {
-            background-color: $primary-color-100;
+        h3.additional-information__heading {
+            background-color: $blue-10;
             svg {
+                margin-right: 32px;
                 transform: rotate(90deg);
             }
         }
@@ -30,7 +30,7 @@
     &[data-variation="merge-left"] {
         @include block-shadow;
         @include left-media-columns;
-        h3 {
+        h3.additional-information__heading {
             padding: 1.5rem $padding-x-sm;
             @include md-up {
                 padding: 1.5rem $padding-x-md;
@@ -41,7 +41,7 @@
             padding-top: 1.5rem;
             padding-bottom: 1.5rem;
 
-            background-color: $primary-color-100;
+            background-color: $blue-10;
         }
     }
 
@@ -50,13 +50,13 @@
             @include full-width;
         }
         padding: 0 $padding-x-sm;
-        background-color: $primary-color-100;
+        background-color: $blue-10;
         @include md-up {
             margin-left: -#{$padding-x-md};
             margin-right: -#{$padding-x-md};
             padding: 0 $padding-x-md;
         }
-        h3 {
+        h3.additional-information__heading {
             padding: 1.5rem 0;
         }
         .content {

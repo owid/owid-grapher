@@ -8,7 +8,7 @@ import {
 
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
-import { GrapherTabOption } from "../grapher/core/GrapherConstants.js"
+import { GrapherTabOption } from "@ourworldindata/grapher"
 
 configure({ adapter: new Adapter() })
 

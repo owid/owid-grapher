@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio"
-import { WP_ColumnStyle } from "../clientUtils/owidTypes.js"
+import { WP_ColumnStyle } from "@ourworldindata/utils"
 import {
     formatAuthors,
     GRAPHER_PREVIEW_CLASS,
@@ -23,12 +23,28 @@ const testColumnsContent = (
     lastColumnHTML: string,
     style: string = WP_ColumnStyle.StickyRight
 ) => {
-    expect($(`.is-style-${style}`).children().first().html()).toEqual(
-        firstColumnHTML
-    )
-    expect($(`.is-style-${style}`).children().last().html()).toEqual(
-        lastColumnHTML
-    )
+    if (style === WP_ColumnStyle.StickyLeft) {
+        expect(
+            $(`.is-style-${style}`).children().first().children().first().html()
+        ).toEqual(firstColumnHTML)
+        expect($(`.is-style-${style}`).children().last().html()).toEqual(
+            lastColumnHTML
+        )
+    } else if (style === WP_ColumnStyle.StickyRight) {
+        expect($(`.is-style-${style}`).children().first().html()).toEqual(
+            firstColumnHTML
+        )
+        expect(
+            $(`.is-style-${style}`).children().last().children().first().html()
+        ).toEqual(lastColumnHTML)
+    } else {
+        expect($(`.is-style-${style}`).children().first().html()).toEqual(
+            firstColumnHTML
+        )
+        expect($(`.is-style-${style}`).children().last().html()).toEqual(
+            lastColumnHTML
+        )
+    }
 }
 
 describe("creates sections", () => {
@@ -62,7 +78,9 @@ it("places h4 in its own columns set", () => {
 
     splitContentIntoSectionsAndColumns($)
     expect($("section").children().eq(1).children().first().html()).toEqual(h4)
-    expect($("section").children().eq(1).children().last().html()).toEqual("")
+    expect($("section").children().eq(1).children().last().html()).toEqual(
+        '<div class="wp-sticky-container"></div>'
+    )
 })
 
 describe("splits text and chart", () => {

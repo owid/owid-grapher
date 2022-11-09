@@ -159,6 +159,7 @@ describe("Kitchen sink", function () {
             title: "Cumulative confirmed COVID-19 cases",
             src: DEFAULT_THUMBNAIL_URL,
         })
+        // N/A
         testProminentLink({
             testTitle:
                 "[NOT RECOMMENDED] Grapher link redirected to grapher (in wordpress)",

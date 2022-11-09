@@ -5,14 +5,14 @@ import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { ColorScale } from "../grapher/color/ColorScale.js"
+import { ColorScale } from "@ourworldindata/grapher"
 import {
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
-} from "../grapher/color/ColorScaleBin.js"
-import { clone, noop, last } from "../clientUtils/Util.js"
-import { Color } from "../coreTable/CoreTableConstants.js"
+} from "@ourworldindata/grapher"
+import { clone, noop, last } from "@ourworldindata/utils"
+import { Color } from "@ourworldindata/core-table"
 import {
     Section,
     Toggle,
@@ -29,9 +29,10 @@ import {
     ColorSchemeOption,
     ColorSchemeDropdown,
 } from "./ColorSchemeDropdown.js"
-import { binningStrategyLabels } from "../grapher/color/BinningStrategies.js"
-import { ColorSchemeName } from "../grapher/color/ColorConstants.js"
-import { BinningStrategy } from "../grapher/color/BinningStrategy.js"
+import { binningStrategyLabels } from "@ourworldindata/grapher"
+import { ColorSchemeName } from "@ourworldindata/grapher"
+import { BinningStrategy } from "@ourworldindata/grapher"
+import { ChartTypeName } from "@ourworldindata/grapher"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean
@@ -41,7 +42,9 @@ interface EditorColorScaleSectionFeatures {
 @observer
 export class EditorColorScaleSection extends React.Component<{
     scale: ColorScale
+    chartType: ChartTypeName
     features: EditorColorScaleSectionFeatures
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     render() {
@@ -50,6 +53,8 @@ export class EditorColorScaleSection extends React.Component<{
                 <ColorsSection
                     scale={this.props.scale}
                     onChange={this.props.onChange}
+                    chartType={this.props.chartType}
+                    showLineChartColors={this.props.showLineChartColors}
                 />
                 <ColorLegendSection
                     scale={this.props.scale}
@@ -126,6 +131,8 @@ class ColorLegendSection extends React.Component<{
 @observer
 class ColorsSection extends React.Component<{
     scale: ColorScale
+    chartType: ChartTypeName
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     @action.bound onColorScheme(selected: ColorSchemeOption) {
@@ -206,6 +213,7 @@ class ColorsSection extends React.Component<{
                             value={this.currentColorScheme}
                             onChange={this.onColorScheme}
                             invertedColorScheme={!!config.colorSchemeInvert}
+                            chartType={this.props.chartType}
                             additionalOptions={[
                                 {
                                     colorScheme: undefined,
@@ -258,6 +266,7 @@ class ColorsSection extends React.Component<{
                 <ColorSchemeEditor
                     scale={scale}
                     onChange={this.props.onChange}
+                    showLineChartColors={this.props.showLineChartColors}
                 />
             </Section>
         )
@@ -267,6 +276,7 @@ class ColorsSection extends React.Component<{
 @observer
 class ColorSchemeEditor extends React.Component<{
     scale: ColorScale
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     render() {
@@ -282,6 +292,9 @@ class ColorSchemeEditor extends React.Component<{
                                     scale={scale}
                                     bin={bin}
                                     index={index}
+                                    showLineChartColors={
+                                        this.props.showLineChartColors
+                                    }
                                     onChange={this.props.onChange}
                                 />
                             )
@@ -291,6 +304,9 @@ class ColorSchemeEditor extends React.Component<{
                                 key={index}
                                 scale={scale}
                                 bin={bin}
+                                showLineChartColors={
+                                    this.props.showLineChartColors
+                                }
                                 onChange={this.props.onChange}
                             />
                         )
@@ -372,6 +388,7 @@ class NumericBinView extends React.Component<{
     scale: ColorScale
     bin: NumericBin
     index: number
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     @action.bound onColor(color: Color | undefined) {
@@ -441,7 +458,11 @@ class NumericBinView extends React.Component<{
                 <div className="clickable" onClick={this.onAddAfter}>
                     <FontAwesomeIcon icon={faPlus} />
                 </div>
-                <ColorBox color={bin.color} onColor={this.onColor} />
+                <ColorBox
+                    color={bin.color}
+                    onColor={this.onColor}
+                    showLineChartColors={this.props.showLineChartColors}
+                />
                 <div className="range">
                     <span>
                         {bin.props.isOpenLeft
@@ -473,6 +494,7 @@ class NumericBinView extends React.Component<{
 class CategoricalBinView extends React.Component<{
     scale: ColorScale
     bin: CategoricalBin
+    showLineChartColors: boolean
     onChange?: () => void
 }> {
     @action.bound onColor(color: Color | undefined) {
@@ -516,7 +538,11 @@ class CategoricalBinView extends React.Component<{
 
         return (
             <EditableListItem className="categorical">
-                <ColorBox color={bin.color} onColor={this.onColor} />
+                <ColorBox
+                    color={bin.color}
+                    onColor={this.onColor}
+                    showLineChartColors={this.props.showLineChartColors}
+                />
                 <TextField value={bin.value} disabled={true} onValue={noop} />
                 <Toggle
                     label="Hide"

@@ -16,9 +16,9 @@ import {
     JsonError,
     TocHeading,
     WP_BlockType,
-} from "../clientUtils/owidTypes.js"
+} from "@ourworldindata/utils"
 import { Footnote } from "../site/Footnote.js"
-import { LoadingIndicator } from "../grapher/loadingIndicator/LoadingIndicator.js"
+import { LoadingIndicator } from "@ourworldindata/grapher"
 import { PROMINENT_LINK_CLASSNAME } from "../site/blocks/ProminentLink.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { DataToken } from "../site/DataToken.js"
@@ -60,6 +60,7 @@ import {
 import { renderKeyInsights, renderProminentLinks } from "./siteRenderers.js"
 import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { KEY_INSIGHTS_CLASS_NAME } from "../site/blocks/KeyInsights.js"
+import { RELATED_CHARTS_CLASS_NAME } from "../site/blocks/RelatedCharts.js"
 
 const initMathJax = () => {
     const adaptor = liteAdaptor()
@@ -472,11 +473,41 @@ export const formatWordpressPost = async (
         $div.append($table)
     }
 
+    // Due to CSS Grid, we need to nest a container _inside_ the sticky column
+    // then put the children of that column inside the container
+    function nestStickyContainer(
+        $columns: Cheerio,
+        side: "left" | "right" = "right"
+    ) {
+        const parent =
+            side === "left"
+                ? $columns.children().first()
+                : $columns.children().last()
+        const container = cheerioEl(`<div class="wp-sticky-container"></div>`)
+        container.append(parent.children())
+        parent.append(container)
+    }
+
+    // Nesting for sticky columns that have been manually created
+    ;(["left", "right"] as const).forEach((side) => {
+        cheerioEl(`.wp-block-columns.is-style-sticky-${side}`).each(
+            (_, columns) => {
+                // don't nest the columns when inside related-charts
+                const parentClassName = columns.parent.attribs.class
+                if (parentClassName === RELATED_CHARTS_CLASS_NAME) {
+                    return
+                }
+                nestStickyContainer(cheerioEl(columns), side)
+            }
+        )
+    })
+
     // Make sticky-right layout the default for columns
     cheerioEl(".wp-block-columns").each((_, columns) => {
         const $columns = cheerioEl(columns)
         if (columns.attribs.class === "wp-block-columns") {
             $columns.addClass("is-style-sticky-right")
+            nestStickyContainer($columns)
         }
     })
 

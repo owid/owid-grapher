@@ -2,6 +2,7 @@ import express, { Router } from "express"
 import * as path from "path"
 import {
     renderFrontPage,
+    renderGdocsPageBySlug,
     renderPageBySlug,
     renderChartsPage,
     renderMenuJson,
@@ -37,7 +38,7 @@ import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
 import { bakeEmbedSnippet } from "../site/webpackUtils.js"
-import { JsonError } from "../clientUtils/owidTypes.js"
+import { JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { isWordpressAPIEnabled } from "../db/wpdb.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
@@ -53,7 +54,7 @@ mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
 
 mockSiteRouter.get("/sitemap.xml", async (req, res) =>
-    res.send(await makeSitemap())
+    res.send(await makeSitemap(explorerAdminServer))
 )
 
 mockSiteRouter.get("/atom.xml", async (req, res) =>
@@ -128,7 +129,9 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     res.send(await grapherSlugToHtmlPage(req.params.slug))
 })
 
-mockSiteRouter.get("/", async (req, res) => res.send(await renderFrontPage()))
+mockSiteRouter.get("/", async (req, res) => {
+    res.send(await renderFrontPage())
+})
 
 mockSiteRouter.get("/donate", async (req, res) =>
     res.send(await renderDonatePage())
@@ -219,6 +222,11 @@ mockSiteRouter.get("/multiEmbedderTest", async (req, res) =>
 
 mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")
+
+    try {
+        res.send(await renderGdocsPageBySlug(slug))
+    } catch (e) {}
+
     try {
         res.send(await renderPageBySlug(slug))
     } catch (e) {

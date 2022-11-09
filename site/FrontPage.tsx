@@ -18,8 +18,8 @@ import {
 import {
     CategoryWithEntries,
     EntryNode,
-    FullPost,
-} from "../clientUtils/owidTypes.js"
+    IndexPost,
+} from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
 
 const splitOnLastWord = (str: string) => {
@@ -32,7 +32,7 @@ const splitOnLastWord = (str: string) => {
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
-    posts: FullPost[]
+    posts: IndexPost[]
     totalCharts: number
     baseUrl: string
 }) => {

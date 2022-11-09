@@ -1,37 +1,58 @@
-import React from "react"
-import { observer } from "mobx-react"
-import { action, observable, computed, reaction } from "mobx"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    GrapherInterface,
-    GrapherQueryParams,
-} from "../grapher/core/GrapherInterface.js"
+    BlankOwidTable,
+    ColumnTypeNames,
+    CoreColumnDef,
+    isNotErrorValue,
+    OwidTable,
+    SortOrder,
+    TableSlug,
+} from "@ourworldindata/core-table"
 import {
-    ExplorerControlPanel,
-    ExplorerControlBar,
-} from "../explorer/ExplorerControls.js"
-import ReactDOM from "react-dom"
-import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { ColumnSlug, SerializedGridProgram } from "../clientUtils/owidTypes.js"
-import {
+    EntityPicker,
+    EntityPickerManager,
     Grapher,
+    GrapherInterface,
     GrapherManager,
     GrapherProgrammaticInterface,
-} from "../grapher/core/Grapher.js"
+    GrapherQueryParams,
+    SelectionArray,
+    setSelectedEntityNamesParam,
+    SlideShowController,
+    SlideShowManager,
+} from "@ourworldindata/grapher"
 import {
+    Bounds,
+    ColumnSlug,
     debounce,
+    DEFAULT_BOUNDS,
     excludeUndefined,
     exposeInstanceOnWindow,
     flatten,
     isInIFrame,
     keyMap,
+    omit,
     omitUndefinedValues,
+    PromiseCache,
+    PromiseSwitcher,
+    SerializedGridProgram,
+    setWindowUrl,
     throttle,
     uniqBy,
-} from "../clientUtils/Util.js"
+    Url,
+} from "@ourworldindata/utils"
+import classNames from "classnames"
+import { action, computed, observable, reaction } from "mobx"
+import { observer } from "mobx-react"
+import React from "react"
+import ReactDOM from "react-dom"
 import {
-    SlideShowController,
-    SlideShowManager,
-} from "../grapher/slideshowController/SlideShowController.js"
+    ExplorerControlBar,
+    ExplorerControlPanel,
+} from "../explorer/ExplorerControls.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import {
     ExplorerChoiceParams,
     ExplorerContainerId,
@@ -41,27 +62,11 @@ import {
     UNSAVED_EXPLORER_DRAFT,
     UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS,
 } from "./ExplorerConstants.js"
-import { EntityPickerManager } from "../grapher/controls/entityPicker/EntityPickerConstants.js"
-import { SelectionArray } from "../grapher/selection/SelectionArray.js"
-import { SortOrder, TableSlug } from "../coreTable/CoreTableConstants.js"
-import { isNotErrorValue } from "../coreTable/ErrorValues.js"
-import { Bounds, DEFAULT_BOUNDS } from "../clientUtils/Bounds.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { EntityPicker } from "../grapher/controls/entityPicker/EntityPicker.js"
-import classNames from "classnames"
-import { ColumnTypeNames, CoreColumnDef } from "../coreTable/CoreColumnDef.js"
-import { BlankOwidTable, OwidTable } from "../coreTable/OwidTable.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec.js"
 import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
-import { setWindowUrl, Url } from "../clientUtils/urls/Url.js"
-import { ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec.js"
-import { setSelectedEntityNamesParam } from "../grapher/core/EntityUrlBuilder.js"
-import { PromiseCache } from "../clientUtils/PromiseCache.js"
-import { PromiseSwitcher } from "../clientUtils/PromiseSwitcher.js"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -200,6 +205,8 @@ export class Explorer
             )
         }
 
+        if (this.props.isInStandalonePage) this.setCanonicalUrl()
+
         this.grapher?.populateFromQueryParams(url.queryParams)
 
         exposeInstanceOnWindow(this, "explorer")
@@ -207,6 +214,32 @@ export class Explorer
         this.updateEntityPickerTable() // call for the first time to initialize EntityPicker
 
         this.attachEventListeners()
+    }
+
+    componentDidUpdate() {
+        this.maybeUpdatePageTitle()
+    }
+
+    private maybeUpdatePageTitle() {
+        // expose the title of the current view to the Google crawler on non-default views
+        // of opted-in standalone explorer pages
+        if (
+            this.props.isInStandalonePage &&
+            this.grapher &&
+            this.explorerProgram.indexViewsSeparately &&
+            document.location.search
+        ) {
+            document.title = `${this.grapher.displayTitle} - Our World in Data`
+        }
+    }
+
+    private setCanonicalUrl() {
+        // see https://developers.google.com/search/docs/advanced/javascript/javascript-seo-basics#properly-inject-canonical-links
+        // Note that the URL is not updated when the user interacts with the explorer - this should be enough for Googlebot I hope.
+        const canonicalElement = document.createElement("link")
+        canonicalElement.setAttribute("rel", "canonical")
+        canonicalElement.href = this.canonicalUrlForGoogle
+        document.head.appendChild(canonicalElement)
     }
 
     private attachEventListeners() {
@@ -313,7 +346,12 @@ export class Explorer
             facetYDomain,
             relatedQuestionText,
             relatedQuestionUrl,
+            mapTargetTime,
         } = grapherConfigFromExplorer
+        const grapherConfigFromExplorerOnlyGrapherProps = omit(
+            grapherConfigFromExplorer,
+            ["mapTargetTime"]
+        )
 
         const hasGrapherId = grapherId && isNotErrorValue(grapherId)
 
@@ -323,7 +361,7 @@ export class Explorer
 
         const config: GrapherProgrammaticInterface = {
             ...grapherConfig,
-            ...grapherConfigFromExplorer,
+            ...grapherConfigFromExplorerOnlyGrapherProps,
             hideEntityControls: this.showExplorerControls,
             manuallyProvideData: tableSlug ? true : false,
         }
@@ -339,6 +377,9 @@ export class Explorer
             grapher.relatedQuestions = [
                 { text: relatedQuestionText, url: relatedQuestionUrl },
             ]
+        }
+        if (mapTargetTime) {
+            grapher.map.time = mapTargetTime
         }
         grapher.updateFromObject(config)
 
@@ -405,6 +446,15 @@ export class Explorer
     @computed get currentUrl(): Url {
         if (this.props.isPreview) return Url.fromQueryParams(this.queryParams)
         return Url.fromURL(this.baseUrl).setQueryParams(this.queryParams)
+    }
+
+    @computed get canonicalUrlForGoogle(): string {
+        // we want the canonical URL to match what's in the sitemap, so it's different depending on indexViewsSeparately
+        if (this.explorerProgram.indexViewsSeparately)
+            return Url.fromURL(this.baseUrl).setQueryParams(
+                this.currentChoiceParams
+            ).fullUrl
+        else return this.baseUrl
     }
 
     private bindToWindow() {
@@ -568,6 +618,7 @@ export class Explorer
 
     render() {
         const { showExplorerControls, showHeaderElement } = this
+
         return (
             <div
                 className={classNames({

@@ -5,7 +5,7 @@ import { SiteFooter } from "./SiteFooter.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
 import * as lodash from "lodash"
 import { TableOfContents } from "./TableOfContents.js"
-import { slugify } from "../clientUtils/Util.js"
+import { slugify } from "@ourworldindata/utils"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
@@ -104,7 +104,6 @@ export const ChartsIndexPage = (props: {
                                             type="search"
                                             className="chartsSearchInput"
                                             placeholder="Filter interactive charts by title"
-                                            autoFocus
                                         />
                                     </header>
                                     <section id="explorers-section">

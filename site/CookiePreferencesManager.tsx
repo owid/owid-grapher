@@ -1,10 +1,10 @@
 import ReactDOM from "react-dom"
 import React from "react"
 import { useEffect, useReducer } from "react"
-import * as Cookies from "js-cookie"
+import Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"
-import dayjs from "../clientUtils/dayjs.js"
+import { dayjs } from "@ourworldindata/utils"
 
 export enum PreferenceType {
     Analytics = "a",

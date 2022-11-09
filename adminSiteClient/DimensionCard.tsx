@@ -1,32 +1,26 @@
 import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartDimension } from "../grapher/chart/ChartDimension.js"
+import { ChartDimension } from "@ourworldindata/grapher"
 import { ChartEditor } from "./ChartEditor.js"
-import {
-    Toggle,
-    EditableListItem,
-    BindAutoString,
-    BindAutoFloat,
-    ColorBox,
-} from "./Forms.js"
+import { Toggle, BindAutoString, BindAutoFloat, ColorBox } from "./Forms.js"
 import { Link } from "./Link.js"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
 import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
 import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { OwidTable } from "../coreTable/OwidTable.js"
+import { OwidTable } from "@ourworldindata/core-table"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 
 @observer
 export class DimensionCard extends React.Component<{
     dimension: ChartDimension
     editor: ChartEditor
+    isDndEnabled?: boolean
+    onChange: (dimension: ChartDimension) => void
     onEdit?: () => void
     onRemove?: () => void
-    onMouseEnter?: () => void
-    onMouseDown?: () => void
 }> {
     @observable.ref isExpanded: boolean = false
 
@@ -40,12 +34,12 @@ export class DimensionCard extends React.Component<{
 
     @action.bound onIsProjection(value: boolean) {
         this.props.dimension.display.isProjection = value
-        this.updateTables()
+        this.onChange()
     }
 
     @action.bound onColor(color: string | undefined) {
         this.props.dimension.display.color = color
-        this.updateTables()
+        this.onChange()
     }
 
     @computed get color() {
@@ -64,7 +58,7 @@ export class DimensionCard extends React.Component<{
                     value={!!tableDisplay.hideAbsoluteChange}
                     onValue={(value) => {
                         tableDisplay.hideAbsoluteChange = value
-                        this.updateTables()
+                        this.onChange()
                     }}
                 />
                 <Toggle
@@ -72,7 +66,7 @@ export class DimensionCard extends React.Component<{
                     value={!!tableDisplay.hideRelativeChange}
                     onValue={(value) => {
                         tableDisplay.hideRelativeChange = value
-                        this.updateTables()
+                        this.onChange()
                     }}
                 />
                 <hr className="ui divider" />
@@ -80,28 +74,17 @@ export class DimensionCard extends React.Component<{
         )
     }
 
-    @action.bound updateTables() {
-        const { grapher } = this.props.editor
-
-        grapher.updateAuthoredVersion({
-            dimensions: grapher.dimensions.map((dim) => dim.toObject()),
-        })
-
-        grapher.seriesColorMap?.clear()
-        grapher.rebuildInputOwidTable()
+    @action.bound onChange() {
+        this.props.onChange(this.props.dimension)
     }
 
     render() {
-        const { dimension, editor } = this.props
+        const { dimension, editor, isDndEnabled } = this.props
         const { grapher } = editor
         const { column } = dimension
 
         return (
-            <EditableListItem
-                className="DimensionCard draggable"
-                onMouseDown={() => this.props.onMouseDown?.()}
-                onMouseEnter={() => this.props.onMouseEnter?.()}
-            >
+            <div className="DimensionCard list-group-item">
                 <header>
                     <div>
                         <span
@@ -116,20 +99,22 @@ export class DimensionCard extends React.Component<{
                                 }
                             />
                         </span>
+                        {isDndEnabled && (
+                            <FontAwesomeIcon icon={faArrowsAltV} />
+                        )}
+                        <ColorBox
+                            color={this.color}
+                            onColor={this.onColor}
+                            showLineChartColors={grapher.isLineChart}
+                        />
                     </div>
-                    <div>
-                        <FontAwesomeIcon icon={faArrowsAltV} />
-                    </div>
-                    <ColorBox color={this.color} onColor={this.onColor} />
-                    <div>
-                        <Link
-                            to={`/variables/${dimension.variableId}`}
-                            className="dimensionLink"
-                            target="_blank"
-                        >
-                            {column.name}
-                        </Link>
-                    </div>
+                    <Link
+                        to={`/variables/${dimension.variableId}`}
+                        className="dimensionLink"
+                        target="_blank"
+                    >
+                        {column.name}
+                    </Link>
                     <div>
                         {this.props.onEdit && (
                             <div
@@ -156,21 +141,21 @@ export class DimensionCard extends React.Component<{
                             field="name"
                             store={dimension.display}
                             auto={column.displayName}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         <BindAutoString
                             label="Unit of measurement"
                             field="unit"
                             store={dimension.display}
                             auto={column.unit ?? ""}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         <BindAutoString
                             label="Short (axis) unit"
                             field="shortUnit"
                             store={dimension.display}
                             auto={column.shortUnit ?? ""}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         <BindAutoFloat
                             label="Number of decimal places"
@@ -178,7 +163,7 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.numDecimalPlaces}
                             helpText={`A negative number here will round integers`}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         <BindAutoFloat
                             label="Unit conversion factor"
@@ -186,14 +171,14 @@ export class DimensionCard extends React.Component<{
                             store={dimension.display}
                             auto={column.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         {this.tableDisplaySettings}
                         <BindAutoFloat
                             field="tolerance"
                             store={dimension.display}
                             auto={column.tolerance}
-                            onBlur={this.updateTables}
+                            onBlur={this.onChange}
                         />
                         {grapher.isLineChart && (
                             <Toggle
@@ -205,7 +190,7 @@ export class DimensionCard extends React.Component<{
                         <hr className="ui divider" />
                     </div>
                 )}
-            </EditableListItem>
+            </div>
         )
     }
 }

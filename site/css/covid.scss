@@ -1,4 +1,4 @@
-$table-bg: $body-bg;
+$table-bg: $white;
 
 .covid-table-container {
     margin: 0 0 2rem;
@@ -16,10 +16,10 @@ $table-bg: $body-bg;
         text-align: center;
         padding: 1em;
         cursor: pointer;
-        border-bottom: 3px solid $primary-color;
+        border-bottom: 3px solid $oxford-blue;
 
         &:hover {
-            border-bottom-color: $secondary-color;
+            border-bottom-color: $vermillion;
         }
 
         .button {
@@ -27,7 +27,7 @@ $table-bg: $body-bg;
             font-weight: 700;
             padding: 10px 8px;
             display: inline-block;
-            background-color: $primary-color;
+            background-color: $oxford-blue;
             color: white;
             border: none;
             border-radius: 3em;
@@ -42,7 +42,7 @@ $table-bg: $body-bg;
         }
 
         &:hover .button {
-            background-color: $secondary-color;
+            background-color: $vermillion;
         }
 
         &:after {
@@ -73,8 +73,8 @@ $table-bg: $body-bg;
         font-size: 16px;
         font-weight: 400;
         text-align: left;
-        border-bottom: 1px solid rgba($primary-color, 0.08);
-        border-right: 1px solid rgba($primary-color, 0.12);
+        border-bottom: 1px solid rgba($oxford-blue, 0.08);
+        border-right: 1px solid rgba($oxford-blue, 0.12);
         padding-top: 8px;
         padding-bottom: 8px;
         line-height: 1.3;
@@ -100,7 +100,7 @@ $table-bg: $body-bg;
     }
 
     thead tr:last-child th {
-        border-bottom: 2px solid rgba($primary-color, 0.15);
+        border-bottom: 2px solid rgba($oxford-blue, 0.15);
     }
 
     th.sortable {
@@ -154,7 +154,7 @@ $table-bg: $body-bg;
     td {
         padding-top: 6px;
         padding-bottom: 6px;
-        border-bottom: 1px solid rgba($primary-color, 0.08);
+        border-bottom: 1px solid rgba($oxford-blue, 0.08);
         vertical-align: middle;
 
         &.plot-cell {
@@ -165,7 +165,7 @@ $table-bg: $body-bg;
     }
 
     tbody:last-child tr:last-child td {
-        border-bottom-color: rgba($primary-color, 0.22);
+        border-bottom-color: rgba($oxford-blue, 0.22);
     }
 
     .location {
@@ -256,11 +256,11 @@ $table-bg: $body-bg;
 
         .help-icon {
             font-size: 15px;
-            color: rgba($primary-color, 0.3);
+            color: rgba($blue-100, 0.3);
             transition: color 200ms ease;
 
             &:hover {
-                color: rgba($primary-color, 0.65);
+                color: rgba($blue-100, 0.65);
             }
         }
     }
@@ -289,7 +289,7 @@ $table-bg: $body-bg;
         text-align: right;
         vertical-align: baseline;
         width: 40%;
-        border-right: 1px solid rgba($primary-color, 0.1);
+        border-right: 1px solid rgba($oxford-blue, 0.1);
     }
 
     td.total-tests {
@@ -302,19 +302,19 @@ $table-bg: $body-bg;
     td.total-tests-bar {
         width: 90%;
         padding-left: 0;
-        border-left: 1px solid rgba($primary-color, 0.1);
+        border-left: 1px solid rgba($oxford-blue, 0.1);
 
         .bar {
             height: 1.25em;
             min-width: 1px;
-            background-color: $primary-color-600;
+            background-color: $blue-60;
             margin-left: -1px;
         }
     }
 
     td.testing-notes {
         font-size: 13px;
-        color: rgba($primary-color, 0.65);
+        color: rgba($blue-100, 0.65);
 
         .official {
             font-size: 1rem;
@@ -329,7 +329,7 @@ $table-bg: $body-bg;
 
     td.date {
         font-size: 14px;
-        color: rgba($primary-color, 0.5);
+        color: rgba($blue-100, 0.5);
         width: 1%;
         white-space: nowrap;
     }
@@ -355,8 +355,8 @@ $table-bg: $body-bg;
 
 .covid-table-embed:empty,
 .covid-error {
-    border-top: 1px solid rgba($primary-color, 0.08);
-    border-bottom: 1px solid rgba($primary-color, 0.08);
+    border-top: 1px solid rgba($oxford-blue, 0.08);
+    border-bottom: 1px solid rgba($oxford-blue, 0.08);
     padding: 3em 0;
     font-weight: 700;
     text-align: center;
@@ -390,18 +390,18 @@ $table-bg: $body-bg;
     font-size: 15px;
     font-weight: 400;
     line-height: 1.4;
-    color: rgba($primary-color, 0.8);
+    color: rgba($blue-100, 0.8);
     padding: 8px;
     text-align: center;
 
     .period {
         font-weight: 700;
-        color: $secondary-color;
+        color: $vermillion;
     }
 
     .growth-rate {
         font-weight: 700;
-        color: $primary-color;
+        color: $blue-100;
     }
 
     table.values {
@@ -426,11 +426,11 @@ $table-bg: $body-bg;
         }
 
         .from-color {
-            color: $secondary-color;
+            color: $vermillion;
         }
 
         .to-color {
-            color: $primary-color;
+            color: $blue-100;
         }
     }
 }
@@ -445,7 +445,7 @@ $table-bg: $body-bg;
 
 .covid-bars {
     .bar {
-        background-color: rgba($primary-color, 0.3);
+        background-color: rgba($oxford-blue, 0.3);
         &.current {
             background-color: #1d3d63;
         }
@@ -458,15 +458,15 @@ $table-bg: $body-bg;
 .covid-table {
     thead tr th {
         &.sortable:hover {
-            border-bottom-color: rgba($primary-color, 0.4);
+            border-bottom-color: rgba($oxford-blue, 0.4);
         }
 
         &.sorted,
         &.sorted:hover {
-            border-bottom-color: $secondary-color;
+            border-bottom-color: $vermillion;
 
             .sort-icon {
-                color: $secondary-color;
+                color: $vermillion;
             }
         }
     }
@@ -558,24 +558,24 @@ $table-bg: $body-bg;
     a {
         text-align: center;
         border-radius: 3px;
-        border: 1px solid $primary-color-200;
-        background-color: $primary-color-100;
+        border: 1px solid $blue-20;
+        background-color: $blue-10;
         display: block;
         height: 100%;
         padding: 0.5rem;
-        color: $primary-color;
+        color: $blue-100;
         text-decoration: none;
         transition: all 0.1s;
 
         &:hover {
-            color: $primary-color-800;
+            color: $blue-90;
             text-decoration: none;
-            background-color: $primary-color-200;
-            border-color: $primary-color;
+            background-color: $blue-20;
+            border-color: $oxford-blue;
         }
 
         &:visited {
-            color: $primary-color-800;
+            color: $blue-90;
         }
     }
 }

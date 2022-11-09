@@ -31,3 +31,5 @@ localBake/
 /owid-content
 tmp-downloads
 /data_files_checksums
+packages/@ourworldindata/*/dist/
+packages/@ourworldindata/*/node_modules

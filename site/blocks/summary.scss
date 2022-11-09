@@ -1,9 +1,10 @@
 .wp-block-owid-summary {
-    @include block-spacing;
+    padding: 24px 32px;
+    margin: 32px 0;
 
-    border: 1px solid $primary-color;
+    border: 1px solid $oxford-blue;
     border-top-width: 5px;
-    color: $primary-color;
+    color: $blue-100;
     background-color: #f9f4e4;
 
     h2 {
@@ -24,14 +25,14 @@
                 color: inherit;
             }
             &:hover::after {
-                color: $secondary-color;
+                color: $vermillion;
             }
             &::after {
                 display: inline-block;
                 content: "\2193\a0\a0 jump to section";
                 margin-left: 0.5rem;
                 font-size: 0.8rem;
-                color: $primary-color-400;
+                color: $blue-40;
             }
         }
     }

@@ -10,10 +10,20 @@
     .sticky-nav-container {
         @include content-wrapper;
         @include lg-up {
-            max-width: $text-max-content-width + $graph-max-content-width + 3 *
-                $padding-x-md;
+            max-width: $xlg;
         }
     }
+
+    .content-and-footnotes {
+        margin-top: 32px;
+    }
+
+    &.with-sidebar .content-and-footnotes {
+        @include xxlg-up {
+            max-width: min(calc(100vw - 384px), $xlg);
+        }
+    }
+
     @include sm-only {
         .site-subnavigation {
             padding-right: 0;
@@ -56,10 +66,7 @@
     }
 
     h1 {
-        margin: 0;
-        font-family: $serif-font-stack;
-        font-weight: 400;
-        line-height: 1.2;
+        @include display-1-semibold;
     }
 
     .authors-byline {
@@ -94,7 +101,7 @@
             text-decoration: underline;
             transition: all 0.2s;
             &:hover {
-                color: $secondary-color;
+                color: $vermillion;
             }
         }
 
@@ -105,7 +112,7 @@
 
     &.large-banner {
         .offset-header {
-            background-color: $primary-color-100;
+            background-color: $blue-10;
         }
 
         .article-titles {

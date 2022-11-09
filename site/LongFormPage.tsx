@@ -19,12 +19,12 @@ import {
     FormattedPost,
     FormattingOptions,
     TocHeading,
-} from "../clientUtils/owidTypes.js"
+    omit,
+} from "@ourworldindata/utils"
 import { Breadcrumb } from "./Breadcrumb/Breadcrumb.js"
 import { Byline } from "./Byline.js"
 import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
-import { omit } from "../clientUtils/Util.js"
 import StickyNav from "./blocks/StickyNav.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
 
@@ -264,7 +264,10 @@ export const LongFormPage = (props: {
                                                 )}
                                                 {post.footnotes.length ? (
                                                     <React.Fragment>
-                                                        <h3 id={endNotes.slug}>
+                                                        <h3
+                                                            id={endNotes.slug}
+                                                            className="h3-bold"
+                                                        >
                                                             {endNotes.text}
                                                         </h3>
                                                         <ol className="endnotes">
@@ -291,11 +294,55 @@ export const LongFormPage = (props: {
                                                         </ol>
                                                     </React.Fragment>
                                                 ) : undefined}
+                                                {withCitation && (
+                                                    <>
+                                                        <h3
+                                                            id="citation"
+                                                            className="h3-bold"
+                                                        >
+                                                            Cite this work
+                                                        </h3>
+                                                        <p>
+                                                            Our articles and
+                                                            data visualizations
+                                                            rely on work from
+                                                            many different
+                                                            people and
+                                                            organizations. When
+                                                            citing this entry,
+                                                            please also cite the
+                                                            underlying data
+                                                            sources. This entry
+                                                            can be cited as:
+                                                        </p>
+                                                        <div>
+                                                            <CodeSnippet
+                                                                code={
+                                                                    citationText
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <p>BibTeX citation</p>
 
+                                                        <div>
+                                                            <CodeSnippet
+                                                                code={bibtex}
+                                                            />
+                                                        </div>
+                                                        <hr
+                                                            style={{
+                                                                paddingBottom: 0,
+                                                            }}
+                                                        />
+                                                    </>
+                                                )}
                                                 {(isPost || withCitation) && (
                                                     <>
-                                                        <h3 id="licence">
-                                                            Reuse our work
+                                                        <h3
+                                                            id="licence"
+                                                            className="h3-bold"
+                                                        >
+                                                            Reuse this work
                                                             freely
                                                         </h3>
 
@@ -351,40 +398,6 @@ export const LongFormPage = (props: {
                                                             </a>{" "}
                                                             in any site.
                                                         </p>
-                                                    </>
-                                                )}
-                                                {withCitation && (
-                                                    <>
-                                                        <h2 id="citation">
-                                                            Cite our work
-                                                        </h2>
-                                                        <p>
-                                                            Our articles and
-                                                            data visualizations
-                                                            rely on work from
-                                                            many different
-                                                            people and
-                                                            organizations. When
-                                                            citing this entry,
-                                                            please also cite the
-                                                            underlying data
-                                                            sources. This entry
-                                                            can be cited as:
-                                                        </p>
-                                                        <div>
-                                                            <CodeSnippet
-                                                                code={
-                                                                    citationText
-                                                                }
-                                                            />
-                                                        </div>
-                                                        <p>BibTeX citation</p>
-
-                                                        <div>
-                                                            <CodeSnippet
-                                                                code={bibtex}
-                                                            />
-                                                        </div>
                                                     </>
                                                 )}
                                             </div>

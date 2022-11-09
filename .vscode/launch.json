@@ -18,33 +18,40 @@
             "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
             "request": "launch",
             "preLaunchTask": "start (full)",
-            "type": "pwa-node"
+            "type": "node"
+        },
+        {
+            "name": "Remote dev",
+            "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
+            "request": "launch",
+            "preLaunchTask": "start (remote)",
+            "type": "node"
         },
         {
             "name": "Build content graph",
             "program": "${workspaceFolder}/itsJustJavascript/db/contentGraph.js",
             "request": "launch",
-            "type": "pwa-node"
+            "type": "node"
         },
         {
             "name": "Index content graph",
             "program": "${workspaceFolder}/itsJustJavascript/baker/algolia/indexContentGraphToAlgolia.js",
             "request": "launch",
-            "type": "pwa-node"
+            "type": "node"
         },
         {
             "name": "Run SVGTester",
             "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/verify-graphs.js",
             "request": "launch",
             "skipFiles": ["<node_internals>/**"],
-            "type": "pwa-node",
+            "type": "node",
             "args": ["-g", "367"]
         },
         {
             "name": "Launch admin server",
             "program": "${workspaceFolder}/itsJustJavascript/adminSiteServer/app.js",
             "request": "launch",
-            "type": "pwa-node"
+            "type": "node"
         },
         {
             "name": "Attach to node",

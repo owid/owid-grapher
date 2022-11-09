@@ -1,14 +1,17 @@
+import { encodeXML } from "entities"
 import { Chart } from "../db/model/Chart.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
-import dayjs from "../clientUtils/dayjs.js"
+import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
-import { countries } from "../clientUtils/countries.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { postsTable } from "../db/model/Post.js"
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
+import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
+import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 
 interface SitemapUrl {
     loc: string
@@ -16,18 +19,44 @@ interface SitemapUrl {
 }
 
 const xmlify = (url: SitemapUrl) => {
+    const escapedUrl = encodeXML(url.loc)
+
     if (url.lastmod)
         return `    <url>
-        <loc>${url.loc}</loc>
+        <loc>${escapedUrl}</loc>
         <lastmod>${url.lastmod}</lastmod>
     </url>`
 
     return `    <url>
-        <loc>${url.loc}</loc>
+        <loc>${escapedUrl}</loc>
     </url>`
 }
 
-export const makeSitemap = async () => {
+const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
+    const baseUrl = `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${program.slug}`
+    const lastmod = program.lastCommit?.date
+        ? dayjs(program.lastCommit.date).format("YYYY-MM-DD")
+        : undefined
+
+    if (program.indexViewsSeparately) {
+        // return an array containing the URLs to each view of the explorer
+        return program.decisionMatrix
+            .allDecisionsAsQueryParams()
+            .map((params) => ({
+                loc: baseUrl + queryParamsToStr(params),
+                lastmod,
+            }))
+    } else {
+        return [
+            {
+                loc: baseUrl,
+                lastmod,
+            },
+        ]
+    }
+}
+
+export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
     const posts = (await db
         .knexTable(postsTable)
         .where({ status: "publish" })
@@ -39,6 +68,8 @@ export const makeSitemap = async () => {
         updatedAt: Date
         slug: string
     }[]
+
+    const explorers = await explorerAdminServer.getAllPublishedExplorers()
 
     let urls = countries.map((c) => ({
         loc: urljoin(BAKED_BASE_URL, "country", c.slug),
@@ -63,7 +94,8 @@ export const makeSitemap = async () => {
                 loc: urljoin(BAKED_GRAPHER_URL, c.slug),
                 lastmod: dayjs(c.updatedAt).format("YYYY-MM-DD"),
             }))
-        ) as SitemapUrl[]
+        )
+        .concat(explorers.flatMap(explorerToSitemapUrl))
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

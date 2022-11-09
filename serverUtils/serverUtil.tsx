@@ -1,6 +1,6 @@
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
-import { JsonError } from "../clientUtils/owidTypes.js"
+import { JsonError } from "@ourworldindata/utils"
 
 // Fail-fast integer conversion, for e.g. ids in url params
 export const expectInt = (value: any): number => {

@@ -1,8 +1,5 @@
-import { Url } from "../../clientUtils/urls/Url.js"
-import {
-    performUrlMigrations,
-    UrlMigration,
-} from "../../clientUtils/urls/UrlMigration.js"
+import { Url, UrlMigration, performUrlMigrations } from "@ourworldindata/utils"
+
 import { legacyCovidMigrationSpec } from "./LegacyCovidUrlMigration.js"
 import { co2UrlMigration } from "./CO2UrlMigration.js"
 import { energyUrlMigration } from "./EnergyUrlMigration.js"

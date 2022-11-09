@@ -1,0 +1,17 @@
+{
+    "include": ["src/**/*"],
+    "compilerOptions": {
+        "target": "es2016" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+        "jsx": "react" /* Specify what JSX code is generated. */,
+        "experimentalDecorators": true /* Enable experimental support for TC39 stage 2 draft decorators. */,
+        "module": "commonjs" /* Specify what module code is generated. */,
+        "declaration": true /* Generate .d.ts files from TypeScript and JavaScript files in your project. */,
+        "declarationMap": true /* Create sourcemaps for d.ts files. */,
+        "outDir": "./dist/tests" /* Specify an output folder for all emitted files. */,
+        "allowSyntheticDefaultImports": true /* Allow 'import x from y' when a module doesn't have a default export. */,
+        "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
+        "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+        "strict": true /* Enable all strict type-checking options. */,
+        "skipLibCheck": true /* Skip type checking all .d.ts files. */
+    }
+}

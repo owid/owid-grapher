@@ -1,23 +1,19 @@
 #! /usr/bin/env jest
 
+import { GrapherInterface } from "@ourworldindata/grapher"
+import { DimensionProperty, PostRow, RelatedChart } from "@ourworldindata/utils"
 import React from "react"
-import { GrapherPage } from "./GrapherPage.js"
-import { SiteHeader } from "./SiteHeader.js"
-import { SiteFooter } from "./SiteFooter.js"
-import {
-    DimensionProperty,
-    PostRow,
-    RelatedChart,
-} from "../clientUtils/owidTypes.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
+import { GrapherPage } from "./GrapherPage.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { SiteHeader } from "./SiteHeader.js"
 
-import { configure, shallow, ShallowWrapper } from "enzyme"
-import Adapter from "enzyme-adapter-react-16"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-} from "../grapher/core/GrapherConstants.js"
+} from "@ourworldindata/grapher"
+import { configure, shallow, ShallowWrapper } from "enzyme"
+import Adapter from "enzyme-adapter-react-16"
 configure({ adapter: new Adapter() })
 
 const mockGrapher: GrapherInterface = {

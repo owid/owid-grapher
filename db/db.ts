@@ -1,5 +1,6 @@
 import * as mysql from "mysql"
 import * as typeorm from "typeorm"
+import { dataSource } from "./dataSource.js"
 import { Knex, knex } from "knex"
 import {
     GRAPHER_DB_HOST,
@@ -9,24 +10,18 @@ import {
     GRAPHER_DB_PORT,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
-let typeormConnection: typeorm.Connection
+let typeormDataSource: typeorm.DataSource
 
-export const getConnection = async (): Promise<typeorm.Connection> => {
-    if (typeormConnection) return typeormConnection
+export const getConnection = async (): Promise<typeorm.DataSource> => {
+    if (typeormDataSource) return typeormDataSource
 
-    try {
-        typeormConnection = typeorm.getConnection()
-    } catch (err) {
-        if (err instanceof Error && err.name === "ConnectionNotFoundError")
-            typeormConnection = await typeorm.createConnection()
-        else throw err
-    }
+    typeormDataSource = await dataSource.initialize()
 
     registerExitHandler(async () => {
-        if (typeormConnection) await typeormConnection.close()
+        if (typeormDataSource) await typeormDataSource.destroy()
     })
 
-    return typeormConnection
+    return typeormDataSource
 }
 
 export class TransactionContext {
@@ -75,7 +70,7 @@ export const mysqlFirst = async (
 }
 
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
-    if (typeormConnection) await typeormConnection.close()
+    if (typeormDataSource) await typeormDataSource.destroy()
     if (_knexInstance) await _knexInstance.destroy()
 }
 

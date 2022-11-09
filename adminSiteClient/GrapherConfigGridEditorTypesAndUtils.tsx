@@ -1,36 +1,40 @@
-import { QueryParams, queryParamsToStr } from "../clientUtils/urls/UrlUtils.js"
 import {
     BinaryLogicOperation,
     BinaryLogicOperators,
     BooleanAtom,
+    BooleanOperation,
+    checkIsPlainObjectWithGuard,
     ComparisonOperator,
+    EditorOption,
     EqualityComparision,
     EqualityOperator,
+    excludeUndefined,
+    FieldDescription,
+    GrapherConfigPatch,
+    isArray,
     JsonPointerSymbol,
+    JSONPreciselyTyped,
     Negation,
+    NullCheckOperation,
+    NullCheckOperator,
     NumberAtom,
     NumericComparison,
     Operation,
+    OperationContext,
+    parseToOperation,
+    QueryParams,
+    queryParamsToStr,
     SqlColumnName,
     StringAtom,
     StringContainsOperation,
-    NullCheckOperation,
-    NullCheckOperator,
     StringOperation,
-    BooleanOperation,
-    OperationContext,
-    parseToOperation,
-    JSONPreciselyTyped,
-} from "../clientUtils/SqlFilterSExpression.js"
+    VariableAnnotationsResponseRow,
+} from "@ourworldindata/utils"
 import * as React from "react"
 import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import { GrapherInterface } from "../grapher/core/GrapherInterface.js"
-import {
-    VariableAnnotationsResponseRow,
-    GrapherConfigPatch,
-} from "../clientUtils/AdminSessionTypes.js"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import AntdConfig from "react-awesome-query-builder/lib/config/antd"
 import {
     BasicConfig,
@@ -48,12 +52,7 @@ import {
     ImmutableTree,
 } from "react-awesome-query-builder"
 import { match } from "ts-pattern"
-import { excludeUndefined, isArray } from "../clientUtils/Util.js"
-import { isNil, isPlainObject } from "lodash"
-import {
-    EditorOption,
-    FieldDescription,
-} from "../clientUtils/schemaProcessing.js"
+import { isNil } from "lodash"
 
 export function parseVariableAnnotationsRow(
     row: VariableAnnotationsResponseRow
@@ -351,7 +350,7 @@ export function postprocessJsonLogicTree(filterTree: JsonTree | JsonItem) {
     if (filterTree.type === "group" && filterTree.children1) {
         if (
             isArray(filterTree.children1) ||
-            isPlainObject(filterTree.children1)
+            checkIsPlainObjectWithGuard(filterTree.children1)
         )
             for (const child of Object.values(filterTree.children1))
                 postprocessJsonLogicTree(child)
@@ -387,25 +386,12 @@ export function filterTreeToSExpression(
         )
 
         let children: Operation[] = []
-        // It looks like the children will never be an array
-        // and instead always be an object with UUIDs as keys
-        // but the type definition claims that this can be array
-        // so we handle this as well for now
-        if (isArray(filterTree.children1))
+        if (
+            isArray(filterTree.children1) ||
+            checkIsPlainObjectWithGuard(filterTree.children1)
+        )
             children = excludeUndefined(
-                filterTree.children1?.map((child) =>
-                    filterTreeToSExpression(
-                        child,
-                        context,
-                        readOnlyFieldNamesMap
-                    )
-                )
-            )
-        else if (isPlainObject(filterTree.children1))
-            children = excludeUndefined(
-                Object.values(
-                    filterTree.children1 as Record<string, JsonItem>
-                ).map((child) =>
+                Object.values(filterTree.children1).map((child) =>
                     filterTreeToSExpression(
                         child,
                         context,
