@@ -38,9 +38,13 @@ import {
     ChoroplethMapManager,
     RenderFeature,
     ChoroplethSeries,
-} from "./MapChartConstants"
-import { MapConfig } from "./MapConfig"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+    Annotation,
+    AnnotationsCache,
+    ANNOTATION_TEXT_COLOR,
+    ANNOTATION_LINE_COLOR,
+} from "./MapChartConstants.js"
+import { MapConfig } from "./MapConfig.js"
+import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
 import {
     BASE_FONT_SIZE,
     GrapherTabOption,
@@ -64,10 +68,12 @@ import {
     autoDetectYColumnSlugs,
     makeClipPath,
     makeSelectionArray,
-} from "../chart/ChartUtils"
-import { NoDataModal } from "../noDataModal/NoDataModal"
-import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { SelectionArray } from "../selection/SelectionArray"
+} from "../chart/ChartUtils.js"
+import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
+import { SelectionArray } from "../selection/SelectionArray.js"
+import { generateAnnotations } from "./AnnotationGenerator.js"
+import { isDarkColor } from "../color/ColorUtils.js"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -166,6 +172,8 @@ const renderFeaturesFor = (
     renderFeaturesCache.set(projectionName, feats)
     return renderFeaturesCache.get(projectionName)!
 }
+
+const annotationsCache = new Map<MapProjectionName, AnnotationsCache>()
 
 @observer
 export class MapChart
@@ -354,6 +362,8 @@ export class MapChart
                     isSelected: selectionArray.selectedSet.has(entityName),
                     color,
                     highlightFillColor: color,
+                    shortValue:
+                        mapColumn.formatValueShortWithAbbreviations(value),
                 }
             })
             .filter(isPresent)
@@ -740,7 +750,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         )
     }
 
-    @computed private get matrixTransform(): string {
+    @computed private get offset(): number[] {
         const { bounds, mapBounds, viewport, viewportScale } = this
 
         // Calculate our reference dimensions. These values are independent of the current
@@ -760,8 +770,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         const newOffsetX = boundsCenterX - newCenterX
         const newOffsetY = boundsCenterY - newCenterY
 
-        const matrixStr = `matrix(${viewportScale},0,0,${viewportScale},${newOffsetX},${newOffsetY})`
-        return matrixStr
+        return [newOffsetX, newOffsetY]
     }
 
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
@@ -793,6 +802,20 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
     @computed private get featuresWithData(): RenderFeature[] {
         return this.featuresInProjection.filter((feature) =>
             this.choroplethData.has(feature.id)
+        )
+    }
+
+    @computed private get annotations(): Annotation[] {
+        const { projection } = this.manager
+        return generateAnnotations(
+            this.featuresWithData,
+            this.featuresWithNoData,
+            this.choroplethData,
+            this.viewportScale,
+            this.offset,
+            this.bounds,
+            projection,
+            annotationsCache
         )
     }
 
@@ -866,17 +889,20 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
             bounds,
             choroplethData,
             defaultFill,
-            matrixTransform,
+            offset,
             viewportScale,
             featuresOutsideProjection,
             featuresWithNoData,
             featuresWithData,
+            annotations,
         } = this
         const focusStrokeColor = "#111"
         const focusStrokeWidth = 1.5
         const selectedStrokeWidth = 1
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
+        const annotationWeight = 500
+        const matrixTransform = `matrix(${viewportScale},0,0,${viewportScale},${offset[0]},${offset[1]})`
 
         const clipPath = makeClipPath(uid, bounds)
 
@@ -1037,6 +1063,62 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                         }),
                         (p) => p.props["strokeWidth"]
                     )}
+                    {annotations.map((label) => {
+                        const series = choroplethData.get(label.id as string)
+                        const fill = series ? series.color : defaultFill
+                        const textFill = isDarkColor(fill)
+                            ? "white"
+                            : ANNOTATION_TEXT_COLOR
+                        return (
+                            <React.Fragment key={label.id}>
+                                <text
+                                    x={label.position.x}
+                                    y={label.position.y}
+                                    fontSize={label.size}
+                                    fill={
+                                        label.type == "internal"
+                                            ? textFill
+                                            : ANNOTATION_TEXT_COLOR
+                                    }
+                                    fontWeight={
+                                        label.type == "internal"
+                                            ? annotationWeight
+                                            : 500
+                                    }
+                                    style={{ pointerEvents: "none" }}
+                                >
+                                    {label.value}
+                                </text>
+                                {label.type == "external" && label.marker && (
+                                    <>
+                                        {label.anchor === false && (
+                                            <line
+                                                x1={label.marker[0][0]}
+                                                y1={label.marker[0][1]}
+                                                x2={label.marker[1][0]}
+                                                y2={label.marker[1][1]}
+                                                stroke={ANNOTATION_LINE_COLOR}
+                                                strokeWidth={
+                                                    0.5 / viewportScale
+                                                }
+                                            />
+                                        )}
+                                        {label.anchor === true && (
+                                            <circle
+                                                cx={label.pole[0]}
+                                                cy={label.pole[1]}
+                                                r={1.25 / viewportScale}
+                                                fill={ANNOTATION_LINE_COLOR}
+                                                style={{
+                                                    pointerEvents: "none",
+                                                }}
+                                            />
+                                        )}
+                                    </>
+                                )}
+                            </React.Fragment>
+                        )
+                    })}
                 </g>
             </g>
         )
