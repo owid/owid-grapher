@@ -81,10 +81,8 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
         if (d.value.trim() === "") {
             return null
         }
-        const makeRef = (index: string) => `
-            <a class="ref" id="ref-${index}" href="#note-${index}">
-                <sup>${index}</sup>
-            </a>`
+        const makeRef = (index: string) =>
+            `<a class="ref" id="ref-${index}" href="#note-${index}"><sup>${index}</sup></a>`
         return (
             <div
                 dangerouslySetInnerHTML={{
