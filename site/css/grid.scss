@@ -1,0 +1,140 @@
+// Modified version of timbercss grid.scss
+// https://github.com/unlimitDesign/timbercss/blob/master/src/scss/partials/components/_grid-css.scss
+// MIT License
+
+/* 
+Creates a large colleciton of CSS grid utility classes:
+For grid containers:
+.grid sets a grid container (with 12 columns by default)
+.grid-cols-x overrides the number of columns
+
+For grid children:
+.span-cols-x sets how many columns the child should span
+.span-rows-x sets how many rows the child should span (up to 3)
+.col-start-x sets which column the child should start
+.col-end-x sets which column the child should end
+
+These classes only apply when the screen width is less than their breakpoint.
+sm, md, and lg each have a set.
+
+.grid-sm-cols-x sets how many columns a container should have at the sm breakpoint
+.span-sm-cols-x sets how many columns the child should span at the sm breakpoint
+.span-sm-rows-x sets how many rows the child should span at the sm breakpoint
+*/
+$grid-max-colums: 12;
+$grid-col-spans: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+$grid-col-start: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+$grid-col-end: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+$grid-row-spans: (1, 2, 3);
+
+// Remapping our breakpoint variables that we prefix with $ so that we can use them in class names
+// e.g. .grid-sm-cols-12
+$breakpoints: (
+    sm: $sm,
+    md: $md,
+    lg: $lg,
+);
+
+$grid-col-row-responsive: (lg, md, sm);
+$grid-responsive: (lg, md, sm);
+
+@mixin breakpoint-max($bpmax) {
+    $max: map-get($breakpoints, $bpmax);
+    @if $max {
+        @media only screen and (max-width: $max) {
+            @content;
+        }
+    } @else {
+        @content;
+    }
+}
+
+.grid {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: repeat(auto-fill, 1fr);
+    grid-auto-flow: dense;
+    justify-items: stretch;
+    align-items: stretch;
+}
+
+// Cols
+@for $i from 1 through $grid-max-colums + 1 {
+    @if $i != $grid-max-colums + 1 {
+        .grid-cols-#{$i} {
+            @if $i != 1 {
+                grid-template-columns: repeat(#{$i}, 1fr);
+            } @else {
+                grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+            }
+        }
+    }
+}
+
+// // Spans Cols
+@each $span in $grid-col-spans {
+    .span-cols-#{$span} {
+        grid-column: span #{$span} / span #{$span};
+    }
+}
+
+// Spans Rows
+@each $span in $grid-row-spans {
+    .span-rows-#{$span} {
+        grid-row: span #{$span} / span #{$span};
+    }
+}
+
+// Start Position
+@each $start in $grid-col-start {
+    .col-start-#{$start} {
+        grid-column-start: #{$start};
+    }
+}
+
+// End Position
+@each $end in $grid-col-end {
+    .col-end-#{$end} {
+        grid-column-end: #{$end};
+    }
+}
+
+// Breakpoints
+@each $breakpoint in map-keys($breakpoints) {
+    @include breakpoint-max($breakpoint) {
+        @each $grid-col-row-breakpoint in $grid-col-row-responsive {
+            @if $grid-col-row-breakpoint == $breakpoint {
+                @each $span in $grid-col-spans {
+                    .span-#{$breakpoint}-cols-#{$span} {
+                        grid-column: span #{$span} / span #{$span};
+                    }
+                }
+                @each $span in $grid-row-spans {
+                    .span-#{$breakpoint}-rows-#{$span} {
+                        grid-row: span #{$span} / span #{$span};
+                    }
+                }
+            }
+        }
+        @each $grid-breakpoint in $grid-responsive {
+            @if $grid-breakpoint == $breakpoint {
+                @for $i from 1 through $grid-max-colums + 1 {
+                    @if $i != $grid-max-colums + 1 {
+                        @if $i != 1 {
+                            .grid-#{$breakpoint}-cols-#{$i} {
+                                grid-template-columns: repeat(#{$i}, 1fr);
+                            }
+                        } @else {
+                            .grid-#{$breakpoint}-cols-#{$i} {
+                                grid-template-columns: repeat(
+                                    auto-fill,
+                                    minmax(100%, 1fr)
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
