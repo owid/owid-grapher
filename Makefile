@@ -231,6 +231,8 @@ deploy:
 	
 	@echo '==> Building...'
 	yarn
+	yarn lerna bootstrap
+	yarn lerna run build
 	yarn run tsc -b
 	
 	@echo '==> Deploying...'
@@ -243,6 +245,8 @@ stage:
 	
 	@echo '==> Building...'
 	yarn
+	yarn lerna bootstrap
+	yarn lerna run build
 	yarn run tsc -b
 	
 	@echo '==> Deploying to $(STAGING)...'
