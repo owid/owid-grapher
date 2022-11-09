@@ -225,6 +225,7 @@ const migrate = async (): Promise<void> => {
     for (const post of posts) {
         const $: CheerioStatic = cheerio.load(post.content)
         const archieMlBodyElements = $("body")
+            .contents()
             .toArray()
             .flatMap(cheerioToArchieML)
         console.log(archieMlBodyElements)

@@ -21,6 +21,7 @@ import {
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import _, { partition } from "lodash"
+import * as cheerio from "cheerio"
 
 function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n.end"
@@ -320,7 +321,7 @@ export function htmlToSimpleTextBlock(html: string): EnrichedBlockSimpleText {
 
 export function htmlToSpans(html: string): Span[] {
     const $ = cheerio.load(html)
-    const nodes = $("body").toArray()
+    const nodes = $("body").contents().toArray()
     return _.compact(nodes.map(cheerioToSpan)) ?? []
 }
 

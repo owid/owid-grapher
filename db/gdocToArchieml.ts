@@ -16,6 +16,7 @@ import {
     BlockPositionChoice,
     ParseError,
     EnrichedBlockText,
+    compact,
 } from "@ourworldindata/utils"
 import {
     htmlToEnrichedTextBlock,
@@ -162,7 +163,7 @@ export const gdocToArchieML = async ({
     ).body
 
     // Parse elements of the ArchieML into enrichedBlocks
-    parsed.body = parseRawBlocksToEnhancedBlocks(parsed.body)
+    parsed.body = compact(parsed.body.map(parseRawBlocksToEnhancedBlocks))
     parsed.refs = refs.map(htmlToEnrichedTextBlock)
     const summary: string | string[] | undefined = parsed.summary
     parsed.summary =
