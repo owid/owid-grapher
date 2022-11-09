@@ -10,6 +10,7 @@ import List from "./List"
 import Image from "./Image"
 import { OwidArticleBlock } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
+import { BlockErrorBoundary } from "./BlockErrorBoundary"
 
 export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {
@@ -74,7 +75,7 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
             content = <SDGGrid d={d} key={key} />
         }
 
-        return content
+        return <BlockErrorBoundary>{content}</BlockErrorBoundary>
     }
 
     if (d.type === "text") {

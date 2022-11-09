@@ -30,6 +30,7 @@ import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
+import { DebugProvider } from "../site/gdocs/DebugContext.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -221,8 +222,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         errors={errors}
                     />
                 </Drawer>
-
-                <OwidArticle {...gdoc} />
+                <DebugProvider>
+                    <OwidArticle {...gdoc} />
+                </DebugProvider>
             </main>
         </AdminLayout>
     ) : null
