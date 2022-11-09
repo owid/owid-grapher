@@ -4,8 +4,6 @@ import {
     RawBlockHeader,
     EnrichedBlockText,
     RawBlockChartValue,
-    RawBlockRecirc,
-    RawBlockRecircValue,
     RawChartStoryValue,
     OwidEnrichedArticleBlock,
     SpanLink,
@@ -16,6 +14,8 @@ import {
     SpanSuperscript,
     SpanSubscript,
     SpanUnderline,
+    RawBlockRecircValue,
+    RawBlockRecirc,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import _ from "lodash"
@@ -131,7 +131,7 @@ export function headerToArchieMlString(block: RawBlockHeader): string {
     )
 }
 
-export const owidArticleBlockToArchieMLString = (
+export const OwidRawArticleBlockToArchieMLString = (
     block: OwidRawArticleBlock
 ): string => {
     const content = match(block)
@@ -157,7 +157,7 @@ export const owidArticleBlockToArchieMLString = (
             blockListToArchieMlString(
                 block.type,
                 b.value,
-                owidArticleBlockToArchieMLString,
+                OwidRawArticleBlockToArchieMLString,
                 true
             )
         )
@@ -181,7 +181,7 @@ export const owidArticleBlockToArchieMLString = (
             blockListToArchieMlString(
                 block.type,
                 b.value,
-                owidArticleBlockToArchieMLString,
+                OwidRawArticleBlockToArchieMLString,
                 true
             )
         )

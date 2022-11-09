@@ -1,13 +1,13 @@
 import React, { useState, useRef } from "react"
 import { InView } from "react-intersection-observer"
-import { BlockScroller, OwidArticleBlock } from "@ourworldindata/utils"
+import { RawBlockScroller, OwidRawArticleBlock } from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../hooks.js"
 
-export default function Scroller({ d }: { d: BlockScroller }) {
+export default function Scroller({ d }: { d: RawBlockScroller }) {
     let lastUrl: string
     const figureURLs = d.value.reduce(
-        (memo: string[], block: OwidArticleBlock) => {
+        (memo: string[], block: OwidRawArticleBlock) => {
             if (block.type === "url") {
                 lastUrl = block.value
             }
@@ -46,8 +46,8 @@ export default function Scroller({ d }: { d: BlockScroller }) {
             ) : null}
             <div className={"stickyContent"}>
                 {d.value
-                    .filter((_d: OwidArticleBlock) => _d.type === "text")
-                    .map(({ value }: OwidArticleBlock, i: number) => {
+                    .filter((_d: OwidRawArticleBlock) => _d.type === "text")
+                    .map(({ value }: OwidRawArticleBlock, i: number) => {
                         return (
                             <InView
                                 key={i}

@@ -1,9 +1,9 @@
 import React from "react"
 import { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
-import { BlockChart } from "@ourworldindata/utils"
+import { RawBlockChart } from "@ourworldindata/utils"
 
-export default function Chart({ d }: { d: BlockChart }) {
+export default function Chart({ d }: { d: RawBlockChart }) {
     let content: JSX.Element
 
     const refChartContainer = useRef<HTMLDivElement>(null)

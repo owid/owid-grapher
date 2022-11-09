@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks"
 import Footnotes from "./Footnotes"
 import {
-    OwidArticleBlock,
+    OwidRawArticleBlock,
     OwidArticleType,
     formatDate,
     getArticleFromJSON,
@@ -50,13 +50,13 @@ export function OwidArticle(props: OwidArticleType) {
 
             {content.citation &&
             content.citation.some(
-                (d: OwidArticleBlock) => d.type === "text"
+                (d: OwidRawArticleBlock) => d.type === "text"
             ) ? (
                 <div>
                     <h3>Please cite this article as:</h3>
                     <pre>
                         <code>
-                            {content.citation.map((d: OwidArticleBlock) => {
+                            {content.citation.map((d: OwidRawArticleBlock) => {
                                 if (d.type === "text") {
                                     return d.value
                                 } else {

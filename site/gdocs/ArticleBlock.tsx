@@ -8,7 +8,7 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { OwidArticleBlock, Span } from "@ourworldindata/utils"
+import { OwidRawArticleBlock, Span } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
 function renderSpans(spans: Span[]) {
@@ -50,8 +50,8 @@ function renderSpans(spans: Span[]) {
     )
 }
 
-export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
-    const handleArchie = (block: OwidArticleBlock, key: string) => {
+export default function ArticleBlock({ b }: { b: OwidRawArticleBlock }) {
+    const handleArchie = (block: OwidRawArticleBlock, key: string) => {
         block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
         const content: JSX.Element | null = match(block)
             .with({ type: "aside" }, (aside) => (
@@ -146,7 +146,7 @@ export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
         //     try {
         //         columns =
         //             +b.value.find(
-        //                 (_d: OwidArticleBlock) => _d.type === "columns"
+        //                 (_d: OwidRawArticleBlock) => _d.type === "columns"
         //             ).value || 1
         //     } catch (e) {}
 
@@ -161,8 +161,8 @@ export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
         //             }}
         //         >
         //             {d.value
-        //                 .filter((_d: OwidArticleBlock) => _d.type === "chart")
-        //                 .map((_d: OwidArticleBlock, i: number) => {
+        //                 .filter((_d: OwidRawArticleBlock) => _d.type === "chart")
+        //                 .map((_d: OwidRawArticleBlock, i: number) => {
         //                     return <Chart d={_d} key={i} />
         //                 })}
         //         </div>

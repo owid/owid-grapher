@@ -15,7 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     htmlToSpans,
-    owidArticleBlockToArchieMLString,
+    OwidRawArticleBlockToArchieMLString,
     spanToHtmlString,
 } from "./gdocUtils"
 import { match, P } from "ts-pattern"
@@ -186,7 +186,7 @@ async function readElements(
                                 level: Number.parseInt(headingLevel, 10),
                             },
                         }
-                        return owidArticleBlockToArchieMLString(header)
+                        return OwidRawArticleBlockToArchieMLString(header)
                     }
                     return text
                 }
@@ -208,7 +208,7 @@ async function readElements(
                     const fragmentText = match(parsedElement)
                         .with(
                             { type: P.union("image", "horizontal-rule") },
-                            owidArticleBlockToArchieMLString
+                            OwidRawArticleBlockToArchieMLString
                         )
                         .with({ spanType: P.any }, (s) => spanToHtmlString(s))
                         .with(P.nullish, () => "")

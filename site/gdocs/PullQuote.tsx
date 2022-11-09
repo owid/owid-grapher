@@ -1,7 +1,7 @@
 import React from "react"
-import { BlockPullQuote } from "@ourworldindata/utils"
+import { RawBlockPullQuote } from "@ourworldindata/utils"
 
-export default function PullQuote({ d }: { d: BlockPullQuote }) {
+export default function PullQuote({ d }: { d: RawBlockPullQuote }) {
     return (
         <blockquote className={"pullQuote"}>
             {d.value.map((d: any) => d.value).join("\n")}

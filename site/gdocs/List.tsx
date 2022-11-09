@@ -1,7 +1,7 @@
 import React from "react"
-import { BlockList } from "@ourworldindata/utils"
+import { RawBlockList } from "@ourworldindata/utils"
 
-export default function List({ d }: { d: BlockList }) {
+export default function List({ d }: { d: RawBlockList }) {
     return (
         <ul className={"list"}>
             {d.value.map((_d: string, i: number) => {

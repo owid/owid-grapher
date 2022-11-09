@@ -4,9 +4,9 @@ import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons/faCircleArr
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { useEmbedChart } from "../hooks.js"
-import { BlockChartStory } from "@ourworldindata/utils"
+import { RawBlockChartStory } from "@ourworldindata/utils"
 
-export default function ChartStory({ d }: { d: BlockChartStory }) {
+export default function ChartStory({ d }: { d: RawBlockChartStory }) {
     const { value } = d
     const showDetails = true
 

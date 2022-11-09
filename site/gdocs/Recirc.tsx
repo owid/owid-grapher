@@ -1,7 +1,7 @@
 import React from "react"
-import { BlockRecirc } from "@ourworldindata/utils"
+import { RawBlockRecirc } from "@ourworldindata/utils"
 
-export default function Recirc({ d }: { d: BlockRecirc }) {
+export default function Recirc({ d }: { d: RawBlockRecirc }) {
     return (
         <div className={"recirc"}>
             <div className={"recircContent"}>
