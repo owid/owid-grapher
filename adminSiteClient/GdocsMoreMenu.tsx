@@ -3,18 +3,24 @@ import { Dropdown, Menu, Button, Modal } from "antd"
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons/faEllipsisVertical"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidArticleType } from "@ourworldindata/utils"
+import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash"
+import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
+import { faBug } from "@fortawesome/free-solid-svg-icons/faBug"
 
 enum GdocsMoreMenuAction {
-    Delete = "delete",
+    Debug = "debug",
     Unpublish = "unpublish",
+    Delete = "delete",
 }
 
 export const GdocsMoreMenu = ({
     gdoc,
+    onDebug,
     onUnpublish,
     onDelete,
 }: {
     gdoc: OwidArticleType
+    onDebug: VoidFunction
     onUnpublish: VoidFunction
     onDelete: VoidFunction
 }) => {
@@ -28,6 +34,7 @@ export const GdocsMoreMenu = ({
             onOk() {
                 onUnpublish()
             },
+            maskClosable: true,
         })
     }
     const confirmDelete = () => {
@@ -41,6 +48,7 @@ export const GdocsMoreMenu = ({
             onOk() {
                 onDelete()
             },
+            maskClosable: true,
         })
     }
     return (
@@ -50,6 +58,9 @@ export const GdocsMoreMenu = ({
                 <Menu
                     onClick={({ key }) => {
                         switch (key) {
+                            case GdocsMoreMenuAction.Debug:
+                                onDebug()
+                                break
                             case GdocsMoreMenuAction.Unpublish:
                                 confirmUnpublish()
                                 break
@@ -60,15 +71,22 @@ export const GdocsMoreMenu = ({
                     }}
                     items={[
                         {
+                            key: GdocsMoreMenuAction.Debug,
+                            label: "Debug",
+                            icon: <FontAwesomeIcon icon={faBug} />,
+                        },
+                        {
                             key: GdocsMoreMenuAction.Unpublish,
                             label: "Unpublish",
                             danger: gdoc.published,
                             disabled: !gdoc.published,
+                            icon: <FontAwesomeIcon icon={faXmark} />,
                         },
                         {
                             key: GdocsMoreMenuAction.Delete,
                             label: "Delete",
                             danger: true,
+                            icon: <FontAwesomeIcon icon={faTrash} />,
                         },
                     ]}
                 />

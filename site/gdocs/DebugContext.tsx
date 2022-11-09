@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react"
+import React, { createContext } from "react"
 
 /*
 We rely on the <OwidArticle> being wrapped around a <DebugProvider> to indicate
