@@ -33,7 +33,10 @@ import {
     ChoroplethMapManager,
     RenderFeature,
     ChoroplethSeries,
-    InternalLabel,
+    Annotation,
+    AnnotationsCache,
+    ANNOTATION_TEXT_COLOR,
+    ANNOTATION_LINE_COLOR,
 } from "./MapChartConstants.js"
 import { MapConfig } from "./MapConfig.js"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale.js"
@@ -172,7 +175,7 @@ const renderFeaturesFor = (
     return renderFeaturesCache.get(projectionName)!
 }
 
-const annotationsCache = new Map<string, any>()
+const annotationsCache = new Map<MapProjectionName, AnnotationsCache>()
 
 @observer
 export class MapChart
@@ -788,7 +791,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
         )
     }
 
-    @computed private get mapAnnotations(): InternalLabel[] {
+    @computed private get annotations(): Annotation[] {
         const { projection } = this.manager
         return generateAnnotations(
             this.featuresWithData,
@@ -877,7 +880,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
             featuresOutsideProjection,
             featuresWithNoData,
             featuresWithData,
-            mapAnnotations,
+            annotations,
         } = this
         const focusStrokeColor = "#111"
         const focusStrokeWidth = 1.5
@@ -1023,10 +1026,12 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                         }),
                         (p) => p.props["strokeWidth"]
                     )}
-                    {mapAnnotations.map((label) => {
+                    {annotations.map((label) => {
                         const series = choroplethData.get(label.id as string)
                         const fill = series ? series.color : defaultFill
-                        const textFill = isDarkColor(fill) ? "white" : "#444445"
+                        const textFill = isDarkColor(fill)
+                            ? "white"
+                            : ANNOTATION_TEXT_COLOR
                         return (
                             <React.Fragment key={label.id}>
                                 <text
@@ -1036,7 +1041,7 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                     fill={
                                         label.type == "internal"
                                             ? textFill
-                                            : "#444445"
+                                            : ANNOTATION_TEXT_COLOR
                                     }
                                     fontWeight={
                                         label.type == "internal"
@@ -1047,34 +1052,33 @@ class ChoroplethMap extends React.Component<{ manager: ChoroplethMapManager }> {
                                 >
                                     {label.value}
                                 </text>
-                                {label.type == "external" &&
-                                    label.value &&
-                                    label.markerEnd &&
-                                    label.markerStart && (
-                                        <>
+                                {label.type == "external" && label.marker && (
+                                    <>
+                                        {label.anchor === false && (
                                             <line
-                                                x1={label.markerStart[0]}
-                                                y1={label.markerStart[1]}
-                                                x2={label.markerEnd[0]}
-                                                y2={label.markerEnd[1]}
-                                                stroke="#303030"
+                                                x1={label.marker[0][0]}
+                                                y1={label.marker[0][1]}
+                                                x2={label.marker[1][0]}
+                                                y2={label.marker[1][1]}
+                                                stroke={ANNOTATION_LINE_COLOR}
                                                 strokeWidth={
                                                     0.5 / viewportScale
                                                 }
                                             />
-                                            {label.anchor === true && (
-                                                <circle
-                                                    cx={label.pole[0]}
-                                                    cy={label.pole[1]}
-                                                    r={1.25 / viewportScale}
-                                                    fill="#303030"
-                                                    style={{
-                                                        pointerEvents: "none",
-                                                    }}
-                                                />
-                                            )}
-                                        </>
-                                    )}
+                                        )}
+                                        {label.anchor === true && (
+                                            <circle
+                                                cx={label.pole[0]}
+                                                cy={label.pole[1]}
+                                                r={1.25 / viewportScale}
+                                                fill={ANNOTATION_LINE_COLOR}
+                                                style={{
+                                                    pointerEvents: "none",
+                                                }}
+                                            />
+                                        )}
+                                    </>
+                                )}
                             </React.Fragment>
                         )
                     })}

@@ -59,14 +59,88 @@ export interface MapChartManager extends ChartManager {
     endTime?: Time
 }
 
-export interface InternalLabel {
+//Annotation interfaces
+
+export enum ExternalDirections {
+    right = "right",
+    left = "left",
+    topRight = "topRight",
+    bottomRight = "bottomRight",
+    topLeft = "topLeft",
+    bottomLeft = "bottomLeft",
+    bottom = "bottom",
+    top = "top",
+}
+
+export interface Annotation {
     id: string
     position: PointVector
-    value?: any
+    value: any
     size: number
-    type: string
+    type: "internal" | "external"
     pole: Position
-    markerStart?: Position
-    markerEnd?: Position
+    marker?: Position[]
     anchor?: boolean
 }
+
+// AnnotationsCache has the following data:
+// externalCandidates: Cache of all possible starting points of markers for external annotations
+//                     and their associated directions
+// candidateInfo: Cache of positional info of a candidate point for external annotation and its
+//                feasibility
+// regions: Cache of all distinct polygons (regions) of a country
+// internalInfo: Cache of the calculated poles of inaccessibility for internal annotations and the
+//               associated regional polygon for that country
+// internalAnnotation: Cache of internal annotation details for a country for a specified textWidth
+//                     of the label value. Stores the position and size of the label
+// allPoints: Dictionary of all countries' points on a map and the count of the coordinate's occurrence.
+//            Occurrence > 1 implies the point is shared by 2 or more nations
+// viewportScale: The viewportScale value. Used to invalidate cache and recalculate if viewport changes
+export interface AnnotationsCache {
+    externalCandidates: ExternalCandidates[]
+    candidateInfo: CandidateInfo[]
+    regions: Region[]
+    internalInfo: InternalInfo[]
+    internalAnnotations: InternalAnnotation[]
+    allPoints: Record<string, number>
+    viewportScale: number
+}
+
+export interface InternalInfo {
+    pole: number[]
+    points: Position[]
+    id: string
+}
+
+export interface InternalAnnotation {
+    id: string
+    position: PointVector
+    textWidth: number
+    size: number
+}
+
+export interface ExternalCandidates {
+    positions: { direction: ExternalDirections; point: Position }[]
+    id: string
+}
+
+export interface CandidateInfo {
+    id: string
+    boundaryPosition: Position
+    direction: ExternalDirections
+    textWidth: number
+    possible: boolean
+    labelPosition?: Position
+    marker?: Position[]
+    anchor?: boolean
+}
+
+export interface Region {
+    id: string
+    points: Position[]
+}
+export const MIN_INTERNAL_ANNOTATION_SIZE = 8
+export const MAX_INTERNAL_ANNOTATION_SIZE = 14
+export const EXTERNAL_ANNOTATION_SIZE = 11
+export const ANNOTATION_TEXT_COLOR = "#444445"
+export const ANNOTATION_LINE_COLOR = "#303030"
