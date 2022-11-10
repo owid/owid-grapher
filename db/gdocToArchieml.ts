@@ -4,23 +4,23 @@
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
 import {
-    OwidArticleBlock,
+    OwidRawArticleBlock,
     OwidArticleContent,
     Span,
-    BlockHorizontalRule,
-    SpanSimpleText,
-    BlockImage,
-    BlockList,
-    BlockHeader,
-    BlockStructuredText,
-    BlockChartValue,
-    BlockRecirc,
-    BlockRecircValue,
-    ChartStoryValue,
-    OwidArticleEnrichedBlock,
+    RawBlockHorizontalRule,
+    RawBlockImage,
+    RawBlockList,
+    RawBlockHeader,
+    compact,
 } from "@ourworldindata/utils"
-import { owidArticleBlockToArchieMLString, spanToHtmlString } from "./gdocUtils"
+import {
+    htmlToEnrichedTextBlock,
+    htmlToSimpleTextBlock,
+    owidRawArticleBlockToArchieMLString,
+    spanToHtmlString,
+} from "./gdocUtils"
 import { match, P } from "ts-pattern"
+import { parseRawBlocksToEnhancedBlocks } from "./gdocBlockParsersRawToEnriched.js"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
@@ -30,38 +30,15 @@ export interface DocToArchieMLOptions {
     imageHandler?: (
         elementId: string,
         doc: docs_v1.Schema$Document
-    ) => Promise<BlockImage>
+    ) => Promise<RawBlockImage>
 }
 
 interface ElementMemo {
     isInList: boolean
-    body: OwidArticleBlock[]
+    body: OwidRawArticleBlock[]
 }
 
-export const gdocToArchieML = async ({
-    auth,
-    client,
-    documentId,
-    google = googleApisInstance,
-    imageHandler,
-}: DocToArchieMLOptions): Promise<OwidArticleContent> => {
-    // create docs client if not provided
-    if (!client) {
-        client = google.docs({
-            version: "v1",
-            auth,
-        })
-    }
-
-    // pull the data out of the doc
-    const { data } = await client.documents.get({
-        documentId,
-    })
-
-    // convert the doc's content to text ArchieML will understand
-
-    let text = await readElements(data, imageHandler)
-
+export const stringToArchieML = (text: string): OwidArticleContent => {
     const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
         val: string,
         i: number
@@ -72,18 +49,19 @@ export const gdocToArchieML = async ({
 
     const parsed = load(text)
 
-    parsed.refs = refs
-
-    // Parse lists and include lowercase vals
+    // Parse lists and include lowercase vals-
     parsed.body = parsed.body.reduce(
-        (memo: ElementMemo, d: OwidArticleBlock) => {
+        (memo: ElementMemo, d: OwidRawArticleBlock) => {
             Object.keys(d).forEach((k) => {
                 ;(d as any)[k.toLowerCase()] = (d as any)[k]
             })
 
             if (d.type === "text" && d.value.startsWith("* ")) {
                 if (memo.isInList) {
-                    ;(memo.body[memo.body.length - 1] as BlockList).value.push(
+                    ;(
+                        (memo.body[memo.body.length - 1] as RawBlockList)
+                            .value as string[]
+                    ).push(
                         // TODO: this assumes that lists only contain simple text
                         d.value.replace("* ", "").trim()
                     )
@@ -108,8 +86,52 @@ export const gdocToArchieML = async ({
         }
     ).body
 
-    // pass text to ArchieML and return results
+    // Parse elements of the ArchieML into enrichedBlocks
+    parsed.body = compact(parsed.body.map(parseRawBlocksToEnhancedBlocks))
+    parsed.refs = refs.map(htmlToEnrichedTextBlock)
+    const summary: string | string[] | undefined = parsed.summary
+    parsed.summary =
+        summary === undefined
+            ? undefined
+            : typeof summary === "string"
+            ? [htmlToEnrichedTextBlock(summary)]
+            : summary.map(htmlToEnrichedTextBlock)
+    const citation: string | string[] | undefined = parsed.citation
+    parsed.citation =
+        citation === undefined
+            ? undefined
+            : typeof citation === "string"
+            ? htmlToSimpleTextBlock(citation)
+            : citation.map(htmlToSimpleTextBlock)
     return parsed
+}
+
+export const gdocToArchieML = async ({
+    auth,
+    client,
+    documentId,
+    google = googleApisInstance,
+    imageHandler,
+}: DocToArchieMLOptions): Promise<OwidArticleContent> => {
+    // create docs client if not provided
+    if (!client) {
+        client = google.docs({
+            version: "v1",
+            auth,
+        })
+    }
+
+    // pull the data out of the doc
+    const { data } = await client.documents.get({
+        documentId,
+    })
+
+    // convert the doc's content to text ArchieML will understand
+
+    const text = await readElements(data, imageHandler)
+
+    // pass text to ArchieML and return results
+    return stringToArchieML(text)
 }
 
 async function readElements(
@@ -118,7 +140,7 @@ async function readElements(
         | ((
               elementId: string,
               doc: docs_v1.Schema$Document
-          ) => Promise<BlockImage>)
+          ) => Promise<RawBlockImage>)
         | undefined
 ): Promise<string> {
     // prepare the text holder
@@ -156,14 +178,14 @@ async function readElements(
                                 "HEADING_",
                                 ""
                             )
-                        const header: BlockHeader = {
+                        const header: RawBlockHeader = {
                             type: "header",
                             value: {
                                 text: text.trim(),
-                                level: Number.parseInt(headingLevel, 10),
+                                level: headingLevel,
                             },
                         }
-                        return owidArticleBlockToArchieMLString(header)
+                        return owidRawArticleBlockToArchieMLString(header)
                     }
                     return text
                 }
@@ -185,7 +207,7 @@ async function readElements(
                     const fragmentText = match(parsedElement)
                         .with(
                             { type: P.union("image", "horizontal-rule") },
-                            owidArticleBlockToArchieMLString
+                            owidRawArticleBlockToArchieMLString
                         )
                         .with({ spanType: P.any }, (s) => spanToHtmlString(s))
                         .with(P.nullish, () => "")
@@ -208,9 +230,9 @@ async function readParagraphElement(
         | ((
               elementId: string,
               doc: docs_v1.Schema$Document
-          ) => Promise<BlockImage>)
+          ) => Promise<RawBlockImage>)
         | undefined
-): Promise<Span | BlockHorizontalRule | BlockImage | null> {
+): Promise<Span | RawBlockHorizontalRule | RawBlockImage | null> {
     // pull out the text
 
     const textRun = element.textRun
@@ -240,6 +262,12 @@ async function readParagraphElement(
         }
         if (textRun.textStyle.bold) {
             span = { spanType: "span-bold", children: [span] }
+        }
+        if (textRun.textStyle.baselineOffset === "SUPERSCRIPT") {
+            span = { spanType: "span-superscript", children: [span] }
+        }
+        if (textRun.textStyle.baselineOffset === "SUBSCRIPT") {
+            span = { spanType: "span-subscript", children: [span] }
         }
 
         return span

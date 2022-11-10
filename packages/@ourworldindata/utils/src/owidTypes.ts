@@ -441,141 +441,260 @@ export type Span =
 export type BlockPositionChoice = "right" | "left"
 export type ChartPositionChoice = "featured"
 
-export type BlockAsideValue = {
-    position: string // use BlockPositionChoice in matching Enriched block
-    caption: string
+type ArchieMLUnexpectedNonObjectValue = string
+
+export type ParseError = {
+    message: string
+    isWarning?: boolean
 }
 
-export type BlockAside = {
-    type: "aside"
-    value: BlockAsideValue
+export type EnrichedBlockWithParseErrors = {
+    parseErrors: ParseError[]
 }
 
-export type BlockChartValue = {
-    url: string
-    height?: string
-    row: string
-    column: string
-    // TODO: position is used as a classname apparently? Should be renamed or split
-    position?: string // use ChartPositionChoice in matching Enriched block
+export type RawBlockAsideValue = {
+    position?: string // use BlockPositionChoice in matching Enriched block
     caption?: string
 }
-export type BlockChart = {
+
+export type RawBlockAside = {
+    type: "aside"
+    value: RawBlockAsideValue | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockAside = {
+    type: "aside"
+    position?: BlockPositionChoice
+    caption: Span[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockChartValue = {
+    url?: string
+    height?: string
+    row?: string
+    column?: string
+    // TODO: position is used as a classname apparently? Should be renamed or split
+    position?: string
+    caption?: string
+}
+export type RawBlockChart = {
     type: "chart"
-    value: BlockChartValue | string
+    value: RawBlockChartValue | string
 }
 
-export type BlockScroller = {
+export type EnrichedBlockChart = {
+    type: "chart"
+    url: string
+    height?: string
+    row?: string
+    column?: string
+    position?: ChartPositionChoice
+    caption?: Span[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockScroller = {
     type: "scroller"
-    value: OwidArticleBlock[]
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
 }
 
-export type ChartStoryValue = {
-    narrative: string
-    chart: string
+export type EnrichedScrollerItem = {
+    url: string // TODO: should this be transformed into an EnrichedBlockChart?
+    text: EnrichedBlockText
+}
+
+export type EnrichedBlockScroller = {
+    type: "scroller"
+    blocks: EnrichedScrollerItem[]
+} & EnrichedBlockWithParseErrors
+
+export type RawChartStoryValue = {
+    narrative?: string
+    chart?: string
     technical?: string[]
 }
 
-export type BlockChartStory = {
+export type RawBlockChartStory = {
     type: "chart-story"
-    value: ChartStoryValue[]
+    value: RawChartStoryValue[] | ArchieMLUnexpectedNonObjectValue
 }
-export type BlockFixedGraphic = {
+
+export type EnrichedChartStoryItem = {
+    narrative: EnrichedBlockText
+    chart: EnrichedBlockChart
+    technical: EnrichedBlockText[]
+}
+
+export type EnrichedBlockChartStory = {
+    type: "chart-story"
+    items: EnrichedChartStoryItem[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockFixedGraphic = {
     type: "fixed-graphic"
-    value: OwidArticleBlock[]
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
 }
-export type BlockImageValue = {
-    src: string
+
+export type EnrichedBlockFixedGraphic = {
+    type: "fixed-graphic"
+    graphic: EnrichedBlockChart | EnrichedBlockImage
+    position?: BlockPositionChoice
+    text: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+export type RawBlockImageValue = {
+    src?: string
     caption?: string
 }
-export type BlockImage = {
+export type RawBlockImage = {
     type: "image"
-    value: BlockImageValue
+    value: RawBlockImageValue | string
 }
+
+export type EnrichedBlockImage = {
+    type: "image"
+    src: string
+    caption: Span[]
+} & EnrichedBlockWithParseErrors
+
 // TODO: This is what lists staring with * are converted to in gdocToArhcieml
 // It might also be what is used inside recirc elements but there it's not a simple
 // string IIRC - check this
-export type BlockList = {
+export type RawBlockList = {
     type: "list"
-    value: string[]
+    value: string[] | ArchieMLUnexpectedNonObjectValue
 }
-export type BlockPullQuote = {
+
+export type EnrichedBlockList = {
+    type: "list"
+    items: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockPullQuote = {
     type: "pull-quote"
-    value: string[]
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
 }
-export type RecircItem = {
-    article: string
-    author: string
+
+export type EnrichedBlockPullQuote = {
+    type: "pull-quote"
+    text: SpanSimpleText[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockHorizontalRule = {
+    type: "horizontal-rule"
+    value?: string // dummy value to unify block shapes
+}
+
+export type EnrichedBlockHorizontalRule = {
+    type: "horizontal-rule"
+} & EnrichedBlockWithParseErrors
+
+export type RawRecircItem = {
+    article?: string
+    author?: string
+    url?: string
+}
+
+export type RawBlockRecircValue = {
+    title?: string
+    list?: RawRecircItem[]
+}
+export type RawBlockRecirc = {
+    type: "recirc"
+    value: RawBlockRecircValue[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedRecircItem = {
+    article: SpanSimpleText
+    author: SpanSimpleText
     url: string
 }
 
-export type BlockHorizontalRule = {
-    type: "horizontal-rule"
-    value?: string // dummy value to unify block shapse
-}
-export type BlockRecircValue = {
-    title: string
-    list: RecircItem[]
-}
-export type BlockRecirc = {
+export type EnrichedBlockRecirc = {
     type: "recirc"
-    value: BlockRecircValue[]
-}
-// TODO: this is a native ArchieML construct
-// but we might want to use BlockStructuredText instead
-// everywhere. Not sure yet if this will be possible.
-export type BlockText = {
+    title: SpanSimpleText
+    items: EnrichedRecircItem[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockText = {
     type: "text"
     value: string
 }
 
-export type BlockStructuredText = {
-    type: "structured-text"
+export type EnrichedBlockText = {
+    type: "text"
     value: Span[]
-}
-export type BlockHtml = {
+} & EnrichedBlockWithParseErrors
+
+export type EnrichedBlockSimpleText = {
+    type: "simple-text"
+    value: SpanSimpleText
+} & EnrichedBlockWithParseErrors
+export type RawBlockHtml = {
     type: "html"
     value: string
 }
-export type BlockUrl = {
+
+export type EnrichedBlockHtml = {
+    type: "html"
+    value: string
+} & EnrichedBlockWithParseErrors
+export type RawBlockUrl = {
     type: "url"
     value: string
 }
-export type BlockPosition = {
+// There is no EnrichedBlockUrl because Url blocks only exist inside Sliders;
+// they are subsumed into Slider blocks during enrichment
+export type RawBlockPosition = {
     type: "position"
-    value: string // use BlockPositionChoice in matching Enriched block
+    value: string
 }
-
-export type BlockHeaderValue = {
-    text: string
-    level: number
+// There is no EnrichedBlockUrl because Position blocks only exist inside FixedGraphics;
+// they are subsumed into FixedGraphic blocks during enrichment
+export type RawBlockHeaderValue = {
+    text?: string
+    level?: string
 }
-export type BlockHeader = {
+export type RawBlockHeader = {
     type: "header"
-    value: BlockHeaderValue
+    value: RawBlockHeaderValue | ArchieMLUnexpectedNonObjectValue
 }
-export type OwidArticleBlock =
-    | BlockAside
-    | BlockChart
-    | BlockScroller
-    | BlockChartStory
-    | BlockFixedGraphic
-    | BlockImage
-    | BlockList
-    | BlockPullQuote
-    | BlockRecirc
-    | BlockText
-    | BlockUrl // do we want this here? It's used inside Scroller only atm
-    | BlockPosition
-    | BlockHeader
-    | BlockHtml
-    | BlockHorizontalRule
 
-// TODO: create matching types to the blocks above
-// but with strings replaced by specific Spans that indicate
-// if there can be only simple text content or span elements with
-// structure
-export type OwidArticleEnrichedBlock = BlockStructuredText
+export type EnrichedBlockHeader = {
+    type: "header"
+    text: SpanSimpleText
+    level: number
+} & EnrichedBlockWithParseErrors
+export type OwidRawArticleBlock =
+    | RawBlockAside
+    | RawBlockChart
+    | RawBlockScroller
+    | RawBlockChartStory
+    | RawBlockFixedGraphic
+    | RawBlockImage
+    | RawBlockList
+    | RawBlockPullQuote
+    | RawBlockRecirc
+    | RawBlockText
+    | RawBlockUrl
+    | RawBlockPosition
+    | RawBlockHeader
+    | RawBlockHtml
+    | RawBlockHorizontalRule
+
+export type OwidEnrichedArticleBlock =
+    | EnrichedBlockText
+    | EnrichedBlockAside
+    | EnrichedBlockChart
+    | EnrichedBlockScroller
+    | EnrichedBlockChartStory
+    | EnrichedBlockFixedGraphic
+    | EnrichedBlockImage
+    | EnrichedBlockList
+    | EnrichedBlockPullQuote
+    | EnrichedBlockRecirc
+    | EnrichedBlockText
+    | EnrichedBlockHeader
+    | EnrichedBlockHtml
+    | EnrichedBlockHorizontalRule
 
 export interface OwidArticleType {
     id: string
@@ -606,22 +725,22 @@ export interface OwidArticleTypePublished extends OwidArticleType {
 }
 
 export interface OwidArticleContent {
-    body?: OwidArticleBlock[]
+    body?: OwidEnrichedArticleBlock[]
     title?: string
     subtitle?: string
     template?: string
     byline?: string | string[]
     dateline?: string
     excerpt?: string
-    refs?: OwidArticleBlock[]
-    summary?: OwidArticleBlock[]
-    citation?: OwidArticleBlock[]
+    refs?: EnrichedBlockText[]
+    summary?: EnrichedBlockText[]
+    citation?: EnrichedBlockSimpleText[]
     "cover-image"?: any
     "featured-image"?: any
 }
 
 export interface OwidArticleContentPublished extends OwidArticleContent {
-    body: OwidArticleBlock[]
+    body: OwidEnrichedArticleBlock[]
     title: string
     byline: string | string[]
     excerpt: string
