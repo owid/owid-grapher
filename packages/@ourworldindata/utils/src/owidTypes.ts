@@ -570,7 +570,7 @@ export type EnrichedBlockList = {
 
 export type RawBlockPullQuote = {
     type: "pull-quote"
-    value: string[] | ArchieMLUnexpectedNonObjectValue
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockPullQuote = {

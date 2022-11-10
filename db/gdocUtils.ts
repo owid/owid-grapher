@@ -191,8 +191,16 @@ export const owidRawArticleBlockToArchieMLString = (
         .with({ type: "horizontal-rule" }, (b) =>
             keyValueToArchieMlString(block.type, "<hr/>")
         )
-        .with({ type: P.union("pull-quote", "list") }, (b) =>
+        .with({ type: P.union("list") }, (b) =>
             blockListToArchieMlString(block.type, b.value, (line) => line, true)
+        )
+        .with({ type: "pull-quote" }, (b) =>
+            blockListToArchieMlString(
+                block.type,
+                b.value,
+                owidRawArticleBlockToArchieMLString,
+                true
+            )
         )
         .with({ type: "header" }, headerToArchieMlString)
         .with({ type: "fixed-graphic" }, (b) =>

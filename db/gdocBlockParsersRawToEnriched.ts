@@ -450,7 +450,9 @@ const parseSimpleTextsWithErrors = (
     return { errors, texts }
 }
 
-const parsePullQuote = (list: RawBlockPullQuote): EnrichedBlockPullQuote => {
+const parsePullQuote = (
+    pullquote: RawBlockPullQuote
+): EnrichedBlockPullQuote => {
     const createError = (
         error: ParseError,
         text: SpanSimpleText[] = []
@@ -460,17 +462,48 @@ const parsePullQuote = (list: RawBlockPullQuote): EnrichedBlockPullQuote => {
         parseErrors: [error],
     })
 
-    if (typeof list.value === "string")
+    if (typeof pullquote.value === "string")
         return createError({
             message: "Value is a string, not a list of strings",
         })
 
-    const textResults = parseSimpleTextsWithErrors(list.value)
+    const textResults = compact(
+        pullquote.value.map(parseRawBlocksToEnhancedBlocks)
+    )
+
+    const [textBlocks, otherBlocks] = partition(
+        textResults,
+        (item): item is EnrichedBlockText => item.type === "text"
+    )
+
+    const otherBlockErrors = otherBlocks
+        .map((block) => block.parseErrors)
+        .flat()
+    const textBlockErrors = textBlocks.map((block) => block.parseErrors).flat()
+
+    const simpleTextSpans: SpanSimpleText[] = []
+    const unexpectedTextSpanErrors: ParseError[] = []
+
+    for (const textBlock of textBlocks)
+        for (const span of textBlock.value) {
+            if (span.spanType === "span-simple-text") {
+                simpleTextSpans.push(span)
+            } else {
+                unexpectedTextSpanErrors.push({
+                    message:
+                        "Unexpected span type in pull-quote. Note: formatting is not supported inside pull-quotes ATM.",
+                })
+            }
+        }
 
     return {
         type: "pull-quote",
-        text: textResults.texts,
-        parseErrors: textResults.errors,
+        text: simpleTextSpans,
+        parseErrors: [
+            ...otherBlockErrors,
+            ...textBlockErrors,
+            ...unexpectedTextSpanErrors,
+        ],
     }
 }
 

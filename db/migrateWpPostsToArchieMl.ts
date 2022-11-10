@@ -127,7 +127,12 @@ function cheerioToArchieML(
                             {
                                 type: "pull-quote",
                                 // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
-                                value: [childElements.content[0].value],
+                                value: [
+                                    {
+                                        type: "text",
+                                        value: childElements.content[0].value,
+                                    },
+                                ],
                             },
                         ],
                     }

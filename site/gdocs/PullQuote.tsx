@@ -4,7 +4,7 @@ import { renderSpans } from "./utils"
 export default function PullQuote({ d }: { d: EnrichedBlockPullQuote }) {
     return (
         <blockquote className={"pullQuote"}>
-            {d.text.map((d: any) => d.value).join("\n")}
+            {d.text.map((d) => d.text).join("\n")}
         </blockquote>
     )
 }
