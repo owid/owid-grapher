@@ -51,7 +51,7 @@
     "react-select": "^5.4.0",
     "simple-statistics": "^7.3.2",
     "topojson-client": "^3.1.0",
-    "ts-pattern": "^3.3.3",
+    "ts-pattern": "^4.0.4",
     "url-parse": "^1.5.10"
   },
   "devDependencies": {

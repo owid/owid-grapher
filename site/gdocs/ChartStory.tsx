@@ -4,16 +4,16 @@ import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons/faCircleArr
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { useEmbedChart } from "../hooks.js"
-import { ChartStoryValue } from "../../clientUtils/owidTypes.js"
+import { BlockChartStory } from "@ourworldindata/utils"
 
-export default function ChartStory(props: ChartStoryValue) {
-    const { slides } = props
+export default function ChartStory({ d }: { d: BlockChartStory }) {
+    const { value } = d
     const showDetails = true
 
     const [currentIndex, setCurrentIndex] = useState(0)
-    const [currentSlide, setCurrentSlide] = useState(slides[0])
+    const [currentSlide, setCurrentSlide] = useState(value[0])
 
-    const maxSlide = slides.length - 1
+    const maxSlide = value.length - 1
 
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(currentIndex, refChartContainer)
@@ -23,7 +23,7 @@ export default function ChartStory(props: ChartStoryValue) {
             <div
                 className={"chart-story--nav-back"}
                 onClick={() => {
-                    setCurrentSlide(slides[Math.max(0, currentIndex - 1)])
+                    setCurrentSlide(value[Math.max(0, currentIndex - 1)])
                     setCurrentIndex(Math.max(0, currentIndex - 1))
                 }}
             >
@@ -44,14 +44,12 @@ export default function ChartStory(props: ChartStoryValue) {
             </div>
             <div className={"chart-story--technical-text"}></div>
             <div className={"chart-story--nav-hud"}>
-                {`Chart ${currentIndex + 1} of ${slides.length}`}
+                {`Chart ${currentIndex + 1} of ${value.length}`}
             </div>
             <div
                 className={"chart-story--nav-next"}
                 onClick={() => {
-                    setCurrentSlide(
-                        slides[Math.min(maxSlide, currentIndex + 1)]
-                    )
+                    setCurrentSlide(value[Math.min(maxSlide, currentIndex + 1)])
                     setCurrentIndex(Math.min(maxSlide, currentIndex + 1))
                 }}
             >

@@ -157,6 +157,8 @@ export interface PostRow {
     content: string
     published_at: Date | null
     updated_at: Date
+    archieml: string
+    archieml_update_statistics: string
 }
 
 export interface Tag extends TagReactTagAutocomplete {
@@ -382,100 +384,173 @@ export interface GridParameters {
     columns: number
 }
 
-export interface BlockAsideValue {
-    position: string
+export type SpanSimpleText = {
+    spanType: "span-simple-text"
+    text: string
+}
+export type SpanFallback = {
+    spanType: "span-fallback"
+    children: Span[]
+}
+
+export type SpanLink = {
+    spanType: "span-link"
+    children: Span[]
+    url: string
+}
+export type SpanNewline = {
+    spanType: "span-newline"
+}
+export type SpanItalic = {
+    spanType: "span-italic"
+    children: Span[]
+}
+export type SpanBold = {
+    spanType: "span-bold"
+    children: Span[]
+}
+export type SpanUnderline = {
+    spanType: "span-underline"
+    children: Span[]
+}
+export type SpanSubscript = {
+    spanType: "span-subscript"
+    children: Span[]
+}
+export type SpanSuperscript = {
+    spanType: "span-superscript"
+    children: Span[]
+}
+export type SpanQuote = {
+    spanType: "span-quote"
+    children: Span[]
+}
+
+export type Span =
+    | SpanSimpleText
+    | SpanLink
+    | SpanNewline
+    | SpanItalic
+    | SpanBold
+    | SpanUnderline
+    | SpanSubscript
+    | SpanSuperscript
+    | SpanQuote
+    | SpanFallback
+
+export type BlockPositionChoice = "right" | "left"
+export type ChartPositionChoice = "featured"
+
+export type BlockAsideValue = {
+    position: string // use BlockPositionChoice in matching Enriched block
     caption: string
 }
 
-export interface BlockAside {
+export type BlockAside = {
     type: "aside"
     value: BlockAsideValue
 }
 
-export interface BlockChartValue {
+export type BlockChartValue = {
     url: string
     height?: string
     row: string
     column: string
     // TODO: position is used as a classname apparently? Should be renamed or split
-    position?: string
+    position?: string // use ChartPositionChoice in matching Enriched block
     caption?: string
 }
-export interface BlockChart {
+export type BlockChart = {
     type: "chart"
     value: BlockChartValue | string
 }
 
-export interface BlockScroller {
+export type BlockScroller = {
     type: "scroller"
     value: OwidArticleBlock[]
 }
 
-export interface ChartStorySlide {
+export type ChartStoryValue = {
     narrative: string
     chart: string
     technical?: string[]
 }
 
-export interface ChartStoryValue {
-    slides: ChartStorySlide[]
-}
-
-export interface BlockChartStory {
+export type BlockChartStory = {
     type: "chart-story"
-    value: ChartStoryValue
+    value: ChartStoryValue[]
 }
-export interface BlockFixedGraphic {
+export type BlockFixedGraphic = {
     type: "fixed-graphic"
     value: OwidArticleBlock[]
 }
-export interface BlockImageValue {
+export type BlockImageValue = {
     src: string
+    caption?: string
 }
-export interface BlockImage {
+export type BlockImage = {
     type: "image"
     value: BlockImageValue
 }
-export interface BlockList {
+// TODO: This is what lists staring with * are converted to in gdocToArhcieml
+// It might also be what is used inside recirc elements but there it's not a simple
+// string IIRC - check this
+export type BlockList = {
     type: "list"
     value: string[]
 }
-export interface BlockPullQuote {
+export type BlockPullQuote = {
     type: "pull-quote"
     value: string[]
 }
-export interface RecircItem {
+export type RecircItem = {
     article: string
     author: string
     url: string
 }
 
-export interface BlockRecircValue {
+export type BlockHorizontalRule = {
+    type: "horizontal-rule"
+    value?: string // dummy value to unify block shapse
+}
+export type BlockRecircValue = {
     title: string
     list: RecircItem[]
 }
-export interface BlockRecirc {
+export type BlockRecirc = {
     type: "recirc"
     value: BlockRecircValue[]
 }
-export interface BlockText {
+// TODO: this is a native ArchieML construct
+// but we might want to use BlockStructuredText instead
+// everywhere. Not sure yet if this will be possible.
+export type BlockText = {
     type: "text"
     value: string
 }
-export interface BlockUrl {
+
+export type BlockStructuredText = {
+    type: "structured-text"
+    value: Span[]
+}
+export type BlockHtml = {
+    type: "html"
+    value: string
+}
+export type BlockUrl = {
     type: "url"
     value: string
 }
-export interface BlockPosition {
+export type BlockPosition = {
     type: "position"
-    value: string
+    value: string // use BlockPositionChoice in matching Enriched block
 }
 
-export interface BlockHeaderValue {
+export type BlockHeaderValue = {
     text: string
-    level: string
+    level: number
 }
-export interface BlockHeader {
+export type BlockHeader = {
     type: "header"
     value: BlockHeaderValue
 }
@@ -493,6 +568,14 @@ export type OwidArticleBlock =
     | BlockUrl // do we want this here? It's used inside Scroller only atm
     | BlockPosition
     | BlockHeader
+    | BlockHtml
+    | BlockHorizontalRule
+
+// TODO: create matching types to the blocks above
+// but with strings replaced by specific Spans that indicate
+// if there can be only simple text content or span elements with
+// structure
+export type OwidArticleEnrichedBlock = BlockStructuredText
 
 export interface OwidArticleType {
     id: string

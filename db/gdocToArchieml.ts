@@ -3,14 +3,34 @@
 
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
-import { OwidArticleBlock, OwidArticleContent } from "@ourworldindata/utils"
+import {
+    OwidArticleBlock,
+    OwidArticleContent,
+    Span,
+    BlockHorizontalRule,
+    SpanSimpleText,
+    BlockImage,
+    BlockList,
+    BlockHeader,
+    BlockStructuredText,
+    BlockChartValue,
+    BlockRecirc,
+    BlockRecircValue,
+    ChartStoryValue,
+    OwidArticleEnrichedBlock,
+} from "@ourworldindata/utils"
+import { owidArticleBlockToArchieMLString, spanToHtmlString } from "./gdocUtils"
+import { match, P } from "ts-pattern"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
     auth: docs_v1.Params$Resource$Documents$Get["auth"]
     client?: docs_v1.Docs
     google?: GoogleApis
-    imageHandler?: any
+    imageHandler?: (
+        elementId: string,
+        doc: docs_v1.Schema$Document
+    ) => Promise<BlockImage>
 }
 
 interface ElementMemo {
@@ -63,7 +83,8 @@ export const gdocToArchieML = async ({
 
             if (d.type === "text" && d.value.startsWith("* ")) {
                 if (memo.isInList) {
-                    ;(memo.body[memo.body.length - 1].value as any).push(
+                    ;(memo.body[memo.body.length - 1] as BlockList).value.push(
+                        // TODO: this assumes that lists only contain simple text
                         d.value.replace("* ", "").trim()
                     )
                 } else {
@@ -93,8 +114,13 @@ export const gdocToArchieML = async ({
 
 async function readElements(
     document: docs_v1.Schema$Document,
-    imageHandler: any
-): Promise<any> {
+    imageHandler:
+        | ((
+              elementId: string,
+              doc: docs_v1.Schema$Document
+          ) => Promise<BlockImage>)
+        | undefined
+): Promise<string> {
     // prepare the text holder
     let text = ""
 
@@ -107,18 +133,19 @@ async function readElements(
     for (const element of document.body.content) {
         if (element.paragraph) {
             // get the paragraph within the element
-            const paragraph = element.paragraph
+            const paragraph: docs_v1.Schema$Paragraph = element.paragraph
 
             // this is a list
             const needsBullet = paragraph.bullet != null
 
             if (paragraph.elements) {
                 // all values in the element
-                const values = paragraph.elements
+                const values: docs_v1.Schema$ParagraphElement[] =
+                    paragraph.elements
 
                 let idx = 0
 
-                const taggedText = function (text: string) {
+                const taggedText = function (text: string): string {
                     if (
                         paragraph.paragraphStyle?.namedStyleType?.includes(
                             "HEADING"
@@ -129,11 +156,14 @@ async function readElements(
                                 "HEADING_",
                                 ""
                             )
-                        return `
-{.header}
-text: ${text.trim()}
-level: ${headingLevel}
-{}`
+                        const header: BlockHeader = {
+                            type: "header",
+                            value: {
+                                text: text.trim(),
+                                level: Number.parseInt(headingLevel, 10),
+                            },
+                        }
+                        return owidArticleBlockToArchieMLString(header)
                     }
                     return text
                 }
@@ -143,15 +173,24 @@ level: ${headingLevel}
                     const isFirstValue = idx === 0
 
                     // prepend an asterisk if this is a list item
+                    // TODO: I think the ArchieML spec says that every element needs the *
                     const prefix = needsBullet && isFirstValue ? "* " : ""
 
                     // concat the text
-                    const _text = await readParagraphElement(
+                    const parsedElement = await readParagraphElement(
                         value,
                         document,
                         imageHandler
                     )
-                    elementText += `${prefix}${_text}`
+                    const fragmentText = match(parsedElement)
+                        .with(
+                            { type: P.union("image", "horizontal-rule") },
+                            owidArticleBlockToArchieMLString
+                        )
+                        .with({ spanType: P.any }, (s) => spanToHtmlString(s))
+                        .with(P.nullish, () => "")
+                        .exhaustive()
+                    elementText += `${prefix}${fragmentText}`
                     idx++
                 }
                 text += taggedText(elementText)
@@ -163,10 +202,15 @@ level: ${headingLevel}
 }
 
 async function readParagraphElement(
-    element: any,
-    data: any,
-    imageHandler?: any
-): Promise<any> {
+    element: docs_v1.Schema$ParagraphElement,
+    data: docs_v1.Schema$Document,
+    imageHandler?:
+        | ((
+              elementId: string,
+              doc: docs_v1.Schema$Document
+          ) => Promise<BlockImage>)
+        | undefined
+): Promise<Span | BlockHorizontalRule | BlockImage | null> {
     // pull out the text
 
     const textRun = element.textRun
@@ -176,37 +220,36 @@ async function readParagraphElement(
         // sometimes the content isn't there, and if so, make it an empty string
         // console.log(element);
 
-        let content = textRun.content || ""
+        const content = textRun.content || ""
+
+        let span: Span = { spanType: "span-simple-text", text: content }
 
         // step through optional text styles to check for an associated URL
-        if (!textRun.textStyle) return content
+        if (!textRun.textStyle) return span
+
+        if (textRun.textStyle.link?.url)
+            span = {
+                spanType: "span-link",
+                url: textRun.textStyle.link!.url!,
+                children: [span],
+            }
 
         // console.log(textRun);
         if (textRun.textStyle.italic) {
-            content = `<em>${content}</em>`
+            span = { spanType: "span-italic", children: [span] }
         }
         if (textRun.textStyle.bold) {
-            content = `<b>${content}</b>`
+            span = { spanType: "span-bold", children: [span] }
         }
 
-        if (!textRun.textStyle.link) return content
-        if (!textRun.textStyle.link.url) return content
-
-        // if we got this far there's a URL key, grab it...
-        const url = textRun.textStyle.link.url
-
-        // ...but sometimes that's empty too
-        if (url) {
-            return `<a href="${url}">${content}</a>`
-        } else {
-            return content
-        }
+        return span
     } else if (element.inlineObjectElement && imageHandler) {
         const objectId = element.inlineObjectElement.inlineObjectId
-        return await imageHandler(objectId, data)
+        if (objectId) return await imageHandler(objectId, data)
+        else return null
     } else if (element.horizontalRule) {
-        return `<hr />`
+        return { type: "horizontal-rule" }
     } else {
-        return ""
+        return null
     }
 }

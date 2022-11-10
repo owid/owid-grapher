@@ -8,8 +8,47 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { OwidArticleBlock } from "@ourworldindata/utils"
+import { OwidArticleBlock, Span } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
+
+function renderSpans(spans: Span[]) {
+    return spans.map((span, i) =>
+        match(span)
+            .with({ spanType: "span-simple-text" }, (span) => (
+                <React.Fragment key={i}>{span.text}</React.Fragment>
+            ))
+            .with({ spanType: "span-link" }, (span) => (
+                <a key={i} href={span.url}>
+                    {renderSpans(span.children)}
+                </a>
+            ))
+            .with({ spanType: "span-newline" }, (span) => <br key={i} />)
+            .with({ spanType: "span-italic" }, (span) => (
+                <em key={i}>{renderSpans(span.children)}</em>
+            ))
+            .with({ spanType: "span-bold" }, (span) => (
+                <strong key={i}>{renderSpans(span.children)}</strong>
+            ))
+            .with({ spanType: "span-underline" }, (span) => (
+                <u key={i}>{renderSpans(span.children)}</u>
+            ))
+            .with({ spanType: "span-subscript" }, (span) => (
+                <sub key={i}>{renderSpans(span.children)}</sub>
+            ))
+            .with({ spanType: "span-superscript" }, (span) => (
+                <sup key={i}>{renderSpans(span.children)}</sup>
+            ))
+            .with({ spanType: "span-quote" }, (span) => (
+                <q key={i}>{renderSpans(span.children)}</q>
+            ))
+            .with({ spanType: "span-fallback" }, (span) => (
+                <React.Fragment key={i}>
+                    {renderSpans(span.children)}
+                </React.Fragment>
+            ))
+            .exhaustive()
+    )
+}
 
 export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
     const handleArchie = (block: OwidArticleBlock, key: string) => {
@@ -32,7 +71,7 @@ export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
                 <Scroller d={block} key={key} />
             ))
             .with({ type: "chart-story" }, (block) => (
-                <ChartStory key={key} slides={block.value.slides} />
+                <ChartStory key={key} d={block} />
             ))
             .with({ type: "fixed-graphic" }, (block) => (
                 <FixedGraphic d={block} key={key} />
@@ -68,14 +107,23 @@ export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
             .with({ type: "position" }, (block) => (
                 <a href={block.value}>{block.value}</a>
             ))
-            .with({ type: "header", value: { level: "1" } }, (block) => (
+            .with({ type: "header", value: { level: 1 } }, (block) => (
                 <h1>{block.value.text}</h1>
             ))
-            .with({ type: "header", value: { level: "2" } }, (block) => (
+            .with({ type: "header", value: { level: 2 } }, (block) => (
                 <h2>{block.value.text}</h2>
             ))
-            .with({ type: "header", value: { level: "3" } }, (block) => (
+            .with({ type: "header", value: { level: 3 } }, (block) => (
                 <h3>{block.value.text}</h3>
+            ))
+            .with({ type: "header", value: { level: 4 } }, (block) => (
+                <h4>{block.value.text}</h4>
+            ))
+            .with({ type: "header", value: { level: 5 } }, (block) => (
+                <h5>{block.value.text}</h5>
+            ))
+            .with({ type: "header", value: { level: 6 } }, (block) => (
+                <h6>{block.value.text}</h6>
             ))
             .with({ type: "header" }, (block) => (
                 // Should throw in the future but for now just for debugging
@@ -84,6 +132,13 @@ export default function ArticleBlock({ b }: { b: OwidArticleBlock }) {
                     {block.value.level}
                 </h3>
             ))
+            // .with({ type: "structured-text" }, (block) => (
+            //     <React.Fragment>{renderSpans(block.value)}</React.Fragment>
+            // ))
+            .with({ type: "html" }, (block) => (
+                <div dangerouslySetInnerHTML={{ __html: block.value }} />
+            ))
+            .with({ type: "horizontal-rule" }, () => <hr></hr>)
             .exhaustive()
 
         // if (_type === "chart-grid") {

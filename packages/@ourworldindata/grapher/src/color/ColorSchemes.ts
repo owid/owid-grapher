@@ -10,7 +10,7 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
     // This function could also be a Map<ChartTypeName, ColorName[]> but
     // by doing it as a function usign ts-pattern.match we get compile
     // time safety that all enum cases in ChartTypeName are always handled here
-    return match(type)
+    return match(type) 
         .with(ChartTypeName.DiscreteBar, () => [
             ColorSchemeName.SingleColorDenim,
             ColorSchemeName.SingleColorDustyCoral,

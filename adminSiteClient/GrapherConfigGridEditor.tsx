@@ -19,11 +19,11 @@ import {
     DragDropContext,
     Droppable,
     Draggable,
-    DropResult,
+    DropResult, 
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
-import { match, __ } from "ts-pattern"
+import { match, P } from "ts-pattern"
 //import * as lodash from "lodash"
 import {
     cloneDeep,
@@ -362,7 +362,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { columnDataSource } = this
 
         return match(columnDataSource)
-            .with(
+            .with( 
                 { kind: ColumnDataSourceType.FieldDescription },
                 (source) => source.description
             )
@@ -995,8 +995,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 Number.isNaN(Number.parseInt(firstNewValue))
             )
             .with([FieldType.boolean, "boolean"], () => false)
-            .with([FieldType.complex, __], () => false) // complex types, e.g. color scales, are handled specially, allow them here
-            .with([[__], "string"], () => false)
+            .with([FieldType.complex, P._], () => false) // complex types, e.g. color scales, are handled specially, allow them here
+            .with([[P._], "string"], () => false)
 
             .otherwise(() => true)
         if (invalidTypeAssignment) return false

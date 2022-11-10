@@ -18,7 +18,7 @@ import {
     EqualityComparision,
     EqualityOperator,
     StringContainsOperation,
-    OperationContext,
+    OperationContext, 
 } from "./SqlFilterSExpression.js"
 const context: OperationContext = {
     grapherConfigFieldName: "grapherConfig",
