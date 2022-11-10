@@ -663,6 +663,27 @@ export type EnrichedBlockHeader = {
     text: SpanSimpleText
     level: number
 } & EnrichedBlockWithParseErrors
+
+export type RawSDGGridItem = {
+    goal?: string
+    link?: string
+}
+
+export type RawBlockSDGGrid = {
+    type: "sdg-grid"
+    value: RawSDGGridItem[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedSDGGridItem = {
+    goal: string
+    link: string
+}
+
+export type EnrichedBlockSDGGrid = {
+    type: "sdg-grid"
+    items: EnrichedSDGGridItem[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawArticleBlock =
     | RawBlockAside
     | RawBlockChart
@@ -679,6 +700,7 @@ export type OwidRawArticleBlock =
     | RawBlockHeader
     | RawBlockHtml
     | RawBlockHorizontalRule
+    | RawBlockSDGGrid
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -695,6 +717,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockHeader
     | EnrichedBlockHtml
     | EnrichedBlockHorizontalRule
+    | EnrichedBlockSDGGrid
 
 export interface OwidArticleType {
     id: string

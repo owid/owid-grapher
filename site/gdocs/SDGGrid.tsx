@@ -1,7 +1,7 @@
 import React from "react"
-import { OwidArticleBlock } from "@ourworldindata/utils"
+import { EnrichedBlockSDGGrid } from "@ourworldindata/utils"
 
-export default function SDGGrid({ d }: { d: OwidArticleBlock }) {
+export default function SDGGrid({ d }: { d: EnrichedBlockSDGGrid }) {
     return (
         <div className="sdg-grid">
             <h2>The 17 goals</h2>
