@@ -6,7 +6,7 @@ export default function SDGGrid({ d }: { d: EnrichedBlockSDGGrid }) {
         <div className="sdg-grid">
             <h2>The 17 goals</h2>
             <ul>
-                {d.value.map(
+                {d.items.map(
                     (tile: { goal: string; link: string }, i: number) => {
                         return (
                             <SDGTile

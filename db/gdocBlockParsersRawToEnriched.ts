@@ -32,9 +32,11 @@ import {
     EnrichedBlockList,
     EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
+    EnrichedBlockSDGGrid,
     EnrichedChartStoryItem,
     EnrichedRecircItem,
     EnrichedScrollerItem,
+    EnrichedSDGGridItem,
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
@@ -43,6 +45,7 @@ import {
     RawBlockPullQuote,
     RawBlockRecirc,
     RawBlockScroller,
+    RawBlockSDGGrid,
     RawBlockText,
     SpanSimpleText,
 } from "@ourworldindata/utils/dist/owidTypes.js"
@@ -80,6 +83,7 @@ export function parseRawBlocksToEnhancedBlocks(
         .with({ type: "url" }, () => null) // url blocks should only occur inside of chart stories etc
         .with({ type: "position" }, () => null) // position blocks should only occur inside of chart stories etc
         .with({ type: "header" }, parseHeader)
+        .with({ type: "sdg-grid" }, parseSdgGrid)
         .exhaustive()
 }
 
@@ -647,5 +651,76 @@ const parseHeader = (raw: RawBlockHeader): EnrichedBlockHeader => {
         text: headerSpans.texts[0],
         level: level,
         parseErrors: [],
+    }
+}
+
+const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
+    const createError = (
+        error: ParseError,
+        items: EnrichedSDGGridItem[] = []
+    ): EnrichedBlockSDGGrid => ({
+        type: "sdg-grid",
+        items,
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+
+    if (raw.value.length === 0)
+        return createError({
+            message: "SDG Grid must have at least one item",
+        })
+
+    if (!raw.value)
+        return createError({
+            message: "SDG Grid must have at least one entry",
+        })
+
+    const items: (EnrichedSDGGridItem | ParseError[])[] = raw.value.map(
+        (item): EnrichedSDGGridItem | ParseError[] => {
+            if (typeof item?.goal !== "string")
+                return [
+                    {
+                        message:
+                            "Item is missing goal property or it is not a string value",
+                    },
+                ]
+            if (typeof item?.link !== "string")
+                return [
+                    {
+                        message:
+                            "Item is missing link property or it is not a string value",
+                    },
+                ]
+            // TODO: make the type not just a string and then parse spans here
+            const goal = item.goal!
+            const link = item.link!
+
+            //const errors = goal.parseErrors.concat(link.parseErrors)
+
+            //if (errors.length > 0) return errors
+
+            return {
+                goal,
+                link,
+            }
+        }
+    )
+
+    const [errors, enrichedItems] = partition(
+        items,
+        (item: EnrichedSDGGridItem | ParseError[]): item is ParseError[] =>
+            isArray(item)
+    )
+
+    const flattenedErrors = errors.flat()
+
+    return {
+        type: "sdg-grid",
+        items: enrichedItems,
+        parseErrors: [...flattenedErrors],
     }
 }

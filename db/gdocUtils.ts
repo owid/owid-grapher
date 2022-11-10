@@ -22,6 +22,10 @@ import {
 import { match, P } from "ts-pattern"
 import _, { partition } from "lodash"
 import * as cheerio from "cheerio"
+import {
+    RawBlockSDGGrid,
+    RawSDGGridItem,
+} from "@ourworldindata/utils/dist/owidTypes.js"
 
 function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n.end"
@@ -114,6 +118,20 @@ export function recircToArchieMlString(recirc: RawBlockRecirc): string {
         recirc.type,
         typeof recirc.value !== "string" ? recirc.value : [],
         recircContentToArchieMlString,
+        false
+    )
+}
+
+export function sdgGridItemsToArchieMlString(content: RawSDGGridItem): string {
+    // TODO: this cast is wrong and will lead to errors in serialization. Fix SDGGrid serialization
+    return stringOnlyObjectToArchieMlString(content as any)
+}
+
+export function sdgGridToArchieMlString(grid: RawBlockSDGGrid): string {
+    return blockListToArchieMlString(
+        grid.type,
+        typeof grid.value !== "string" ? grid.value : [],
+        sdgGridItemsToArchieMlString,
         false
     )
 }
@@ -211,6 +229,7 @@ export const owidRawArticleBlockToArchieMLString = (
                 true
             )
         )
+        .with({ type: "sdg-grid" }, (b) => sdgGridToArchieMlString(b))
         .exhaustive()
     return content
 }

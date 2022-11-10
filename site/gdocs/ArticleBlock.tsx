@@ -97,6 +97,9 @@ export default function ArticleBlock({ b }: { b: OwidEnrichedArticleBlock }) {
                     <div dangerouslySetInnerHTML={{ __html: block.value }} />
                 ))
                 .with({ type: "horizontal-rule" }, () => <hr></hr>)
+                .with({ type: "sdg-grid" }, (block) => (
+                    <SDGGrid d={block} key={key} />
+                ))
                 .exhaustive()
 
             // if (_type === "chart-grid") {
