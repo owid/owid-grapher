@@ -50,6 +50,7 @@ import {
     RawBlockText,
     SpanSimpleText,
 } from "@ourworldindata/utils/dist/owidTypes.js"
+import { parseInt } from "lodash"
 
 export function parseRawBlocksToEnhancedBlocks(
     block: OwidRawArticleBlock
@@ -621,22 +622,27 @@ const parseHeader = (header: RawBlockHeader): EnrichedBlockHeader => {
         })
     const headerSpans = parseSimpleTextsWithErrors([headerText])
 
-    if (headerSpans.errors.length !== 1)
+    if (headerSpans.texts.length !== 1)
         return createError({
             message:
                 "Text did not result in exactly one simple span - did you apply formatting?",
         })
 
-    if (!header.value.level || header.value.level < 1 || header.value.level > 6)
+    if (!header.value.level)
+        return createError({
+            message: "Header level property is missing",
+        })
+    const level = parseInt(header.value.level, 10)
+    if (level < 1 || level > 6)
         return createError({
             message:
-                "Header level property is missing or outside of valid range between 1 and 6",
+                "Header level property is outside the valid range between 1 and 6",
         })
 
     return {
         type: "header",
         text: headerSpans.texts[0],
-        level: header.value.level,
+        level: level,
         parseErrors: [],
     }
 }

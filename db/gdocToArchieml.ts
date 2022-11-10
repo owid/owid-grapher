@@ -179,7 +179,7 @@ async function readElements(
                             type: "header",
                             value: {
                                 text: text.trim(),
-                                level: Number.parseInt(headingLevel, 10),
+                                level: headingLevel,
                             },
                         }
                         return owidRawArticleBlockToArchieMLString(header)

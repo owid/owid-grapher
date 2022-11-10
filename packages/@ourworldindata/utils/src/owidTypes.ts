@@ -651,7 +651,7 @@ export type RawBlockPosition = {
 // they are subsumed into FixedGraphic blocks during enrichment
 export type RawBlockHeaderValue = {
     text?: string
-    level?: number
+    level?: string
 }
 export type RawBlockHeader = {
     type: "header"

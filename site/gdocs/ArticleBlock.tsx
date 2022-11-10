@@ -20,7 +20,10 @@ export default function ArticleBlock({ b }: { b: OwidEnrichedArticleBlock }) {
             return (
                 <div key={key} className={"error"}>
                     {block.parseErrors.map((e, i) => (
-                        <div key={i}>{e.message}</div>
+                        <div key={i}>
+                            <h3>{block.type}</h3>
+                            {e.message}
+                        </div>
                     ))}
                 </div>
             )

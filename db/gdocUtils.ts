@@ -142,7 +142,9 @@ export function headerToArchieMlString(block: RawBlockHeader): string {
     return objectBlockToArchieMlString(block.type, block.value, () => {
         return [
             keyValueToArchieMlString("text", val?.text),
-            keyValueToArchieMlString("level", val?.level?.toString()),
+            val?.level !== undefined
+                ? keyValueToArchieMlString("level", val.level.toString())
+                : "",
         ].join("\n")
     })
 }
