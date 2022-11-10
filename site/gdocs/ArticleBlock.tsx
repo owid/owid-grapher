@@ -130,5 +130,5 @@ export default function ArticleBlock({ b }: { b: OwidEnrichedArticleBlock }) {
         }
     }
 
-    return handleArchie(b, "")
+    return <BlockErrorBoundary>{handleArchie(b, "")}</BlockErrorBoundary>
 }
