@@ -38,30 +38,7 @@ interface ElementMemo {
     body: OwidRawArticleBlock[]
 }
 
-export const gdocToArchieML = async ({
-    auth,
-    client,
-    documentId,
-    google = googleApisInstance,
-    imageHandler,
-}: DocToArchieMLOptions): Promise<OwidArticleContent> => {
-    // create docs client if not provided
-    if (!client) {
-        client = google.docs({
-            version: "v1",
-            auth,
-        })
-    }
-
-    // pull the data out of the doc
-    const { data } = await client.documents.get({
-        documentId,
-    })
-
-    // convert the doc's content to text ArchieML will understand
-
-    let text = await readElements(data, imageHandler)
-
+export const stringToArchieML = (text: string): OwidArticleContent => {
     const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
         val: string,
         i: number
@@ -126,9 +103,35 @@ export const gdocToArchieML = async ({
             : typeof citation === "string"
             ? htmlToSimpleTextBlock(citation)
             : citation.map(htmlToSimpleTextBlock)
+    return parsed
+}
+
+export const gdocToArchieML = async ({
+    auth,
+    client,
+    documentId,
+    google = googleApisInstance,
+    imageHandler,
+}: DocToArchieMLOptions): Promise<OwidArticleContent> => {
+    // create docs client if not provided
+    if (!client) {
+        client = google.docs({
+            version: "v1",
+            auth,
+        })
+    }
+
+    // pull the data out of the doc
+    const { data } = await client.documents.get({
+        documentId,
+    })
+
+    // convert the doc's content to text ArchieML will understand
+
+    const text = await readElements(data, imageHandler)
 
     // pass text to ArchieML and return results
-    return parsed
+    return stringToArchieML(text)
 }
 
 async function readElements(
