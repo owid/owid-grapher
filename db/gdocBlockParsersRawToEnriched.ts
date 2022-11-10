@@ -87,7 +87,7 @@ export function parseRawBlocksToEnhancedBlocks(
         .exhaustive()
 }
 
-const parseAside = (aside: RawBlockAside): EnrichedBlockAside => {
+const parseAside = (raw: RawBlockAside): EnrichedBlockAside => {
     const createError = (
         error: ParseError,
         caption: Span[] = [],
@@ -99,21 +99,21 @@ const parseAside = (aside: RawBlockAside): EnrichedBlockAside => {
         parseErrors: [error],
     })
 
-    if (typeof aside.value === "string")
+    if (typeof raw.value === "string")
         return createError({
             message: "Value is a string, not an object with properties",
         })
 
-    if (!aside.value.caption)
+    if (!raw.value.caption)
         return createError({
             message: "Caption property is missing",
         })
 
     const position =
-        aside.value.position === "left" || aside.value.position === "right"
-            ? aside.value.position
+        raw.value.position === "left" || raw.value.position === "right"
+            ? raw.value.position
             : undefined
-    const caption = htmlToSpans(aside.value.caption)
+    const caption = htmlToSpans(raw.value.caption)
 
     return {
         type: "aside",
@@ -123,27 +123,19 @@ const parseAside = (aside: RawBlockAside): EnrichedBlockAside => {
     }
 }
 
-const parseChart = (chart: RawBlockChart): EnrichedBlockChart => {
+const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
     const createError = (
         error: ParseError,
         url: string,
-        height: string | undefined = undefined,
-        row: string | undefined = undefined,
-        column: string | undefined = undefined,
-        position: ChartPositionChoice | undefined = undefined,
         caption: Span[] = []
     ): EnrichedBlockChart => ({
         type: "chart",
         url,
-        height,
-        row,
-        column,
-        position,
         caption,
         parseErrors: [error],
     })
 
-    const val = chart.value
+    const val = raw.value
 
     if (typeof val === "string") {
         return {
@@ -169,9 +161,9 @@ const parseChart = (chart: RawBlockChart): EnrichedBlockChart => {
 
         const warnings: ParseError[] = []
 
-        const height = val.height ? val.height : undefined
-        const row = val.row ? val.row : undefined
-        const column = val.column ? val.column : undefined
+        const height = val.height
+        const row = val.row
+        const column = val.column
         let position: ChartPositionChoice | undefined = undefined
         if (val.position)
             if (val.position === "featured") position = val.position
@@ -195,7 +187,7 @@ const parseChart = (chart: RawBlockChart): EnrichedBlockChart => {
     }
 }
 
-const parseScroller = (scroller: RawBlockScroller): EnrichedBlockScroller => {
+const parseScroller = (raw: RawBlockScroller): EnrichedBlockScroller => {
     const createError = (
         error: ParseError,
         blocks: EnrichedScrollerItem[] = []
@@ -205,7 +197,7 @@ const parseScroller = (scroller: RawBlockScroller): EnrichedBlockScroller => {
         parseErrors: [error],
     })
 
-    if (typeof scroller.value === "string")
+    if (typeof raw.value === "string")
         return createError({
             message: "Value is a string, not an object with properties",
         })
@@ -216,7 +208,7 @@ const parseScroller = (scroller: RawBlockScroller): EnrichedBlockScroller => {
         text: { type: "text", value: [], parseErrors: [] },
     }
     const warnings: ParseError[] = []
-    for (const block of scroller.value) {
+    for (const block of raw.value) {
         match(block)
             .with({ type: "url" }, (url) => {
                 if (currentBlock.url !== "") {
@@ -253,9 +245,7 @@ const parseScroller = (scroller: RawBlockScroller): EnrichedBlockScroller => {
     }
 }
 
-const parseChartStory = (
-    chartStory: RawBlockChartStory
-): EnrichedBlockChartStory => {
+const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
     const createError = (
         error: ParseError,
         items: EnrichedChartStoryItem[] = []
@@ -265,20 +255,20 @@ const parseChartStory = (
         parseErrors: [error],
     })
 
-    if (typeof chartStory.value === "string")
+    if (typeof raw.value === "string")
         return createError({
             message: "Value is a string, not an object with properties",
         })
 
-    const items: (EnrichedChartStoryItem | ParseError)[] = chartStory.value.map(
+    const items: (EnrichedChartStoryItem | ParseError)[] = raw.value.map(
         (item): EnrichedChartStoryItem | ParseError => {
             const chart = item?.chart
-            if (typeof item?.narrative !== "string")
+            if (typeof item?.narrative !== "string" || item?.narrative === "")
                 return {
                     message:
                         "Item is missing narrative property or it is not a string value",
                 }
-            if (typeof chart !== "string")
+            if (typeof chart !== "string" || item?.chart === "")
                 return {
                     message:
                         "Item is missing chart property or it is not a string value",
@@ -306,7 +296,7 @@ const parseChartStory = (
 }
 
 const parseFixedGraphic = (
-    fixedGraphic: RawBlockFixedGraphic
+    raw: RawBlockFixedGraphic
 ): EnrichedBlockFixedGraphic => {
     const createError = (
         error: ParseError,
@@ -316,8 +306,7 @@ const parseFixedGraphic = (
             caption: [],
             parseErrors: [],
         },
-        text: EnrichedBlockText[] = [],
-        position: BlockPositionChoice | undefined = undefined
+        text: EnrichedBlockText[] = []
     ): EnrichedBlockFixedGraphic => ({
         type: "fixed-graphic",
         graphic,
@@ -326,7 +315,7 @@ const parseFixedGraphic = (
         parseErrors: [error],
     })
 
-    if (typeof fixedGraphic.value === "string")
+    if (typeof raw.value === "string")
         return createError({
             message: "Value is a string, not an object with properties",
         })
@@ -335,7 +324,7 @@ const parseFixedGraphic = (
     let graphic: EnrichedBlockChart | EnrichedBlockImage | undefined = undefined
     const texts: EnrichedBlockText[] = []
     const warnings: ParseError[] = []
-    for (const block of fixedGraphic.value) {
+    for (const block of raw.value) {
         match(block)
             .with({ type: "chart" }, (chart) => {
                 graphic = parseChart(chart)
@@ -351,7 +340,7 @@ const parseFixedGraphic = (
                     position = chart.value
                 else {
                     warnings.push({
-                        message: "position must be 'featured' or unset",
+                        message: "position must be 'left' or 'right' or unset",
                     })
                 }
             })
@@ -365,7 +354,7 @@ const parseFixedGraphic = (
     }
     if (texts.length === 0 || !graphic)
         return createError({
-            message: "fixed-graphic must have a position and a graphic",
+            message: "fixed-graphic must have a text and a graphic",
         })
 
     return {
@@ -417,7 +406,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     }
 }
 
-const parseList = (list: RawBlockList): EnrichedBlockList => {
+const parseList = (raw: RawBlockList): EnrichedBlockList => {
     const createError = (
         error: ParseError,
         items: EnrichedBlockText[] = []
@@ -427,12 +416,12 @@ const parseList = (list: RawBlockList): EnrichedBlockList => {
         parseErrors: [error],
     })
 
-    if (typeof list.value === "string")
+    if (typeof raw.value === "string")
         return createError({
             message: "Value is a string, not a list of strings",
         })
 
-    const items = list.value.map(htmlToEnrichedTextBlock)
+    const items = raw.value.map(htmlToEnrichedTextBlock)
 
     return {
         type: "list",
@@ -442,17 +431,15 @@ const parseList = (list: RawBlockList): EnrichedBlockList => {
 }
 
 const parseSimpleTextsWithErrors = (
-    input: string[]
+    raw: string[]
 ): { errors: ParseError[]; texts: SpanSimpleText[] } => {
-    const parsedAsBlocks = input.map(htmlToSimpleTextBlock)
-    const errors = parsedAsBlocks.map((block) => block.parseErrors).flat()
+    const parsedAsBlocks = raw.map(htmlToSimpleTextBlock)
+    const errors = parsedAsBlocks.flatMap((block) => block.parseErrors)
     const texts = parsedAsBlocks.map((block) => block.value)
     return { errors, texts }
 }
 
-const parsePullQuote = (
-    pullquote: RawBlockPullQuote
-): EnrichedBlockPullQuote => {
+const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     const createError = (
         error: ParseError,
         text: SpanSimpleText[] = []
@@ -462,14 +449,12 @@ const parsePullQuote = (
         parseErrors: [error],
     })
 
-    if (typeof pullquote.value === "string")
+    if (typeof raw.value === "string")
         return createError({
             message: "Value is a string, not a list of strings",
         })
 
-    const textResults = compact(
-        pullquote.value.map(parseRawBlocksToEnhancedBlocks)
-    )
+    const textResults = compact(raw.value.map(parseRawBlocksToEnhancedBlocks))
 
     const [textBlocks, otherBlocks] = partition(
         textResults,
@@ -507,10 +492,10 @@ const parsePullQuote = (
     }
 }
 
-const parseRecirc = (recirc: RawBlockRecirc): EnrichedBlockRecirc => {
+const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     const createError = (
         error: ParseError,
-        title: SpanSimpleText,
+        title: SpanSimpleText = { spanType: "span-simple-text", text: "" },
         items: EnrichedRecircItem[] = []
     ): EnrichedBlockRecirc => ({
         type: "recirc",
@@ -519,41 +504,29 @@ const parseRecirc = (recirc: RawBlockRecirc): EnrichedBlockRecirc => {
         parseErrors: [error],
     })
 
-    if (typeof recirc.value === "string")
-        return createError(
-            {
-                message: "Value is a string, not an object with properties",
-            },
-            { spanType: "span-simple-text", text: "" }
-        )
+    if (typeof raw.value === "string")
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
 
-    if (recirc.value.length === 0)
-        return createError(
-            {
-                message: "Recirc must have at least one item",
-            },
-            { spanType: "span-simple-text", text: "" }
-        )
+    if (raw.value.length === 0)
+        return createError({
+            message: "Recirc must have at least one item",
+        })
 
-    const title = recirc.value[0].title
+    const title = raw.value[0].title
     if (!title)
-        return createError(
-            {
-                message: "Title property is missing or empty",
-            },
-            { spanType: "span-simple-text", text: "" }
-        )
+        return createError({
+            message: "Title property is missing or empty",
+        })
 
-    if (!recirc.value[0].list)
-        return createError(
-            {
-                message: "Recirc must have at least one entry",
-            },
-            { spanType: "span-simple-text", text: "" }
-        )
+    if (!raw.value[0].list)
+        return createError({
+            message: "Recirc must have at least one entry",
+        })
 
-    const items: (EnrichedRecircItem | ParseError[])[] =
-        recirc.value[0].list.map((item): EnrichedRecircItem | ParseError[] => {
+    const items: (EnrichedRecircItem | ParseError[])[] = raw.value[0].list.map(
+        (item): EnrichedRecircItem | ParseError[] => {
             if (typeof item?.article !== "string")
                 return [
                     {
@@ -588,7 +561,8 @@ const parseRecirc = (recirc: RawBlockRecirc): EnrichedBlockRecirc => {
                 article: article.value,
                 author: author.value,
             }
-        })
+        }
+    )
 
     const [errors, enrichedItems] = partition(
         items,
@@ -607,7 +581,7 @@ const parseRecirc = (recirc: RawBlockRecirc): EnrichedBlockRecirc => {
     }
 }
 
-const parseText = (text: RawBlockText): EnrichedBlockText => {
+const parseText = (raw: RawBlockText): EnrichedBlockText => {
     const createError = (
         error: ParseError,
         value: Span[] = []
@@ -617,12 +591,12 @@ const parseText = (text: RawBlockText): EnrichedBlockText => {
         parseErrors: [error],
     })
 
-    if (typeof text.value !== "string")
+    if (typeof raw.value !== "string")
         return createError({
             message: "Value is a not a string",
         })
 
-    const value = htmlToSpans(text.value)
+    const value = htmlToSpans(raw.value)
 
     return {
         type: "text",
@@ -631,7 +605,7 @@ const parseText = (text: RawBlockText): EnrichedBlockText => {
     }
 }
 
-const parseHeader = (header: RawBlockHeader): EnrichedBlockHeader => {
+const parseHeader = (raw: RawBlockHeader): EnrichedBlockHeader => {
     const createError = (
         error: ParseError,
         text: SpanSimpleText = { spanType: "span-simple-text", text: "" },
@@ -643,12 +617,12 @@ const parseHeader = (header: RawBlockHeader): EnrichedBlockHeader => {
         parseErrors: [error],
     })
 
-    if (typeof header.value === "string")
+    if (typeof raw.value === "string")
         return createError({
             message: "Value is a string, not an object with properties",
         })
 
-    const headerText = header.value.text
+    const headerText = raw.value.text
     if (!headerText)
         return createError({
             message: "Text property is missing",
@@ -661,11 +635,11 @@ const parseHeader = (header: RawBlockHeader): EnrichedBlockHeader => {
                 "Text did not result in exactly one simple span - did you apply formatting?",
         })
 
-    if (!header.value.level)
+    if (!raw.value.level)
         return createError({
             message: "Header level property is missing",
         })
-    const level = parseInt(header.value.level, 10)
+    const level = parseInt(raw.value.level, 10)
     if (level < 1 || level > 6)
         return createError({
             message:
