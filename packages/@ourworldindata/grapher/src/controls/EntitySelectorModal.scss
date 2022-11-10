@@ -1,5 +1,11 @@
 $zindex-EntitySelector: 30;
 
+&.GrapherPortraitClass .EntitySelectorMulti {
+    .selectedData {
+        min-width: 50%;
+    }
+}
+
 .entitySelectorOverlay {
     position: absolute;
     top: 0;
@@ -121,11 +127,5 @@ $zindex-EntitySelector: 30;
         &:hover {
             color: $controls-color;
         }
-    }
-}
-
-.GrapherComponent.GrapherPortraitClass .EntitySelectorMulti {
-    .selectedData {
-        min-width: 50%;
     }
 }

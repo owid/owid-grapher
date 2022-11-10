@@ -14,7 +14,6 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "chunk-text": "^1.0.5",
     "d3": "^6.1.1",
     "dayjs": "^1.11.5",
     "html-to-text": "^8.2.0",
@@ -31,9 +30,8 @@
     "timezone-mock": "^1.0.18",
     "ts-pattern": "^4.0.4",
     "url-parse": "^1.5.10"
-},
-"devDependencies": {
-    "@types/chunk-text": "^1.0.0",
+  },
+  "devDependencies": {
     "@types/d3": "^6",
     "@types/d3-format": "^2",
     "@types/html-to-text": "^8.1.1",
@@ -43,11 +41,10 @@
     "@types/react-tag-autocomplete": "^6.1.1",
     "@types/string-pixel-width": "^1.7.2",
     "@types/url-parse": "^1.4.8",
-    "eslint": "^8.23.1",
-    "eslint-plugin-react-hooks": "^4.5.0",
+    "eslint": "^8.27.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "typescript": "~4.8.2"
-
-},
+  },
   "license": "MIT",
   "nx": {
     "implicitDependencies": []

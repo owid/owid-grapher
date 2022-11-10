@@ -15,7 +15,7 @@ export class FillMissingPublishedByBySourceName1667317480367
             )`)
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
+    public async down(_queryRunner: QueryRunner): Promise<void> {
         // no going back...
     }
 }

@@ -102,7 +102,11 @@ export class DimensionCard extends React.Component<{
                         {isDndEnabled && (
                             <FontAwesomeIcon icon={faArrowsAltV} />
                         )}
-                        <ColorBox color={this.color} onColor={this.onColor} />
+                        <ColorBox
+                            color={this.color}
+                            onColor={this.onColor}
+                            showLineChartColors={grapher.isLineChart}
+                        />
                     </div>
                     <Link
                         to={`/variables/${dimension.variableId}`}

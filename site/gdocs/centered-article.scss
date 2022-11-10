@@ -123,7 +123,7 @@
     background-color: #fff;
 }
 
-.owidArticle .title {
+.owidArticle > .title {
     margin: 0;
     line-height: 48px;
     font-size: 40px;
@@ -134,7 +134,7 @@
     text-align: center;
 }
 
-.owidArticle .subtitle {
+.owidArticle > .subtitle {
     margin: 0;
     margin-bottom: 0.5em;
     line-height: 32px;

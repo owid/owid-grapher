@@ -9,7 +9,7 @@ import {
     OwidArticleTypeJSON,
     getArticleFromJSON,
 } from "@ourworldindata/utils"
-import { Button, Col, Drawer, Modal, Row, Space, Tag, Typography } from "antd"
+import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 
@@ -30,12 +30,16 @@ import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
+import { DebugProvider } from "../site/gdocs/DebugContext.js"
+import { GdocsDiffButton } from "./GdocsDiffButton.js"
+import { GdocsDiff } from "./GdocsDiff.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
     const [originalGdoc, setOriginalGdoc] = useState<OwidArticleType>()
     const [isSettingsOpen, setSettingsOpen] = useState(false)
+    const [isDiffOpen, setDiffOpen] = useState(false)
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
 
     const { admin } = useContext(AdminAppContext)
@@ -63,21 +67,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const hasErrors =
         errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
 
-    const confirmPublish = async () => {
-        if (!gdoc) return
-
-        Modal.confirm({
-            title: "Are you sure you want to publish this article?",
-            content:
-                hasWarnings &&
-                errors?.map((error, i) => <div key={i}>{error.message}</div>),
-            okType: hasWarnings ? "danger" : "primary",
-            okText: "Publish now",
-            cancelText: "Cancel",
-            onOk: doPublish,
-        })
-    }
-
     const doPublish = async () => {
         if (!gdoc) return
         const publishedGdoc = await store.publish(gdoc)
@@ -104,6 +93,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const onSettingsClose = () => {
         setSettingsOpen(false)
+    }
+
+    const onDiffClose = () => {
+        setDiffOpen(false)
     }
 
     // Handle errors and validation status
@@ -176,11 +169,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             )}
                             <GdocsSaveButtons
                                 published={gdoc.published}
+                                originalGdoc={originalGdoc}
+                                gdoc={gdoc}
+                                errors={errors}
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
                                 hasChanges={hasChanges}
                                 isLightningUpdate={isLightningUpdate}
-                                onPublish={confirmPublish}
+                                setDiffOpen={setDiffOpen}
+                                doPublish={doPublish}
                             />
                             <IconBadge
                                 status={
@@ -197,6 +194,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             </IconBadge>
                             <GdocsMoreMenu
                                 gdoc={gdoc}
+                                onDebug={() => setDiffOpen(true)}
                                 onUnpublish={doUnpublish}
                                 onDelete={onDelete}
                             />
@@ -221,8 +219,35 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         errors={errors}
                     />
                 </Drawer>
+                <Drawer
+                    placement="bottom"
+                    size="large"
+                    open={isDiffOpen}
+                    onClose={onDiffClose}
+                    extra={
+                        <Button type="primary" onClick={onDiffClose}>
+                            Done
+                        </Button>
+                    }
+                >
+                    <GdocsDiff originalGdoc={originalGdoc} gdoc={gdoc} />
+                </Drawer>
 
-                <OwidArticle {...gdoc} />
+                <DebugProvider>
+                    <OwidArticle {...gdoc} />
+                </DebugProvider>
+
+                {gdoc.published && (
+                    <div
+                        className="position-fixed m-3"
+                        style={{ bottom: 0, right: 0 }}
+                    >
+                        <GdocsDiffButton
+                            hasChanges={hasChanges}
+                            setDiffOpen={setDiffOpen}
+                        />
+                    </div>
+                )}
             </main>
         </AdminLayout>
     ) : null

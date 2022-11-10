@@ -36,7 +36,8 @@ gr_mysql() {
   mysql -u${GRAPHER_DB_USER} -p"${GRAPHER_DB_PASS}" -h $GRAPHER_DB_HOST --default-character-set=utf8mb4 "$@" 2>/dev/null
 }
 
-DL_FOLDER="/tmp"
+DL_FOLDER="/tmp/$(whoami)"
+mkdir -p $DL_FOLDER
 
 # Default options
 WITH_UPLOADS=false

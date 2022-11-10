@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*
 Duplication of d3-geo-projection.geoPatterson && d3-geo-projection.geoRobinson
 for webpack bundlesize purposes, as the original module wasn't tree-shakeable

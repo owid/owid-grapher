@@ -10,7 +10,7 @@
         },
         {
             "path": "./itsJustJavascript/webpack/owid.js",
-            "maxSize": "100 KB"
+            "maxSize": "105 KB"
         }
     ],
     "defaultCompression": "none"

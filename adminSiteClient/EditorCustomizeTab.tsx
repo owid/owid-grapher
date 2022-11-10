@@ -586,6 +586,7 @@ export class EditorCustomizeTab extends React.Component<{
                     <EditorColorScaleSection
                         scale={grapher.chartInstanceExceptMap.colorScale}
                         chartType={grapher.type}
+                        showLineChartColors={grapher.isLineChart}
                         features={{
                             visualScaling: true,
                             legendDescription: true,

@@ -49,6 +49,11 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.OwidCategoricalC,
             ColorSchemeName.OwidCategoricalD,
             ColorSchemeName.OwidCategoricalE,
+            ColorSchemeName.SingleColorGradientDenim,
+            ColorSchemeName.SingleColorGradientTeal,
+            ColorSchemeName.SingleColorGradientPurple,
+            ColorSchemeName.SingleColorGradientDustyCoral,
+            ColorSchemeName.SingleColorGradientDarkCopper,
         ])
         .with(ChartTypeName.StackedBar, () => [
             ColorSchemeName["owid-distinct"],
@@ -57,6 +62,11 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.OwidCategoricalC,
             ColorSchemeName.OwidCategoricalD,
             ColorSchemeName.OwidCategoricalE,
+            ColorSchemeName.SingleColorGradientDenim,
+            ColorSchemeName.SingleColorGradientTeal,
+            ColorSchemeName.SingleColorGradientPurple,
+            ColorSchemeName.SingleColorGradientDustyCoral,
+            ColorSchemeName.SingleColorGradientDarkCopper,
         ])
         .with(ChartTypeName.StackedDiscreteBar, () => [
             ColorSchemeName["owid-distinct"],
@@ -65,6 +75,11 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.OwidCategoricalC,
             ColorSchemeName.OwidCategoricalD,
             ColorSchemeName.OwidCategoricalE,
+            ColorSchemeName.SingleColorGradientDenim,
+            ColorSchemeName.SingleColorGradientTeal,
+            ColorSchemeName.SingleColorGradientPurple,
+            ColorSchemeName.SingleColorGradientDustyCoral,
+            ColorSchemeName.SingleColorGradientDarkCopper,
         ])
         .with(ChartTypeName.TimeScatter, () => [
             ColorSchemeName.continents,

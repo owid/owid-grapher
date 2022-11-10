@@ -52,7 +52,7 @@ class EntityItem extends React.Component<EntityItemProps> {
 
     render() {
         const { props, color } = this
-        const { entityName } = props
+        const { entityName, grapher } = props
         const rest = omit(props, ["entityName", "onRemove", "grapher"])
 
         return (
@@ -65,7 +65,11 @@ class EntityItem extends React.Component<EntityItemProps> {
                     <div>
                         <FontAwesomeIcon icon={faArrowsAltV} />
                     </div>
-                    <ColorBox color={color} onColor={this.onColor} />
+                    <ColorBox
+                        color={color}
+                        onColor={this.onColor}
+                        showLineChartColors={grapher.isLineChart}
+                    />
                     {entityName}
                 </div>
                 <div className="clickable" onClick={this.onRemove}>
