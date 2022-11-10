@@ -7,29 +7,23 @@ import * as cheerio from "cheerio"
 import {
     RawBlockPullQuote,
     OwidRawArticleBlock,
-    EnrichedBlockText,
     RawBlockImage,
-    OwidEnrichedArticleBlock,
     RawBlockText,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import {
-    cheerioToSpan,
-    consolidateSpans,
-    spansToHtmlString,
-} from "./gdocUtils.js"
+import { cheerioToSpan, spansToHtmlString } from "./gdocUtils.js"
 
 // Note: all of this code is heavvy WIP - please ignore it for now
 
-function mapCheerioChildren(
-    node: CheerioElement,
-    handler: (node: CheerioElement) => void
-): void {
-    node.children?.forEach((child) => {
-        handler(child)
-        mapCheerioChildren(child, handler)
-    })
-}
+// function mapCheerioChildren(
+//     node: CheerioElement,
+//     handler: (node: CheerioElement) => void
+// ): void {
+//     node.children?.forEach((child) => {
+//         handler(child)
+//         mapCheerioChildren(child, handler)
+//     })
+// }
 
 // TODO: add context for per post stats and error message context
 
@@ -225,7 +219,7 @@ const migrate = async (): Promise<void> => {
         SELECT id, content from posts where type<>'wp_block' limit 1
     `)
 
-    const tagCounts = new Map<string, number>()
+    // const tagCounts = new Map<string, number>()
 
     for (const post of posts) {
         const $: CheerioStatic = cheerio.load(post.content)

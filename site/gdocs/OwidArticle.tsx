@@ -3,7 +3,6 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks"
 import Footnotes from "./Footnotes"
 import {
-    OwidEnrichedArticleBlock,
     OwidArticleType,
     formatDate,
     getArticleFromJSON,

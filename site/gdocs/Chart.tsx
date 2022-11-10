@@ -5,8 +5,6 @@ import { EnrichedBlockChart } from "@ourworldindata/utils"
 import { renderSpans } from "./utils"
 
 export default function Chart({ d }: { d: EnrichedBlockChart }) {
-    let content: JSX.Element
-
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
 
@@ -18,7 +16,7 @@ export default function Chart({ d }: { d: EnrichedBlockChart }) {
         }
     }
 
-    content = (
+    const content: JSX.Element = (
         <figure
             className={d.position}
             style={{ gridRow: d.row, gridColumn: d.column }}

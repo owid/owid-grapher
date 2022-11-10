@@ -1,8 +1,6 @@
 import {
     OwidRawArticleBlock,
-    OwidArticleContent,
     Span,
-    RawBlockHorizontalRule,
     RawBlockImage,
     RawBlockList,
     RawBlockHeader,
@@ -22,10 +20,8 @@ import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
     htmlToSpans,
-    owidRawArticleBlockToArchieMLString,
-    spanToHtmlString,
 } from "./gdocUtils"
-import { match, P } from "ts-pattern"
+import { match } from "ts-pattern"
 import {
     EnrichedBlockChartStory,
     EnrichedBlockFixedGraphic,

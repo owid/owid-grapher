@@ -1,7 +1,6 @@
 import { EnrichedBlockText } from "@ourworldindata/utils/dist/index.js"
 import React from "react"
 import Paragraph from "./Paragraph.js"
-import { renderSpans } from "./utils"
 
 export default function Footnotes({ d }: { d: EnrichedBlockText[] }) {
     if (!d || !d.length) {

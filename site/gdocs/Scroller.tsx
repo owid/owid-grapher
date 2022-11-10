@@ -1,17 +1,11 @@
 import React, { useState, useRef } from "react"
 import { InView } from "react-intersection-observer"
-import {
-    EnrichedBlockScroller,
-    EnrichedBlockText,
-    OwidEnrichedArticleBlock,
-} from "@ourworldindata/utils"
+import { EnrichedBlockScroller } from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../hooks.js"
 import { renderSpans } from "./utils"
 import { EnrichedScrollerItem } from "@ourworldindata/utils/dist/owidTypes.js"
 export default function Scroller({ d }: { d: EnrichedBlockScroller }) {
-    let lastUrl: string
-
     const [figureSrc, setFigureSrc] = useState(d.blocks[0].url)
 
     const refChartContainer = useRef<HTMLDivElement>(null)

@@ -1,10 +1,5 @@
 import React from "react"
-import ArticleBlock from "./ArticleBlock"
-import {
-    OwidEnrichedArticleBlock,
-    EnrichedBlockFixedGraphic,
-} from "@ourworldindata/utils"
-import { renderSpans } from "./utils"
+import { EnrichedBlockFixedGraphic } from "@ourworldindata/utils"
 import Image from "./Image.js"
 import { match } from "ts-pattern"
 import Chart from "./Chart.js"

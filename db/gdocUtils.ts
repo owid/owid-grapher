@@ -38,7 +38,7 @@ export function keyValueToArchieMlString(
 
 export function* stringPropertiesToArchieMlString(
     properties: [string, string][]
-) {
+): Generator<string, void, unknown> {
     for (const [k, v] of properties) {
         yield keyValueToArchieMlString(k, v)
     }
@@ -61,7 +61,7 @@ export function stringOnlyObjectToArchieMlString(obj: {
     value: Record<string, string> | string
 }): string {
     const val = obj.value
-    const serializeFn = () =>
+    const serializeFn = (): string =>
         typeof val === "string"
             ? val
             : [...stringPropertiesToArchieMlString(Object.entries(val))].join(
@@ -188,7 +188,7 @@ export const owidRawArticleBlockToArchieMLString = (
                 false
             )
         )
-        .with({ type: "horizontal-rule" }, (b) =>
+        .with({ type: "horizontal-rule" }, (_b) =>
             keyValueToArchieMlString(block.type, "<hr/>")
         )
         .with({ type: P.union("list") }, (b) =>
