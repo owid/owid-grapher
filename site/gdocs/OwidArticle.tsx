@@ -53,7 +53,11 @@ export function OwidArticle(props: OwidArticleType) {
                 <div>
                     <h3>Please cite this article as:</h3>
                     <pre>
-                        <code>{renderSpans(content.citation)}</code>
+                        <code>
+                            {renderSpans(
+                                content.citation.map((block) => block.value)
+                            )}
+                        </code>
                     </pre>
                 </div>
             ) : null}

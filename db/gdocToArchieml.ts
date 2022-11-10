@@ -11,21 +11,16 @@ import {
     RawBlockImage,
     RawBlockList,
     RawBlockHeader,
-    OwidEnrichedArticleBlock,
-    EnrichedBlockAside,
-    BlockPositionChoice,
-    ParseError,
-    EnrichedBlockText,
     compact,
 } from "@ourworldindata/utils"
 import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
-    htmlToSpans,
     owidRawArticleBlockToArchieMLString,
     spanToHtmlString,
 } from "./gdocUtils"
 import { match, P } from "ts-pattern"
+import { parseRawBlocksToEnhancedBlocks } from "./gdocBlockParsersRawToEnriched.js"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
@@ -41,54 +36,6 @@ export interface DocToArchieMLOptions {
 interface ElementMemo {
     isInList: boolean
     body: OwidRawArticleBlock[]
-}
-
-function parseRawBlocksToEnhancedBlocks(
-    block: OwidRawArticleBlock
-): OwidEnrichedArticleBlock | null {
-    return match(block)
-        .with({ type: "aside" }, (aside): EnrichedBlockAside => {
-            const hint = `Make sure the block looks like this:
-            {aside}
-            caption: FORMATTED PARAGRAPH
-            position?: left | right
-            {}`
-            const createError = (
-                error: ParseError,
-                caption: Span[] = [],
-                position: BlockPositionChoice | undefined = undefined
-            ): EnrichedBlockAside => ({
-                type: "aside",
-                caption,
-                position,
-                parseErrors: [{ hint, ...error }],
-            })
-
-            if (typeof aside.value === "string")
-                return createError({
-                    message: "Value is a string, not an object with properties",
-                })
-
-            if (!aside.value.caption)
-                return createError({
-                    message: "Caption property is missing",
-                })
-
-            const position =
-                aside.value.position === "left" ||
-                aside.value.position === "right"
-                    ? aside.value.position
-                    : undefined
-            const caption = htmlToSpans(aside.value.caption)
-
-            return {
-                type: "aside",
-                caption,
-                position,
-                parseErrors: [],
-            }
-        })
-        .otherwise(() => null)
 }
 
 export const gdocToArchieML = async ({

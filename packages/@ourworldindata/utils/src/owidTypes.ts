@@ -441,10 +441,11 @@ export type Span =
 export type BlockPositionChoice = "right" | "left"
 export type ChartPositionChoice = "featured"
 
+type ArchieMLUnexpectedNonObjectValue = string
+
 export type ParseError = {
     message: string
-    hint?: string
-    isWarningOnly?: boolean
+    isWarning?: boolean
 }
 
 export type EnrichedBlockWithParseErrors = {
@@ -458,12 +459,12 @@ export type RawBlockAsideValue = {
 
 export type RawBlockAside = {
     type: "aside"
-    value: RawBlockAsideValue | string
+    value: RawBlockAsideValue | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockAside = {
     type: "aside"
-    position?: BlockPositionChoice | undefined
+    position?: BlockPositionChoice
     caption: Span[]
 } & EnrichedBlockWithParseErrors
 
@@ -484,16 +485,16 @@ export type RawBlockChart = {
 export type EnrichedBlockChart = {
     type: "chart"
     url: string
-    height: string | undefined
-    row: string | undefined
-    column: string | undefined
-    position: ChartPositionChoice | undefined
-    caption: Span[]
+    height?: string
+    row?: string
+    column?: string
+    position?: ChartPositionChoice
+    caption?: Span[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockScroller = {
     type: "scroller"
-    value: OwidRawArticleBlock[]
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedScrollerItem = {
@@ -514,7 +515,7 @@ export type RawChartStoryValue = {
 
 export type RawBlockChartStory = {
     type: "chart-story"
-    value: RawChartStoryValue[] | string
+    value: RawChartStoryValue[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedChartStoryItem = {
@@ -530,13 +531,13 @@ export type EnrichedBlockChartStory = {
 
 export type RawBlockFixedGraphic = {
     type: "fixed-graphic"
-    value: OwidRawArticleBlock[] | string
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockFixedGraphic = {
     type: "fixed-graphic"
     graphic: EnrichedBlockChart | EnrichedBlockImage
-    position: BlockPositionChoice | undefined
+    position?: BlockPositionChoice
     text: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 export type RawBlockImageValue = {
@@ -559,7 +560,7 @@ export type EnrichedBlockImage = {
 // string IIRC - check this
 export type RawBlockList = {
     type: "list"
-    value: string[] | string
+    value: string[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockList = {
@@ -569,7 +570,7 @@ export type EnrichedBlockList = {
 
 export type RawBlockPullQuote = {
     type: "pull-quote"
-    value: string[] | string
+    value: string[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockPullQuote = {
@@ -598,7 +599,7 @@ export type RawBlockRecircValue = {
 }
 export type RawBlockRecirc = {
     type: "recirc"
-    value: RawBlockRecircValue[] | string
+    value: RawBlockRecircValue[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedRecircItem = {
@@ -654,12 +655,13 @@ export type RawBlockHeaderValue = {
 }
 export type RawBlockHeader = {
     type: "header"
-    value: RawBlockHeaderValue | string
+    value: RawBlockHeaderValue | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockHeader = {
     type: "header"
     text: SpanSimpleText
+    level: number
 } & EnrichedBlockWithParseErrors
 export type OwidRawArticleBlock =
     | RawBlockAside
