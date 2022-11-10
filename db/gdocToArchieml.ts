@@ -260,6 +260,12 @@ async function readParagraphElement(
         if (textRun.textStyle.bold) {
             span = { spanType: "span-bold", children: [span] }
         }
+        if (textRun.textStyle.baselineOffset === "SUPERSCRIPT") {
+            span = { spanType: "span-superscript", children: [span] }
+        }
+        if (textRun.textStyle.baselineOffset === "SUBSCRIPT") {
+            span = { spanType: "span-subscript", children: [span] }
+        }
 
         return span
     } else if (element.inlineObjectElement && imageHandler) {
