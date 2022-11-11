@@ -10,7 +10,7 @@ import List from "./List"
 import Image from "./Image"
 import { OwidEnrichedArticleBlock } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
-import { BlockErrorBoundary } from "./BlockErrorBoundary"
+import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary"
 import { match } from "ts-pattern"
 import { renderSpans } from "./utils"
 import Paragraph from "./Paragraph.js"
@@ -20,14 +20,15 @@ export default function ArticleBlock({ b }: { b: OwidEnrichedArticleBlock }) {
         block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
         if (block.parseErrors.length > 0) {
             return (
-                <div key={key} className={"error"}>
-                    {block.parseErrors.map((e, i) => (
-                        <div key={i}>
-                            <h3>{block.type}</h3>
-                            {e.message}
-                        </div>
-                    ))}
-                </div>
+                <BlockErrorFallback
+                    error={{
+                        name: `error in ${block.type}`,
+                        message: block.parseErrors[0].message,
+                    }}
+                    resetErrorBoundary={() => {
+                        return
+                    }}
+                />
             )
         } else {
             const content: JSX.Element | null = match(block)
