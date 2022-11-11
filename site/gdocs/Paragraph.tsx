@@ -1,14 +1,13 @@
-import { EnrichedBlockText, Span, SpanSimpleText } from "@ourworldindata/utils"
+import { EnrichedBlockText, Span } from "@ourworldindata/utils"
 import React from "react"
 import { renderSpans } from "./utils"
 
 function isOnlyEmptySpans(spans: Span[]) {
     return spans.every((span) => {
         const isNewline = span.spanType === "span-newline"
-        const isSimpleText = "span-simple-text"
-        const isNonEmptySimpleTextOrFallback =
-            isSimpleText && (span as SpanSimpleText).text !== ""
-        return isNewline || isNonEmptySimpleTextOrFallback
+        const isSimpleText = span.spanType === "span-simple-text"
+        const isNonEmptySimpleTextOrFallback = isSimpleText && span.text !== ""
+        return isNewline || !isNonEmptySimpleTextOrFallback
     })
 }
 
