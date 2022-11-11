@@ -94,7 +94,7 @@ function* rawBlockScrollerToArchieMLString(
     yield "[.+scroller]"
     if (typeof block.value !== "string")
         for (const b of block.value)
-            yield* owidRawArticleBlockToArchieMLString(b)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
     yield "[]"
 }
 
@@ -119,7 +119,7 @@ function* rawBlockFixedGraphicToArchieMLString(
     yield "[.+fixed-graphic]"
     if (typeof block.value !== "string") {
         for (const b of block.value)
-            yield* owidRawArticleBlockToArchieMLString(b)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
     }
     yield "[]"
 }
@@ -149,7 +149,7 @@ function* rawBlockPullQuoteToArchieMLString(
     yield "[.+pull-quote]"
     if (typeof block.value !== "string")
         for (const b of block.value)
-            yield* owidRawArticleBlockToArchieMLString(b)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
     yield "[]"
 }
 
@@ -228,7 +228,7 @@ function* rawBlockSDGGridToArchieMLString(
     yield "[]"
 }
 
-export function* owidRawArticleBlockToArchieMLString(
+function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
     const content = match(block)
@@ -253,6 +253,14 @@ export function* owidRawArticleBlockToArchieMLString(
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
         .otherwise(() => [])
     yield* content
+}
+
+export function owidRawArticleBlockToArchieMLString(
+    block: OwidRawArticleBlock
+): string {
+    return [...owidRawArticleBlockToArchieMLStringGenerator(block), ""].join(
+        "\n"
+    )
 }
 export function consolidateSpans(
     blocks: OwidEnrichedArticleBlock[]

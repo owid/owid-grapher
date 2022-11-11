@@ -185,9 +185,7 @@ async function readElements(
                                 level: headingLevel,
                             },
                         }
-                        return [
-                            ...owidRawArticleBlockToArchieMLString(header),
-                        ].join("\n")
+                        return owidRawArticleBlockToArchieMLString(header)
                     }
                     return text
                 }
