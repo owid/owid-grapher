@@ -251,7 +251,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "position" }, rawBlockPositionToArchieMLString)
         .with({ type: "header" }, rawBlockHeaderToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
-        .otherwise(() => [])
+        .exhaustive()
     yield* content
 }
 
