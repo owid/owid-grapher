@@ -3,8 +3,6 @@ import {
     Span,
     RawBlockHeader,
     EnrichedBlockText,
-    RawBlockChartValue,
-    RawChartStoryValue,
     OwidEnrichedArticleBlock,
     SpanLink,
     SpanBold,
@@ -14,18 +12,27 @@ import {
     SpanSuperscript,
     SpanSubscript,
     SpanUnderline,
-    RawBlockRecircValue,
     RawBlockRecirc,
     EnrichedBlockSimpleText,
     SpanSimpleText,
+    RawBlockAside,
+    RawBlockChart,
+    RawBlockChartStory,
+    RawBlockFixedGraphic,
+    RawBlockHorizontalRule,
+    RawBlockHtml,
+    RawBlockImage,
+    RawBlockList,
+    RawBlockPosition,
+    RawBlockPullQuote,
+    RawBlockScroller,
+    RawBlockSDGGrid,
+    RawBlockText,
+    RawBlockUrl,
 } from "@ourworldindata/utils"
-import { match, P } from "ts-pattern"
+import { match } from "ts-pattern"
 import _, { partition } from "lodash"
 import * as cheerio from "cheerio"
-import {
-    RawBlockSDGGrid,
-    RawSDGGridItem,
-} from "@ourworldindata/utils/dist/owidTypes.js"
 
 function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n.end"
@@ -40,200 +47,213 @@ export function keyValueToArchieMlString(
     return ""
 }
 
-export function* stringPropertiesToArchieMlString(
-    properties: [string, string][]
-): Generator<string, void, unknown> {
-    for (const [k, v] of properties) {
-        yield keyValueToArchieMlString(k, v)
+// The Record<string, any> here is not ideal - it would be nicer to
+// restrict the field type to string but then it only works if all
+// fields are strings. Maybe there is some TS magic to do this?
+function* propertyToArchieMLString<T extends Record<string, any>>(
+    key: keyof T,
+    value: T | undefined
+): Generator<string, void, undefined> {
+    if (value !== undefined)
+        if (typeof value === "string") {
+            // This is a case where the user gave a string value instead of an object
+            // We assume that this was an error here. Not handling this here would make
+            // the serialization code below more complex.
+        } else yield `${key}: ${appendDotEndIfMultiline(value[key])}`
+}
+
+function* rawBlockAsideToArchieMLString(
+    block: RawBlockAside
+): Generator<string, void, undefined> {
+    yield "{.aside}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("position", block.value)
+        yield* propertyToArchieMLString("caption", block.value)
     }
+    yield "{}"
 }
 
-export function objectBlockToArchieMlString<T>(
-    type: string,
-    block: T,
-    contentSerializer: (block: T) => string
-): string {
-    return `
-{.${type}}
-${contentSerializer(block)}
-{}
-`
+function* rawBlockChartToArchieMLString(
+    block: RawBlockChart
+): Generator<string, void, undefined> {
+    yield "{.chart}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("url", block.value)
+        yield* propertyToArchieMLString("height", block.value)
+        yield* propertyToArchieMLString("row", block.value)
+        yield* propertyToArchieMLString("column", block.value)
+        yield* propertyToArchieMLString("position", block.value)
+        yield* propertyToArchieMLString("caption", block.value)
+    }
+    yield "{}"
 }
 
-export function stringOnlyObjectToArchieMlString(obj: {
-    type: string
-    value: Record<string, string> | string
-}): string {
-    const val = obj.value
-    const serializeFn = (): string =>
-        typeof val === "string"
-            ? val
-            : [...stringPropertiesToArchieMlString(Object.entries(val))].join(
-                  "\n"
-              )
-    return objectBlockToArchieMlString(obj.type, obj.value, serializeFn)
+function* rawBlockScrollerToArchieMLString(
+    block: RawBlockScroller
+): Generator<string, void, undefined> {
+    yield "[.+scroller]"
+    if (typeof block.value !== "string")
+        for (const b of block.value)
+            yield* owidRawArticleBlockToArchieMLString(b)
+    yield "[]"
 }
 
-export function singleStringObjectToArchieMlString(obj: {
-    type: string
-    value: string
-}): string {
-    return keyValueToArchieMlString(obj.type, obj.value)
+function* rawBlockChartStoryToArchieMLString(
+    block: RawBlockChartStory
+): Generator<string, void, undefined> {
+    yield "[.chart-story]"
+    if (typeof block.value !== "string") {
+        for (const item of block.value) {
+            yield* propertyToArchieMLString("narrative", item)
+            yield* propertyToArchieMLString("chart", item)
+            // TODO: we might need to reverse some regex sanitization here (e.g. colons?)
+            yield* item.technical || []
+        }
+    }
+    yield "[]"
 }
 
-export function blockListToArchieMlString<T>(
-    blockname: string,
-    blocks: T[] | string,
-    contentSerializer: (block: T) => string,
-    isFreeformArray: boolean
-): string {
-    if (typeof blocks === "string")
-        return keyValueToArchieMlString(blockname, blocks)
-    const content = blocks.map(contentSerializer).join("\n")
-    return `
-[.${isFreeformArray ? "+" : ""}${blockname}]
-${content}
-[]
-`
+function* rawBlockFixedGraphicToArchieMLString(
+    block: RawBlockFixedGraphic
+): Generator<string, void, undefined> {
+    yield "[.+fixed-graphic]"
+    if (typeof block.value !== "string") {
+        for (const b of block.value)
+            yield* owidRawArticleBlockToArchieMLString(b)
+    }
+    yield "[]"
 }
 
-export function recircContentToArchieMlString(
-    content: RawBlockRecircValue
-): string {
-    const list = blockListToArchieMlString(
-        "list",
-        content.list ?? [],
-        (b) =>
-            [...stringPropertiesToArchieMlString(Object.entries(b))].join("\n"),
-        false
-    )
-    return `
-${keyValueToArchieMlString("title", content.title ?? "")}
-${list}
-`
+function* rawBlockImageToArchieMLString(
+    block: RawBlockImage
+): Generator<string, void, undefined> {
+    yield "{.image}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("src", block.value)
+        yield* propertyToArchieMLString("caption", block.value)
+    }
+    yield "{}"
 }
 
-export function recircToArchieMlString(recirc: RawBlockRecirc): string {
-    return blockListToArchieMlString(
-        recirc.type,
-        typeof recirc.value !== "string" ? recirc.value : [],
-        recircContentToArchieMlString,
-        false
-    )
+function* rawBlockListToArchieMLString(
+    block: RawBlockList
+): Generator<string, void, undefined> {
+    yield "[.list]"
+    if (typeof block.value !== "string") yield* block.value
+    yield "[]"
 }
 
-export function sdgGridItemsToArchieMlString(content: RawSDGGridItem): string {
-    // TODO: this cast is wrong and will lead to errors in serialization. Fix SDGGrid serialization
-    return stringOnlyObjectToArchieMlString(content as any)
+function* rawBlockPullQuoteToArchieMLString(
+    block: RawBlockPullQuote
+): Generator<string, void, undefined> {
+    yield "[.+pull-quote]"
+    if (typeof block.value !== "string")
+        for (const b of block.value)
+            yield* owidRawArticleBlockToArchieMLString(b)
+    yield "[]"
 }
 
-export function sdgGridToArchieMlString(grid: RawBlockSDGGrid): string {
-    return blockListToArchieMlString(
-        grid.type,
-        typeof grid.value !== "string" ? grid.value : [],
-        sdgGridItemsToArchieMlString,
-        false
-    )
+function* rawBlockHorizontalRuleToArchieMLString(
+    _block: RawBlockHorizontalRule
+): Generator<string, void, undefined> {
+    yield "{.horizontal-rule}"
+    yield "{}"
 }
 
-export function chartStoryValueToArchieMlString(
-    value: RawChartStoryValue
-): string {
-    const narrative = keyValueToArchieMlString("narrative", value?.narrative)
-    const chart = keyValueToArchieMlString("chart", value.chart)
-    const technicalText = blockListToArchieMlString(
-        "technical",
-        value.technical!,
-        (line) => `* ${line}`,
-        false
-    )
-    return `
-${narrative}
-${chart}
-${technicalText}
-`
+function* rawBlockRecircToArchieMLString(
+    block: RawBlockRecirc
+): Generator<string, void, undefined> {
+    yield "[.recirc]"
+    if (typeof block.value !== "string") {
+        for (const item of block.value) {
+            yield* propertyToArchieMLString("title", item)
+            if (item.list) {
+                yield "[.list]"
+                for (const subItem of item.list) {
+                    yield* propertyToArchieMLString("author", subItem)
+                    yield* propertyToArchieMLString("url", subItem)
+                }
+                yield "[]"
+            }
+        }
+    }
+    yield "[]"
 }
 
-export function headerToArchieMlString(block: RawBlockHeader): string {
-    const val = block.value
-    if (typeof val === "string") return keyValueToArchieMlString("header", val)
-    return objectBlockToArchieMlString(block.type, block.value, () => {
-        return [
-            keyValueToArchieMlString("text", val?.text),
-            val?.level !== undefined
-                ? keyValueToArchieMlString("level", val.level.toString())
-                : "",
-        ].join("\n")
-    })
+function* rawBlockTextToArchieMLString(
+    block: RawBlockText
+): Generator<string, void, undefined> {
+    yield block.value
 }
 
-export const owidRawArticleBlockToArchieMLString = (
+function* rawBlockHtmlToArchieMLString(
+    block: RawBlockHtml
+): Generator<string, void, undefined> {
+    yield block.value
+}
+
+function* rawBlockUrlToArchieMLString(
+    block: RawBlockUrl
+): Generator<string, void, undefined> {
+    yield keyValueToArchieMlString("url", block.value)
+}
+
+function* rawBlockPositionToArchieMLString(
+    block: RawBlockPosition
+): Generator<string, void, undefined> {
+    yield keyValueToArchieMlString("url", block.value)
+}
+
+function* rawBlockHeaderToArchieMLString(
+    block: RawBlockHeader
+): Generator<string, void, undefined> {
+    yield "{.header}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("text", block.value)
+        yield* propertyToArchieMLString("level", block.value)
+    }
+    yield "{}"
+}
+
+function* rawBlockSDGGridToArchieMLString(
+    block: RawBlockSDGGrid
+): Generator<string, void, undefined> {
+    yield "[.sdg-grid]"
+    if (typeof block.value !== "string") {
+        for (const item of block.value) {
+            yield* propertyToArchieMLString("goal", item)
+            yield* propertyToArchieMLString("link", item)
+        }
+    }
+    yield "[]"
+}
+
+export function* owidRawArticleBlockToArchieMLString(
     block: OwidRawArticleBlock
-): string => {
+): Generator<string, void, undefined> {
     const content = match(block)
+        .with({ type: "aside" }, rawBlockAsideToArchieMLString)
+        .with({ type: "chart" }, rawBlockChartToArchieMLString)
+        .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
+        .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)
+        .with({ type: "fixed-graphic" }, rawBlockFixedGraphicToArchieMLString)
+        .with({ type: "image" }, rawBlockImageToArchieMLString)
+        .with({ type: "list" }, rawBlockListToArchieMLString)
+        .with({ type: "pull-quote" }, rawBlockPullQuoteToArchieMLString)
         .with(
-            { type: P.union("position", "url", "html", "text") },
-            singleStringObjectToArchieMlString
+            { type: "horizontal-rule" },
+            rawBlockHorizontalRuleToArchieMLString
         )
-        .with(
-            { type: "chart", value: P.string },
-            singleStringObjectToArchieMlString
-        )
-        .with({ type: "chart" }, (b) =>
-            stringOnlyObjectToArchieMlString({
-                type: "chart",
-                value: b.value as unknown as RawBlockChartValue,
-            })
-        )
-        .with(
-            { type: P.union("aside", "image") },
-            stringOnlyObjectToArchieMlString
-        )
-        .with({ type: "scroller" }, (b) =>
-            blockListToArchieMlString(
-                block.type,
-                b.value,
-                owidRawArticleBlockToArchieMLString,
-                true
-            )
-        )
-        .with({ type: "recirc" }, (b) => recircToArchieMlString(b))
-        .with({ type: "chart-story" }, (b) =>
-            blockListToArchieMlString(
-                block.type,
-                b.value,
-                chartStoryValueToArchieMlString,
-                false
-            )
-        )
-        .with({ type: "horizontal-rule" }, (_b) =>
-            keyValueToArchieMlString(block.type, "<hr/>")
-        )
-        .with({ type: P.union("list") }, (b) =>
-            blockListToArchieMlString(block.type, b.value, (line) => line, true)
-        )
-        .with({ type: "pull-quote" }, (b) =>
-            blockListToArchieMlString(
-                block.type,
-                b.value,
-                owidRawArticleBlockToArchieMLString,
-                true
-            )
-        )
-        .with({ type: "header" }, headerToArchieMlString)
-        .with({ type: "fixed-graphic" }, (b) =>
-            blockListToArchieMlString(
-                block.type,
-                b.value,
-                owidRawArticleBlockToArchieMLString,
-                true
-            )
-        )
-        .with({ type: "sdg-grid" }, (b) => sdgGridToArchieMlString(b))
-        .exhaustive()
-    return content
+        .with({ type: "recirc" }, rawBlockRecircToArchieMLString)
+        .with({ type: "text" }, rawBlockTextToArchieMLString)
+        .with({ type: "html" }, rawBlockHtmlToArchieMLString)
+        .with({ type: "url" }, rawBlockUrlToArchieMLString)
+        .with({ type: "position" }, rawBlockPositionToArchieMLString)
+        .with({ type: "header" }, rawBlockHeaderToArchieMLString)
+        .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
+        .otherwise(() => [])
+    yield* content
 }
-
 export function consolidateSpans(
     blocks: OwidEnrichedArticleBlock[]
 ): OwidEnrichedArticleBlock[] {

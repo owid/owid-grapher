@@ -1,10 +1,12 @@
 import React, { useState, useRef } from "react"
 import { InView } from "react-intersection-observer"
-import { EnrichedBlockScroller } from "@ourworldindata/utils"
+import {
+    EnrichedBlockScroller,
+    EnrichedScrollerItem,
+} from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../hooks.js"
 import { renderSpans } from "./utils"
-import { EnrichedScrollerItem } from "@ourworldindata/utils/dist/owidTypes.js"
 export default function Scroller({ d }: { d: EnrichedBlockScroller }) {
     const [figureSrc, setFigureSrc] = useState(d.blocks[0].url)
 

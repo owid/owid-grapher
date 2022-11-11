@@ -1,4 +1,4 @@
-import { EnrichedBlockText } from "@ourworldindata/utils/dist/index.js"
+import { EnrichedBlockText } from "@ourworldindata/utils"
 import React from "react"
 import Paragraph from "./Paragraph.js"
 
