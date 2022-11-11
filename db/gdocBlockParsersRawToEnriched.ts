@@ -33,6 +33,8 @@ import {
     EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
     EnrichedBlockSDGGrid,
+    EnrichedBlockStickyLeftContainer,
+    EnrichedBlockStickyRightContainer,
     EnrichedChartStoryItem,
     EnrichedRecircItem,
     EnrichedScrollerItem,
@@ -46,6 +48,8 @@ import {
     RawBlockRecirc,
     RawBlockScroller,
     RawBlockSDGGrid,
+    RawBlockStickyLeftContainer,
+    RawBlockStickyRightContainer,
     RawBlockText,
     SpanSimpleText,
 } from "@ourworldindata/utils/dist/owidTypes.js"
@@ -84,6 +88,8 @@ export function parseRawBlocksToEnhancedBlocks(
         .with({ type: "position" }, () => null) // position blocks should only occur inside of chart stories etc
         .with({ type: "header" }, parseHeader)
         .with({ type: "sdg-grid" }, parseSdgGrid)
+        .with({ type: "sticky-left" }, parseStickyLeft)
+        .with({ type: "sticky-right" }, parseStickyRight)
         .exhaustive()
 }
 
@@ -722,5 +728,63 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
         type: "sdg-grid",
         items: enrichedItems,
         parseErrors: [...flattenedErrors],
+    }
+}
+
+function parseStickyRight(
+    raw: RawBlockStickyRightContainer
+): EnrichedBlockStickyRightContainer {
+    const createError = (
+        error: ParseError,
+        left: OwidEnrichedArticleBlock[] = [],
+        right: OwidEnrichedArticleBlock[] = []
+    ): EnrichedBlockStickyRightContainer => ({
+        type: "sticky-right",
+        left,
+        right,
+        parseErrors: [error],
+    })
+    const { left, right } = raw.value
+    if (!left.length || !right.length) {
+        return createError({
+            message: "Empty column in the sticky right container",
+        })
+    }
+    const enrichedLeft = compact(left.map(parseRawBlocksToEnhancedBlocks))
+    const enrichedRight = compact(right.map(parseRawBlocksToEnhancedBlocks))
+    return {
+        type: "sticky-right",
+        left: enrichedLeft,
+        right: enrichedRight,
+        parseErrors: [],
+    }
+}
+
+function parseStickyLeft(
+    raw: RawBlockStickyLeftContainer
+): EnrichedBlockStickyLeftContainer {
+    const createError = (
+        error: ParseError,
+        left: OwidEnrichedArticleBlock[] = [],
+        right: OwidEnrichedArticleBlock[] = []
+    ): EnrichedBlockStickyLeftContainer => ({
+        type: "sticky-left",
+        left,
+        right,
+        parseErrors: [error],
+    })
+    const { left, right } = raw.value
+    if (!left.length || !right.length) {
+        return createError({
+            message: "Empty column in the sticky left container",
+        })
+    }
+    const enrichedLeft = compact(left.map(parseRawBlocksToEnhancedBlocks))
+    const enrichedRight = compact(right.map(parseRawBlocksToEnhancedBlocks))
+    return {
+        type: "sticky-left",
+        left: enrichedLeft,
+        right: enrichedRight,
+        parseErrors: [],
     }
 }

@@ -20,12 +20,15 @@ export const BlockErrorBoundary = ({
 export const BlockErrorFallback = ({
     error,
     resetErrorBoundary,
+    className = "",
 }: {
     error?: Error
     resetErrorBoundary: VoidFunction
+    className?: string
 }): JSX.Element => {
     return (
         <div
+            className={className}
             style={{
                 textAlign: "center",
                 backgroundColor: "rgba(255,0,0,0.1)",

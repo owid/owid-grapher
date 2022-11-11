@@ -33,6 +33,10 @@ import {
 import { match } from "ts-pattern"
 import _, { partition } from "lodash"
 import * as cheerio from "cheerio"
+import {
+    RawBlockStickyLeftContainer,
+    RawBlockStickyRightContainer,
+} from "@ourworldindata/utils/dist/owidTypes.js"
 
 function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n.end"
@@ -228,6 +232,26 @@ function* rawBlockSDGGridToArchieMLString(
     yield "[]"
 }
 
+function* RawBlockStickyRightContainerToArchieMLString(
+    block: RawBlockStickyRightContainer
+): Generator<string, void, undefined> {
+    yield "[.sticky-right]"
+    if (typeof block.value !== "string") {
+        // TODO
+    }
+    yield "[]"
+}
+
+function* RawBlockStickyLeftContainerToArchieMLString(
+    block: RawBlockStickyLeftContainer
+): Generator<string, void, undefined> {
+    yield "[.sticky-left]"
+    if (typeof block.value !== "string") {
+        // TODO
+    }
+    yield "[]"
+}
+
 function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
@@ -251,6 +275,14 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "position" }, rawBlockPositionToArchieMLString)
         .with({ type: "header" }, rawBlockHeaderToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
+        .with(
+            { type: "sticky-right" },
+            RawBlockStickyRightContainerToArchieMLString
+        )
+        .with(
+            { type: "sticky-left" },
+            RawBlockStickyLeftContainerToArchieMLString
+        )
         .exhaustive()
     yield* content
 }

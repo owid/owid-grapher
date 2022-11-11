@@ -1,9 +1,16 @@
 import React from "react"
 import { EnrichedBlockSDGGrid } from "@ourworldindata/utils"
+import cx from "classnames"
 
-export default function SDGGrid({ d }: { d: EnrichedBlockSDGGrid }) {
+export default function SDGGrid({
+    d,
+    className = "",
+}: {
+    d: EnrichedBlockSDGGrid
+    className?: string
+}) {
     return (
-        <div className="sdg-grid">
+        <div className={cx("sdg-grid", className)}>
             <h2>The 17 goals</h2>
             <ul>
                 {d.items.map(

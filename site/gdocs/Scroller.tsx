@@ -7,7 +7,14 @@ import {
 
 import { useEmbedChart } from "../hooks.js"
 import { renderSpans } from "./utils"
-export default function Scroller({ d }: { d: EnrichedBlockScroller }) {
+import cx from "classnames"
+export default function Scroller({
+    d,
+    className = "",
+}: {
+    d: EnrichedBlockScroller
+    className?: string
+}) {
     const [figureSrc, setFigureSrc] = useState(d.blocks[0].url)
 
     const refChartContainer = useRef<HTMLDivElement>(null)
@@ -16,7 +23,7 @@ export default function Scroller({ d }: { d: EnrichedBlockScroller }) {
     useEmbedChart(activeChartIdx, refChartContainer)
 
     return (
-        <section className={"stickySection"}>
+        <section className={cx("sticky-section", className)}>
             {figureSrc ? (
                 <div className={"stickyFigure"} ref={refChartContainer}>
                     <figure

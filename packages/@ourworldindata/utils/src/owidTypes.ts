@@ -684,6 +684,34 @@ export type EnrichedBlockSDGGrid = {
     items: EnrichedSDGGridItem[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockStickyRightContainer = {
+    type: "sticky-right"
+    value: {
+        left: OwidRawArticleBlock[]
+        right: OwidRawArticleBlock[]
+    }
+}
+
+export type EnrichedBlockStickyRightContainer = {
+    type: "sticky-right"
+    left: OwidEnrichedArticleBlock[]
+    right: OwidEnrichedArticleBlock[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockStickyLeftContainer = {
+    type: "sticky-left"
+    value: {
+        left: OwidRawArticleBlock[]
+        right: OwidRawArticleBlock[]
+    }
+}
+
+export type EnrichedBlockStickyLeftContainer = {
+    type: "sticky-left"
+    left: OwidEnrichedArticleBlock[]
+    right: OwidEnrichedArticleBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawArticleBlock =
     | RawBlockAside
     | RawBlockChart
@@ -701,6 +729,8 @@ export type OwidRawArticleBlock =
     | RawBlockHtml
     | RawBlockHorizontalRule
     | RawBlockSDGGrid
+    | RawBlockStickyRightContainer
+    | RawBlockStickyLeftContainer
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -718,6 +748,8 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockHtml
     | EnrichedBlockHorizontalRule
     | EnrichedBlockSDGGrid
+    | EnrichedBlockStickyRightContainer
+    | EnrichedBlockStickyLeftContainer
 
 export interface OwidArticleType {
     id: string

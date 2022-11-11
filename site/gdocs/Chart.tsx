@@ -3,8 +3,15 @@ import { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
 import { EnrichedBlockChart } from "@ourworldindata/utils"
 import { renderSpans } from "./utils"
+import cx from "classnames"
 
-export default function Chart({ d }: { d: EnrichedBlockChart }) {
+export default function Chart({
+    d,
+    className,
+}: {
+    d: EnrichedBlockChart
+    className?: string
+}) {
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer)
 
@@ -16,9 +23,9 @@ export default function Chart({ d }: { d: EnrichedBlockChart }) {
         }
     }
 
-    const content: JSX.Element = (
+    return (
         <figure
-            className={d.position}
+            className={cx(d.position, className)}
             style={{ gridRow: d.row, gridColumn: d.column }}
         >
             <figure
@@ -37,6 +44,4 @@ export default function Chart({ d }: { d: EnrichedBlockChart }) {
             ) : null}
         </figure>
     )
-
-    return content
 }

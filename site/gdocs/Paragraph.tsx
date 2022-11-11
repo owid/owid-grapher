@@ -11,13 +11,15 @@ function isOnlyEmptySpans(spans: Span[]) {
     })
 }
 
-export default function Paragraph({ d }: { d: EnrichedBlockText }) {
+export default function Paragraph({
+    d,
+    className = "",
+}: {
+    d: EnrichedBlockText
+    className?: string
+}) {
     if (isOnlyEmptySpans(d.value)) {
         return null
     }
-    return (
-        <div>
-            <p>{renderSpans(d.value)}</p>
-        </div>
-    )
+    return <p className={className}>{renderSpans(d.value)}</p>
 }

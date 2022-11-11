@@ -3,7 +3,8 @@
 // MIT License
 
 /* 
-Creates a large colleciton of CSS grid utility classes:
+Creates a large colleciton of CSS grid utility classes.
+
 For grid containers:
 .grid sets a grid container (with 12 columns by default)
 .grid-cols-x overrides the number of columns
@@ -14,25 +15,26 @@ For grid children:
 .col-start-x sets which column the child should start
 .col-end-x sets which column the child should end
 
+For breakpoints:
 These classes only apply when the screen width is less than their breakpoint.
-sm, md, and lg each have a set.
-
+sm, md, and lg each have a set
 .grid-sm-cols-x sets how many columns a container should have at the sm breakpoint
 .span-sm-cols-x sets how many columns the child should span at the sm breakpoint
 .span-sm-rows-x sets how many rows the child should span at the sm breakpoint
+.col-sm-start-x sets which row the child should start at at the sm breakpoint
 */
-$grid-max-colums: 12;
-$grid-col-spans: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-$grid-col-start: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-$grid-col-end: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+$grid-max-colums: 14;
+$grid-col-spans: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
+$grid-col-start: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
+$grid-col-end: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
 $grid-row-spans: (1, 2, 3);
 
 // Remapping our breakpoint variables that we prefix with $ so that we can use them in class names
 // e.g. .grid-sm-cols-12
 $breakpoints: (
-    sm: $sm,
-    md: $md,
     lg: $lg,
+    md: $md,
+    sm: $sm,
 );
 
 $grid-col-row-responsive: (lg, md, sm);
@@ -51,11 +53,15 @@ $grid-responsive: (lg, md, sm);
 
 .grid {
     display: grid;
-    gap: 24px;
-    grid-template-columns: repeat(auto-fill, 1fr);
-    grid-auto-flow: dense;
-    justify-items: stretch;
-    align-items: stretch;
+    gap: 0 24px;
+    grid-template-columns: repeat(12, 1fr);
+}
+
+// Use this when you want a full-page-width grid container
+// 1 (auto) | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 (auto)
+.grid-cols-12-full-width {
+    // Weird magic numbers to ensure the central columns 2-14 are 1280x wide in total
+    grid-template-columns: calc(50vw - 671px) repeat(12, 1fr) calc(50vw - 672px);
 }
 
 // Cols
@@ -112,6 +118,11 @@ $grid-responsive: (lg, md, sm);
                 @each $span in $grid-row-spans {
                     .span-#{$breakpoint}-rows-#{$span} {
                         grid-row: span #{$span} / span #{$span};
+                    }
+                }
+                @each $start in $grid-col-start {
+                    .col-#{$breakpoint}-start-#{$start} {
+                        grid-column-start: #{$start};
                     }
                 }
             }

@@ -20,35 +20,30 @@ export function OwidArticle(props: OwidArticleType) {
         : {}
 
     return (
-        <article className={"owidArticle"}>
-            <div className={"articleCover"} style={coverStyle}></div>
-            <div className={"articlePage"}></div>
-            <h1 className={"title"}>{content.title}</h1>
-            <h2 className={"subtitle"}>{content.subtitle}</h2>
-            <div className={"bylineContainer"}>
-                <div>
-                    By: <div className={"byline"}>{content.byline}</div>
+        <article className="article-container grid grid-cols-12-full-width">
+            <div className="article-banner" style={coverStyle}></div>
+            <header className="article-header grid grid-cols-8 col-start-4 span-cols-8">
+                <h1 className="article-header__title col-start-2 span-cols-6">
+                    {content.title}
+                </h1>
+                <h2 className="article-header__subtitle col-start-2 span-cols-6">
+                    {content.subtitle}
+                </h2>
+                <div className="article-header__byline-container col-start-2 span-cols-6">
+                    By:
+                    <div>{content.byline}</div>
+                    <div>
+                        {content.dateline ||
+                            (publishedAt && formatDate(publishedAt))}
+                    </div>
                 </div>
-                <div className={"dateline"}>
-                    {content.dateline ||
-                        (publishedAt && formatDate(publishedAt))}
-                </div>
-            </div>
-
-            {content.summary ? (
-                <div>
-                    <details className={"summary"} open={true}>
-                        <summary>Summary</summary>
-                        <ArticleBlocks blocks={content.summary} />
-                    </details>
-                </div>
-            ) : null}
+            </header>
 
             {content.body ? <ArticleBlocks blocks={content.body} /> : null}
 
-            {content.refs ? <Footnotes d={content.refs} /> : null}
+            {/* {content.refs ? <Footnotes d={content.refs} /> : null} */}
 
-            {content.citation ? (
+            {/* content.citation ? (
                 <div>
                     <h3>Please cite this article as:</h3>
                     <pre>
@@ -59,7 +54,7 @@ export function OwidArticle(props: OwidArticleType) {
                         </code>
                     </pre>
                 </div>
-            ) : null}
+            ) : null} */}
         </article>
     )
 }

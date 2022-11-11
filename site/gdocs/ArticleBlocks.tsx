@@ -6,10 +6,12 @@ export const ArticleBlocks = ({
     blocks,
 }: {
     blocks: OwidEnrichedArticleBlock[]
-}) => (
-    <>
-        {blocks.map((block: OwidEnrichedArticleBlock, i: number) => {
-            return <ArticleBlock key={i} b={block} />
-        })}
-    </>
-)
+}) => {
+    return (
+        <>
+            {blocks.map((block: OwidEnrichedArticleBlock, i: number) => {
+                return <ArticleBlock key={i} b={block} />
+            })}
+        </>
+    )
+}

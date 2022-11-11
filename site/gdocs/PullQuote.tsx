@@ -1,8 +1,14 @@
 import React from "react"
 import { EnrichedBlockPullQuote } from "@ourworldindata/utils"
-export default function PullQuote({ d }: { d: EnrichedBlockPullQuote }) {
+export default function PullQuote({
+    d,
+    className = "",
+}: {
+    d: EnrichedBlockPullQuote
+    className?: string
+}) {
     return (
-        <blockquote className={"pullQuote"}>
+        <blockquote className={className}>
             {d.text.map((d) => d.text).join("\n")}
         </blockquote>
     )
