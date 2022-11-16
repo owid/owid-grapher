@@ -719,10 +719,10 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     const wordpressPostsCards = await Promise.all(
         wordpressPosts.map((post) => getFullPost(post, true))
     )
-    const publishedGdocs = await Gdoc.getPublishedGdocs()
+    const listedGdocs = await Gdoc.getListedGdocs()
 
     return orderBy(
-        [...wordpressPostsCards, ...mapGdocsToWordpressPosts(publishedGdocs)],
+        [...wordpressPostsCards, ...mapGdocsToWordpressPosts(listedGdocs)],
         (post) => post.date.getTime(),
         ["desc"]
     )

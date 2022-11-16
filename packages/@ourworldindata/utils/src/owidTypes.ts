@@ -447,6 +447,7 @@ export interface OwidArticleContent {
         | "sdg-color-16"
         | "sdg-color-17"
     "featured-image"?: any
+    "publication-context"?: "listed" | "unlisted"
 }
 
 export interface OwidArticleContentPublished extends OwidArticleContent {

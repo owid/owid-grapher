@@ -11,6 +11,7 @@ import {
 } from "../../settings/serverSettings.js"
 import { google, Auth } from "googleapis"
 import { gdocToArchieML } from "../gdocToArchieml.js"
+import { dataSource } from "../dataSource.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -73,5 +74,14 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         return Gdoc.findBy({ published: true }) as Promise<
             OwidArticleTypePublished[]
         >
+    }
+
+    static async getListedGdocs(): Promise<OwidArticleTypePublished[]> {
+        return dataSource
+            .getRepository(Gdoc)
+            .createQueryBuilder("gdoc")
+            .where("gdoc.published = true")
+            .andWhere("gdoc.content -> '$.\"publication-context\"' = 'listed'")
+            .getMany() as Promise<OwidArticleTypePublished[]>
     }
 }
