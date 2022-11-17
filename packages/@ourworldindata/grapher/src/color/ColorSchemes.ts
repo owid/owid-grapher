@@ -92,6 +92,7 @@ function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
             ColorSchemeName.BinaryMapPaletteD,
             ColorSchemeName.BinaryMapPaletteE,
         ])
+        .with(ChartTypeName.Cartogram, () => [])
         .exhaustive()
 }
 

@@ -12,6 +12,7 @@ export enum ChartTypeName {
     StackedBar = "StackedBar",
     WorldMap = "WorldMap",
     Marimekko = "Marimekko",
+    Cartogram = "Cartogram",
 }
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"

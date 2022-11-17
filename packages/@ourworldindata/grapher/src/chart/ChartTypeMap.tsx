@@ -13,6 +13,7 @@ import { ComponentClass, Component } from "react"
 import { Bounds } from "@ourworldindata/utils"
 import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChart"
 import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
+import { Cartogram } from "../mapCharts/Cartogram"
 
 interface ChartComponentProps {
     manager: ChartManager
@@ -38,6 +39,7 @@ export const ChartComponentClassMap = new Map<
     [ChartTypeName.Marimekko, MarimekkoChart],
     [ChartTypeName.TimeScatter, TimeScatterChart],
     [ChartTypeName.WorldMap, MapChart],
+    [ChartTypeName.Cartogram, Cartogram],
 ])
 
 export const DefaultChartClass = LineChart as ChartComponentClass
