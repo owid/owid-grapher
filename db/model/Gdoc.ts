@@ -3,6 +3,7 @@ import {
     OwidArticleContent,
     OwidArticleType,
     OwidArticleTypePublished,
+    OwidArticlePublicationContext,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -11,7 +12,6 @@ import {
 } from "../../settings/serverSettings.js"
 import { google, Auth } from "googleapis"
 import { gdocToArchieML } from "../gdocToArchieml.js"
-import { dataSource } from "../dataSource.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -19,6 +19,8 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column() slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
     @Column() published: boolean = false
+    @Column() publicationContext: OwidArticlePublicationContext =
+        OwidArticlePublicationContext.unlisted
     @Column() createdAt: Date = new Date()
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
@@ -77,11 +79,9 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     static async getListedGdocs(): Promise<OwidArticleTypePublished[]> {
-        return dataSource
-            .getRepository(Gdoc)
-            .createQueryBuilder("gdoc")
-            .where("gdoc.published = true")
-            .andWhere("gdoc.content -> '$.\"publication-context\"' = 'listed'")
-            .getMany() as Promise<OwidArticleTypePublished[]>
+        return Gdoc.findBy({
+            published: true,
+            publicationContext: OwidArticlePublicationContext.listed,
+        }) as Promise<OwidArticleTypePublished[]>
     }
 }

@@ -387,6 +387,11 @@ export interface OwidArticleBlock {
     value: string | any
 }
 
+export enum OwidArticlePublicationContext {
+    unlisted = "unlisted",
+    listed = "listed",
+}
+
 export interface OwidArticleType {
     id: string
     slug: string
@@ -395,6 +400,7 @@ export interface OwidArticleType {
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
+    publicationContext: OwidArticlePublicationContext
 }
 
 // see also: getArticleFromJSON()
@@ -447,7 +453,6 @@ export interface OwidArticleContent {
         | "sdg-color-16"
         | "sdg-color-17"
     "featured-image"?: any
-    "publication-context"?: "listed" | "unlisted"
 }
 
 export interface OwidArticleContentPublished extends OwidArticleContent {
