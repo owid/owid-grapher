@@ -1,13 +1,13 @@
 import { observer } from "mobx-react"
-import { ChartInterface, ChartSeries } from "../chart/ChartInterface.js"
-import { ChartManager } from "../chart/ChartManager.js"
+import { ChartInterface, ChartSeries } from "../chart/ChartInterface"
+import { ChartManager } from "../chart/ChartManager"
 import React from "react"
 import { OwidTable, rowsToMatrix } from "@ourworldindata/core-table"
 import { computed } from "mobx"
 import { isOnTheMap } from "./EntitiesOnTheMap.js"
-import { NoDataModal } from "../noDataModal/NoDataModal.js"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 import { Bounds, minBy, maxBy, range, min } from "@ourworldindata/utils"
-import { CartogramData1950 } from "./Cartogram1950.js"
+import { CartogramData1950 } from "./Cartogram1950"
 import Papa from "papaparse"
 export interface CartogramProps {
     bounds?: Bounds
@@ -152,8 +152,9 @@ export class Cartogram
                     height={bounds!.height}
                     fill="rgba(255,255,255,0)"
                     opacity={0}
+                    key={"bg"}
                 />
-                <g>{rects}</g>
+                <g key={"cells"}>{rects}</g>
             </g>
         )
     }
