@@ -110,7 +110,7 @@ function MarimekkoBar({
     const fillOpacity = isHovered
         ? 0.7
         : isFaint
-        ? 0.2
+        ? 0.1
         : isSelected
         ? isPlaceholder
             ? 0.3
@@ -1578,7 +1578,7 @@ export class MarimekkoChart
                         fontWeight={candidate.isSelected ? 700 : 400}
                         fill={color}
                         transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
-                        opacity={1}
+                        opacity={candidate.isSelected ? 1 : 0.4}
                         fontSize="0.7em"
                         textAnchor="right"
                         dominantBaseline="middle"
