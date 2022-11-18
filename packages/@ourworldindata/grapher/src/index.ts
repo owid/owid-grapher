@@ -1,5 +1,7 @@
 import "./core/grapher.scss"
 
+export { WorldRegionToProjection, WorldRegionName } from "./mapCharts/WorldRegionsToProjection.js"
+
 export { BinningStrategy } from "./color/BinningStrategy"
 export { binningStrategyLabels } from "./color/BinningStrategies"
 export {
