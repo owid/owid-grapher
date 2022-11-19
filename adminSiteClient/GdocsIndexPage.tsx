@@ -60,6 +60,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                     <th>Slug</th>
                                     <th>Type</th>
                                     <th>Status</th>
+                                    <th>Context</th>
                                     <th>Last Updated</th>
                                     <th></th>
                                 </tr>
@@ -75,6 +76,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                                 ? "Published"
                                                 : "Draft"}
                                         </td>
+                                        <td>{gdoc.publicationContext}</td>
                                         <td>{gdoc.updatedAt}</td>
                                         <td>
                                             <Link
