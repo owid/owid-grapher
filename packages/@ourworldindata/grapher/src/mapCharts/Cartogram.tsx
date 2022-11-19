@@ -3,6 +3,7 @@ import { ChartInterface, ChartSeries } from "../chart/ChartInterface"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils.js"
 import { ChartManager } from "../chart/ChartManager"
 import React from "react"
+import { color } from "d3-color"
 import {
     EntityCode,
     EntityId,
@@ -10,7 +11,7 @@ import {
     OwidTableSlugs,
     rowsToMatrix,
 } from "@ourworldindata/core-table"
-import { computed } from "mobx"
+import { action, computed, observable } from "mobx"
 import { isOnTheMap } from "./EntitiesOnTheMap.js"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
@@ -24,6 +25,8 @@ import {
     DEFAULT_BOUNDS,
     flatten,
     HorizontalAlign,
+    getRelativeMouse,
+    PrimitiveType,
 } from "@ourworldindata/utils"
 import { CartogramData2020 } from "./Cartogram2020"
 import { countriesRegionsCsv } from "./CountriesRegions"
@@ -43,9 +46,11 @@ import {
     HorizontalCategoricalColorLegend,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends.js"
+import { MapTooltip } from "./MapTooltip.js"
 export interface CartogramProps {
     bounds?: Bounds
     manager: CartogramManager
+    containerElement?: HTMLDivElement
 }
 
 export interface CartogramEntity {
@@ -104,6 +109,7 @@ export class Cartogram
                 this.mapConfig?.timeTolerance
             )
     }
+    @observable focusEntity?: string
 
     @computed get mapColumnSlug(): string {
         return (
@@ -375,6 +381,48 @@ export class Cartogram
         return HorizontalAlign.center
     }
 
+    @observable tooltipTarget?: { x: number; y: number; featureId: string }
+    @computed get entityCodeToNameMap(): Map<string, string> {
+        return this.transformedTable.entityCodeToNameMap
+    }
+
+    @action.bound onMapMouseOver(code: string, ev: React.MouseEvent): void {
+        this.focusEntity = code
+        const { entityCodeToNameMap } = this
+        console.log("hovering over", code)
+
+        const { containerElement } = this.props
+        if (!containerElement) return
+
+        const mouse = getRelativeMouse(containerElement, ev)
+        const entityName = entityCodeToNameMap.get(code)
+        console.log("mouse coordinates retrieved")
+        if (!entityName) console.warn("Entity name not found", code)
+        if (code !== undefined)
+            this.tooltipTarget = {
+                x: mouse.x,
+                y: mouse.y,
+                featureId: entityName!,
+            }
+    }
+    @computed private get formatTooltipValue(): (d: number | string) => string {
+        const { mapConfig, mapColumn, colorScale } = this
+
+        return (d: PrimitiveType): string => {
+            if (mapConfig.tooltipUseCustomLabels) {
+                // Find the bin (and its label) that this value belongs to
+                const bin = colorScale.getBinForValue(d)
+                const label = bin?.label
+                if (label !== undefined && label !== "") return label
+            }
+            return mapColumn?.formatValueLong(d) ?? ""
+        }
+    }
+
+    @action.bound onMapMouseLeave(): void {
+        this.focusEntity = undefined
+        this.tooltipTarget = undefined
+    }
     @computed get numericLegendY(): number {
         const {
             numericLegend,
@@ -406,7 +454,15 @@ export class Cartogram
     }
     render(): JSX.Element {
         const { bounds } = this.props
-        const { numRows, numColumns, cartogramGrid, seriesMap } = this
+        const {
+            numRows,
+            numColumns,
+            cartogramGrid,
+            seriesMap,
+            tooltipTarget,
+            focusEntity,
+            entityCodeToNameMap,
+        } = this
         const x = bounds!.x
         const y = bounds!.y
         const width = bounds!.width
@@ -423,20 +479,29 @@ export class Cartogram
             )
 
         const rects = cartogramGrid.map((row, rowIndex) => {
-            return row.map((column, colIndex) =>
-                column !== "" ? (
+            return row.map((column, colIndex) => {
+                const colorFromScale = seriesMap.get(column)?.color
+                const fillColor =
+                    entityCodeToNameMap.get(column) === focusEntity
+                        ? color(colorFromScale!)?.brighter(0.6).toString()
+                        : colorFromScale
+                return column !== "" ? (
                     <rect
                         key={`${rowIndex}-${colIndex}`}
                         x={x + cellWidth * colIndex}
                         y={y + cellHeight * rowIndex}
                         width={cellWidth * 7}
                         height={cellHeight * 7}
-                        fill={seriesMap.get(column)?.color}
+                        fill={fillColor}
+                        onMouseEnter={(ev): void =>
+                            this.onMapMouseOver(column, ev)
+                        }
+                        onMouseLeave={this.onMapMouseLeave}
                     />
                 ) : (
                     <></>
                 )
-            )
+            })
         })
 
         return (
@@ -452,6 +517,18 @@ export class Cartogram
                 />
                 <g key={"cells"}>{rects}</g>
                 {this.renderMapLegend()}
+                {tooltipTarget && (
+                    <MapTooltip
+                        entityName={tooltipTarget?.featureId}
+                        timeSeriesTable={this.inputTable}
+                        formatValue={this.formatTooltipValue}
+                        isEntityClickable={false}
+                        tooltipTarget={tooltipTarget}
+                        manager={this.manager}
+                        colorScaleManager={this}
+                        targetTime={this.targetTime}
+                    />
+                )}
             </g>
         )
     }
