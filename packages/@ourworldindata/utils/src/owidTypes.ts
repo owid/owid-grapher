@@ -425,6 +425,7 @@ export type SpanQuote = {
     spanType: "span-quote"
     children: Span[]
 }
+export type UnformattedSpan = SpanSimpleText | SpanNewline
 
 export type Span =
     | SpanSimpleText
@@ -713,7 +714,6 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockList
     | EnrichedBlockPullQuote
     | EnrichedBlockRecirc
-    | EnrichedBlockText
     | EnrichedBlockHeader
     | EnrichedBlockHtml
     | EnrichedBlockHorizontalRule

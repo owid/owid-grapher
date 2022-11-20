@@ -129,6 +129,7 @@ export {
     SpanNewline,
     SpanQuote,
     SpanSimpleText,
+    UnformattedSpan,
     RawChartStoryValue,
 } from "./owidTypes.js"
 

@@ -51,7 +51,7 @@ import {
 } from "@ourworldindata/utils/dist/owidTypes.js"
 import { parseInt } from "lodash"
 
-export function parseRawBlocksToEnhancedBlocks(
+export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawArticleBlock
 ): OwidEnrichedArticleBlock | null {
     return match(block)
@@ -454,7 +454,7 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
             message: "Value is a string, not a list of strings",
         })
 
-    const textResults = compact(raw.value.map(parseRawBlocksToEnhancedBlocks))
+    const textResults = compact(raw.value.map(parseRawBlocksToEnrichedBlocks))
 
     const [textBlocks, otherBlocks] = partition(
         textResults,

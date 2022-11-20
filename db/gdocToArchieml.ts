@@ -20,7 +20,7 @@ import {
     spanToHtmlString,
 } from "./gdocUtils"
 import { match, P } from "ts-pattern"
-import { parseRawBlocksToEnhancedBlocks } from "./gdocBlockParsersRawToEnriched.js"
+import { parseRawBlocksToEnrichedBlocks } from "./gdocBlockParsersRawToEnriched.js"
 
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
@@ -87,7 +87,7 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
     ).body
 
     // Parse elements of the ArchieML into enrichedBlocks
-    parsed.body = compact(parsed.body.map(parseRawBlocksToEnhancedBlocks))
+    parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
     parsed.refs = refs.map(htmlToEnrichedTextBlock)
     const summary: string | string[] | undefined = parsed.summary
     parsed.summary =

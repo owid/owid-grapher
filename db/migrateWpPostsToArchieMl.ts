@@ -7,10 +7,13 @@ import * as cheerio from "cheerio"
 import {
     RawBlockPullQuote,
     OwidRawArticleBlock,
-    RawBlockImage,
+    EnrichedBlockImage,
     RawBlockText,
     OwidEnrichedArticleBlock,
     EnrichedBlockPullQuote,
+    EnrichedBlockText,
+    Span,
+    SpanSimpleText,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { cheerioToSpan, spansToHtmlString } from "./gdocUtils.js"
@@ -77,6 +80,14 @@ function findRecursive(
     return undefined
 }
 
+function getSimpleSpans(spans: Span[]): [SpanSimpleText[], Span[]] {
+    return _.partition(
+        spans,
+        (span: Span): span is SpanSimpleText =>
+            span.spanType === "span-simple-text"
+    )
+}
+
 function cheerioToArchieML(
     node: CheerioElement
 ): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
@@ -115,6 +126,9 @@ function cheerioToArchieML(
                                 ],
                                 content: [],
                             }
+                        const [simpleSpans, otherSpans] = getSimpleSpans(
+                            childElements.content[0].value
+                        )
 
                         return {
                             errors: [],
@@ -122,8 +136,16 @@ function cheerioToArchieML(
                                 {
                                     type: "pull-quote",
                                     // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
-                                    text: childElements.content[0].value,
-                                    parseErrors: [],
+                                    text: simpleSpans,
+                                    parseErrors:
+                                        otherSpans.length === 0
+                                            ? []
+                                            : [
+                                                  {
+                                                      message:
+                                                          "Dropped text fragments that were not just unformatted text",
+                                                  },
+                                              ],
                                 },
                             ],
                         }
@@ -136,13 +158,13 @@ function cheerioToArchieML(
                 .with({ tagName: "figcaption" }, unwrapNode)
                 .with(
                     { tagName: "figure" },
-                    (): ArchieMlTransformationResult<RawBlockImage> => {
+                    (): ArchieMlTransformationResult<EnrichedBlockImage> => {
                         const errors: ArchieMlTransformationError[] = []
                         const [figcaptionChildren, otherChildren] = _.partition(
                             node.children,
                             (n) => n.tagName === "figcaption"
                         )
-                        let figcaptionElement: RawBlockText | undefined =
+                        let figcaptionElement: EnrichedBlockText | undefined =
                             undefined
                         if (figcaptionChildren.length > 1) {
                             errors.push({
@@ -186,10 +208,9 @@ function cheerioToArchieML(
                             content: [
                                 {
                                     type: "image",
-                                    value: {
-                                        src: image?.attribs.src ?? "",
-                                        caption: figcaptionElement?.value,
-                                    },
+                                    src: image?.attribs.src ?? "",
+                                    caption: figcaptionElement?.value ?? [],
+                                    parseErrors: [],
                                 },
                             ],
                         }
