@@ -3,23 +3,18 @@ import { ChartInterface, ChartSeries } from "../chart/ChartInterface"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils.js"
 import { ChartManager } from "../chart/ChartManager"
 import React from "react"
-import { color } from "d3-color"
 import {
     EntityCode,
-    EntityId,
     OwidTable,
     OwidTableSlugs,
-    rowsToMatrix,
 } from "@ourworldindata/core-table"
 import { action, computed, observable } from "mobx"
-import { isOnTheMap } from "./EntitiesOnTheMap.js"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     Bounds,
     minBy,
     maxBy,
     range,
-    min,
     ColumnSlug,
     isPresent,
     DEFAULT_BOUNDS,
@@ -29,10 +24,8 @@ import {
     PrimitiveType,
 } from "@ourworldindata/utils"
 import { CartogramData2020 } from "./Cartogram2020"
-import { countriesRegionsCsv } from "./CountriesRegions"
 import Papa from "papaparse"
 import { Patterns, SeriesName } from "../core/GrapherConstants"
-import { MapBracket } from "./MapChartConstants.js"
 import { MapConfig } from "./MapConfig.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -80,6 +73,12 @@ interface CartogramCsvRowParsed {
 export interface CartogramManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
+}
+
+interface GridLinesForEntity {
+    entityCode: string
+    horizontalGridLinesTopOfCells: [number, number][]
+    verticalGridLinesLeftOfCells: [number, number][]
 }
 
 @observer
@@ -229,6 +228,55 @@ export class Cartogram
         )
         return parsed
     }
+    @computed private get gridLinesForEntities(): Map<
+        string,
+        GridLinesForEntity
+    > {
+        const gridLinesMap = new Map<string, GridLinesForEntity>()
+        const { minX, minY, cartogramGrid } = this
+
+        const getCellAbove = (x: number, y: number): string | undefined =>
+            y - 1 >= 0 ? cartogramGrid[y - 1][x] : undefined
+        const getCellBelow = (x: number, y: number): string | undefined =>
+            y + 1 < cartogramGrid.length ? cartogramGrid[y + 1][x] : undefined
+        const getCellToLeft = (x: number, y: number): string | undefined =>
+            x - 1 >= 0 ? cartogramGrid[y][x - 1] : undefined
+        const getCellToRight = (x: number, y: number): string | undefined =>
+            x + 1 < cartogramGrid[y].length
+                ? cartogramGrid[y][x + 1]
+                : undefined
+
+        for (const cartogramCsvRow of this.cartogramCellData) {
+            if (!gridLinesMap.has(cartogramCsvRow.CountryCode))
+                gridLinesMap.set(cartogramCsvRow.CountryCode, {
+                    entityCode: cartogramCsvRow.CountryCode,
+                    horizontalGridLinesTopOfCells: [],
+                    verticalGridLinesLeftOfCells: [],
+                })
+            const gridLines = gridLinesMap.get(cartogramCsvRow.CountryCode)!
+            const x = cartogramCsvRow.X - minX
+            const y = cartogramCsvRow.Y - minY
+            const isAboveSameEntity =
+                getCellAbove(x, y) === cartogramCsvRow.CountryCode
+            const isBelowSameEntity =
+                getCellBelow(x, y) === cartogramCsvRow.CountryCode
+
+            const isToLeftSameEntity =
+                getCellToLeft(x, y) === cartogramCsvRow.CountryCode
+
+            const isToRightSameEntity =
+                getCellToRight(x, y) === cartogramCsvRow.CountryCode
+            if (!isAboveSameEntity)
+                gridLines.horizontalGridLinesTopOfCells.push([x, y])
+            if (!isBelowSameEntity)
+                gridLines.horizontalGridLinesTopOfCells.push([x, y + 1])
+            if (!isToLeftSameEntity)
+                gridLines.verticalGridLinesLeftOfCells.push([x, y])
+            if (!isToRightSameEntity)
+                gridLines.verticalGridLinesLeftOfCells.push([x + 1, y])
+        }
+        return gridLinesMap
+    }
     @computed private get seriesMap(): Map<EntityCode, CartogramSeries> {
         // This maps entity ids to series data points - we use entity ids
         // here for now because the cartogram csv stores entityids, not names
@@ -241,12 +289,21 @@ export class Cartogram
         })
         return map
     }
+    @computed get minX(): number {
+        return minBy(this.cartogramCellData, (row) => row.X)?.X ?? 0
+    }
+    @computed get maxX(): number {
+        return maxBy(this.cartogramCellData, (row) => row.X)?.X ?? 0
+    }
+    @computed get minY(): number {
+        return minBy(this.cartogramCellData, (row) => row.Y)?.Y ?? 0
+    }
+    @computed get maxY(): number {
+        return maxBy(this.cartogramCellData, (row) => row.Y)?.Y ?? 0
+    }
     @computed get cartogramGrid(): string[][] {
         const parsed = this.cartogramCellData
-        const minX = minBy(parsed, (row) => row.X)?.X ?? 0
-        const maxX = maxBy(parsed, (row) => row.X)?.X ?? 0
-        const minY = minBy(parsed, (row) => row.Y)?.Y ?? 0
-        const maxY = maxBy(parsed, (row) => row.Y)?.Y ?? 0
+        const { minX, maxX, minY, maxY } = this
         console.log({ minX, maxX, minY, maxY })
         const numColumns = maxX - minX + 1
         const numRows = maxY - minY + 1
@@ -462,6 +519,7 @@ export class Cartogram
             tooltipTarget,
             focusEntity,
             entityCodeToNameMap,
+            gridLinesForEntities,
         } = this
         const x = bounds!.x
         const y = bounds!.y
@@ -504,6 +562,49 @@ export class Cartogram
             })
         })
 
+        const outlines = [...gridLinesForEntities.values()].map(
+            (linesForEntity) => {
+                const horizontal =
+                    linesForEntity.horizontalGridLinesTopOfCells.map((cell) => {
+                        const linex = cell[0]
+                        const liney = cell[1]
+                        return (
+                            <line
+                                key={`h${linex}-${liney}`}
+                                x1={x + linex * cellWidth}
+                                x2={x + (linex + 1) * cellWidth}
+                                y1={y + liney * cellHeight}
+                                y2={y + liney * cellHeight}
+                                stroke="#444"
+                                opacity={0.5}
+                            />
+                        )
+                    })
+                const vertical =
+                    linesForEntity.verticalGridLinesLeftOfCells.map((cell) => {
+                        const linex = cell[0]
+                        const liney = cell[1]
+                        return (
+                            <line
+                                key={`h${linex}-${liney}`}
+                                x1={x + linex * cellWidth}
+                                x2={x + linex * cellWidth}
+                                y1={y + liney * cellHeight}
+                                y2={y + (liney + 1) * cellHeight}
+                                stroke="#444"
+                                opacity={0.5}
+                            />
+                        )
+                    })
+                return (
+                    <g key={`${linesForEntity.entityCode}`}>
+                        {horizontal}
+                        {vertical}
+                    </g>
+                )
+            }
+        )
+
         return (
             <g ref={this.base} className="mapTab">
                 <rect
@@ -517,6 +618,7 @@ export class Cartogram
                 />
                 <g key={"cells"}>{rects}</g>
                 {this.renderMapLegend()}
+                {outlines}
                 {tooltipTarget && (
                     <MapTooltip
                         entityName={tooltipTarget?.featureId}
