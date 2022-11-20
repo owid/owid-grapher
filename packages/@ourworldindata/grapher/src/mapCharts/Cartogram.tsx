@@ -213,8 +213,8 @@ export class Cartogram
 
         const parsed: CartogramCsvRowParsed[] = raw
             .map((row) => ({
-                X: Number.parseInt(row.X, 10),
-                Y: Number.parseInt(row.Y, 10),
+                X: Number.parseInt(row.X, 10) / 8,
+                Y: Number.parseInt(row.Y, 10) / 8,
                 CountryCode: row.CountryCode,
             }))
             .filter(
@@ -481,18 +481,18 @@ export class Cartogram
         const rects = cartogramGrid.map((row, rowIndex) => {
             return row.map((column, colIndex) => {
                 const colorFromScale = seriesMap.get(column)?.color
-                const fillColor =
-                    entityCodeToNameMap.get(column) === focusEntity
-                        ? color(colorFromScale!)?.brighter(0.6).toString()
-                        : colorFromScale
+                // const fillColor =
+                //     entityCodeToNameMap.get(column) === focusEntity
+                //         ? "rgb(255,0,0,1)" // color(colorFromScale!)?.brighter(0.6).toString()
+                //         : colorFromScale
                 return column !== "" ? (
                     <rect
                         key={`${rowIndex}-${colIndex}`}
                         x={x + cellWidth * colIndex}
                         y={y + cellHeight * rowIndex}
-                        width={cellWidth * 7}
-                        height={cellHeight * 7}
-                        fill={fillColor}
+                        width={cellWidth}
+                        height={cellHeight}
+                        fill={colorFromScale}
                         onMouseEnter={(ev): void =>
                             this.onMapMouseOver(column, ev)
                         }
