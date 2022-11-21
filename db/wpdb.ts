@@ -735,6 +735,7 @@ const mapGdocsToWordpressPosts = (
         title: gdoc.content.title,
         slug: gdoc.slug,
         date: gdoc.publishedAt,
+        modifiedDate: gdoc.updatedAt,
         authors: Array.isArray(gdoc.content.byline)
             ? gdoc.content.byline
             : [gdoc.content.byline],

@@ -273,10 +273,7 @@ export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
 export async function makeAtomFeed() {
-    const postsApi = await getPosts([WP_PostType.Post], selectHomepagePosts, 10)
-    const posts = await Promise.all(
-        postsApi.map((postApi) => getFullPost(postApi, true))
-    )
+    const posts = (await getBlogIndex()).slice(0, 10)
 
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -288,7 +285,7 @@ export async function makeAtomFeed() {
 <updated>${posts[0].date.toISOString()}</updated>
 ${posts
     .map((post) => {
-        const postUrl = `${BAKED_BASE_URL}/${post.path}`
+        const postUrl = `${BAKED_BASE_URL}/${post.slug}`
         const image = post.imageUrl
             ? `<br><br><a href="${postUrl}" target="_blank"><img src="${post.imageUrl}"/></a>`
             : ""

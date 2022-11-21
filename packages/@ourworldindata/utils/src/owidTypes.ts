@@ -265,6 +265,7 @@ export interface IndexPost {
     title: string
     slug: string
     date: Date
+    modifiedDate: Date
     authors: string[]
     excerpt?: string
     imageUrl?: string
@@ -274,7 +275,6 @@ export interface FullPost extends IndexPost {
     id: number
     type: WP_PostType
     path: string
-    modifiedDate: Date
     content: string
     thumbnailUrl?: string
     imageId?: number
