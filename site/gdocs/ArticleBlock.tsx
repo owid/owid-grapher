@@ -93,7 +93,7 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
                             : `<p>${d.value
                                   .replace(/\\:/g, ":")
                                   .replace(
-                                      /<ref id="note-(\d+) \/>"/g,
+                                      /<ref id="note-(\d+)" \/>/g,
                                       (_: string, index: string) =>
                                           makeRef(index)
                                   )}</p>`,
