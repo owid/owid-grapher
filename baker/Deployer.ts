@@ -221,6 +221,8 @@ yarn testPrettierAll`
             createDatasetSoftlinks: `mkdir -p ${finalDataDir}/datasetsExport && ln -sf ${finalDataDir}/datasetsExport ${rsyncTargetDirTmp}/datasetsExport`,
             createSettingsSoftlinks: `ln -sf ${finalDataDir}/.env ${rsyncTargetDirTmp}/.env`,
             yarn: `cd ${rsyncTargetDirTmp} && yarn install --production --frozen-lockfile`,
+            lernaBootstrap: `cd ${rsyncTargetDirTmp} && yarn lerna bootstrap`,
+            lernaBuild: `cd ${rsyncTargetDirTmp} && yarn lerna run build`,
             webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
             migrateDb: `cd ${rsyncTargetDirTmp} && yarn runDbMigrations`,
             algolia: `cd ${rsyncTargetDirTmp} && node --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js`,
