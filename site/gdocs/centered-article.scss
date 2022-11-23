@@ -92,34 +92,25 @@
 }
 
 .owidArticle .articlePage {
-    position: relative;
-    top: -150px;
-
+    position: absolute;
     grid-row: 1 / -1;
     grid-column: 4 / span 8;
     background-color: #fff;
     width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
+    top: $article-page-top-offset;
     bottom: 0;
     z-index: 0;
-    height: 200px;
+    height: $article-cover-height - $article-page-top-offset;
 }
 
 .owidArticle .articleCover {
-    height: 200px;
-    background-color: #f7c020;
     position: absolute;
+    height: $article-cover-height;
+    background-color: #f7c020;
     top: 0;
     grid-row: 1 / -1;
     grid-column: 1 / span 14;
     z-index: 0;
-}
-
-.owidArticle .articlePage {
-    /* height: 200px; */
-    background-color: #fff;
 }
 
 .owidArticle > .title {
@@ -129,7 +120,7 @@
     max-width: 100%;
     font-weight: 600;
     letter-spacing: -1%;
-    margin-top: 56px;
+    margin-top: 56px + $article-page-top-offset;
     text-align: center;
 }
 

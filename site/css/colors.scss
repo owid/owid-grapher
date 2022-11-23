@@ -97,6 +97,7 @@ $sdgColors: (
 
 :root {
     @each $i, $sdgColor in $sdgColors {
+        // See also owidTypes.ts > OwidArticleContent > cover-color
         --sdg-color-#{$i}: #{$sdgColor};
     }
 }

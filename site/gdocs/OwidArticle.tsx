@@ -17,6 +17,8 @@ export function OwidArticle(props: OwidArticleType) {
               background: `url(${content["cover-image"][0].value.src})`,
               backgroundSize: "cover",
           }
+        : content["cover-color"]
+        ? { backgroundColor: `var(--${content["cover-color"]})` }
         : {}
 
     return (
