@@ -41,7 +41,7 @@ export const gdocToArchieML = async ({
         val: string,
         i: number
     ) {
-        text = text.replace(val, `<ref id="${i}" />`)
+        text = text.replace(val, `<ref id="note-${i + 1}" />`)
         return val.replace(/\{\/?ref\}/g, "")
     })
 

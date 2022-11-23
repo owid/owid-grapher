@@ -82,6 +82,8 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
         if (d.value.trim() === "") {
             return null
         }
+        const makeRef = (index: string) =>
+            `<a class="ref" id="ref-${index}" href="#note-${index}"><sup>${index}</sup></a>`
         return (
             <div
                 dangerouslySetInnerHTML={{
@@ -89,7 +91,13 @@ export default function ArticleBlock({ d }: { d: OwidArticleBlock }) {
                         d.value.startsWith("<div") ||
                         d.value.trim() === "<hr />"
                             ? d.value.replace(/\\:/g, ":")
-                            : `<p>${d.value.replace(/\\:/g, ":")}</p>`,
+                            : `<p>${d.value
+                                  .replace(/\\:/g, ":")
+                                  .replace(
+                                      /<ref id="note-(\d+)" \/>/g,
+                                      (_: string, index: string) =>
+                                          makeRef(index)
+                                  )}</p>`,
                 }}
             />
         )
