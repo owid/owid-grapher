@@ -26,7 +26,7 @@
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLernaWatcher": "node ./devTools/lernaWatcher/lerna-watcher.js",
         "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
-        "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
+        "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startLernaWatcher\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
         "startTscServer": "tsc -b -verbose -watch",
         "startWebpackServer": "webpack server --mode development --no-live-reload --config ./itsJustJavascript/webpack.config.js",
         "startWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn start",
