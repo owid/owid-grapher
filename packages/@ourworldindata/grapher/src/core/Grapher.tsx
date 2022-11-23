@@ -1998,8 +1998,11 @@ export class Grapher
         if (
             // multiple entities
             this.selection.numSelectedEntities > 1 &&
-            // more than one data point per entity
-            this.transformedTable.numRows > this.selection.numSelectedEntities
+            // more than one data point per entity (e.g. multiple years in a LineChart)
+            (this.transformedTable.numRows >
+                this.selection.numSelectedEntities ||
+                // or: multiple dimensions
+                numNonProjectedColumns > 1)
         ) {
             strategies.push(FacetStrategy.entity)
         }
