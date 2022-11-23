@@ -44,7 +44,9 @@ export function OwidArticle(props: OwidArticleType) {
                 </div>
             ) : null}
 
-            {content.body ? <ArticleBlocks blocks={content.body} /> : null}
+            {content.body ? (
+                <ArticleBlocks toc={content.toc} blocks={content.body} />
+            ) : null}
 
             {content.refs ? <Footnotes d={content.refs} /> : null}
 

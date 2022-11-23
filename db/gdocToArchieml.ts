@@ -3,8 +3,8 @@
 
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
-import { OwidArticleContent } from "@ourworldindata/utils"
-
+import { OwidArticleContent, TocHeading } from "@ourworldindata/utils"
+import urlSlug from "url-slug"
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
     auth: docs_v1.Params$Resource$Documents$Get["auth"]
@@ -35,7 +35,7 @@ export const gdocToArchieML = async ({
 
     // convert the doc's content to text ArchieML will understand
 
-    let text = await readElements(data, imageHandler)
+    let { text, toc } = await readElements(data, imageHandler)
 
     const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
         val: string,
@@ -48,6 +48,7 @@ export const gdocToArchieML = async ({
     const parsed = load(text)
 
     parsed.refs = refs
+    parsed.toc = toc
 
     // Parse lists and include lowercase vals
     parsed.body = parsed.body.reduce(
@@ -89,6 +90,7 @@ export const gdocToArchieML = async ({
 async function readElements(document: any, imageHandler: any): Promise<any> {
     // prepare the text holder
     let text = ""
+    const toc: TocHeading[] = []
 
     // check if the body key and content key exists, and give up if not
     if (!document.body) return text
@@ -122,7 +124,20 @@ async function readElements(document: any, imageHandler: any): Promise<any> {
                                 "HEADING_",
                                 ""
                             )
-                        return `<h${headingLevel}>${text.trim()}</h${headingLevel}>\n`
+                        const headingText = text.trim()
+                        const headingSlug = urlSlug(headingText)
+                        const isTocHeading =
+                            headingLevel === "2" || headingLevel === "3"
+                        if (isTocHeading) {
+                            toc.push({
+                                text: headingText,
+                                slug: headingSlug,
+                                isSubheading: headingLevel === "3",
+                            })
+                        }
+                        return `<h${headingLevel}${
+                            isTocHeading ? ` id=${headingSlug}` : ""
+                        }>${headingText}</h${headingLevel}>\n`
                     }
                     return text
                 }
@@ -148,7 +163,7 @@ async function readElements(document: any, imageHandler: any): Promise<any> {
         }
     }
 
-    return text
+    return { text, toc }
 }
 
 async function readParagraphElement(
