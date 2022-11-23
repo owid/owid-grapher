@@ -36,6 +36,7 @@ export {
     GdocsContentSource,
     OwidArticleTypeJSON,
     OwidArticleTypePublished,
+    OwidArticlePublicationContext,
     IndexPost,
     OwidArticleType,
     OwidArticleContent,

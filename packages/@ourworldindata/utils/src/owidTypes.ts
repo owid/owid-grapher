@@ -265,6 +265,7 @@ export interface IndexPost {
     title: string
     slug: string
     date: Date
+    modifiedDate: Date
     authors: string[]
     excerpt?: string
     imageUrl?: string
@@ -274,7 +275,6 @@ export interface FullPost extends IndexPost {
     id: number
     type: WP_PostType
     path: string
-    modifiedDate: Date
     content: string
     thumbnailUrl?: string
     imageId?: number
@@ -387,6 +387,11 @@ export interface OwidArticleBlock {
     value: string | any
 }
 
+export enum OwidArticlePublicationContext {
+    unlisted = "unlisted",
+    listed = "listed",
+}
+
 export interface OwidArticleType {
     id: string
     slug: string
@@ -395,6 +400,7 @@ export interface OwidArticleType {
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
+    publicationContext: OwidArticlePublicationContext
 }
 
 // see also: getArticleFromJSON()
