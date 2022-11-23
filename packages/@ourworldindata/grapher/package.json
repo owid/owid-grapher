@@ -79,6 +79,9 @@
   },
   "license": "MIT",
   "nx": {
-    "implicitDependencies": ["@ourworldindata/utils", "@ourworldindata/core-table"]
+    "implicitDependencies": [
+      "@ourworldindata/utils",
+      "@ourworldindata/core-table"
+    ]
   }
 }
