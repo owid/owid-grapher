@@ -1398,30 +1398,9 @@ export class Grapher
     }
 
     @computed private get defaultSourcesLine(): string {
-        let sourceNames = this.columnsWithSources.map(
+        const sourceNames = this.columnsWithSources.map(
             (column) => column.source.name ?? ""
         )
-
-        // Shorten automatic source names for certain major sources: todo: this sort of thing we could do in a smarter editor, and not at runtime
-        sourceNames = sourceNames.map((sourceName) => {
-            for (const majorSource of [
-                "World Bank – WDI",
-                "World Bank",
-                "ILOSTAT",
-            ]) {
-                if (
-                    sourceName.startsWith(majorSource) &&
-                    !sourceName.match(
-                        new RegExp(
-                            "^" + majorSource + "\\s+(based on|and)",
-                            "gi"
-                        )
-                    )
-                )
-                    return majorSource
-            }
-            return sourceName
-        })
 
         return uniq(sourceNames).join(", ")
     }
