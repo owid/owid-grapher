@@ -14,7 +14,7 @@
         "buildLerna": "lerna run build",
         "buildWebpack": "rm -rf itsJustJavascript/webpack && ENV=production webpack --mode production --config ./itsJustJavascript/webpack.config.js --progress",
         "buildWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn build",
-        "cleanTsc": "rm -rf itsJustJavaScript && tsc -b -clean",
+        "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "deployWordpress": "./wordpress/scripts/deploy.sh",
         "fetchServerStatus": "node ./itsJustJavascript/baker/liveCommit.js",
         "fixLint": "eslint . --fix",
