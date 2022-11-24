@@ -6,6 +6,7 @@ import { faFile } from "@fortawesome/free-solid-svg-icons/faFile"
 import { faArrowPointer } from "@fortawesome/free-solid-svg-icons/faArrowPointer"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
+import { faTruckFast } from "@fortawesome/free-solid-svg-icons/faTruckFast"
 import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCrossbones"
 import { faPen } from "@fortawesome/free-solid-svg-icons/faPen"
 import { faDatabase } from "@fortawesome/free-solid-svg-icons/faDatabase"
@@ -20,6 +21,8 @@ import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons/faSatelliteDish"
 import { faCodeBranch } from "@fortawesome/free-solid-svg-icons/faCodeBranch"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+
+import { FASTTRACK_URL } from "../settings/clientSettings.js"
 
 export const AdminSidebar = (): JSX.Element => (
     <aside className="AdminSidebar">
@@ -48,6 +51,16 @@ export const AdminSidebar = (): JSX.Element => (
                 <Link to="/import">
                     <FontAwesomeIcon icon={faUpload} /> Import CSV
                 </Link>
+            </li>
+            <li>
+                <a
+                    href={FASTTRACK_URL}
+                    target="_blank"
+                    rel="noopener"
+                    title="Tailscale required"
+                >
+                    <FontAwesomeIcon icon={faTruckFast} /> Fast-track
+                </a>
             </li>
             <li>
                 <Link to="/datasets">
