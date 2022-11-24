@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { TocHeading } from "@ourworldindata/utils"
+import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
@@ -7,28 +7,19 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import classNames from "classnames"
 import AnimateHeight from "react-animate-height"
 
-const VERTICAL_TAB_CHAR = "\u000b"
-
 // See ARIA roles: https://w3c.github.io/aria-practices/examples/menu-button/menu-button-links.html
 
-export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
+export default function SDGTableOfContents({
+    toc,
+}: {
+    toc: TocHeadingWithTitleSupertitle[]
+}) {
     const [height, setHeight] = useState<"auto" | 0>(0)
     const [isOpen, setIsOpen] = useState(false)
 
     const toggleIsOpen = () => {
         setHeight(height === 0 ? "auto" : 0)
     }
-
-    const tocHeadingsWithSupertitle = toc.map((heading) => {
-        const [beforeSeparator, afterSeparator] =
-            heading.text.split(VERTICAL_TAB_CHAR)
-
-        return {
-            ...heading,
-            supertitle: afterSeparator ? beforeSeparator : undefined,
-            title: afterSeparator || beforeSeparator,
-        }
-    })
 
     return (
         <nav
@@ -68,7 +59,7 @@ export default function SDGTableOfContents({ toc }: { toc: TocHeading[] }) {
                     role="menu"
                     aria-labelledby="sdg-toc-menu-button"
                 >
-                    {tocHeadingsWithSupertitle.map(
+                    {toc.map(
                         (
                             { title, supertitle, isSubheading, slug },
                             i: number

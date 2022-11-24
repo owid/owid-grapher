@@ -30,6 +30,40 @@
     z-index: 1;
 }
 
+.owidArticle h2:not(.subtitle),
+.owidArticle h3 {
+    text-align: center;
+    .supertitle {
+        @include overline-black-caps;
+        display: block;
+        margin-bottom: 8px;
+        color: $blue-50;
+    }
+}
+
+.owidArticle h2:not(.subtitle) {
+    // Probably better to refactor the subtitle to not use an <h2>.
+    @include h1-semibold;
+    margin-top: 48px;
+    margin-bottom: 24px;
+    padding-top: 48px;
+    border-top: 1px solid $blue-20; // this border doesn't go all the way to the edge.
+}
+
+// HACK: reusing the bottom border of preceeding fixedSections, and reducing the
+// top margin of h2 to visually get the desired 48px between the border and the h2.
+.owidArticle > .fixedSection + div > h2 {
+    margin-top: #{48px - $fixed-section-margin-bottom}; // making the hack visible
+    border: none;
+    padding-top: 0;
+}
+
+.owidArticle h3 {
+    @include h2-bold;
+    margin-top: 64px;
+    margin-bottom: 32px;
+}
+
 .owidArticle > figure {
     grid-row: auto;
     grid-column: 4 / span 8;
@@ -163,7 +197,7 @@
     grid-column: 2 / -2;
     border-bottom: solid 1px #dbe5f0;
     padding-bottom: 32px;
-    margin-bottom: 32px;
+    margin-bottom: $fixed-section-margin-bottom;
 }
 
 .owidArticle .fixedSection .fixedSectionContent {
