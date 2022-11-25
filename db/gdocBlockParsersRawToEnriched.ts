@@ -25,6 +25,7 @@ import { match } from "ts-pattern"
 import {
     EnrichedBlockChartStory,
     EnrichedBlockFixedGraphic,
+    EnrichedBlockGreySection,
     EnrichedBlockHeader,
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
@@ -43,6 +44,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockFixedGraphic,
+    RawBlockGreySection,
     RawBlockHtml,
     RawBlockPullQuote,
     RawBlockRecirc,
@@ -90,6 +92,7 @@ export function parseRawBlocksToEnhancedBlocks(
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with({ type: "sticky-left" }, parseStickyLeft)
         .with({ type: "sticky-right" }, parseStickyRight)
+        .with({ type: "grey-section" }, parseGreySection)
         .exhaustive()
 }
 
@@ -785,6 +788,14 @@ function parseStickyLeft(
         type: "sticky-left",
         left: enrichedLeft,
         right: enrichedRight,
+        parseErrors: [],
+    }
+}
+
+function parseGreySection(raw: RawBlockGreySection): EnrichedBlockGreySection {
+    return {
+        type: "grey-section",
+        items: compact(raw.value.map(parseRawBlocksToEnhancedBlocks)),
         parseErrors: [],
     }
 }

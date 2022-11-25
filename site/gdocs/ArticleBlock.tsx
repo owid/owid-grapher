@@ -29,6 +29,7 @@ const layouts: LayoutDictionary = {
             "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         "horizontal-rule":
             "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        "grey-section": "span-cols-14 grid grid-cols-12-full-width",
         "pull-quote":
             "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         "sdg-grid":
@@ -331,6 +332,13 @@ export default function ArticleBlock({
                                 />
                             ))}
                         </div>
+                    </div>
+                ))
+                .with({ type: "grey-section" }, (block) => (
+                    <div className={getLayout("grey-section")}>
+                        {block.items.map((item, i) => (
+                            <ArticleBlock key={i} b={item} />
+                        ))}
                     </div>
                 ))
                 .exhaustive()

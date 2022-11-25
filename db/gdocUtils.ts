@@ -34,6 +34,7 @@ import { match } from "ts-pattern"
 import _, { partition } from "lodash"
 import * as cheerio from "cheerio"
 import {
+    RawBlockGreySection,
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
 } from "@ourworldindata/utils/dist/owidTypes.js"
@@ -252,6 +253,14 @@ function* RawBlockStickyLeftContainerToArchieMLString(
     yield "[]"
 }
 
+function* RawBlockGreySectionToArchieMLString(
+    block: RawBlockGreySection
+): Generator<string, void, undefined> {
+    yield "[.grey-section]"
+    // TODO
+    yield "[]"
+}
+
 function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
@@ -283,6 +292,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
             { type: "sticky-left" },
             RawBlockStickyLeftContainerToArchieMLString
         )
+        .with({ type: "grey-section" }, RawBlockGreySectionToArchieMLString)
         .exhaustive()
     yield* content
 }
