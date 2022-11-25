@@ -24,7 +24,8 @@ type LayoutDictionary = {
 
 const layouts: LayoutDictionary = {
     default: {
-        "chart-story": "col-start-4 span-cols-8",
+        "chart-story":
+            "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         "fixed-graphic":
             "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         "horizontal-rule":
@@ -34,8 +35,9 @@ const layouts: LayoutDictionary = {
             "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         "sdg-grid":
             "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        "aside-right": "col-start-11 span-cols-3",
-        "aside-left": "col-start-2 span-cols-3",
+        "aside-right":
+            "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
+        "aside-left": "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
         "sticky-left": "col-start-2 span-cols-12 grid",
         "sticky-left-left-column":
             "span-cols-7 span-md-cols-12 grid-md-cols-12",
@@ -46,16 +48,15 @@ const layouts: LayoutDictionary = {
             "span-cols-5 grid grid-cols-5 span-md-cols-12 grid-md-cols-12",
         "sticky-right-right-column":
             "span-cols-7 span-md-cols-12 col-md-start-1",
-        chart: "col-start-4 span-cols-8",
+        chart: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         default:
             "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         header: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         html: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         image: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         list: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        recirc: "col-start-11 span-cols-3 span-rows-3 col-md-start-5 span-md-cols-6",
-        scroller:
-            "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        recirc: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        scroller: "col-start-2 span-cols-12 grid",
         text: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
     },
     "sticky-right-left-column": {
@@ -130,17 +131,13 @@ export default function ArticleBlock({
                         key={key}
                     />
                 ))
-                .with(
-                    { type: "scroller" },
-                    (block) =>
-                        null && (
-                            <Scroller
-                                className={getLayout("scroller", containerType)}
-                                d={block}
-                                key={key}
-                            />
-                        )
-                )
+                .with({ type: "scroller" }, (block) => (
+                    <Scroller
+                        className={getLayout("scroller", containerType)}
+                        d={block}
+                        key={key}
+                    />
+                ))
                 .with({ type: "chart-story" }, (block) => (
                     <ChartStory
                         key={key}
@@ -164,16 +161,16 @@ export default function ArticleBlock({
                 ))
                 .with({ type: "pull-quote" }, (block) => (
                     <PullQuote
+                        className={getLayout("pull-quote", containerType)}
                         d={block}
                         key={key}
-                        className={getLayout("pull-quote", containerType)}
                     />
                 ))
                 .with({ type: "recirc" }, (block) => (
                     <Recirc
+                        className={getLayout("recirc", containerType)}
                         d={block}
                         key={key}
-                        className={getLayout("recirc", containerType)}
                     />
                 ))
                 .with({ type: "list" }, (block) => (
