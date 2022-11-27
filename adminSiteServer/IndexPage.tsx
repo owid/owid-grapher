@@ -26,6 +26,10 @@ export const IndexPage = (props: {
             <head>
                 <title>owid-admin</title>
                 <meta name="description" content="" />
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1"
+                />
                 <link
                     href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,600,700&display=swap"
                     rel="stylesheet"
