@@ -22,7 +22,7 @@ export function OwidArticle(props: OwidArticleType) {
     return (
         <article className="article-container grid grid-cols-12-full-width">
             <div className="article-banner" style={coverStyle}></div>
-            <header className="article-header grid grid-cols-8 col-start-4 span-cols-8">
+            <header className="article-header grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                 <h1 className="article-header__title col-start-2 span-cols-6">
                     {content.title}
                 </h1>

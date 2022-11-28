@@ -35,7 +35,8 @@ $banner-height: 200px;
     @include body-1-regular;
 }
 
-.article-block__text {
+.article-block__text,
+.article-block__html {
     @include body-1-regular;
 }
 
