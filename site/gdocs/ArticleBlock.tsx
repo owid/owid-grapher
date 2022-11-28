@@ -38,16 +38,17 @@ const layouts: LayoutDictionary = {
         "aside-right":
             "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
         "aside-left": "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
-        "sticky-left": "col-start-2 span-cols-12 grid",
+        "sticky-left": "grid span-cols-12 col-start-2",
         "sticky-left-left-column":
             "span-cols-7 span-md-cols-12 grid-md-cols-12",
         "sticky-left-right-column":
             "span-cols-5 span-md-cols-12 col-md-start-1",
-        "sticky-right": "col-start-2 span-cols-12 grid",
+        "sticky-right": "grid span-cols-12 col-start-2",
         "sticky-right-left-column":
             "span-cols-5 grid grid-cols-5 span-md-cols-12 grid-md-cols-12",
         "sticky-right-right-column":
             "span-cols-7 span-md-cols-12 col-md-start-1",
+        "side-by-side": "grid span-cols-12 col-start-2",
         chart: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         default:
             "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -56,7 +57,7 @@ const layouts: LayoutDictionary = {
         image: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         list: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         recirc: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        scroller: "col-start-2 span-cols-12 grid",
+        scroller: "grid span-cols-12 col-start-2",
         text: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
     },
     "sticky-right-left-column": {
@@ -73,6 +74,7 @@ type Container =
     | "sticky-right-right-column"
     | "sticky-left-left-column"
     | "sticky-left-right-column"
+    | "side-by-side"
 
 function getLayout(
     // Default layout is "col-start-5 span-cols-6" aka centered 6-wide column
@@ -326,6 +328,28 @@ export default function ArticleBlock({
                                     key={i}
                                     b={item}
                                     containerType="sticky-left-right-column"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                ))
+                .with({ type: "side-by-side" }, (block) => (
+                    <div className={getLayout("side-by-side", containerType)}>
+                        <div className="grid grid-cols-6 span-cols-6 span-sm-cols-12">
+                            {block.left.map((item, i) => (
+                                <ArticleBlock
+                                    key={i}
+                                    b={item}
+                                    containerType="side-by-side"
+                                />
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-6 span-cols-6 span-sm-cols-12">
+                            {block.right.map((item, i) => (
+                                <ArticleBlock
+                                    key={i}
+                                    b={item}
+                                    containerType="side-by-side"
                                 />
                             ))}
                         </div>

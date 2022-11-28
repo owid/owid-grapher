@@ -712,6 +712,20 @@ export type EnrichedBlockStickyLeftContainer = {
     right: OwidEnrichedArticleBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockSideBySideContainer = {
+    type: "side-by-side"
+    value: {
+        left: OwidRawArticleBlock[]
+        right: OwidRawArticleBlock[]
+    }
+}
+
+export type EnrichedBlockSideBySideContainer = {
+    type: "side-by-side"
+    left: OwidEnrichedArticleBlock[]
+    right: OwidEnrichedArticleBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockGreySection = {
     type: "grey-section"
     value: OwidRawArticleBlock[]
@@ -741,6 +755,7 @@ export type OwidRawArticleBlock =
     | RawBlockSDGGrid
     | RawBlockStickyRightContainer
     | RawBlockStickyLeftContainer
+    | RawBlockSideBySideContainer
     | RawBlockGreySection
 
 export type OwidEnrichedArticleBlock =
@@ -761,6 +776,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockSDGGrid
     | EnrichedBlockStickyRightContainer
     | EnrichedBlockStickyLeftContainer
+    | EnrichedBlockSideBySideContainer
     | EnrichedBlockGreySection
 
 export interface OwidArticleType {

@@ -19,6 +19,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockFixedGraphic,
+    RawBlockGreySection,
     RawBlockHorizontalRule,
     RawBlockHtml,
     RawBlockImage,
@@ -27,17 +28,15 @@ import {
     RawBlockPullQuote,
     RawBlockScroller,
     RawBlockSDGGrid,
+    RawBlockSideBySideContainer,
+    RawBlockStickyLeftContainer,
+    RawBlockStickyRightContainer,
     RawBlockText,
     RawBlockUrl,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import _, { partition } from "lodash"
 import * as cheerio from "cheerio"
-import {
-    RawBlockGreySection,
-    RawBlockStickyLeftContainer,
-    RawBlockStickyRightContainer,
-} from "@ourworldindata/utils/dist/owidTypes.js"
 
 function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n.end"
@@ -253,6 +252,16 @@ function* RawBlockStickyLeftContainerToArchieMLString(
     yield "[]"
 }
 
+function* RawBlockSideBySideContainerToArchieMLString(
+    block: RawBlockSideBySideContainer
+): Generator<string, void, undefined> {
+    yield "[.side-by-side]"
+    if (typeof block.value !== "string") {
+        // TODO
+    }
+    yield "[]"
+}
+
 function* RawBlockGreySectionToArchieMLString(
     block: RawBlockGreySection
 ): Generator<string, void, undefined> {
@@ -291,6 +300,10 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         .with(
             { type: "sticky-left" },
             RawBlockStickyLeftContainerToArchieMLString
+        )
+        .with(
+            { type: "side-by-side" },
+            RawBlockSideBySideContainerToArchieMLString
         )
         .with({ type: "grey-section" }, RawBlockGreySectionToArchieMLString)
         .exhaustive()

@@ -34,6 +34,7 @@ import {
     EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
     EnrichedBlockSDGGrid,
+    EnrichedBlockSideBySideContainer,
     EnrichedBlockStickyLeftContainer,
     EnrichedBlockStickyRightContainer,
     EnrichedChartStoryItem,
@@ -50,6 +51,7 @@ import {
     RawBlockRecirc,
     RawBlockScroller,
     RawBlockSDGGrid,
+    RawBlockSideBySideContainer,
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
     RawBlockText,
@@ -92,6 +94,7 @@ export function parseRawBlocksToEnhancedBlocks(
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with({ type: "sticky-left" }, parseStickyLeft)
         .with({ type: "sticky-right" }, parseStickyRight)
+        .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "grey-section" }, parseGreySection)
         .exhaustive()
 }
@@ -786,6 +789,35 @@ function parseStickyLeft(
     const enrichedRight = compact(right.map(parseRawBlocksToEnhancedBlocks))
     return {
         type: "sticky-left",
+        left: enrichedLeft,
+        right: enrichedRight,
+        parseErrors: [],
+    }
+}
+
+function parseSideBySide(
+    raw: RawBlockSideBySideContainer
+): EnrichedBlockSideBySideContainer {
+    const createError = (
+        error: ParseError,
+        left: OwidEnrichedArticleBlock[] = [],
+        right: OwidEnrichedArticleBlock[] = []
+    ): EnrichedBlockSideBySideContainer => ({
+        type: "side-by-side",
+        left,
+        right,
+        parseErrors: [error],
+    })
+    const { left, right } = raw.value
+    if (!left.length || !right.length) {
+        return createError({
+            message: "Empty column in the side-by-side container",
+        })
+    }
+    const enrichedLeft = compact(left.map(parseRawBlocksToEnhancedBlocks))
+    const enrichedRight = compact(right.map(parseRawBlocksToEnhancedBlocks))
+    return {
+        type: "side-by-side",
         left: enrichedLeft,
         right: enrichedRight,
         parseErrors: [],
