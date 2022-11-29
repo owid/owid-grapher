@@ -30,7 +30,7 @@
     z-index: 1;
 }
 
-.owidArticle h2:not(.subtitle),
+.owidArticle h2,
 .owidArticle h3 {
     text-align: center;
     .supertitle {
@@ -41,8 +41,7 @@
     }
 }
 
-.owidArticle h2:not(.subtitle) {
-    // Probably better to refactor the subtitle to not use an <h2>.
+.owidArticle h2 {
     @include h1-semibold;
     margin-top: 48px;
     margin-bottom: 24px;
