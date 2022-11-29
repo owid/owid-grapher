@@ -49,14 +49,6 @@
     border-top: 1px solid $blue-20; // this border doesn't go all the way to the edge.
 }
 
-// HACK: reusing the bottom border of preceeding fixedSections, and reducing the
-// top margin of h2 to visually get the desired 48px between the border and the h2.
-.owidArticle > .fixedSection + div > h2 {
-    margin-top: #{48px - $fixed-section-margin-bottom}; // making the hack visible
-    border: none;
-    padding-top: 0;
-}
-
 .owidArticle h3 {
     @include h2-bold;
     margin-top: 64px;
@@ -194,14 +186,16 @@
     @include grid(12);
     grid-template-rows: auto;
     grid-column: 2 / -2;
-    border-bottom: solid 1px #dbe5f0;
-    padding-bottom: 32px;
-    margin-bottom: $fixed-section-margin-bottom;
+    margin-bottom: 32px;
 }
 
 .owidArticle .fixedSection .fixedSectionContent {
     grid-row: 1 / auto;
     grid-column: 1 / span 6;
+
+    h3 {
+        text-align: left;
+    }
 }
 .owidArticle .fixedSection .fixedSectionGraphic {
     grid-row: 1 / auto;
