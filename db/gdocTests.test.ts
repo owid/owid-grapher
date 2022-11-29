@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { RawBlockHeader } from "@ourworldindata/utils/dist/index.js"
+import { RawBlockHeading } from "@ourworldindata/utils/dist/index.js"
 import { stringToArchieML } from "./gdocToArchieml.js"
 import { owidRawArticleBlockToArchieMLString } from "./gdocUtils.js"
 
@@ -41,8 +41,8 @@ caption: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         })
     })
 
-    it("can parse a header block", () => {
-        const archieMLString = `{.header}
+    it("can parse a heading block", () => {
+        const archieMLString = `{.heading}
 text: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 level: 2
 {}`
@@ -50,7 +50,7 @@ level: 2
         const article = stringToArchieML(doc)
         expect(article?.body?.length).toBe(1)
         const expectedEnrichedBlock = {
-            type: "header",
+            type: "heading",
             text: {
                 spanType: "span-simple-text",
                 text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
@@ -60,8 +60,8 @@ level: 2
         }
         expect(article?.body && article?.body[0]).toEqual(expectedEnrichedBlock)
 
-        const expectedRawBlock: RawBlockHeader = {
-            type: "header",
+        const expectedRawBlock: RawBlockHeading = {
+            type: "heading",
             value: {
                 text: expectedEnrichedBlock.text.text,
                 level: expectedEnrichedBlock.level.toString(),

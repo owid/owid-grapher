@@ -79,26 +79,26 @@ export default function ArticleBlock({
                 .with({ type: "text" }, (block) => (
                     <Paragraph d={block} key={key} />
                 ))
-                .with({ type: "header", level: 1 }, (block) => (
+                .with({ type: "heading", level: 1 }, (block) => (
                     <h1 id={urlSlug(block.text.text)}>{block.text.text}</h1>
                 ))
-                .with({ type: "header", level: 2 }, (block) => (
+                .with({ type: "heading", level: 2 }, (block) => (
                     <h2 id={urlSlug(block.text.text)}>{block.text.text}</h2>
                 ))
-                .with({ type: "header", level: 3 }, (block) => (
+                .with({ type: "heading", level: 3 }, (block) => (
                     <h3 id={urlSlug(block.text.text)}>{block.text.text}</h3>
                 ))
-                .with({ type: "header", level: 4 }, (block) => (
+                .with({ type: "heading", level: 4 }, (block) => (
                     <h4 id={urlSlug(block.text.text)}>{block.text.text}</h4>
                 ))
-                .with({ type: "header", level: 5 }, (block) => (
+                .with({ type: "heading", level: 5 }, (block) => (
                     <h5 id={urlSlug(block.text.text)}>{block.text.text}</h5>
                 ))
-                .with({ type: "header", level: 6 }, (block) => (
+                .with({ type: "heading", level: 6 }, (block) => (
                     <h6 id={urlSlug(block.text.text)}>{block.text.text}</h6>
                 ))
                 .with(
-                    { type: "header" },
+                    { type: "heading" },
                     // during parsing we take care of level being in a valid range
                     () => null
                 )

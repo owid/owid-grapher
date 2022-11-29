@@ -1,7 +1,7 @@
 import {
     OwidRawArticleBlock,
     Span,
-    RawBlockHeader,
+    RawBlockHeading,
     EnrichedBlockText,
     OwidEnrichedArticleBlock,
     SpanLink,
@@ -204,10 +204,10 @@ function* rawBlockPositionToArchieMLString(
     yield keyValueToArchieMlString("url", block.value)
 }
 
-function* rawBlockHeaderToArchieMLString(
-    block: RawBlockHeader
+function* RawBlockHeadingToArchieMLString(
+    block: RawBlockHeading
 ): Generator<string, void, undefined> {
-    yield "{.header}"
+    yield "{.heading}"
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("text", block.value)
         yield* propertyToArchieMLString("level", block.value)
@@ -254,7 +254,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "html" }, rawBlockHtmlToArchieMLString)
         .with({ type: "url" }, rawBlockUrlToArchieMLString)
         .with({ type: "position" }, rawBlockPositionToArchieMLString)
-        .with({ type: "header" }, rawBlockHeaderToArchieMLString)
+        .with({ type: "heading" }, RawBlockHeadingToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .exhaustive()

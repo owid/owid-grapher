@@ -3,7 +3,7 @@ import {
     Span,
     RawBlockImage,
     RawBlockList,
-    RawBlockHeader,
+    RawBlockHeading,
     OwidEnrichedArticleBlock,
     EnrichedBlockAside,
     BlockPositionChoice,
@@ -25,7 +25,7 @@ import { match } from "ts-pattern"
 import {
     EnrichedBlockChartStory,
     EnrichedBlockFixedGraphic,
-    EnrichedBlockHeader,
+    EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
     EnrichedBlockImage,
@@ -83,7 +83,7 @@ export function parseRawBlocksToEnrichedBlocks(
         )
         .with({ type: "url" }, () => null) // url blocks should only occur inside of chart stories etc
         .with({ type: "position" }, () => null) // position blocks should only occur inside of chart stories etc
-        .with({ type: "header" }, parseHeader)
+        .with({ type: "heading" }, parseHeading)
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with(
             { type: "sdg-toc" },
@@ -610,13 +610,13 @@ const parseText = (raw: RawBlockText): EnrichedBlockText => {
     }
 }
 
-const parseHeader = (raw: RawBlockHeader): EnrichedBlockHeader => {
+const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
     const createError = (
         error: ParseError,
         text: SpanSimpleText = { spanType: "span-simple-text", text: "" },
         level: number = 1
-    ): EnrichedBlockHeader => ({
-        type: "header",
+    ): EnrichedBlockHeading => ({
+        type: "heading",
         text,
         level,
         parseErrors: [error],
@@ -652,7 +652,7 @@ const parseHeader = (raw: RawBlockHeader): EnrichedBlockHeader => {
         })
 
     return {
-        type: "header",
+        type: "heading",
         text: headerSpans.texts[0],
         level: level,
         parseErrors: [],

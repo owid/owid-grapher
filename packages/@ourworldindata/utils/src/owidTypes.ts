@@ -650,17 +650,17 @@ export type RawBlockPosition = {
 }
 // There is no EnrichedBlockUrl because Position blocks only exist inside FixedGraphics;
 // they are subsumed into FixedGraphic blocks during enrichment
-export type RawBlockHeaderValue = {
+export type RawBlockHeadingValue = {
     text?: string
     level?: string
 }
-export type RawBlockHeader = {
-    type: "header"
-    value: RawBlockHeaderValue | ArchieMLUnexpectedNonObjectValue
+export type RawBlockHeading = {
+    type: "heading"
+    value: RawBlockHeadingValue | ArchieMLUnexpectedNonObjectValue
 }
 
-export type EnrichedBlockHeader = {
-    type: "header"
+export type EnrichedBlockHeading = {
+    type: "heading"
     text: SpanSimpleText
     level: number
 } & EnrichedBlockWithParseErrors
@@ -706,7 +706,7 @@ export type OwidRawArticleBlock =
     | RawBlockText
     | RawBlockUrl
     | RawBlockPosition
-    | RawBlockHeader
+    | RawBlockHeading
     | RawBlockHtml
     | RawBlockHorizontalRule
     | RawBlockSDGGrid
@@ -723,7 +723,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockList
     | EnrichedBlockPullQuote
     | EnrichedBlockRecirc
-    | EnrichedBlockHeader
+    | EnrichedBlockHeading
     | EnrichedBlockHtml
     | EnrichedBlockHorizontalRule
     | EnrichedBlockSDGGrid

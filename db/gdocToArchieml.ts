@@ -9,7 +9,7 @@ import {
     Span,
     RawBlockHorizontalRule,
     RawBlockImage,
-    RawBlockHeader,
+    RawBlockHeading,
     compact,
     TocHeading,
     last,
@@ -79,7 +79,7 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
             }
 
             // populate toc with h2's and h3's
-            if (raw.type === "header" && isObject(raw.value)) {
+            if (raw.type === "heading" && isObject(raw.value)) {
                 const {
                     value: { level, text },
                 } = raw
@@ -190,34 +190,14 @@ async function readElements(
                                 ""
                             )
 
-                        const header: RawBlockHeader = {
-                            type: "header",
+                        const heading: RawBlockHeading = {
+                            type: "heading",
                             value: {
                                 text: text.trim(),
                                 level: headingLevel,
-                                // slug: headingSlug,
-                                // isSubheading: headingLevel === "3",
-                                // isTocHeading,
                             },
                         }
-
-                        return owidRawArticleBlockToArchieMLString(header)
-                        //
-                        // const headingText = text.trim()
-                        // // const headingSlug = urlSlug(headingText)
-                        // // const isTocHeading =
-                        // //     headingLevel === "2" || headingLevel === "3"
-                        // if (isTocHeading) {
-                        //     toc.push({
-                        //         text: headingText,
-                        //         slug: headingSlug,
-                        //         isSubheading: headingLevel === "3",
-                        //     })
-                        // }
-                        // return `<h${headingLevel}${
-                        //     isTocHeading ? ` id=${headingSlug}` : ""
-                        // }>${headingText}</h${headingLevel}>\n`
-                        //
+                        return owidRawArticleBlockToArchieMLString(heading)
                     }
                     return text
                 }
