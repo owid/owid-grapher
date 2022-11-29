@@ -28,7 +28,9 @@ export function OwidArticle(props: OwidArticleType) {
             <div className={"titling"}>
                 <div className={"supertitle"}>{content.supertitle}</div>
                 <h1 className={"title"}>{content.title}</h1>
-                <div className={"subtitle"}>{content.subtitle}</div>
+                {content.subtitle ? (
+                    <div className={"subtitle"}>{content.subtitle}</div>
+                ) : null}
             </div>
             <div className={"bylineContainer"}>
                 <div>
