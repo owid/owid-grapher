@@ -429,6 +429,7 @@ export interface OwidArticleTypePublished extends OwidArticleType {
 export interface OwidArticleContent {
     body?: OwidArticleBlock[]
     title?: string
+    supertitle?: string
     subtitle?: string
     template?: string
     byline?: string | string[]

@@ -138,29 +138,39 @@
     z-index: 0;
 }
 
-.owidArticle > .title {
-    margin: 0;
-    line-height: 48px;
-    font-size: 40px;
-    max-width: 100%;
-    font-weight: 600;
-    letter-spacing: -1%;
-    margin-top: 56px + $article-page-top-offset;
-    text-align: center;
-}
+.owidArticle .titling {
+    margin-top: 52px + $article-page-top-offset;
 
-.owidArticle > .subtitle {
-    margin: 0;
-    margin-bottom: 0.5em;
-    line-height: 32px;
-    letter-spacing: 0;
-    font-size: 24px;
-    font-weight: 500;
-    font-family: "Lato", sans-serif;
-    color: #6e87a2;
-    text-align: center;
-    margin-top: 32px;
-    margin-bottom: 32px;
+    .supertitle {
+        @include overline-black-caps;
+        text-align: center;
+        display: block;
+        margin-bottom: 8px;
+        color: $blue-50;
+    }
+    .title {
+        margin: 0;
+        line-height: 48px;
+        font-size: 40px;
+        max-width: 100%;
+        font-weight: 600;
+        letter-spacing: -1%;
+        text-align: center;
+    }
+
+    .subtitle {
+        margin: 0;
+        margin-bottom: 0.5em;
+        line-height: 32px;
+        letter-spacing: 0;
+        font-size: 24px;
+        font-weight: 500;
+        font-family: "Lato", sans-serif;
+        color: #6e87a2;
+        text-align: center;
+        margin-top: 32px;
+        margin-bottom: 32px;
+    }
 }
 
 .owidArticle .bylineContainer .dateline {
