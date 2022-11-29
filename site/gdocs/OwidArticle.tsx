@@ -8,6 +8,9 @@ import {
     formatDate,
     getArticleFromJSON,
 } from "@ourworldindata/utils"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
+import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt } = props
@@ -32,13 +35,29 @@ export function OwidArticle(props: OwidArticleType) {
                     <div className={"subtitle"}>{content.subtitle}</div>
                 ) : null}
             </div>
-            <div className={"bylineContainer"}>
+            <div className={"meta"}>
                 <div>
-                    By: <div className={"byline"}>{content.byline}</div>
+                    <div className="byline">
+                        By: <a href="/team">{content.byline}</a>
+                    </div>
+                    <div className={"dateline"}>
+                        {content.dateline ||
+                            (publishedAt && formatDate(publishedAt))}
+                    </div>
                 </div>
-                <div className={"dateline"}>
-                    {content.dateline ||
-                        (publishedAt && formatDate(publishedAt))}
+                <div>
+                    <div className="cite">
+                        <a href="#citation">
+                            <FontAwesomeIcon icon={faBook} />
+                            Cite this article
+                        </a>
+                    </div>
+                    <div className="licence">
+                        <a href="#licence">
+                            <FontAwesomeIcon icon={faCreativeCommons} />
+                            Reuse our work freely
+                        </a>
+                    </div>
                 </div>
             </div>
 

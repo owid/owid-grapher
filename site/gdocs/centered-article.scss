@@ -177,12 +177,48 @@
     margin-bottom: 0;
 }
 
-.owidArticle .bylineContainer {
-    border-top: solid 1px #dbe5f0;
-    border-bottom: solid 1px #dbe5f0;
-    margin-bottom: 32px;
+.owidArticle .meta {
+    display: flex;
+    margin-bottom: 24px;
+    padding: 24px 0;
     text-align: center;
-    padding: 32px 0;
+    border-top: solid 1px $blue-10;
+    border-bottom: solid 1px $blue-10;
+    color: $blue-60;
+    text-underline-offset: 5px;
+
+    > div {
+        width: 50%;
+
+        &:first-child {
+            border-right: 1px solid $blue-10;
+        }
+
+        > div:first-child {
+            margin-bottom: 8px;
+        }
+    }
+
+    a {
+        @include owid-link-60;
+        text-decoration-thickness: 1px;
+    }
+
+    svg {
+        margin-right: 0.5em;
+    }
+
+    .byline {
+        @include body-1-regular;
+    }
+
+    .dateline {
+        @include body-3-medium-italic;
+    }
+
+    .licence {
+        @include body-3-medium;
+    }
 }
 
 .owidArticle details.summary {
