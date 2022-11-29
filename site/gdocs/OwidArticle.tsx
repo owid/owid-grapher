@@ -37,22 +37,22 @@ export function OwidArticle(props: OwidArticleType) {
             </div>
             <div className={"meta"}>
                 <div>
-                    <div className="byline">
+                    <div className="body-1-regular">
                         By: <a href="/team">{content.byline}</a>
                     </div>
-                    <div className={"dateline"}>
+                    <div className="body-3-medium-italic">
                         {content.dateline ||
                             (publishedAt && formatDate(publishedAt))}
                     </div>
                 </div>
                 <div>
-                    <div className="cite">
+                    <div>
                         <a href="#citation">
                             <FontAwesomeIcon icon={faBook} />
                             Cite this article
                         </a>
                     </div>
-                    <div className="licence">
+                    <div className="body-3-medium">
                         <a href="#licence">
                             <FontAwesomeIcon icon={faCreativeCommons} />
                             Reuse our work freely

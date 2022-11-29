@@ -207,18 +207,6 @@
     svg {
         margin-right: 0.5em;
     }
-
-    .byline {
-        @include body-1-regular;
-    }
-
-    .dateline {
-        @include body-3-medium-italic;
-    }
-
-    .licence {
-        @include body-3-medium;
-    }
 }
 
 .owidArticle details.summary {
