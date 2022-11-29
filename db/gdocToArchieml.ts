@@ -9,9 +9,10 @@ import {
     Span,
     RawBlockHorizontalRule,
     RawBlockImage,
-    RawBlockList,
     RawBlockHeader,
     compact,
+    TocHeading,
+    last,
 } from "@ourworldindata/utils"
 import {
     htmlToEnrichedTextBlock,
@@ -21,7 +22,8 @@ import {
 } from "./gdocUtils"
 import { match, P } from "ts-pattern"
 import { parseRawBlocksToEnrichedBlocks } from "./gdocBlockParsersRawToEnriched.js"
-
+import urlSlug from "url-slug"
+import { isObject } from "lodash"
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
     auth: docs_v1.Params$Resource$Documents$Get["auth"]
@@ -31,11 +33,6 @@ export interface DocToArchieMLOptions {
         elementId: string,
         doc: docs_v1.Schema$Document
     ) => Promise<RawBlockImage>
-}
-
-interface ElementMemo {
-    isInList: boolean
-    body: OwidRawArticleBlock[]
 }
 
 export const stringToArchieML = (text: string): OwidArticleContent => {
@@ -48,43 +45,57 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
     })
 
     const parsed = load(text)
+    const toc: TocHeading[] = []
 
-    // Parse lists and include lowercase vals-
-    parsed.body = parsed.body.reduce(
-        (memo: ElementMemo, d: OwidRawArticleBlock) => {
-            Object.keys(d).forEach((k) => {
-                ;(d as any)[k.toLowerCase()] = (d as any)[k]
-            })
+    {
+        // Reconstruct parsed.body to:
+        // * handle lists correctly
+        // * populate the toc array
 
-            if (d.type === "text" && d.value.startsWith("* ")) {
-                if (memo.isInList) {
-                    ;(
-                        (memo.body[memo.body.length - 1] as RawBlockList)
-                            .value as string[]
-                    ).push(
-                        // TODO: this assumes that lists only contain simple text
-                        d.value.replace("* ", "").trim()
-                    )
+        const body: any[] = []
+        let isInList = false
+
+        parsed.body.forEach((raw: OwidRawArticleBlock) => {
+            // ensure keys are lowercase
+            raw = Object.entries(raw).reduce(
+                (acc, [key, value]) => ({ ...acc, [key.toLowerCase()]: value }),
+                {} as OwidRawArticleBlock
+            )
+
+            // nest list items
+            if (raw.type === "text" && raw.value.startsWith("* ")) {
+                if (isInList) {
+                    last(body).value.push(raw.value.replace("* ", "").trim())
                 } else {
-                    memo.isInList = true
-                    memo.body.push({
+                    isInList = true
+                    body.push({
                         type: "list",
-                        value: [d.value.replace("* ", "").trim()],
+                        value: [raw.value.replace("* ", "").trim()],
                     })
                 }
             } else {
-                if (memo.isInList) {
-                    memo.isInList = false
-                }
-                memo.body.push(d)
+                isInList = false
+                body.push(raw)
             }
-            return memo
-        },
-        {
-            isInList: false,
-            body: [],
-        }
-    ).body
+
+            // populate toc with h2's and h3's
+            if (raw.type === "header" && isObject(raw.value)) {
+                const {
+                    value: { level, text },
+                } = raw
+                if (text && (level == "2" || level == "3")) {
+                    const slug = urlSlug(text)
+                    toc.push({
+                        text,
+                        slug,
+                        isSubheading: level == "3",
+                    })
+                }
+            }
+        })
+
+        parsed.body = body
+    }
 
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
@@ -103,6 +114,7 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
             : typeof citation === "string"
             ? htmlToSimpleTextBlock(citation)
             : citation.map(htmlToSimpleTextBlock)
+    parsed.toc = toc
     return parsed
 }
 
@@ -127,8 +139,7 @@ export const gdocToArchieML = async ({
     })
 
     // convert the doc's content to text ArchieML will understand
-
-    const text = await readElements(data, imageHandler)
+    const { text } = await readElements(data, imageHandler)
 
     // pass text to ArchieML and return results
     return stringToArchieML(text)
@@ -142,13 +153,13 @@ async function readElements(
               doc: docs_v1.Schema$Document
           ) => Promise<RawBlockImage>)
         | undefined
-): Promise<string> {
+): Promise<{ text: string }> {
     // prepare the text holder
     let text = ""
 
     // check if the body key and content key exists, and give up if not
-    if (!document.body) return text
-    if (!document.body.content) return text
+    if (!document.body) return { text }
+    if (!document.body.content) return { text }
 
     // loop through each content element in the body
 
@@ -178,14 +189,35 @@ async function readElements(
                                 "HEADING_",
                                 ""
                             )
+
                         const header: RawBlockHeader = {
                             type: "header",
                             value: {
                                 text: text.trim(),
                                 level: headingLevel,
+                                // slug: headingSlug,
+                                // isSubheading: headingLevel === "3",
+                                // isTocHeading,
                             },
                         }
+
                         return owidRawArticleBlockToArchieMLString(header)
+                        //
+                        // const headingText = text.trim()
+                        // // const headingSlug = urlSlug(headingText)
+                        // // const isTocHeading =
+                        // //     headingLevel === "2" || headingLevel === "3"
+                        // if (isTocHeading) {
+                        //     toc.push({
+                        //         text: headingText,
+                        //         slug: headingSlug,
+                        //         isSubheading: headingLevel === "3",
+                        //     })
+                        // }
+                        // return `<h${headingLevel}${
+                        //     isTocHeading ? ` id=${headingSlug}` : ""
+                        // }>${headingText}</h${headingLevel}>\n`
+                        //
                     }
                     return text
                 }
@@ -220,7 +252,7 @@ async function readElements(
         }
     }
 
-    return text
+    return { text }
 }
 
 async function readParagraphElement(

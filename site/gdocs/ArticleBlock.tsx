@@ -8,14 +8,22 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { OwidEnrichedArticleBlock } from "@ourworldindata/utils"
+import { OwidEnrichedArticleBlock, TocHeading } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary"
 import { match } from "ts-pattern"
 import { renderSpans } from "./utils"
 import Paragraph from "./Paragraph.js"
+import SDGTableOfContents from "./SDGTableOfContents.js"
+import urlSlug from "url-slug"
 
-export default function ArticleBlock({ b }: { b: OwidEnrichedArticleBlock }) {
+export default function ArticleBlock({
+    b,
+    toc,
+}: {
+    b: OwidEnrichedArticleBlock
+    toc?: TocHeading[]
+}) {
     const handleArchie = (block: OwidEnrichedArticleBlock, key: string) => {
         block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
         if (block.parseErrors.length > 0) {
@@ -72,22 +80,22 @@ export default function ArticleBlock({ b }: { b: OwidEnrichedArticleBlock }) {
                     <Paragraph d={block} key={key} />
                 ))
                 .with({ type: "header", level: 1 }, (block) => (
-                    <h1>{block.text.text}</h1>
+                    <h1 id={urlSlug(block.text.text)}>{block.text.text}</h1>
                 ))
                 .with({ type: "header", level: 2 }, (block) => (
-                    <h2>{block.text.text}</h2>
+                    <h2 id={urlSlug(block.text.text)}>{block.text.text}</h2>
                 ))
                 .with({ type: "header", level: 3 }, (block) => (
-                    <h3>{block.text.text}</h3>
+                    <h3 id={urlSlug(block.text.text)}>{block.text.text}</h3>
                 ))
                 .with({ type: "header", level: 4 }, (block) => (
-                    <h4>{block.text.text}</h4>
+                    <h4 id={urlSlug(block.text.text)}>{block.text.text}</h4>
                 ))
                 .with({ type: "header", level: 5 }, (block) => (
-                    <h5>{block.text.text}</h5>
+                    <h5 id={urlSlug(block.text.text)}>{block.text.text}</h5>
                 ))
                 .with({ type: "header", level: 6 }, (block) => (
-                    <h6>{block.text.text}</h6>
+                    <h6 id={urlSlug(block.text.text)}>{block.text.text}</h6>
                 ))
                 .with(
                     { type: "header" },
@@ -101,6 +109,9 @@ export default function ArticleBlock({ b }: { b: OwidEnrichedArticleBlock }) {
                 .with({ type: "sdg-grid" }, (block) => (
                     <SDGGrid d={block} key={key} />
                 ))
+                .with({ type: "sdg-toc" }, () => {
+                    return toc ? <SDGTableOfContents toc={toc} /> : null
+                })
                 .exhaustive()
 
             // if (_type === "chart-grid") {

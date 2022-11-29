@@ -228,6 +228,11 @@ function* rawBlockSDGGridToArchieMLString(
     yield "[]"
 }
 
+function* rawBlockSDGTocToArchieMLString(): Generator<string, void, undefined> {
+    yield "{.sdg-toc}"
+    yield "{}"
+}
+
 function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
@@ -251,6 +256,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "position" }, rawBlockPositionToArchieMLString)
         .with({ type: "header" }, rawBlockHeaderToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
+        .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .exhaustive()
     yield* content
 }

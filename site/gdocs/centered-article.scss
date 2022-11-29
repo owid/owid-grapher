@@ -4,12 +4,11 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    display: grid;
+    @include grid(12);
     grid-template-columns: calc((100vw - 1280px) / 2) repeat(12, 1fr) calc(
             (100vw - 1280px) / 2
         );
     grid-template-rows: auto;
-    column-gap: 24px;
     /* max-width: 1440px; */
     margin: 0 auto;
     background-color: #fff;
@@ -92,35 +91,30 @@
     font-weight: 700;
 }
 
-.owidArticle .articlePage {
-    position: relative;
-    top: -150px;
+.owidArticle > ul {
+    margin-bottom: 32px;
+}
 
+.owidArticle .articlePage {
+    position: absolute;
     grid-row: 1 / -1;
     grid-column: 4 / span 8;
     background-color: #fff;
     width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
+    top: $article-page-top-offset;
     bottom: 0;
     z-index: 0;
-    height: 200px;
+    height: $article-cover-height - $article-page-top-offset;
 }
 
 .owidArticle .articleCover {
-    height: 200px;
-    background-color: #f7c020;
     position: absolute;
+    height: $article-cover-height;
+    background-color: #f7c020;
     top: 0;
     grid-row: 1 / -1;
     grid-column: 1 / span 14;
     z-index: 0;
-}
-
-.owidArticle .articlePage {
-    /* height: 200px; */
-    background-color: #fff;
 }
 
 .owidArticle > .title {
@@ -130,7 +124,7 @@
     max-width: 100%;
     font-weight: 600;
     letter-spacing: -1%;
-    margin-top: 56px;
+    margin-top: 56px + $article-page-top-offset;
     text-align: center;
 }
 
@@ -160,14 +154,16 @@
     padding: 32px 0;
 }
 
+.owidArticle details.summary {
+    margin-bottom: 32px;
+}
+
 .owidArticle .fixedSection {
     display: contents;
     position: relative;
 
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    @include grid(12);
     grid-template-rows: auto;
-    column-gap: 24px;
     grid-column: 2 / -2;
     border-bottom: solid 1px #dbe5f0;
     padding-bottom: 32px;
@@ -184,7 +180,6 @@
     position: sticky;
     top: 0;
     align-self: start;
-    height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -395,14 +390,11 @@
 }
 
 .owidArticle .stickySection {
-    display: grid;
+    @include grid(12);
     grid-column: 2 / -2;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
     grid-template-rows: auto;
     /* height: 100vh; */
     position: relative;
-    column-gap: 24px;
 }
 
 .owidArticle .stickyFigure {

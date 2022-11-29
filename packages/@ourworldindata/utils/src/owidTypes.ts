@@ -267,6 +267,7 @@ export interface IndexPost {
     title: string
     slug: string
     date: Date
+    modifiedDate: Date
     authors: string[]
     excerpt?: string
     imageUrl?: string
@@ -276,7 +277,6 @@ export interface FullPost extends IndexPost {
     id: number
     type: WP_PostType
     path: string
-    modifiedDate: Date
     content: string
     thumbnailUrl?: string
     imageId?: number
@@ -685,6 +685,14 @@ export type EnrichedBlockSDGGrid = {
     items: EnrichedSDGGridItem[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockSDGToc = {
+    type: "sdg-toc"
+}
+
+export type EnrichedBlockSDGToc = {
+    type: "sdg-toc"
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawArticleBlock =
     | RawBlockAside
     | RawBlockChart
@@ -702,6 +710,7 @@ export type OwidRawArticleBlock =
     | RawBlockHtml
     | RawBlockHorizontalRule
     | RawBlockSDGGrid
+    | RawBlockSDGToc
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -718,6 +727,12 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockHtml
     | EnrichedBlockHorizontalRule
     | EnrichedBlockSDGGrid
+    | EnrichedBlockSDGToc
+
+export enum OwidArticlePublicationContext {
+    unlisted = "unlisted",
+    listed = "listed",
+}
 
 export interface OwidArticleType {
     id: string
@@ -727,6 +742,7 @@ export interface OwidArticleType {
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
+    publicationContext: OwidArticlePublicationContext
 }
 
 // see also: getArticleFromJSON()
@@ -758,7 +774,26 @@ export interface OwidArticleContent {
     refs?: EnrichedBlockText[]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
+    toc?: TocHeading[]
     "cover-image"?: any
+    "cover-color"?:
+        | "sdg-color-1"
+        | "sdg-color-2"
+        | "sdg-color-3"
+        | "sdg-color-4"
+        | "sdg-color-5"
+        | "sdg-color-6"
+        | "sdg-color-7"
+        | "sdg-color-8"
+        | "sdg-color-9"
+        | "sdg-color-10"
+        | "sdg-color-11"
+        | "sdg-color-12"
+        | "sdg-color-13"
+        | "sdg-color-14"
+        | "sdg-color-15"
+        | "sdg-color-16"
+        | "sdg-color-17"
     "featured-image"?: any
 }
 

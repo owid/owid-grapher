@@ -33,6 +33,7 @@ import {
     EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
     EnrichedBlockSDGGrid,
+    EnrichedBlockSDGToc,
     EnrichedChartStoryItem,
     EnrichedRecircItem,
     EnrichedScrollerItem,
@@ -84,6 +85,10 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "position" }, () => null) // position blocks should only occur inside of chart stories etc
         .with({ type: "header" }, parseHeader)
         .with({ type: "sdg-grid" }, parseSdgGrid)
+        .with(
+            { type: "sdg-toc" },
+            (): EnrichedBlockSDGToc => ({ type: "sdg-toc", parseErrors: [] })
+        )
         .exhaustive()
 }
 

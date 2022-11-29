@@ -30,7 +30,6 @@ $zindex-Tooltip: 20;
 // if you want to write a rule that requires .GrapherComponent to have a second class.
 // e.g. &.narrow is equivalent to .GrapherComponent.narrow
 .GrapherComponent {
-    @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
     @import "../controls/CommandPalette.scss";
     @import "../controls/ScaleSelector.scss";
     @import "../controls/Controls.scss";
@@ -54,6 +53,7 @@ $zindex-Tooltip: 20;
 // These rules are currently used elsewhere in the site. e.g. Explorers
 // so we can't scope them to be grapher-only
 @import "../controls/entityPicker/EntityPicker.scss";
+@import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
 @import "../sparkBars/SparkBars.scss";
 
 .GrapherComponent,

@@ -3,6 +3,7 @@ import {
     OwidArticleContent,
     OwidArticleType,
     OwidArticleTypePublished,
+    OwidArticlePublicationContext,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -18,6 +19,8 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column() slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
     @Column() published: boolean = false
+    @Column() publicationContext: OwidArticlePublicationContext =
+        OwidArticlePublicationContext.unlisted
     @Column() createdAt: Date = new Date()
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
@@ -73,5 +76,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         return Gdoc.findBy({ published: true }) as Promise<
             OwidArticleTypePublished[]
         >
+    }
+
+    static async getListedGdocs(): Promise<OwidArticleTypePublished[]> {
+        return Gdoc.findBy({
+            published: true,
+            publicationContext: OwidArticlePublicationContext.listed,
+        }) as Promise<OwidArticleTypePublished[]>
     }
 }

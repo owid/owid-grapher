@@ -12,7 +12,7 @@ export default function Footnotes({ d }: { d: EnrichedBlockText[] }) {
             <ol className={"footnotes"}>
                 {d.map((footnote: EnrichedBlockText, i: number) => {
                     return (
-                        <li key={i} className={"footnote"}>
+                        <li id={`note-${i + 1}`} key={i} className={"footnote"}>
                             <Paragraph d={footnote} />
                         </li>
                     )
