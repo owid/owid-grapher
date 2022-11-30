@@ -106,27 +106,22 @@ export function OwidArticle(props: OwidArticleType) {
 
             {content.refs ? <Footnotes d={content.refs} /> : null}
 
-            {content.citation &&
-            content.citation.some(
-                (d: OwidArticleBlock) => d.type === "text"
-            ) ? (
-                <div id="citation">
-                    <h3>Cite this work</h3>
-                    <p>
-                        Our articles and data visualizations rely on work from
-                        many different people and organizations. When citing
-                        this entry, please also cite the underlying data
-                        sources. This entry can be cited as:
-                    </p>
-                    <div>
-                        <CodeSnippet code={citationText} />
-                    </div>
-                    <p>BibTeX citation</p>
-                    <div>
-                        <CodeSnippet code={bibtex} />
-                    </div>
+            <div id="citation">
+                <h3>Cite this work</h3>
+                <p>
+                    Our articles and data visualizations rely on work from many
+                    different people and organizations. When citing this entry,
+                    please also cite the underlying data sources. This entry can
+                    be cited as:
+                </p>
+                <div>
+                    <CodeSnippet code={citationText} />
                 </div>
-            ) : null}
+                <p>BibTeX citation</p>
+                <div>
+                    <CodeSnippet code={bibtex} />
+                </div>
+            </div>
 
             <div id="licence">
                 <img

@@ -438,7 +438,6 @@ export interface OwidArticleContent {
     toc?: TocHeadingWithTitleSupertitle[]
     refs?: OwidArticleBlock[]
     summary?: OwidArticleBlock[]
-    citation?: OwidArticleBlock[]
     "cover-image"?: any
     "cover-color"?:
         | "sdg-color-1"
