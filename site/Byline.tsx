@@ -1,5 +1,5 @@
 import React from "react"
-import { formatAuthors } from "./formatting.js"
+import { formatAuthors } from "./clientFormatting.js"
 
 export const Byline = ({
     authors,

@@ -13,6 +13,7 @@ import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
+import { formatAuthors } from "../clientFormatting.js"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt, slug } = props
@@ -26,14 +27,22 @@ export function OwidArticle(props: OwidArticleType) {
         ? { backgroundColor: `var(--${content["cover-color"]})` }
         : {}
 
-    const citationText = `${
-        content.byline
-    } (${publishedAt?.getFullYear()}) - "${
+    // Until authors comes as structured data, we need to parse them from the byline string
+    const authors = content?.byline?.replace(/\s*,\s*/g, ",").split(",") || [
+        "Our World in Data",
+    ]
+
+    const citationText = `${formatAuthors({
+        authors,
+    })} (${publishedAt?.getFullYear()}) - "${
         content.title
     }". Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
 
     const bibtex = `@article{owid${slug.replace(/-/g, "")},
-    author = {${content.byline}},
+    author = {${formatAuthors({
+        authors,
+        forBibtex: true,
+    })}},
     title = {${content.title}},
     journal = {Our World in Data},
     year = {${publishedAt?.getFullYear()}},
@@ -54,7 +63,12 @@ export function OwidArticle(props: OwidArticleType) {
             <div className={"meta"}>
                 <div>
                     <div className="body-1-regular">
-                        By: <a href="/team">{content.byline}</a>
+                        By:{" "}
+                        <a href="/team">
+                            {formatAuthors({
+                                authors,
+                            })}
+                        </a>
                     </div>
                     <div className="body-3-medium-italic">
                         {content.dateline ||

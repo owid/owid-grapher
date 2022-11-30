@@ -432,7 +432,7 @@ export interface OwidArticleContent {
     supertitle?: string
     subtitle?: string
     template?: string
-    byline?: string | string[]
+    byline?: string
     dateline?: string
     excerpt?: string
     toc?: TocHeadingWithTitleSupertitle[]
@@ -464,7 +464,7 @@ export interface OwidArticleContent {
 export interface OwidArticleContentPublished extends OwidArticleContent {
     body: OwidArticleBlock[]
     title: string
-    byline: string | string[]
+    byline: string
     excerpt: string
 }
 
