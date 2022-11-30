@@ -11,9 +11,11 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
+import { CodeSnippet } from "../blocks/CodeSnippet.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 export function OwidArticle(props: OwidArticleType) {
-    const { content, publishedAt } = props
+    const { content, publishedAt, slug } = props
 
     const coverStyle = content["cover-image"]
         ? {
@@ -23,6 +25,20 @@ export function OwidArticle(props: OwidArticleType) {
         : content["cover-color"]
         ? { backgroundColor: `var(--${content["cover-color"]})` }
         : {}
+
+    const citationText = `${
+        content.byline
+    } (${publishedAt?.getFullYear()}) - "${
+        content.title
+    }". Published online at OurWorldInData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
+
+    const bibtex = `@article{owid${slug.replace(/-/g, "")},
+    author = {${content.byline}},
+    title = {${content.title}},
+    journal = {Our World in Data},
+    year = {${publishedAt?.getFullYear()}},
+    note = {${BAKED_BASE_URL}/${slug}}
+}`
 
     return (
         <article className={"owidArticle"}>
@@ -80,19 +96,21 @@ export function OwidArticle(props: OwidArticleType) {
             content.citation.some(
                 (d: OwidArticleBlock) => d.type === "text"
             ) ? (
-                <div>
-                    <h3>Please cite this article as:</h3>
-                    <pre>
-                        <code>
-                            {content.citation.map((d: OwidArticleBlock) => {
-                                if (d.type === "text") {
-                                    return d.value
-                                } else {
-                                    return ""
-                                }
-                            })}
-                        </code>
-                    </pre>
+                <div id="citation">
+                    <h3>Cite this work</h3>
+                    <p>
+                        Our articles and data visualizations rely on work from
+                        many different people and organizations. When citing
+                        this entry, please also cite the underlying data
+                        sources. This entry can be cited as:
+                    </p>
+                    <div>
+                        <CodeSnippet code={citationText} />
+                    </div>
+                    <p>BibTeX citation</p>
+                    <div>
+                        <CodeSnippet code={bibtex} />
+                    </div>
                 </div>
             ) : null}
 

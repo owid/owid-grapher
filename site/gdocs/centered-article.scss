@@ -503,11 +503,11 @@
     grid-column: 2 / span 1;
 }
 
+.owidArticle #citation,
 .owidArticle #licence {
     grid-column: 4 / span 8;
-    margin-top: 32px;
-    padding: 48px 0;
-    text-align: center;
+    margin-top: 48px;
+    padding-top: 48px;
     @include body-3-medium;
     border-top: 1px solid $blue-10;
 
@@ -520,6 +520,23 @@
     a {
         @include owid-link-60;
     }
+}
+
+.owidArticle #citation {
+    h3 {
+        margin-top: 0;
+    }
+    p {
+        margin-bottom: 16px;
+    }
+    div:last-of-type .wp-code-snippet {
+        margin-bottom: 0;
+    }
+}
+
+.owidArticle #licence {
+    text-align: center;
+    margin-bottom: 16px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
 }
 
 @media only screen and (max-width: 1280px) {
