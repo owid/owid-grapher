@@ -25,8 +25,11 @@ export function OwidArticle(props: OwidArticleType) {
         <article className={"owidArticle"}>
             <div className={"articleCover"} style={coverStyle}></div>
             <div className={"articlePage"}></div>
-            <h1 className={"title"}>{content.title}</h1>
-            <div className={"subtitle"}>{content.subtitle}</div>
+            <div className={"titling"}>
+                <div className={"supertitle"}>{content.supertitle}</div>
+                <h1 className={"title"}>{content.title}</h1>
+                <div className={"subtitle"}>{content.subtitle}</div>
+            </div>
             <div className={"bylineContainer"}>
                 <div>
                     By: <div className={"byline"}>{content.byline}</div>
