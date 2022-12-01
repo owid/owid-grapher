@@ -5,13 +5,13 @@ import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
 import {
     OwidRawArticleBlock,
-    OwidArticleContent,
     Span,
     RawBlockHorizontalRule,
     RawBlockImage,
     RawBlockHeading,
+    OwidArticleContent,
+    TocHeadingWithTitleSupertitle,
     compact,
-    TocHeading,
     last,
 } from "@ourworldindata/utils"
 import {
@@ -45,7 +45,7 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
     })
 
     const parsed = load(text)
-    const toc: TocHeading[] = []
+    const toc: TocHeadingWithTitleSupertitle[] = []
 
     // Reconstruct parsed.body to:
     // * handle lists correctly
@@ -82,9 +82,14 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
             const {
                 value: { level, text },
             } = raw
+            const [title, supertitle] = getTitleSupertitleFromHeadingText(
+                text || ""
+            )
             if (text && (level == "2" || level == "3")) {
                 const slug = urlSlug(text)
                 toc.push({
+                    title,
+                    supertitle,
                     text,
                     slug,
                     isSubheading: level == "3",
@@ -290,4 +295,17 @@ async function readParagraphElement(
     } else {
         return null
     }
+}
+
+const getTitleSupertitleFromHeadingText = (
+    headingText: string
+): [string, string | undefined] => {
+    const VERTICAL_TAB_CHAR = "\u000b"
+    const [beforeSeparator, afterSeparator] =
+        headingText.split(VERTICAL_TAB_CHAR)
+
+    return [
+        afterSeparator || beforeSeparator,
+        afterSeparator ? beforeSeparator : undefined,
+    ]
 }

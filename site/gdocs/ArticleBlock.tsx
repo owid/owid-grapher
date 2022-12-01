@@ -8,7 +8,10 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { OwidEnrichedArticleBlock, TocHeading } from "@ourworldindata/utils"
+import {
+    OwidEnrichedArticleBlock,
+    TocHeadingWithTitleSupertitle,
+} from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary"
 import { match } from "ts-pattern"
@@ -22,7 +25,7 @@ export default function ArticleBlock({
     toc,
 }: {
     b: OwidEnrichedArticleBlock
-    toc?: TocHeading[]
+    toc?: TocHeadingWithTitleSupertitle[]
 }) {
     const handleArchie = (block: OwidEnrichedArticleBlock, key: string) => {
         block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here

@@ -33,6 +33,7 @@ export {
     GitCommit,
     SerializedGridProgram,
     TocHeading,
+    TocHeadingWithTitleSupertitle,
     GdocsContentSource,
     OwidArticleTypeJSON,
     OwidArticleTypePublished,

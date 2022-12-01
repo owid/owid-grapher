@@ -147,6 +147,11 @@ export interface TocHeading {
     isSubheading: boolean
 }
 
+export interface TocHeadingWithTitleSupertitle extends TocHeading {
+    title: string
+    supertitle?: string
+}
+
 // todo; remove
 export interface PostRow {
     id: number
@@ -766,15 +771,16 @@ export interface OwidArticleTypePublished extends OwidArticleType {
 export interface OwidArticleContent {
     body?: OwidEnrichedArticleBlock[]
     title?: string
+    supertitle?: string
     subtitle?: string
     template?: string
-    byline?: string | string[]
+    byline?: string
     dateline?: string
     excerpt?: string
     refs?: EnrichedBlockText[]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
-    toc?: TocHeading[]
+    toc?: TocHeadingWithTitleSupertitle[]
     "cover-image"?: any
     "cover-color"?:
         | "sdg-color-1"
@@ -800,7 +806,7 @@ export interface OwidArticleContent {
 export interface OwidArticleContentPublished extends OwidArticleContent {
     body: OwidEnrichedArticleBlock[]
     title: string
-    byline: string | string[]
+    byline: string
     excerpt: string
 }
 

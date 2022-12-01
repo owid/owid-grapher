@@ -52,17 +52,6 @@ class TitleHandler extends AbstractHandler {
     }
 }
 
-class BylineHandler extends AbstractHandler {
-    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
-        const { byline } = gdoc.content
-        if (!byline) {
-            messages.push(getMissingContentPropertyError("byline"))
-        }
-
-        return super.handle(gdoc, messages)
-    }
-}
-
 class SlugHandler extends AbstractHandler {
     handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
         const { slug } = gdoc
@@ -130,7 +119,6 @@ export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
 
     bodyHandler
         .setNext(new TitleHandler())
-        .setNext(new BylineHandler())
         .setNext(new SlugHandler())
         .setNext(new PublishedAtHandler())
         .setNext(new ExcerptHandler())
