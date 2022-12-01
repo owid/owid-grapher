@@ -45,7 +45,8 @@ caption: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         const archieMLString = `{.heading}
 text: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 level: 2
-{}`
+{}
+`
         const doc = getArchieMLDocWithContent(archieMLString)
         const article = stringToArchieML(doc)
         expect(article?.body?.length).toBe(1)
