@@ -28,7 +28,7 @@
     "string-pixel-width": "^1.10.0",
     "striptags": "^3.2.0",
     "timezone-mock": "^1.0.18",
-    "ts-pattern": "^3.3.3",
+    "ts-pattern": "^4.0.4",
     "url-parse": "^1.5.10"
   },
   "devDependencies": {
@@ -43,7 +43,7 @@
     "@types/url-parse": "^1.4.8",
     "eslint": "^8.27.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "typescript": "~4.8.2"
+    "typescript": "~4.9.3"
   },
   "license": "MIT",
   "nx": {

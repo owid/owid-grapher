@@ -1,34 +1,22 @@
 import React from "react"
-import ArticleBlock from "./ArticleBlock"
-import { OwidArticleBlock } from "@ourworldindata/utils"
+import { EnrichedBlockFixedGraphic } from "@ourworldindata/utils"
+import Image from "./Image.js"
+import { match } from "ts-pattern"
+import Chart from "./Chart.js"
+import Paragraph from "./Paragraph.js"
 
-export default function FixedSection({ d }: { d: OwidArticleBlock }) {
-    const position = d.value.find(
-        (_d: OwidArticleBlock) => _d.type === "position"
-    )
+export default function FixedSection({ d }: { d: EnrichedBlockFixedGraphic }) {
+    const graphic = match(d.graphic)
+        .with({ type: "image" }, (image) => <Image d={image}></Image>)
+        .with({ type: "chart" }, (chart) => <Chart d={chart}></Chart>)
+        .exhaustive()
     return (
-        <section className={`fixedSection ${position ? position.value : ""}`}>
-            <div className={"fixedSectionGraphic"}>
-                {d.value
-                    .filter(
-                        (_d: OwidArticleBlock) =>
-                            !["text", "position"].includes(_d.type) ||
-                            _d.value.startsWith("<img src=")
-                    )
-                    .map((_d: OwidArticleBlock, j: number) => {
-                        return <ArticleBlock key={j} d={_d} />
-                    })}
-            </div>
+        <section className={`fixedSection ${d.position ? d.position : ""}`}>
+            <div className={"fixedSectionGraphic"}>{graphic}</div>
             <div className={"fixedSectionContent"}>
-                {d.value
-                    .filter(
-                        (_d: OwidArticleBlock) =>
-                            _d.type === "text" &&
-                            !_d.value.startsWith("<img src=")
-                    )
-                    .map((_d: OwidArticleBlock, j: number) => {
-                        return <ArticleBlock key={j} d={_d} />
-                    })}
+                {d.text.map((item, i) => (
+                    <Paragraph d={item} key={i}></Paragraph>
+                ))}
             </div>
         </section>
     )

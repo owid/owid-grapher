@@ -184,9 +184,7 @@ figure[data-explorer-src] {
  * Columns
  */
 .page .wp-block-columns {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    column-gap: 24px;
+    @include grid(12);
 
     // default is first column is full-width, second column should be empty
     .wp-block-column {

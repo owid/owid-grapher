@@ -1,10 +1,9 @@
 import React from "react"
-import { OwidArticleBlock } from "@ourworldindata/utils"
-
-export default function PullQuote({ d }: { d: OwidArticleBlock }) {
+import { EnrichedBlockPullQuote } from "@ourworldindata/utils"
+export default function PullQuote({ d }: { d: EnrichedBlockPullQuote }) {
     return (
         <blockquote className={"pullQuote"}>
-            {d.value.map((d: any) => d.value).join("\n")}
+            {d.text.map((d) => d.text).join("\n")}
         </blockquote>
     )
 }

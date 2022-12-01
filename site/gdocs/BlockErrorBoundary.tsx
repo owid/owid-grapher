@@ -17,7 +17,7 @@ export const BlockErrorBoundary = ({
     )
 }
 
-const BlockErrorFallback = ({
+export const BlockErrorFallback = ({
     error,
     resetErrorBoundary,
 }: {

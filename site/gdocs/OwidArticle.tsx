@@ -3,11 +3,11 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks"
 import Footnotes from "./Footnotes"
 import {
-    OwidArticleBlock,
     OwidArticleType,
     formatDate,
     getArticleFromJSON,
 } from "@ourworldindata/utils"
+import { renderSpans } from "./utils.js"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt } = props
@@ -17,6 +17,8 @@ export function OwidArticle(props: OwidArticleType) {
               background: `url(${content["cover-image"][0].value.src})`,
               backgroundSize: "cover",
           }
+        : content["cover-color"]
+        ? { backgroundColor: `var(--${content["cover-color"]})` }
         : {}
 
     return (
@@ -44,25 +46,20 @@ export function OwidArticle(props: OwidArticleType) {
                 </div>
             ) : null}
 
-            {content.body ? <ArticleBlocks blocks={content.body} /> : null}
+            {content.body ? (
+                <ArticleBlocks toc={content.toc} blocks={content.body} />
+            ) : null}
 
             {content.refs ? <Footnotes d={content.refs} /> : null}
 
-            {content.citation &&
-            content.citation.some(
-                (d: OwidArticleBlock) => d.type === "text"
-            ) ? (
+            {content.citation ? (
                 <div>
                     <h3>Please cite this article as:</h3>
                     <pre>
                         <code>
-                            {content.citation.map((d: OwidArticleBlock) => {
-                                if (d.type === "text") {
-                                    return d.value
-                                } else {
-                                    return ""
-                                }
-                            })}
+                            {renderSpans(
+                                content.citation.map((block) => block.value)
+                            )}
                         </code>
                     </pre>
                 </div>

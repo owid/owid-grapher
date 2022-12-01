@@ -1,0 +1,77 @@
+x a: 22006
+x address: 24
+x b: 55
+x blockquote: 86
+body: 837
+br: 4729
+center: 5
+cite: 1
+code: 6
+col: 1
+colgroup: 1
+comment - depth 2: 79570
+comment - depth 3: 8474
+comment - depth 4: 24332
+comment - depth 5: 204
+comment - depth 6: 254
+comment - depth 7: 18
+comment - depth 8: 24
+details: 2
+div: 7452
+em: 9530
+emph: 2
+figcaption: 72
+figure: 1636
+h1: 8
+h2: 1491
+h3: 3131
+h4: 4354
+h5: 980
+h6: 576
+hr: 392
+x i: 297
+iframe: 4074
+img: 1302
+input: 1
+li: 10421
+ol: 147
+p: 33734
+path: 22
+pre: 10
+q: 32
+s:epsilonbar: 1
+s:wbar: 2
+script - depth 2: 1
+script - depth 3: 1
+script - depth 4: 1
+small: 3
+source: 1
+span: 484
+strong: 9181
+style - depth 2: 24
+sub: 1272
+summary: 2
+sup: 294
+svg: 22
+table: 37
+tbody: 37
+td: 2337
+text - depth 10: 289
+text - depth 11: 59
+text - depth 12: 32
+text - depth 13: 8
+text - depth 2: 122367
+text - depth 3: 70494
+text - depth 4: 66798
+text - depth 5: 21691
+text - depth 6: 9838
+text - depth 7: 3002
+text - depth 8: 659
+text - depth 9: 1283
+th: 15
+thead: 3
+tr: 618
+u: 3
+ul: 2104
+video: 2
+wbr: 3

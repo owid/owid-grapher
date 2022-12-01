@@ -1,11 +1,17 @@
 import React from "react"
 import ArticleBlock from "./ArticleBlock.js"
-import { OwidArticleBlock } from "@ourworldindata/utils"
+import { OwidEnrichedArticleBlock, TocHeading } from "@ourworldindata/utils"
 
-export const ArticleBlocks = ({ blocks }: { blocks: OwidArticleBlock[] }) => (
+export const ArticleBlocks = ({
+    blocks,
+    toc,
+}: {
+    blocks: OwidEnrichedArticleBlock[]
+    toc?: TocHeading[]
+}) => (
     <>
-        {blocks.map((block: OwidArticleBlock, i: number) => {
-            return <ArticleBlock key={i} d={block} />
+        {blocks.map((block: OwidEnrichedArticleBlock, i: number) => {
+            return <ArticleBlock key={i} b={block} toc={toc} />
         })}
     </>
 )
