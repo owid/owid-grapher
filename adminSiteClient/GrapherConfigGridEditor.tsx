@@ -19,7 +19,7 @@ import {
     DragDropContext,
     Droppable,
     Draggable,
-    DropResult, 
+    DropResult,
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
@@ -362,7 +362,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { columnDataSource } = this
 
         return match(columnDataSource)
-            .with( 
+            .with(
                 { kind: ColumnDataSourceType.FieldDescription },
                 (source) => source.description
             )
