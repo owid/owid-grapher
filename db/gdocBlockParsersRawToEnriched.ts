@@ -60,6 +60,7 @@ import {
 } from "./gdocUtils"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
+import { getTitleSupertitleFromHeadingText } from "./gdocToArchieml.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawArticleBlock
@@ -641,14 +642,14 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
             message: "Value is a string, not an object with properties",
         })
 
-    const headerText = raw.value.text
-    if (!headerText)
+    const headingText = raw.value.text
+    if (!headingText)
         return createError({
             message: "Text property is missing",
         })
-    const headerSpans = parseSimpleTextsWithErrors([headerText])
+    const headingSpans = parseSimpleTextsWithErrors([headingText])
 
-    if (headerSpans.texts.length !== 1)
+    if (headingSpans.texts.length !== 1)
         return createError({
             message:
                 "Text did not result in exactly one simple span - did you apply formatting?",
@@ -665,9 +666,22 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
                 "Header level property is outside the valid range between 1 and 6",
         })
 
+    const [title, supertitle] = getTitleSupertitleFromHeadingText(
+        headingSpans.texts[0].text
+    )
+
     return {
         type: "heading",
-        text: headerSpans.texts[0],
+        text: {
+            spanType: "span-simple-text",
+            text: title,
+        },
+        supertitle: supertitle
+            ? {
+                  spanType: "span-simple-text",
+                  text: supertitle,
+              }
+            : undefined,
         level: level,
         parseErrors: [],
     }

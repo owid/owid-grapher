@@ -1,6 +1,4 @@
 .sdg-toc {
-    grid-column: 4 / span 8;
-    @include grid(8);
     padding: 40px 0;
     background-color: $beige;
     cursor: pointer;
@@ -14,7 +12,6 @@
     }
 
     .sdg-toc-toggle {
-        grid-column: 2 / span 6;
         @include h2-bold;
         margin: 0;
         display: flex;
@@ -25,8 +22,10 @@
         background-color: transparent;
     }
 
+    // Have to hard-code this because the span-cols-x overrides col-start-x
+    .sdg-toc-toggle,
     .sdg-toc-content {
-        grid-column: 2 / span 6;
+        grid-column-start: 2;
     }
 
     ul {

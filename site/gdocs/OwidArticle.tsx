@@ -7,7 +7,6 @@ import {
     formatDate,
     getArticleFromJSON,
 } from "@ourworldindata/utils"
-import { renderSpans } from "./utils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"

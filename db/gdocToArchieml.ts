@@ -13,6 +13,7 @@ import {
     TocHeadingWithTitleSupertitle,
     compact,
     last,
+    RawBlockText,
 } from "@ourworldindata/utils"
 import {
     htmlToEnrichedTextBlock,
@@ -103,13 +104,11 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
     parsed.refs = refs.map(htmlToEnrichedTextBlock)
-    const summary: string | string[] | undefined = parsed.summary
+    const summary: RawBlockText[] | undefined = parsed.summary
     parsed.summary =
         summary === undefined
             ? undefined
-            : typeof summary === "string"
-            ? [htmlToEnrichedTextBlock(summary)]
-            : summary.map(htmlToEnrichedTextBlock)
+            : summary.map((html) => htmlToEnrichedTextBlock(html.value))
     const citation: string | string[] | undefined = parsed.citation
     parsed.citation =
         citation === undefined
@@ -297,7 +296,7 @@ async function readParagraphElement(
     }
 }
 
-const getTitleSupertitleFromHeadingText = (
+export const getTitleSupertitleFromHeadingText = (
     headingText: string
 ): [string, string | undefined] => {
     const VERTICAL_TAB_CHAR = "\u000b"

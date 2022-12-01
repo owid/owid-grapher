@@ -44,7 +44,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["fixed-graphic"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["grey-section"]: "span-cols-14 grid grid-cols-12-full-width",
-        ["heading"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["heading"]: "align-center col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["image"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -54,6 +54,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["recirc"]: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["scroller"]: "grid span-cols-12 col-start-2",
         ["sdg-grid"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["sdg-toc"]: "grid grid-cols-8 col-start-4 span-cols-8 grid-md-cols-10 col-md-start-3 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12 col-sm-start-2",
         ["side-by-side"]: "grid span-cols-12 col-start-2",
         ["sticky-left-left-column"]: "span-cols-7 span-md-cols-12 grid-md-cols-12",
         ["sticky-left-right-column"]: "span-cols-5 span-md-cols-12 col-md-start-1",
@@ -240,32 +241,55 @@ export default function ArticleBlock({
                         {block.text.text}
                     </h1>
                 ))
-                .with({ type: "heading", level: 2 }, (block) => (
-                    <h2
-                        className={cx(
-                            "h2-bold",
-                            getLayout("heading", containerType)
-                        )}
-                        id={urlSlug(block.text.text)}
-                    >
-                        {block.text.text}
-                    </h2>
-                ))
-                .with({ type: "heading", level: 3 }, (block) => (
-                    <h3
-                        className={cx(
-                            "h3-bold",
-                            getLayout("heading", containerType)
-                        )}
-                        id={urlSlug(block.text.text)}
-                    >
-                        {block.text.text}
-                    </h3>
-                ))
+                .with({ type: "heading", level: 2 }, (block) => {
+                    const hasSupertitle = block.supertitle?.text
+
+                    return (
+                        <h2
+                            className={cx(
+                                "h1-semibold",
+                                getLayout("heading", containerType),
+                                {
+                                    "has-supertitle": hasSupertitle,
+                                }
+                            )}
+                            id={urlSlug(block.text.text)}
+                        >
+                            {block.supertitle?.text ? (
+                                <div className="article-block__heading-supertitle overline-black-caps">
+                                    {block.supertitle?.text}
+                                </div>
+                            ) : null}
+                            {block.text.text}
+                        </h2>
+                    )
+                })
+                .with({ type: "heading", level: 3 }, (block) => {
+                    const hasSupertitle = block.supertitle?.text
+                    return (
+                        <h3
+                            className={cx(
+                                "h2-bold",
+                                getLayout("heading", containerType),
+                                {
+                                    "has-supertitle": hasSupertitle,
+                                }
+                            )}
+                            id={urlSlug(block.text.text)}
+                        >
+                            {hasSupertitle ? (
+                                <div className="article-block__heading-supertitle overline-black-caps">
+                                    {block.supertitle?.text}
+                                </div>
+                            ) : null}
+                            {block.text.text}
+                        </h3>
+                    )
+                })
                 .with({ type: "heading", level: 4 }, (block) => (
                     <h4
                         className={cx(
-                            "h4-semibold",
+                            "h3-bold",
                             getLayout("heading", containerType)
                         )}
                         id={urlSlug(block.text.text)}
@@ -276,8 +300,8 @@ export default function ArticleBlock({
                 .with({ type: "heading", level: 5 }, (block) => (
                     <h5
                         className={cx(
-                            "overline-black-caps",
-                            getLayout("heading")
+                            "h4-semibold",
+                            getLayout("heading", containerType)
                         )}
                         id={urlSlug(block.text.text)}
                     >
@@ -286,7 +310,10 @@ export default function ArticleBlock({
                 ))
                 .with({ type: "heading", level: 6 }, (block) => (
                     <h6
-                        className={getLayout("heading", containerType)}
+                        className={cx(
+                            "overline-black-caps",
+                            getLayout("heading", containerType)
+                        )}
                         id={urlSlug(block.text.text)}
                     >
                         {block.text.text}
@@ -417,7 +444,12 @@ export default function ArticleBlock({
                     />
                 ))
                 .with({ type: "sdg-toc" }, () => {
-                    return toc ? <SDGTableOfContents toc={toc} /> : null
+                    return toc ? (
+                        <SDGTableOfContents
+                            toc={toc}
+                            className={getLayout("sdg-toc", containerType)}
+                        />
+                    ) : null
                 })
                 .exhaustive()
 

@@ -1,6 +1,3 @@
-.article-container {
-}
-
 $banner-height: 200px;
 .article-banner {
     position: absolute;
@@ -11,11 +8,27 @@ $banner-height: 200px;
     z-index: -1;
 }
 
+.article-summary {
+    margin-bottom: 32px;
+}
+
 .article-header {
     background: #fff;
-    min-height: $banner-height;
-    text-align: center;
     margin-top: 80px;
+    min-height: calc($banner-height - 80px);
+    text-align: center;
+}
+
+h2.article-block__heading.has-supertitle {
+    border-top: 1px solid $blue-20;
+    padding-top: 48px;
+    margin-top: 24px;
+}
+
+h3.article-block__heading.has-supertitle {
+    border-bottom: 1px solid $blue-20;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
 }
 
 .article-header__title-container {

@@ -667,6 +667,7 @@ export type RawBlockHeading = {
 export type EnrichedBlockHeading = {
     type: "heading"
     text: SpanSimpleText
+    supertitle?: SpanSimpleText
     level: number
 } & EnrichedBlockWithParseErrors
 
