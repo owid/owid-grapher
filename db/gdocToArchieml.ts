@@ -3,7 +3,10 @@
 
 import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
-import { OwidArticleContent, TocHeading } from "@ourworldindata/utils"
+import {
+    OwidArticleContent,
+    TocHeadingWithTitleSupertitle,
+} from "@ourworldindata/utils"
 import urlSlug from "url-slug"
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
@@ -90,7 +93,7 @@ export const gdocToArchieML = async ({
 async function readElements(document: any, imageHandler: any): Promise<any> {
     // prepare the text holder
     let text = ""
-    const toc: TocHeading[] = []
+    const toc: TocHeadingWithTitleSupertitle[] = []
 
     // check if the body key and content key exists, and give up if not
     if (!document.body) return text
@@ -128,16 +131,29 @@ async function readElements(document: any, imageHandler: any): Promise<any> {
                         const headingSlug = urlSlug(headingText)
                         const isTocHeading =
                             headingLevel === "2" || headingLevel === "3"
+                        const [title, supertitle] =
+                            getTitleSupertitleFromHeadingText(headingText)
                         if (isTocHeading) {
-                            toc.push({
+                            const tocHeading = {
+                                title,
+                                supertitle,
                                 text: headingText,
                                 slug: headingSlug,
                                 isSubheading: headingLevel === "3",
-                            })
+                            }
+                            toc.push(tocHeading)
                         }
+                        // Not supposed to be a permanent solution, as it
+                        // hardcodes the heading markup in the DB JSON and makes
+                        // changing it cumbersome. This should be addressed by
+                        // the upcoming typing refactor.
                         return `<h${headingLevel}${
                             isTocHeading ? ` id=${headingSlug}` : ""
-                        }>${headingText}</h${headingLevel}>\n`
+                        }>${
+                            supertitle
+                                ? `<span class="supertitle">${supertitle}</span>`
+                                : ""
+                        }${title}</h${headingLevel}>\n`
                     }
                     return text
                 }
@@ -213,4 +229,17 @@ async function readParagraphElement(
     } else {
         return ""
     }
+}
+
+const getTitleSupertitleFromHeadingText = (
+    headingText: string
+): [string, string | undefined] => {
+    const VERTICAL_TAB_CHAR = "\u000b"
+    const [beforeSeparator, afterSeparator] =
+        headingText.split(VERTICAL_TAB_CHAR)
+
+    return [
+        afterSeparator || beforeSeparator,
+        afterSeparator ? beforeSeparator : undefined,
+    ]
 }

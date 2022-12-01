@@ -30,6 +30,31 @@
     z-index: 1;
 }
 
+.owidArticle h2,
+.owidArticle h3 {
+    text-align: center;
+    .supertitle {
+        @include overline-black-caps;
+        display: block;
+        margin-bottom: 8px;
+        color: $blue-50;
+    }
+}
+
+.owidArticle h2 {
+    @include h1-semibold;
+    margin-top: 48px;
+    margin-bottom: 24px;
+    padding-top: 48px;
+    border-top: 1px solid $blue-20; // this border doesn't go all the way to the edge.
+}
+
+.owidArticle h3 {
+    @include h2-bold;
+    margin-top: 64px;
+    margin-bottom: 32px;
+}
+
 .owidArticle > figure {
     grid-row: auto;
     grid-column: 4 / span 8;
@@ -161,14 +186,16 @@
     @include grid(12);
     grid-template-rows: auto;
     grid-column: 2 / -2;
-    border-bottom: solid 1px #dbe5f0;
-    padding-bottom: 32px;
     margin-bottom: 32px;
 }
 
 .owidArticle .fixedSection .fixedSectionContent {
     grid-row: 1 / auto;
     grid-column: 1 / span 6;
+
+    h3 {
+        text-align: left;
+    }
 }
 .owidArticle .fixedSection .fixedSectionGraphic {
     grid-row: 1 / auto;

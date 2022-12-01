@@ -8,7 +8,10 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { OwidArticleBlock, TocHeading } from "@ourworldindata/utils"
+import {
+    OwidArticleBlock,
+    TocHeadingWithTitleSupertitle,
+} from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary } from "./BlockErrorBoundary"
 import SDGTableOfContents from "./SDGTableOfContents.js"
@@ -18,7 +21,7 @@ export default function ArticleBlock({
     toc,
 }: {
     d: OwidArticleBlock
-    toc?: TocHeading[]
+    toc?: TocHeadingWithTitleSupertitle[]
 }) {
     const handleArchie = (d: OwidArticleBlock, key: string) => {
         const _type = d.type.toLowerCase()

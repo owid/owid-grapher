@@ -147,6 +147,11 @@ export interface TocHeading {
     isSubheading: boolean
 }
 
+export interface TocHeadingWithTitleSupertitle extends TocHeading {
+    title: string
+    supertitle?: string
+}
+
 // todo; remove
 export interface PostRow {
     id: number
@@ -429,7 +434,7 @@ export interface OwidArticleContent {
     byline?: string | string[]
     dateline?: string
     excerpt?: string
-    toc?: TocHeading[]
+    toc?: TocHeadingWithTitleSupertitle[]
     refs?: OwidArticleBlock[]
     summary?: OwidArticleBlock[]
     citation?: OwidArticleBlock[]
