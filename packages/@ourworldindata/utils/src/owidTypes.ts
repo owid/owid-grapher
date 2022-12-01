@@ -432,13 +432,12 @@ export interface OwidArticleContent {
     supertitle?: string
     subtitle?: string
     template?: string
-    byline?: string | string[]
+    byline?: string
     dateline?: string
     excerpt?: string
     toc?: TocHeadingWithTitleSupertitle[]
     refs?: OwidArticleBlock[]
     summary?: OwidArticleBlock[]
-    citation?: OwidArticleBlock[]
     "cover-image"?: any
     "cover-color"?:
         | "sdg-color-1"
@@ -464,7 +463,7 @@ export interface OwidArticleContent {
 export interface OwidArticleContentPublished extends OwidArticleContent {
     body: OwidArticleBlock[]
     title: string
-    byline: string | string[]
+    byline: string
     excerpt: string
 }
 

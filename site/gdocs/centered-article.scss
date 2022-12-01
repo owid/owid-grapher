@@ -155,6 +155,7 @@
         max-width: 100%;
         font-weight: 600;
         letter-spacing: -1%;
+        margin-bottom: 24px;
         text-align: center;
     }
 
@@ -168,7 +169,6 @@
         font-family: "Lato", sans-serif;
         color: #6e87a2;
         text-align: center;
-        margin-top: 32px;
         margin-bottom: 32px;
     }
 }
@@ -177,12 +177,37 @@
     margin-bottom: 0;
 }
 
-.owidArticle .bylineContainer {
-    border-top: solid 1px #dbe5f0;
-    border-bottom: solid 1px #dbe5f0;
-    margin-bottom: 32px;
+.owidArticle .meta {
+    display: flex;
+    margin-bottom: 24px;
+    padding: 24px 0;
     text-align: center;
-    padding: 32px 0;
+    border-top: solid 1px $blue-10;
+    border-bottom: solid 1px $blue-10;
+    color: $blue-60;
+    text-underline-offset: 5px;
+
+    > div {
+        width: 50%;
+        padding: 0 16px;
+
+        &:first-child {
+            border-right: 1px solid $blue-10;
+        }
+
+        > div:first-child {
+            margin-bottom: 8px;
+        }
+    }
+
+    a {
+        @include owid-link-60;
+        text-decoration-thickness: 1px;
+    }
+
+    svg {
+        margin-right: 0.5em;
+    }
 }
 
 .owidArticle details.summary {
@@ -225,7 +250,7 @@
     grid-column: 1 / span 6;
 }
 
-.owidArticle img {
+.owidArticle img:not(.img-raw) {
     display: block;
     max-width: 100%;
     max-height: 90vh;
@@ -477,6 +502,42 @@
 }
 .footnotes .footnote:nth-of-type(2n) {
     grid-column: 2 / span 1;
+}
+
+.owidArticle #citation,
+.owidArticle #licence {
+    grid-column: 4 / span 8;
+    margin-top: 48px;
+    padding-top: 48px;
+    @include body-3-medium;
+    border-top: 1px solid $blue-10;
+
+    h3 {
+        @include h3-bold;
+        color: $blue-50;
+        margin: 24px 0 16px;
+    }
+
+    a {
+        @include owid-link-60;
+    }
+}
+
+.owidArticle #citation {
+    h3 {
+        margin-top: 0;
+    }
+    p {
+        margin-bottom: 16px;
+    }
+    div:last-of-type .wp-code-snippet {
+        margin-bottom: 0;
+    }
+}
+
+.owidArticle #licence {
+    text-align: center;
+    margin-bottom: 16px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
 }
 
 @media only screen and (max-width: 1280px) {
