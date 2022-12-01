@@ -59,7 +59,7 @@ export function OwidArticle(props: OwidArticleType) {
                     <h1 className="article-header__title">{content.title}</h1>
                 </div>
                 {content.subtitle ? (
-                    <h2 className="article-header__subtitle">
+                    <h2 className="article-header__subtitle col-start-2 span-cols-6">
                         {content.subtitle}
                     </h2>
                 ) : null}
