@@ -64,6 +64,11 @@ $grid-responsive: (lg, md, sm);
     grid-template-columns: calc(50vw - 671px) repeat(12, 1fr) calc(50vw - 672px);
 }
 
+// Use this on an item you want to span till the end of whever container it's in
+.col-end-limit {
+    grid-column-end: -1;
+}
+
 // Cols
 @for $i from 1 through $grid-max-colums + 1 {
     @if $i != $grid-max-colums + 1 {

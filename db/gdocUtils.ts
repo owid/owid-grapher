@@ -25,6 +25,7 @@ import {
     RawBlockImage,
     RawBlockList,
     RawBlockPosition,
+    RawBlockProminentLink,
     RawBlockPullQuote,
     RawBlockScroller,
     RawBlockSDGGrid,
@@ -270,6 +271,14 @@ function* RawBlockGreySectionToArchieMLString(
     yield "[]"
 }
 
+function* RawBlockProminentLinkToArchieMLString(
+    block: RawBlockProminentLink
+): Generator<string, void, undefined> {
+    yield "{.prominent-link}"
+    // TODO
+    yield "{}"
+}
+
 function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
@@ -306,6 +315,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
             RawBlockSideBySideContainerToArchieMLString
         )
         .with({ type: "grey-section" }, RawBlockGreySectionToArchieMLString)
+        .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .exhaustive()
     yield* content
 }
@@ -435,6 +445,14 @@ export function htmlToSpans(html: string): Span[] {
     const $ = cheerio.load(html)
     const nodes = $("body").contents().toArray()
     return _.compact(nodes.map(cheerioToSpan)) ?? []
+}
+
+// Sometimes Google automatically linkifies a URL.
+// We always want the plaintext, not '<a href="www.ourworldindata.org">www.ourworldindata.org</a>'
+export function extractPlaintextUrl(html: string = ""): string {
+    if (html.trim().startsWith("http")) return html.trim()
+    const $ = cheerio.load(html)
+    return $("a").text()
 }
 
 export function cheerioToSpan(node: CheerioElement): Span | undefined {

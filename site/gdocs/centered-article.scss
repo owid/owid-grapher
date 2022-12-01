@@ -189,3 +189,36 @@ $banner-height: 200px;
         margin-bottom: 0;
     }
 }
+
+.article-block__prominent-link {
+    color: $blue-90;
+    margin-bottom: 24px;
+
+    > .prominent-link__image {
+        background-color: $gray-10;
+        height: 100%;
+        width: 100%;
+    }
+
+    h3 {
+        display: inline-block;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    svg {
+        color: $blue-90;
+        margin-left: 8px;
+        transition: 150ms;
+    }
+
+    a:hover svg {
+        transform: translateX(0.125em);
+    }
+
+    + .article-block__prominent-link {
+        padding-top: 24px;
+        border-top: 1px solid $blue-10;
+    }
+}

@@ -1,28 +1,9 @@
 import {
-    OwidRawArticleBlock,
-    Span,
-    RawBlockImage,
-    RawBlockList,
-    RawBlockHeader,
-    OwidEnrichedArticleBlock,
-    EnrichedBlockAside,
     BlockPositionChoice,
-    ParseError,
-    EnrichedBlockText,
-    compact,
-    EnrichedBlockChart,
     ChartPositionChoice,
-    EnrichedBlockScroller,
-    isArray,
-    partition,
-} from "@ourworldindata/utils"
-import {
-    htmlToEnrichedTextBlock,
-    htmlToSimpleTextBlock,
-    htmlToSpans,
-} from "./gdocUtils"
-import { match } from "ts-pattern"
-import {
+    compact,
+    EnrichedBlockAside,
+    EnrichedBlockChart,
     EnrichedBlockChartStory,
     EnrichedBlockFixedGraphic,
     EnrichedBlockGreySection,
@@ -31,22 +12,34 @@ import {
     EnrichedBlockHtml,
     EnrichedBlockImage,
     EnrichedBlockList,
+    EnrichedBlockProminentLink,
     EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
+    EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSideBySideContainer,
     EnrichedBlockStickyLeftContainer,
     EnrichedBlockStickyRightContainer,
+    EnrichedBlockText,
     EnrichedChartStoryItem,
     EnrichedRecircItem,
     EnrichedScrollerItem,
     EnrichedSDGGridItem,
+    isArray,
+    OwidEnrichedArticleBlock,
+    OwidRawArticleBlock,
+    ParseError,
+    partition,
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
     RawBlockFixedGraphic,
     RawBlockGreySection,
+    RawBlockHeader,
     RawBlockHtml,
+    RawBlockImage,
+    RawBlockList,
+    RawBlockProminentLink,
     RawBlockPullQuote,
     RawBlockRecirc,
     RawBlockScroller,
@@ -55,8 +48,16 @@ import {
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
     RawBlockText,
+    Span,
     SpanSimpleText,
-} from "@ourworldindata/utils/dist/owidTypes.js"
+} from "@ourworldindata/utils"
+import {
+    extractPlaintextUrl,
+    htmlToEnrichedTextBlock,
+    htmlToSimpleTextBlock,
+    htmlToSpans,
+} from "./gdocUtils"
+import { match } from "ts-pattern"
 import { parseInt } from "lodash"
 
 export function parseRawBlocksToEnhancedBlocks(
@@ -96,6 +97,7 @@ export function parseRawBlocksToEnhancedBlocks(
         .with({ type: "sticky-right" }, parseStickyRight)
         .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "grey-section" }, parseGreySection)
+        .with({ type: "prominent-link" }, parseProminentLink)
         .exhaustive()
 }
 
@@ -829,5 +831,35 @@ function parseGreySection(raw: RawBlockGreySection): EnrichedBlockGreySection {
         type: "grey-section",
         items: compact(raw.value.map(parseRawBlocksToEnhancedBlocks)),
         parseErrors: [],
+    }
+}
+
+function parseProminentLink(
+    raw: RawBlockProminentLink
+): EnrichedBlockProminentLink {
+    const createError = (error: ParseError): EnrichedBlockProminentLink => ({
+        type: "prominent-link",
+        parseErrors: [error],
+        title: "",
+        url: "",
+        description: "",
+    })
+
+    if (!raw.value.url) {
+        return createError({ message: "No url given for the prominent link" })
+    }
+
+    if (!raw.value.title) {
+        return createError({ message: "No title given for the prominent link" })
+    }
+
+    const url = extractPlaintextUrl(raw.value.url)
+
+    return {
+        type: "prominent-link",
+        parseErrors: [],
+        title: raw.value.title,
+        url,
+        description: raw.value.description || "",
     }
 }

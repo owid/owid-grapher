@@ -16,58 +16,6 @@ import { match } from "ts-pattern"
 import { renderSpans } from "./utils"
 import Paragraph from "./Paragraph.js"
 
-type LayoutDictionary = {
-    // TODO: find a better way to type this to prevent typos but also support "aside-right" and "aside-left"
-    // default: Record<OwidEnrichedArticleBlock["type"], string>
-    // TODO: other containerType types e.g. sticky-right
-}
-
-const layouts: LayoutDictionary = {
-    default: {
-        "chart-story":
-            "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        "fixed-graphic":
-            "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        "horizontal-rule":
-            "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        "grey-section": "span-cols-14 grid grid-cols-12-full-width",
-        "pull-quote":
-            "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        "sdg-grid":
-            "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        "aside-right":
-            "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
-        "aside-left": "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
-        "sticky-left": "grid span-cols-12 col-start-2",
-        "sticky-left-left-column":
-            "span-cols-7 span-md-cols-12 grid-md-cols-12",
-        "sticky-left-right-column":
-            "span-cols-5 span-md-cols-12 col-md-start-1",
-        "sticky-right": "grid span-cols-12 col-start-2",
-        "sticky-right-left-column":
-            "span-cols-5 grid grid-cols-5 span-md-cols-12 grid-md-cols-12",
-        "sticky-right-right-column":
-            "span-cols-7 span-md-cols-12 col-md-start-1",
-        "side-by-side": "grid span-cols-12 col-start-2",
-        chart: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        default:
-            "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        header: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        html: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        image: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        list: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        recirc: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        scroller: "grid span-cols-12 col-start-2",
-        text: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-    },
-    "sticky-right-left-column": {
-        default: "span-cols-5 col-start-1 span-md-cols-12",
-    },
-    "sticky-right-right-column": {
-        default: "span-cols-7 col-start-1 span-md-cols-12",
-    },
-}
-
 type Container =
     | "default"
     | "sticky-right-left-column"
@@ -76,18 +24,100 @@ type Container =
     | "sticky-left-right-column"
     | "side-by-side"
 
+// Each container must have a default layout, usually just full-width
+type Layouts = { default: string; [key: string]: string }
+
+// no line-wrapping for easier alphabetisation
+// prettier-ignore
+const layouts: { [key in Container]: Layouts} = {
+    ["default"]: {
+        ["aside-left"]: "col-start-2 span-cols-3 span-md-cols-10 col-md-start-3",
+        ["aside-right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
+        ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["fixed-graphic"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["grey-section"]: "span-cols-14 grid grid-cols-12-full-width",
+        ["header"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["image"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
+        ["pull-quote"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["recirc"]: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["scroller"]: "grid span-cols-12 col-start-2",
+        ["sdg-grid"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["side-by-side"]: "grid span-cols-12 col-start-2",
+        ["sticky-left-left-column"]: "span-cols-7 span-md-cols-12 grid-md-cols-12",
+        ["sticky-left-right-column"]: "span-cols-5 span-md-cols-12 col-md-start-1",
+        ["sticky-left"]: "grid span-cols-12 col-start-2",
+        ["sticky-right-left-column"]: "span-cols-5 grid grid-cols-5 span-md-cols-12 grid-md-cols-12",
+        ["sticky-right-right-column"]: "span-cols-7 span-md-cols-12 col-md-start-1",
+        ["sticky-right"]: "grid span-cols-12 col-start-2",
+        ["text"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+    },
+    ["sticky-right-left-column"]: {
+        ["default"]: "span-cols-5 col-start-1 span-md-cols-12",
+        ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
+    },
+    ["sticky-right-right-column"]: {
+        ["chart"]: "span-cols-7 span-sm-cols-12",
+        ["default"]: "span-cols-7 col-start-1 span-md-cols-12",
+        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
+    },
+    ["sticky-left-left-column"]: {
+        ["default"]: "span-cols-7 span-md-cols-12",
+        ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-sm-cols-12 col-sm-start-1 grid-sm-cols-12",
+    },
+    ["sticky-left-right-column"]: {
+        ["default"]: "span-cols-5 span-md-cols-12",
+        ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
+    },
+    ["side-by-side"]: {
+        ["default"]: "span-cols-6 span-sm-cols-12",
+    },
+}
+
 function getLayout(
-    // Default layout is "col-start-5 span-cols-6" aka centered 6-wide column
     blockType: string = "default",
     containerType: Container = "default"
 ): string {
     const layout = get(
         layouts,
         [containerType, blockType],
-        get(layouts, [containerType, "default"], "span-cols-12")
+        // nested get! fallback to the default for the container
+        get(layouts, [containerType, "default"])
     )
     return cx(`article-block__${blockType}`, layout)
 }
+
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+
+const ProminentLink = ({
+    title,
+    href,
+    className = "",
+    description,
+}: {
+    title: string
+    href: string
+    className: string
+    description?: string
+}) => (
+    <div className={cx(className, "prominent-link")}>
+        {/* TODO: where do we get the image from? */}
+        <div className="prominent-link__image span-cols-1 span-md-cols-2"></div>
+        <div className="col-start-2 col-md-start-3 col-end-limit">
+            <a href={href}>
+                <h3 className="h3-bold">{title}</h3>
+                <FontAwesomeIcon icon={faArrowRight} />
+            </a>
+            <p className="body-3-medium">{description}</p>
+        </div>
+    </div>
+)
 
 export default function ArticleBlock({
     b,
@@ -361,6 +391,14 @@ export default function ArticleBlock({
                             <ArticleBlock key={i} b={item} />
                         ))}
                     </div>
+                ))
+                .with({ type: "prominent-link" }, (block) => (
+                    <ProminentLink
+                        className={getLayout("prominent-link", containerType)}
+                        title={block.title}
+                        href={block.url}
+                        description={block.description}
+                    />
                 ))
                 .exhaustive()
 

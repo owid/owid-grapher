@@ -736,6 +736,24 @@ export type EnrichedBlockGreySection = {
     items: OwidEnrichedArticleBlock[]
 } & EnrichedBlockWithParseErrors
 
+export type ProminentLinkValue = {
+    url?: string
+    title?: string
+    description?: string
+}
+
+export type RawBlockProminentLink = {
+    type: "prominent-link"
+    value: ProminentLinkValue
+}
+
+export type EnrichedBlockProminentLink = {
+    type: "prominent-link"
+    url: string
+    title: string
+    description?: string
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawArticleBlock =
     | RawBlockAside
     | RawBlockChart
@@ -757,6 +775,7 @@ export type OwidRawArticleBlock =
     | RawBlockStickyLeftContainer
     | RawBlockSideBySideContainer
     | RawBlockGreySection
+    | RawBlockProminentLink
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -778,6 +797,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockStickyLeftContainer
     | EnrichedBlockSideBySideContainer
     | EnrichedBlockGreySection
+    | EnrichedBlockProminentLink
 
 export interface OwidArticleType {
     id: string
