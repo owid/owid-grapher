@@ -47,55 +47,53 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
     const parsed = load(text)
     const toc: TocHeading[] = []
 
-    {
-        // Reconstruct parsed.body to:
-        // * handle lists correctly
-        // * populate the toc array
+    // Reconstruct parsed.body to:
+    // * handle lists correctly
+    // * populate the toc array
 
-        const body: any[] = []
-        let isInList = false
+    const body: any[] = []
+    let isInList = false
 
-        parsed.body.forEach((raw: OwidRawArticleBlock) => {
-            // ensure keys are lowercase
-            raw = Object.entries(raw).reduce(
-                (acc, [key, value]) => ({ ...acc, [key.toLowerCase()]: value }),
-                {} as OwidRawArticleBlock
-            )
+    parsed.body.forEach((raw: OwidRawArticleBlock) => {
+        // ensure keys are lowercase
+        raw = Object.entries(raw).reduce(
+            (acc, [key, value]) => ({ ...acc, [key.toLowerCase()]: value }),
+            {} as OwidRawArticleBlock
+        )
 
-            // nest list items
-            if (raw.type === "text" && raw.value.startsWith("* ")) {
-                if (isInList) {
-                    last(body).value.push(raw.value.replace("* ", "").trim())
-                } else {
-                    isInList = true
-                    body.push({
-                        type: "list",
-                        value: [raw.value.replace("* ", "").trim()],
-                    })
-                }
+        // nest list items
+        if (raw.type === "text" && raw.value.startsWith("* ")) {
+            if (isInList) {
+                last(body).value.push(raw.value.replace("* ", "").trim())
             } else {
-                isInList = false
-                body.push(raw)
+                isInList = true
+                body.push({
+                    type: "list",
+                    value: [raw.value.replace("* ", "").trim()],
+                })
             }
+        } else {
+            isInList = false
+            body.push(raw)
+        }
 
-            // populate toc with h2's and h3's
-            if (raw.type === "heading" && isObject(raw.value)) {
-                const {
-                    value: { level, text },
-                } = raw
-                if (text && (level == "2" || level == "3")) {
-                    const slug = urlSlug(text)
-                    toc.push({
-                        text,
-                        slug,
-                        isSubheading: level == "3",
-                    })
-                }
+        // populate toc with h2's and h3's
+        if (raw.type === "heading" && isObject(raw.value)) {
+            const {
+                value: { level, text },
+            } = raw
+            if (text && (level == "2" || level == "3")) {
+                const slug = urlSlug(text)
+                toc.push({
+                    text,
+                    slug,
+                    isSubheading: level == "3",
+                })
             }
-        })
+        }
+    })
 
-        parsed.body = body
-    }
+    parsed.body = body
 
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
