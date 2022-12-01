@@ -3,7 +3,6 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks"
 import Footnotes from "./Footnotes"
 import {
-    OwidArticleBlock,
     OwidArticleType,
     formatDate,
     getArticleFromJSON,
@@ -76,7 +75,7 @@ export function OwidArticle(props: OwidArticleType) {
                     </div>
                 </div>
                 <div>
-                    <div>
+                    <div className="body-1-regular">
                         <a href="#citation">
                             <FontAwesomeIcon icon={faBook} />
                             Cite this article
