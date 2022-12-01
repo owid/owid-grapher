@@ -4,11 +4,7 @@ import { Head } from "./Head.js"
 import { CitationMeta } from "./CitationMeta.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import {
-    addContentFeatures,
-    formatAuthors,
-    formatUrls,
-} from "../site/formatting.js"
+import { addContentFeatures, formatUrls } from "../site/formatting.js"
 import { SiteSubnavigation } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
@@ -27,6 +23,7 @@ import { PageInfo } from "./PageInfo.js"
 import { BackToTopic } from "./BackToTopic.js"
 import StickyNav from "./blocks/StickyNav.js"
 import { CodeSnippet } from "./blocks/CodeSnippet.js"
+import { formatAuthors } from "./clientFormatting.js"
 
 export interface PageOverrides {
     pageTitle?: string

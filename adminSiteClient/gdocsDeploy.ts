@@ -30,10 +30,12 @@ export const checkIsLightningUpdate = (
     const lightningContentProps: Array<keyof OwidArticleContent> = [
         "body",
         "subtitle",
+        "toc",
+        "supertitle",
         "refs",
         "summary",
-        "citation",
         "cover-image",
+        "cover-color",
     ]
 
     const lightningProps = [

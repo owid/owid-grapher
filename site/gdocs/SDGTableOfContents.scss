@@ -1,0 +1,80 @@
+.sdg-toc {
+    grid-column: 4 / span 8;
+    @include grid(8);
+    padding: 40px 0;
+    background-color: $beige;
+    cursor: pointer;
+
+    &.open::before {
+        grid-column: span 1;
+        grid-row: span 2;
+        content: "";
+        border-right: 1px solid #ffd3d3;
+        margin-right: $grid-gap;
+    }
+
+    .sdg-toc-toggle {
+        grid-column: 2 / span 6;
+        @include h2-bold;
+        margin: 0;
+        display: flex;
+        justify-content: space-between;
+        cursor: pointer;
+        border: none;
+        color: $blue-90;
+        background-color: transparent;
+    }
+
+    .sdg-toc-content {
+        grid-column: 2 / span 6;
+    }
+
+    ul {
+        margin-top: 24px;
+        list-style-type: none;
+    }
+
+    li {
+        .supertitle {
+            color: $blue-60;
+        }
+        a {
+            color: $blue-90;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+        svg {
+            font-size: 0.75em;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        &.section {
+            @include body-2-semibold;
+            .supertitle {
+                display: block;
+                margin-bottom: 8px;
+            }
+        }
+
+        &.subsection {
+            @include body-3-medium;
+            margin-left: 24px;
+            .supertitle {
+                &::after {
+                    content: " ";
+                }
+            }
+        }
+        &.section + .subsection {
+            margin-top: 8px;
+        }
+
+        &.subsection + .section {
+            margin-top: 24px;
+            border-top: 1px solid $blue-20;
+            padding-top: 24px;
+        }
+    }
+}

@@ -5,13 +5,14 @@ import { load } from "archieml"
 import { google as googleApisInstance, GoogleApis, docs_v1 } from "googleapis"
 import {
     OwidRawArticleBlock,
-    OwidArticleContent,
     Span,
     RawBlockHorizontalRule,
     RawBlockImage,
-    RawBlockList,
-    RawBlockHeader,
+    RawBlockHeading,
+    OwidArticleContent,
+    TocHeadingWithTitleSupertitle,
     compact,
+    last,
 } from "@ourworldindata/utils"
 import {
     htmlToEnrichedTextBlock,
@@ -20,8 +21,9 @@ import {
     spanToHtmlString,
 } from "./gdocUtils"
 import { match, P } from "ts-pattern"
-import { parseRawBlocksToEnhancedBlocks } from "./gdocBlockParsersRawToEnriched.js"
-
+import { parseRawBlocksToEnrichedBlocks } from "./gdocBlockParsersRawToEnriched.js"
+import urlSlug from "url-slug"
+import { isObject } from "lodash"
 export interface DocToArchieMLOptions {
     documentId: docs_v1.Params$Resource$Documents$Get["documentId"]
     auth: docs_v1.Params$Resource$Documents$Get["auth"]
@@ -31,11 +33,6 @@ export interface DocToArchieMLOptions {
         elementId: string,
         doc: docs_v1.Schema$Document
     ) => Promise<RawBlockImage>
-}
-
-interface ElementMemo {
-    isInList: boolean
-    body: OwidRawArticleBlock[]
 }
 
 export const stringToArchieML = (text: string): OwidArticleContent => {
@@ -48,46 +45,63 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
     })
 
     const parsed = load(text)
+    const toc: TocHeadingWithTitleSupertitle[] = []
 
-    // Parse lists and include lowercase vals-
-    parsed.body = parsed.body.reduce(
-        (memo: ElementMemo, d: OwidRawArticleBlock) => {
-            Object.keys(d).forEach((k) => {
-                ;(d as any)[k.toLowerCase()] = (d as any)[k]
-            })
+    // Reconstruct parsed.body to:
+    // * handle lists correctly
+    // * populate the toc array
 
-            if (d.type === "text" && d.value.startsWith("* ")) {
-                if (memo.isInList) {
-                    ;(
-                        (memo.body[memo.body.length - 1] as RawBlockList)
-                            .value as string[]
-                    ).push(
-                        // TODO: this assumes that lists only contain simple text
-                        d.value.replace("* ", "").trim()
-                    )
-                } else {
-                    memo.isInList = true
-                    memo.body.push({
-                        type: "list",
-                        value: [d.value.replace("* ", "").trim()],
-                    })
-                }
+    const body: any[] = []
+    let isInList = false
+
+    parsed.body.forEach((raw: OwidRawArticleBlock) => {
+        // ensure keys are lowercase
+        raw = Object.entries(raw).reduce(
+            (acc, [key, value]) => ({ ...acc, [key.toLowerCase()]: value }),
+            {} as OwidRawArticleBlock
+        )
+
+        // nest list items
+        if (raw.type === "text" && raw.value.startsWith("* ")) {
+            if (isInList) {
+                last(body).value.push(raw.value.replace("* ", "").trim())
             } else {
-                if (memo.isInList) {
-                    memo.isInList = false
-                }
-                memo.body.push(d)
+                isInList = true
+                body.push({
+                    type: "list",
+                    value: [raw.value.replace("* ", "").trim()],
+                })
             }
-            return memo
-        },
-        {
-            isInList: false,
-            body: [],
+        } else {
+            isInList = false
+            body.push(raw)
         }
-    ).body
+
+        // populate toc with h2's and h3's
+        if (raw.type === "heading" && isObject(raw.value)) {
+            const {
+                value: { level, text },
+            } = raw
+            const [title, supertitle] = getTitleSupertitleFromHeadingText(
+                text || ""
+            )
+            if (text && (level == "2" || level == "3")) {
+                const slug = urlSlug(text)
+                toc.push({
+                    title,
+                    supertitle,
+                    text,
+                    slug,
+                    isSubheading: level == "3",
+                })
+            }
+        }
+    })
+
+    parsed.body = body
 
     // Parse elements of the ArchieML into enrichedBlocks
-    parsed.body = compact(parsed.body.map(parseRawBlocksToEnhancedBlocks))
+    parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
     parsed.refs = refs.map(htmlToEnrichedTextBlock)
     const summary: string | string[] | undefined = parsed.summary
     parsed.summary =
@@ -103,6 +117,7 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
             : typeof citation === "string"
             ? htmlToSimpleTextBlock(citation)
             : citation.map(htmlToSimpleTextBlock)
+    parsed.toc = toc
     return parsed
 }
 
@@ -127,8 +142,7 @@ export const gdocToArchieML = async ({
     })
 
     // convert the doc's content to text ArchieML will understand
-
-    const text = await readElements(data, imageHandler)
+    const { text } = await readElements(data, imageHandler)
 
     // pass text to ArchieML and return results
     return stringToArchieML(text)
@@ -142,13 +156,13 @@ async function readElements(
               doc: docs_v1.Schema$Document
           ) => Promise<RawBlockImage>)
         | undefined
-): Promise<string> {
+): Promise<{ text: string }> {
     // prepare the text holder
     let text = ""
 
     // check if the body key and content key exists, and give up if not
-    if (!document.body) return text
-    if (!document.body.content) return text
+    if (!document.body) return { text }
+    if (!document.body.content) return { text }
 
     // loop through each content element in the body
 
@@ -178,14 +192,15 @@ async function readElements(
                                 "HEADING_",
                                 ""
                             )
-                        const header: RawBlockHeader = {
-                            type: "header",
+
+                        const heading: RawBlockHeading = {
+                            type: "heading",
                             value: {
                                 text: text.trim(),
                                 level: headingLevel,
                             },
                         }
-                        return owidRawArticleBlockToArchieMLString(header)
+                        return owidRawArticleBlockToArchieMLString(heading)
                     }
                     return text
                 }
@@ -220,7 +235,7 @@ async function readElements(
         }
     }
 
-    return text
+    return { text }
 }
 
 async function readParagraphElement(
@@ -280,4 +295,17 @@ async function readParagraphElement(
     } else {
         return null
     }
+}
+
+const getTitleSupertitleFromHeadingText = (
+    headingText: string
+): [string, string | undefined] => {
+    const VERTICAL_TAB_CHAR = "\u000b"
+    const [beforeSeparator, afterSeparator] =
+        headingText.split(VERTICAL_TAB_CHAR)
+
+    return [
+        afterSeparator || beforeSeparator,
+        afterSeparator ? beforeSeparator : undefined,
+    ]
 }

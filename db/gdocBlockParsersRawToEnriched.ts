@@ -7,7 +7,7 @@ import {
     EnrichedBlockChartStory,
     EnrichedBlockFixedGraphic,
     EnrichedBlockGreySection,
-    EnrichedBlockHeader,
+    EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
     EnrichedBlockImage,
@@ -17,6 +17,7 @@ import {
     EnrichedBlockRecirc,
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
+    EnrichedBlockSDGToc,
     EnrichedBlockSideBySideContainer,
     EnrichedBlockStickyLeftContainer,
     EnrichedBlockStickyRightContainer,
@@ -35,7 +36,7 @@ import {
     RawBlockChartStory,
     RawBlockFixedGraphic,
     RawBlockGreySection,
-    RawBlockHeader,
+    RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
     RawBlockList,
@@ -60,7 +61,7 @@ import {
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
 
-export function parseRawBlocksToEnhancedBlocks(
+export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawArticleBlock
 ): OwidEnrichedArticleBlock | null {
     return match(block)
@@ -91,13 +92,17 @@ export function parseRawBlocksToEnhancedBlocks(
         )
         .with({ type: "url" }, () => null) // url blocks should only occur inside of chart stories etc
         .with({ type: "position" }, () => null) // position blocks should only occur inside of chart stories etc
-        .with({ type: "header" }, parseHeader)
+        .with({ type: "heading" }, parseHeading)
         .with({ type: "sdg-grid" }, parseSdgGrid)
         .with({ type: "sticky-left" }, parseStickyLeft)
         .with({ type: "sticky-right" }, parseStickyRight)
         .with({ type: "side-by-side" }, parseSideBySide)
         .with({ type: "grey-section" }, parseGreySection)
         .with({ type: "prominent-link" }, parseProminentLink)
+        .with(
+            { type: "sdg-toc" },
+            (): EnrichedBlockSDGToc => ({ type: "sdg-toc", parseErrors: [] })
+        )
         .exhaustive()
 }
 
@@ -468,7 +473,7 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
             message: "Value is a string, not a list of strings",
         })
 
-    const textResults = compact(raw.value.map(parseRawBlocksToEnhancedBlocks))
+    const textResults = compact(raw.value.map(parseRawBlocksToEnrichedBlocks))
 
     const [textBlocks, otherBlocks] = partition(
         textResults,
@@ -619,13 +624,13 @@ const parseText = (raw: RawBlockText): EnrichedBlockText => {
     }
 }
 
-const parseHeader = (raw: RawBlockHeader): EnrichedBlockHeader => {
+const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
     const createError = (
         error: ParseError,
         text: SpanSimpleText = { spanType: "span-simple-text", text: "" },
         level: number = 1
-    ): EnrichedBlockHeader => ({
-        type: "header",
+    ): EnrichedBlockHeading => ({
+        type: "heading",
         text,
         level,
         parseErrors: [error],
@@ -661,7 +666,7 @@ const parseHeader = (raw: RawBlockHeader): EnrichedBlockHeader => {
         })
 
     return {
-        type: "header",
+        type: "heading",
         text: headerSpans.texts[0],
         level: level,
         parseErrors: [],
@@ -758,8 +763,8 @@ function parseStickyRight(
             message: "Empty column in the sticky right container",
         })
     }
-    const enrichedLeft = compact(left.map(parseRawBlocksToEnhancedBlocks))
-    const enrichedRight = compact(right.map(parseRawBlocksToEnhancedBlocks))
+    const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
         type: "sticky-right",
         left: enrichedLeft,
@@ -787,8 +792,8 @@ function parseStickyLeft(
             message: "Empty column in the sticky left container",
         })
     }
-    const enrichedLeft = compact(left.map(parseRawBlocksToEnhancedBlocks))
-    const enrichedRight = compact(right.map(parseRawBlocksToEnhancedBlocks))
+    const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
         type: "sticky-left",
         left: enrichedLeft,
@@ -816,8 +821,8 @@ function parseSideBySide(
             message: "Empty column in the side-by-side container",
         })
     }
-    const enrichedLeft = compact(left.map(parseRawBlocksToEnhancedBlocks))
-    const enrichedRight = compact(right.map(parseRawBlocksToEnhancedBlocks))
+    const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
         type: "side-by-side",
         left: enrichedLeft,
@@ -829,7 +834,7 @@ function parseSideBySide(
 function parseGreySection(raw: RawBlockGreySection): EnrichedBlockGreySection {
     return {
         type: "grey-section",
-        items: compact(raw.value.map(parseRawBlocksToEnhancedBlocks)),
+        items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
     }
 }

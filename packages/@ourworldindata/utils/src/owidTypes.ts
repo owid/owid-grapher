@@ -147,6 +147,11 @@ export interface TocHeading {
     isSubheading: boolean
 }
 
+export interface TocHeadingWithTitleSupertitle extends TocHeading {
+    title: string
+    supertitle?: string
+}
+
 // todo; remove
 export interface PostRow {
     id: number
@@ -267,6 +272,7 @@ export interface IndexPost {
     title: string
     slug: string
     date: Date
+    modifiedDate: Date
     authors: string[]
     excerpt?: string
     imageUrl?: string
@@ -276,7 +282,6 @@ export interface FullPost extends IndexPost {
     id: number
     type: WP_PostType
     path: string
-    modifiedDate: Date
     content: string
     thumbnailUrl?: string
     imageId?: number
@@ -425,6 +430,7 @@ export type SpanQuote = {
     spanType: "span-quote"
     children: Span[]
 }
+export type UnformattedSpan = SpanSimpleText | SpanNewline
 
 export type Span =
     | SpanSimpleText
@@ -649,17 +655,17 @@ export type RawBlockPosition = {
 }
 // There is no EnrichedBlockUrl because Position blocks only exist inside FixedGraphics;
 // they are subsumed into FixedGraphic blocks during enrichment
-export type RawBlockHeaderValue = {
+export type RawBlockHeadingValue = {
     text?: string
     level?: string
 }
-export type RawBlockHeader = {
-    type: "header"
-    value: RawBlockHeaderValue | ArchieMLUnexpectedNonObjectValue
+export type RawBlockHeading = {
+    type: "heading"
+    value: RawBlockHeadingValue | ArchieMLUnexpectedNonObjectValue
 }
 
-export type EnrichedBlockHeader = {
-    type: "header"
+export type EnrichedBlockHeading = {
+    type: "heading"
     text: SpanSimpleText
     level: number
 } & EnrichedBlockWithParseErrors
@@ -754,6 +760,14 @@ export type EnrichedBlockProminentLink = {
     description?: string
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockSDGToc = {
+    type: "sdg-toc"
+}
+
+export type EnrichedBlockSDGToc = {
+    type: "sdg-toc"
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawArticleBlock =
     | RawBlockAside
     | RawBlockChart
@@ -767,7 +781,7 @@ export type OwidRawArticleBlock =
     | RawBlockText
     | RawBlockUrl
     | RawBlockPosition
-    | RawBlockHeader
+    | RawBlockHeading
     | RawBlockHtml
     | RawBlockHorizontalRule
     | RawBlockSDGGrid
@@ -776,6 +790,7 @@ export type OwidRawArticleBlock =
     | RawBlockSideBySideContainer
     | RawBlockGreySection
     | RawBlockProminentLink
+    | RawBlockSDGToc
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -788,8 +803,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockList
     | EnrichedBlockPullQuote
     | EnrichedBlockRecirc
-    | EnrichedBlockText
-    | EnrichedBlockHeader
+    | EnrichedBlockHeading
     | EnrichedBlockHtml
     | EnrichedBlockHorizontalRule
     | EnrichedBlockSDGGrid
@@ -798,6 +812,12 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockSideBySideContainer
     | EnrichedBlockGreySection
     | EnrichedBlockProminentLink
+    | EnrichedBlockSDGToc
+
+export enum OwidArticlePublicationContext {
+    unlisted = "unlisted",
+    listed = "listed",
+}
 
 export interface OwidArticleType {
     id: string
@@ -807,6 +827,7 @@ export interface OwidArticleType {
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
+    publicationContext: OwidArticlePublicationContext
 }
 
 // see also: getArticleFromJSON()
@@ -830,22 +851,42 @@ export interface OwidArticleTypePublished extends OwidArticleType {
 export interface OwidArticleContent {
     body?: OwidEnrichedArticleBlock[]
     title?: string
+    supertitle?: string
     subtitle?: string
     template?: string
-    byline?: string | string[]
+    byline?: string
     dateline?: string
     excerpt?: string
     refs?: EnrichedBlockText[]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
+    toc?: TocHeadingWithTitleSupertitle[]
     "cover-image"?: any
+    "cover-color"?:
+        | "sdg-color-1"
+        | "sdg-color-2"
+        | "sdg-color-3"
+        | "sdg-color-4"
+        | "sdg-color-5"
+        | "sdg-color-6"
+        | "sdg-color-7"
+        | "sdg-color-8"
+        | "sdg-color-9"
+        | "sdg-color-10"
+        | "sdg-color-11"
+        | "sdg-color-12"
+        | "sdg-color-13"
+        | "sdg-color-14"
+        | "sdg-color-15"
+        | "sdg-color-16"
+        | "sdg-color-17"
     "featured-image"?: any
 }
 
 export interface OwidArticleContentPublished extends OwidArticleContent {
     body: OwidEnrichedArticleBlock[]
     title: string
-    byline: string | string[]
+    byline: string
     excerpt: string
 }
 

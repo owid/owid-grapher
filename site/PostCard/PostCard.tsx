@@ -1,6 +1,7 @@
 import React from "react"
 import { IndexPost, formatDate } from "@ourworldindata/utils"
-import { formatAuthors, formatUrls } from "../formatting.js"
+import { formatUrls } from "../formatting.js"
+import { formatAuthors } from "../clientFormatting.js"
 
 const PostCard = ({ post }: { post: IndexPost }) => {
     return (

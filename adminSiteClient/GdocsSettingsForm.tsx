@@ -7,6 +7,7 @@ import {
     GdocsSettingsTextArea,
 } from "./GdocsSettingsContentField.js"
 import { GdocsDateline } from "./GdocsDateline.js"
+import { GdocsPublicationContext } from "./GdocsPublicationContext.js"
 
 export const GdocsSettingsForm = ({
     gdoc,
@@ -34,6 +35,9 @@ export const GdocsSettingsForm = ({
             />
             <div className="form-group">
                 <GdocsDateline gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
+            </div>
+            <div className="form-group">
+                <GdocsPublicationContext gdoc={gdoc} setGdoc={setGdoc} />
             </div>
 
             <GdocsSettingsContentField

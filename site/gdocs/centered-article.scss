@@ -15,11 +15,22 @@ $banner-height: 200px;
     background: #fff;
     min-height: $banner-height;
     text-align: center;
+    margin-top: 80px;
 }
 
-.article-header__title {
-    @include display-2-semibold;
-    color: $blue-90;
+.article-header__title-container {
+    margin-top: 50px;
+    .article-header__supertitle {
+        @include overline-black-caps;
+        text-align: centered;
+        color: $blue-50;
+    }
+
+    .article-header__title {
+        @include display-2-semibold;
+        margin-top: 0;
+        color: $blue-90;
+    }
 }
 
 .article-header__subtitle {
@@ -27,12 +38,37 @@ $banner-height: 200px;
     color: $blue-50;
 }
 
-.article-header__byline-container {
-    border-bottom: 1px solid $blue-20;
-    border-top: 1px solid $blue-20;
+.article-header__meta-container {
+    border-bottom: 1px solid $blue-10;
+    border-top: 1px solid $blue-10;
     margin-bottom: 32px;
     padding: 32px 0;
+    color: $blue-60;
     @include body-1-regular;
+
+    a {
+        text-underline-offset: 5px;
+        margin-bottom: 8px;
+        @include owid-link-60;
+        &:visited {
+            color: $blue-60;
+        }
+    }
+
+    .article-header__byline,
+    .article-header__dateline {
+        margin-bottom: 8px;
+    }
+
+    svg {
+        margin-right: 8px;
+    }
+
+    @include sm-up {
+        > div:first-child {
+            border-right: 1px solid $blue-10;
+        }
+    }
 }
 
 .article-block__text,

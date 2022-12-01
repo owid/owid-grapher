@@ -1,7 +1,7 @@
 import {
     OwidRawArticleBlock,
     Span,
-    RawBlockHeader,
+    RawBlockHeading,
     EnrichedBlockText,
     OwidEnrichedArticleBlock,
     SpanLink,
@@ -36,7 +36,7 @@ import {
     RawBlockUrl,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import _, { partition } from "lodash"
+import { partition, compact } from "lodash"
 import * as cheerio from "cheerio"
 
 function appendDotEndIfMultiline(line: string): string {
@@ -209,10 +209,10 @@ function* rawBlockPositionToArchieMLString(
     yield keyValueToArchieMlString("url", block.value)
 }
 
-function* rawBlockHeaderToArchieMLString(
-    block: RawBlockHeader
+function* RawBlockHeadingToArchieMLString(
+    block: RawBlockHeading
 ): Generator<string, void, undefined> {
-    yield "{.header}"
+    yield "{.heading}"
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("text", block.value)
         yield* propertyToArchieMLString("level", block.value)
@@ -279,6 +279,11 @@ function* RawBlockProminentLinkToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockSDGTocToArchieMLString(): Generator<string, void, undefined> {
+    yield "{.sdg-toc}"
+    yield "{}"
+}
+
 function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
@@ -300,7 +305,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "html" }, rawBlockHtmlToArchieMLString)
         .with({ type: "url" }, rawBlockUrlToArchieMLString)
         .with({ type: "position" }, rawBlockPositionToArchieMLString)
-        .with({ type: "header" }, rawBlockHeaderToArchieMLString)
+        .with({ type: "heading" }, RawBlockHeadingToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
         .with(
             { type: "sticky-right" },
@@ -316,6 +321,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         )
         .with({ type: "grey-section" }, RawBlockGreySectionToArchieMLString)
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
+        .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .exhaustive()
     yield* content
 }
@@ -403,7 +409,7 @@ export function spansToHtmlString(spans: Span[]): string {
 function spanFallback(node: CheerioElement): SpanFallback {
     return {
         spanType: "span-fallback",
-        children: _.compact(node.children?.map(cheerioToSpan)) ?? [],
+        children: compact(node.children?.map(cheerioToSpan)) ?? [],
     }
 }
 
@@ -444,7 +450,7 @@ export function htmlToSimpleTextBlock(html: string): EnrichedBlockSimpleText {
 export function htmlToSpans(html: string): Span[] {
     const $ = cheerio.load(html)
     const nodes = $("body").contents().toArray()
-    return _.compact(nodes.map(cheerioToSpan)) ?? []
+    return compact(nodes.map(cheerioToSpan)) ?? []
 }
 
 // Sometimes Google automatically linkifies a URL.
@@ -467,17 +473,17 @@ export function cheerioToSpan(node: CheerioElement): Span | undefined {
             .with("a", (): SpanLink => {
                 const url = node.attribs.href
                 const children =
-                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                    compact(node.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-link", children, url }
             })
             .with("b", (): SpanBold => {
                 const children =
-                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                    compact(node.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-bold", children }
             })
             .with("i", (): SpanItalic => {
                 const children =
-                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                    compact(node.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-italic", children }
             })
             .with("br", (): Span => ({ spanType: "span-newline" }))
@@ -487,38 +493,36 @@ export function cheerioToSpan(node: CheerioElement): Span | undefined {
                 "em",
                 (): SpanItalic => ({
                     spanType: "span-italic",
-                    children:
-                        _.compact(node.children?.map(cheerioToSpan)) ?? [],
+                    children: compact(node.children?.map(cheerioToSpan)) ?? [],
                 })
             )
             .with(
                 "q",
                 (): SpanQuote => ({
                     spanType: "span-quote",
-                    children:
-                        _.compact(node.children?.map(cheerioToSpan)) ?? [],
+                    children: compact(node.children?.map(cheerioToSpan)) ?? [],
                 })
             )
             .with("small", () => spanFallback(node))
             .with("span", () => spanFallback(node))
             .with("strong", (): SpanBold => {
                 const children =
-                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                    compact(node.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-bold", children }
             })
             .with("sup", (): SpanSuperscript => {
                 const children =
-                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                    compact(node.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-superscript", children }
             })
             .with("sub", (): SpanSubscript => {
                 const children =
-                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                    compact(node.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-subscript", children }
             })
             .with("u", (): SpanUnderline => {
                 const children =
-                    _.compact(node.children?.map(cheerioToSpan)) ?? []
+                    compact(node.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-underline", children }
             })
             .with("wbr", () => spanFallback(node))

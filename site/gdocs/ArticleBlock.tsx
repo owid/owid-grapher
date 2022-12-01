@@ -9,12 +9,18 @@ import FixedGraphic from "./FixedGraphic"
 import Recirc from "./Recirc"
 import List from "./List"
 import Image from "./Image"
-import { get, OwidEnrichedArticleBlock } from "@ourworldindata/utils"
+import {
+    get,
+    OwidEnrichedArticleBlock,
+    TocHeadingWithTitleSupertitle,
+} from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary"
 import { match } from "ts-pattern"
 import { renderSpans } from "./utils"
 import Paragraph from "./Paragraph.js"
+import SDGTableOfContents from "./SDGTableOfContents.js"
+import urlSlug from "url-slug"
 
 type Container =
     | "default"
@@ -38,7 +44,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["fixed-graphic"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["grey-section"]: "span-cols-14 grid grid-cols-12-full-width",
-        ["header"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["heading"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["image"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -86,7 +92,7 @@ function getLayout(
     const layout = get(
         layouts,
         [containerType, blockType],
-        // nested get! fallback to the default for the container
+        // fallback to the default for the container
         get(layouts, [containerType, "default"])
     )
     return cx(`article-block__${blockType}`, layout)
@@ -122,9 +128,11 @@ const ProminentLink = ({
 export default function ArticleBlock({
     b,
     containerType = "default",
+    toc,
 }: {
     b: OwidEnrichedArticleBlock
     containerType?: Container
+    toc?: TocHeadingWithTitleSupertitle[]
 }) {
     const handleArchie = (block: OwidEnrichedArticleBlock, key: string) => {
         block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
@@ -221,63 +229,71 @@ export default function ArticleBlock({
                         />
                     )
                 })
-                .with({ type: "header", level: 1 }, (block) => (
+                .with({ type: "heading", level: 1 }, (block) => (
                     <h1
                         className={cx(
                             "display-2-semibold",
-                            getLayout("header", containerType)
+                            getLayout("heading", containerType)
                         )}
+                        id={urlSlug(block.text.text)}
                     >
                         {block.text.text}
                     </h1>
                 ))
-                .with({ type: "header", level: 2 }, (block) => (
+                .with({ type: "heading", level: 2 }, (block) => (
                     <h2
                         className={cx(
                             "h2-bold",
-                            getLayout("header", containerType)
+                            getLayout("heading", containerType)
                         )}
+                        id={urlSlug(block.text.text)}
                     >
                         {block.text.text}
                     </h2>
                 ))
-                .with({ type: "header", level: 3 }, (block) => (
+                .with({ type: "heading", level: 3 }, (block) => (
                     <h3
                         className={cx(
                             "h3-bold",
-                            getLayout("header", containerType)
+                            getLayout("heading", containerType)
                         )}
+                        id={urlSlug(block.text.text)}
                     >
                         {block.text.text}
                     </h3>
                 ))
-                .with({ type: "header", level: 4 }, (block) => (
+                .with({ type: "heading", level: 4 }, (block) => (
                     <h4
                         className={cx(
                             "h4-semibold",
-                            getLayout("header", containerType)
+                            getLayout("heading", containerType)
                         )}
+                        id={urlSlug(block.text.text)}
                     >
                         {block.text.text}
                     </h4>
                 ))
-                .with({ type: "header", level: 5 }, (block) => (
+                .with({ type: "heading", level: 5 }, (block) => (
                     <h5
                         className={cx(
                             "overline-black-caps",
-                            getLayout("header")
+                            getLayout("heading")
                         )}
+                        id={urlSlug(block.text.text)}
                     >
                         {block.text.text}
                     </h5>
                 ))
-                .with({ type: "header", level: 6 }, (block) => (
-                    <h6 className={getLayout("header", containerType)}>
+                .with({ type: "heading", level: 6 }, (block) => (
+                    <h6
+                        className={getLayout("heading", containerType)}
+                        id={urlSlug(block.text.text)}
+                    >
                         {block.text.text}
                     </h6>
                 ))
                 .with(
-                    { type: "header" },
+                    { type: "heading" },
                     // during parsing we take care of level being in a valid range
                     () => null
                 )
@@ -400,6 +416,9 @@ export default function ArticleBlock({
                         description={block.description}
                     />
                 ))
+                .with({ type: "sdg-toc" }, () => {
+                    return toc ? <SDGTableOfContents toc={toc} /> : null
+                })
                 .exhaustive()
 
             // if (_type === "chart-grid") {
