@@ -10,23 +10,18 @@ export default function SDGGrid({
     className?: string
 }) {
     return (
-        <div className={cx("sdg-grid", className)}>
-            <h2>The 17 goals</h2>
-            <ul>
-                {d.items.map(
-                    (tile: { goal: string; link: string }, i: number) => {
-                        return (
-                            <SDGTile
-                                key={i}
-                                number={i + 1}
-                                goal={tile.goal}
-                                link={tile.link}
-                            />
-                        )
-                    }
-                )}
-            </ul>
-        </div>
+        <ul className={cx("sdg-grid", className)}>
+            {d.items.map((tile: { goal: string; link: string }, i: number) => {
+                return (
+                    <SDGTile
+                        key={i}
+                        number={i + 1}
+                        goal={tile.goal}
+                        link={tile.link}
+                    />
+                )
+            })}
+        </ul>
     )
 }
 
@@ -41,7 +36,7 @@ const SDGTile = ({
 }) => {
     return (
         <li
-            className="tile"
+            className="span-cols-2 span-lg-cols-3 span-md-cols-4 span-sm-cols-8 col-sm-start-3"
             style={
                 {
                     "--sdg-color": `var(--sdg-color-${number})`,

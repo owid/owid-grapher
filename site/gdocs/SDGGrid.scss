@@ -1,17 +1,7 @@
-.owidArticle .sdg-grid {
-    @include grid(14);
-    grid-column: 1 / -1;
-    padding: 50px 0;
-    background-color: $gray-10;
-
-    h2 {
-        @include h1-semibold;
-        grid-column: 2 / 14;
-        margin: 0 0 40px;
-        text-align: center;
-    }
-
-    .tile {
+.sdg-grid {
+    margin-top: 40px;
+    row-gap: $grid-gap;
+    li {
         list-style-type: none;
         a {
             display: flex;
@@ -43,25 +33,6 @@
 
         .goal {
             margin: auto;
-        }
-    }
-
-    // todo: responsive
-    ul {
-        @include lg-up {
-            @include grid(12);
-            row-gap: $grid-gap;
-            grid-column: 2 / 14;
-
-            // Centering last row
-            &:before {
-                content: "";
-                grid-column: 1 / 2;
-                grid-row: 3;
-            }
-            .tile {
-                grid-column: span 2;
-            }
         }
     }
 }
