@@ -242,7 +242,12 @@ export default function ArticleBlock({
                     </h1>
                 ))
                 .with({ type: "heading", level: 2 }, (block) => {
-                    const hasSupertitle = block.supertitle?.text
+                    const {
+                        supertitle,
+                        text: { text },
+                    } = block
+                    const supertitleText = supertitle?.text || ""
+                    const id = urlSlug(`${supertitleText}-${text}`)
 
                     return (
                         <h2
@@ -250,39 +255,44 @@ export default function ArticleBlock({
                                 "h1-semibold",
                                 getLayout("heading", containerType),
                                 {
-                                    "has-supertitle": hasSupertitle,
+                                    "has-supertitle": supertitleText,
                                 }
                             )}
-                            id={urlSlug(block.text.text)}
+                            id={id}
                         >
-                            {block.supertitle?.text ? (
+                            {supertitleText ? (
                                 <div className="article-block__heading-supertitle overline-black-caps">
-                                    {block.supertitle?.text}
+                                    {supertitleText}
                                 </div>
                             ) : null}
-                            {block.text.text}
+                            {text}
                         </h2>
                     )
                 })
                 .with({ type: "heading", level: 3 }, (block) => {
-                    const hasSupertitle = block.supertitle?.text
+                    const {
+                        supertitle,
+                        text: { text },
+                    } = block
+                    const supertitleText = supertitle?.text || ""
+                    const id = urlSlug(`${supertitleText}-${text}`)
                     return (
                         <h3
                             className={cx(
                                 "h2-bold",
                                 getLayout("heading", containerType),
                                 {
-                                    "has-supertitle": hasSupertitle,
+                                    "has-supertitle": supertitleText,
                                 }
                             )}
-                            id={urlSlug(block.text.text)}
+                            id={id}
                         >
-                            {hasSupertitle ? (
+                            {supertitleText ? (
                                 <div className="article-block__heading-supertitle overline-black-caps">
                                     {block.supertitle?.text}
                                 </div>
                             ) : null}
-                            {block.text.text}
+                            {text}
                         </h3>
                     )
                 })
