@@ -51,7 +51,6 @@ import {
     KeyInsight,
     OwidArticleType,
     PostRow,
-    WP_PostType,
     Url,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
@@ -59,11 +58,8 @@ import { formatPost } from "./formatWordpressPost.js"
 import {
     getBlogIndex,
     getEntriesByCategory,
-    getFullPost,
     getLatestPostRevision,
     getPostBySlug,
-    getPosts,
-    selectHomepagePosts,
     isPostCitable,
     getBlockContent,
 } from "../db/wpdb.js"

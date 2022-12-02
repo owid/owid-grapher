@@ -102,6 +102,10 @@
         grid-column: 1 / 13;
     }
 
+    img {
+        border-color: #fff;
+    }
+
     .research-and-writing__top-right {
         grid-column: 1 / 13;
         @include grid(2);
@@ -171,6 +175,9 @@
 
     .title {
         @include h3-bold;
+    }
+    img {
+        border-color: #fff;
     }
 }
 
