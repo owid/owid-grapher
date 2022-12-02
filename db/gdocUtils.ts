@@ -185,16 +185,22 @@ function* rawBlockRecircToArchieMLString(
     yield "[]"
 }
 
+function escapeRawText(text: string): string {
+    // In ArchieML, single words followed by a colon are interpreted as a key-value pair. Since here
+    // we are trying to output raw text, we need to escape colons.
+    return text.replace(/^\s*(\w+)\s*:/, "$1\\:")
+}
+
 function* rawBlockTextToArchieMLString(
     block: RawBlockText
 ): Generator<string, void, undefined> {
-    yield block.value
+    yield escapeRawText(block.value)
 }
 
 function* rawBlockHtmlToArchieMLString(
     block: RawBlockHtml
 ): Generator<string, void, undefined> {
-    yield block.value
+    yield escapeRawText(block.value)
 }
 
 function* rawBlockUrlToArchieMLString(
