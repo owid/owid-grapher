@@ -53,7 +53,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["pull-quote"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["recirc"]: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["scroller"]: "grid span-cols-12 col-start-2",
-        ["sdg-grid"]: "grid col-start-2 span-cols-12 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["sdg-grid"]: "grid col-start-2 span-cols-12 col-lg-start-3 span-lg-cols-10 span-sm-cols-12 col-sm-start-2",
         ["sdg-toc"]: "grid grid-cols-8 col-start-4 span-cols-8 grid-md-cols-10 col-md-start-3 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12 col-sm-start-2",
         ["side-by-side"]: "grid span-cols-12 col-start-2",
         ["sticky-left-left-column"]: "span-cols-7 span-md-cols-12 grid-md-cols-12",

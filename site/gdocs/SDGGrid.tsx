@@ -36,7 +36,7 @@ const SDGTile = ({
 }) => {
     return (
         <li
-            className="span-cols-2 span-lg-cols-3 span-md-cols-4 span-sm-cols-8 col-sm-start-3"
+            className="span-cols-2 span-lg-cols-4 span-sm-cols-8 col-sm-start-3"
             style={
                 {
                     "--sdg-color": `var(--sdg-color-${number})`,
