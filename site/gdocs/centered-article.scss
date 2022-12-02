@@ -231,8 +231,12 @@ h3.article-block__heading.has-supertitle {
 
 .article-block__grey-section {
     background-color: $gray-10;
-    padding: 32px 0;
+    padding: 48px 0;
     margin: 32px 0;
+
+    > *:first-child {
+        margin-top: 0;
+    }
 
     > *:last-child {
         margin-bottom: 0;
