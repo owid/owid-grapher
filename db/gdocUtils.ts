@@ -236,38 +236,62 @@ function* rawBlockSDGGridToArchieMLString(
 function* RawBlockStickyRightContainerToArchieMLString(
     block: RawBlockStickyRightContainer
 ): Generator<string, void, undefined> {
-    yield "[.sticky-right]"
+    yield "{ .sticky-right }"
     if (typeof block.value !== "string") {
-        // TODO
+        yield "[+right]"
+        for (const b of block.value.right)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
+        yield "[]"
+        yield "[+left]"
+        for (const b of block.value.left)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
+        yield "[]"
     }
-    yield "[]"
+    yield "{}"
 }
 
 function* RawBlockStickyLeftContainerToArchieMLString(
     block: RawBlockStickyLeftContainer
 ): Generator<string, void, undefined> {
-    yield "[.sticky-left]"
+    yield "{ .sticky-left }"
     if (typeof block.value !== "string") {
-        // TODO
+        yield "[+right]"
+        for (const b of block.value.right)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
+        yield "[]"
+        yield "[+left]"
+        for (const b of block.value.left)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
+        yield "[]"
     }
-    yield "[]"
+    yield "{}"
 }
 
 function* RawBlockSideBySideContainerToArchieMLString(
     block: RawBlockSideBySideContainer
 ): Generator<string, void, undefined> {
-    yield "[.side-by-side]"
+    yield "{ .side-by-side }"
     if (typeof block.value !== "string") {
-        // TODO
+        yield "[+right]"
+        for (const b of block.value.right)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
+        yield "[]"
+        yield "[+left]"
+        for (const b of block.value.left)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
+        yield "[]"
     }
-    yield "[]"
+    yield "{}"
 }
 
 function* RawBlockGreySectionToArchieMLString(
     block: RawBlockGreySection
 ): Generator<string, void, undefined> {
-    yield "[.grey-section]"
-    // TODO
+    yield "[+grey-section]"
+    if (typeof block.value !== "string") {
+        for (const b of block.value)
+            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
+    }
     yield "[]"
 }
 
@@ -275,7 +299,9 @@ function* RawBlockProminentLinkToArchieMLString(
     block: RawBlockProminentLink
 ): Generator<string, void, undefined> {
     yield "{.prominent-link}"
-    // TODO
+    yield* propertyToArchieMLString("url", block.value)
+    yield* propertyToArchieMLString("title", block.value)
+    yield* propertyToArchieMLString("description", block.value)
     yield "{}"
 }
 
