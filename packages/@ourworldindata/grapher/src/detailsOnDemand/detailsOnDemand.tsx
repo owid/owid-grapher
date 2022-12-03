@@ -27,7 +27,10 @@ class DetailsOnDemand {
             },
             new ObservableMap()
         )
-        this.details = this.details.merge(observableDetails)
+        window.setTimeout(() => {
+            this.details = this.details.merge(observableDetails)
+            console.log("details loaded")
+        }, 5000)
     }
 }
 
