@@ -4,6 +4,7 @@ import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
     BASE_FONT_SIZE,
+    FacetStrategy,
     SeriesName,
     SeriesStrategy,
 } from "../core/GrapherConstants"
@@ -296,6 +297,17 @@ export class AbstractStackedChart
     /** Whether we want to display series with only zeroes. Defaults to true but e.g. StackedArea charts want to set this to false */
     get showAllZeroSeries(): boolean {
         return true
+    }
+
+    @computed get facetAvailableStrategies(): FacetStrategy[] {
+        const strategies: FacetStrategy[] = []
+        if (this.selectionArray.selectedEntityNames.length <= 1)
+            strategies.push(FacetStrategy.none)
+        else strategies.push(FacetStrategy.entity)
+
+        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
+
+        return strategies
     }
 
     @computed get unstackedSeries(): readonly StackedSeries<number>[] {
