@@ -417,6 +417,14 @@ export class StackedDiscreteBarChart
         return this.yColumns[0]
     }
 
+    @computed get facetAvailableStrategies(): FacetStrategy[] {
+        const strategies = [FacetStrategy.none]
+
+        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
+
+        return strategies
+    }
+
     @bind private formatValueForLabel(value: number): string {
         // Compute how many decimal places we should show.
         // Basically, this makes us show 2 significant digits, or no decimal places if the number
