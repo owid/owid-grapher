@@ -1980,34 +1980,10 @@ export class Grapher
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        const strategies: FacetStrategy[] = [FacetStrategy.none]
-
-        const numNonProjectedColumns =
-            this.yColumnsFromDimensionsOrSlugsOrAuto.filter(
-                (c) => !c.display?.isProjection
-            ).length
-        if (
-            // multiple metrics (excluding projections)
-            numNonProjectedColumns > 1 &&
-            // more than one data point per metric
-            this.transformedTable.numRows > 1
-        ) {
-            strategies.push(FacetStrategy.metric)
-        }
-
-        if (
-            // multiple entities
-            this.selection.numSelectedEntities > 1 &&
-            // more than one data point per entity (e.g. multiple years in a LineChart)
-            (this.transformedTable.numRows >
-                this.selection.numSelectedEntities ||
-                // or: multiple dimensions
-                numNonProjectedColumns > 1)
-        ) {
-            strategies.push(FacetStrategy.entity)
-        }
-
-        return strategies
+        console.log(this.chartInstance.facetAvailableStrategies)
+        return (
+            this.chartInstance.facetAvailableStrategies ?? [FacetStrategy.none]
+        )
     }
 
     private disableAutoFaceting = true // turned off for now
