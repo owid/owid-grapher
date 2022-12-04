@@ -301,9 +301,14 @@ export class AbstractStackedChart
 
     @computed get facetAvailableStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = []
+
         if (this.selectionArray.selectedEntityNames.length <= 1)
             strategies.push(FacetStrategy.none)
-        else strategies.push(FacetStrategy.entity)
+        else {
+            // Normally StackedArea/StackedBar charts are always single-entity, but if we are ever in a mode where we
+            // have multiple entities selected (e.g. through GlobalEntitySelector), it only makes sense when faceted.
+            strategies.push(FacetStrategy.entity)
+        }
 
         if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
 

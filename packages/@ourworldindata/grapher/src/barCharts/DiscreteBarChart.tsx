@@ -352,7 +352,7 @@ export class DiscreteBarChart
             this.yColumns.length > 1 &&
             this.selectionArray.numSelectedEntities > 1
         )
-            return [FacetStrategy.metric, FacetStrategy.entity]
+            return [FacetStrategy.entity, FacetStrategy.metric]
         else return [FacetStrategy.none]
     }
 

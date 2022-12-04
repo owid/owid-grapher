@@ -64,6 +64,7 @@ import {
     SortOrder,
     TopicId,
     OwidChartDimensionInterface,
+    firstOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -1980,13 +1981,10 @@ export class Grapher
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        console.log(this.chartInstance.facetAvailableStrategies)
-        return (
-            this.chartInstance.facetAvailableStrategies ?? [FacetStrategy.none]
-        )
+        return this.chartInstance.facetAvailableStrategies?.length
+            ? this.chartInstance.facetAvailableStrategies
+            : [FacetStrategy.none]
     }
-
-    private disableAutoFaceting = true // turned off for now
 
     // the actual facet setting used by a chart, potentially overriding selectedFacetStrategy
     @computed get facetStrategy(): FacetStrategy {
@@ -1996,24 +1994,7 @@ export class Grapher
         )
             return this.selectedFacetStrategy
 
-        if (this.disableAutoFaceting) return FacetStrategy.none
-
-        // Auto facet on SingleEntity charts with multiple selected entities
-        if (
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.selection.numSelectedEntities > 1
-        )
-            return FacetStrategy.entity
-
-        // Auto facet when multiple slugs and multiple entities selected. todo: not sure if this is correct.
-        if (
-            this.addCountryMode === EntitySelectionMode.MultipleEntities &&
-            this.hasMultipleYColumns &&
-            this.selection.numSelectedEntities > 1
-        )
-            return FacetStrategy.metric
-
-        return FacetStrategy.none
+        return firstOfNonEmptyArray(this.availableFacetStrategies)
     }
 
     set facetStrategy(facet: FacetStrategy) {

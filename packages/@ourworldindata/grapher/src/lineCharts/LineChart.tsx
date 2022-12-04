@@ -729,13 +729,13 @@ export class LineChart
     @computed get facetAvailableStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
+        if (this.selectionArray.numSelectedEntities > 1)
+            strategies.push(FacetStrategy.entity)
+
         const numNonProjectionColumns = this.yColumns.filter(
             (c) => !c.display?.isProjection
         ).length
         if (numNonProjectionColumns > 1) strategies.push(FacetStrategy.metric)
-
-        if (this.selectionArray.numSelectedEntities > 1)
-            strategies.push(FacetStrategy.entity)
 
         return strategies
     }
