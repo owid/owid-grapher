@@ -25,6 +25,10 @@ h2.article-block__heading.has-supertitle {
     margin-top: 24px;
 }
 
+nav.article-block__sdg-toc + h2.article-block__heading.has-supertitle {
+    border-top: none;
+}
+
 h3.article-block__heading.has-supertitle {
     border-bottom: 1px solid $blue-20;
     padding-bottom: 16px;
