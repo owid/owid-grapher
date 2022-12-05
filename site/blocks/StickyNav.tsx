@@ -53,9 +53,9 @@ class StickyNav extends React.Component<
         links: this.props.links,
     }
 
-    handleResize = throttle(() => {
-        this.setHeadingPositions()
-    }, 50)
+    handleResize = () => {
+        window.requestAnimationFrame(() => this.setHeadingPositions())
+    }
 
     handleScroll = throttle(() => {
         this.setCurrentHeading()
