@@ -4,7 +4,6 @@ import {
     DEFAULT_BOUNDS,
     flatten,
     getRelativeMouse,
-    identity,
     sortBy,
     guid,
     minBy,
@@ -23,7 +22,11 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
+import {
+    MapProjectionName,
+    MapProjectionGeos,
+    PathToStringWithRoundedNumbersContext,
+} from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
@@ -96,24 +99,16 @@ const geoPathCache = new Map<MapProjectionName, string[]>()
 const geoPathsFor = (projectionName: MapProjectionName): string[] => {
     if (geoPathCache.has(projectionName))
         return geoPathCache.get(projectionName)!
-    const projectionGeo = MapProjectionGeos[projectionName]
+
+    const ctx = new PathToStringWithRoundedNumbersContext()
+    const projectionGeo = MapProjectionGeos[projectionName].context(ctx)
     const strs = GeoFeatures.map((feature) => {
-        const s = projectionGeo(feature) as string
-        const paths = s.split(/Z/).filter(identity)
-
-        const newPaths = paths.map((path) => {
-            const points = path.split(/[MLZ]/).filter((f: any) => f)
-            const rounded = points.map((point) =>
-                point
-                    .split(/,/)
-                    .map((v) => parseFloat(v).toFixed(1))
-                    .join(",")
-            )
-            return "M" + rounded.join("L")
-        })
-
-        return newPaths.join("Z") + "Z"
+        ctx.beginPath() // restart the path
+        projectionGeo(feature)
+        return ctx.result()
     })
+
+    projectionGeo.context(null) // reset the context for future calls
 
     geoPathCache.set(projectionName, strs)
     return geoPathCache.get(projectionName)!
