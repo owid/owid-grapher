@@ -140,7 +140,7 @@ export function OwidArticle(props: OwidArticleType) {
                 className="col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
             >
                 <img
-                    src="/owid-logo.svg"
+                    src={`${BAKED_BASE_URL}/owid-logo.svg`}
                     className="img-raw"
                     alt="Our World in Data logo"
                 />
