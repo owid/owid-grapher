@@ -1605,24 +1605,21 @@ export class Grapher
                 Bugsnag.getPlugin("react").createErrorBoundary(React)
         }
 
-        const setBoundsFromContainerAndRender = (): void => {
-            const props: GrapherProgrammaticInterface = {
-                ...config,
-                bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
-            }
-            ReactDOM.render(
-                <ErrorBoundary>
-                    <Grapher ref={grapherInstanceRef} {...props} />
-                </ErrorBoundary>,
-                containerNode
-            )
-        }
+        const bounds = Bounds.fromRect(containerNode.getBoundingClientRect())
 
-        setBoundsFromContainerAndRender()
-        window.addEventListener(
-            "resize",
-            debounce(setBoundsFromContainerAndRender, 400)
+        console.log("bounds", bounds)
+
+        const props: GrapherProgrammaticInterface = {
+            ...config,
+            bounds,
+        }
+        ReactDOM.render(
+            <ErrorBoundary>
+                <Grapher ref={grapherInstanceRef} {...props} />
+            </ErrorBoundary>,
+            containerNode
         )
+
         return grapherInstanceRef.current
     }
 
@@ -2122,6 +2119,7 @@ export class Grapher
         if (isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
 
         const { renderWidth, renderHeight } = this
+        console.log("renderWidth", renderWidth)
 
         const style = {
             width: renderWidth,
@@ -2198,6 +2196,26 @@ export class Grapher
 
     componentDidMount(): void {
         window.addEventListener("scroll", this.checkVisibility)
+        window.addEventListener(
+            "resize",
+            // debounce(
+            () => {
+                if (
+                    this.containerElement &&
+                    this.containerElement.parentElement
+                ) {
+                    console.log(
+                        "this.containerElement.parentElement",
+                        this.containerElement.parentElement
+                    )
+                    Grapher.renderGrapherIntoContainer(
+                        this.toObject(),
+                        this.containerElement.parentElement
+                    )
+                }
+            }
+            // 200)
+        )
         this.setBaseFontSize()
         this.checkVisibility()
         exposeInstanceOnWindow(this, "grapher")

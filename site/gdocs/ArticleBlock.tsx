@@ -60,17 +60,18 @@ const layouts: { [key in Container]: Layouts} = {
         ["sticky-left-right-column"]: "span-cols-5 span-md-cols-12 col-md-start-1",
         ["sticky-left"]: "grid span-cols-12 col-start-2",
         ["sticky-right-left-column"]: "span-cols-5 grid grid-cols-5 span-md-cols-12 grid-md-cols-12",
-        ["sticky-right-right-column"]: "span-cols-7 span-md-cols-12 col-md-start-1",
+        ["sticky-right-right-column"]: "span-cols-7 span-md-cols-12",
         ["sticky-right"]: "grid span-cols-12 col-start-2",
         ["text"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
     },
     ["sticky-right-left-column"]: {
+        ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-5 col-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
     },
     ["sticky-right-right-column"]: {
-        ["chart"]: "span-cols-7 span-sm-cols-12",
-        ["default"]: "span-cols-7 col-start-1 span-md-cols-12",
+        ["chart"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
+        ["default"]: "span-cols-7 span-md-cols-10 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
     },
     ["sticky-left-left-column"]: {
@@ -370,7 +371,7 @@ export default function ArticleBlock({
                                 containerType
                             )}
                         >
-                            <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7">
+                            <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-12 span-md-cols-12">
                                 {block.right.map((item, i) => (
                                     <ArticleBlock
                                         key={i}
@@ -390,7 +391,7 @@ export default function ArticleBlock({
                                 containerType
                             )}
                         >
-                            <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7">
+                            <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-12 span-md-cols-12">
                                 {block.left.map((item, i) => (
                                     <ArticleBlock
                                         key={i}
