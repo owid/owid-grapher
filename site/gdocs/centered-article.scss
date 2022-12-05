@@ -84,6 +84,42 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+#article-citation,
+#article-licence {
+    grid-column: 4 / span 8;
+    margin-top: 48px;
+    padding-top: 48px;
+    @include body-3-medium;
+    border-top: 1px solid $blue-10;
+
+    h3 {
+        @include h3-bold;
+        color: $blue-50;
+        margin: 24px 0 16px;
+    }
+
+    a {
+        @include owid-link-60;
+    }
+}
+
+#article-citation {
+    h3 {
+        margin-top: 0;
+    }
+    p {
+        margin-bottom: 16px;
+    }
+    div:last-of-type .wp-code-snippet {
+        margin-bottom: 0;
+    }
+}
+
+#article-licence {
+    text-align: center;
+    margin-bottom: 16px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
+}
+
 .article-block__text,
 .article-block__html {
     @include body-1-regular;
