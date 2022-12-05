@@ -91,6 +91,10 @@
             padding: $vertical-spacing 0;
             pointer-events: none;
 
+            @include md-down {
+                transform: translateX(calc(100% + $padding-x-sm));
+            }
+
             @include md-up {
                 margin-left: $padding-x-md;
             }
