@@ -150,16 +150,9 @@ h3.article-block__heading.has-supertitle {
 
 .article-block__chart {
     // necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
-    // overflow: hidden;
-    // padding: 2px;
-    outline: 1px solid red;
-
-    > figure {
-        outline: 1px solid lime;
-    }
+    width: 100%;
 
     .GrapherComponent {
-        outline: 1px solid blue;
         display: block;
         margin: 0 auto;
     }

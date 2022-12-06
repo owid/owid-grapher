@@ -950,7 +950,7 @@ export class Grapher
 
     @computed get shouldLinkToOwid(): boolean {
         if (
-            this.props.isEmbeddedInAnOwidPage ||
+            this.isEmbeddedInAnOwidPage ||
             this.isExportingtoSvgOrPng ||
             !this.isInIFrame
         )
@@ -1607,12 +1607,11 @@ export class Grapher
 
         const bounds = Bounds.fromRect(containerNode.getBoundingClientRect())
 
-        console.log("bounds", bounds)
-
         const props: GrapherProgrammaticInterface = {
             ...config,
             bounds,
         }
+
         ReactDOM.render(
             <ErrorBoundary>
                 <Grapher ref={grapherInstanceRef} {...props} />
@@ -1648,6 +1647,10 @@ export class Grapher
         return isMobile()
     }
 
+    @computed get isEmbeddedInAnOwidPage(): boolean {
+        return this.props.isEmbeddedInAnOwidPage || false
+    }
+
     @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
@@ -1678,14 +1681,10 @@ export class Grapher
         } = this
 
         // For these, defer to the bounds that is set externally
-        if (
-            this.props.isEmbeddedInAnOwidPage ||
-            this.props.manager ||
-            isInIFrame
-        )
+        if (this.isEmbeddedInAnOwidPage || this.props.manager || isInIFrame)
             return false
 
-        // If the user is using interactive version and then goes to export chart, use current bounds to maintain WSYIWYG
+        // If the user is using interactive version and then goes to export chart, use current bounds to maintain WYSIWYG
         if (isExportingtoSvgOrPng) return false
 
         // todo: can remove this if we drop old adminSite editor
@@ -2119,7 +2118,6 @@ export class Grapher
         if (isExportingtoSvgOrPng) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
 
         const { renderWidth, renderHeight } = this
-        console.log("renderWidth", renderWidth)
 
         const style = {
             width: renderWidth,
@@ -2198,23 +2196,20 @@ export class Grapher
         window.addEventListener("scroll", this.checkVisibility)
         window.addEventListener(
             "resize",
-            // debounce(
-            () => {
+            debounce(() => {
                 if (
                     this.containerElement &&
                     this.containerElement.parentElement
                 ) {
-                    console.log(
-                        "this.containerElement.parentElement",
-                        this.containerElement.parentElement
-                    )
                     Grapher.renderGrapherIntoContainer(
-                        this.toObject(),
+                        {
+                            ...this.toObject(),
+                            isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
+                        },
                         this.containerElement.parentElement
                     )
                 }
-            }
-            // 200)
+            }, 200)
         )
         this.setBaseFontSize()
         this.checkVisibility()
@@ -2374,7 +2369,6 @@ export class Grapher
         ).queryParams
     }
 
-    // Todo: move all Graphers to git. Upgrade the selection property; delete the entityId stuff, and remove this.
     @computed private get selectedEntitiesIfDifferentThanAuthors():
         | EntityName[]
         | undefined {
