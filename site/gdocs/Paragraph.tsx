@@ -6,8 +6,8 @@ function isOnlyEmptySpans(spans: Span[]) {
     return spans.every((span) => {
         const isNewline = span.spanType === "span-newline"
         const isSimpleText = span.spanType === "span-simple-text"
-        const isNonEmptySimpleTextOrFallback = isSimpleText && span.text !== ""
-        return isNewline || !isNonEmptySimpleTextOrFallback
+        const isEmptySimpleText = isSimpleText && span.text === ""
+        return isNewline || isEmptySimpleText
     })
 }
 

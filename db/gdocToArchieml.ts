@@ -81,11 +81,9 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
         // populate toc with h2's and h3's
         if (raw.type === "heading" && isObject(raw.value)) {
             const {
-                value: { level, text },
+                value: { level, text = "" },
             } = raw
-            const [title, supertitle] = getTitleSupertitleFromHeadingText(
-                text || ""
-            )
+            const [title, supertitle] = getTitleSupertitleFromHeadingText(text)
             if (text && (level == "2" || level == "3")) {
                 const slug = urlSlug(text)
                 toc.push({
