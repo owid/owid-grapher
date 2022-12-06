@@ -109,9 +109,9 @@ export function OwidArticle(props: OwidArticleType) {
                 <h3>Cite this work</h3>
                 <p>
                     Our articles and data visualizations rely on work from many
-                    different people and organizations. When citing this entry,
-                    please also cite the underlying data sources. This entry can
-                    be cited as:
+                    different people and organizations. When citing this topic
+                    page, please also cite the underlying data sources. This
+                    topic page can be cited as:
                 </p>
                 <div>
                     <CodeSnippet code={citationText} />
