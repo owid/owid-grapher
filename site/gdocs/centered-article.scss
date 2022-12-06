@@ -25,6 +25,10 @@ h2.article-block__heading.has-supertitle {
     margin-top: 24px;
 }
 
+nav.article-block__sdg-toc + h2.article-block__heading.has-supertitle {
+    border-top: none;
+}
+
 h3.article-block__heading.has-supertitle {
     border-bottom: 1px solid $blue-20;
     padding-bottom: 16px;
@@ -82,6 +86,41 @@ h3.article-block__heading.has-supertitle {
             border-right: 1px solid $blue-10;
         }
     }
+}
+
+#article-citation,
+#article-licence {
+    margin-top: 48px;
+    padding-top: 48px;
+    @include body-3-medium;
+    border-top: 1px solid $blue-10;
+
+    h3 {
+        @include h3-bold;
+        color: $blue-50;
+        margin: 24px 0 16px;
+    }
+
+    a {
+        @include owid-link-60;
+    }
+}
+
+#article-citation {
+    h3 {
+        margin-top: 0;
+    }
+    p {
+        margin-bottom: 16px;
+    }
+    div:last-of-type .wp-code-snippet {
+        margin-bottom: 0;
+    }
+}
+
+#article-licence {
+    text-align: center;
+    margin-bottom: 16px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
 }
 
 .article-block__text,

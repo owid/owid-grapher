@@ -80,7 +80,7 @@ export function OwidArticle(props: OwidArticleType) {
                     </div>
                     <div className="span-cols-1 span-sm-cols-2">
                         <a
-                            href="#citation"
+                            href="#article-citation"
                             className="body-1-regular display-block"
                         >
                             <FontAwesomeIcon icon={faBook} />
@@ -88,7 +88,7 @@ export function OwidArticle(props: OwidArticleType) {
                         </a>
 
                         <a
-                            href="#licence"
+                            href="#article-licence"
                             className="body-3-medium display-block"
                         >
                             <FontAwesomeIcon icon={faCreativeCommons} />
@@ -115,7 +115,7 @@ export function OwidArticle(props: OwidArticleType) {
             {/* {content.refs ? <Footnotes d={content.refs} /> : null} */}
 
             <div
-                id="citation"
+                id="article-citation"
                 className="col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
             >
                 <h3>Cite this work</h3>
@@ -136,11 +136,11 @@ export function OwidArticle(props: OwidArticleType) {
             </div>
 
             <div
-                id="licence"
+                id="article-licence"
                 className="col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
             >
                 <img
-                    src="/owid-logo.svg"
+                    src={`${BAKED_BASE_URL}/owid-logo.svg`}
                     className="img-raw"
                     alt="Our World in Data logo"
                 />
