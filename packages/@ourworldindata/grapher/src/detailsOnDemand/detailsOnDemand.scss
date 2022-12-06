@@ -1,5 +1,6 @@
 .interactive-tippy-wrapper {
     > div {
+        display: inline-block; // fix https://github.com/owid/owid-grapher/issues/1790
         height: 50%;
     }
 }
