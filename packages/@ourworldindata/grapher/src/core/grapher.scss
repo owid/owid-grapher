@@ -16,6 +16,7 @@ $light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
 $oxford-blue: #002147;
 $text-color: #1d3d63;
 $white: #fff;
+$xxlg: 1536px;
 
 // These should be between 0–100 in order to avoid conflicting with
 // site dropdowns, search overlays, etc.
@@ -23,6 +24,13 @@ $zindex-chart: 1;
 $zindex-tab: 1;
 $zindex-global-entity-select: 11;
 $zindex-Tooltip: 20;
+
+// needed for .global-entity-control-container
+@mixin xxlg-down {
+    @media only screen and (max-width: $xxlg) {
+        @content;
+    }
+}
 
 // All styles are scoped to GrapherComponent only, to prevent rule leaking
 // and low-specificity rules from the site CSS trumping these ones.

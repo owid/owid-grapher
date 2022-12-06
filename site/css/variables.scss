@@ -107,6 +107,7 @@ $xxlg: 1536px;
 }
 
 // The sidebar is shown from that breakpoint up
+// mixin duplicated in packages/@ourworldindata/grapher/src/core/grapher.scss
 @mixin xxlg-up {
     @media only screen and (min-width: $xxlg) {
         @content;

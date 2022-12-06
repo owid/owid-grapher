@@ -1,5 +1,9 @@
 .interactive-tippy-wrapper {
     display: inline-block;
+
+    > div {
+        height: 50%;
+    }
 }
 
 span.dod-term {
@@ -9,8 +13,7 @@ span.dod-term {
 
 .dod-tippy-container {
     overflow-y: auto;
-    // should only result in scrollbars when viewport height is very small
-    max-height: 80vh;
+    height: 100%;
 }
 
 .dod-tooltip {
