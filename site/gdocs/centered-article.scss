@@ -290,6 +290,12 @@ h3.article-block__heading.has-supertitle {
     > *:last-child {
         margin-bottom: 0;
     }
+
+    // don't add the special heading formatting if we're inside a grey section
+    .article-block__heading.has-supertitle {
+        border: none;
+        padding-top: 0;
+    }
 }
 
 .article-block__side-by-side {

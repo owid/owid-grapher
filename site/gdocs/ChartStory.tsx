@@ -17,11 +17,11 @@ export default function ChartStory({
     className?: string
 }) {
     const { items } = d
-    const showDetails = true
 
     const [currentIndex, setCurrentIndex] = useState(0)
     const [currentSlide, setCurrentSlide] = useState(items[0])
 
+    const showDetails = !!currentSlide.technical.length
     const maxSlide = items.length - 1
 
     const refChartContainer = useRef<HTMLDivElement>(null)
@@ -76,7 +76,7 @@ export default function ChartStory({
             >
                 <Chart d={currentSlide.chart} />
             </div>
-            {currentSlide.technical && showDetails ? (
+            {showDetails ? (
                 <>
                     <div
                         className={
