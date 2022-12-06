@@ -60,6 +60,7 @@
             "label": "start (full)",
             "dependsOn": [
                 "docker start (full)",
+                "buildLerna",
                 "startTscServer",
                 "startSiteFront"
             ],
@@ -87,8 +88,8 @@
             "command": "docker compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-wordpress-data.sh",
             "dependsOrder": "parallel",
             "dependsOn": [
-                "download wordpress database",
-                "download wordpress uploads"
+                // "download wordpress database"
+                // "download wordpress uploads"
             ],
             "problemMatcher": []
         },
