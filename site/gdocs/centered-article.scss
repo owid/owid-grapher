@@ -30,9 +30,17 @@ nav.article-block__sdg-toc + h2.article-block__heading.has-supertitle {
 }
 
 h3.article-block__heading.has-supertitle {
-    border-bottom: 1px solid $blue-20;
-    padding-bottom: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
+
+    .article-block__heading-supertitle {
+        @include overline-black-caps;
+        color: $blue-50;
+        margin-bottom: 8px;
+    }
+
+    + * {
+        margin-top: 0;
+    }
 }
 
 .article-header__title-container {
