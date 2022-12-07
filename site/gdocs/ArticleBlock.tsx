@@ -22,13 +22,14 @@ import Paragraph from "./Paragraph.js"
 import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"
 
-type Container =
+export type Container =
     | "default"
     | "sticky-right-left-column"
     | "sticky-right-right-column"
     | "sticky-left-left-column"
     | "sticky-left-right-column"
     | "side-by-side"
+    | "summary"
 
 // Each container must have a default layout, usually just full-width
 type Layouts = { default: string; [key: string]: string }
@@ -86,6 +87,9 @@ const layouts: { [key in Container]: Layouts} = {
     },
     ["side-by-side"]: {
         ["default"]: "span-cols-6 span-sm-cols-12",
+    },
+    ["summary"]: {
+        ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
     },
 }
 

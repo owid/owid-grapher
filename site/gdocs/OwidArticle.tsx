@@ -104,7 +104,10 @@ export function OwidArticle(props: OwidArticleType) {
                     open={true}
                 >
                     <summary>Summary</summary>
-                    <ArticleBlocks blocks={content.summary} />
+                    <ArticleBlocks
+                        blocks={content.summary}
+                        containerType="summary"
+                    />
                 </details>
             ) : null}
 

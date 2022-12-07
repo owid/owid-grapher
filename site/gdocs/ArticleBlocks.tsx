@@ -1,5 +1,5 @@
 import React from "react"
-import ArticleBlock from "./ArticleBlock.js"
+import ArticleBlock, { Container } from "./ArticleBlock.js"
 import {
     OwidEnrichedArticleBlock,
     TocHeadingWithTitleSupertitle,
@@ -7,14 +7,23 @@ import {
 
 export const ArticleBlocks = ({
     blocks,
+    containerType = "default",
     toc,
 }: {
     blocks: OwidEnrichedArticleBlock[]
+    containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
 }) => (
     <>
         {blocks.map((block: OwidEnrichedArticleBlock, i: number) => {
-            return <ArticleBlock key={i} b={block} toc={toc} />
+            return (
+                <ArticleBlock
+                    key={i}
+                    b={block}
+                    containerType={containerType}
+                    toc={toc}
+                />
+            )
         })}
     </>
 )
