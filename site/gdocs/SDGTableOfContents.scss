@@ -14,6 +14,7 @@
     .sdg-toc-toggle {
         @include h2-bold;
         margin: 0;
+        padding: 0;
         display: flex;
         justify-content: space-between;
         cursor: pointer;
@@ -50,11 +51,12 @@
             margin-left: 10px;
         }
         &.section {
-            @include body-2-semibold;
             .supertitle {
+                @include body-2-semibold;
                 display: block;
                 margin-bottom: 8px;
             }
+            margin-bottom: 24px;
         }
 
         &.subsection {

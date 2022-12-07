@@ -14,6 +14,8 @@ import {
     compact,
     last,
     RawBlockText,
+    isArray,
+    get,
 } from "@ourworldindata/utils"
 import {
     htmlToEnrichedTextBlock,
@@ -34,6 +36,33 @@ export interface DocToArchieMLOptions {
         elementId: string,
         doc: docs_v1.Schema$Document
     ) => Promise<RawBlockImage>
+}
+
+// Apply a callback to an element, or if the element is a container, the children of the element
+function traverseContainerBlocks(
+    value: OwidRawArticleBlock,
+    callback: (child: OwidRawArticleBlock) => void
+): void {
+    if (value.type === "grey-section") {
+        value.value.forEach((value) => traverseContainerBlocks(value, callback))
+    } else if (
+        value.type === "sticky-left" ||
+        value.type === "sticky-right" ||
+        value.type === "side-by-side"
+    ) {
+        if (value.value?.left && isArray(value.value.left)) {
+            value.value.left.forEach((value) =>
+                traverseContainerBlocks(value, callback)
+            )
+        }
+        if (value.value?.right && isArray(value.value.right)) {
+            value.value.right.forEach((value) =>
+                traverseContainerBlocks(value, callback)
+            )
+        }
+    } else {
+        callback(value)
+    }
 }
 
 export const stringToArchieML = (text: string): OwidArticleContent => {
@@ -79,22 +108,26 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
         }
 
         // populate toc with h2's and h3's
-        if (raw.type === "heading" && isObject(raw.value)) {
-            const {
-                value: { level, text = "" },
-            } = raw
-            const [title, supertitle] = getTitleSupertitleFromHeadingText(text)
-            if (text && (level == "2" || level == "3")) {
-                const slug = urlSlug(text)
-                toc.push({
-                    title,
-                    supertitle,
-                    text,
-                    slug,
-                    isSubheading: level == "3",
-                })
+        // have to look inside containers such as sticky-right and side-by-side
+        traverseContainerBlocks(raw, (child: OwidRawArticleBlock) => {
+            if (child.type === "heading" && isObject(child.value)) {
+                const {
+                    value: { level, text = "" },
+                } = child
+                const [title, supertitle] =
+                    getTitleSupertitleFromHeadingText(text)
+                if (text && (level == "2" || level == "3")) {
+                    const slug = urlSlug(text)
+                    toc.push({
+                        title,
+                        supertitle,
+                        text,
+                        slug,
+                        isSubheading: level == "3",
+                    })
+                }
             }
-        }
+        })
     })
 
     parsed.body = body
