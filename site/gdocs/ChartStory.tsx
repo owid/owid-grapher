@@ -37,7 +37,9 @@ export default function ChartStory({
                 {`Chart ${currentIndex + 1} of ${items.length}`}
             </div>
             <div
-                className={"chart-story__nav-arrow span-cols-1 align-center "}
+                className={
+                    "chart-story__nav-arrow chart-story__nav-arrow--left span-cols-1 align-center "
+                }
                 onClick={() => {
                     setCurrentSlide(items[Math.max(0, currentIndex - 1)])
                     setCurrentIndex(Math.max(0, currentIndex - 1))
@@ -57,7 +59,7 @@ export default function ChartStory({
             </div>
             <div
                 className={
-                    "chart-story__nav-arrow span-cols-1 col-start-8 align-center"
+                    "chart-story__nav-arrow chart-story__nav-arrow--right span-cols-1 col-start-8 align-center"
                 }
                 onClick={() => {
                     setCurrentSlide(items[Math.min(maxSlide, currentIndex + 1)])

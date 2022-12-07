@@ -1,5 +1,6 @@
 .sdg-toc {
     padding: 40px 0;
+    margin: 32px 0;
     background-color: $beige;
     cursor: pointer;
 
@@ -53,6 +54,7 @@
         &.section {
             .supertitle {
                 @include body-2-semibold;
+                font-size: 1rem;
                 display: block;
                 margin-bottom: 8px;
             }

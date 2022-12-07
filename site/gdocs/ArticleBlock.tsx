@@ -43,6 +43,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["divider"]: "col-start-2 span-cols-12",
         ["fixed-graphic"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["grey-section"]: "span-cols-14 grid grid-cols-12-full-width",
         ["heading"]: "align-center col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -257,23 +258,33 @@ export default function ArticleBlock({
                     const id = urlSlug(`${supertitleText}-${text}`)
 
                     return (
-                        <h2
-                            className={cx(
-                                "h1-semibold",
-                                getLayout("heading", containerType),
-                                {
-                                    "has-supertitle": supertitleText,
-                                }
-                            )}
-                            id={id}
-                        >
+                        <>
                             {supertitleText ? (
-                                <div className="article-block__heading-supertitle overline-black-caps">
-                                    {supertitleText}
-                                </div>
+                                <div
+                                    className={getLayout(
+                                        "divider",
+                                        containerType
+                                    )}
+                                />
                             ) : null}
-                            {text}
-                        </h2>
+                            <h2
+                                className={cx(
+                                    "h1-semibold",
+                                    getLayout("heading", containerType),
+                                    {
+                                        "has-supertitle": supertitleText,
+                                    }
+                                )}
+                                id={id}
+                            >
+                                {supertitleText ? (
+                                    <div className="article-block__heading-supertitle overline-black-caps">
+                                        {supertitleText}
+                                    </div>
+                                ) : null}
+                                {text}
+                            </h2>
+                        </>
                     )
                 })
                 .with({ type: "heading", level: 3 }, (block) => {

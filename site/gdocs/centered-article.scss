@@ -20,17 +20,36 @@ $banner-height: 200px;
 }
 
 h2.article-block__heading.has-supertitle {
-    border-top: 1px solid $blue-20;
-    padding-top: 48px;
     margin-top: 24px;
+    .article-block__heading-supertitle {
+        color: $blue-50;
+    }
+
+    // Center the next three subsequent paragraphs 🥴
+    + .article-block__text {
+        text-align: center;
+        + .article-block__text {
+            text-align: center;
+            + .article-block__text {
+                text-align: center;
+            }
+        }
+    }
 }
 
-nav.article-block__sdg-toc + h2.article-block__heading.has-supertitle {
-    border-top: none;
+.article-container > .article-block__divider {
+    border-top: 1px solid $blue-20;
+    margin: 48px 0;
+}
+
+// Don't show the divider directly after the ToC
+.article-block__sdg-toc + .article-block__divider {
+    border: none;
+    margin: 0;
 }
 
 h3.article-block__heading.has-supertitle {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 
     .article-block__heading-supertitle {
         @include overline-black-caps;
@@ -111,6 +130,7 @@ h3.article-block__heading.has-supertitle {
 
     a {
         @include owid-link-60;
+        color: inherit;
     }
 }
 
@@ -128,12 +148,17 @@ h3.article-block__heading.has-supertitle {
 
 #article-licence {
     text-align: center;
-    margin-bottom: 16px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
+    margin-bottom: 34px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
 }
 
 .article-block__text,
 .article-block__html {
     @include body-1-regular;
+
+    .span-link {
+        @include owid-link-60;
+        color: inherit;
+    }
 }
 
 .article-block__aside-right figcaption {
@@ -206,18 +231,32 @@ h3.article-block__heading.has-supertitle {
 }
 
 .article-block__chart-story {
-    .chart-story__nav-hud {
-        margin-bottom: 24px;
-    }
-
     .chart-story__nav-arrow {
         display: flex;
-        justify-content: center;
         align-items: center;
+    }
+
+    .chart-story__nav-arrow--left {
+        justify-content: flex-start;
+        svg {
+            margin-left: 4px;
+        }
+    }
+
+    .chart-story__nav-arrow--right {
+        justify-content: flex-end;
+        svg {
+            margin-right: 8px;
+        }
     }
 
     .chart-story__chart {
         margin-top: 32px;
+        width: 100%;
+        // necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
+        > figure {
+            width: 100%;
+        }
     }
 
     .chart-story__technical-text {
@@ -306,6 +345,8 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+.article-block__sticky-right,
+.article-block__sticky-left,
 .article-block__side-by-side {
     margin: 48px 0;
 }

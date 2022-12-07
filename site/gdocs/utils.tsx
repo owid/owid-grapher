@@ -12,7 +12,7 @@ export function renderSpan(
             <React.Fragment key={key}>{span.text}</React.Fragment>
         ))
         .with({ spanType: "span-link" }, (span) => (
-            <a key={key} href={span.url}>
+            <a key={key} href={span.url} className="span-link">
                 {renderSpans(span.children)}
             </a>
         ))
