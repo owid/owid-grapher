@@ -13,9 +13,12 @@ import {
     TocHeadingWithTitleSupertitle,
     compact,
     last,
+    unset,
+    set,
     RawBlockText,
     isArray,
     get,
+    RawBlockList,
 } from "@ourworldindata/utils"
 import {
     htmlToEnrichedTextBlock,
@@ -38,33 +41,6 @@ export interface DocToArchieMLOptions {
     ) => Promise<RawBlockImage>
 }
 
-// Apply a callback to an element, or if the element is a container, the children of the element
-function traverseContainerBlocks(
-    value: OwidRawArticleBlock,
-    callback: (child: OwidRawArticleBlock) => void
-): void {
-    if (value.type === "grey-section") {
-        value.value.forEach((value) => traverseContainerBlocks(value, callback))
-    } else if (
-        value.type === "sticky-left" ||
-        value.type === "sticky-right" ||
-        value.type === "side-by-side"
-    ) {
-        if (value.value?.left && isArray(value.value.left)) {
-            value.value.left.forEach((value) =>
-                traverseContainerBlocks(value, callback)
-            )
-        }
-        if (value.value?.right && isArray(value.value.right)) {
-            value.value.right.forEach((value) =>
-                traverseContainerBlocks(value, callback)
-            )
-        }
-    } else {
-        callback(value)
-    }
-}
-
 export const stringToArchieML = (text: string): OwidArticleContent => {
     const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
         val: string,
@@ -76,61 +52,110 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
 
     const parsed = load(text)
     const toc: TocHeadingWithTitleSupertitle[] = []
-
-    // Reconstruct parsed.body to:
-    // * handle lists correctly
-    // * populate the toc array
-
-    const body: any[] = []
+    let pointer: Array<string | number> = []
+    // archie doesn't have a nested list structure. it treats as a series of text blocks
+    // we want to put them into a nested (for now only <ul>) structure
+    // we create a copy of where the list began so that we can push its siblings into it
+    let listPointer: Array<string | number> = []
     let isInList = false
 
-    parsed.body.forEach((raw: OwidRawArticleBlock) => {
+    // Traverse the tree, tracking a pointer and nesting when appropriate
+    function traverseBlocks(
+        value: OwidRawArticleBlock,
+        callback: (child: OwidRawArticleBlock) => void
+    ): void {
+        // top-level
+        if (isArray(value)) {
+            value.forEach((value, index) => {
+                pointer[0] = index
+                traverseBlocks(value, callback)
+            })
+        } else if (value.type === "grey-section") {
+            const pointerLength = pointer.length
+            value.value.forEach((value, index) => {
+                pointer[pointerLength] = index
+                traverseBlocks(value, callback)
+            })
+            pointer = pointer.slice(0, -1)
+        } else if (
+            value.type === "sticky-left" ||
+            value.type === "sticky-right" ||
+            value.type === "side-by-side"
+        ) {
+            if (value.value?.left && isArray(value.value.left)) {
+                pointer = pointer.concat(["value", "left"])
+                const pointerLength = pointer.length
+                value.value.left.forEach((value, index) => {
+                    pointer[pointerLength] = index
+                    traverseBlocks(value, callback)
+                })
+                pointer = pointer.slice(0, -3)
+            }
+            if (value.value?.right && isArray(value.value.right)) {
+                pointer = pointer.concat(["value", "right"])
+                const pointerLength = pointer.length
+                value.value.right.forEach((value, index) => {
+                    pointer[pointerLength] = index
+                    traverseBlocks(value, callback)
+                })
+                pointer = pointer.slice(0, -3)
+            }
+        } else {
+            callback(value)
+        }
+    }
+
+    // Traverse the tree:
+    // mutate it to nest lists correctly
+    // track h2s and h3s for the SDG table of contents
+    traverseBlocks(parsed.body, (child: OwidRawArticleBlock) => {
         // ensure keys are lowercase
-        raw = Object.entries(raw).reduce(
+        child = Object.entries(child).reduce(
             (acc, [key, value]) => ({ ...acc, [key.toLowerCase()]: value }),
             {} as OwidRawArticleBlock
         )
 
         // nest list items
-        if (raw.type === "text" && raw.value.startsWith("* ")) {
-            if (isInList) {
-                last(body).value.push(raw.value.replace("* ", "").trim())
-            } else {
+        if (child.type === "text" && child.value.startsWith("* ")) {
+            if (!isInList) {
+                // initiate the <ul> list
                 isInList = true
-                body.push({
+                listPointer = [...pointer]
+                set(parsed.body, listPointer, {
                     type: "list",
-                    value: [raw.value.replace("* ", "").trim()],
+                    value: [child.value.replace("* ", "").trim()],
                 })
+            } else {
+                const list: RawBlockList = get(parsed.body, listPointer)
+                if (isArray(list.value)) {
+                    // push a copy of the item into the <ul> parent
+                    list.value.push(child.value.replace("* ", "").trim())
+                    // delete the original value
+                    unset(parsed.body, pointer)
+                }
             }
         } else {
             isInList = false
-            body.push(raw)
         }
 
         // populate toc with h2's and h3's
-        // have to look inside containers such as sticky-right and side-by-side
-        traverseContainerBlocks(raw, (child: OwidRawArticleBlock) => {
-            if (child.type === "heading" && isObject(child.value)) {
-                const {
-                    value: { level, text = "" },
-                } = child
-                const [title, supertitle] =
-                    getTitleSupertitleFromHeadingText(text)
-                if (text && (level == "2" || level == "3")) {
-                    const slug = urlSlug(text)
-                    toc.push({
-                        title,
-                        supertitle,
-                        text,
-                        slug,
-                        isSubheading: level == "3",
-                    })
-                }
+        if (child.type === "heading" && isObject(child.value)) {
+            const {
+                value: { level, text = "" },
+            } = child
+            const [title, supertitle] = getTitleSupertitleFromHeadingText(text)
+            if (text && (level == "2" || level == "3")) {
+                const slug = urlSlug(text)
+                toc.push({
+                    title,
+                    supertitle,
+                    text,
+                    slug,
+                    isSubheading: level == "3",
+                })
             }
-        })
+        }
     })
-
-    parsed.body = body
 
     // Parse elements of the ArchieML into enrichedBlocks
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
