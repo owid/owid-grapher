@@ -316,6 +316,15 @@ function* rawBlockSDGTocToArchieMLString(): Generator<string, void, undefined> {
     yield "{}"
 }
 
+function* rawBlockMissingDataToArchieMLString(): Generator<
+    string,
+    void,
+    undefined
+> {
+    yield "{.missing-data}"
+    yield "{}"
+}
+
 function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
@@ -354,6 +363,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "grey-section" }, RawBlockGreySectionToArchieMLString)
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
+        .with({ type: "missing-data" }, rawBlockMissingDataToArchieMLString)
         .exhaustive()
     yield* content
 }

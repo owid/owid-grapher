@@ -21,6 +21,9 @@ import { renderSpans } from "./utils"
 import Paragraph from "./Paragraph.js"
 import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { MissingData } from "./MissingData.js"
 
 export type Container =
     | "default"
@@ -106,9 +109,6 @@ function getLayout(
     )
     return cx(`article-block__${blockType}`, layout)
 }
-
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 const ProminentLink = ({
     title,
@@ -479,6 +479,11 @@ export default function ArticleBlock({
                         />
                     ) : null
                 })
+                .with({ type: "missing-data" }, () => (
+                    <MissingData
+                        className={getLayout("missing-data", containerType)}
+                    />
+                ))
                 .exhaustive()
 
             // if (_type === "chart-grid") {
