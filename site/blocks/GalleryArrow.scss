@@ -1,6 +1,9 @@
 $gallery-navigation-button-size: 2.5rem;
 
 button.gallery-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: $gallery-navigation-button-size;
     height: $gallery-navigation-button-size;
     font-size: 1.2rem;
