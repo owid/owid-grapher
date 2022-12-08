@@ -18,12 +18,16 @@
 
 @mixin display-2-semibold {
     font-family: $serif-font-stack;
-    font-size: 2.5rem;
+    font-size: 2rem;
     line-height: 1.2;
     font-weight: 600;
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
+
+    @include sm-up {
+        font-size: 2.5rem;
+    }
 }
 
 .display-2-semibold {
@@ -32,12 +36,16 @@
 
 @mixin h1-semibold {
     font-family: $serif-font-stack;
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1.25;
     font-weight: 600;
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
+
+    @include sm-up {
+        font-size: 2rem;
+    }
 }
 
 .h1-semibold {
@@ -46,13 +54,17 @@
 
 @mixin h1-bold-italic {
     font-family: $serif-font-stack;
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1.25;
     font-weight: 700;
     font-style: italic;
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
+
+    @include sm-up {
+        font-size: 2rem;
+    }
 }
 
 .h1-bold-italic {
@@ -61,12 +73,16 @@
 
 @mixin h2-bold {
     font-family: $serif-font-stack;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     line-height: 1.33;
     font-weight: 700;
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
+
+    @include sm-up {
+        font-size: 1.5rem;
+    }
 }
 
 .h2-bold {
