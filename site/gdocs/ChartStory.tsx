@@ -36,7 +36,8 @@ export default function ChartStory({
             >
                 {`Chart ${currentIndex + 1} of ${items.length}`}
             </div>
-            <div
+            <button
+                disabled={currentIndex === 0}
                 className={
                     "chart-story__nav-arrow chart-story__nav-arrow--left span-cols-1 align-center "
                 }
@@ -49,7 +50,7 @@ export default function ChartStory({
                     icon={faCircleArrowLeft}
                     style={{ fontSize: 18 }}
                 />
-            </div>
+            </button>
             <div
                 className={
                     "chart-story__narrative-text span-cols-6 h3-bold align-center"
@@ -57,7 +58,8 @@ export default function ChartStory({
             >
                 {renderSpans(currentSlide.narrative.value)}
             </div>
-            <div
+            <button
+                disabled={currentIndex === maxSlide}
                 className={
                     "chart-story__nav-arrow chart-story__nav-arrow--right span-cols-1 col-start-8 align-center"
                 }
@@ -70,7 +72,7 @@ export default function ChartStory({
                     icon={faCircleArrowRight}
                     style={{ fontSize: 18 }}
                 />
-            </div>
+            </button>
 
             <div
                 className={"chart-story__chart span-cols-8"}

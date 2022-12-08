@@ -234,6 +234,15 @@ h3.article-block__heading.has-supertitle {
     .chart-story__nav-arrow {
         display: flex;
         align-items: center;
+        background: none;
+        border: none;
+
+        &:disabled {
+            cursor: default;
+            svg {
+                color: $blue-40;
+            }
+        }
     }
 
     .chart-story__nav-arrow--left {
