@@ -51,7 +51,7 @@ export function OwidArticle(props: OwidArticleType) {
     return (
         <article className="article-container grid grid-cols-12-full-width">
             <div className="article-banner" style={coverStyle}></div>
-            <header className="article-header grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+            <header className="article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                 <div className="article-header__title-container col-start-2 span-cols-6">
                     <h3 className="article-header__supertitle span-cols-8">
                         {content.supertitle}

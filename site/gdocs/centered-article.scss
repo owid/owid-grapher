@@ -13,10 +13,9 @@ $banner-height: 200px;
 }
 
 .article-header {
-    background: #fff;
+    background: $white;
     margin-top: 80px;
     min-height: calc($banner-height - 80px);
-    text-align: center;
 }
 
 h2.article-block__heading.has-supertitle {
@@ -66,7 +65,6 @@ h3.article-block__heading.has-supertitle {
     margin-top: 50px;
     .article-header__supertitle {
         @include overline-black-caps;
-        text-align: centered;
         color: $blue-50;
     }
 
