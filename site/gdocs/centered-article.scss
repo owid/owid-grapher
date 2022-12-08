@@ -224,6 +224,11 @@ h3.article-block__heading.has-supertitle {
 .article-block__chart {
     // necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
     width: 100%;
+    margin: 0;
+
+    figure {
+        margin: 0;
+    }
 
     .GrapherComponent {
         display: block;
