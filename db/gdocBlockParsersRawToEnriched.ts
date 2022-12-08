@@ -18,6 +18,7 @@ import {
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
+    EnrichedBlockMissingData,
     EnrichedBlockSideBySideContainer,
     EnrichedBlockStickyLeftContainer,
     EnrichedBlockStickyRightContainer,
@@ -103,6 +104,13 @@ export function parseRawBlocksToEnrichedBlocks(
         .with(
             { type: "sdg-toc" },
             (): EnrichedBlockSDGToc => ({ type: "sdg-toc", parseErrors: [] })
+        )
+        .with(
+            { type: "missing-data" },
+            (): EnrichedBlockMissingData => ({
+                type: "missing-data",
+                parseErrors: [],
+            })
         )
         .exhaustive()
 }

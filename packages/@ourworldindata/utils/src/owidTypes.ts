@@ -769,6 +769,14 @@ export type EnrichedBlockSDGToc = {
     type: "sdg-toc"
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockMissingData = {
+    type: "missing-data"
+}
+
+export type EnrichedBlockMissingData = {
+    type: "missing-data"
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawArticleBlock =
     | RawBlockAside
     | RawBlockChart
@@ -792,6 +800,7 @@ export type OwidRawArticleBlock =
     | RawBlockGreySection
     | RawBlockProminentLink
     | RawBlockSDGToc
+    | RawBlockMissingData
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -814,6 +823,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockGreySection
     | EnrichedBlockProminentLink
     | EnrichedBlockSDGToc
+    | EnrichedBlockMissingData
 
 export enum OwidArticlePublicationContext {
     unlisted = "unlisted",

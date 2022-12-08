@@ -42,6 +42,7 @@ export {
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
+    EnrichedBlockMissingData,
     EnrichedBlockSideBySideContainer,
     EnrichedBlockSimpleText,
     EnrichedBlockStickyLeftContainer,
