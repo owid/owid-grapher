@@ -266,11 +266,15 @@ h3.article-block__heading.has-supertitle {
     }
 
     .chart-story__chart {
-        margin-top: 32px;
-        width: 100%;
+        margin-top: 32px 0;
         // necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
+        width: 100%;
         > figure {
+            margin: 0;
             width: 100%;
+            > figure {
+                margin: 0;
+            }
         }
     }
 
