@@ -112,7 +112,7 @@ export const FrontPage = (props: {
                             data-smooth-scroll
                             data-track-note="homepage-scroll"
                         >
-                            Scroll to all our articles
+                            Scroll to all of our topics
                             <span className="icon">
                                 <FontAwesomeIcon icon={faAngleDoubleDown} />
                             </span>
@@ -198,7 +198,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-see-all-explainers"
                                         >
                                             <div className="label">
-                                                See all posts
+                                                See all of our latest work
                                             </div>
                                             <div className="icon">
                                                 <FontAwesomeIcon
@@ -370,7 +370,7 @@ export const FrontPage = (props: {
                 <section id="entries" className="homepage-entries">
                     <div className="wrapper">
                         <h2>
-                            All our articles on global problems and global
+                            All of our pages on global problems and global
                             changes
                         </h2>
                         {entries.map((category) => (
