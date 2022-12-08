@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react"
+import root from "react-shadow"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
@@ -33,6 +34,8 @@ import { openSuccessNotification } from "./gdocsNotifications.js"
 import { DebugProvider } from "../site/gdocs/DebugContext.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
+import { WEBPACK_DEV_URL } from "../settings/clientSettings.js"
+import urljoin from "url-join"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -234,7 +237,24 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 </Drawer>
 
                 <DebugProvider>
-                    <OwidArticle {...gdoc} />
+                    <root.div>
+                        <link
+                            href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,600,700&display=swap"
+                            rel="stylesheet"
+                            type="text/css"
+                        />
+                        <link
+                            href={urljoin(WEBPACK_DEV_URL, "commons.css")}
+                            rel="stylesheet"
+                            type="text/css"
+                        />
+                        <link
+                            href={urljoin(WEBPACK_DEV_URL, "owid.css")}
+                            rel="stylesheet"
+                            type="text/css"
+                        />
+                        <OwidArticle {...gdoc} />
+                    </root.div>
                 </DebugProvider>
 
                 {gdoc.published && (
