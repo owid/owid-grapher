@@ -306,7 +306,7 @@ export default function ArticleBlock({
                             id={id}
                         >
                             {supertitleText ? (
-                                <div className="article-block__heading-supertitle">
+                                <div className="article-block__heading-supertitle overline-black-caps">
                                     {block.supertitle?.text}
                                 </div>
                             ) : null}
