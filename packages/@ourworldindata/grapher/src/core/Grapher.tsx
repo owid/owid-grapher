@@ -1939,6 +1939,15 @@ export class Grapher
         )
     }
 
+    @computed get showFacetControl(): boolean {
+        return (
+            !this.hideFacetControl ||
+            // heuristic: if the chart doesn't make sense unfaceted, then it probably
+            // also makes sense to let the user switch between entity/metric facets
+            !this.availableFacetStrategies.includes(FacetStrategy.none)
+        )
+    }
+
     @action.bound private toggleFacetControlVisibility(): void {
         this.hideFacetControl = !this.hideFacetControl
     }

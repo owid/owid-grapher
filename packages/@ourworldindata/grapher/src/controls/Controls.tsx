@@ -160,7 +160,7 @@ export class ZoomToggle extends React.Component<{
 export interface FacetStrategyDropdownManager {
     availableFacetStrategies: FacetStrategy[]
     facetStrategy?: FacetStrategy
-    hideFacetControl?: boolean
+    showFacetControl?: boolean
     entityType?: string
 }
 
