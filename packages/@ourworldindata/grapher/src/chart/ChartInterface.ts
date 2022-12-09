@@ -36,5 +36,9 @@ export interface ChartInterface {
      */
     externalLegend?: HorizontalColorLegendManager
 
-    facetAvailableStrategies?: FacetStrategy[]
+    /**
+     * Which facet strategies the chart type finds reasonable in its current setting, if any.
+     * Does not necessarily contain FacetStrategy.None -- there are situations where an unfaceted chart doesn't make sense.
+     */
+    availableFacetStrategies?: FacetStrategy[]
 }

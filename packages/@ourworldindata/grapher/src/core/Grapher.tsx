@@ -1981,8 +1981,8 @@ export class Grapher
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        return this.chartInstance.facetAvailableStrategies?.length
-            ? this.chartInstance.facetAvailableStrategies
+        return this.chartInstance.availableFacetStrategies?.length
+            ? this.chartInstance.availableFacetStrategies
             : [FacetStrategy.none]
     }
 

@@ -345,7 +345,7 @@ export class DiscreteBarChart
             .attr("width", (_, i) => this.barWidths[i])
     }
 
-    @computed get facetAvailableStrategies(): FacetStrategy[] {
+    @computed get availableFacetStrategies(): FacetStrategy[] {
         // if we have multi-dimension, multi-entity data (which is necessarily single-year),
         // then *only* faceting makes sense. otherwise, faceting is not useful.
         if (

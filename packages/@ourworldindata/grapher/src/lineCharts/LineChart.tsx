@@ -726,7 +726,7 @@ export class LineChart
             : new LineLegend({ manager: this })
     }
 
-    @computed get facetAvailableStrategies(): FacetStrategy[] {
+    @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = [FacetStrategy.none]
 
         if (this.selectionArray.numSelectedEntities > 1)

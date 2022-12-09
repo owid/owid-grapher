@@ -299,7 +299,7 @@ export class AbstractStackedChart
         return true
     }
 
-    @computed get facetAvailableStrategies(): FacetStrategy[] {
+    @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies: FacetStrategy[] = []
 
         const hasMultipleEntities =

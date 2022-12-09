@@ -417,7 +417,7 @@ export class StackedDiscreteBarChart
         return this.yColumns[0]
     }
 
-    @computed get facetAvailableStrategies(): FacetStrategy[] {
+    @computed get availableFacetStrategies(): FacetStrategy[] {
         const strategies = [FacetStrategy.none]
 
         if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
