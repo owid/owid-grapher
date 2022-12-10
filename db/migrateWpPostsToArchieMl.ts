@@ -11,10 +11,15 @@ import {
     EnrichedBlockText,
     Span,
     SpanSimpleText,
+    EnrichedBlockHeading,
+    EnrichedBlockChart,
+    EnrichedBlockHtml,
+    EnrichedBlockList,
 } from "@ourworldindata/utils"
-import { match } from "ts-pattern"
-import { cheerioToSpan } from "./gdocUtils.js"
-
+import { match, P } from "ts-pattern"
+import { cheerioToSpan, spansToHtmlString } from "./gdocUtils.js"
+import { join } from "lodash"
+import fs from "fs"
 // Note: all of this code is heavvy WIP - please ignore it for now
 
 // function mapCheerioChildren(
@@ -30,9 +35,10 @@ import { cheerioToSpan } from "./gdocUtils.js"
 // TODO: add context for per post stats and error message context
 
 function unwrapNode(
-    node: CheerioElement
+    node: CheerioElement,
+    $: CheerioStatic
 ): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
-    const children = node.children.map(cheerioToArchieML)
+    const children = node.children.map((child) => cheerioToArchieML(child, $))
     return joinArchieMLTransformationResults(children)
 }
 
@@ -43,7 +49,17 @@ type ErrorNames =
     | "too many figcaption elements after archieml transform"
     | "figcaption element is not structured text"
     | "unkown element tag"
-
+    | "expected only plain text"
+    | "exepcted a single plain text element, got more than one"
+    | "exepcted a single plain text element, got zero"
+    | "iframe without src"
+    | "no img element in figure"
+    | "iframe with src that is not a grapher"
+    | "too many elements in figure"
+    | "img without src"
+    | "unexpected elements in p"
+    | "unexpected elements in list item"
+    | "ul without children"
 interface ArchieMlTransformationError {
     name: ErrorNames
 
@@ -85,10 +101,57 @@ function getSimpleSpans(spans: Span[]): [SpanSimpleText[], Span[]] {
     )
 }
 
+function getSimpleTextSpansFromChildren(
+    node: CheerioElement,
+    $: CheerioStatic
+): ArchieMlTransformationResult<SpanSimpleText> {
+    const childElements = joinArchieMLTransformationResults(
+        node.children.map((child) => cheerioToArchieML(child, $))
+    )
+    // TODO: put this in place again
+    // const cleanedChildElements = consolidateSpans(
+    //     childElements.content
+    // )
+    if (
+        childElements.content.length !== 1 ||
+        childElements.content[0].type !== "text"
+    )
+        return {
+            errors: [
+                {
+                    name: "blockquote content is not just text",
+                    details: ``,
+                },
+            ],
+            content: [],
+        }
+    const [simpleSpans, otherSpans] = getSimpleSpans(
+        childElements.content[0].value
+    )
+    const errors =
+        otherSpans.length === 0
+            ? childElements.errors
+            : [
+                  ...childElements.errors,
+                  {
+                      name: "expected only plain text" as const,
+                      details: `suppressed tags: ${otherSpans.join(", ")}`,
+                  },
+              ]
+    return {
+        errors: errors,
+        content: simpleSpans,
+    }
+}
+
 function cheerioToArchieML(
-    node: CheerioElement
+    node: CheerioElement,
+    $: CheerioStatic
 ): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
     if (node.type === "comment") return { errors: [], content: [] }
+
+    const unwrapNodeWithContext = (node: CheerioElement) => unwrapNode(node, $)
+
     const span = cheerioToSpan(node)
     if (span)
         return {
@@ -99,60 +162,33 @@ function cheerioToArchieML(
     else if (node.type === "tag") {
         const result: ArchieMlTransformationResult<OwidEnrichedArticleBlock> =
             match(node)
-                .with({ tagName: "address" }, unwrapNode)
+                .with({ tagName: "address" }, unwrapNodeWithContext)
                 .with(
                     { tagName: "blockquote" },
                     (): ArchieMlTransformationResult<EnrichedBlockPullQuote> => {
-                        const childElements = joinArchieMLTransformationResults(
-                            node.children.map(cheerioToArchieML)
-                        )
-                        // TODO: put this in place again
-                        // const cleanedChildElements = consolidateSpans(
-                        //     childElements.content
-                        // )
-                        if (
-                            childElements.content.length !== 1 ||
-                            childElements.content[0].type !== "text"
-                        )
-                            return {
-                                errors: [
-                                    {
-                                        name: "blockquote content is not just text",
-                                        details: ``,
-                                    },
-                                ],
-                                content: [],
-                            }
-                        const [simpleSpans, otherSpans] = getSimpleSpans(
-                            childElements.content[0].value
+                        const spansResult = getSimpleTextSpansFromChildren(
+                            node,
+                            $
                         )
 
                         return {
-                            errors: [],
+                            errors: spansResult.errors,
                             content: [
                                 {
                                     type: "pull-quote",
                                     // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
-                                    text: simpleSpans,
-                                    parseErrors:
-                                        otherSpans.length === 0
-                                            ? []
-                                            : [
-                                                  {
-                                                      message:
-                                                          "Dropped text fragments that were not just unformatted text",
-                                                  },
-                                              ],
+                                    text: spansResult.content,
+                                    parseErrors: [],
                                 },
                             ],
                         }
                     }
                 )
-                .with({ tagName: "body" }, unwrapNode)
-                .with({ tagName: "center" }, unwrapNode) // might want to translate this to a block with a centered style?
-                .with({ tagName: "details" }, unwrapNode)
-                .with({ tagName: "div" }, unwrapNode)
-                .with({ tagName: "figcaption" }, unwrapNode)
+                .with({ tagName: "body" }, unwrapNodeWithContext)
+                .with({ tagName: "center" }, unwrapNodeWithContext) // might want to translate this to a block with a centered style?
+                .with({ tagName: "details" }, unwrapNodeWithContext)
+                .with({ tagName: "div" }, unwrapNodeWithContext)
+                .with({ tagName: "figcaption" }, unwrapNodeWithContext)
                 .with(
                     { tagName: "figure" },
                     (): ArchieMlTransformationResult<EnrichedBlockImage> => {
@@ -171,7 +207,10 @@ function cheerioToArchieML(
                         } else {
                             const figCaption =
                                 figcaptionChildren.length > 0
-                                    ? cheerioToArchieML(figcaptionChildren[0])
+                                    ? cheerioToArchieML(
+                                          figcaptionChildren[0],
+                                          $
+                                      )
                                     : undefined
                             if (figCaption)
                                 if (figCaption.content.length > 1)
@@ -195,10 +234,16 @@ function cheerioToArchieML(
                             // TODO: this is a legitimate case, there may be other content in a figure
                             // but for now we treat it as an error and see how often this error happens
                             errors.push({
-                                name: "too many figcaption elements after archieml transform",
+                                name: "no img element in figure",
                                 details: `Found ${otherChildren.length} elements`,
                             })
                         }
+
+                        if (otherChildren.length > 1)
+                            errors.push({
+                                name: "too many elements in figure",
+                                details: `Found ${otherChildren.length} elements`,
+                            })
 
                         return {
                             errors,
@@ -207,6 +252,210 @@ function cheerioToArchieML(
                                     type: "image",
                                     src: image?.attribs.src ?? "",
                                     caption: figcaptionElement?.value ?? [],
+                                    parseErrors: [],
+                                },
+                            ],
+                        }
+                    }
+                )
+                .with(
+                    { tagName: P.union("h1", "h2", "h3", "h4", "h5", "h6") },
+                    (): ArchieMlTransformationResult<EnrichedBlockHeading> => {
+                        const level = parseInt(node.tagName.slice(1))
+                        const spansResult = getSimpleTextSpansFromChildren(
+                            node,
+                            $
+                        )
+                        const errors = spansResult.errors
+                        if (spansResult.content.length > 1)
+                            errors.push({
+                                name: "exepcted a single plain text element, got more than one" as const,
+                                details: `Found ${spansResult.content.length} elements after transforming to archieml`,
+                            })
+                        if (spansResult.content.length == 0)
+                            errors.push({
+                                name: "exepcted a single plain text element, got zero" as const,
+                                details: `Found ${spansResult.content.length} elements after transforming to archieml`,
+                            })
+                        return {
+                            errors: spansResult.errors,
+                            content: [
+                                {
+                                    type: "heading",
+                                    level: level,
+                                    text: spansResult.content[0],
+                                    parseErrors: [],
+                                },
+                            ],
+                        }
+                    }
+                )
+                .with(
+                    { tagName: "iframe" },
+                    (): ArchieMlTransformationResult<EnrichedBlockChart> => {
+                        const src = node.attribs.src
+                        const errors: ArchieMlTransformationError[] = []
+                        if (!src)
+                            errors.push({
+                                name: "iframe without src" as const,
+                                details: `Found iframe without src attribute`,
+                            })
+                        if (
+                            !src?.startsWith(
+                                "https://ourworldindata.org/grapher/"
+                            )
+                        )
+                            errors.push({
+                                name: "iframe with src that is not a grapher",
+                                details: `Found iframe with src that is not a grapher`,
+                            })
+                        return {
+                            errors: errors,
+                            content: [
+                                {
+                                    type: "chart",
+                                    url: src,
+                                    parseErrors: [],
+                                },
+                            ],
+                        }
+                    }
+                )
+                .with(
+                    { tagName: "img" },
+                    (): ArchieMlTransformationResult<EnrichedBlockImage> => {
+                        const src = node.attribs.src
+                        const errors: ArchieMlTransformationError[] = []
+                        if (!src)
+                            errors.push({
+                                name: "img without src" as const,
+                                details: `Found img without src attribute`,
+                            })
+                        return {
+                            errors: errors,
+                            content: [
+                                {
+                                    type: "image",
+                                    src: src,
+                                    caption: [],
+                                    parseErrors: [],
+                                },
+                            ],
+                        }
+                    }
+                )
+                .with(
+                    { tagName: "p" },
+                    (): ArchieMlTransformationResult<EnrichedBlockText> => {
+                        const children = joinArchieMLTransformationResults(
+                            node.children.map((child) =>
+                                cheerioToArchieML(child, $)
+                            )
+                        )
+                        const [textChildren, otherChildren] = _.partition(
+                            children.content,
+                            (child): child is EnrichedBlockText =>
+                                child.type === "text"
+                        )
+                        const errors = children.errors
+                        if (otherChildren.length > 0)
+                            errors.push({
+                                name: "unexpected elements in p",
+                                details: `Found ${otherChildren.length} elements`,
+                            })
+                        return {
+                            errors: errors,
+                            content: [
+                                {
+                                    type: "text",
+                                    value: textChildren.flatMap(
+                                        (child) => child.value
+                                    ),
+                                    parseErrors: [],
+                                },
+                            ],
+                        }
+                    }
+                )
+                .with(
+                    { tagName: "ul" },
+                    (): ArchieMlTransformationResult<EnrichedBlockList> => {
+                        const children = node.children?.flatMap((child) => {
+                            const grandChildren = child.children?.map(
+                                (grandchild) => cheerioToArchieML(grandchild, $)
+                            )
+                            if (grandChildren)
+                                return [
+                                    joinArchieMLTransformationResults(
+                                        grandChildren
+                                    ),
+                                ]
+                            else return []
+                        })
+
+                        if (!children)
+                            return {
+                                errors: [
+                                    {
+                                        name: "ul without children" as const,
+                                        details: `Found ul without children`,
+                                    },
+                                ],
+                                content: [],
+                            }
+
+                        const handleListChildren = (
+                            listContent: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
+                        ): ArchieMlTransformationResult<EnrichedBlockText> => {
+                            const [textChildren, otherChildren] = _.partition(
+                                listContent.content,
+                                (child): child is EnrichedBlockText =>
+                                    child.type === "text"
+                            )
+                            const errors = listContent.errors
+                            if (otherChildren.length > 0)
+                                errors.push({
+                                    name: "unexpected elements in list item",
+                                    details: `Found ${otherChildren.length} elements`,
+                                })
+                            return {
+                                errors: errors,
+                                content: [
+                                    {
+                                        type: "text",
+                                        value: textChildren.flatMap(
+                                            (child) => child.value
+                                        ),
+                                        parseErrors: [],
+                                    },
+                                ],
+                            }
+                        }
+
+                        const listChildren = joinArchieMLTransformationResults(
+                            children.map(handleListChildren)
+                        )
+                        return {
+                            errors: listChildren.errors,
+                            content: [
+                                {
+                                    type: "list",
+                                    items: listChildren.content,
+                                    parseErrors: [],
+                                },
+                            ],
+                        }
+                    }
+                )
+                .with(
+                    { tagName: P.union("svg", "table", "video") },
+                    (): ArchieMlTransformationResult<EnrichedBlockHtml> => {
+                        return {
+                            errors: [],
+                            content: [
+                                {
+                                    type: "html",
+                                    value: $.html(node) ?? "",
                                     parseErrors: [],
                                 },
                             ],
@@ -231,8 +480,9 @@ function cheerioToArchieML(
 const migrate = async (): Promise<void> => {
     await db.getConnection()
 
-    const posts: { id: number; content: string }[] = await db.queryMysql(`
-        SELECT id, content from posts where type<>'wp_block' limit 1
+    const posts: { id: number; content: string; slug: string }[] =
+        await db.queryMysql(`
+        SELECT id, content, slug from posts where type<>'wp_block' limit 10
     `)
 
     // const tagCounts = new Map<string, number>()
@@ -242,8 +492,37 @@ const migrate = async (): Promise<void> => {
         const archieMlBodyElements = $("body")
             .contents()
             .toArray()
-            .flatMap(cheerioToArchieML)
-        console.log(archieMlBodyElements)
+            .flatMap((elem) => cheerioToArchieML(elem, $))
+            .map((block) => ({
+                ...block,
+                content: block.content.filter(
+                    (element) =>
+                        element.type !== "text" ||
+                        (element.value.length > 0 &&
+                            element.value.some(
+                                (span) =>
+                                    span.spanType !== "span-simple-text" ||
+                                    span.text.trim() !== ""
+                            ))
+                ),
+            }))
+            .filter(
+                (block) => block.content.length > 0 && block.errors.length === 0
+            )
+
+        try {
+            fs.writeFileSync(`./wpmigration/${post.slug}.html`, post.content)
+            // file written successfully
+        } catch (err) {
+            console.error(err)
+        }
+        const parsedJson = JSON.stringify(archieMlBodyElements, null, 2)
+        try {
+            fs.writeFileSync(`./wpmigration/${post.slug}.json`, parsedJson)
+            // file written successfully
+        } catch (err) {
+            console.error(err)
+        }
     }
 
     // const sortedTagCount = _.sortBy(
