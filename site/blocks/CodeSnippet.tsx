@@ -13,7 +13,7 @@ export const CodeSnippet = (props: { code: string }) => {
             navigator.clipboard.writeText(props.code)
             setHasCopied(true)
             // reset CSS animation
-            setTimeout(() => setHasCopied(false), 500)
+            setTimeout(() => setHasCopied(false), 10)
         } catch (err) {
             console.error(
                 "Couldn't copy to clipboard using navigator.clipboard",
