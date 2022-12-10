@@ -221,8 +221,6 @@ yarn testPrettierAll`
             createDatasetSoftlinks: `mkdir -p ${finalDataDir}/datasetsExport && ln -sf ${finalDataDir}/datasetsExport ${rsyncTargetDirTmp}/datasetsExport`,
             createSettingsSoftlinks: `ln -sf ${finalDataDir}/.env ${rsyncTargetDirTmp}/.env`,
             yarn: `cd ${rsyncTargetDirTmp} && yarn install --immutable`,
-
-            lernaBootstrap: `cd ${rsyncTargetDirTmp} && yarn lerna bootstrap`,
             lernaBuild: `cd ${rsyncTargetDirTmp} && yarn lerna run build`,
             webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
             migrateDb: `cd ${rsyncTargetDirTmp} && yarn runDbMigrations`,
