@@ -17,7 +17,7 @@ runs:
           shell: bash
 
         - name: Install dependencies
-          run: yarn --frozen-lockfile
+          run: yarn --immutable
           shell: bash
 
         - name: Build packages

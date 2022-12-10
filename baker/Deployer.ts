@@ -71,7 +71,7 @@ export class Deployer {
         )
 
         const script = `cd ${rsyncTargetDirForTests}
-yarn install --production=false --frozen-lockfile
+yarn install --production=false --immutable
 yarn testPrettierAll`
         await execWrapper(`ssh -t ${this.sshHost} 'bash -e -s' ${script}`)
 
@@ -220,7 +220,7 @@ yarn testPrettierAll`
             createDataSoftlinks: `mkdir -p ${finalDataDir}/bakedSite && ln -sf ${finalDataDir}/bakedSite ${rsyncTargetDirTmp}/bakedSite`,
             createDatasetSoftlinks: `mkdir -p ${finalDataDir}/datasetsExport && ln -sf ${finalDataDir}/datasetsExport ${rsyncTargetDirTmp}/datasetsExport`,
             createSettingsSoftlinks: `ln -sf ${finalDataDir}/.env ${rsyncTargetDirTmp}/.env`,
-            yarn: `cd ${rsyncTargetDirTmp} && yarn install --production --frozen-lockfile`,
+            yarn: `cd ${rsyncTargetDirTmp} && yarn install --production --immutable`,
             lernaBootstrap: `cd ${rsyncTargetDirTmp} && yarn lerna bootstrap`,
             lernaBuild: `cd ${rsyncTargetDirTmp} && yarn lerna run build`,
             webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
