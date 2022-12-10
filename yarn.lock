@@ -4515,11 +4515,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ourworldindata/core-table@*, @ourworldindata/core-table@workspace:packages/@ourworldindata/core-table":
+"@ourworldindata/core-table@workspace:^, @ourworldindata/core-table@workspace:packages/@ourworldindata/core-table":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/core-table@workspace:packages/@ourworldindata/core-table"
   dependencies:
-    "@ourworldindata/utils": "*"
+    "@ourworldindata/utils": "workspace:^"
     "@types/d3": ^6
     d3: ^6.1.1
     dayjs: ^1.11.5
@@ -4529,7 +4529,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ourworldindata/grapher@*, @ourworldindata/grapher@workspace:packages/@ourworldindata/grapher":
+"@ourworldindata/grapher@workspace:^, @ourworldindata/grapher@workspace:packages/@ourworldindata/grapher":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@workspace:packages/@ourworldindata/grapher"
   dependencies:
@@ -4542,8 +4542,8 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^6.2.0
     "@fortawesome/react-fontawesome": ^0.2.0
     "@handsontable/react": ^12.1.2
-    "@ourworldindata/core-table": "*"
-    "@ourworldindata/utils": "*"
+    "@ourworldindata/core-table": "workspace:^"
+    "@ourworldindata/utils": "workspace:^"
     "@tippyjs/react": ^4.2.6
     "@types/amplitude-js": ^7.0.1
     "@types/colorbrewer": ^1.0.29
@@ -4591,7 +4591,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ourworldindata/utils@*, @ourworldindata/utils@workspace:packages/@ourworldindata/utils":
+"@ourworldindata/utils@workspace:^, @ourworldindata/utils@workspace:packages/@ourworldindata/utils":
   version: 0.0.0-use.local
   resolution: "@ourworldindata/utils@workspace:packages/@ourworldindata/utils"
   dependencies:
@@ -15661,9 +15661,9 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^6.2.0
     "@fortawesome/react-fontawesome": ^0.2.0
     "@handsontable/react": ^12.1.2
-    "@ourworldindata/core-table": "*"
-    "@ourworldindata/grapher": "*"
-    "@ourworldindata/utils": "*"
+    "@ourworldindata/core-table": "workspace:^"
+    "@ourworldindata/grapher": "workspace:^"
+    "@ourworldindata/utils": "workspace:^"
     "@prettier/plugin-php": ^0.14.3
     "@storybook/addon-measure": ^6.5.10
     "@storybook/addon-outline": ^6.5.10
