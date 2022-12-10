@@ -8,9 +8,9 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 export const CodeSnippet = (props: { code: string }) => {
     const [hasCopied, setHasCopied] = useState(false)
 
-    const copy = () => {
+    const copy = async () => {
         try {
-            navigator.clipboard.writeText(props.code)
+            await navigator.clipboard.writeText(props.code)
             setHasCopied(true)
             // reset CSS animation
             setTimeout(() => setHasCopied(false), 500)
