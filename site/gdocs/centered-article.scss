@@ -18,6 +18,10 @@ $banner-height: 200px;
     min-height: calc($banner-height - 80px);
 }
 
+.article-block__text {
+    margin-top: 0;
+}
+
 h2.article-block__heading.has-supertitle {
     margin-top: 24px;
     .article-block__heading-supertitle {
@@ -152,7 +156,7 @@ h3.article-block__heading.has-supertitle {
 .article-block__text,
 .article-block__list,
 .article-block__html {
-    @include body-1-regular;
+    @include body-2-regular;
 
     .span-link {
         @include owid-link-60;
