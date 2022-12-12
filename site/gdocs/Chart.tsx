@@ -3,7 +3,7 @@ import { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
 import { EnrichedBlockChart } from "@ourworldindata/utils"
 import { renderSpans } from "./utils"
-import { EXPLORERS_ROUTE_FOLDER } from '../../explorer/ExplorerConstants.js';
+import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
 import cx from "classnames"
 
 export default function Chart({
@@ -32,8 +32,16 @@ export default function Chart({
             <figure
                 // Use unique `key` to force React to re-render tree
                 key={d.url}
-                data-grapher-src={d.url.includes(`/${EXPLORERS_ROUTE_FOLDER}/`) ? undefined : d.url}
-                data-explorer-src={d.url.includes(`/${EXPLORERS_ROUTE_FOLDER}/`) ? d.url : undefined}
+                data-grapher-src={
+                    d.url.includes(`/${EXPLORERS_ROUTE_FOLDER}/`)
+                        ? undefined
+                        : d.url
+                }
+                data-explorer-src={
+                    d.url.includes(`/${EXPLORERS_ROUTE_FOLDER}/`)
+                        ? d.url
+                        : undefined
+                }
                 style={{
                     width: "100%",
                     border: "0px none",
