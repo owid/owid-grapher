@@ -2223,9 +2223,11 @@ export class Grapher
         // "ourworldindata.org" and yet should still yield a match.
         // - Note that this won't work on production previews (where the
         //   path is /admin/posts/preview/ID)
+        const { hasRelatedQuestion } = this
         return (
+            hasRelatedQuestion &&
             getWindowUrl().pathname !==
-            Url.fromURL(this.relatedQuestions[0]?.url).pathname
+                Url.fromURL(this.relatedQuestions[0]?.url).pathname
         )
     }
 

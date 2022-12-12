@@ -181,9 +181,9 @@ export const makeRowFromColumnStore = (
     columnStore: CoreColumnStore
 ): CoreRow => {
     const row: CoreRow = {}
-    const columns = Object.values(columnStore)
-    Object.keys(columnStore).forEach((slug, colIndex) => {
-        row[slug] = columns[colIndex][rowIndex]
+    Object.entries(columnStore).forEach(([slug, col]) => {
+        if (col.length <= rowIndex) row[slug] = undefined
+        else row[slug] = col[rowIndex]
     })
     return row
 }
