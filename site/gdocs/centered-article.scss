@@ -1,3 +1,13 @@
+.article-container {
+    .ref {
+        color: $vermillion;
+        text-decoration: none;
+        &:visited {
+            color: $vermillion;
+        }
+    }
+}
+
 $banner-height: 200px;
 .article-banner {
     position: absolute;
@@ -117,6 +127,7 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+.footnote-container,
 #article-citation,
 #article-licence {
     margin-top: 48px;

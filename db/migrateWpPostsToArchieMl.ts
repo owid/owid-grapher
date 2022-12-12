@@ -5,10 +5,7 @@ import _, * as lodash from "lodash"
 import * as cheerio from "cheerio"
 
 import {
-    RawBlockPullQuote,
-    OwidRawArticleBlock,
     EnrichedBlockImage,
-    RawBlockText,
     OwidEnrichedArticleBlock,
     EnrichedBlockPullQuote,
     EnrichedBlockText,
@@ -16,7 +13,7 @@ import {
     SpanSimpleText,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { cheerioToSpan, spansToHtmlString } from "./gdocUtils.js"
+import { cheerioToSpan } from "./gdocUtils.js"
 
 // Note: all of this code is heavvy WIP - please ignore it for now
 

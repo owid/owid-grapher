@@ -115,11 +115,11 @@ export function OwidArticle(props: OwidArticleType) {
                 <ArticleBlocks toc={content.toc} blocks={content.body} />
             ) : null}
 
-            {/* {content.refs ? <Footnotes d={content.refs} /> : null} */}
+            {content.refs ? <Footnotes d={content.refs} /> : null}
 
-            <div
+            <section
                 id="article-citation"
-                className="col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
             >
                 <h3>Cite this work</h3>
                 <p>
@@ -136,11 +136,11 @@ export function OwidArticle(props: OwidArticleType) {
                 <div>
                     <CodeSnippet code={bibtex} />
                 </div>
-            </div>
+            </section>
 
-            <div
+            <section
                 id="article-licence"
-                className="col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
             >
                 <img
                     src={`${BAKED_BASE_URL}/owid-logo.svg`}
@@ -178,7 +178,7 @@ export function OwidArticle(props: OwidArticleType) {
                     </a>{" "}
                     in any site.
                 </p>
-            </div>
+            </section>
         </article>
     )
 }

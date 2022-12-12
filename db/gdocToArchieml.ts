@@ -12,7 +12,6 @@ import {
     OwidArticleContent,
     TocHeadingWithTitleSupertitle,
     compact,
-    last,
     unset,
     set,
     RawBlockText,
@@ -46,7 +45,12 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
         val: string,
         i: number
     ) {
-        text = text.replace(val, `<ref id="${i}" />`)
+        // mutate original text
+        text = text.replace(
+            val,
+            `<a class="ref" href="#note-${i + 1}"><sup>${i + 1}</sup></a>`
+        )
+        // return inner text
         return val.replace(/\{\/?ref\}/g, "")
     })
 
