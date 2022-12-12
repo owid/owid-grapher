@@ -490,6 +490,7 @@ export async function renderAndVerifySvg({
         }
         return Promise.resolve(validationResult)
     } catch (err) {
+        console.error(`Threw error for ${referenceEntry.chartId}: ${err}`)
         return Promise.resolve(
             resultError(referenceEntry.chartId, err as Error)
         )
