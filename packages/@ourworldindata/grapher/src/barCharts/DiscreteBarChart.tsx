@@ -24,6 +24,7 @@ import {
     ScaleType,
     BASE_FONT_SIZE,
     SeriesStrategy,
+    FacetStrategy,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -342,6 +343,17 @@ export class DiscreteBarChart
         this.d3Bars()
             .transition()
             .attr("width", (_, i) => this.barWidths[i])
+    }
+
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        // if we have multi-dimension, multi-entity data (which is necessarily single-year),
+        // then *only* faceting makes sense. otherwise, faceting is not useful.
+        if (
+            this.yColumns.length > 1 &&
+            this.selectionArray.numSelectedEntities > 1
+        )
+            return [FacetStrategy.entity, FacetStrategy.metric]
+        else return [FacetStrategy.none]
     }
 
     componentDidMount(): void {

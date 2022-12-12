@@ -1,5 +1,5 @@
 import { Color, OwidTable } from "@ourworldindata/core-table"
-import { SeriesName } from "../core/GrapherConstants"
+import { FacetStrategy, SeriesName } from "../core/GrapherConstants"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
@@ -35,4 +35,10 @@ export interface ChartInterface {
      * Used to create a global legend for faceted charts.
      */
     externalLegend?: HorizontalColorLegendManager
+
+    /**
+     * Which facet strategies the chart type finds reasonable in its current setting, if any.
+     * Does not necessarily contain FacetStrategy.None -- there are situations where an unfaceted chart doesn't make sense.
+     */
+    availableFacetStrategies?: FacetStrategy[]
 }

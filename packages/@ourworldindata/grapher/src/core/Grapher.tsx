@@ -64,6 +64,7 @@ import {
     SortOrder,
     TopicId,
     OwidChartDimensionInterface,
+    firstOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -1976,34 +1977,10 @@ export class Grapher
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        const strategies: FacetStrategy[] = [FacetStrategy.none]
-
-        const numNonProjectedColumns =
-            this.yColumnsFromDimensionsOrSlugsOrAuto.filter(
-                (c) => !c.display?.isProjection
-            ).length
-        if (
-            // multiple metrics (excluding projections)
-            numNonProjectedColumns > 1 &&
-            // more than one data point per metric
-            this.transformedTable.numRows > 1
-        ) {
-            strategies.push(FacetStrategy.metric)
-        }
-
-        if (
-            // multiple entities
-            this.selection.numSelectedEntities > 1 &&
-            // more than one data point per entity
-            this.transformedTable.numRows > this.selection.numSelectedEntities
-        ) {
-            strategies.push(FacetStrategy.entity)
-        }
-
-        return strategies
+        return this.chartInstance.availableFacetStrategies?.length
+            ? this.chartInstance.availableFacetStrategies
+            : [FacetStrategy.none]
     }
-
-    private disableAutoFaceting = true // turned off for now
 
     // the actual facet setting used by a chart, potentially overriding selectedFacetStrategy
     @computed get facetStrategy(): FacetStrategy {
@@ -2013,24 +1990,7 @@ export class Grapher
         )
             return this.selectedFacetStrategy
 
-        if (this.disableAutoFaceting) return FacetStrategy.none
-
-        // Auto facet on SingleEntity charts with multiple selected entities
-        if (
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.selection.numSelectedEntities > 1
-        )
-            return FacetStrategy.entity
-
-        // Auto facet when multiple slugs and multiple entities selected. todo: not sure if this is correct.
-        if (
-            this.addCountryMode === EntitySelectionMode.MultipleEntities &&
-            this.hasMultipleYColumns &&
-            this.selection.numSelectedEntities > 1
-        )
-            return FacetStrategy.metric
-
-        return FacetStrategy.none
+        return firstOfNonEmptyArray(this.availableFacetStrategies)
     }
 
     set facetStrategy(facet: FacetStrategy) {
@@ -2276,9 +2236,11 @@ export class Grapher
         // "ourworldindata.org" and yet should still yield a match.
         // - Note that this won't work on production previews (where the
         //   path is /admin/posts/preview/ID)
+        const { hasRelatedQuestion } = this
         return (
+            hasRelatedQuestion &&
             getWindowUrl().pathname !==
-            Url.fromURL(this.relatedQuestions[0]?.url).pathname
+                Url.fromURL(this.relatedQuestions[0]?.url).pathname
         )
     }
 

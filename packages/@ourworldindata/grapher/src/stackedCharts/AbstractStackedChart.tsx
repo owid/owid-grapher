@@ -4,6 +4,7 @@ import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
     BASE_FONT_SIZE,
+    FacetStrategy,
     SeriesName,
     SeriesStrategy,
 } from "../core/GrapherConstants"
@@ -296,6 +297,27 @@ export class AbstractStackedChart
     /** Whether we want to display series with only zeroes. Defaults to true but e.g. StackedArea charts want to set this to false */
     get showAllZeroSeries(): boolean {
         return true
+    }
+
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        const strategies: FacetStrategy[] = []
+
+        const hasMultipleEntities =
+            this.selectionArray.selectedEntityNames.length > 1
+        const hasMultipleYColumns = this.yColumns.length > 1
+
+        // Normally StackedArea/StackedBar charts are always single-entity or single-column, but if we are ever in a mode where we
+        // have multiple entities selected (e.g. through GlobalEntitySelector) and multiple columns, it only makes sense when faceted.
+        if (!this.isEntitySeries && !hasMultipleEntities)
+            strategies.push(FacetStrategy.none)
+        else if (this.isEntitySeries && !hasMultipleYColumns)
+            strategies.push(FacetStrategy.none)
+
+        if (hasMultipleEntities) strategies.push(FacetStrategy.entity)
+
+        if (hasMultipleYColumns) strategies.push(FacetStrategy.metric)
+
+        return strategies
     }
 
     @computed get unstackedSeries(): readonly StackedSeries<number>[] {

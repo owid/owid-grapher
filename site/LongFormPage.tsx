@@ -306,11 +306,12 @@ export const LongFormPage = (props: {
                                                             many different
                                                             people and
                                                             organizations. When
-                                                            citing this entry,
-                                                            please also cite the
-                                                            underlying data
-                                                            sources. This entry
-                                                            can be cited as:
+                                                            citing this topic
+                                                            page, please also
+                                                            cite the underlying
+                                                            data sources. This
+                                                            topic page can be
+                                                            cited as:
                                                         </p>
                                                         <div>
                                                             <CodeSnippet
