@@ -11,10 +11,15 @@ import * as db from "../db/db.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { ENV } from "../settings/serverSettings.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { renderExplorerPage, renderPreview } from "../baker/siteRenderers.js"
+import {
+    renderExplorerPage,
+    renderGdocsArticle,
+    renderPreview,
+} from "../baker/siteRenderers.js"
 import { GitCmsServer } from "../gitCms/GitCmsServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
+    OwidArticleType,
     parseIntOrUndefined,
     slugify,
     stringifyUnkownError,
@@ -29,6 +34,7 @@ import {
     EXPLORER_FILE_SUFFIX,
 } from "../explorer/ExplorerProgram.js"
 import { existsSync } from "fs-extra"
+import * as Post from "../db/model/Post.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -143,6 +149,40 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
     res.send(await renderPreview(postId))
+})
+
+adminRouter.get("/posts/compare/:postId", async (req, res) => {
+    const postId = expectInt(req.params.postId)
+
+    const wpPage = await renderPreview(postId)
+    const archieMlText = await Post.select("archieml").from(
+        db.knexTable(Post.postsTable).where({ id: postId })
+    )
+    const archieMl = JSON.parse(archieMlText[0].archieml) as OwidArticleType
+    console.log("", archieMl.publishedAt)
+    const archieMlPage = renderGdocsArticle(archieMl)
+
+    res.send(`<!doctype html>
+    <html>
+        <head>
+        </head>
+        <body>
+            <div style="width: 50%; float: left;">
+                <h1>WP</h1>
+                <iframe srcdoc="${wpPage.replaceAll(
+                    '"',
+                    "&quot;"
+                )}" style="width: 100%; height: 100vh;"></iframe>
+            </div>
+            <div style="width: 50%; float: left;">
+                <h1>ArchieML</h1>
+                <iframe srcdoc="${archieMlPage.replaceAll(
+                    '"',
+                    "&quot;"
+                )}" style="width: 100%; height: 100vh;"></iframe>
+            </div>
+        </body>
+    </html>`)
 })
 
 adminRouter.get("/errorTest.csv", async (req, res) => {

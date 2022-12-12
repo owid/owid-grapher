@@ -15,7 +15,11 @@ import {
     EnrichedBlockChart,
     EnrichedBlockHtml,
     EnrichedBlockList,
+    OwidArticleContent,
+    OwidArticlePublicationContext,
+    OwidArticleType,
 } from "@ourworldindata/utils"
+import * as Post from "./model/Post.js"
 import { match, P } from "ts-pattern"
 import { cheerioToSpan, spansToHtmlString } from "./gdocUtils.js"
 import { join } from "lodash"
@@ -478,12 +482,17 @@ function cheerioToArchieML(
 }
 
 const migrate = async (): Promise<void> => {
+    const writeToFile = false
     await db.getConnection()
 
-    const posts: { id: number; content: string; slug: string }[] =
-        await db.queryMysql(`
-        SELECT id, content, slug from posts where type<>'wp_block' limit 10
-    `)
+    const posts = await Post.select(
+        "id",
+        "slug",
+        "title",
+        "content",
+        "published_at",
+        "updated_at"
+    ).from(db.knexTable(Post.postsTable))
 
     // const tagCounts = new Map<string, number>()
 
@@ -509,19 +518,64 @@ const migrate = async (): Promise<void> => {
             .filter(
                 (block) => block.content.length > 0 && block.errors.length === 0
             )
+        const archieMlBlocks = archieMlBodyElements.flatMap(
+            (block) => block.content
+        )
+        const errors = archieMlBodyElements.flatMap((block) => block.errors)
+        // archieMlForPosts.push([
+        //     post.id,
+        //     JSON.stringify(archieMlBlocks, null, 2),
+        //     JSON.stringify(errors, null, 2),
+        // ])
 
-        try {
-            fs.writeFileSync(`./wpmigration/${post.slug}.html`, post.content)
-            // file written successfully
-        } catch (err) {
-            console.error(err)
+        const archieMlFieldContent: OwidArticleType = {
+            id: `wp-${post.id}`,
+            slug: post.slug,
+            content: {
+                body: archieMlBlocks,
+                title: post.title,
+                byline: "todo", // TOOD: fetch authors from WP and store them in posts table
+                dateline: post.published_at?.toISOString() ?? "",
+            },
+            published: false, // post.published_at !== null,
+            createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem we have a created date in the posts table
+            publishedAt: null, // post.published_at,
+            updatedAt: null, // post.updated_at,
+            publicationContext: OwidArticlePublicationContext.listed,
         }
-        const parsedJson = JSON.stringify(archieMlBodyElements, null, 2)
-        try {
-            fs.writeFileSync(`./wpmigration/${post.slug}.json`, parsedJson)
-            // file written successfully
-        } catch (err) {
-            console.error(err)
+        const archieMlStatsContent = {
+            errors,
+            numErrors: errors.length,
+            numBlocks: archieMlBlocks.length,
+        }
+
+        const insertQuery = `
+        UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?
+        `
+        await db.queryMysql(insertQuery, [
+            JSON.stringify(archieMlFieldContent, null, 2),
+            JSON.stringify(archieMlStatsContent, null, 2),
+            post.id,
+        ])
+        console.log("inserted", post.id)
+
+        if (writeToFile) {
+            try {
+                fs.writeFileSync(
+                    `./wpmigration/${post.slug}.html`,
+                    post.content
+                )
+                // file written successfully
+            } catch (err) {
+                console.error(err)
+            }
+            const parsedJson = JSON.stringify(archieMlBodyElements, null, 2)
+            try {
+                fs.writeFileSync(`./wpmigration/${post.slug}.json`, parsedJson)
+                // file written successfully
+            } catch (err) {
+                console.error(err)
+            }
         }
     }
 
