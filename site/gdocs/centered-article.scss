@@ -28,22 +28,6 @@ $banner-height: 200px;
     min-height: calc($banner-height - 80px);
     padding-top: 2 * $vertical-spacing;
     padding-bottom: 2 * $vertical-spacing;
-
-    @include titling(2.5rem);
-
-    @include md-up {
-        @include titling(3rem);
-    }
-
-    @include lg-up {
-        padding-top: 4rem;
-        @include titling(4rem);
-    }
-    @include xlg-up {
-        padding-top: 6rem;
-        padding-bottom: 3 * $vertical-spacing;
-        @include titling(5rem);
-    }
 }
 
 .article-block__text {
