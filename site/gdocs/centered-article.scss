@@ -1,4 +1,4 @@
-.article-container {
+.centered-article-container {
     .ref {
         color: $vermillion;
         text-decoration: none;
@@ -22,10 +22,28 @@ $banner-height: 200px;
     margin-bottom: 32px;
 }
 
-.article-header {
+.centered-article-header {
     background: $white;
     margin-top: 80px;
     min-height: calc($banner-height - 80px);
+    padding-top: 2 * $vertical-spacing;
+    padding-bottom: 2 * $vertical-spacing;
+
+    @include titling(2.5rem);
+
+    @include md-up {
+        @include titling(3rem);
+    }
+
+    @include lg-up {
+        padding-top: 4rem;
+        @include titling(4rem);
+    }
+    @include xlg-up {
+        padding-top: 6rem;
+        padding-bottom: 3 * $vertical-spacing;
+        @include titling(5rem);
+    }
 }
 
 .article-block__text {
@@ -51,7 +69,7 @@ h2.article-block__heading.has-supertitle {
     }
 }
 
-.article-container > .article-block__divider {
+.centered-article-container > .article-block__divider {
     border-top: 1px solid $blue-20;
     margin: 48px 0;
 }
@@ -75,26 +93,26 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
-.article-header__title-container {
+.centered-article-header__title-container {
     margin-top: 50px;
-    .article-header__supertitle {
+    .centered-article-header__supertitle {
         @include overline-black-caps;
         color: $blue-50;
     }
 
-    .article-header__title {
+    .centered-article-header__title {
         @include display-2-semibold;
         margin-top: 0;
         color: $blue-90;
     }
 }
 
-.article-header__subtitle {
+.centered-article-header__subtitle {
     @include subtitle-1;
     color: $blue-50;
 }
 
-.article-header__meta-container {
+.centered-article-header__meta-container {
     border-bottom: 1px solid $blue-10;
     border-top: 1px solid $blue-10;
     margin-bottom: 32px;
@@ -111,8 +129,8 @@ h3.article-block__heading.has-supertitle {
         }
     }
 
-    .article-header__byline,
-    .article-header__dateline {
+    .centered-article-header__byline,
+    .centered-article-header__dateline {
         margin-bottom: 8px;
     }
 

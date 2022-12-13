@@ -49,23 +49,25 @@ export function OwidArticle(props: OwidArticleType) {
 }`
 
     return (
-        <article className="article-container grid grid-cols-12-full-width">
+        <article className="centered-article-container grid grid-cols-12-full-width">
             <div className="article-banner" style={coverStyle}></div>
-            <header className="article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                <div className="article-header__title-container col-start-2 span-cols-6">
-                    <h3 className="article-header__supertitle span-cols-8">
+            <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                <div className="centered-article-header__title-container col-start-2 span-cols-6">
+                    <h3 className="centered-article-header__supertitle span-cols-8">
                         {content.supertitle}
                     </h3>
-                    <h1 className="article-header__title">{content.title}</h1>
+                    <h1 className="centered-article-header__title">
+                        {content.title}
+                    </h1>
                 </div>
                 {content.subtitle ? (
-                    <h2 className="article-header__subtitle col-start-2 span-cols-6">
+                    <h2 className="centered-article-header__subtitle col-start-2 span-cols-6">
                         {content.subtitle}
                     </h2>
                 ) : null}
-                <div className="article-header__meta-container col-start-2 span-cols-6 grid grid-cols-2">
+                <div className="centered-article-header__meta-container col-start-2 span-cols-6 grid grid-cols-2">
                     <div className="span-cols-1 span-sm-cols-2">
-                        <div className="article-header__byline">
+                        <div className="centered-article-header__byline">
                             By:{" "}
                             <a href="/team">
                                 {formatAuthors({
@@ -73,7 +75,7 @@ export function OwidArticle(props: OwidArticleType) {
                                 })}
                             </a>
                         </div>
-                        <div className="article-header__dateline body-3-medium-italic">
+                        <div className="centered-article-header__dateline body-3-medium-italic">
                             {content.dateline ||
                                 (publishedAt && formatDate(publishedAt))}
                         </div>
