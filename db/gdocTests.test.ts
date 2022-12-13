@@ -1,10 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import {
-    EnrichedBlockHeading,
-    RawBlockHeading,
-    Span,
-} from "@ourworldindata/utils"
+import { EnrichedBlockHeading, RawBlockHeading } from "@ourworldindata/utils"
 import { stringToArchieML } from "./gdocToArchieml.js"
 import {
     owidRawArticleBlockToArchieMLString,
@@ -61,9 +57,9 @@ level: 2
             type: "heading",
             text: [
                 {
-                spanType: "span-simple-text",
-                text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            },
+                    spanType: "span-simple-text",
+                    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                },
             ],
             supertitle: undefined,
             level: 2,
