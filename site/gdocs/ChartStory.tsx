@@ -4,45 +4,24 @@ import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons/faCircleArr
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { useEmbedChart } from "../hooks.js"
-import { EnrichedBlockChartStory } from "@ourworldindata/utils"
-import { renderSpans } from "./utils"
-import Chart from "./Chart.js"
-import cx from "classnames"
 
-export default function ChartStory({
-    d,
-    className = "",
-}: {
-    d: EnrichedBlockChartStory
-    className?: string
-}) {
-    const { items } = d
+export default function ChartStory({ slides }: any) {
+    const showDetails = true
 
     const [currentIndex, setCurrentIndex] = useState(0)
-    const [currentSlide, setCurrentSlide] = useState(items[0])
+    const [currentSlide, setCurrentSlide] = useState(slides[0])
 
-    const showDetails = !!currentSlide.technical.length
-    const maxSlide = items.length - 1
+    const maxSlide = slides.length - 1
 
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(currentIndex, refChartContainer)
 
     return (
-        <div className={cx(className, "chart-story grid grid-cols-8")}>
+        <div className={"chartStory"}>
             <div
-                className={
-                    "chart-story__nav-hud span-cols-8 overline-black-caps align-center "
-                }
-            >
-                {`Chart ${currentIndex + 1} of ${items.length}`}
-            </div>
-            <button
-                disabled={currentIndex === 0}
-                className={
-                    "chart-story__nav-arrow chart-story__nav-arrow--left span-cols-1 align-center "
-                }
+                className={"chart-story--nav-back"}
                 onClick={() => {
-                    setCurrentSlide(items[Math.max(0, currentIndex - 1)])
+                    setCurrentSlide(slides[Math.max(0, currentIndex - 1)])
                     setCurrentIndex(Math.max(0, currentIndex - 1))
                 }}
             >
@@ -50,21 +29,27 @@ export default function ChartStory({
                     icon={faCircleArrowLeft}
                     style={{ fontSize: 18 }}
                 />
-            </button>
-            <div
-                className={
-                    "chart-story__narrative-text span-cols-6 h3-bold align-center"
-                }
-            >
-                {renderSpans(currentSlide.narrative.value)}
             </div>
-            <button
-                disabled={currentIndex === maxSlide}
-                className={
-                    "chart-story__nav-arrow chart-story__nav-arrow--right span-cols-1 col-start-8 align-center"
-                }
+            <div className={"chart-story--narrative-text"}>
+                {currentSlide.narrative}
+            </div>
+            <div className={"chart-story--chart"} ref={refChartContainer}>
+                <figure
+                    key={currentSlide.chart}
+                    data-grapher-src={currentSlide.chart}
+                    style={{ width: "100%", height: 550, border: "0px none" }}
+                />
+            </div>
+            <div className={"chart-story--technical-text"}></div>
+            <div className={"chart-story--nav-hud"}>
+                {`Chart ${currentIndex + 1} of ${slides.length}`}
+            </div>
+            <div
+                className={"chart-story--nav-next"}
                 onClick={() => {
-                    setCurrentSlide(items[Math.min(maxSlide, currentIndex + 1)])
+                    setCurrentSlide(
+                        slides[Math.min(maxSlide, currentIndex + 1)]
+                    )
                     setCurrentIndex(Math.min(maxSlide, currentIndex + 1))
                 }}
             >
@@ -72,39 +57,15 @@ export default function ChartStory({
                     icon={faCircleArrowRight}
                     style={{ fontSize: 18 }}
                 />
-            </button>
-
-            <div
-                className={"chart-story__chart span-cols-8"}
-                ref={refChartContainer}
-            >
-                <Chart d={currentSlide.chart} />
             </div>
-            {showDetails ? (
-                <>
-                    <div
-                        className={
-                            "chart-story__technical-text span-cols-8 overline-black-caps"
-                        }
-                    >
-                        About this chart
-                    </div>
-                    <div
-                        className={
-                            "chart-story__technical-details span-cols-8 grid grid-cols-8"
-                        }
-                    >
-                        <ul className="span-cols-6 col-start-2">
-                            {currentSlide.technical.map((d: any, i: number) => {
-                                return (
-                                    <li className="body-3-medium" key={i}>
-                                        {renderSpans(d.value)}
-                                    </li>
-                                )
-                            })}
-                        </ul>
-                    </div>
-                </>
+            {currentSlide.technical && showDetails ? (
+                <div className={"chart-story--technical-details"}>
+                    <ul>
+                        {currentSlide.technical.map((d: any, i: number) => {
+                            return <li key={i}>{d}</li>
+                        })}
+                    </ul>
+                </div>
             ) : null}
         </div>
     )

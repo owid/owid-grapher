@@ -1,21 +1,25 @@
 import React, { useState, useRef } from "react"
 import { InView } from "react-intersection-observer"
-import {
-    EnrichedBlockScroller,
-    EnrichedScrollerItem,
-} from "@ourworldindata/utils"
+import { OwidArticleBlock } from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../hooks.js"
-import { renderSpans } from "./utils"
-import cx from "classnames"
-export default function Scroller({
-    d,
-    className = "",
-}: {
-    d: EnrichedBlockScroller
-    className?: string
-}) {
-    const [figureSrc, setFigureSrc] = useState(d.blocks[0].url)
+
+export default function Scroller({ d }: any) {
+    let lastUrl: string
+    const figureURLs = d.value.reduce(
+        (memo: string[], { type, value }: OwidArticleBlock) => {
+            if (type === "url") {
+                lastUrl = value
+            }
+            if (type === "text") {
+                memo = [...memo, lastUrl]
+            }
+            return memo
+        },
+        []
+    )
+
+    const [figureSrc, setFigureSrc] = useState(d.value[0].value)
 
     const refChartContainer = useRef<HTMLDivElement>(null)
 
@@ -23,39 +27,12 @@ export default function Scroller({
     useEmbedChart(activeChartIdx, refChartContainer)
 
     return (
-        <section className={cx("scroller", className)}>
-            <div className="scroller__paragraph-container span-cols-6 col-start-1 span-sm-cols-12">
-                {d.blocks.map((value: EnrichedScrollerItem, i: number) => {
-                    return (
-                        <InView
-                            key={i}
-                            className="scroller__paragraph-intersection-wrapper"
-                            threshold={0.67}
-                            onChange={(isVisible: boolean) => {
-                                if (isVisible) {
-                                    setFigureSrc(value.url)
-                                    setActiveChartIdx(i)
-                                }
-                            }}
-                        >
-                            <p className="scroller__paragraph">
-                                {renderSpans(value.text.value)}
-                            </p>
-                        </InView>
-                    )
-                })}
-            </div>
+        <section className={"stickySection"}>
             {figureSrc ? (
-                <div
-                    className="scroller__chart-container span-cols-6 col-start-7 span-sm-cols-12 col-sm-start-1"
-                    ref={refChartContainer}
-                >
+                <div className={"stickyFigure"} ref={refChartContainer}>
                     <figure
                         // Use unique `key` to force React to re-render tree
-                        // TODO: this as any cast should be removed - we don't know
-                        // that figureSrc is going to be a string
-                        className="scroller__chart"
-                        key={figureSrc as any}
+                        key={figureSrc}
                         data-grapher-src={figureSrc}
                         style={{
                             width: "100%",
@@ -65,6 +42,26 @@ export default function Scroller({
                     />
                 </div>
             ) : null}
+            <div className={"stickyContent"}>
+                {d.value
+                    .filter((_d: OwidArticleBlock) => _d.type === "text")
+                    .map(({ value }: OwidArticleBlock, i: number) => {
+                        return (
+                            <InView
+                                key={i}
+                                threshold={0.67}
+                                onChange={(isVisible: boolean) => {
+                                    if (isVisible) {
+                                        setFigureSrc(figureURLs[i])
+                                        setActiveChartIdx(i)
+                                    }
+                                }}
+                            >
+                                <p>{value}</p>
+                            </InView>
+                        )
+                    })}
+            </div>
         </section>
     )
 }

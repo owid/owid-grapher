@@ -56,12 +56,6 @@ $xxlg: 1536px;
     }
 }
 
-@mixin sm-up {
-    @media (min-width: $sm) {
-        @content;
-    }
-}
-
 @mixin md-down {
     @media (max-width: $md) {
         @content;

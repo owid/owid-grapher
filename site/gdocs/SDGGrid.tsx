@@ -1,27 +1,25 @@
 import React from "react"
-import { EnrichedBlockSDGGrid } from "@ourworldindata/utils"
-import cx from "classnames"
+import { OwidArticleBlock } from "@ourworldindata/utils"
 
-export default function SDGGrid({
-    d,
-    className = "",
-}: {
-    d: EnrichedBlockSDGGrid
-    className?: string
-}) {
+export default function SDGGrid({ d }: { d: OwidArticleBlock }) {
     return (
-        <ul className={cx("sdg-grid", className)}>
-            {d.items.map((tile: { goal: string; link: string }, i: number) => {
-                return (
-                    <SDGTile
-                        key={i}
-                        number={i + 1}
-                        goal={tile.goal}
-                        link={tile.link}
-                    />
-                )
-            })}
-        </ul>
+        <div className="sdg-grid">
+            <h2>The 17 goals</h2>
+            <ul>
+                {d.value.map(
+                    (tile: { goal: string; link: string }, i: number) => {
+                        return (
+                            <SDGTile
+                                key={i}
+                                number={i + 1}
+                                goal={tile.goal}
+                                link={tile.link}
+                            />
+                        )
+                    }
+                )}
+            </ul>
+        </div>
     )
 }
 
@@ -36,7 +34,7 @@ const SDGTile = ({
 }) => {
     return (
         <li
-            className="span-cols-2 span-lg-cols-4 span-sm-cols-8 col-sm-start-3"
+            className="tile"
             style={
                 {
                     "--sdg-color": `var(--sdg-color-${number})`,

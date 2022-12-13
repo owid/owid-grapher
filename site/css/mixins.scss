@@ -1,7 +1,6 @@
 @mixin owid-link-90 {
     color: $blue-90;
     text-decoration: underline;
-    text-underline-offset: 4px;
 
     &:visited {
         color: $purple-90;
@@ -14,7 +13,6 @@
 @mixin owid-link-60 {
     color: $blue-60;
     text-decoration: underline;
-    text-underline-offset: 4px;
 
     &:visited {
         color: $purple-60;

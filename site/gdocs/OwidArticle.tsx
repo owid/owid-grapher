@@ -49,66 +49,54 @@ export function OwidArticle(props: OwidArticleType) {
 }`
 
     return (
-        <article className="article-container grid grid-cols-12-full-width">
-            <div className="article-banner" style={coverStyle}></div>
-            <header className="article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                <div className="article-header__title-container col-start-2 span-cols-6">
-                    <h3 className="article-header__supertitle span-cols-8">
-                        {content.supertitle}
-                    </h3>
-                    <h1 className="article-header__title">{content.title}</h1>
-                </div>
+        <article className={"owidArticle"}>
+            <div className={"articleCover"} style={coverStyle}></div>
+            <div className={"articlePage"}></div>
+            <div className={"titling"}>
+                <div className={"supertitle"}>{content.supertitle}</div>
+                <h1 className={"title"}>{content.title}</h1>
                 {content.subtitle ? (
-                    <h2 className="article-header__subtitle col-start-2 span-cols-6">
-                        {content.subtitle}
-                    </h2>
+                    <div className={"subtitle"}>{content.subtitle}</div>
                 ) : null}
-                <div className="article-header__meta-container col-start-2 span-cols-6 grid grid-cols-2">
-                    <div className="span-cols-1 span-sm-cols-2">
-                        <div className="article-header__byline">
-                            By:{" "}
-                            <a href="/team">
-                                {formatAuthors({
-                                    authors,
-                                })}
-                            </a>
-                        </div>
-                        <div className="article-header__dateline body-3-medium-italic">
-                            {content.dateline ||
-                                (publishedAt && formatDate(publishedAt))}
-                        </div>
+            </div>
+            <div className={"meta"}>
+                <div>
+                    <div className="body-1-regular">
+                        By:{" "}
+                        <a href="/team">
+                            {formatAuthors({
+                                authors,
+                            })}
+                        </a>
                     </div>
-                    <div className="span-cols-1 span-sm-cols-2">
-                        <a
-                            href="#article-citation"
-                            className="body-1-regular display-block"
-                        >
+                    <div className="body-3-medium-italic">
+                        {content.dateline ||
+                            (publishedAt && formatDate(publishedAt))}
+                    </div>
+                </div>
+                <div>
+                    <div className="body-1-regular">
+                        <a href="#citation">
                             <FontAwesomeIcon icon={faBook} />
                             Cite this article
                         </a>
-
-                        <a
-                            href="#article-licence"
-                            className="body-3-medium display-block"
-                        >
+                    </div>
+                    <div className="body-3-medium">
+                        <a href="#licence">
                             <FontAwesomeIcon icon={faCreativeCommons} />
                             Reuse our work freely
                         </a>
                     </div>
                 </div>
-            </header>
+            </div>
 
             {content.summary ? (
-                <details
-                    className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
-                    open={true}
-                >
-                    <summary>Summary</summary>
-                    <ArticleBlocks
-                        blocks={content.summary}
-                        containerType="summary"
-                    />
-                </details>
+                <div>
+                    <details className={"summary"} open={true}>
+                        <summary>Summary</summary>
+                        <ArticleBlocks blocks={content.summary} />
+                    </details>
+                </div>
             ) : null}
 
             {content.body ? (
@@ -117,10 +105,7 @@ export function OwidArticle(props: OwidArticleType) {
 
             {content.refs ? <Footnotes d={content.refs} /> : null}
 
-            <section
-                id="article-citation"
-                className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
-            >
+            <div id="citation">
                 <h3>Cite this work</h3>
                 <p>
                     Our articles and data visualizations rely on work from many
@@ -128,7 +113,6 @@ export function OwidArticle(props: OwidArticleType) {
                     page, please also cite the underlying data sources. This
                     topic page can be cited as:
                 </p>
-                {/* TODO? renderSpans(content.citation.map((block) => block.value)) */}
                 <div>
                     <CodeSnippet code={citationText} />
                 </div>
@@ -136,14 +120,11 @@ export function OwidArticle(props: OwidArticleType) {
                 <div>
                     <CodeSnippet code={bibtex} />
                 </div>
-            </section>
+            </div>
 
-            <section
-                id="article-licence"
-                className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
-            >
+            <div id="licence">
                 <img
-                    src={`${BAKED_BASE_URL}/owid-logo.svg`}
+                    src="/owid-logo.svg"
                     className="img-raw"
                     alt="Our World in Data logo"
                 />
@@ -178,7 +159,7 @@ export function OwidArticle(props: OwidArticleType) {
                     </a>{" "}
                     in any site.
                 </p>
-            </section>
+            </div>
         </article>
     )
 }

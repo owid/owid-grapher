@@ -23,7 +23,7 @@ import {
 } from "react-beautiful-dnd"
 import { Disposer, observer } from "mobx-react"
 import { observable, computed, action, runInAction, autorun } from "mobx"
-import { match, P } from "ts-pattern"
+import { match, __ } from "ts-pattern"
 //import * as lodash from "lodash"
 import {
     cloneDeep,
@@ -997,8 +997,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                 Number.isNaN(Number.parseInt(firstNewValue))
             )
             .with([FieldType.boolean, "boolean"], () => false)
-            .with([FieldType.complex, P._], () => false) // complex types, e.g. color scales, are handled specially, allow them here
-            .with([[P._], "string"], () => false)
+            .with([FieldType.complex, __], () => false) // complex types, e.g. color scales, are handled specially, allow them here
+            .with([[__], "string"], () => false)
 
             .otherwise(() => true)
         if (invalidTypeAssignment) return false

@@ -4,17 +4,15 @@ import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import cx from "classnames"
+import classNames from "classnames"
 import AnimateHeight from "react-animate-height"
 
 // See ARIA roles: https://w3c.github.io/aria-practices/examples/menu-button/menu-button-links.html
 
 export default function SDGTableOfContents({
     toc,
-    className = "",
 }: {
     toc: TocHeadingWithTitleSupertitle[]
-    className?: string
 }) {
     const [height, setHeight] = useState<"auto" | 0>(0)
     const [isOpen, setIsOpen] = useState(false)
@@ -25,7 +23,7 @@ export default function SDGTableOfContents({
 
     return (
         <nav
-            className={cx(className, "sdg-toc", { open: isOpen })}
+            className={classNames("sdg-toc", { open: isOpen })}
             role="button"
             onClick={toggleIsOpen}
             aria-haspopup="true"
@@ -34,19 +32,19 @@ export default function SDGTableOfContents({
         >
             <button
                 id="sdg-toc-menu-button"
-                className="sdg-toc-toggle span-cols-6 span-md-cols-8 span-sm-cols-10"
+                className="sdg-toc-toggle"
                 onClick={toggleIsOpen}
                 aria-haspopup="true"
                 aria-controls="sdg-toc-menu"
                 data-track-note="sdg-toc-toggle"
             >
-                <span>List of targets and indicators</span>
+                <span>Index</span>
                 <span>
                     <FontAwesomeIcon icon={isOpen ? faMinus : faPlus} />
                 </span>
             </button>
             <AnimateHeight
-                className="sdg-toc-content span-cols-6 span-md-cols-8 span-sm-cols-10"
+                className="sdg-toc-content"
                 height={height}
                 onHeightAnimationStart={(newHeight) => {
                     if (newHeight != 0) setIsOpen(true)

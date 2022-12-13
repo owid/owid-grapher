@@ -10,7 +10,6 @@
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    letter-spacing: -0.01rem;
 }
 
 .display-1-semibold {
@@ -19,17 +18,12 @@
 
 @mixin display-2-semibold {
     font-family: $serif-font-stack;
-    font-size: 2rem;
+    font-size: 2.5rem;
     line-height: 1.2;
     font-weight: 600;
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    letter-spacing: -0.01rem;
-
-    @include sm-up {
-        font-size: 2.5rem;
-    }
 }
 
 .display-2-semibold {
@@ -38,17 +32,12 @@
 
 @mixin h1-semibold {
     font-family: $serif-font-stack;
-    font-size: 1.5rem;
+    font-size: 2rem;
     line-height: 1.25;
     font-weight: 600;
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    letter-spacing: 0;
-
-    @include sm-up {
-        font-size: 2rem;
-    }
 }
 
 .h1-semibold {
@@ -57,18 +46,13 @@
 
 @mixin h1-bold-italic {
     font-family: $serif-font-stack;
-    font-size: 1.5rem;
+    font-size: 2rem;
     line-height: 1.25;
     font-weight: 700;
     font-style: italic;
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    letter-spacing: 0;
-
-    @include sm-up {
-        font-size: 2rem;
-    }
 }
 
 .h1-bold-italic {
@@ -77,17 +61,12 @@
 
 @mixin h2-bold {
     font-family: $serif-font-stack;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     line-height: 1.33;
     font-weight: 700;
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    letter-spacing: 0;
-
-    @include sm-up {
-        font-size: 1.5rem;
-    }
 }
 
 .h2-bold {
@@ -102,7 +81,6 @@
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    letter-spacing: 0;
 }
 
 .h3-bold {
@@ -117,7 +95,6 @@
     display: block;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    letter-spacing: 0;
 }
 
 .h4-semibold {
@@ -129,7 +106,6 @@
     font-size: 1.5rem;
     line-height: 1.33;
     font-weight: 400;
-    letter-spacing: 0;
 }
 
 .subtitle-1 {
@@ -154,7 +130,6 @@
     font-size: 1.125rem;
     line-height: 1.55;
     font-weight: 400;
-    letter-spacing: 0;
 }
 
 .body-1-regular {
@@ -185,7 +160,6 @@
     font-size: 1rem;
     line-height: 1.5;
     font-weight: 400;
-    letter-spacing: 0;
 }
 
 .body-2-regular {
@@ -225,7 +199,6 @@
     font-size: 0.875rem;
     line-height: 1.5;
     font-weight: 500;
-    letter-spacing: 0.01rem;
 }
 
 .body-3-medium {
