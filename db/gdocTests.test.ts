@@ -1,6 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { RawBlockHeading } from "@ourworldindata/utils/dist/index.js"
+import {
+    EnrichedBlockAdditionalCharts,
+    RawBlockAdditionalCharts,
+    RawBlockHeading,
+} from "@ourworldindata/utils/dist/index.js"
 import { stringToArchieML } from "./gdocToArchieml.js"
 import { owidRawArticleBlockToArchieMLString } from "./gdocUtils.js"
 
@@ -67,6 +71,45 @@ level: 2
                 text: expectedEnrichedBlock.text.text,
                 level: expectedEnrichedBlock.level.toString(),
             },
+        }
+
+        const serializedRawBlock =
+            owidRawArticleBlockToArchieMLString(expectedRawBlock)
+        expect(serializedRawBlock).toEqual(archieMLString)
+    })
+
+    it.only("can parse an additional charts block", () => {
+        const archieMLString = `[.additional-charts]
+* I'm a chart link
+* I'm another one!
+[]
+`
+        const doc = getArchieMLDocWithContent(archieMLString)
+        const article = stringToArchieML(doc)
+        expect(article?.body?.length).toBe(1)
+        const expectedEnrichedBlock: EnrichedBlockAdditionalCharts = {
+            type: "additional-charts",
+            items: [
+                [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I'm a chart link",
+                    },
+                ],
+                [
+                    {
+                        spanType: "span-simple-text",
+                        text: "I'm another one!",
+                    },
+                ],
+            ],
+            parseErrors: [],
+        }
+        expect(article?.body && article?.body[0]).toEqual(expectedEnrichedBlock)
+
+        const expectedRawBlock: RawBlockAdditionalCharts = {
+            type: "additional-charts",
+            value: ["I'm a chart link", "I'm another one!"],
         }
 
         const serializedRawBlock =
