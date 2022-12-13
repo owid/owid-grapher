@@ -431,6 +431,16 @@ export type SpanQuote = {
     children: Span[]
 }
 export type UnformattedSpan = SpanSimpleText | SpanNewline
+export const SpanTypesWithChildren = [
+    "span-link",
+    "span-italic",
+    "span-bold",
+    "span-underline",
+    "span-subscript",
+    "span-superscript",
+    "span-quote",
+    "span-fallback",
+] as const
 
 export type Span =
     | SpanSimpleText

@@ -35,7 +35,7 @@ import {
     RawBlockText,
     RawBlockUrl,
 } from "@ourworldindata/utils"
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import { partition, compact } from "lodash"
 import * as cheerio from "cheerio"
 
@@ -489,10 +489,214 @@ export function htmlToSimpleTextBlock(html: string): EnrichedBlockSimpleText {
     }
 }
 
+interface SpanTrackingContext {
+    onlyWhitespaceSoFar: boolean
+    stringToPrepend: string
+}
+
+/** Removes the styles of leading non-word spans. This is necessary because
+    we may get a string like " this is a string" that should be a link but
+    then we don't want to render the link styling string with the leading
+    space.
+
+    This function modifies the spans in place in case they are leading whitespace
+    spans and returns a cpy of the passed context filled with the result of the
+    operation.
+
+    Note that it is important to collect the whitespace we find and return it
+    so that a new simple-text span can be added at the beginning (the textual
+    content of the resulting text must be the same as it was; we are deleting
+    whitespace spans here so the WS must be collected and returned)
+ */
+function removeStylesOfLeadingNonwordSpansRecursive(
+    spans: Span[],
+    context: SpanTrackingContext
+): SpanTrackingContext {
+    const updatedContext = { ...context }
+    // Iterate over the spans while we find only whitespace
+    for (
+        let spanIndex = 0;
+        spanIndex < spans.length && updatedContext.onlyWhitespaceSoFar;
+        spanIndex++
+    ) {
+        const currentSpan = spans[spanIndex]
+        match(currentSpan)
+            .with({ spanType: "span-simple-text" }, (span) => {
+                // if we find a simple-text span, check if it is only
+                // or partially whitespace. Collect the whitespace
+                // so we can return it.
+                const trimmed = span.text.trimStart()
+                if (trimmed.length === 0) {
+                    updatedContext.stringToPrepend += span.text
+                    spans.splice(spanIndex, 1)
+                    spanIndex-- // need to adjust the index because we removed an element and iterating forward
+                } else {
+                    if (trimmed.length < span.text.length) {
+                        updatedContext.stringToPrepend += span.text.slice(
+                            0,
+                            span.text.length - trimmed.length
+                        )
+                        span.text = trimmed
+                    }
+                    updatedContext.onlyWhitespaceSoFar = false
+                }
+            })
+            .with({ spanType: "span-newline" }, () => {})
+            .with(
+                {
+                    spanType: P.union(
+                        "span-link",
+                        "span-italic",
+                        "span-bold",
+                        "span-underline",
+                        "span-subscript",
+                        "span-superscript",
+                        "span-quote",
+                        "span-fallback"
+                    ),
+                },
+                (span) => {
+                    // If this is a span with children, recurse into them
+                    // and collect the whitespace we find
+                    const childrenContext =
+                        removeStylesOfLeadingNonwordSpansRecursive(
+                            span.children,
+                            { onlyWhitespaceSoFar: true, stringToPrepend: "" }
+                        )
+                    updatedContext.stringToPrepend +=
+                        childrenContext.stringToPrepend
+                    updatedContext.onlyWhitespaceSoFar =
+                        childrenContext.onlyWhitespaceSoFar
+                    if (updatedContext.onlyWhitespaceSoFar) {
+                        spans.splice(spanIndex, 1)
+                        spanIndex-- // need to adjust the index because we removed an element and iterating forward
+                    }
+                }
+            )
+            .exhaustive()
+    }
+    return updatedContext
+}
+
+/** Removes the styles of leading non-word spans. This is necessary because
+    we may get a string like " this is a string" that should be a link but
+    then we don't want to render the link styling string with the leading
+    space.
+
+    This function modifies the spans in place in case they are leading whitespace
+    spans and returns a cpy of the passed context filled with the result of the
+    operation.
+
+    Note that it is important to collect the whitespace we find and return it
+    so that a new simple-text span can be added at the beginning (the textual
+    content of the resulting text must be the same as it was; we are deleting
+    whitespace spans here so the WS must be collected and returned)
+ */
+function removeStylesOTrailingNonwordSpansRecursive(
+    spans: Span[],
+    context: SpanTrackingContext
+): SpanTrackingContext {
+    const updatedContext = { ...context }
+    // Iterate over the spans while we find only whitespace. We iterate
+    // backwards because we are removing training whitespace from the end
+    for (
+        let spanIndex = spans.length - 1;
+        spanIndex >= 0 && updatedContext.onlyWhitespaceSoFar;
+        spanIndex--
+    ) {
+        const currentSpan = spans[spanIndex]
+        match(currentSpan)
+            .with({ spanType: "span-simple-text" }, (span) => {
+                // if we find a simple-text span, check if it is only
+                // or partially whitespace. Collect the whitespace
+                // so we can return it.
+                const trimmed = span.text.trimEnd()
+                if (trimmed.length === 0) {
+                    updatedContext.stringToPrepend += span.text
+                    spans.splice(spanIndex, 1)
+                } else {
+                    if (trimmed.length < span.text.length) {
+                        updatedContext.stringToPrepend =
+                            span.text.slice(trimmed.length) +
+                            updatedContext.stringToPrepend
+                        span.text = trimmed
+                        // no need to adjust the index here as we are removing at the end
+                    }
+                    updatedContext.onlyWhitespaceSoFar = false
+                }
+            })
+            .with({ spanType: "span-newline" }, () => {})
+            .with(
+                {
+                    spanType: P.union(
+                        "span-link",
+                        "span-italic",
+                        "span-bold",
+                        "span-underline",
+                        "span-subscript",
+                        "span-superscript",
+                        "span-quote",
+                        "span-fallback"
+                    ),
+                },
+                (span) => {
+                    const childrenContext =
+                        removeStylesOTrailingNonwordSpansRecursive(
+                            span.children,
+                            { onlyWhitespaceSoFar: true, stringToPrepend: "" }
+                        )
+                    updatedContext.stringToPrepend +=
+                        childrenContext.stringToPrepend
+                    updatedContext.onlyWhitespaceSoFar =
+                        childrenContext.onlyWhitespaceSoFar
+                    if (updatedContext.onlyWhitespaceSoFar) {
+                        spans.splice(spanIndex, 1)
+                        // no need to adjust the index here as we are removing at the end
+                    }
+                }
+            )
+            .exhaustive()
+    }
+    return updatedContext
+}
+
+/** This function removes the styles of leading and trailing non-word spans.
+    This is necessary because we may get a string like " this is a string" that
+    should be a link but then we don't want to render the link styling string
+    with the leading space (or the same for trailing space).
+ */
+export function removeStylesOfLeadingTrackingNonwordSpans(
+    spans: Span[]
+): Span[] {
+    const spansCopy = [...spans]
+    const leadingRemovedContext = removeStylesOfLeadingNonwordSpansRecursive(
+        spansCopy,
+        { onlyWhitespaceSoFar: true, stringToPrepend: "" }
+    )
+    if (leadingRemovedContext.stringToPrepend.length > 0) {
+        spansCopy.unshift({
+            spanType: "span-simple-text",
+            text: leadingRemovedContext.stringToPrepend,
+        })
+    }
+    const trailingRemovedContext = removeStylesOTrailingNonwordSpansRecursive(
+        spansCopy,
+        { onlyWhitespaceSoFar: true, stringToPrepend: "" }
+    )
+    if (trailingRemovedContext.stringToPrepend.length > 0) {
+        spansCopy.push({
+            spanType: "span-simple-text",
+            text: trailingRemovedContext.stringToPrepend,
+        })
+    }
+    return spansCopy
+}
+
 export function htmlToSpans(html: string): Span[] {
     const $ = cheerio.load(html)
     const nodes = $("body").contents().toArray()
-    return compact(nodes.map(cheerioToSpan)) ?? []
+    const spans = compact(nodes.map(cheerioToSpan)) ?? []
+    return removeStylesOfLeadingTrackingNonwordSpans(spans)
 }
 
 // Sometimes Google automatically linkifies a URL.
