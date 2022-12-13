@@ -660,7 +660,7 @@ const parseText = (raw: RawBlockText): EnrichedBlockText => {
 const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
     const createError = (
         error: ParseError,
-        text: SpanSimpleText = { spanType: "span-simple-text", text: "" },
+        text: Span[] = [{ spanType: "span-simple-text", text: "" }],
         level: number = 1
     ): EnrichedBlockHeading => ({
         type: "heading",
@@ -679,13 +679,17 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
         return createError({
             message: "Text property is missing",
         })
-    const headingSpans = parseSimpleTextsWithErrors([headingText])
-
-    if (headingSpans.texts.length !== 1)
-        return createError({
-            message:
-                "Text did not result in exactly one simple span - did you apply formatting?",
-        })
+    // TODO: switch headings to not use a vertical tab character.
+    // In the SDG pages we use the vertical tab character to separate the title
+    // from the supertitle. The spans can be nested and then the correct way of
+    // dealing with this would be to first parse the HTML into spans and then
+    // check if somewhere in the nested tree there is a vertical tab character,
+    // and if so to create two trees where the second mirrors the nesting of
+    // the first. For now here we just assume that the vertical tab character
+    // is used on the top level only (i.e. not inside an italic span or similar)
+    const [title, supertitle] = getTitleSupertitleFromHeadingText(headingText)
+    const titleSpans = htmlToSpans(title)
+    const superTitleSpans = supertitle ? htmlToSpans(supertitle) : undefined
 
     if (!raw.value.level)
         return createError({
@@ -698,22 +702,10 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
                 "Header level property is outside the valid range between 1 and 6",
         })
 
-    const [title, supertitle] = getTitleSupertitleFromHeadingText(
-        headingSpans.texts[0].text
-    )
-
     return {
         type: "heading",
-        text: {
-            spanType: "span-simple-text",
-            text: title,
-        },
-        supertitle: supertitle
-            ? {
-                  spanType: "span-simple-text",
-                  text: supertitle,
-              }
-            : undefined,
+        text: titleSpans,
+        supertitle: superTitleSpans,
         level: level,
         parseErrors: [],
     }
