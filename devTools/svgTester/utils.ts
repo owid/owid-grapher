@@ -450,6 +450,7 @@ export interface RenderJobDescription {
     outDir: string
     verbose: boolean
     suffix?: string
+    rmOnError?: boolean
 }
 
 export async function renderAndVerifySvg({
@@ -459,6 +460,7 @@ export async function renderAndVerifySvg({
     outDir,
     verbose,
     suffix,
+    rmOnError,
 }: RenderJobDescription): Promise<VerifyResult> {
     try {
         if (!dir) throw "Dir was not defined"
@@ -490,7 +492,13 @@ export async function renderAndVerifySvg({
         }
         return Promise.resolve(validationResult)
     } catch (err) {
-        console.error(`Threw error for ${referenceEntry.chartId}: ${err}`)
+        console.error(`Threw error for ${referenceEntry.chartId}:`, err)
+        if (rmOnError) {
+            const outPath = path.join(outDir, referenceEntry.svgFilename)
+            await fs.unlink(outPath).catch(() => {
+                /* ignore ENOENT */
+            })
+        }
         return Promise.resolve(
             resultError(referenceEntry.chartId, err as Error)
         )
