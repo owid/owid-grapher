@@ -134,6 +134,7 @@ h3.article-block__heading.has-supertitle {
     padding-top: 48px;
     @include body-3-medium;
     border-top: 1px solid $blue-10;
+    color: $blue-60;
 
     h3 {
         @include h3-bold;
