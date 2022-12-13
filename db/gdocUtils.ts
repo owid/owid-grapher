@@ -325,10 +325,22 @@ function* rawBlockMissingDataToArchieMLString(): Generator<
     yield "{}"
 }
 
+function* rawBlockAdditionalChartsToArchieMLString(): Generator<
+    string,
+    void,
+    undefined
+> {
+    // todo?
+}
+
 function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
     const content = match(block)
+        .with(
+            { type: "additional-charts" },
+            rawBlockAdditionalChartsToArchieMLString
+        )
         .with({ type: "aside" }, rawBlockAsideToArchieMLString)
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)

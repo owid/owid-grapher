@@ -12,13 +12,14 @@ import {
     EnrichedBlockHtml,
     EnrichedBlockImage,
     EnrichedBlockList,
+    EnrichedBlockMissingData,
     EnrichedBlockProminentLink,
     EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
-    EnrichedBlockMissingData,
+    EnrichedBlockAdditionalCharts,
     EnrichedBlockSideBySideContainer,
     EnrichedBlockStickyLeftContainer,
     EnrichedBlockStickyRightContainer,
@@ -32,6 +33,7 @@ import {
     OwidRawArticleBlock,
     ParseError,
     partition,
+    RawBlockAdditionalCharts,
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
@@ -67,6 +69,7 @@ export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawArticleBlock
 ): OwidEnrichedArticleBlock | null {
     return match(block)
+        .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
         .with({ type: "chart" }, parseChart)
         .with({ type: "scroller" }, parseScroller)
@@ -113,6 +116,27 @@ export function parseRawBlocksToEnrichedBlocks(
             })
         )
         .exhaustive()
+}
+
+function parseAdditionalCharts(
+    raw: RawBlockAdditionalCharts
+): EnrichedBlockAdditionalCharts {
+    const createError = (error: ParseError): EnrichedBlockAdditionalCharts => ({
+        type: "additional-charts",
+        items: [],
+        parseErrors: [error],
+    })
+
+    if (!isArray(raw.value))
+        return createError({ message: "Value is not a list" })
+
+    const items = raw.value.map(htmlToSpans)
+
+    return {
+        type: "additional-charts",
+        items,
+        parseErrors: [],
+    }
 }
 
 const parseAside = (raw: RawBlockAside): EnrichedBlockAside => {
