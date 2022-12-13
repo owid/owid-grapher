@@ -3,7 +3,7 @@ import { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
 import { EnrichedBlockChart } from "@ourworldindata/utils"
 import { renderSpans } from "./utils"
-import { EXPLORERS_ROUTE_FOLDER } from "../../explorer/ExplorerConstants.js"
+import { Url } from "@ourworldindata/utils"
 import cx from "classnames"
 
 export default function Chart({
@@ -24,7 +24,7 @@ export default function Chart({
         }
     }
 
-    const isExplorer = d.url.includes(`/${EXPLORERS_ROUTE_FOLDER}/`)
+    const isExplorer = Url.fromURL(d.url).isExplorer
 
     return (
         <figure
