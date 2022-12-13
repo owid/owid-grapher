@@ -1384,21 +1384,26 @@ export class Grapher
         // "Countries Continent"
         const continentsVariableId = "123"
 
-        // "Population (historical estimates), Gapminder, HYDE & UN"
-        const populationVariableId = "525711"
+        const populationVariableIds = [
+            "525709", // "Population (historical + projections), Gapminder, HYDE & UN"
+            "525711", // "Population (historical estimates), Gapminder, HYDE & UN"
+        ]
 
         const columnSlugs = [...yColumnSlugs]
 
         if (xColumnSlug !== undefined) {
             // exclude population variable if its used as the x dimension in a marimekko
-            if (xColumnSlug != populationVariableId || !this.isMarimekko)
+            if (
+                !populationVariableIds.includes(xColumnSlug) ||
+                !this.isMarimekko
+            )
                 columnSlugs.push(xColumnSlug)
         }
 
         // exclude population variable if its used as the size dimension in a scatter plot
         if (
             sizeColumnSlug !== undefined &&
-            sizeColumnSlug != populationVariableId
+            !populationVariableIds.includes(sizeColumnSlug)
         )
             columnSlugs.push(sizeColumnSlug)
 
