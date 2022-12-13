@@ -1,0 +1,447 @@
+[
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "There have been five big mass extinctions in Earth's history – these are called the 'Big Five'. Understanding the reasons and timelines of these events is important to understand the speed and scale of species extinctions today."
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "When and why did these mass extinction events happen?"
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "heading",
+    "level": 3,
+    "text": {
+      "spanType": "span-simple-text",
+      "text": "What is a mass extinction?"
+    },
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "First, we need to be clear on what we mean by ‘mass extinction’. Extinctions are a normal part of evolution: they occur naturally and periodically over time.{ref}Jablonski D (1986) "
+      },
+      {
+        "spanType": "span-link",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Mass and background extinctions: the alternation of macroevolutionary regimes"
+          }
+        ],
+        "url": "https://science.sciencemag.org/content/231/4734/129.abstract?casa_token=EoFixpArJnsAAAAA:R4ejNN9Ccy8BjYWiJJMfWUToj6qJSJFQ8jWGiMsL_x2OoBRfsrBdze0p8n6kvYdps25LiL8hcRKwrcy9"
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ". "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Science"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": " 231:129–133{/ref} "
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "There’s a natural background rate to the timing and frequency of extinctions: 10% of species are lost every million years; 30% every 10 million years; and 65% every 100 million years.{ref}Raup DM (1991) "
+      },
+      {
+        "spanType": "span-link",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "A kill curve for Phanerozoic marine species"
+          }
+        ],
+        "url": "https://www.jstor.org/stable/2400988?casa_token=TqXeuHQvy4sAAAAA:gx18YNQDflE4PaS7Ipj9LGKadOiFL0MZzXbLJEkVQ-ASBEXXr58T-b0Y1uZoFeIoqxjNYCzYSH9qoblVQLfMccmJSU-FMr70W1L-bcgSF99Rxu-oDHxRqA"
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ". "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Paleobiology"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ". 17:37–48.{/ref} It would be wrong to assume that species going extinct is out of line with what we would expect. Evolution occurs through the balance of "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "extinction"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": " – the end of species – and "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "speciation"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": " – the creation of new ones."
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "Extinctions occur periodically at what we would call the ‘background rate’. We can therefore identify periods of history when extinctions were happening much faster than this background rate – this would tell us that there was an additional environmental or ecological pressure creating more extinctions than we would expect. "
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "But "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "mass extinctions"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": " are defined as periods with "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "much"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": " higher extinction rates than normal. They are defined by both magnitude and rate. Magnitude is the percentage of species that are lost. Rate is how quickly this happens. These metrics are inevitably linked, but we need both to qualify as a mass extinction."
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "In a mass extinction at least 75% of species go extinct within a relatively (by geological standard) short period of time.{ref}We can actually see a 75% reduction in species in two ways: high extinction rates, or very low speciation rates. If speciation – the creation of new species – slows down a lot, the extinction rate does not need to be as high as we would expect in order to deplete species numbers by 75%. These events are sometimes called ‘mass depletions’ but are treated in the same way as mass extinctions.{/ref} Typically less than two million years."
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "heading",
+    "level": 3,
+    "text": {
+      "spanType": "span-simple-text",
+      "text": "The ‘Big Five’ mass extinctions"
+    },
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "There have been five mass extinction events in Earth’s history. At least, since 500 million years ago; we know very little about extinction events in the Precambrian and early Cambrian earlier which predates this.{ref}Jenkins RJF (1989) The supposed terminal Precambrian extinction event in relation to the Cnideria. Memoirs of the Association of Australasian Paleonotologist 8:307–317.{/ref} These are called the ‘Big Five’, for obvious reasons."
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "In the chart we see the timing of events in Earth’s history.{ref}This data and detail comes from multiple sources:"
+      },
+      {
+        "spanType": "span-newline"
+      },
+      {
+        "spanType": "span-newline"
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": "Barnosky, A. D., Matzke, N., Tomiya, S., Wogan, G. O., Swartz, B., Quental, T. B., ... & Ferrer, E. A. (2011). "
+      },
+      {
+        "spanType": "span-link",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Has the Earth’s sixth mass extinction already arrived?"
+          }
+        ],
+        "url": "https://www.nature.com/articles/nature09678"
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ". "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Nature"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ", "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "471"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": "(7336), 51-57."
+      },
+      {
+        "spanType": "span-newline"
+      },
+      {
+        "spanType": "span-newline"
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": "McCallum, M. L. (2015). "
+      },
+      {
+        "spanType": "span-link",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Vertebrate biodiversity losses point to a sixth mass extinction"
+          }
+        ],
+        "url": "https://link.springer.com/article/10.1007/s10531-015-0940-6"
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ". "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Biodiversity and Conservation"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ", "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "24"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": "(10), 2497-2519."
+      },
+      {
+        "spanType": "span-newline"
+      },
+      {
+        "spanType": "span-newline"
+      },
+      {
+        "spanType": "span-link",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Howard Hughes Medical Institute"
+          }
+        ],
+        "url": "https://media.hhmi.org/biointeractive/click/extinctions/"
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ".{/ref} It shows the changing extinction rate (measured as the number of families that went extinct per million years). Again, note that this number was never zero: background rates of extinction were low – typically less than 5 families per million years – but ever-present through time."
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "We see the spikes in extinction rates marked as the five events:"
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "Finally, at the end of the timeline we have the question of what is to come. Perhaps we are headed for a sixth mass extinction. But we are currently far from that point. "
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "There are a range of trajectories that the extinction rate could take in the decades and centuries to follow; which one we follow is determined by us."
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "image",
+    "src": "https://owid.cloud/app/uploads/2021/03/Big-Five-Mass-Extinctions-800x511.png",
+    "caption": [],
+    "parseErrors": []
+  },
+  {
+    "type": "heading",
+    "level": 3,
+    "text": {
+      "spanType": "span-simple-text",
+      "text": "What caused the ‘Big Five’ mass extinctions?"
+    },
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "All of the ‘Big Five’ were caused by some combination of rapid and dramatic changes in climate, combined with significant changes in the composition of environments on land or in the ocean (such as ocean acidification or acid rain from intense volcanic activity)."
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "text",
+    "value": [
+      {
+        "spanType": "span-simple-text",
+        "text": "In the table here I detail the proposed causes for each of the five extinction events.{ref}Barnosky, A. D., Matzke, N., Tomiya, S., Wogan, G. O., Swartz, B., Quental, T. B., ... & Ferrer, E. A. (2011). "
+      },
+      {
+        "spanType": "span-link",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Has the Earth’s sixth mass extinction already arrived?"
+          }
+        ],
+        "url": "https://www.nature.com/articles/nature09678"
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ". "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "Nature"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": ", "
+      },
+      {
+        "spanType": "span-italic",
+        "children": [
+          {
+            "spanType": "span-simple-text",
+            "text": "471"
+          }
+        ]
+      },
+      {
+        "spanType": "span-simple-text",
+        "text": "(7336), 51-57.{/ref}"
+      }
+    ],
+    "parseErrors": []
+  },
+  {
+    "type": "image",
+    "src": "",
+    "caption": [],
+    "parseErrors": []
+  }
+]
