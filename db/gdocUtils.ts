@@ -696,7 +696,13 @@ export function htmlToSpans(html: string): Span[] {
     const $ = cheerio.load(html)
     const nodes = $("body").contents().toArray()
     const spans = compact(nodes.map(cheerioToSpan)) ?? []
-    return removeStylesOfLeadingTrackingNonwordSpans(spans)
+    // here we go through each top level span that we created and pull out the leading and trailing whitespace
+    // (either standalone simple-text spans or spans that contain leading whitespace if at the beginning or
+    // trailing whitespace if at the end). "Pull out" means that we convert these whitespace characters to a
+    // standalone simple-text span and remove the whitespace from the span that contained it.
+    return spans.flatMap((span) =>
+        removeStylesOfLeadingTrackingNonwordSpans([span])
+    )
 }
 
 // Sometimes Google automatically linkifies a URL.
