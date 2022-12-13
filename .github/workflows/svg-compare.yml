@@ -44,7 +44,7 @@ jobs:
               run: git branch ${{ env.PUSH_BRANCH_NAME }} && git checkout ${{ env.PUSH_BRANCH_NAME }}
 
             # Run the verify tool overwriting any svgs. Stdout is piped to compare-result which will be a 0 byte file if everything works or contain failed grapher ids otherwise
-            - name: Run tests & checks
+            - name: Generate SVGs and compare to reference
               id: run-verify-graphs
               continue-on-error: true
               env:
@@ -61,11 +61,20 @@ jobs:
                   push_options: "--force"
                   commit_message: Automated commit with svg differences triggered by commit https://github.com/owid/owid-grapher/commit/${{github.sha}}
 
+            # The action fails if there were any errors.
+            - name: Fail with error message if we had errors
+              if: ${{ steps.run-verify-graphs.outputs.num_errors > 0 }}
+              uses: actions/github-script@v6
+              with:
+                  script: |
+                      core.setFailed('Errors were thrown during checking! Please check diffs at https://github.com/owid/owid-grapher-svgs/commits/${{ env.PUSH_BRANCH_NAME }}')
+
             # We make the action fail if there were any differences and if we are on a branch other than master. On master
             # we do not want to fail because the differences on master are intended to be authorative and thus there is no
             # reason to mark this action as failed.
             - name: Fail with error message if we had differences
-              if: ${{ steps.run-verify-graphs.outcome == 'failure' && env.PUSH_BRANCH_NAME != 'master' }}
+              if: ${{ steps.run-verify-graphs.outputs.num_differences > 0 }}
+              continue-on-error: ${{ env.PUSH_BRANCH_NAME == 'master' }}
               uses: actions/github-script@v6
               with:
                   script: |
