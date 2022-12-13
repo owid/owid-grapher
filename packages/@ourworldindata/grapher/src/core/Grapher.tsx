@@ -951,7 +951,7 @@ export class Grapher
 
     @computed get shouldLinkToOwid(): boolean {
         if (
-            this.props.isEmbeddedInAnOwidPage ||
+            this.isEmbeddedInAnOwidPage ||
             this.isExportingtoSvgOrPng ||
             !this.isInIFrame
         )
@@ -1606,24 +1606,20 @@ export class Grapher
                 Bugsnag.getPlugin("react").createErrorBoundary(React)
         }
 
-        const setBoundsFromContainerAndRender = (): void => {
-            const props: GrapherProgrammaticInterface = {
-                ...config,
-                bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
-            }
-            ReactDOM.render(
-                <ErrorBoundary>
-                    <Grapher ref={grapherInstanceRef} {...props} />
-                </ErrorBoundary>,
-                containerNode
-            )
+        const bounds = Bounds.fromRect(containerNode.getBoundingClientRect())
+
+        const props: GrapherProgrammaticInterface = {
+            ...config,
+            bounds,
         }
 
-        setBoundsFromContainerAndRender()
-        window.addEventListener(
-            "resize",
-            debounce(setBoundsFromContainerAndRender, 400)
+        ReactDOM.render(
+            <ErrorBoundary>
+                <Grapher ref={grapherInstanceRef} {...props} />
+            </ErrorBoundary>,
+            containerNode
         )
+
         return grapherInstanceRef.current
     }
 
@@ -1650,6 +1646,10 @@ export class Grapher
 
     @computed get isMobile(): boolean {
         return isMobile()
+    }
+
+    @computed get isEmbeddedInAnOwidPage(): boolean {
+        return this.props.isEmbeddedInAnOwidPage || false
     }
 
     @computed private get bounds(): Bounds {
@@ -1682,14 +1682,10 @@ export class Grapher
         } = this
 
         // For these, defer to the bounds that is set externally
-        if (
-            this.props.isEmbeddedInAnOwidPage ||
-            this.props.manager ||
-            isInIFrame
-        )
+        if (this.isEmbeddedInAnOwidPage || this.props.manager || isInIFrame)
             return false
 
-        // If the user is using interactive version and then goes to export chart, use current bounds to maintain WSYIWYG
+        // If the user is using interactive version and then goes to export chart, use current bounds to maintain WYSIWYG
         if (isExportingtoSvgOrPng) return false
 
         // todo: can remove this if we drop old adminSite editor
@@ -2158,6 +2154,23 @@ export class Grapher
 
     componentDidMount(): void {
         window.addEventListener("scroll", this.checkVisibility)
+        window.addEventListener(
+            "resize",
+            debounce(() => {
+                if (
+                    this.containerElement &&
+                    this.containerElement.parentElement
+                ) {
+                    Grapher.renderGrapherIntoContainer(
+                        {
+                            ...this.toObject(),
+                            isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
+                        },
+                        this.containerElement.parentElement
+                    )
+                }
+            }, 200)
+        )
         this.setBaseFontSize()
         this.checkVisibility()
         exposeInstanceOnWindow(this, "grapher")
@@ -2318,7 +2331,6 @@ export class Grapher
         ).queryParams
     }
 
-    // Todo: move all Graphers to git. Upgrade the selection property; delete the entityId stuff, and remove this.
     @computed private get selectedEntitiesIfDifferentThanAuthors():
         | EntityName[]
         | undefined {

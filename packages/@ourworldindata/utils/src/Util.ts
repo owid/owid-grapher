@@ -62,6 +62,7 @@ import union from "lodash/union.js"
 import uniq from "lodash/uniq.js"
 import uniqBy from "lodash/uniqBy.js"
 import uniqWith from "lodash/uniqWith.js"
+import unset from "lodash/unset.js"
 import upperFirst from "lodash/upperFirst.js"
 import without from "lodash/without.js"
 import zip from "lodash/zip.js"
@@ -127,6 +128,7 @@ export {
     uniq,
     uniqBy,
     uniqWith,
+    unset,
     upperFirst,
     without,
     zip,

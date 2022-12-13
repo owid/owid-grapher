@@ -22,6 +22,7 @@ html,
 body {
     height: 100%;
     margin: 0;
+    font-size: 16px; // undo reboot.css
 }
 
 #app {
@@ -101,9 +102,7 @@ body {
 
         h3 {
             padding-bottom: 8px;
-            border-bottom: 1px solid #e1e4e8;
             margin-bottom: 16px;
-            font-size: 24px;
         }
 
         .card-footer {
