@@ -18,7 +18,8 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                             "span-quote",
                             "span-superscript",
                             "span-subscript",
-                            "span-underline"
+                            "span-underline",
+                            "span-ref"
                         ),
                     },
                     (span) => spansToUnformattedPlainText(span.children)

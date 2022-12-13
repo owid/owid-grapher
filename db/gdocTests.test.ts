@@ -3,10 +3,15 @@
 import {
     EnrichedBlockAdditionalCharts,
     RawBlockAdditionalCharts,
+    EnrichedBlockHeading,
     RawBlockHeading,
-} from "@ourworldindata/utils/dist/index.js"
+    Span,
+} from "@ourworldindata/utils"
 import { stringToArchieML } from "./gdocToArchieml.js"
-import { owidRawArticleBlockToArchieMLString } from "./gdocUtils.js"
+import {
+    owidRawArticleBlockToArchieMLString,
+    spansToHtmlString,
+} from "./gdocUtils.js"
 
 function getArchieMLDocWithContent(content: string): string {
     return `title: Writing OWID Articles With Google Docs
@@ -54,12 +59,15 @@ level: 2
         const doc = getArchieMLDocWithContent(archieMLString)
         const article = stringToArchieML(doc)
         expect(article?.body?.length).toBe(1)
-        const expectedEnrichedBlock = {
+        const expectedEnrichedBlock: EnrichedBlockHeading = {
             type: "heading",
-            text: {
-                spanType: "span-simple-text",
-                text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-            },
+            text: [
+                {
+                    spanType: "span-simple-text",
+                    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                },
+            ],
+            supertitle: undefined,
             level: 2,
             parseErrors: [],
         }
@@ -68,7 +76,7 @@ level: 2
         const expectedRawBlock: RawBlockHeading = {
             type: "heading",
             value: {
-                text: expectedEnrichedBlock.text.text,
+                text: spansToHtmlString(expectedEnrichedBlock.text),
                 level: expectedEnrichedBlock.level.toString(),
             },
         }
