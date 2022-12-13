@@ -285,5 +285,12 @@ unittest:
 
 svgtest: ../owid-grapher-svgs
 	@echo '==> Comparing against reference SVGs'
-	cd ../owid-grapher-svgs && git pull
+	
+	@# get ../owid-grapher-svgs reliably to a base state at origin/master
+	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master
+	
+	@# generate a full new set of svgs
 	node itsJustJavascript/devTools/svgTester/verify-graphs.js -i ../owid-grapher-svgs/configs -o ../owid-grapher-svgs/svg -r ../owid-grapher-svgs/svg
+	
+	@# summarize differences
+	cd ../owid-grapher-svgs && git diff --stat
