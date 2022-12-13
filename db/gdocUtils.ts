@@ -35,6 +35,7 @@ import {
     RawBlockStickyRightContainer,
     RawBlockText,
     RawBlockUrl,
+    RawBlockAdditionalCharts,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { partition, compact } from "lodash"
@@ -326,12 +327,15 @@ function* rawBlockMissingDataToArchieMLString(): Generator<
     yield "{}"
 }
 
-function* rawBlockAdditionalChartsToArchieMLString(): Generator<
-    string,
-    void,
-    undefined
-> {
-    // todo?
+function* rawBlockAdditionalChartsToArchieMLString(
+    block: RawBlockAdditionalCharts
+): Generator<string, void, undefined> {
+    yield "[.additional-charts]"
+    if (typeof block.value !== "string") {
+        for (const listItem of block.value)
+            yield* `- ${escapeRawText(listItem)}`
+    }
+    yield "[]"
 }
 
 function* owidRawArticleBlockToArchieMLStringGenerator(
