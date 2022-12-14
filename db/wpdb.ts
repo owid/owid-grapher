@@ -719,6 +719,8 @@ export const getBlogIndex = memoize(async (): Promise<IndexPost[]> => {
     const wordpressPostsCards = await Promise.all(
         wordpressPosts.map((post) => getFullPost(post, true))
     )
+
+    await db.getConnection() // side effect: ensure connection is established
     const listedGdocs = await Gdoc.getListedGdocs()
 
     return orderBy(
