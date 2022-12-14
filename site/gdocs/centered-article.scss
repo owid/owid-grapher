@@ -24,10 +24,9 @@ $banner-height: 200px;
 
 .centered-article-header {
     background: $white;
-    margin-top: 80px;
+    margin: 80px 0 24px;
     min-height: calc($banner-height - 80px);
-    padding-top: 2 * $vertical-spacing;
-    padding-bottom: 2 * $vertical-spacing;
+    padding-top: 48px;
 }
 
 .article-block__text {
@@ -78,7 +77,6 @@ h3.article-block__heading.has-supertitle {
 }
 
 .centered-article-header__title-container {
-    margin-top: 50px;
     .centered-article-header__supertitle {
         @include overline-black-caps;
         color: $blue-50;
@@ -99,7 +97,6 @@ h3.article-block__heading.has-supertitle {
 .centered-article-header__meta-container {
     border-bottom: 1px solid $blue-10;
     border-top: 1px solid $blue-10;
-    margin-bottom: 32px;
     padding: 32px 0;
     color: $blue-60;
     @include body-1-regular;
