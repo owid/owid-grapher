@@ -450,6 +450,7 @@ export interface RenderJobDescription {
     outDir: string
     verbose: boolean
     suffix?: string
+    rmOnError?: boolean
 }
 
 export async function renderAndVerifySvg({
@@ -459,6 +460,7 @@ export async function renderAndVerifySvg({
     outDir,
     verbose,
     suffix,
+    rmOnError,
 }: RenderJobDescription): Promise<VerifyResult> {
     try {
         if (!dir) throw "Dir was not defined"
@@ -490,7 +492,13 @@ export async function renderAndVerifySvg({
         }
         return Promise.resolve(validationResult)
     } catch (err) {
-        console.error(`Threw error for ${referenceEntry.chartId}: ${err}`)
+        console.error(`Threw error for ${referenceEntry.chartId}:`, err)
+        if (rmOnError) {
+            const outPath = path.join(outDir, referenceEntry.svgFilename)
+            await fs.unlink(outPath).catch(() => {
+                /* ignore ENOENT */
+            })
+        }
         return Promise.resolve(
             resultError(referenceEntry.chartId, err as Error)
         )
@@ -506,6 +514,15 @@ export async function prepareVerifyRun(
         inDir
     )
     return directoriesToProcess
+}
+
+// no-op when not running inside GH Actions
+const setGhActionsOutput = (key: string, value: string | number) => {
+    const outPath = process.env.GITHUB_OUTPUT
+    if (outPath && fs.existsSync(outPath)) {
+        // this is not bulletproof and expects both to not contain special characters
+        fs.appendFileSync(outPath, `${key}=${value}`)
+    }
 }
 
 export function displayVerifyResultsAndGetExitCode(
@@ -539,6 +556,7 @@ export function displayVerifyResultsAndGetExitCode(
             for (const result of errorResults) {
                 console.log(result.graphId?.toString(), result.error) // write to stdout one grapher id per file for easy piping to other processes
             }
+            setGhActionsOutput("num_errors", errorResults.length)
         }
         if (differenceResults.length) {
             console.warn(
@@ -551,6 +569,7 @@ export function displayVerifyResultsAndGetExitCode(
             for (const result of differenceResults) {
                 console.log("", result.difference.chartId) // write to stdout one grapher id per file for easy piping to other processes
             }
+            setGhActionsOutput("num_differences", differenceResults.length)
         }
         returnCode = errorResults.length + differenceResults.length
     }
