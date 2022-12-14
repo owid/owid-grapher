@@ -44,7 +44,7 @@ import {
     WPPostTypeToGraphDocumentType,
 } from "./contentGraph.js"
 import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
-import { Gdoc } from "./model/Gdoc.js"
+import { Gdoc } from "./model/Gdoc/Gdoc.js"
 
 let _knexInstance: Knex
 

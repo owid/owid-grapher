@@ -13,7 +13,7 @@ import {
     SpanSimpleText,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { cheerioToSpan } from "./gdocUtils.js"
+import { cheerioToSpan } from "./model/Gdoc/gdocUtils.js"
 
 // Note: all of this code is heavvy WIP - please ignore it for now
 
