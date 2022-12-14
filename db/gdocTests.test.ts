@@ -78,10 +78,14 @@ level: 2
         expect(serializedRawBlock).toEqual(archieMLString)
     })
 
-    it.only("can parse an additional charts block", () => {
+    it("can parse an additional charts block", () => {
+        const links = [
+            '<a href="https://ourworldindata.org/grapher/annual-number-of-births-by-world-region">Annual number of births</a>',
+            '<a href="https://ourworldindata.org/grapher/fish-catch-gear-type?stackMode=relative&country=~OWID_WRL">Fish catch by gear type</a>',
+        ]
         const archieMLString = `[.additional-charts]
-* I'm a chart link
-* I'm another one!
+* ${links[0]}
+* ${links[1]}
 []
 `
         const doc = getArchieMLDocWithContent(archieMLString)
@@ -92,24 +96,37 @@ level: 2
             items: [
                 [
                     {
-                        spanType: "span-simple-text",
-                        text: "I'm a chart link",
+                        url: "https://ourworldindata.org/grapher/annual-number-of-births-by-world-region",
+                        children: [
+                            {
+                                text: "Annual number of births",
+                                spanType: "span-simple-text",
+                            },
+                        ],
+                        spanType: "span-link",
                     },
                 ],
                 [
                     {
-                        spanType: "span-simple-text",
-                        text: "I'm another one!",
+                        url: "https://ourworldindata.org/grapher/fish-catch-gear-type?stackMode=relative&country=~OWID_WRL",
+                        children: [
+                            {
+                                text: "Fish catch by gear type",
+                                spanType: "span-simple-text",
+                            },
+                        ],
+                        spanType: "span-link",
                     },
                 ],
             ],
             parseErrors: [],
         }
+
         expect(article?.body && article?.body[0]).toEqual(expectedEnrichedBlock)
 
         const expectedRawBlock: RawBlockAdditionalCharts = {
             type: "additional-charts",
-            value: ["I'm a chart link", "I'm another one!"],
+            value: links,
         }
 
         const serializedRawBlock =
