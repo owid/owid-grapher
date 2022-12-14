@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate
+.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest
 
 help:
 	@echo 'Available commands:'
@@ -29,6 +29,7 @@ help:
 	@echo '  make refresh.meta  (while up) refresh grapher metadata only'
 	@echo '  make migrate       (while up) run any outstanding db migrations'
 	@echo '  make test          run full suite of CI checks including unit tests'
+	@echo '  make svgtest       compare current rendering against reference SVGs'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
 	@echo '  make up.full       start dev environment via docker-compose and tmux'
@@ -278,3 +279,18 @@ unittest:
 	@echo '==> Running tests'
 	yarn
 	yarn run jest --all
+
+../owid-grapher-svgs:
+	cd .. && git clone git@github.com:owid/owid-grapher-svgs
+
+svgtest: ../owid-grapher-svgs
+	@echo '==> Comparing against reference SVGs'
+	
+	@# get ../owid-grapher-svgs reliably to a base state at origin/master
+	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master
+	
+	@# generate a full new set of svgs
+	node itsJustJavascript/devTools/svgTester/verify-graphs.js -i ../owid-grapher-svgs/configs -o ../owid-grapher-svgs/svg -r ../owid-grapher-svgs/svg
+	
+	@# summarize differences
+	cd ../owid-grapher-svgs && git diff --stat
