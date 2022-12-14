@@ -1,516 +1,140 @@
-.owidArticle {
-    /* padding: 0 80px; */
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    @include grid(12);
-    grid-template-columns: calc((100vw - 1280px) / 2) repeat(12, 1fr) calc(
-            (100vw - 1280px) / 2
-        );
-    grid-template-rows: auto;
-    /* max-width: 1440px; */
-    margin: 0 auto;
-    background-color: #fff;
-    position: relative;
-}
-
-.owidArticle > h1,
-.owidArticle > h2,
-.owidArticle > div,
-.owidArticle p,
-.owidArticle > blockquote,
-.owidArticle > ul,
-.owidArticle > img {
-    grid-row: auto;
-    grid-column: 5 / span 6;
-    width: 100%;
-    max-width: 100%;
-    color: #1d3d63;
-    z-index: 1;
-}
-
-.owidArticle h2,
-.owidArticle h3 {
-    text-align: center;
-    .supertitle {
-        @include overline-black-caps;
-        display: block;
-        margin-bottom: 8px;
-        color: $blue-50;
+.centered-article-container {
+    .ref {
+        color: $vermillion;
+        text-decoration: none;
+        &:visited {
+            color: $vermillion;
+        }
     }
 }
 
-.owidArticle h2 {
-    @include h1-semibold;
-    margin-top: 48px;
-    margin-bottom: 24px;
+$banner-height: 200px;
+.article-banner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: $banner-height;
+    background: #f7c020;
+    z-index: -1;
+}
+
+.article-summary {
+    margin-bottom: 32px;
+}
+
+.centered-article-header {
+    background: $white;
+    margin: 80px 0 24px;
+    min-height: calc($banner-height - 80px);
     padding-top: 48px;
-    border-top: 1px solid $blue-20; // this border doesn't go all the way to the edge.
 }
 
-.owidArticle h3 {
-    @include h2-bold;
-    margin-top: 64px;
-    margin-bottom: 32px;
-}
-
-.owidArticle > figure {
-    grid-row: auto;
-    grid-column: 4 / span 8;
-    width: 100%;
-    max-width: 100%;
-    margin-bottom: 32px;
-}
-
-.owidArticle > figure.inline {
-    grid-column: 5 / span 6;
-}
-.owidArticle > figure.full {
-    grid-column: 2 / span 12;
-}
-
-.owidArticle > .aside-text {
-    grid-column: 11 / span 3;
-}
-.owidArticle > .aside-text.left {
-    grid-column: 1 / span 3;
-    text-align: right;
-}
-
-.owidArticle > .aside-text figcaption {
-    border-left: solid 1px #dbe5f0;
-    padding-left: 1em;
-    font-size: 14px;
-    line-height: 21px;
-    letter-spacing: 1%;
-    font-style: italic;
-}
-.owidArticle > .aside-text.left figcaption {
-    border-right: solid 1px #dbe5f0;
-    border-left: none;
-    padding-right: 1em;
-    padding-left: none;
-}
-
-.owidArticle p {
+.article-block__text {
     margin-top: 0;
-    margin-bottom: 32px;
-    /* font-weight: 400; */
 }
 
-.owidArticle > blockquote {
-    border-top: solid 1px #dbe5f0;
-    border-bottom: solid 1px #dbe5f0;
-    margin: 32px 0;
-    text-align: center;
-    padding: 32px 0;
-    font-family: "Playfair Display", serif;
-    font-size: 32px;
-    line-height: 40px;
-    font-style: italic;
-    font-weight: 700;
-}
-
-.owidArticle > ul {
-    margin-bottom: 32px;
-}
-
-.owidArticle .articlePage {
-    position: absolute;
-    grid-row: 1 / -1;
-    grid-column: 4 / span 8;
-    background-color: #fff;
-    width: 100%;
-    top: $article-page-top-offset;
-    bottom: 0;
-    z-index: 0;
-    height: $article-cover-height - $article-page-top-offset;
-}
-
-.owidArticle .articleCover {
-    position: absolute;
-    height: $article-cover-height;
-    background-color: #f7c020;
-    top: 0;
-    grid-row: 1 / -1;
-    grid-column: 1 / span 14;
-    z-index: 0;
-}
-
-.owidArticle .titling {
-    margin-top: 52px + $article-page-top-offset;
-
-    .supertitle {
-        @include overline-black-caps;
-        text-align: center;
-        display: block;
+h2.article-block__heading.has-supertitle {
+    margin-top: 24px;
+    .article-block__heading-supertitle {
+        color: $blue-50;
         margin-bottom: 8px;
+    }
+
+    // Center the next three subsequent paragraphs 🥴
+    + .article-block__text {
+        text-align: center;
+        + .article-block__text {
+            text-align: center;
+            + .article-block__text {
+                text-align: center;
+            }
+        }
+    }
+}
+
+.centered-article-container > .article-block__divider {
+    border-top: 1px solid $blue-20;
+    margin: 48px 0;
+}
+
+// Don't show the divider directly after the ToC
+.article-block__sdg-toc + .article-block__divider {
+    border: none;
+    margin: 0;
+}
+
+h3.article-block__heading.has-supertitle {
+    margin-bottom: 24px;
+
+    .article-block__heading-supertitle {
+        color: $blue-50;
+        margin-bottom: 8px;
+    }
+
+    + * {
+        margin-top: 0;
+    }
+}
+
+.centered-article-header__title-container {
+    .centered-article-header__supertitle {
+        @include overline-black-caps;
         color: $blue-50;
     }
-    .title {
-        margin: 0;
-        line-height: 48px;
-        font-size: 40px;
-        max-width: 100%;
-        font-weight: 600;
-        letter-spacing: -1%;
-        margin-bottom: 24px;
-        text-align: center;
-    }
 
-    .subtitle {
-        margin: 0;
-        margin-bottom: 0.5em;
-        line-height: 32px;
-        letter-spacing: 0;
-        font-size: 24px;
-        font-weight: 500;
-        font-family: "Lato", sans-serif;
-        color: #6e87a2;
-        text-align: center;
-        margin-bottom: 32px;
+    .centered-article-header__title {
+        @include display-2-semibold;
+        margin-top: 0;
+        color: $blue-90;
     }
 }
 
-.owidArticle .bylineContainer .dateline {
-    margin-bottom: 0;
+.centered-article-header__subtitle {
+    @include subtitle-1;
+    color: $blue-50;
 }
 
-.owidArticle .meta {
-    display: flex;
-    margin-bottom: 24px;
-    padding: 24px 0;
-    text-align: center;
-    border-top: solid 1px $blue-10;
-    border-bottom: solid 1px $blue-10;
+.centered-article-header__meta-container {
+    border-bottom: 1px solid $blue-10;
+    border-top: 1px solid $blue-10;
+    padding: 32px 0;
     color: $blue-60;
-    text-underline-offset: 5px;
-
-    > div {
-        width: 50%;
-        padding: 0 16px;
-
-        &:first-child {
-            border-right: 1px solid $blue-10;
-        }
-
-        > div:first-child {
-            margin-bottom: 8px;
-        }
-    }
+    @include body-1-regular;
 
     a {
+        text-underline-offset: 5px;
+        margin-bottom: 8px;
         @include owid-link-60;
-        text-decoration-thickness: 1px;
+        &:visited {
+            color: $blue-60;
+        }
+    }
+
+    .centered-article-header__byline,
+    .centered-article-header__dateline {
+        margin-bottom: 8px;
     }
 
     svg {
-        margin-right: 0.5em;
+        margin-right: 8px;
+    }
+
+    @include sm-up {
+        > div:first-child {
+            border-right: 1px solid $blue-10;
+        }
     }
 }
 
-.owidArticle details.summary {
-    margin-bottom: 32px;
-}
-
-.owidArticle .fixedSection {
-    display: contents;
-    position: relative;
-
-    @include grid(12);
-    grid-template-rows: auto;
-    grid-column: 2 / -2;
-    margin-bottom: 32px;
-}
-
-.owidArticle .fixedSection .fixedSectionContent {
-    grid-row: 1 / auto;
-    grid-column: 1 / span 6;
-
-    h3 {
-        text-align: left;
-    }
-}
-.owidArticle .fixedSection .fixedSectionGraphic {
-    grid-row: 1 / auto;
-    grid-column: 7 / span 6;
-    position: sticky;
-    top: 0;
-    align-self: start;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.owidArticle .fixedSection.left .fixedSectionContent {
-    grid-column: 7 / span 6;
-}
-.owidArticle .fixedSection.left .fixedSectionGraphic {
-    grid-column: 1 / span 6;
-}
-
-.owidArticle img:not(.img-raw) {
-    display: block;
-    max-width: 100%;
-    max-height: 90vh;
-    margin: 0 auto 1em auto;
-    cursor: pointer;
-    border-radius: 2px;
-    padding: 1em;
-    box-shadow: 0 0 2px 0 rgb(0 0 0 / 10%), 0 2px 2px 0 rgb(0 0 0 / 25%);
-}
-
-.owidArticle h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: 0;
-    font-weight: 600;
-    color: #1d3d63;
-    font-family: "Playfair Display", serif;
-}
-
-.owidArticle .chartStory {
-    grid-column: 1 / -1;
-    background: #f7f7f7;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    grid-template-rows: auto;
-    padding: 0 80px;
-    row-gap: 1em;
-    column-gap: 1em;
-    padding-bottom: 1em;
-}
-
-.owidArticle .chartStory .chart-story--nav-back {
-    grid-row: 2 / span 1;
-    grid-column: 3 / span 1;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    /* margin-top: 1em; */
-    color: #999;
-}
-.owidArticle .chartStory .chart-story--nav-next {
-    grid-row: 2 / span 1;
-    grid-column: 10 / span 1;
-    text-align: right;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    /* margin-top: 1em; */
-    color: #999;
-}
-.owidArticle .chartStory .chart-story--narrative-text {
-    grid-row: 2 / span 1;
-    grid-column: 5 / span 4;
-    text-align: center;
-    margin-top: 0.5em;
-    font-size: 18px;
-    font-family: "Playfair Display", serif;
-    font-size: 18px;
-    line-height: 24px;
-    font-weight: 700;
-    color: #1d3d63;
-    align-self: center;
-}
-.owidArticle .chartStory .chart-story--chart {
-    grid-row: 3 / span 1;
-    grid-column: 3 / span 8;
-    text-align: center;
-    margin-bottom: 1em;
-    margin-top: 0;
-}
-.owidArticle .chartStory .chart-story--technical-text {
-    grid-row: 4 / span 1;
-    grid-column: 3 / span 5;
-    text-align: left;
-    cursor: pointer;
-    /* display: flex;
-    flex-direction: column;
-    align-items: flex-start; */
-    margin-left: 1em;
-    /* margin-bottom: 0.5em; */
-    margin-bottom: 0.5em;
-}
-.owidArticle .chartStory .chart-story--share {
-    grid-row: 3 / span 1;
-    grid-column: 5 / span 2;
-    text-align: right;
-    cursor: pointer;
-    /* display: flex;
-    flex-direction: column;
-    /* align-items: flex-start; */
-    margin-right: 1em;
-    /* margin-bottom: 0.5em; */
-    margin-bottom: 0.5em;
-}
-.owidArticle .chartStory .chart-story--nav-hud {
-    grid-row: 1 / span 1;
-    grid-column: 4 / span 6;
-    text-align: center;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    /* margin-bottom: 0.5em; */
-    text-transform: uppercase;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 16px;
-    letter-spacing: 10%;
-    color: #6e87a2;
-    /* margin-top: 1em; */
-    position: relative;
-    top: 2em;
-}
-
-.owidArticle .chartStory .chart-story--nav-hud > div {
-    transition: all 1s;
-}
-
-.owidArticle .chartStory .chart-story--technical-details {
-    grid-row: 4 / span 1;
-    grid-column: 5 / span 5;
-    /* padding: 1em 2em; */
-    /* background: #efefef; */
-    font-size: 14px;
-    color: #ddd;
-    font-size: 14px;
-    line-height: 21px;
-    letter-spacing: 1%;
-    color: #1d3d63;
-}
-
-.owidArticle .chartStory .chart-story--about-data {
-    text-transform: uppercase;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 16px;
-    letter-spacing: 10%;
-    color: #6e87a2;
-}
-
-.owidArticle .recirc {
-    grid-column: 11 / span 3;
-    grid-row: auto / span 3;
-}
-
-.owidArticle .recirc .recircContent {
-    background-color: #f7f7f7;
-    padding: 1em;
-}
-
-.blackCaps {
-    font-size: 12px;
-    font-family: "Lato", sans-serif;
-    line-height: 16px;
-    letter-spacing: 10%;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-.recircContent .blackCaps {
-    color: #98a9bd;
-}
-.recircArticle {
-    font-size: 16px;
-    font-family: "Playfair Display", serif;
-    line-height: 24px;
-    letter-spacing: 10%;
-    font-weight: 600;
-}
-.recircArticle:hover {
-    /* text-decoration: underline; */
-    color: #bf1b1b;
-}
-.recircByline {
-    font-size: 14px;
-    font-family: "Lato", sans-serif;
-    line-height: 21px;
-    letter-spacing: 1%;
-    font-weight: 500;
-    font-style: italic;
-    color: #6e87a2;
-    margin-top: 0.5em;
-}
-.recircArticleContainer {
-    padding: 1em 0;
-}
-.recircArticleContainer:not(:last-of-type) {
-    border-bottom: solid 1px #ebeef2;
-}
-
-.owidArticle .chartStory .chart-story--technical-details li {
-    margin-bottom: 1em;
-}
-
-.owidArticle .stickySection {
-    @include grid(12);
-    grid-column: 2 / -2;
-    grid-template-rows: auto;
-    /* height: 100vh; */
-    position: relative;
-}
-
-.owidArticle .stickyFigure {
-    position: sticky;
-    grid-row: auto;
-    grid-column: 7 / span 6;
-    top: calc((100vh - 550px) / 2);
-}
-
-.owidArticle .stickyContent {
-    grid-row: auto;
-    grid-column: 1 / span 6;
-    /* position: relative; */
-}
-
-.owidArticle .stickyContent p {
-    height: 50vh;
-    margin: 200px 0;
-}
-
-.footnoteContainer {
-    background-color: #fbf9f3;
-    grid-column: 1 / -1;
-    padding: 1em 0;
-    grid-template-columns: repeat(12, 1fr);
-    display: grid;
-}
-.footnotes {
-    grid-column: 3 / span 8;
-    grid-template-columns: repeat(2, 1fr);
-    font-family: Lato;
-    font-weight: 500;
-    line-height: 21px;
-    font-size: 14px;
-    letter-spacing: 1%;
-    color: #577291;
-    display: grid;
-    gap: 2em;
-}
-.footnoteContainer h2 {
-    grid-column: 1 / -1;
-    text-align: center;
-    text-transform: uppercase;
-}
-.footnotes .footnote:nth-of-type(2n + 1) {
-    grid-column: 1 / span 1;
-}
-.footnotes .footnote:nth-of-type(2n) {
-    grid-column: 2 / span 1;
-}
-
-.owidArticle #citation,
-.owidArticle #licence {
-    grid-column: 4 / span 8;
+.footnote-container,
+#article-citation,
+#article-licence {
     margin-top: 48px;
     padding-top: 48px;
     @include body-3-medium;
     border-top: 1px solid $blue-10;
+    color: $blue-60;
+    width: 100%;
 
     h3 {
         @include h3-bold;
@@ -520,10 +144,11 @@
 
     a {
         @include owid-link-60;
+        color: inherit;
     }
 }
 
-.owidArticle #citation {
+#article-citation {
     h3 {
         margin-top: 0;
     }
@@ -535,163 +160,259 @@
     }
 }
 
-.owidArticle #licence {
+#article-licence {
     text-align: center;
-    margin-bottom: 16px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
+    margin-bottom: 34px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
 }
 
-@media only screen and (max-width: 1280px) {
-    .owidArticle {
-        grid-template-columns: repeat(12, 1fr);
-    }
-    .owidArticle > h1,
-    .owidArticle > h2,
-    .owidArticle > div,
-    .owidArticle p,
-    .owidArticle > blockquote {
-        grid-column: 4 / span 6;
-    }
+.article-block__text,
+.article-block__list,
+.article-block__html {
+    @include body-2-regular;
 
-    .owidArticle .articlePage {
-        grid-row: 1 / -1;
-        grid-column: 3 / span 8;
+    .span-link {
+        @include owid-link-60;
+        color: inherit;
     }
+}
 
-    .owidArticle > .aside-text {
-        grid-column: 4 / span 6;
+.article-block__aside-right figcaption {
+    border-left: 1px solid $blue-20;
+    padding-left: 24px;
+
+    @include md-down {
+        border: 1px solid $blue-20;
+        padding: 24px;
+    }
+}
+
+.article-block__aside-left figcaption {
+    border-right: 1px solid $blue-20;
+    padding-right: 24px;
+    text-align: right;
+
+    // Same as aside-right when in a single-column mobile view
+    @include md-down {
+        border: 1px solid $blue-20;
+        padding: 24px;
         text-align: left;
     }
-    .owidArticle > .aside-text.left {
-        grid-column: 4 / span 6;
-        text-align: left;
-    }
-    .owidArticle > .aside-text.left figcaption {
-        border-left: solid 1px #dbe5f0;
-        border-right: none;
-    }
-    .owidArticle > .aside-text.right figcaption {
-        border-right: none;
-        border-left: solid 1px #dbe5f0;
+}
+
+.article-block__pull-quote {
+    @include h1-bold-italic;
+    border-bottom: 1px solid #dbe5f0;
+    border-top: 1px solid #dbe5f0;
+    margin: 32px 0;
+    padding: 32px 0;
+    text-align: center;
+}
+
+.article-block__recirc {
+    margin-bottom: 24px;
+
+    .recirc-content {
+        background: $gray-10;
+        padding: 24px;
     }
 
-    .owidArticle > figure {
-        grid-column: 4 / span 6;
+    .recirc-content__heading {
+        color: $blue-40;
     }
 
-    .owidArticle .chartStory {
-        padding: 0;
+    h3 {
+        margin-top: 0;
+        a {
+            color: $blue-90;
+        }
     }
 
-    .owidArticle .chartStory .chart-story--nav-back {
-        grid-row: 2 / span 1;
-        grid-column: 1 / span 1;
-        margin-left: 0.5em;
-    }
-    .owidArticle .chartStory .chart-story--nav-next {
-        grid-row: 2 / span 1;
-        grid-column: 12 / span 1;
-        margin-right: 0.5em;
-    }
-    .owidArticle .chartStory .chart-story--narrative-text {
-        grid-row: 2 / span 1;
-        grid-column: 3 / span 8;
-    }
-    .owidArticle .chartStory .chart-story--chart {
-        grid-row: 3 / span 1;
-        grid-column: 1 / span 12;
-    }
-    .owidArticle .chartStory .chart-story--technical-text {
-        grid-row: 4 / span 1;
-        grid-column: 1 / span 10;
-    }
-    .owidArticle .chartStory .chart-story--nav-hud {
-        margin-bottom: 1em;
-    }
-    .owidArticle .chartStory .chart-story--technical-details {
-        grid-row: 5 / span 1;
-        grid-column: 2 / span 10;
-    }
-    .owidArticle .recirc {
-        grid-column: 4 / span 6;
-        margin-bottom: 1em;
+    .recirc-article-container {
+        padding: 24px 0;
+        &:not(:last-child) {
+            border-bottom: 1px solid $blue-10;
+        }
     }
 }
 
-@media only screen and (max-width: 1000px) {
-    .owidArticle {
-        grid-template-columns: 0 repeat(10, 1fr) 0;
-    }
-}
-@media only screen and (max-width: 900px) {
-    .owidArticle {
-        grid-template-columns: 0 0 repeat(10, 1fr) 0 0;
-        column-gap: 12px;
-    }
-    .owidArticle > h1,
-    .owidArticle > h2,
-    .owidArticle > div,
-    .owidArticle p,
-    .owidArticle > blockquote {
-        grid-column: 3 / span 10;
-    }
+.article-block__chart {
+    // necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
+    width: 100%;
+    margin: 0;
 
-    .owidArticle .fixedSection .fixedSectionContent,
-    .owidArticle .fixedSection.left .fixedSectionContent {
-        grid-row: 2 / auto;
-        grid-column: 1 / span 12;
-    }
-    .owidArticle .fixedSection .fixedSectionGraphic,
-    .owidArticle .fixedSection.left .fixedSectionGraphic {
-        grid-row: 1 / auto;
-        grid-column: 1 / span 12;
-        position: static;
-        height: auto;
-    }
-
-    .owidArticle > figure {
-        grid-column: 2 / span 12;
+    figure {
         margin: 0;
     }
-    .owidArticle > .aside-text {
-        grid-column: 3 / span 9;
-        text-align: left;
+
+    .GrapherComponent {
+        display: block;
+        margin: 0 auto;
     }
-    .owidArticle > .aside-text.left {
-        grid-column: 3 / span 9;
-        text-align: left;
-    }
-    .owidArticle .articlePage {
-        grid-row: 1 / -1;
-        grid-column: 2 / span 12;
+}
+
+.article-block__chart-story {
+    .chart-story__nav-arrow {
+        display: flex;
+        align-items: center;
+        background: none;
+        border: none;
+
+        &:disabled {
+            cursor: default;
+            svg {
+                color: $blue-40;
+            }
+        }
     }
 
-    .owidArticle .recirc {
-        grid-column: 3 / span 10;
+    .chart-story__nav-arrow--left {
+        justify-content: flex-start;
+        svg {
+            margin-left: 4px;
+        }
     }
 
-    .owidArticle img {
-        grid-column: 3 / span 10;
+    .chart-story__nav-arrow--right {
+        justify-content: flex-end;
+        svg {
+            margin-right: 8px;
+        }
     }
 
-    .owidArticle .stickyFigure {
-        position: sticky;
-        grid-row: auto;
-        grid-column: 1 / span 12;
-        top: calc((100vh - 550px) / 2);
+    .chart-story__chart {
+        margin-top: 32px 0;
+        // necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
+        width: 100%;
+        > figure {
+            margin: 0;
+            width: 100%;
+            > figure {
+                margin: 0;
+            }
+        }
     }
 
-    .owidArticle .stickyContent {
-        grid-row: auto;
-        grid-column: 1 / span 12;
-        /* position: relative; */
-        z-index: 99;
+    .chart-story__technical-text {
+        margin-bottom: 16px;
     }
 
-    .owidArticle .stickyContent p {
-        background-color: #fff;
-        height: auto;
-        margin-bottom: 50vh;
-        padding: 0.5em;
-        border: solid 1px #efefef;
+    .chart-story__technical-details {
+        margin-bottom: 24px;
+        li {
+            margin-bottom: 12px;
+        }
+    }
+}
+
+.sticky-column-wrapper {
+    top: 32px;
+    position: sticky;
+}
+
+.article-block__scroller {
+    margin-bottom: 32px;
+    position: relative;
+
+    @include sm-up {
+        .scroller__paragraph {
+            height: 50vh;
+            margin: 200px 0;
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+        .scroller__chart {
+            position: sticky;
+            top: calc((100vh - 550px) / 2);
+        }
+    }
+
+    @include sm-only {
+        .scroller__paragraph-container {
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .scroller__chart-container {
+            position: sticky;
+            bottom: 0;
+            z-index: 0;
+        }
+
+        .GrapherComponent {
+            box-shadow: none;
+        }
+
+        .scroller__paragraph-intersection-wrapper {
+            height: 100vh;
+        }
+
+        .scroller__paragraph {
+            @include body-2-regular;
+            background: white;
+            padding: 8px;
+            outline: 1px solid $gray-10;
+            pointer-events: all;
+        }
+    }
+}
+
+.article-block__grey-section {
+    background-color: $gray-10;
+    padding: 48px 0;
+    margin: 32px 0;
+
+    > *:first-child {
+        margin-top: 0;
+    }
+
+    > *:last-child {
+        margin-bottom: 0;
+    }
+
+    // don't add the special heading formatting if we're inside a grey section
+    .article-block__heading.has-supertitle {
+        border: none;
+        padding-top: 0;
+    }
+}
+
+.article-block__sticky-right,
+.article-block__sticky-left,
+.article-block__side-by-side {
+    margin: 48px 0;
+}
+
+.article-block__prominent-link {
+    color: $blue-90;
+    margin-bottom: 24px;
+
+    > .prominent-link__image {
+        background-color: $gray-10;
+        height: 100%;
+        width: 100%;
+    }
+
+    h3 {
+        display: inline-block;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    svg {
+        color: $blue-90;
+        margin-left: 8px;
+        transition: 150ms;
+    }
+
+    a:hover svg {
+        transform: translateX(0.125em);
+    }
+
+    + .article-block__prominent-link {
+        padding-top: 24px;
+        border-top: 1px solid $blue-10;
     }
 }
