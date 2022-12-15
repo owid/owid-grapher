@@ -1,6 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { EnrichedBlockHeading, RawBlockHeading } from "@ourworldindata/utils"
+import {
+    EnrichedBlockHeading,
+    RawBlockHeading,
+    Span,
+} from "@ourworldindata/utils"
 import { stringToArchieML } from "./gdocToArchieml.js"
 import {
     owidRawArticleBlockToArchieMLString,
