@@ -1392,7 +1392,7 @@ export class Grapher
         const columnSlugs = [...yColumnSlugs]
 
         if (xColumnSlug !== undefined) {
-            // exclude population variable if its used as the x dimension in a marimekko
+            // exclude population variable if it's used as the x dimension in a marimekko
             if (
                 !populationVariableIds.includes(xColumnSlug) ||
                 !this.isMarimekko
@@ -1400,14 +1400,14 @@ export class Grapher
                 columnSlugs.push(xColumnSlug)
         }
 
-        // exclude population variable if its used as the size dimension in a scatter plot
+        // exclude population variable if it's used as the size dimension in a scatter plot
         if (
             sizeColumnSlug !== undefined &&
             !populationVariableIds.includes(sizeColumnSlug)
         )
             columnSlugs.push(sizeColumnSlug)
 
-        // exclude "Countries Continent" if its used as the color dimension in a scatter plot, slope chart etc.
+        // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
         if (
             colorColumnSlug !== undefined &&
             colorColumnSlug != continentsVariableId
