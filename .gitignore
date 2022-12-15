@@ -4,6 +4,9 @@ logs/
 .idea/
 db.sqlite3
 .sublime*
+.yarn/*
+!.yarn/patches
+!.yarn/releases
 yarn-error.log
 .vscode/tags
 .awcache
