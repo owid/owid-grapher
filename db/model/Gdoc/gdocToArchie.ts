@@ -71,11 +71,7 @@ export async function gdocToArchie(
                     const prefix = needsBullet && isFirstValue ? "* " : ""
 
                     // concat the text
-                    const parsedParagraph = await parseParagraph(
-                        value
-                        // document,
-                        // imageHandler
-                    )
+                    const parsedParagraph = await parseParagraph(value)
                     const fragmentText = match(parsedParagraph)
                         .with(
                             { type: P.union("image", "horizontal-rule") },
@@ -105,8 +101,6 @@ async function parseParagraph(
     // sometimes it's not there, skip this all if so
     if (textRun) {
         // sometimes the content isn't there, and if so, make it an empty string
-        // console.log(element);
-
         const content = textRun.content || ""
 
         let span: Span = { spanType: "span-simple-text", text: content }
@@ -121,7 +115,6 @@ async function parseParagraph(
                 children: [span],
             }
 
-        // console.log(textRun);
         if (textRun.textStyle.italic) {
             span = { spanType: "span-italic", children: [span] }
         }

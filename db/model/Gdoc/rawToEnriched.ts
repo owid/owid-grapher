@@ -57,11 +57,13 @@ import {
 } from "@ourworldindata/utils"
 import {
     extractPlaintextUrl,
+    getTitleSupertitleFromHeadingText,
+} from "./gdocUtils.js"
+import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
     htmlToSpans,
-    getTitleSupertitleFromHeadingText,
-} from "./gdocUtils.js"
+} from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
 

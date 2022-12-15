@@ -63,7 +63,10 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     async getEnrichedArticle(): Promise<void> {
-        const client = Gdoc.getGoogleClient()
+        const client = google.docs({
+            version: "v1",
+            auth: Gdoc.getGoogleAuth(),
+        })
 
         // Retrieve raw data from Google
         const { data } = await client.documents.get({

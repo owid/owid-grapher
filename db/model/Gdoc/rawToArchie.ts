@@ -24,8 +24,11 @@ import {
     RawBlockAdditionalCharts,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { partition, compact } from "lodash"
-import { appendDotEndIfMultiline } from "./gdocUtils.js"
+
+function appendDotEndIfMultiline(line: string): string {
+    if (line.includes("\n")) return line + "\n.end"
+    return line
+}
 
 function keyValueToArchieMlString(
     key: string,

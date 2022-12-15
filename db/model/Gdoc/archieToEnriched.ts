@@ -14,11 +14,11 @@ import {
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { isObject } from "lodash"
+import { getTitleSupertitleFromHeadingText } from "./gdocUtils"
 import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
-    getTitleSupertitleFromHeadingText,
-} from "./gdocUtils"
+} from "./htmlToEnriched.js"
 
 export const archieToEnriched = (text: string): OwidArticleContent => {
     const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
