@@ -167,6 +167,7 @@
         "netlify-cli": "^12.0.7",
         "node-fetch": "^2.6.7",
         "normalize.css": "^8.0.1",
+        "nx": "15.3.0",
         "p-map": "^4.0.0",
         "papaparse": "^5.3.1",
         "parsimmon": "^1.18.1",
