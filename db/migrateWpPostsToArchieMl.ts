@@ -64,6 +64,7 @@ type ErrorNames =
     | "unexpected elements in p"
     | "unexpected elements in list item"
     | "ul without children"
+    | "columns item needs to have 2 children"
 interface ArchieMlTransformationError {
     name: ErrorNames
 
@@ -145,6 +146,67 @@ function getSimpleTextSpansFromChildren(
     return {
         errors: errors,
         content: simpleSpans,
+    }
+}
+
+interface CheerioSequenceParser {
+    result: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
+    remainingNodes: CheerioElement[]
+}
+
+function cheerioListToArchieML(
+    nodes: CheerioElement[],
+    stopAtComment: string,
+    $: CheerioStatic
+): CheerioSequenceParser {
+    let remainingNodes = [...nodes]
+    const items: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] = []
+    while (remainingNodes.length > 0) {
+        const currentNode = remainingNodes[0]
+
+        if (currentNode.type === "comment") {
+            if (remainingNodes[0].data?.trim().startsWith(stopAtComment))
+                return {
+                    result: joinArchieMLTransformationResults(items),
+                    remainingNodes: remainingNodes.slice(1),
+                }
+            if (currentNode.data?.trim().startsWith("wp:columns")) {
+                const content = cheerioListToArchieML(
+                    remainingNodes.slice(1),
+                    "/wp:columns",
+                    $
+                )
+                const errors: ArchieMlTransformationError[] =
+                    content.result.content.length !== 2
+                        ? [
+                              {
+                                  name: "columns item needs to have 2 children" as const,
+                                  details: `Got ${content.result.content.length} children inside a columns structure`,
+                              },
+                          ]
+                        : []
+
+                items.push({
+                    content: [
+                        {
+                            type: "sticky-right",
+                            left: content.result.content[0],
+                            right: content.result.content[1],
+                        },
+                    ],
+                    errors,
+                })
+                remainingNodes = content.remainingNodes
+            }
+        } else {
+            const currentNodeConverted = cheerioToArchieML(currentNode, $)
+            items.push(currentNodeConverted)
+            remainingNodes = remainingNodes.slice(1)
+        }
+    }
+    return {
+        result: joinArchieMLTransformationResults(items),
+        remainingNodes: [],
     }
 }
 
@@ -492,16 +554,14 @@ const migrate = async (): Promise<void> => {
         "content",
         "published_at",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable))
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "54652"))
 
     // const tagCounts = new Map<string, number>()
 
     for (const post of posts) {
         const $: CheerioStatic = cheerio.load(post.content)
-        const archieMlBodyElements = $("body")
-            .contents()
-            .toArray()
-            .flatMap((elem) => cheerioToArchieML(elem, $))
+        const bodyContents = $("body").contents().toArray()
+        const archieMlBodyElements = cheerioListToArchieML(bodyContents, $)
             .map((block) => ({
                 ...block,
                 content: block.content.filter(
@@ -516,7 +576,7 @@ const migrate = async (): Promise<void> => {
                 ),
             }))
             .filter(
-                (block) => block.content.length > 0 && block.errors.length === 0
+                (block) => block.content.length > 0 || block.errors.length > 0
             )
         const archieMlBlocks = archieMlBodyElements.flatMap(
             (block) => block.content
