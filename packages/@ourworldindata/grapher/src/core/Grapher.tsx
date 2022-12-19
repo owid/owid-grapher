@@ -1381,16 +1381,33 @@ export class Grapher
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
             this
 
+        // "Countries Continent"
+        const isContinentsVariableId = (id: string): boolean => id === "123"
+
+        const isPopulationVariableId = (id: string): boolean =>
+            id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
+            id === "525711" // "Population (historical estimates), Gapminder, HYDE & UN"
+
         const columnSlugs = [...yColumnSlugs]
 
-        if (xColumnSlug !== undefined) columnSlugs.push(xColumnSlug)
+        if (xColumnSlug !== undefined) {
+            // exclude population variable if it's used as the x dimension in a marimekko
+            if (!isPopulationVariableId(xColumnSlug) || !this.isMarimekko)
+                columnSlugs.push(xColumnSlug)
+        }
 
-        // exclude "Total population (Gapminder, HYDE & UN)" if its used as the size dimension in a scatter plot
-        if (sizeColumnSlug !== undefined && sizeColumnSlug != "72")
+        // exclude population variable if it's used as the size dimension in a scatter plot
+        if (
+            sizeColumnSlug !== undefined &&
+            !isPopulationVariableId(sizeColumnSlug)
+        )
             columnSlugs.push(sizeColumnSlug)
 
-        // exclude "Countries Continent" if its used as the color dimension in a scatter plot, slope chart etc.
-        if (colorColumnSlug !== undefined && colorColumnSlug != "123")
+        // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
+        if (
+            colorColumnSlug !== undefined &&
+            isContinentsVariableId(colorColumnSlug)
+        )
             columnSlugs.push(colorColumnSlug)
 
         return this.inputTable
