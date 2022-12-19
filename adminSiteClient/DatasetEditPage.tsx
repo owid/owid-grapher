@@ -286,9 +286,15 @@ class VariableEditRow extends React.Component<{
                         </section>
                         <input
                             type="submit"
-                            className="btn btn-success"
+                            className="btn btn-success mr-1"
                             value="Update variable"
                         />
+                        <Link
+                            className="btn btn-secondary"
+                            to={`/variables/${this.props.variable.id}`}
+                        >
+                            Go to variable
+                        </Link>
                     </form>
                 </div>
                 {this.grapher && (

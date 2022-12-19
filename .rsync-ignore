@@ -22,3 +22,5 @@ coverage
 /differentGrapherSvgs
 /localBake
 tmp-downloads
+.yarn/cache
+.yarn/install-state.gz

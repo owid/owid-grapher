@@ -8,6 +8,7 @@ import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
+import { canWriteToClipboard } from "@ourworldindata/utils/dist/Util.js"
 
 export interface ShareMenuManager {
     slug?: string
@@ -26,6 +27,7 @@ interface ShareMenuProps {
 }
 
 interface ShareMenuState {
+    canWriteToClipboard: boolean
     copied: boolean
 }
 
@@ -37,6 +39,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         super(props)
 
         this.state = {
+            canWriteToClipboard: false,
             copied: false,
         }
     }
@@ -68,6 +71,9 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
     componentDidMount(): void {
         document.addEventListener("click", this.onClickSomewhere)
+        canWriteToClipboard().then((canWriteToClipboard) =>
+            this.setState({ canWriteToClipboard })
+        )
     }
 
     componentWillUnmount(): void {
@@ -98,11 +104,11 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @action.bound onCopyUrl(): void {
+    @action.bound async onCopyUrl(): Promise<void> {
         if (!this.canonicalUrl) return
 
         try {
-            navigator.clipboard.writeText(this.canonicalUrl)
+            await navigator.clipboard.writeText(this.canonicalUrl)
             this.setState({ copied: true })
         } catch (err) {
             console.error(
@@ -177,7 +183,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         <FontAwesomeIcon icon={faShareAlt} /> Share via&hellip;
                     </a>
                 )}
-                {"clipboard" in navigator && (
+                {this.state.canWriteToClipboard && (
                     <a
                         className="btn"
                         title="Copy link to clipboard"
