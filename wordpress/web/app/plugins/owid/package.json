@@ -1,6 +1,7 @@
 {
     "private": true,
     "description": "Custom behaviours and tools for ourworldindata.org's headless Wordpress",
+    "packageManager": "yarn@3.3.0",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "wp-scripts start src/plugins.js src/blocks.js",

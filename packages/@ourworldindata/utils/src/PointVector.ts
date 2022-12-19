@@ -70,7 +70,7 @@ export class PointVector {
                     Math.min(PointVector.dot(a.normalize(), b.normalize()), 1),
                     -1
                 )
-            ) * 57.29578
+            ) * 57.29578 // this is 180/pi, used to convert radians to degrees
         )
     }
 

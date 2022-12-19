@@ -1,16 +1,22 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
+import { canWriteToClipboard } from "@ourworldindata/utils/dist/Util.js"
 
 export const CodeSnippet = (props: { code: string }) => {
+    const [canCopy, setCanCopy] = useState(false)
     const [hasCopied, setHasCopied] = useState(false)
 
-    const copy = () => {
+    useEffect(() => {
+        canWriteToClipboard().then(setCanCopy)
+    }, [])
+
+    const copy = async () => {
         try {
-            navigator.clipboard.writeText(props.code)
+            await navigator.clipboard.writeText(props.code)
             setHasCopied(true)
             // reset CSS animation
             setTimeout(() => setHasCopied(false), 500)
@@ -27,15 +33,17 @@ export const CodeSnippet = (props: { code: string }) => {
             <pre className="wp-block-code">
                 <code>{props.code}</code>
             </pre>
-            <button
-                className={classnames("code-copy-button", {
-                    "code-copy-button--has-copied": hasCopied,
-                })}
-                onClick={copy}
-                aria-label="Copy to clipboard"
-            >
-                <FontAwesomeIcon icon={faCopy} />
-            </button>
+            {canCopy && (
+                <button
+                    className={classnames("code-copy-button", {
+                        "code-copy-button--has-copied": hasCopied,
+                    })}
+                    onClick={copy}
+                    aria-label="Copy to clipboard"
+                >
+                    <FontAwesomeIcon icon={faCopy} />
+                </button>
+            )}
         </div>
     )
 }

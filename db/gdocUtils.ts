@@ -12,6 +12,7 @@ import {
     SpanSuperscript,
     SpanSubscript,
     SpanUnderline,
+    SpanRef,
     RawBlockRecirc,
     EnrichedBlockSimpleText,
     SpanSimpleText,
@@ -408,6 +409,13 @@ export function spanToHtmlString(s: Span): string {
             (span) =>
                 `<a href="${span.url}">${spansToHtmlString(span.children)}</a>`
         )
+        .with(
+            { spanType: "span-ref" },
+            (span) =>
+                `<a href="${span.url}" class="ref">${spansToHtmlString(
+                    span.children
+                )}</a>`
+        )
         .with({ spanType: "span-newline" }, () => "</br>")
         .with(
             { spanType: "span-italic" },
@@ -512,10 +520,14 @@ export function cheerioToSpan(node: CheerioElement): Span | undefined {
         }
     else if (node.type === "tag") {
         return match(node.tagName)
-            .with("a", (): SpanLink => {
+            .with("a", (): SpanLink | SpanRef => {
                 const url = node.attribs.href
+                const className = node.attribs.class
                 const children =
                     compact(node.children?.map(cheerioToSpan)) ?? []
+                if (className === "ref") {
+                    return { spanType: "span-ref", children, url }
+                }
                 return { spanType: "span-link", children, url }
             })
             .with("b", (): SpanBold => {

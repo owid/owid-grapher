@@ -64,6 +64,7 @@ import {
     SortOrder,
     TopicId,
     OwidChartDimensionInterface,
+    firstOfNonEmptyArray,
 } from "@ourworldindata/utils"
 import {
     ChartTypeName,
@@ -950,7 +951,7 @@ export class Grapher
 
     @computed get shouldLinkToOwid(): boolean {
         if (
-            this.isEmbeddedInAnOwidPage ||
+            this.props.isEmbeddedInAnOwidPage ||
             this.isExportingtoSvgOrPng ||
             !this.isInIFrame
         )
@@ -1380,16 +1381,33 @@ export class Grapher
         const { yColumnSlugs, xColumnSlug, sizeColumnSlug, colorColumnSlug } =
             this
 
+        // "Countries Continent"
+        const isContinentsVariableId = (id: string): boolean => id === "123"
+
+        const isPopulationVariableId = (id: string): boolean =>
+            id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
+            id === "525711" // "Population (historical estimates), Gapminder, HYDE & UN"
+
         const columnSlugs = [...yColumnSlugs]
 
-        if (xColumnSlug !== undefined) columnSlugs.push(xColumnSlug)
+        if (xColumnSlug !== undefined) {
+            // exclude population variable if it's used as the x dimension in a marimekko
+            if (!isPopulationVariableId(xColumnSlug) || !this.isMarimekko)
+                columnSlugs.push(xColumnSlug)
+        }
 
-        // exclude "Total population (Gapminder, HYDE & UN)" if its used as the size dimension in a scatter plot
-        if (sizeColumnSlug !== undefined && sizeColumnSlug != "72")
+        // exclude population variable if it's used as the size dimension in a scatter plot
+        if (
+            sizeColumnSlug !== undefined &&
+            !isPopulationVariableId(sizeColumnSlug)
+        )
             columnSlugs.push(sizeColumnSlug)
 
-        // exclude "Countries Continent" if its used as the color dimension in a scatter plot, slope chart etc.
-        if (colorColumnSlug !== undefined && colorColumnSlug != "123")
+        // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
+        if (
+            colorColumnSlug !== undefined &&
+            isContinentsVariableId(colorColumnSlug)
+        )
             columnSlugs.push(colorColumnSlug)
 
         return this.inputTable
@@ -1605,18 +1623,23 @@ export class Grapher
                 Bugsnag.getPlugin("react").createErrorBoundary(React)
         }
 
-        const bounds = Bounds.fromRect(containerNode.getBoundingClientRect())
-
-        const props: GrapherProgrammaticInterface = {
-            ...config,
-            bounds,
+        const setBoundsFromContainerAndRender = (): void => {
+            const props: GrapherProgrammaticInterface = {
+                ...config,
+                bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
+            }
+            ReactDOM.render(
+                <ErrorBoundary>
+                    <Grapher ref={grapherInstanceRef} {...props} />
+                </ErrorBoundary>,
+                containerNode
+            )
         }
 
-        ReactDOM.render(
-            <ErrorBoundary>
-                <Grapher ref={grapherInstanceRef} {...props} />
-            </ErrorBoundary>,
-            containerNode
+        setBoundsFromContainerAndRender()
+        window.addEventListener(
+            "resize",
+            debounce(setBoundsFromContainerAndRender, 400)
         )
 
         return grapherInstanceRef.current
@@ -1645,10 +1668,6 @@ export class Grapher
 
     @computed get isMobile(): boolean {
         return isMobile()
-    }
-
-    @computed get isEmbeddedInAnOwidPage(): boolean {
-        return this.props.isEmbeddedInAnOwidPage || false
     }
 
     @computed private get bounds(): Bounds {
@@ -1681,7 +1700,11 @@ export class Grapher
         } = this
 
         // For these, defer to the bounds that is set externally
-        if (this.isEmbeddedInAnOwidPage || this.props.manager || isInIFrame)
+        if (
+            this.props.isEmbeddedInAnOwidPage ||
+            this.props.manager ||
+            isInIFrame
+        )
             return false
 
         // If the user is using interactive version and then goes to export chart, use current bounds to maintain WYSIWYG
@@ -1976,34 +1999,10 @@ export class Grapher
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        const strategies: FacetStrategy[] = [FacetStrategy.none]
-
-        const numNonProjectedColumns =
-            this.yColumnsFromDimensionsOrSlugsOrAuto.filter(
-                (c) => !c.display?.isProjection
-            ).length
-        if (
-            // multiple metrics (excluding projections)
-            numNonProjectedColumns > 1 &&
-            // more than one data point per metric
-            this.transformedTable.numRows > 1
-        ) {
-            strategies.push(FacetStrategy.metric)
-        }
-
-        if (
-            // multiple entities
-            this.selection.numSelectedEntities > 1 &&
-            // more than one data point per entity
-            this.transformedTable.numRows > this.selection.numSelectedEntities
-        ) {
-            strategies.push(FacetStrategy.entity)
-        }
-
-        return strategies
+        return this.chartInstance.availableFacetStrategies?.length
+            ? this.chartInstance.availableFacetStrategies
+            : [FacetStrategy.none]
     }
-
-    private disableAutoFaceting = true // turned off for now
 
     // the actual facet setting used by a chart, potentially overriding selectedFacetStrategy
     @computed get facetStrategy(): FacetStrategy {
@@ -2013,24 +2012,7 @@ export class Grapher
         )
             return this.selectedFacetStrategy
 
-        if (this.disableAutoFaceting) return FacetStrategy.none
-
-        // Auto facet on SingleEntity charts with multiple selected entities
-        if (
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.selection.numSelectedEntities > 1
-        )
-            return FacetStrategy.entity
-
-        // Auto facet when multiple slugs and multiple entities selected. todo: not sure if this is correct.
-        if (
-            this.addCountryMode === EntitySelectionMode.MultipleEntities &&
-            this.hasMultipleYColumns &&
-            this.selection.numSelectedEntities > 1
-        )
-            return FacetStrategy.metric
-
-        return FacetStrategy.none
+        return firstOfNonEmptyArray(this.availableFacetStrategies)
     }
 
     set facetStrategy(facet: FacetStrategy) {
@@ -2194,23 +2176,6 @@ export class Grapher
 
     componentDidMount(): void {
         window.addEventListener("scroll", this.checkVisibility)
-        window.addEventListener(
-            "resize",
-            debounce(() => {
-                if (
-                    this.containerElement &&
-                    this.containerElement.parentElement
-                ) {
-                    Grapher.renderGrapherIntoContainer(
-                        {
-                            ...this.toObject(),
-                            isEmbeddedInAnOwidPage: this.isEmbeddedInAnOwidPage,
-                        },
-                        this.containerElement.parentElement
-                    )
-                }
-            }, 200)
-        )
         this.setBaseFontSize()
         this.checkVisibility()
         exposeInstanceOnWindow(this, "grapher")
@@ -2276,9 +2241,11 @@ export class Grapher
         // "ourworldindata.org" and yet should still yield a match.
         // - Note that this won't work on production previews (where the
         //   path is /admin/posts/preview/ID)
+        const { hasRelatedQuestion } = this
         return (
+            hasRelatedQuestion &&
             getWindowUrl().pathname !==
-            Url.fromURL(this.relatedQuestions[0]?.url).pathname
+                Url.fromURL(this.relatedQuestions[0]?.url).pathname
         )
     }
 

@@ -123,6 +123,7 @@ export {
     SpanFallback,
     SpanItalic,
     SpanLink,
+    SpanRef,
     SpanNewline,
     SpanQuote,
     SpanSimpleText,

@@ -42,6 +42,7 @@ import {
     SeriesName,
     ScaleType,
     SeriesStrategy,
+    FacetStrategy,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -723,6 +724,20 @@ export class LineChart
         return this.manager.hideLegend
             ? undefined
             : new LineLegend({ manager: this })
+    }
+
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        const strategies: FacetStrategy[] = [FacetStrategy.none]
+
+        if (this.selectionArray.numSelectedEntities > 1)
+            strategies.push(FacetStrategy.entity)
+
+        const numNonProjectionColumns = this.yColumns.filter(
+            (c) => !c.display?.isProjection
+        ).length
+        if (numNonProjectionColumns > 1) strategies.push(FacetStrategy.metric)
+
+        return strategies
     }
 
     render(): JSX.Element {

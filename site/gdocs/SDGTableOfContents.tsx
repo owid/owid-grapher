@@ -40,7 +40,7 @@ export default function SDGTableOfContents({
                 aria-controls="sdg-toc-menu"
                 data-track-note="sdg-toc-toggle"
             >
-                <span>Index</span>
+                <span>List of targets and indicators</span>
                 <span>
                     <FontAwesomeIcon icon={isOpen ? faMinus : faPlus} />
                 </span>

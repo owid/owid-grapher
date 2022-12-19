@@ -20,7 +20,11 @@ import {
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { BASE_FONT_SIZE, SeriesName } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    FacetStrategy,
+    SeriesName,
+} from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -411,6 +415,14 @@ export class StackedDiscreteBarChart
 
     @computed private get formatColumn(): CoreColumn {
         return this.yColumns[0]
+    }
+
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        const strategies = [FacetStrategy.none]
+
+        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
+
+        return strategies
     }
 
     @bind private formatValueForLabel(value: number): string {
@@ -828,7 +840,7 @@ export class StackedDiscreteBarChart
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
+            ? "No matching data"
             : ""
     }
 

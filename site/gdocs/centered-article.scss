@@ -1,3 +1,13 @@
+.centered-article-container {
+    .ref {
+        color: $vermillion;
+        text-decoration: none;
+        &:visited {
+            color: $vermillion;
+        }
+    }
+}
+
 $banner-height: 200px;
 .article-banner {
     position: absolute;
@@ -12,10 +22,15 @@ $banner-height: 200px;
     margin-bottom: 32px;
 }
 
-.article-header {
+.centered-article-header {
     background: $white;
-    margin-top: 80px;
+    margin: 80px 0 24px;
     min-height: calc($banner-height - 80px);
+    padding-top: 48px;
+}
+
+.article-block__text {
+    margin-top: 0;
 }
 
 h2.article-block__heading.has-supertitle {
@@ -37,7 +52,7 @@ h2.article-block__heading.has-supertitle {
     }
 }
 
-.article-container > .article-block__divider {
+.centered-article-container > .article-block__divider {
     border-top: 1px solid $blue-20;
     margin: 48px 0;
 }
@@ -61,29 +76,27 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
-.article-header__title-container {
-    margin-top: 50px;
-    .article-header__supertitle {
+.centered-article-header__title-container {
+    .centered-article-header__supertitle {
         @include overline-black-caps;
         color: $blue-50;
     }
 
-    .article-header__title {
+    .centered-article-header__title {
         @include display-2-semibold;
         margin-top: 0;
         color: $blue-90;
     }
 }
 
-.article-header__subtitle {
+.centered-article-header__subtitle {
     @include subtitle-1;
     color: $blue-50;
 }
 
-.article-header__meta-container {
+.centered-article-header__meta-container {
     border-bottom: 1px solid $blue-10;
     border-top: 1px solid $blue-10;
-    margin-bottom: 32px;
     padding: 32px 0;
     color: $blue-60;
     @include body-1-regular;
@@ -97,8 +110,8 @@ h3.article-block__heading.has-supertitle {
         }
     }
 
-    .article-header__byline,
-    .article-header__dateline {
+    .centered-article-header__byline,
+    .centered-article-header__dateline {
         margin-bottom: 8px;
     }
 
@@ -113,12 +126,15 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+.footnote-container,
 #article-citation,
 #article-licence {
     margin-top: 48px;
     padding-top: 48px;
     @include body-3-medium;
     border-top: 1px solid $blue-10;
+    color: $blue-60;
+    width: 100%;
 
     h3 {
         @include h3-bold;
@@ -152,7 +168,7 @@ h3.article-block__heading.has-supertitle {
 .article-block__text,
 .article-block__list,
 .article-block__html {
-    @include body-1-regular;
+    @include body-2-regular;
 
     .span-link {
         @include owid-link-60;

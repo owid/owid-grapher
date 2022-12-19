@@ -24,6 +24,7 @@ import {
     ScaleType,
     BASE_FONT_SIZE,
     SeriesStrategy,
+    FacetStrategy,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -344,6 +345,17 @@ export class DiscreteBarChart
             .attr("width", (_, i) => this.barWidths[i])
     }
 
+    @computed get availableFacetStrategies(): FacetStrategy[] {
+        // if we have multi-dimension, multi-entity data (which is necessarily single-year),
+        // then *only* faceting makes sense. otherwise, faceting is not useful.
+        if (
+            this.yColumns.length > 1 &&
+            this.selectionArray.numSelectedEntities > 1
+        )
+            return [FacetStrategy.entity, FacetStrategy.metric]
+        else return [FacetStrategy.none]
+    }
+
     componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             this.d3Bars().attr("width", 0)
@@ -491,7 +503,7 @@ export class DiscreteBarChart
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
+            ? "No matching data"
             : ""
     }
 

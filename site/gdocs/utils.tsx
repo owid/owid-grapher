@@ -16,6 +16,11 @@ export function renderSpan(
                 {renderSpans(span.children)}
             </a>
         ))
+        .with({ spanType: "span-ref" }, (span) => (
+            <a key={key} href={span.url} className="ref">
+                {renderSpans(span.children)}
+            </a>
+        ))
         .with({ spanType: "span-newline" }, () => <br key={key} />)
         .with({ spanType: "span-italic" }, (span) => (
             <em key={key}>{renderSpans(span.children)}</em>

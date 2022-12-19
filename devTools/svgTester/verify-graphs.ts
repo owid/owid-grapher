@@ -16,6 +16,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const suffix = parsedArgs["s"] ?? ""
         // minimist turns a single number into a JS number so we do toString to normalize (TS types are misleading)
         const rawGrapherIds: string = (parsedArgs["g"] ?? "").toString()
+        const rmOnError = parsedArgs["rmOnError"] ?? false
 
         if (!fs.existsSync(inDir))
             throw `Input directory does not exist ${inDir}`
@@ -39,6 +40,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             outDir,
             verbose,
             suffix,
+            rmOnError,
         }))
 
         const pool = workerpool.pool(__dirname + "/worker.js", {
@@ -90,6 +92,7 @@ Options:
     -g IDS         Manually specify ids to verify (use comma separated ids and ranges, all without spaces. E.g.: 2,4-8,10)
     -v             Verbose mode
     -s SUFFIX      Suffix for different svg files to create <NAME><SUFFIX>.svg files - useful if you want to set output to the same as reference
+    --rmOnError    Remove output files where we encounter errors, so errors are apparent in diffs
     `)
     process.exit(0)
 } else {
