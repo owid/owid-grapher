@@ -1382,35 +1382,31 @@ export class Grapher
             this
 
         // "Countries Continent"
-        const continentsVariableId = "123"
+        const isContinentsVariableId = (id: string): boolean => id === "123"
 
-        const populationVariableIds = [
-            "525709", // "Population (historical + projections), Gapminder, HYDE & UN"
-            "525711", // "Population (historical estimates), Gapminder, HYDE & UN"
-        ]
+        const isPopulationVariableId = (id: string): boolean =>
+            id === "525709" || // "Population (historical + projections), Gapminder, HYDE & UN"
+            id === "525711" // "Population (historical estimates), Gapminder, HYDE & UN"
 
         const columnSlugs = [...yColumnSlugs]
 
         if (xColumnSlug !== undefined) {
             // exclude population variable if it's used as the x dimension in a marimekko
-            if (
-                !populationVariableIds.includes(xColumnSlug) ||
-                !this.isMarimekko
-            )
+            if (!isPopulationVariableId(xColumnSlug) || !this.isMarimekko)
                 columnSlugs.push(xColumnSlug)
         }
 
         // exclude population variable if it's used as the size dimension in a scatter plot
         if (
             sizeColumnSlug !== undefined &&
-            !populationVariableIds.includes(sizeColumnSlug)
+            !isPopulationVariableId(sizeColumnSlug)
         )
             columnSlugs.push(sizeColumnSlug)
 
         // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
         if (
             colorColumnSlug !== undefined &&
-            colorColumnSlug != continentsVariableId
+            isContinentsVariableId(colorColumnSlug)
         )
             columnSlugs.push(colorColumnSlug)
 
