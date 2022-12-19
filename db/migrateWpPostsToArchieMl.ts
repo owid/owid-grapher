@@ -149,9 +149,51 @@ function getSimpleTextSpansFromChildren(
     }
 }
 
-interface CheerioSequenceParser {
+type CheerioSequenceParserResult = {
     result: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
+    success: boolean
     remainingNodes: CheerioElement[]
+}
+
+type CheerioSequenceParser = (
+    nodes: CheerioElement[]
+) => CheerioSequenceParserResult
+
+function tryParseCommentTagPair(
+    nodes: CheerioElement[],
+    commentTag: string,
+    $: CheerioStatic,
+    contentParseFn: (
+        nodes: OwidEnrichedArticleBlock[]
+    ) => ArchieMlTransformationResult<OwidEnrichedArticleBlock>
+): CheerioSequenceParser {
+    const currentNode = nodes[0]
+    if (currentNode.type === "comment") {
+        // if (remainingNodes[0].data?.trim().startsWith(stopAtComment))
+        //     return {
+        //         result: joinArchieMLTransformationResults(items),
+        //         remainingNodes: remainingNodes.slice(1),
+        //     }
+        if (currentNode.data?.trim().startsWith(commentTag)) {
+            const content = cheerioListToArchieML(
+                nodes.slice(1),
+                `/${commentTag}`,
+                $
+            )
+            return {
+                result: contentParseFn(content.result.content),
+                remainingNodes: content.remainingNodes,
+            }
+        } else
+            return {
+                result: { content: [], errors: [] },
+                remainingNodes: nodes,
+            }
+    } else
+        return {
+            result: { content: [], errors: [] },
+            remainingNodes: nodes,
+        }
 }
 
 function cheerioListToArchieML(
@@ -170,34 +212,34 @@ function cheerioListToArchieML(
                     result: joinArchieMLTransformationResults(items),
                     remainingNodes: remainingNodes.slice(1),
                 }
-            if (currentNode.data?.trim().startsWith("wp:columns")) {
-                const content = cheerioListToArchieML(
-                    remainingNodes.slice(1),
-                    "/wp:columns",
-                    $
-                )
-                const errors: ArchieMlTransformationError[] =
-                    content.result.content.length !== 2
-                        ? [
-                              {
-                                  name: "columns item needs to have 2 children" as const,
-                                  details: `Got ${content.result.content.length} children inside a columns structure`,
-                              },
-                          ]
-                        : []
+            tryParseCommentTagPair(
+                remainingNodes,
+                "wp:comment",
+                $,
+                (content) => {
+                    const errors: ArchieMlTransformationError[] =
+                        content.result.content.length !== 2
+                            ? [
+                                  {
+                                      name: "columns item needs to have 2 children" as const,
+                                      details: `Got ${content.result.content.length} children inside a columns structure`,
+                                  },
+                              ]
+                            : []
 
-                items.push({
-                    content: [
-                        {
-                            type: "sticky-right",
-                            left: content.result.content[0],
-                            right: content.result.content[1],
-                        },
-                    ],
-                    errors,
-                })
-                remainingNodes = content.remainingNodes
-            }
+                    const result = {
+                        content: [
+                            {
+                                type: "sticky-right",
+                                left: content.result.content[0],
+                                right: content.result.content[1],
+                            },
+                        ],
+                        errors,
+                    }
+                    return result
+                }
+            )
         } else {
             const currentNodeConverted = cheerioToArchieML(currentNode, $)
             items.push(currentNodeConverted)
@@ -207,6 +249,78 @@ function cheerioListToArchieML(
     return {
         result: joinArchieMLTransformationResults(items),
         remainingNodes: [],
+    }
+}
+
+function succeed(): CheerioSequenceParser {
+    return (nodes: CheerioElement[]) => ({
+        result: { errors: [], content: [] },
+        remainingNodes: [],
+        success: true,
+    })
+}
+
+function fail(): CheerioSequenceParser {
+    return (nodes: CheerioElement[]) => ({
+        result: { errors: [], content: [] },
+        remainingNodes: [],
+        success: false,
+    })
+}
+
+function seq(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
+    return (nodes: CheerioElement[]) => {
+        const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
+            []
+        let remainingNodes = nodes
+        for (const parser of parsers) {
+            const result = parser(remainingNodes)
+            if (!result.success)
+                return {
+                    result: joinArchieMLTransformationResults(results),
+                    remainingNodes: nodes, // don't consume anything if we fail
+                    success: false,
+                }
+            remainingNodes = result.remainingNodes
+            results.push(result.result)
+        }
+        return {
+            result: joinArchieMLTransformationResults(results),
+            remainingNodes: remainingNodes,
+            success: true,
+        }
+    }
+}
+
+function anyOf(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
+    return (nodes: CheerioElement[]) => {
+        for (const parser of parsers) {
+            const result = parser(nodes)
+            if (result.success) {
+                return result
+            }
+        }
+        return {
+            result: joinArchieMLTransformationResults([]),
+            remainingNodes: nodes,
+            success: false,
+        }
+    }
+}
+
+function many(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
+    return (nodes: CheerioElement[]) => {
+        for (const parser of parsers) {
+            const result = parser(nodes)
+            if (result.success) {
+                return result
+            }
+        }
+        return {
+            result: joinArchieMLTransformationResults([]),
+            remainingNodes: nodes,
+            success: false,
+        }
     }
 }
 
