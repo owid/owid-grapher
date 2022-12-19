@@ -518,14 +518,14 @@ class MobileTopicsMenu extends React.Component<{
                             Teaching Hub
                         </a>
                     </li>
-                    {/* <li className="end-link">
+                    <li className="end-link">
                         <a
                             href="https://sdg-tracker.org"
                             data-track-note="header-navigation"
                         >
                             Sustainable Development Goals Tracker
                         </a>
-                    </li> */}
+                    </li>
                     <li className="end-link">
                         <a href="/blog" data-track-note="header-navigation">
                             Latest

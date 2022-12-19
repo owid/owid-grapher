@@ -314,7 +314,7 @@ export const FrontPage = (props: {
                 <section className="homepage-projects">
                     <div className="wrapper">
                         <div className="list">
-                            {/* <a
+                            <a
                                 href="https://sdg-tracker.org"
                                 className="list-item"
                                 data-track-note="homepage-projects"
@@ -338,7 +338,7 @@ export const FrontPage = (props: {
                                 <div className="icon-right">
                                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                                 </div>
-                            </a> */}
+                            </a>
                             <a
                                 href="/teaching"
                                 className="list-item"
