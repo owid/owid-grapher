@@ -25,6 +25,7 @@ export default function Chart({
     }
 
     const isExplorer = Url.fromURL(d.url).isExplorer
+    const height = d.height || isExplorer ? 700 : 550
 
     return (
         <figure
@@ -39,8 +40,7 @@ export default function Chart({
                 style={{
                     width: "100%",
                     border: "0px none",
-                    height:
-                        d.position === "featured" ? 700 : d.height || "550px",
+                    height,
                 }}
             />
             {d.caption ? (

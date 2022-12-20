@@ -192,6 +192,8 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const height = val.height
         const row = val.row
         const column = val.column
+        // This property is currently unused, a holdover from @mathisonian's gdocs demo.
+        // We will decide soon™️ if we want to use it for something
         let position: ChartPositionChoice | undefined = undefined
         if (val.position)
             if (val.position === "featured") position = val.position
