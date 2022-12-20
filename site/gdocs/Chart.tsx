@@ -24,8 +24,10 @@ export default function Chart({
         }
     }
 
-    const isExplorer = Url.fromURL(d.url).isExplorer
-    const height = d.height || isExplorer ? 700 : 550
+    const url = Url.fromURL(d.url)
+    const isExplorer = url.isExplorer
+    const hasControls = url.queryParams.hideControls !== "true"
+    const height = d.height || (isExplorer && hasControls) ? 700 : 575
 
     return (
         <figure
