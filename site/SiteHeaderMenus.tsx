@@ -213,7 +213,7 @@ class Header extends React.Component<{
                                         </a>
                                     </li>
                                     {/* <li><a href="/teaching" data-track-note="header-navigation">Teaching Hub</a></li> */}
-                                    <li>
+                                    {/* <li>
                                         <a
                                             href="https://sdg-tracker.org"
                                             data-track-note="header-navigation"
@@ -221,7 +221,7 @@ class Header extends React.Component<{
                                             Sustainable Development Goals
                                             Tracker
                                         </a>
-                                    </li>
+                                    </li> */}
                                 </ul>
                             </div>
                         </div>
