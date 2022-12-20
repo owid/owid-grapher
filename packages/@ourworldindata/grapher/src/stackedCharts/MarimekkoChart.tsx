@@ -1803,12 +1803,10 @@ export class MarimekkoChart
 
     @computed get failMessage(): string {
         const column = this.yColumns[0]
-        const { yColumns, yColumnSlugs } = this
+        const { yColumns } = this
 
         if (!column) return "No Y column to chart"
 
-        return yColumns.every((col) => col.isEmpty)
-            ? `No matching data in columns ${yColumnSlugs.join(", ")}`
-            : ""
+        return yColumns.every((col) => col.isEmpty) ? "No matching data" : ""
     }
 }

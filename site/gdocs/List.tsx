@@ -1,13 +1,17 @@
 import React from "react"
-import { OwidArticleBlock } from "@ourworldindata/utils"
-
-export default function List({ d }: { d: OwidArticleBlock }) {
+import { EnrichedBlockList, EnrichedBlockText } from "@ourworldindata/utils"
+import { renderSpans } from "./utils"
+export default function List({
+    d,
+    className = "",
+}: {
+    d: EnrichedBlockList
+    className?: string
+}) {
     return (
-        <ul className={"list"}>
-            {d.value.map((_d: string, i: number) => {
-                return (
-                    <li key={i} dangerouslySetInnerHTML={{ __html: _d }}></li>
-                )
+        <ul className={className}>
+            {d.items.map((_d: EnrichedBlockText, i: number) => {
+                return <li key={i}>{renderSpans(_d.value)}</li>
             })}
         </ul>
     )

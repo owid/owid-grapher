@@ -4,7 +4,7 @@
     "engines": {
         "node": ">=16.13"
     },
-    "packageManager": "yarn@1.22.19",
+    "packageManager": "yarn@3.3.0",
     "scripts": {
         "buildAndDeploySite": "node ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
@@ -26,7 +26,7 @@
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLernaWatcher": "node ./devTools/lernaWatcher/lerna-watcher.js",
         "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
-        "startTmuxServer": "tmex dev \"yarn startTscServer\" \"yarn startLernaWatcher\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
+        "startTmuxServer": "node_modules/tmex/tmex dev \"yarn startTscServer\" \"yarn startLernaWatcher\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
         "startTscServer": "tsc -b -verbose -watch",
         "startWebpackServer": "webpack server --mode development --no-live-reload --config ./itsJustJavascript/webpack.config.js",
         "startWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn start",
@@ -50,9 +50,9 @@
         "@fortawesome/free-solid-svg-icons": "^6.2.0",
         "@fortawesome/react-fontawesome": "^0.2.0",
         "@handsontable/react": "^12.1.2",
-        "@ourworldindata/core-table": "*",
-        "@ourworldindata/grapher": "*",
-        "@ourworldindata/utils": "*",
+        "@ourworldindata/core-table": "workspace:^",
+        "@ourworldindata/grapher": "workspace:^",
+        "@ourworldindata/utils": "workspace:^",
         "@prettier/plugin-php": "^0.14.3",
         "@tippyjs/react": "^4.2.6",
         "@types/amplitude-js": "^7.0.1",
@@ -167,6 +167,7 @@
         "netlify-cli": "^12.0.7",
         "node-fetch": "^2.6.7",
         "normalize.css": "^8.0.1",
+        "nx": "15.3.0",
         "p-map": "^4.0.0",
         "papaparse": "^5.3.1",
         "parsimmon": "^1.18.1",
@@ -214,7 +215,7 @@
         "svgo": "^2.8.0",
         "timezone-mock": "^1.0.18",
         "topojson-client": "^3.1.0",
-        "ts-pattern": "^3.3.3",
+        "ts-pattern": "^4.0.4",
         "typeorm": "^0.3.10",
         "typescript": "~4.9.3",
         "unidecode": "^0.1.8",
@@ -256,7 +257,7 @@
         "tsc-watch": "^4.2.9"
     },
     "resolutions": {
-        "**/webpack": "^5.0.0"
+        "webpack": "^5.0.0"
     },
     "prettier": {
         "semi": false

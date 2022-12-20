@@ -162,6 +162,8 @@ export interface PostRow {
     content: string
     published_at: Date | null
     updated_at: Date
+    archieml: string
+    archieml_update_statistics: string
 }
 
 export interface Tag extends TagReactTagAutocomplete {
@@ -387,10 +389,468 @@ export interface GridParameters {
     columns: number
 }
 
-export interface OwidArticleBlock {
-    type: string
-    value: string | any
+export type SpanSimpleText = {
+    spanType: "span-simple-text"
+    text: string
 }
+
+export type SpanFallback = {
+    spanType: "span-fallback"
+    children: Span[]
+}
+
+export type SpanLink = {
+    spanType: "span-link"
+    children: Span[]
+    url: string
+}
+
+export type SpanRef = {
+    spanType: "span-ref"
+    children: Span[]
+    url: string
+}
+
+export type SpanNewline = {
+    spanType: "span-newline"
+}
+
+export type SpanItalic = {
+    spanType: "span-italic"
+    children: Span[]
+}
+
+export type SpanBold = {
+    spanType: "span-bold"
+    children: Span[]
+}
+
+export type SpanUnderline = {
+    spanType: "span-underline"
+    children: Span[]
+}
+
+export type SpanSubscript = {
+    spanType: "span-subscript"
+    children: Span[]
+}
+
+export type SpanSuperscript = {
+    spanType: "span-superscript"
+    children: Span[]
+}
+
+export type SpanQuote = {
+    spanType: "span-quote"
+    children: Span[]
+}
+export type UnformattedSpan = SpanSimpleText | SpanNewline
+
+export type Span =
+    | SpanSimpleText
+    | SpanLink
+    | SpanRef
+    | SpanNewline
+    | SpanItalic
+    | SpanBold
+    | SpanUnderline
+    | SpanSubscript
+    | SpanSuperscript
+    | SpanQuote
+    | SpanFallback
+
+export type BlockPositionChoice = "right" | "left"
+export type ChartPositionChoice = "featured"
+
+type ArchieMLUnexpectedNonObjectValue = string
+
+export type ParseError = {
+    message: string
+    isWarning?: boolean
+}
+
+export type EnrichedBlockWithParseErrors = {
+    parseErrors: ParseError[]
+}
+
+export type RawBlockAsideValue = {
+    position?: string // use BlockPositionChoice in matching Enriched block
+    caption?: string
+}
+
+export type RawBlockAside = {
+    type: "aside"
+    value: RawBlockAsideValue | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockAside = {
+    type: "aside"
+    position?: BlockPositionChoice
+    caption: Span[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockChartValue = {
+    url?: string
+    height?: string
+    row?: string
+    column?: string
+    // TODO: position is used as a classname apparently? Should be renamed or split
+    position?: string
+    caption?: string
+}
+export type RawBlockChart = {
+    type: "chart"
+    value: RawBlockChartValue | string
+}
+
+export type EnrichedBlockChart = {
+    type: "chart"
+    url: string
+    height?: string
+    row?: string
+    column?: string
+    position?: ChartPositionChoice
+    caption?: Span[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockScroller = {
+    type: "scroller"
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedScrollerItem = {
+    url: string // TODO: should this be transformed into an EnrichedBlockChart?
+    text: EnrichedBlockText
+}
+
+export type EnrichedBlockScroller = {
+    type: "scroller"
+    blocks: EnrichedScrollerItem[]
+} & EnrichedBlockWithParseErrors
+
+export type RawChartStoryValue = {
+    narrative?: string
+    chart?: string
+    technical?: string[]
+}
+
+export type RawBlockChartStory = {
+    type: "chart-story"
+    value: RawChartStoryValue[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedChartStoryItem = {
+    narrative: EnrichedBlockText
+    chart: EnrichedBlockChart
+    technical: EnrichedBlockText[]
+}
+
+export type EnrichedBlockChartStory = {
+    type: "chart-story"
+    items: EnrichedChartStoryItem[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockFixedGraphic = {
+    type: "fixed-graphic"
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockFixedGraphic = {
+    type: "fixed-graphic"
+    graphic: EnrichedBlockChart | EnrichedBlockImage
+    position?: BlockPositionChoice
+    text: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+export type RawBlockImageValue = {
+    src?: string
+    caption?: string
+}
+export type RawBlockImage = {
+    type: "image"
+    value: RawBlockImageValue | string
+}
+
+export type EnrichedBlockImage = {
+    type: "image"
+    src: string
+    caption: Span[]
+} & EnrichedBlockWithParseErrors
+
+// TODO: This is what lists staring with * are converted to in gdocToArhcieml
+// It might also be what is used inside recirc elements but there it's not a simple
+// string IIRC - check this
+export type RawBlockList = {
+    type: "list"
+    value: string[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockList = {
+    type: "list"
+    items: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockPullQuote = {
+    type: "pull-quote"
+    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockPullQuote = {
+    type: "pull-quote"
+    text: SpanSimpleText[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockHorizontalRule = {
+    type: "horizontal-rule"
+    value?: string // dummy value to unify block shapes
+}
+
+export type EnrichedBlockHorizontalRule = {
+    type: "horizontal-rule"
+} & EnrichedBlockWithParseErrors
+
+export type RawRecircItem = {
+    article?: string
+    author?: string
+    url?: string
+}
+
+export type RawBlockRecircValue = {
+    title?: string
+    list?: RawRecircItem[]
+}
+export type RawBlockRecirc = {
+    type: "recirc"
+    value: RawBlockRecircValue[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedRecircItem = {
+    article: SpanSimpleText
+    author: SpanSimpleText
+    url: string
+}
+
+export type EnrichedBlockRecirc = {
+    type: "recirc"
+    title: SpanSimpleText
+    items: EnrichedRecircItem[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockText = {
+    type: "text"
+    value: string
+}
+
+export type EnrichedBlockText = {
+    type: "text"
+    value: Span[]
+} & EnrichedBlockWithParseErrors
+
+export type EnrichedBlockSimpleText = {
+    type: "simple-text"
+    value: SpanSimpleText
+} & EnrichedBlockWithParseErrors
+export type RawBlockHtml = {
+    type: "html"
+    value: string
+}
+
+export type EnrichedBlockHtml = {
+    type: "html"
+    value: string
+} & EnrichedBlockWithParseErrors
+export type RawBlockUrl = {
+    type: "url"
+    value: string
+}
+// There is no EnrichedBlockUrl because Url blocks only exist inside Sliders;
+// they are subsumed into Slider blocks during enrichment
+export type RawBlockPosition = {
+    type: "position"
+    value: string
+}
+// There is no EnrichedBlockUrl because Position blocks only exist inside FixedGraphics;
+// they are subsumed into FixedGraphic blocks during enrichment
+export type RawBlockHeadingValue = {
+    text?: string
+    level?: string
+}
+export type RawBlockHeading = {
+    type: "heading"
+    value: RawBlockHeadingValue | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockHeading = {
+    type: "heading"
+    text: SpanSimpleText
+    supertitle?: SpanSimpleText
+    level: number
+} & EnrichedBlockWithParseErrors
+
+export type RawSDGGridItem = {
+    goal?: string
+    link?: string
+}
+
+export type RawBlockSDGGrid = {
+    type: "sdg-grid"
+    value: RawSDGGridItem[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedSDGGridItem = {
+    goal: string
+    link: string
+}
+
+export type EnrichedBlockSDGGrid = {
+    type: "sdg-grid"
+    items: EnrichedSDGGridItem[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockStickyRightContainer = {
+    type: "sticky-right"
+    value: {
+        left: OwidRawArticleBlock[]
+        right: OwidRawArticleBlock[]
+    }
+}
+
+export type EnrichedBlockStickyRightContainer = {
+    type: "sticky-right"
+    left: OwidEnrichedArticleBlock[]
+    right: OwidEnrichedArticleBlock[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockStickyLeftContainer = {
+    type: "sticky-left"
+    value: {
+        left: OwidRawArticleBlock[]
+        right: OwidRawArticleBlock[]
+    }
+}
+
+export type EnrichedBlockStickyLeftContainer = {
+    type: "sticky-left"
+    left: OwidEnrichedArticleBlock[]
+    right: OwidEnrichedArticleBlock[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockSideBySideContainer = {
+    type: "side-by-side"
+    value: {
+        left: OwidRawArticleBlock[]
+        right: OwidRawArticleBlock[]
+    }
+}
+
+export type EnrichedBlockSideBySideContainer = {
+    type: "side-by-side"
+    left: OwidEnrichedArticleBlock[]
+    right: OwidEnrichedArticleBlock[]
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockGreySection = {
+    type: "grey-section"
+    value: OwidRawArticleBlock[]
+}
+
+export type EnrichedBlockGreySection = {
+    type: "grey-section"
+    items: OwidEnrichedArticleBlock[]
+} & EnrichedBlockWithParseErrors
+
+export type ProminentLinkValue = {
+    url?: string
+    title?: string
+    description?: string
+}
+
+export type RawBlockProminentLink = {
+    type: "prominent-link"
+    value: ProminentLinkValue
+}
+
+export type EnrichedBlockProminentLink = {
+    type: "prominent-link"
+    url: string
+    title: string
+    description?: string
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockSDGToc = {
+    type: "sdg-toc"
+}
+
+export type EnrichedBlockSDGToc = {
+    type: "sdg-toc"
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockMissingData = {
+    type: "missing-data"
+}
+
+export type EnrichedBlockMissingData = {
+    type: "missing-data"
+} & EnrichedBlockWithParseErrors
+
+export type RawBlockAdditionalCharts = {
+    type: "additional-charts"
+    value: string[]
+}
+
+export type EnrichedBlockAdditionalCharts = {
+    type: "additional-charts"
+    items: Span[][]
+} & EnrichedBlockWithParseErrors
+
+export type OwidRawArticleBlock =
+    | RawBlockAside
+    | RawBlockChart
+    | RawBlockScroller
+    | RawBlockChartStory
+    | RawBlockFixedGraphic
+    | RawBlockImage
+    | RawBlockList
+    | RawBlockPullQuote
+    | RawBlockRecirc
+    | RawBlockText
+    | RawBlockUrl
+    | RawBlockPosition
+    | RawBlockHeading
+    | RawBlockHtml
+    | RawBlockHorizontalRule
+    | RawBlockSDGGrid
+    | RawBlockStickyRightContainer
+    | RawBlockStickyLeftContainer
+    | RawBlockSideBySideContainer
+    | RawBlockGreySection
+    | RawBlockProminentLink
+    | RawBlockSDGToc
+    | RawBlockMissingData
+    | RawBlockAdditionalCharts
+
+export type OwidEnrichedArticleBlock =
+    | EnrichedBlockText
+    | EnrichedBlockAside
+    | EnrichedBlockChart
+    | EnrichedBlockScroller
+    | EnrichedBlockChartStory
+    | EnrichedBlockFixedGraphic
+    | EnrichedBlockImage
+    | EnrichedBlockList
+    | EnrichedBlockPullQuote
+    | EnrichedBlockRecirc
+    | EnrichedBlockHeading
+    | EnrichedBlockHtml
+    | EnrichedBlockHorizontalRule
+    | EnrichedBlockSDGGrid
+    | EnrichedBlockStickyRightContainer
+    | EnrichedBlockStickyLeftContainer
+    | EnrichedBlockSideBySideContainer
+    | EnrichedBlockGreySection
+    | EnrichedBlockProminentLink
+    | EnrichedBlockSDGToc
+    | EnrichedBlockMissingData
+    | EnrichedBlockAdditionalCharts
 
 export enum OwidArticlePublicationContext {
     unlisted = "unlisted",
@@ -427,7 +887,7 @@ export interface OwidArticleTypePublished extends OwidArticleType {
 }
 
 export interface OwidArticleContent {
-    body?: OwidArticleBlock[]
+    body?: OwidEnrichedArticleBlock[]
     title?: string
     supertitle?: string
     subtitle?: string
@@ -435,9 +895,10 @@ export interface OwidArticleContent {
     byline?: string
     dateline?: string
     excerpt?: string
+    refs?: EnrichedBlockText[]
+    summary?: EnrichedBlockText[]
+    citation?: EnrichedBlockSimpleText[]
     toc?: TocHeadingWithTitleSupertitle[]
-    refs?: OwidArticleBlock[]
-    summary?: OwidArticleBlock[]
     "cover-image"?: any
     "cover-color"?:
         | "sdg-color-1"
@@ -461,7 +922,7 @@ export interface OwidArticleContent {
 }
 
 export interface OwidArticleContentPublished extends OwidArticleContent {
-    body: OwidArticleBlock[]
+    body: OwidEnrichedArticleBlock[]
     title: string
     byline: string
     excerpt: string

@@ -62,6 +62,7 @@ import union from "lodash/union.js"
 import uniq from "lodash/uniq.js"
 import uniqBy from "lodash/uniqBy.js"
 import uniqWith from "lodash/uniqWith.js"
+import unset from "lodash/unset.js"
 import upperFirst from "lodash/upperFirst.js"
 import without from "lodash/without.js"
 import zip from "lodash/zip.js"
@@ -127,6 +128,7 @@ export {
     uniq,
     uniqBy,
     uniqWith,
+    unset,
     upperFirst,
     without,
     zip,
@@ -1281,4 +1283,30 @@ export const getArticleFromJSON = (
         publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
         updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
     }
+}
+
+// Checking whether we have clipboard write access is surprisingly complicated.
+// For example, if a chart is embedded in an iframe, then Chrome will prevent the
+// use of clipboard.writeText() unless the iframe has allow="clipboard-write".
+// On the other hand, Firefox and Safari haven't implemented the Permissions API
+// for "clipboard-write", so we need to handle that case gracefully.
+// See https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API#browser_compatibility
+export const canWriteToClipboard = async (): Promise<boolean> => {
+    if (!("clipboard" in navigator)) return false
+
+    if ("permissions" in navigator) {
+        // Is Permissions API implemented?
+
+        try {
+            // clipboard-write permission is not supported in all browsers - need to catch that case
+            const res = await navigator.permissions.query({
+                name: "clipboard-write" as PermissionName,
+            })
+
+            // Asking permission was successful, we may use clipboard-write methods if permission wasn't denied.
+            return ["granted", "prompt"].includes(res.state)
+        } catch (err) {}
+    }
+    // navigator.clipboard is available, but we couldn't check for permissions -- assume we can use it.
+    return true
 }

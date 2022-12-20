@@ -5,12 +5,9 @@
     // "Research & Writing" heading
     > h2:first-child {
         grid-column: 1 / 13;
-        font-family: $serif-font-stack;
-        font-size: 32px;
-        line-height: 1.33;
+        @include h1-semibold;
         text-align: center;
         margin: 48px 0;
-        font-weight: 600;
     }
 
     // Category headings

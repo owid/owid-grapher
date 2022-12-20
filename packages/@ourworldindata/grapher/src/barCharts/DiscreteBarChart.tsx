@@ -503,7 +503,7 @@ export class DiscreteBarChart
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
+            ? "No matching data"
             : ""
     }
 
