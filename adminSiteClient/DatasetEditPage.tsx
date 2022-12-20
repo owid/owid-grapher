@@ -1,328 +1,29 @@
 import React from "react"
 import { observer } from "mobx-react"
-import {
-    observable,
-    computed,
-    runInAction,
-    autorun,
-    action,
-    IReactionDisposer,
-    when,
-} from "mobx"
+import { observable, computed, runInAction, action } from "mobx"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 
-import {
-    OwidVariableDisplayConfig,
-    OwidSource,
-    OwidVariableDisplayConfigInterface,
-    EPOCH_DATE,
-} from "@ourworldindata/utils"
+import { OwidSource } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import {
     BindString,
     Toggle,
-    BindFloat,
     FieldsRow,
     EditableTags,
     Timeago,
 } from "./Forms.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
-import {
-    Grapher,
-    EntitySelectionMode,
-    ChartTypeName,
-    GrapherTabOption,
-    WorldEntityName,
-    GrapherInterface,
-} from "@ourworldindata/grapher"
-import { GrapherFigureView } from "../site/GrapherFigureView.js"
 import { Tag } from "./TagBadge.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { Base64 } from "js-base64"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
-
-class VariableEditable {
-    @observable name: string = ""
-    @observable unit: string = ""
-    @observable shortUnit: string = ""
-    @observable description: string = ""
-    @observable
-    display: OwidVariableDisplayConfig = new OwidVariableDisplayConfig()
-
-    constructor(json: any) {
-        for (const key in this) {
-            if (key === "display") lodash.extend(this.display, json.display)
-            else this[key] = json[key]
-        }
-    }
-}
-
-@observer
-class VariableEditRow extends React.Component<{
-    variable: VariableEditListItem
-    isBulkImport: boolean
-}> {
-    static contextType = AdminAppContext
-    context!: AdminAppContextType
-
-    @observable.ref private grapher?: Grapher
-    @observable private newVariable!: VariableEditable
-
-    UNSAFE_componentWillMount() {
-        this.UNSAFE_componentWillReceiveProps()
-    }
-    UNSAFE_componentWillReceiveProps() {
-        this.newVariable = new VariableEditable(this.props.variable)
-    }
-
-    @computed private get isModified(): boolean {
-        return (
-            JSON.stringify(this.newVariable) !==
-            JSON.stringify(new VariableEditable(this.props.variable))
-        )
-    }
-
-    private async save() {
-        const { variable } = this.props
-        const json = await this.context.admin.requestJSON(
-            `/api/variables/${variable.id}`,
-            { variable: this.newVariable },
-            "PUT"
-        )
-
-        if (json.success) {
-            runInAction(() => {
-                Object.assign(this.props.variable, this.newVariable)
-            })
-        }
-    }
-
-    @computed private get grapherConfig(): GrapherInterface {
-        return {
-            yAxis: { min: 0 },
-            map: { variableId: this.props.variable.id },
-            tab: "map",
-            hasMapTab: true,
-            dimensions: [
-                {
-                    property: "y",
-                    variableId: this.props.variable.id,
-                    display: lodash.clone(this.newVariable.display),
-                },
-            ],
-        } as any
-    }
-
-    @action.bound grapherIsReady(grapher: Grapher) {
-        // XXX refactor this with EditorBasicTab
-        if (!grapher.mappableData.length) return
-
-        grapher.tab = GrapherTabOption.chart
-        grapher.hasMapTab = false
-        const { selection } = grapher
-        const { availableEntityNames } = selection
-        if (grapher.isScatter || grapher.isSlopeChart) {
-            selection.clearSelection()
-        } else if (grapher.yColumnsFromDimensions.length > 1) {
-            const entity = selection.availableEntityNameSet.has(WorldEntityName)
-                ? WorldEntityName
-                : lodash.sample(availableEntityNames)
-            selection.selectEntity(entity!)
-            grapher.addCountryMode = EntitySelectionMode.SingleEntity
-        } else {
-            grapher.addCountryMode = EntitySelectionMode.MultipleEntities
-            if (grapher.filledDimensions[0].column.uniqTimesAsc.length === 1) {
-                grapher.type = ChartTypeName.DiscreteBar
-                selection.setSelectedEntities(
-                    availableEntityNames.length > 15
-                        ? lodash.sampleSize(availableEntityNames, 8)
-                        : availableEntityNames
-                )
-            } else {
-                selection.setSelectedEntities(
-                    availableEntityNames.length > 10
-                        ? lodash.sampleSize(availableEntityNames, 3)
-                        : availableEntityNames
-                )
-            }
-        }
-    }
-
-    dispose!: IReactionDisposer
-    dispose2!: IReactionDisposer
-    componentDidMount() {
-        this.grapher = new Grapher({
-            ...this.grapherConfig,
-            isEmbeddedInAnOwidPage: true,
-        })
-
-        this.dispose2 = when(
-            () => this.grapher !== undefined && this.grapher.isReady,
-            () => this.grapherIsReady(this.grapher as Grapher)
-        )
-
-        this.dispose = autorun(() => {
-            const grapher = this.grapher
-            const display = lodash.clone(this.newVariable.display)
-            if (grapher) {
-                runInAction(() => (grapher.dimensions[0].display = display))
-            }
-        })
-    }
-
-    componentWillUnmount() {
-        this.dispose()
-        this.dispose2()
-    }
-
-    render() {
-        const { isBulkImport } = this.props
-        const { newVariable } = this
-
-        // Todo: can we reuse code from VariableEditPage?
-
-        return (
-            <div className="VariableEditRow row">
-                <Prompt
-                    when={this.isModified}
-                    message="Are you sure you want to leave? Unsaved changes will be lost."
-                />
-                <div className="col">
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault()
-                            this.save()
-                        }}
-                    >
-                        <section>
-                            <BindString
-                                label="Name"
-                                field="name"
-                                store={newVariable}
-                                helpText="The full name of the variable e.g. Top marginal income tax rate"
-                                disabled={isBulkImport}
-                            />
-                            <BindString
-                                label="Display name"
-                                field="name"
-                                store={newVariable.display}
-                                helpText="How the variable should be named on charts"
-                            />
-                            <FieldsRow>
-                                <BindString
-                                    label="Unit of measurement"
-                                    field="unit"
-                                    store={newVariable.display}
-                                    placeholder={newVariable.unit}
-                                />
-                                <BindString
-                                    label="Short (axis) unit"
-                                    field="shortUnit"
-                                    store={newVariable.display}
-                                    placeholder={newVariable.shortUnit}
-                                />
-                            </FieldsRow>
-                            <FieldsRow>
-                                <BindFloat
-                                    label="Number of decimal places"
-                                    field="numDecimalPlaces"
-                                    store={newVariable.display}
-                                    helpText={`A negative number here will round integers`}
-                                />
-                                <BindFloat
-                                    label="Unit conversion factor"
-                                    field="conversionFactor"
-                                    store={newVariable.display}
-                                    helpText={`Multiply all values by this amount`}
-                                />
-                            </FieldsRow>
-                            <FieldsRow>
-                                <Toggle
-                                    value={
-                                        newVariable.display.yearIsDay === true
-                                    }
-                                    onValue={(value) =>
-                                        (newVariable.display.yearIsDay = value)
-                                    }
-                                    label="Treat year column as day series"
-                                />
-                                <BindString
-                                    label="Zero Day as YYYY-MM-DD"
-                                    field="zeroDay"
-                                    store={newVariable.display}
-                                    disabled={!newVariable.display.yearIsDay}
-                                    placeholder={
-                                        newVariable.display.yearIsDay
-                                            ? EPOCH_DATE
-                                            : ""
-                                    }
-                                    helpText={`The day series starts on this date.`}
-                                />
-                            </FieldsRow>
-                            <BindString
-                                label="Description"
-                                field="description"
-                                store={newVariable}
-                                helpText="Any further useful information about this variable"
-                                textarea
-                            />
-                            <BindString
-                                field="entityAnnotationsMap"
-                                placeholder="Entity: note"
-                                store={newVariable.display}
-                                label="Entity annotations"
-                                textarea
-                                disabled={isBulkImport}
-                                helpText="Additional text to show next to entity labels. Each note should be in a separate line."
-                            />
-                        </section>
-                        <input
-                            type="submit"
-                            className="btn btn-success mr-1"
-                            value="Update variable"
-                        />
-                        <Link
-                            className="btn btn-secondary"
-                            to={`/variables/${this.props.variable.id}`}
-                        >
-                            Go to variable
-                        </Link>
-                    </form>
-                </div>
-                {this.grapher && (
-                    <div className="col">
-                        <GrapherFigureView grapher={this.grapher} />
-                        <Link
-                            className="btn btn-secondary pull-right"
-                            to={`/charts/create/${Base64.encode(
-                                JSON.stringify(this.grapher.object)
-                            )}`}
-                        >
-                            Edit as new chart
-                        </Link>
-                    </div>
-                )}
-            </div>
-        )
-    }
-}
-
-interface VariableEditListItem {
-    id: number
-    name: string
-    unit: string
-    shortUnit: string
-    description: string
-    display: OwidVariableDisplayConfigInterface
-}
 
 interface DatasetPageData {
     id: number
@@ -342,7 +43,7 @@ interface DatasetPageData {
 
     availableTags: { id: number; name: string; parentName: string }[]
     tags: { id: number; name: string }[]
-    variables: VariableEditListItem[]
+    variables: VariableListItem[]
     charts: ChartListItem[]
     source: OwidSource
     zipFile?: { filename: string }
@@ -397,7 +98,6 @@ class DatasetTagEditor extends React.Component<{
                     suggestions={availableTags}
                     onSave={this.onSaveTags}
                 />
-                {/*<small className="form-text text-muted">Currently used for internal organization</small>*/}
             </div>
         )
     }
@@ -515,6 +215,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
     @action.bound startChooseZip() {
         const input = document.createElement("input")
         input.type = "file"
+        input.accept = ".zip"
         input.addEventListener("change", this.onChooseZip as any)
         input.click()
     }
@@ -704,19 +405,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 </section>
                 <section>
                     <h3>Variables</h3>
-                    {dataset.variables.length >= 12 ? (
-                        <VariableList
-                            variables={dataset.variables as VariableListItem[]}
-                        />
-                    ) : (
-                        dataset.variables.map((variable) => (
-                            <VariableEditRow
-                                key={`${variable.id}-${timesUpdated}`}
-                                variable={variable}
-                                isBulkImport={isBulkImport}
-                            />
-                        ))
-                    )}
+                    <VariableList variables={dataset.variables} />
                 </section>
                 <section>
                     <button
