@@ -24,6 +24,7 @@ import urlSlug from "url-slug"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { MissingData } from "./MissingData.js"
+import { AdditionalCharts } from "./AdditionalCharts.js"
 
 export type Container =
     | "default"
@@ -482,6 +483,15 @@ export default function ArticleBlock({
                 .with({ type: "missing-data" }, () => (
                     <MissingData
                         className={getLayout("missing-data", containerType)}
+                    />
+                ))
+                .with({ type: "additional-charts" }, (block) => (
+                    <AdditionalCharts
+                        items={block.items}
+                        className={getLayout(
+                            "additional-charts",
+                            containerType
+                        )}
                     />
                 ))
                 .exhaustive()
