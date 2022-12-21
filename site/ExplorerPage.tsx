@@ -104,7 +104,10 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     baseUrl={baseUrl}
                     context={SiteFooterContext.explorerPage}
                 />
-                <script dangerouslySetInnerHTML={{ __html: inlineJs }} />
+                <script
+                    type="module"
+                    dangerouslySetInnerHTML={{ __html: inlineJs }}
+                />
             </body>
         </html>
     )

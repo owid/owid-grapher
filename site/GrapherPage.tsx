@@ -145,7 +145,10 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     baseUrl={baseUrl}
                     context={SiteFooterContext.grapherPage}
                 />
-                <script dangerouslySetInnerHTML={{ __html: script }} />
+                <script
+                    type="module"
+                    dangerouslySetInnerHTML={{ __html: script }}
+                />
             </body>
         </html>
     )
