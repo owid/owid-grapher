@@ -38,14 +38,6 @@ import fs from "fs"
 
 // TODO: add context for per post stats and error message context
 
-function unwrapNode(
-    node: CheerioElement,
-    $: CheerioStatic
-): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
-    const children = node.children.map((child) => cheerioToArchieML(child, $))
-    return joinArchieMLTransformationResults(children)
-}
-
 type ErrorNames =
     | "blockquote content is not just text"
     | "too many figcaption elements"
@@ -162,7 +154,8 @@ type CheerioSequenceParserResult = {
 }
 
 type CheerioSequenceParser = (
-    nodes: CheerioElement[]
+    nodes: CheerioElement[],
+    $: CheerioStatic
 ) => CheerioSequenceParserResult
 
 // function tryParseCommentTagPair(
@@ -259,7 +252,7 @@ type CheerioSequenceParser = (
 // }
 
 function succeed(): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => ({
+    return (nodes: CheerioElement[], $: CheerioStatic) => ({
         result: { errors: [], content: [] },
         remainingNodes: [],
         success: true,
@@ -267,7 +260,7 @@ function succeed(): CheerioSequenceParser {
 }
 
 function fail(): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => ({
+    return (nodes: CheerioElement[], $: CheerioStatic) => ({
         result: { errors: [], content: [] },
         remainingNodes: [],
         success: false,
@@ -275,12 +268,12 @@ function fail(): CheerioSequenceParser {
 }
 
 function seq(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => {
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
         const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
             []
         let remainingNodes = nodes
         for (const parser of parsers) {
-            const result = parser(remainingNodes)
+            const result = parser(remainingNodes, $)
             if (!result.success)
                 return {
                     result: joinArchieMLTransformationResults(results),
@@ -299,9 +292,9 @@ function seq(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
 }
 
 function anyOf(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => {
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
         for (const parser of parsers) {
-            const result = parser(nodes)
+            const result = parser(nodes, $)
             if (result.success) {
                 return result
             }
@@ -315,13 +308,13 @@ function anyOf(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
 }
 
 function many0(parser: CheerioSequenceParser): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => {
-        let result: CheerioSequenceParserResult = parser(nodes)
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
+        let result: CheerioSequenceParserResult = parser(nodes, $)
         const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
             []
         while (result.success) {
             results.push(result.result)
-            result = parser(result.remainingNodes)
+            result = parser(result.remainingNodes, $)
         }
         return {
             result: joinArchieMLTransformationResults(results),
@@ -332,14 +325,14 @@ function many0(parser: CheerioSequenceParser): CheerioSequenceParser {
 }
 
 function many1(parser: CheerioSequenceParser): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => {
-        let result: CheerioSequenceParserResult = parser(nodes)
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
+        let result: CheerioSequenceParserResult = parser(nodes, $)
         let atLeastOneConsumed = false
         const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
             []
         while (result.success) {
             results.push(result.result)
-            result = parser(result.remainingNodes)
+            result = parser(result.remainingNodes, $)
             atLeastOneConsumed = true
         }
         return {
@@ -354,13 +347,13 @@ function manyTill(
     manyParser: CheerioSequenceParser,
     stopParser: CheerioSequenceParser
 ): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => {
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
         let remainingNodes = nodes
-        let stopResult: CheerioSequenceParserResult = stopParser(nodes)
+        let stopResult: CheerioSequenceParserResult = stopParser(nodes, $)
         const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
             []
         while (!stopResult.success && remainingNodes) {
-            const manyResult = manyParser(remainingNodes)
+            const manyResult = manyParser(remainingNodes, $)
             if (!manyResult.success)
                 return {
                     result: emptyArchieMLTransformationResult(),
@@ -370,7 +363,7 @@ function manyTill(
 
             results.push(manyResult.result)
             remainingNodes = manyResult.remainingNodes
-            stopResult = stopParser(remainingNodes)
+            stopResult = stopParser(remainingNodes, $)
             // we don't want to consume the content matched by stopParser, just make sure it
             // would apply successfully
         }
@@ -387,13 +380,13 @@ function delimited(
     elementListParser: CheerioSequenceParser,
     endParser: CheerioSequenceParser
 ): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => {
-        let result = startParser(nodes)
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
+        let result = startParser(nodes, $)
         if (result.success) {
-            result = manyTill(
-                elementListParser,
-                endParser
-            )(result.remainingNodes)
+            result = manyTill(elementListParser, endParser)(
+                result.remainingNodes,
+                $
+            )
             return result
         }
         return {
@@ -407,7 +400,7 @@ function delimited(
 function condition(
     predicate: (node: CheerioElement) => boolean
 ): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => {
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
         if (nodes.length > 0 && predicate(nodes[0]))
             return {
                 result: {
@@ -429,11 +422,23 @@ function condition(
     }
 }
 
+function map(
+    parser: CheerioSequenceParser,
+    fn: (result: CheerioSequenceParserResult) => CheerioSequenceParserResult
+): CheerioSequenceParser {
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
+        return fn(parser(nodes, $))
+    }
+}
+
 function wpComponent(
     name: string,
-    contentParser: CheerioSequenceParser
+    contentParser: CheerioSequenceParser,
+    componentManipulator: (
+        result: CheerioSequenceParserResult
+    ) => CheerioSequenceParserResult = (r) => r
 ): CheerioSequenceParser {
-    return delimited(
+    const componentContents = delimited(
         condition(
             (node) =>
                 node.type === "comment" &&
@@ -446,16 +451,19 @@ function wpComponent(
                 (node.data?.trim().startsWith(`/${name}`) ?? false)
         )
     )
+    return map(componentContents, componentManipulator)
 }
 
 function lazy(parser: () => CheerioSequenceParser) {
     let p: CheerioSequenceParser | undefined = undefined
-    if (!p) p = parser()
-    return p
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
+        if (!p) p = parser()
+        return p(nodes, $)
+    }
 }
 
 function nonCommentParser(): CheerioSequenceParser {
-    return (nodes: CheerioElement[]) => {
+    return (nodes: CheerioElement[], $: CheerioStatic) => {
         if (nodes.length === 0)
             return {
                 result: emptyArchieMLTransformationResult(),
@@ -463,13 +471,34 @@ function nonCommentParser(): CheerioSequenceParser {
                 remainingNodes: nodes,
             }
         else {
-            const parsedItem = cheerioToArchieML(nodes[0])
+            const parsedItem = cheerioToArchieML(nodes[0], $)
             return {
                 result: parsedItem,
                 remainingNodes: nodes.slice(1),
                 success: true,
             }
         }
+    }
+}
+
+function buildColumns(
+    content: CheerioSequenceParserResult
+): CheerioSequenceParserResult {
+    return {
+        ...content,
+        result: {
+            errors: content.result.errors,
+            content: [
+                {
+                    // TODO: this should receive the two subparts independently but
+                    // that probably needs generic parsers and seqSeparate
+                    type: "sticky-right",
+                    left: [content.result.content[0]],
+                    right: [content.result.content[1]],
+                    parseErrors: [],
+                },
+            ],
+        },
     }
 }
 
@@ -480,7 +509,8 @@ function htmlElementParser(): CheerioSequenceParser {
             seq([
                 wpComponent("column", lazy(htmlElementParser)),
                 wpComponent("column", lazy(htmlElementParser)),
-            ])
+            ]),
+            buildColumns
         ),
         condition((node) => node.type === "comment"),
         nonCommentParser(),
@@ -489,6 +519,14 @@ function htmlElementParser(): CheerioSequenceParser {
 
 function htmlParser(): CheerioSequenceParser {
     return many0(htmlElementParser())
+}
+
+function unwrapNode(
+    node: CheerioElement,
+    $: CheerioStatic
+): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
+    const result = htmlParser()(node.children, $)
+    return result.result
 }
 
 function cheerioToArchieML(
@@ -825,7 +863,7 @@ function cheerioToArchieML(
 }
 
 const migrate = async (): Promise<void> => {
-    const writeToFile = false
+    const writeToFile = true
     await db.getConnection()
 
     const posts = await Post.select(
@@ -835,34 +873,26 @@ const migrate = async (): Promise<void> => {
         "content",
         "published_at",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "54652"))
+    ).from(db.knexTable(Post.postsTable).where("id", "=", "54652"))
 
     // const tagCounts = new Map<string, number>()
 
     for (const post of posts) {
         const $: CheerioStatic = cheerio.load(post.content)
         const bodyContents = $("body").contents().toArray()
-        const archieMlBodyElements = cheerioListToArchieML(bodyContents, $)
-            .map((block) => ({
-                ...block,
-                content: block.content.filter(
-                    (element) =>
-                        element.type !== "text" ||
-                        (element.value.length > 0 &&
-                            element.value.some(
-                                (span) =>
-                                    span.spanType !== "span-simple-text" ||
-                                    span.text.trim() !== ""
-                            ))
-                ),
-            }))
-            .filter(
-                (block) => block.content.length > 0 || block.errors.length > 0
-            )
-        const archieMlBlocks = archieMlBodyElements.flatMap(
-            (block) => block.content
+        const parseResult = htmlParser()(bodyContents, $)
+        const archieMlBodyElements = parseResult.result.content.filter(
+            (element) =>
+                element.type !== "text" ||
+                (element.value.length > 0 &&
+                    element.value.some(
+                        (span) =>
+                            span.spanType !== "span-simple-text" ||
+                            span.text.trim() !== ""
+                    ))
         )
-        const errors = archieMlBodyElements.flatMap((block) => block.errors)
+
+        const errors = parseResult.result.errors
         // archieMlForPosts.push([
         //     post.id,
         //     JSON.stringify(archieMlBlocks, null, 2),
@@ -873,7 +903,7 @@ const migrate = async (): Promise<void> => {
             id: `wp-${post.id}`,
             slug: post.slug,
             content: {
-                body: archieMlBlocks,
+                body: archieMlBodyElements,
                 title: post.title,
                 byline: "todo", // TOOD: fetch authors from WP and store them in posts table
                 dateline: post.published_at?.toISOString() ?? "",
@@ -887,18 +917,18 @@ const migrate = async (): Promise<void> => {
         const archieMlStatsContent = {
             errors,
             numErrors: errors.length,
-            numBlocks: archieMlBlocks.length,
+            numBlocks: archieMlBodyElements.length,
         }
 
-        const insertQuery = `
-        UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?
-        `
-        await db.queryMysql(insertQuery, [
-            JSON.stringify(archieMlFieldContent, null, 2),
-            JSON.stringify(archieMlStatsContent, null, 2),
-            post.id,
-        ])
-        console.log("inserted", post.id)
+        // const insertQuery = `
+        // UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?
+        // `
+        // await db.queryMysql(insertQuery, [
+        //     JSON.stringify(archieMlFieldContent, null, 2),
+        //     JSON.stringify(archieMlStatsContent, null, 2),
+        //     post.id,
+        // ])
+        // console.log("inserted", post.id)
 
         if (writeToFile) {
             try {
