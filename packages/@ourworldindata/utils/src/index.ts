@@ -248,6 +248,7 @@ export {
     retryPromise,
     getArticleFromJSON,
     formatDate,
+    canWriteToClipboard,
 } from "./Util.js"
 
 export {
