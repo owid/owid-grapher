@@ -4,7 +4,7 @@ import { computed, action, observable } from "mobx"
 import { isTouchDevice, sortBy } from "@ourworldindata/utils"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SelectionArray } from "../selection/SelectionArray"
 
 interface SearchableEntity {

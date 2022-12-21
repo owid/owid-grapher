@@ -5,7 +5,7 @@ import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaU
 import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
 import { faSortAmountUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAmountUpAlt"
 import { faSortAmountDown } from "@fortawesome/free-solid-svg-icons/faSortAmountDown"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SortOrder } from "@ourworldindata/core-table"
 
 export function SortIcon(props: {

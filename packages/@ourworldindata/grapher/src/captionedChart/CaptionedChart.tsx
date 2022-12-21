@@ -26,7 +26,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
 import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList"
 import {
     ZoomToggle,
