@@ -262,10 +262,24 @@ export const SiteFooter = (props: SiteFooterProps) => (
             </div>
             <div className="site-tools" />
             <script src={POLYFILL_URL} />
-            <script src={webpackUrl("commons.js", props.baseUrl)} />
-            <script src={webpackUrl("vendors.js", props.baseUrl)} />
-            <script src={webpackUrl("owid.js", props.baseUrl)} />
+            {/* https://vitejs.dev/guide/backend-integration.html */}
             <script
+                type="module"
+                dangerouslySetInnerHTML={{
+                    __html: `import RefreshRuntime from 'http://localhost:8090/@react-refresh'
+  RefreshRuntime.injectIntoGlobalHook(window)
+  window.$RefreshReg$ = () => {}
+  window.$RefreshSig$ = () => (type) => type
+  window.__vite_plugin_react_preamble_installed__ = true`,
+                }}
+            />
+            <script type="module" src="http://localhost:8090/@vite/client" />
+            <script
+                type="module"
+                src="http://localhost:8090/site/owid.entry.ts"
+            />
+            <script
+                type="module"
                 dangerouslySetInnerHTML={{
                     __html: `window.runSiteFooterScripts(${JSON.stringify({
                         context: props.context,
