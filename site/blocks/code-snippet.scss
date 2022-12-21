@@ -33,34 +33,22 @@
         &:active {
             color: $blue-100;
         }
-    }
 
-    button.code-copy-button--has-copied::after {
-        content: "Copied!";
-        position: absolute;
-        left: 24px;
-        top: -8px;
-        font-size: 12px;
-        color: $blue-100;
-        animation: fadeOut 500ms;
-        opacity: 0;
-    }
-}
+        &::after {
+            content: "Copied!";
+            position: absolute;
+            left: 24px;
+            top: -8px;
+            font-size: 12px;
+            color: $blue-100;
+            transition: opacity 350ms;
+            transition-delay: 750ms;
+            opacity: 0;
+        }
 
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes fadeOut {
-    0% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
+        &.code-copy-button--has-copied::after {
+            opacity: 1;
+            transition: none;
+        }
     }
 }
