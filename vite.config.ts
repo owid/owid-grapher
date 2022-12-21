@@ -3,6 +3,15 @@ import react from "@vitejs/plugin-react"
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    optimizeDeps: {
+        // they are commonJS, so we need to include them here
+        // https://vitejs.dev/guide/dep-pre-bundling.html#monorepos-and-linked-dependencies
+        include: [
+            "@ourworldindata/grapher",
+            "@ourworldindata/utils",
+            "@ourworldindata/core-table",
+        ],
+    },
     build: {
         manifest: true,
         emptyOutDir: false,
@@ -15,8 +24,19 @@ export default defineConfig({
             },
             formats: ["es"],
         },
+        commonjsOptions: {
+            include: [/@ourworldindata\/.*/, /node_modules/],
+        },
     },
-    plugins: [react()],
+    plugins: [
+        react({
+            babel: {
+                parserOpts: {
+                    plugins: ["decorators-legacy"],
+                },
+            },
+        }),
+    ],
     server: {
         port: 8090,
     },
