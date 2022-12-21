@@ -3,11 +3,14 @@
 // Settings in here will be made available to the client-side code that is
 // bundled and shipped out to our users.
 
-import dotenv from "dotenv"
-import findBaseDir from "./findBaseDir.js"
+// import dotenv from "dotenv"
+// import findBaseDir from "./findBaseDir.js"
 
-const baseDir = findBaseDir(__dirname)
-if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
+const baseDir = "."
+// if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
+
+let process
+if (typeof process === "undefined") process = { env: {} as any }
 
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 
