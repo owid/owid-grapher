@@ -17,7 +17,7 @@ import {
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
-import { renderSpans } from "./utils.js"
+import { renderSpans, spansToUnformattedPlainText } from "./utils"
 import Paragraph from "./Paragraph.js"
 import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"
@@ -245,22 +245,25 @@ export default function ArticleBlock({
                             "display-2-semibold",
                             getLayout("heading", containerType)
                         )}
-                        id={urlSlug(block.text.text)}
+                        id={urlSlug(spansToUnformattedPlainText(block.text))}
                     >
-                        {block.text.text}
+                        {renderSpans(block.text)}
                     </h1>
                 ))
                 .with({ type: "heading", level: 2 }, (block) => {
-                    const {
-                        supertitle,
-                        text: { text },
-                    } = block
-                    const supertitleText = supertitle?.text || ""
-                    const id = urlSlug(`${supertitleText}-${text}`)
+                    const { supertitle, text } = block
+
+                    const id = supertitle
+                        ? urlSlug(
+                              `${spansToUnformattedPlainText(
+                                  supertitle
+                              )}-${spansToUnformattedPlainText(text)}`
+                          )
+                        : urlSlug(spansToUnformattedPlainText(block.text))
 
                     return (
                         <>
-                            {supertitleText ? (
+                            {supertitle ? (
                                 <div
                                     className={getLayout(
                                         "divider",
@@ -273,45 +276,55 @@ export default function ArticleBlock({
                                     "h1-semibold",
                                     getLayout("heading", containerType),
                                     {
-                                        "has-supertitle": supertitleText,
+                                        "has-supertitle": supertitle
+                                            ? spansToUnformattedPlainText(
+                                                  supertitle
+                                              )
+                                            : "",
                                     }
                                 )}
                                 id={id}
                             >
-                                {supertitleText ? (
+                                {supertitle ? (
                                     <div className="article-block__heading-supertitle overline-black-caps">
-                                        {supertitleText}
+                                        {renderSpans(supertitle)}
                                     </div>
                                 ) : null}
-                                {text}
+                                {renderSpans(text)}
                             </h2>
                         </>
                     )
                 })
                 .with({ type: "heading", level: 3 }, (block) => {
-                    const {
-                        supertitle,
-                        text: { text },
-                    } = block
-                    const supertitleText = supertitle?.text || ""
-                    const id = urlSlug(`${supertitleText}-${text}`)
+                    const { supertitle, text } = block
+                    const id = supertitle
+                        ? urlSlug(
+                              `${spansToUnformattedPlainText(
+                                  supertitle
+                              )}-${spansToUnformattedPlainText(text)}`
+                          )
+                        : urlSlug(spansToUnformattedPlainText(block.text))
                     return (
                         <h3
                             className={cx(
                                 "h2-bold",
                                 getLayout("heading", containerType),
                                 {
-                                    "has-supertitle": supertitleText,
+                                    "has-supertitle": supertitle
+                                        ? spansToUnformattedPlainText(
+                                              supertitle
+                                          )
+                                        : undefined,
                                 }
                             )}
                             id={id}
                         >
-                            {supertitleText ? (
+                            {supertitle ? (
                                 <div className="article-block__heading-supertitle overline-black-caps">
-                                    {block.supertitle?.text}
+                                    {renderSpans(supertitle)}
                                 </div>
                             ) : null}
-                            {text}
+                            {renderSpans(text)}
                         </h3>
                     )
                 })
@@ -321,9 +334,9 @@ export default function ArticleBlock({
                             "h3-bold",
                             getLayout("heading", containerType)
                         )}
-                        id={urlSlug(block.text.text)}
+                        id={urlSlug(spansToUnformattedPlainText(block.text))}
                     >
-                        {block.text.text}
+                        {renderSpans(block.text)}
                     </h4>
                 ))
                 .with({ type: "heading", level: 5 }, (block) => (
@@ -332,9 +345,9 @@ export default function ArticleBlock({
                             "h4-semibold",
                             getLayout("heading", containerType)
                         )}
-                        id={urlSlug(block.text.text)}
+                        id={urlSlug(spansToUnformattedPlainText(block.text))}
                     >
-                        {block.text.text}
+                        {renderSpans(block.text)}
                     </h5>
                 ))
                 .with({ type: "heading", level: 6 }, (block) => (
@@ -343,9 +356,9 @@ export default function ArticleBlock({
                             "overline-black-caps",
                             getLayout("heading", containerType)
                         )}
-                        id={urlSlug(block.text.text)}
+                        id={urlSlug(spansToUnformattedPlainText(block.text))}
                     >
-                        {block.text.text}
+                        {renderSpans(block.text)}
                     </h6>
                 ))
                 .with(
