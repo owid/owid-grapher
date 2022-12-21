@@ -3,13 +3,13 @@
 @import "node_modules/bootstrap/scss/bootstrap";
 @import "styles/react-tag-autocomplete";
 
-@import "~tippy.js/dist/tippy.css";
-@import "~tippy.js/themes/light.css";
+@import "../node_modules/tippy.js/dist/tippy.css";
+@import "../node_modules/tippy.js/themes/light.css";
 
-@import "node_modules/antd/dist/antd.css"; // or import "react-awesome-query-builder/css/antd.less";
-@import "node_modules/react-awesome-query-builder/lib/css/styles";
-@import "node_modules/react-awesome-query-builder/lib/css/compact_styles";
-@import "node_modules/codemirror/lib/codemirror.css";
+@import "../node_modules/antd/dist/antd.css"; // or import "react-awesome-query-builder/css/antd.less";
+@import "../node_modules/react-awesome-query-builder/lib/css/styles";
+@import "../node_modules/react-awesome-query-builder/lib/css/compact_styles";
+@import "../node_modules/codemirror/lib/codemirror.css";
 
 html {
     font-size: 14px;

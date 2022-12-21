@@ -13,10 +13,10 @@
     License URI: https://opensource.org/licenses/MIT
 */
 
-@import "~normalize.css";
+@import "../node_modules/normalize.css";
 
-@import "~tippy.js/dist/tippy.css";
-@import "~tippy.js/themes/light.css";
+@import "../node_modules/tippy.js/dist/tippy.css";
+@import "../node_modules/tippy.js/themes/light.css";
 
 @import "css/variables.scss";
 @import "css/colors.scss";
@@ -50,33 +50,33 @@
 @import "explorer/Explorer.scss";
 @import "explorer/ExplorerControls.scss";
 
-@import "site/blocks/front-matter.scss";
-@import "site/blocks/expandable-paragraph.scss";
-@import "site/blocks/additional-information.scss";
-@import "site/blocks/prominent-link.scss";
-@import "site/blocks/related-charts.scss";
-@import "site/blocks/summary.scss";
-@import "site/blocks/help.scss";
-@import "site/blocks/CookiePreferences.scss";
-@import "site/blocks/Grid.scss";
-@import "site/blocks/Card.scss";
-@import "site/blocks/code-snippet.scss";
-@import "site/blocks/BiographyCard.scss";
-@import "site/blocks/KeyInsights.scss";
-@import "site/blocks/TechnicalText.scss";
-@import "site/blocks/research-and-writing.scss";
-@import "site/blocks/GalleryArrow.scss";
-@import "site/ExpandableInlineBlock.scss";
-@import "site/GlossaryExcerpt.scss";
-@import "site/PostCard/PostCard.scss";
-@import "site/Breadcrumb/Breadcrumb.scss";
-@import "site/DataValue.scss";
-@import "site/AnnotatingDataValue.scss";
-@import "site/gdocs/centered-article.scss";
-@import "site/gdocs/SDGGrid.scss";
-@import "site/gdocs/SDGTableOfContents.scss";
-@import "site/gdocs/MissingData.scss";
-@import "site/gdocs/AdditionalCharts.scss";
+@import "./blocks/front-matter.scss";
+@import "./blocks/expandable-paragraph.scss";
+@import "./blocks/additional-information.scss";
+@import "./blocks/prominent-link.scss";
+@import "./blocks/related-charts.scss";
+@import "./blocks/summary.scss";
+@import "./blocks/help.scss";
+@import "./blocks/CookiePreferences.scss";
+@import "./blocks/Grid.scss";
+@import "./blocks/Card.scss";
+@import "./blocks/code-snippet.scss";
+@import "./blocks/BiographyCard.scss";
+@import "./blocks/KeyInsights.scss";
+@import "./blocks/TechnicalText.scss";
+@import "./blocks/research-and-writing.scss";
+@import "./blocks/GalleryArrow.scss";
+@import "./ExpandableInlineBlock.scss";
+@import "./GlossaryExcerpt.scss";
+@import "./PostCard/PostCard.scss";
+@import "./Breadcrumb/Breadcrumb.scss";
+@import "./DataValue.scss";
+@import "./AnnotatingDataValue.scss";
+@import "./gdocs/centered-article.scss";
+@import "./gdocs/SDGGrid.scss";
+@import "./gdocs/SDGTableOfContents.scss";
+@import "./gdocs/MissingData.scss";
+@import "./gdocs/AdditionalCharts.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
