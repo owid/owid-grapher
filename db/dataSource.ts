@@ -5,7 +5,7 @@ import {
     GRAPHER_DB_USER,
     GRAPHER_DB_PASS,
     GRAPHER_DB_PORT,
-} from "../settings/serverSettings"
+} from "../settings/serverSettings.js"
 
 export const dataSource = new DataSource({
     type: "mysql",

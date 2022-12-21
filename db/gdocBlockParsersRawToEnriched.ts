@@ -60,7 +60,7 @@ import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
     htmlToSpans,
-} from "./gdocUtils"
+} from "./gdocUtils.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
 import { getTitleSupertitleFromHeadingText } from "./gdocToArchieml.js"

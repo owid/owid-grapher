@@ -10,7 +10,7 @@ import Select, {
     Props,
 } from "react-select"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import {
     countries,

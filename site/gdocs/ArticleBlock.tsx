@@ -1,23 +1,23 @@
 import React from "react"
 import cx from "classnames"
 
-import ChartStory from "./ChartStory"
-import Scroller from "./Scroller"
-import Chart from "./Chart"
-import PullQuote from "./PullQuote"
-import FixedGraphic from "./FixedGraphic"
-import Recirc from "./Recirc"
-import List from "./List"
-import Image from "./Image"
+import ChartStory from "./ChartStory.js"
+import Scroller from "./Scroller.js"
+import Chart from "./Chart.js"
+import PullQuote from "./PullQuote.js"
+import FixedGraphic from "./FixedGraphic.js"
+import Recirc from "./Recirc.js"
+import List from "./List.js"
+import Image from "./Image.js"
 import {
     get,
     OwidEnrichedArticleBlock,
     TocHeadingWithTitleSupertitle,
 } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
-import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary"
+import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
-import { renderSpans } from "./utils"
+import { renderSpans } from "./utils.js"
 import Paragraph from "./Paragraph.js"
 import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"

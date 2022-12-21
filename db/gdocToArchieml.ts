@@ -24,7 +24,7 @@ import {
     htmlToSimpleTextBlock,
     owidRawArticleBlockToArchieMLString,
     spanToHtmlString,
-} from "./gdocUtils"
+} from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 import { parseRawBlocksToEnrichedBlocks } from "./gdocBlockParsersRawToEnriched.js"
 import urlSlug from "url-slug"
