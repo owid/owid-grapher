@@ -1,6 +1,6 @@
 import React from "react"
 import { EnrichedBlockRecirc } from "@ourworldindata/utils"
-import { renderSpan } from "./utils"
+import { renderSpan } from "./utils.js"
 export default function Recirc({
     d,
     className = "",

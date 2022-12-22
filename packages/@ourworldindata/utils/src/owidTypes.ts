@@ -681,8 +681,8 @@ export type RawBlockHeading = {
 
 export type EnrichedBlockHeading = {
     type: "heading"
-    text: SpanSimpleText
-    supertitle?: SpanSimpleText
+    text: Span[]
+    supertitle?: Span[]
     level: number
 } & EnrichedBlockWithParseErrors
 
@@ -792,6 +792,16 @@ export type EnrichedBlockMissingData = {
     type: "missing-data"
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockAdditionalCharts = {
+    type: "additional-charts"
+    value: string[]
+}
+
+export type EnrichedBlockAdditionalCharts = {
+    type: "additional-charts"
+    items: Span[][]
+} & EnrichedBlockWithParseErrors
+
 export type OwidRawArticleBlock =
     | RawBlockAside
     | RawBlockChart
@@ -816,6 +826,7 @@ export type OwidRawArticleBlock =
     | RawBlockProminentLink
     | RawBlockSDGToc
     | RawBlockMissingData
+    | RawBlockAdditionalCharts
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -839,6 +850,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockProminentLink
     | EnrichedBlockSDGToc
     | EnrichedBlockMissingData
+    | EnrichedBlockAdditionalCharts
 
 export enum OwidArticlePublicationContext {
     unlisted = "unlisted",

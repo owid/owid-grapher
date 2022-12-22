@@ -1,5 +1,5 @@
 import React from "react"
-import ReactDOMServer from "react-dom/server"
+import ReactDOMServer from "react-dom/server.js"
 import {
     observable,
     computed,
@@ -121,7 +121,7 @@ import {
 } from "@ourworldindata/core-table"
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
     AbsRelToggleManager,

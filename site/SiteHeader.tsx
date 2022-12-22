@@ -91,14 +91,14 @@ export const SiteHeader = (props: SiteHeaderProps) => (
                                     </a>
                                 </li>
                                 {/* <li><a href="/teaching"  data-track-note="header-navigation">Teaching Hub</a></li> */}
-                                <li>
+                                {/* <li>
                                     <a
                                         href="https://sdg-tracker.org"
                                         data-track-note="header-navigation"
                                     >
                                         Sustainable Development Goals Tracker
                                     </a>
-                                </li>
+                                </li> */}
                             </ul>
                         </div>
                     </div>

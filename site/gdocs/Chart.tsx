@@ -1,8 +1,8 @@
 import React from "react"
 import { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
-import { EnrichedBlockChart } from "@ourworldindata/utils"
-import { renderSpans } from "./utils"
+import { EnrichedBlockChart, Url } from "@ourworldindata/utils"
+import { renderSpans } from "./utils.js"
 import cx from "classnames"
 
 export default function Chart({
@@ -23,6 +23,11 @@ export default function Chart({
         }
     }
 
+    const url = Url.fromURL(d.url)
+    const isExplorer = url.isExplorer
+    const hasControls = url.queryParams.hideControls !== "true"
+    const height = d.height || (isExplorer && hasControls) ? 700 : 575
+
     return (
         <figure
             className={cx(d.position, className)}
@@ -31,12 +36,12 @@ export default function Chart({
             <figure
                 // Use unique `key` to force React to re-render tree
                 key={d.url}
-                data-grapher-src={d.url}
+                data-grapher-src={isExplorer ? undefined : d.url}
+                data-explorer-src={isExplorer ? d.url : undefined}
                 style={{
                     width: "100%",
                     border: "0px none",
-                    height:
-                        d.position === "featured" ? 700 : d.height || "550px",
+                    height,
                 }}
             />
             {d.caption ? (

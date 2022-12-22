@@ -3,7 +3,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import {

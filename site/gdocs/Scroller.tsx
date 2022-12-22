@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/utils"
 
 import { useEmbedChart } from "../hooks.js"
-import { renderSpans } from "./utils"
+import { renderSpans } from "./utils.js"
 import cx from "classnames"
 export default function Scroller({
     d,

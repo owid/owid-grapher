@@ -35,17 +35,17 @@ export const IndexPage = (props: {
                     rel="stylesheet"
                 />
                 <link
-                    href={webpackUrl("commons.css", "/admin")}
-                    rel="stylesheet"
-                    type="text/css"
-                />
-                <link
                     href={webpackUrl("admin.css", "/admin")}
                     rel="stylesheet"
                     type="text/css"
                 />
                 <link
                     href={webpackUrl("owid.css", "/admin")}
+                    rel="stylesheet"
+                    type="text/css"
+                />
+                <link
+                    href={webpackUrl("commons.css", "/admin")}
                     rel="stylesheet"
                     type="text/css"
                 />

@@ -1,0 +1,27 @@
+.article-block__additional-charts {
+    h4 {
+        @include h3-bold;
+        margin: 0 0 16px;
+        color: $blue-90;
+    }
+
+    li {
+        @include body-3-medium;
+        color: $blue-60;
+        list-style-type: none;
+        margin-bottom: 8px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        a {
+            @include owid-link-60;
+        }
+
+        svg {
+            font-size: 0.8em;
+            margin-left: 2px;
+        }
+    }
+}

@@ -26,6 +26,7 @@ export {
     DeployStatus,
     DimensionProperty,
     DocumentNode,
+    EnrichedBlockAdditionalCharts,
     EnrichedBlockAside,
     EnrichedBlockChart,
     EnrichedBlockChartStory,
@@ -86,6 +87,7 @@ export {
     PostRestApi,
     PostRow,
     PrimitiveType,
+    RawBlockAdditionalCharts,
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
@@ -246,6 +248,7 @@ export {
     retryPromise,
     getArticleFromJSON,
     formatDate,
+    canWriteToClipboard,
 } from "./Util.js"
 
 export {

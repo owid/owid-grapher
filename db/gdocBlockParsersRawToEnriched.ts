@@ -12,13 +12,14 @@ import {
     EnrichedBlockHtml,
     EnrichedBlockImage,
     EnrichedBlockList,
+    EnrichedBlockMissingData,
     EnrichedBlockProminentLink,
     EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
-    EnrichedBlockMissingData,
+    EnrichedBlockAdditionalCharts,
     EnrichedBlockSideBySideContainer,
     EnrichedBlockStickyLeftContainer,
     EnrichedBlockStickyRightContainer,
@@ -32,6 +33,7 @@ import {
     OwidRawArticleBlock,
     ParseError,
     partition,
+    RawBlockAdditionalCharts,
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
@@ -58,7 +60,7 @@ import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
     htmlToSpans,
-} from "./gdocUtils"
+} from "./gdocUtils.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
 import { getTitleSupertitleFromHeadingText } from "./gdocToArchieml.js"
@@ -67,6 +69,7 @@ export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawArticleBlock
 ): OwidEnrichedArticleBlock | null {
     return match(block)
+        .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
         .with({ type: "chart" }, parseChart)
         .with({ type: "scroller" }, parseScroller)
@@ -113,6 +116,27 @@ export function parseRawBlocksToEnrichedBlocks(
             })
         )
         .exhaustive()
+}
+
+function parseAdditionalCharts(
+    raw: RawBlockAdditionalCharts
+): EnrichedBlockAdditionalCharts {
+    const createError = (error: ParseError): EnrichedBlockAdditionalCharts => ({
+        type: "additional-charts",
+        items: [],
+        parseErrors: [error],
+    })
+
+    if (!isArray(raw.value))
+        return createError({ message: "Value is not a list" })
+
+    const items = raw.value.map(htmlToSpans)
+
+    return {
+        type: "additional-charts",
+        items,
+        parseErrors: [],
+    }
 }
 
 const parseAside = (raw: RawBlockAside): EnrichedBlockAside => {
@@ -192,6 +216,8 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const height = val.height
         const row = val.row
         const column = val.column
+        // This property is currently unused, a holdover from @mathisonian's gdocs demo.
+        // We will decide soon™️ if we want to use it for something
         let position: ChartPositionChoice | undefined = undefined
         if (val.position)
             if (val.position === "featured") position = val.position
@@ -636,7 +662,7 @@ const parseText = (raw: RawBlockText): EnrichedBlockText => {
 const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
     const createError = (
         error: ParseError,
-        text: SpanSimpleText = { spanType: "span-simple-text", text: "" },
+        text: Span[] = [{ spanType: "span-simple-text", text: "" }],
         level: number = 1
     ): EnrichedBlockHeading => ({
         type: "heading",
@@ -655,13 +681,17 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
         return createError({
             message: "Text property is missing",
         })
-    const headingSpans = parseSimpleTextsWithErrors([headingText])
-
-    if (headingSpans.texts.length !== 1)
-        return createError({
-            message:
-                "Text did not result in exactly one simple span - did you apply formatting?",
-        })
+    // TODO: switch headings to not use a vertical tab character.
+    // In the SDG pages we use the vertical tab character to separate the title
+    // from the supertitle. The spans can be nested and then the correct way of
+    // dealing with this would be to first parse the HTML into spans and then
+    // check if somewhere in the nested tree there is a vertical tab character,
+    // and if so to create two trees where the second mirrors the nesting of
+    // the first. For now here we just assume that the vertical tab character
+    // is used on the top level only (i.e. not inside an italic span or similar)
+    const [title, supertitle] = getTitleSupertitleFromHeadingText(headingText)
+    const titleSpans = htmlToSpans(title)
+    const superTitleSpans = supertitle ? htmlToSpans(supertitle) : undefined
 
     if (!raw.value.level)
         return createError({
@@ -674,22 +704,10 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
                 "Header level property is outside the valid range between 1 and 6",
         })
 
-    const [title, supertitle] = getTitleSupertitleFromHeadingText(
-        headingSpans.texts[0].text
-    )
-
     return {
         type: "heading",
-        text: {
-            spanType: "span-simple-text",
-            text: title,
-        },
-        supertitle: supertitle
-            ? {
-                  spanType: "span-simple-text",
-                  text: supertitle,
-              }
-            : undefined,
+        text: titleSpans,
+        supertitle: superTitleSpans,
         level: level,
         parseErrors: [],
     }

@@ -24,7 +24,7 @@ import {
     htmlToSimpleTextBlock,
     owidRawArticleBlockToArchieMLString,
     spanToHtmlString,
-} from "./gdocUtils"
+} from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
 import { parseRawBlocksToEnrichedBlocks } from "./gdocBlockParsersRawToEnriched.js"
 import urlSlug from "url-slug"
@@ -54,7 +54,27 @@ export const stringToArchieML = (text: string): OwidArticleContent => {
         return val.replace(/\{\/?ref\}/g, "")
     })
 
-    const parsed = load(text)
+    // A note on the use of Regexps here: doing this is in theory a bit crude
+    // as we are hacking at the plain text representation where we will have a
+    // much richer tree data structure a bit further down. However, manipulating
+    // the tree data structure to correctly collect whitespace and deal with
+    // arbitrary numbers of opening/closing spans correctly adds significant complexity.
+    // Since here we expect to have created the a tag ourselves and always as the
+    // deepest level of nesting (see the readElements function) we can be confident
+    // that this will work as expected in this case and is much simpler than handling
+    // this later.
+
+    // Replace whitespace-only inside links. We need to keep the WS around, they
+    // just should not be displayed as links
+    const noWSOnlyLinks = text.replace(/(<a[^>]*>)(\s+)(<\/a>)/gims, "$2")
+    // Replace leading whitespace inside links. We need to keep the WS around, they
+    // just should not be displayed as links
+    const noLeadingWSLinks = noWSOnlyLinks.replace(
+        /(<a[^>]*>)(\s+)(.*?)(<\/a>)/gims,
+        "$2$1$3$4"
+    )
+
+    const parsed = load(noLeadingWSLinks)
     const toc: TocHeadingWithTitleSupertitle[] = []
     let pointer: Array<string | number> = []
     // archie doesn't have a nested list structure. it treats as a series of text blocks
@@ -314,7 +334,6 @@ async function readParagraphElement(
     // sometimes it's not there, skip this all if so
     if (textRun) {
         // sometimes the content isn't there, and if so, make it an empty string
-        // console.log(element);
 
         const content = textRun.content || ""
 
@@ -330,7 +349,6 @@ async function readParagraphElement(
                 children: [span],
             }
 
-        // console.log(textRun);
         if (textRun.textStyle.italic) {
             span = { spanType: "span-italic", children: [span] }
         }
