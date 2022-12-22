@@ -5,13 +5,10 @@ import {
     RawBlockAdditionalCharts,
     EnrichedBlockHeading,
     RawBlockHeading,
-    Span,
 } from "@ourworldindata/utils"
-import { stringToArchieML } from "./gdocToArchieml.js"
-import {
-    owidRawArticleBlockToArchieMLString,
-    spansToHtmlString,
-} from "./gdocUtils.js"
+import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
+import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
+import { owidRawArticleBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
 
 function getArchieMLDocWithContent(content: string): string {
     return `title: Writing OWID Articles With Google Docs
@@ -19,7 +16,6 @@ subtitle: This article documents how to use and configure the various built in f
 byline: Matthew Conlen
 dateline: June 30, 2022
 template: centered
-
 
 [+body]
 ${content}
@@ -35,7 +31,7 @@ describe("gdoc parsing works", () => {
 caption: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 {}`
         )
-        const article = stringToArchieML(doc)
+        const article = archieToEnriched(doc)
         expect(article?.body?.length).toBe(1)
         expect(article?.body && article?.body[0]).toEqual({
             type: "aside",
@@ -57,7 +53,7 @@ level: 2
 {}
 `
         const doc = getArchieMLDocWithContent(archieMLString)
-        const article = stringToArchieML(doc)
+        const article = archieToEnriched(doc)
         expect(article?.body?.length).toBe(1)
         const expectedEnrichedBlock: EnrichedBlockHeading = {
             type: "heading",
@@ -97,7 +93,7 @@ level: 2
 []
 `
         const doc = getArchieMLDocWithContent(archieMLString)
-        const article = stringToArchieML(doc)
+        const article = archieToEnriched(doc)
         expect(article?.body?.length).toBe(1)
         const expectedEnrichedBlock: EnrichedBlockAdditionalCharts = {
             type: "additional-charts",

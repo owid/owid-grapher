@@ -21,8 +21,8 @@ import {
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import { match, P } from "ts-pattern"
-import { cheerioToSpan, spansToHtmlString } from "./gdocUtils.js"
-import { join, result } from "lodash"
+import { cheerioToSpan } from "./model/Gdoc/htmlToEnriched.js"
+import { partition } from "lodash"
 import fs from "fs"
 // Note: all of this code is heavvy WIP - please ignore it for now
 
@@ -57,6 +57,7 @@ type ErrorNames =
     | "unexpected elements in list item"
     | "ul without children"
     | "columns item needs to have 2 children"
+    | "expected only text inside heading"
 interface ArchieMlTransformationError {
     name: ErrorNames
 
@@ -144,6 +145,37 @@ function getSimpleTextSpansFromChildren(
     return {
         errors: errors,
         content: simpleSpans,
+    }
+}
+
+function getSpansFromChildren(
+    node: CheerioElement,
+    $: CheerioStatic
+): ArchieMlTransformationResult<Span> {
+    const childElements = joinArchieMLTransformationResults(
+        node.children.map((child) => cheerioToArchieML(child, $))
+    )
+
+    const [textChildren, otherChildren] = partition(
+        childElements.content,
+        (child): child is EnrichedBlockText => child.type === "text"
+    )
+
+    const spans = textChildren.flatMap((text) => text.value)
+
+    const errors =
+        spans.length === 0
+            ? childElements.errors
+            : [
+                  ...childElements.errors,
+                  {
+                      name: "expected only text inside heading" as const,
+                      details: `suppressed tags: ${otherChildren.join(", ")}`,
+                  },
+              ]
+    return {
+        errors: errors,
+        content: spans,
     }
 }
 
@@ -647,16 +679,8 @@ function cheerioToArchieML(
                     { tagName: P.union("h1", "h2", "h3", "h4", "h5", "h6") },
                     (): ArchieMlTransformationResult<EnrichedBlockHeading> => {
                         const level = parseInt(node.tagName.slice(1))
-                        const spansResult = getSimpleTextSpansFromChildren(
-                            node,
-                            $
-                        )
+                        const spansResult = getSpansFromChildren(node, $)
                         const errors = spansResult.errors
-                        if (spansResult.content.length > 1)
-                            errors.push({
-                                name: "exepcted a single plain text element, got more than one" as const,
-                                details: `Found ${spansResult.content.length} elements after transforming to archieml`,
-                            })
                         if (spansResult.content.length == 0)
                             errors.push({
                                 name: "exepcted a single plain text element, got zero" as const,
@@ -668,7 +692,7 @@ function cheerioToArchieML(
                                 {
                                     type: "heading",
                                     level: level,
-                                    text: spansResult.content[0],
+                                    text: spansResult.content,
                                     parseErrors: [],
                                 },
                             ],

@@ -49,7 +49,7 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
-import { Gdoc } from "../db/model/Gdoc.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -2622,7 +2622,7 @@ apiRouter.get("/gdocs/:id", async (req) => {
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     if (contentSource === GdocsContentSource.Gdocs) {
-        await gdoc.updateWithDraft()
+        await gdoc.getEnrichedArticle()
     }
     return gdoc
 })
