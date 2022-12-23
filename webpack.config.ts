@@ -1,6 +1,9 @@
 import webpack from "webpack"
 import "webpack-dev-server" // just imported for type magic
 import path from "path"
+import * as dotenv from "dotenv"
+
+dotenv.config()
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
@@ -119,8 +122,8 @@ const config = (env: any, argv: any): webpack.Configuration => {
             }),
         ],
         devServer: {
-            host: "localhost",
-            port: 8090,
+            host: process.env.WEBPACK_DEV_HOST,
+            port: process.env.WEBPACK_DEV_PORT,
             allowedHosts: "all",
             headers: {
                 "Access-Control-Allow-Origin": "*",

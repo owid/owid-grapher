@@ -4,7 +4,7 @@
         {
             "label": "docker start (full)",
             "type": "shell",
-            "command": "docker compose -f docker-compose.full.yml up -d",
+            "command": "docker-compose -f docker-compose.full.yml up -d",
             "presentation": {
                 "reveal": "silent"
             }
@@ -31,7 +31,7 @@
         {
             "label": "startSiteFront",
             "type": "shell",
-            "command": "yarn startSiteFront --no-web-socket-server", // WS need to be somewhat proxied in nginx. This could be done later.
+            "command": "yarn startSiteFront", // WS need to be somewhat proxied in nginx. This could be done later.
             "isBackground": true,
             "presentation": {
                 "group": "watch"
@@ -85,7 +85,7 @@
             // - comment out "download wordpress uploads" below
             "label": "refresh wordpress",
             "type": "shell",
-            "command": "docker compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-wordpress-data.sh",
+            "command": "docker-compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-wordpress-data.sh",
             "dependsOrder": "parallel",
             "dependsOn": [
                 // "download wordpress database"
@@ -115,7 +115,7 @@
             // - comment out "download grapher chartdata" below
             "label": "refresh grapher",
             "type": "shell",
-            "command": "docker compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-grapher-data.sh",
+            "command": "docker-compose -f docker-compose.full.yml run --rm db-load-data /app/refresh-grapher-data.sh",
             "dependsOrder": "parallel",
             "dependsOn": [
                 "download grapher metadata",
