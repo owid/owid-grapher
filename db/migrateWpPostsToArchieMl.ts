@@ -18,12 +18,14 @@ import {
     OwidArticleContent,
     OwidArticlePublicationContext,
     OwidArticleType,
+    EnrichedBlockStickyRightContainer,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import { match, P } from "ts-pattern"
 import { cheerioToSpan } from "./model/Gdoc/htmlToEnriched.js"
 import { partition } from "lodash"
 import fs from "fs"
+import { contents } from "cheerio/lib/api/traversing.js"
 // Note: all of this code is heavvy WIP - please ignore it for now
 
 // function mapCheerioChildren(
@@ -58,6 +60,7 @@ type ErrorNames =
     | "ul without children"
     | "columns item needs to have 2 children"
     | "expected only text inside heading"
+    | "unexpected wp component tag"
 interface ArchieMlTransformationError {
     name: ErrorNames
 
@@ -179,388 +182,149 @@ function getSpansFromChildren(
     }
 }
 
-type CheerioSequenceParserResult = {
-    result: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
-    success: boolean
-    remainingNodes: CheerioElement[]
-}
-
-type CheerioSequenceParser = (
-    nodes: CheerioElement[],
-    $: CheerioStatic
-) => CheerioSequenceParserResult
-
-// function tryParseCommentTagPair(
-//     nodes: CheerioElement[],
-//     commentTag: string,
-//     $: CheerioStatic,
-//     contentParseFn: (
-//         nodes: OwidEnrichedArticleBlock[]
-//     ) => ArchieMlTransformationResult<OwidEnrichedArticleBlock>
-// ): CheerioSequenceParser {
-//     const currentNode = nodes[0]
-//     if (currentNode.type === "comment") {
-//         // if (remainingNodes[0].data?.trim().startsWith(stopAtComment))
-//         //     return {
-//         //         result: joinArchieMLTransformationResults(items),
-//         //         remainingNodes: remainingNodes.slice(1),
-//         //     }
-//         if (currentNode.data?.trim().startsWith(commentTag)) {
-//             const content = cheerioListToArchieML(
-//                 nodes.slice(1),
-//                 `/${commentTag}`,
-//                 $
-//             )
-//             return {
-//                 result: contentParseFn(content.result.content),
-//                 remainingNodes: content.remainingNodes,
-//             }
-//         } else
-//             return {
-//                 result: { content: [], errors: [] },
-//                 remainingNodes: nodes,
-//             }
-//     } else
-//         return {
-//             result: { content: [], errors: [] },
-//             remainingNodes: nodes,
-//         }
-// }
-
-// function cheerioListToArchieML(
-//     nodes: CheerioElement[],
-//     stopAtComment: string,
-//     $: CheerioStatic
-// ): CheerioSequenceParser {
-//     let remainingNodes = [...nodes]
-//     const items: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] = []
-//     while (remainingNodes.length > 0) {
-//         const currentNode = remainingNodes[0]
-
-//         if (currentNode.type === "comment") {
-//             if (remainingNodes[0].data?.trim().startsWith(stopAtComment))
-//                 return {
-//                     result: joinArchieMLTransformationResults(items),
-//                     remainingNodes: remainingNodes.slice(1),
-//                 }
-//             tryParseCommentTagPair(
-//                 remainingNodes,
-//                 "wp:comment",
-//                 $,
-//                 (content) => {
-//                     const errors: ArchieMlTransformationError[] =
-//                         content.result.content.length !== 2
-//                             ? [
-//                                   {
-//                                       name: "columns item needs to have 2 children" as const,
-//                                       details: `Got ${content.result.content.length} children inside a columns structure`,
-//                                   },
-//                               ]
-//                             : []
-
-//                     const result = {
-//                         content: [
-//                             {
-//                                 type: "sticky-right",
-//                                 left: content.result.content[0],
-//                                 right: content.result.content[1],
-//                             },
-//                         ],
-//                         errors,
-//                     }
-//                     return result
-//                 }
-//             )
-//         } else {
-//             const currentNodeConverted = cheerioToArchieML(currentNode, $)
-//             items.push(currentNodeConverted)
-//             remainingNodes = remainingNodes.slice(1)
-//         }
-//     }
-//     return {
-//         result: joinArchieMLTransformationResults(items),
-//         remainingNodes: [],
-//     }
-// }
-
-function succeed(): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => ({
-        result: { errors: [], content: [] },
-        remainingNodes: [],
-        success: true,
-    })
-}
-
-function fail(): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => ({
-        result: { errors: [], content: [] },
-        remainingNodes: [],
-        success: false,
-    })
-}
-
-function seq(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
-            []
-        let remainingNodes = nodes
-        for (const parser of parsers) {
-            const result = parser(remainingNodes, $)
-            if (!result.success)
-                return {
-                    result: joinArchieMLTransformationResults(results),
-                    remainingNodes: nodes, // don't consume anything if we fail
-                    success: false,
-                }
-            remainingNodes = result.remainingNodes
-            results.push(result.result)
-        }
-        return {
-            result: joinArchieMLTransformationResults(results),
-            remainingNodes: remainingNodes,
-            success: true,
-        }
-    }
-}
-
-function anyOf(parsers: CheerioSequenceParser[]): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        for (const parser of parsers) {
-            const result = parser(nodes, $)
-            if (result.success) {
-                return result
-            }
-        }
-        return {
-            result: joinArchieMLTransformationResults([]),
-            remainingNodes: nodes,
-            success: false,
-        }
-    }
-}
-
-function many0(parser: CheerioSequenceParser): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        let result: CheerioSequenceParserResult = parser(nodes, $)
-        const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
-            []
-        while (result.success) {
-            results.push(result.result)
-            result = parser(result.remainingNodes, $)
-        }
-        return {
-            result: joinArchieMLTransformationResults(results),
-            remainingNodes: result.remainingNodes,
-            success: true,
-        }
-    }
-}
-
-function many1(parser: CheerioSequenceParser): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        let result: CheerioSequenceParserResult = parser(nodes, $)
-        let atLeastOneConsumed = false
-        const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
-            []
-        while (result.success) {
-            results.push(result.result)
-            result = parser(result.remainingNodes, $)
-            atLeastOneConsumed = true
-        }
-        return {
-            result: joinArchieMLTransformationResults(results),
-            remainingNodes: result.remainingNodes,
-            success: atLeastOneConsumed,
-        }
-    }
-}
-
-function manyTill(
-    manyParser: CheerioSequenceParser,
-    stopParser: CheerioSequenceParser
-): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        let remainingNodes = nodes
-        let stopResult: CheerioSequenceParserResult = stopParser(nodes, $)
-        const results: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
-            []
-        while (!stopResult.success && remainingNodes) {
-            const manyResult = manyParser(remainingNodes, $)
-            if (!manyResult.success)
-                return {
-                    result: emptyArchieMLTransformationResult(),
-                    remainingNodes: nodes,
-                    success: false,
-                }
-
-            results.push(manyResult.result)
-            remainingNodes = manyResult.remainingNodes
-            stopResult = stopParser(remainingNodes, $)
-            // we don't want to consume the content matched by stopParser, just make sure it
-            // would apply successfully
-        }
-        return {
-            result: joinArchieMLTransformationResults(results),
-            remainingNodes: remainingNodes,
-            success: stopResult.success,
-        }
-    }
-}
-
-function delimited(
-    startParser: CheerioSequenceParser,
-    elementParser: CheerioSequenceParser,
-    repeatElementParser: boolean,
-    endParser: CheerioSequenceParser
-): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        if (repeatElementParser) {
-            const result = startParser(nodes, $)
-            if (result.success) {
-                return manyTill(elementParser, endParser)(
-                    result.remainingNodes,
-                    $
-                )
-            }
-            return {
-                result: emptyArchieMLTransformationResult(),
-                remainingNodes: result.remainingNodes,
-                success: result.success,
-            }
-        } else return seq([startParser, elementParser, endParser])(nodes, $)
-    }
-}
-
-function condition(
-    predicate: (node: CheerioElement) => boolean
-): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        if (nodes.length > 0 && predicate(nodes[0]))
-            return {
-                result: {
-                    content: [],
-                    errors: [],
-                },
-                remainingNodes: nodes.slice(1),
-                success: true,
-            }
-        else
-            return {
-                result: {
-                    content: [],
-                    errors: [],
-                },
-                remainingNodes: nodes,
-                success: false,
-            }
-    }
-}
-
-function map(
-    parser: CheerioSequenceParser,
-    fn: (result: CheerioSequenceParserResult) => CheerioSequenceParserResult
-): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        return fn(parser(nodes, $))
-    }
-}
-
-function wpComponent(
-    name: string,
-    contentParser: CheerioSequenceParser,
-    componentManipulator: (
-        result: CheerioSequenceParserResult
-    ) => CheerioSequenceParserResult = (r) => r
-): CheerioSequenceParser {
-    const componentContents = delimited(
-        condition(
-            (node) =>
-                node.type === "comment" &&
-                (node.data?.trim()?.startsWith(name) ?? false)
-        ),
-        contentParser,
-        condition(
-            (node) =>
-                node.type === "comment" &&
-                (node.data?.trim().startsWith(`/${name}`) ?? false)
-        )
-    )
-    return map(componentContents, componentManipulator)
-}
-
-function lazy(parser: () => CheerioSequenceParser) {
-    let p: CheerioSequenceParser | undefined = undefined
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        if (!p) p = parser()
-        return p(nodes, $)
-    }
-}
-
-function nonCommentParser(): CheerioSequenceParser {
-    return (nodes: CheerioElement[], $: CheerioStatic) => {
-        if (nodes.length === 0)
-            return {
-                result: emptyArchieMLTransformationResult(),
-                success: false,
-                remainingNodes: nodes,
-            }
-        else {
-            const parsedItem = cheerioToArchieML(nodes[0], $)
-            return {
-                result: parsedItem,
-                remainingNodes: nodes.slice(1),
-                success: true,
-            }
-        }
-    }
-}
-
-function buildColumns(
-    content: CheerioSequenceParserResult
-): CheerioSequenceParserResult {
-    return {
-        ...content,
-        result: {
-            errors: content.result.errors,
-            content: [
-                {
-                    // TODO: this should receive the two subparts independently but
-                    // that probably needs generic parsers and seqSeparate
-                    type: "sticky-right",
-                    left: [content.result.content[0]],
-                    right: [content.result.content[1]],
-                    parseErrors: [],
-                },
-            ],
-        },
-    }
-}
-
-function htmlElementParser(): CheerioSequenceParser {
-    return anyOf([
-        wpComponent(
-            "columns",
-            seq([
-                wpComponent("column", lazy(htmlElementParser)),
-                wpComponent("column", lazy(htmlElementParser)),
-            ]),
-            buildColumns
-        ),
-        condition((node) => node.type === "comment"),
-        nonCommentParser(),
-    ])
-}
-
-function htmlParser(): CheerioSequenceParser {
-    return many0(htmlElementParser())
-}
-
 function unwrapNode(
     node: CheerioElement,
     $: CheerioStatic
 ): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
     const result = htmlParser()(node.children, $)
     return result.result
+}
+
+function isWpComponentStart(node: CheerioElement): boolean {
+    return (
+        node.type === "comment" &&
+        (node.data?.trimStart()?.startsWith("wp:") ?? false)
+    )
+}
+
+function isWpComponentEnd(node: CheerioElement): boolean {
+    return (
+        node.type === "comment" &&
+        (node.data?.trimStart()?.startsWith("/wp:") ?? false)
+    )
+}
+
+const wpTagRegex = /wp:(?<tag>\w+)\s*(?<attributes>.*)?/
+
+interface WpComponent {
+    tagName: string
+    attributes: Record<string, unknown> | undefined
+    childrenResults: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[]
+}
+
+function getWpComponentDetails(node: CheerioElement): WpComponent {
+    const match = node.data?.match(wpTagRegex)
+    if (!match) throw new Error("WpComponent could not match")
+    const attributes =
+        match.groups?.attributes && match.groups.attributes.trim() !== ""
+            ? JSON.parse(match.groups?.attributes ?? "")
+            : undefined
+    return {
+        tagName: match.groups!.tag!,
+        attributes,
+        childrenResults: [{ errors: [], content: [] }],
+    }
+}
+
+interface ParseWpComponentResult {
+    result: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
+    remainingNodes: CheerioElement[]
+}
+
+function finishWpComponent(
+    details: WpComponent,
+    content: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[]
+): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
+    return match(details.tagName)
+        .with("column", () => {
+            return {
+                errors: content.flatMap((c) => c.errors),
+                content: content.flatMap((c) => c.content),
+            }
+        })
+        .with("columns", () => {
+            return {
+                errors: content.flatMap((c) => c.errors),
+                // TODO: damn - columsn contains one non-empty div which has a class
+                // wp-block-columns. This one then contains the wp:column stuff.
+                // The problem is that at the moment we collapse a list of results
+                // into a single result quite often, e.g. for the divs and wp:column
+                // nodes. This means that here we don't know anymore where the column
+                // tags started and ended. We could eihter keep the full tree structure
+                // around and only flatten at the very end or we could add a separator
+                // placeholder element
+                content: [
+                    {
+                        type: "sticky-right",
+                        left: content[0].content,
+                        right: content[1].content,
+                        parseErrors: [],
+                    } as EnrichedBlockStickyRightContainer,
+                ],
+            }
+        })
+        .with("paragraph", () => {
+            return {
+                errors: content.flatMap((c) => c.errors),
+                content: content.flatMap((c) => c.content),
+            }
+        })
+        .otherwise(() => {
+            return {
+                errors: [
+                    ...content.flatMap((c) => c.errors),
+                    {
+                        name: "unexpected wp component tag",
+                        details: `Found unexpected tag ${details.tagName}`,
+                    },
+                ],
+                content: content.flatMap((c) => c.content),
+            }
+        })
+}
+
+function parseWpComponent(
+    nodes: CheerioElement[],
+    $: CheerioStatic
+): ParseWpComponentResult {
+    const startNode = nodes[0]
+    if (!isWpComponentStart(startNode))
+        throw new Error(
+            "Tried to start parsing a WP component on a non-comment block!"
+        )
+    const componentDetails = getWpComponentDetails(startNode)
+
+    // TODO: advance one element at a time through nodes. If it is a wp component recurse and
+    // on getting back updates nodes. If it is a normal element parse it with cheerioToAachieML.
+    let remainingNodes = nodes.slice(1)
+    const collectedContent: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
+        []
+    while (remainingNodes.length > 0) {
+        const node = remainingNodes[0]
+        if (isWpComponentEnd(node)) {
+            const closingDetails = getWpComponentDetails(node)
+            if (closingDetails.tagName !== componentDetails.tagName) {
+                throw new Error(
+                    `Found a closing tag (${closingDetails.tagName}) that did not match the expected open tag (${componentDetails.tagName})`
+                )
+            }
+            return {
+                result: finishWpComponent(componentDetails, collectedContent),
+                remainingNodes,
+            }
+        } else if (isWpComponentStart(node)) {
+            const result = parseWpComponent(remainingNodes, $)
+            remainingNodes = result.remainingNodes
+            collectedContent.push(result.result)
+        } else {
+            const parsed = cheerioToArchieML(node, $)
+            collectedContent.push(parsed)
+            remainingNodes = remainingNodes.slice(1)
+        }
+    }
+    throw new Error(
+        `Tried parsing a WP component but never found a matching end tag for ${componentDetails.tagName}`
+    )
 }
 
 function cheerioToArchieML(
@@ -626,8 +390,8 @@ function cheerioToArchieML(
                         } else {
                             const figCaption =
                                 figcaptionChildren.length > 0
-                                    ? cheerioToArchieML(
-                                          figcaptionChildren[0],
+                                    ? cheerioNodesToArchieML(
+                                          figcaptionChildren,
                                           $
                                       )
                                     : undefined
@@ -758,11 +522,11 @@ function cheerioToArchieML(
                 .with(
                     { tagName: "p" },
                     (): ArchieMlTransformationResult<EnrichedBlockText> => {
-                        const children = joinArchieMLTransformationResults(
-                            node.children.map((child) =>
-                                cheerioToArchieML(child, $)
-                            )
+                        const children = cheerioNodesToArchieML(
+                            node.children,
+                            $
                         )
+
                         const [textChildren, otherChildren] = _.partition(
                             children.content,
                             (child): child is EnrichedBlockText =>
@@ -792,15 +556,11 @@ function cheerioToArchieML(
                     { tagName: "ul" },
                     (): ArchieMlTransformationResult<EnrichedBlockList> => {
                         const children = node.children?.flatMap((child) => {
-                            const grandChildren = child.children?.map(
-                                (grandchild) => cheerioToArchieML(grandchild, $)
+                            const grandChildren = cheerioNodesToArchieML(
+                                child.children,
+                                $
                             )
-                            if (grandChildren)
-                                return [
-                                    joinArchieMLTransformationResults(
-                                        grandChildren
-                                    ),
-                                ]
+                            if (grandChildren.content) return [grandChildren]
                             else return []
                         })
 
@@ -888,6 +648,50 @@ function cheerioToArchieML(
         }
 }
 
+function cheerioNodesToArchieML(
+    nodes: CheerioElement[],
+    $: CheerioStatic
+): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
+    let remainingNodes: CheerioElement[] = nodes
+    const parsedContent: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
+        []
+    while (remainingNodes.length > 0) {
+        const node = remainingNodes[0]
+        if (isWpComponentStart(node)) {
+            const parseResult = parseWpComponent(remainingNodes, $)
+            parsedContent.push(parseResult.result)
+            remainingNodes = parseResult.remainingNodes
+        } else if (node.type === "comment") {
+            remainingNodes = remainingNodes.slice(1)
+        } else {
+            const parsed = cheerioToArchieML(node, $)
+            const cleaned = withoutEmptyOrWhitespaceOnlyTextBlocks(parsed)
+            if (cleaned.content.length > 0 || cleaned.errors.length > 0)
+                parsedContent.push(parsed)
+            remainingNodes = remainingNodes.slice(1)
+        }
+    }
+    return joinArchieMLTransformationResults(parsedContent)
+}
+
+function withoutEmptyOrWhitespaceOnlyTextBlocks(
+    result: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
+): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
+    return {
+        ...result,
+        content: result.content.filter(
+            (element) =>
+                element.type !== "text" ||
+                (element.value.length > 0 &&
+                    element.value.some(
+                        (span) =>
+                            span.spanType !== "span-simple-text" ||
+                            span.text.trimStart() !== ""
+                    ))
+        ),
+    }
+}
+
 const migrate = async (): Promise<void> => {
     const writeToFile = true
     await db.getConnection()
@@ -906,19 +710,11 @@ const migrate = async (): Promise<void> => {
     for (const post of posts) {
         const $: CheerioStatic = cheerio.load(post.content)
         const bodyContents = $("body").contents().toArray()
-        const parseResult = htmlParser()(bodyContents, $)
-        const archieMlBodyElements = parseResult.result.content.filter(
-            (element) =>
-                element.type !== "text" ||
-                (element.value.length > 0 &&
-                    element.value.some(
-                        (span) =>
-                            span.spanType !== "span-simple-text" ||
-                            span.text.trim() !== ""
-                    ))
-        )
+        const parseResult = cheerioNodesToArchieML(bodyContents, $)
+        const archieMlBodyElements =
+            withoutEmptyOrWhitespaceOnlyTextBlocks(parseResult).content
 
-        const errors = parseResult.result.errors
+        const errors = parseResult.errors
         // archieMlForPosts.push([
         //     post.id,
         //     JSON.stringify(archieMlBlocks, null, 2),
