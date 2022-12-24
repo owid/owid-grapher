@@ -409,23 +409,25 @@ function manyTill(
 
 function delimited(
     startParser: CheerioSequenceParser,
-    elementListParser: CheerioSequenceParser,
+    elementParser: CheerioSequenceParser,
+    repeatElementParser: boolean,
     endParser: CheerioSequenceParser
 ): CheerioSequenceParser {
     return (nodes: CheerioElement[], $: CheerioStatic) => {
-        let result = startParser(nodes, $)
-        if (result.success) {
-            result = manyTill(elementListParser, endParser)(
-                result.remainingNodes,
-                $
-            )
-            return result
-        }
-        return {
-            result: emptyArchieMLTransformationResult(),
-            remainingNodes: result.remainingNodes,
-            success: result.success,
-        }
+        if (repeatElementParser) {
+            const result = startParser(nodes, $)
+            if (result.success) {
+                return manyTill(elementParser, endParser)(
+                    result.remainingNodes,
+                    $
+                )
+            }
+            return {
+                result: emptyArchieMLTransformationResult(),
+                remainingNodes: result.remainingNodes,
+                success: result.success,
+            }
+        } else return seq([startParser, elementParser, endParser])(nodes, $)
     }
 }
 
