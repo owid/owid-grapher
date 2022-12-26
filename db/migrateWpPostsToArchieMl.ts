@@ -225,7 +225,7 @@ function isWpComponentEnd(node: CheerioElement): boolean {
 }
 
 const wpTagRegex =
-    /wp:(?<tag>((owid\/[\w-]+)|([\w-]+)))\s*(?<attributes>{.*})?\s*(?<isEmptyElement>\/)?$/
+    /wp:(?<tag>([\w\/-]+))\s*(?<attributes>{.*})?\s*(?<isEmptyElement>\/)?$/
 
 function getWpComponentDetails(node: CheerioElement): WpComponent {
     const match = node.data?.match(wpTagRegex)
@@ -365,6 +365,10 @@ function parseWpComponent(
     nodes: CheerioElement[],
     $: CheerioStatic
 ): ParseWpComponentResult {
+    // Below are tags we don't want to try and track as components but just fully ignore -
+    // the reason for this is that in some cases they have come up not matching and they
+    // don't contain structure that we need to parse
+    const wpComponentTagsToIgnore = ["html"]
     const startNode = nodes[0]
     if (!isWpComponentStart(startNode))
         throw new Error(
@@ -378,7 +382,10 @@ function parseWpComponent(
     const collectedContent: ArchieMlTransformationResult<ArchieBlockOrWpComponent>[] =
         []
 
-    if (!componentDetails.canHaveChildren)
+    if (
+        !componentDetails.canHaveChildren ||
+        wpComponentTagsToIgnore.indexOf(componentDetails.tagName) > -1
+    )
         return {
             remainingNodes,
             result: {
@@ -391,6 +398,13 @@ function parseWpComponent(
             const node = remainingNodes[0]
             if (isWpComponentEnd(node)) {
                 const closingDetails = getWpComponentDetails(node)
+                if (
+                    wpComponentTagsToIgnore.indexOf(closingDetails.tagName) > -1
+                ) {
+                    remainingNodes = remainingNodes.slice(1)
+                    continue
+                }
+
                 if (closingDetails.tagName !== componentDetails.tagName) {
                     throw new Error(
                         `Found a closing tag (${closingDetails.tagName}) that did not match the expected open tag (${componentDetails.tagName})`
@@ -897,7 +911,7 @@ const migrate = async (): Promise<void> => {
         "content",
         "published_at",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "671"))
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "22821"))
 
     // const tagCounts = new Map<string, number>()
 
