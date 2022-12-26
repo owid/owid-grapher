@@ -84,6 +84,7 @@ interface ArchieMlTransformationResult<T> {
 interface WpComponent {
     tagName: string
     attributes: Record<string, unknown> | undefined
+    canHaveChildren: boolean
     childrenResults: ArchieBlockOrWpComponent[]
 }
 
@@ -223,7 +224,8 @@ function isWpComponentEnd(node: CheerioElement): boolean {
     )
 }
 
-const wpTagRegex = /wp:(?<tag>\w+)\s*(?<attributes>.*)?/
+const wpTagRegex =
+    /wp:(?<tag>((owid\/[\w-]+)|([\w-]+)))\s*(?<attributes>{.*})?\s*(?<isEmptyElement>\/)?$/
 
 function getWpComponentDetails(node: CheerioElement): WpComponent {
     const match = node.data?.match(wpTagRegex)
@@ -235,6 +237,7 @@ function getWpComponentDetails(node: CheerioElement): WpComponent {
     return {
         tagName: match.groups!.tag!,
         attributes,
+        canHaveChildren: match.groups?.isEmptyElement === undefined,
         childrenResults: [],
     }
 }
@@ -374,35 +377,47 @@ function parseWpComponent(
     let remainingNodes = nodes.slice(1)
     const collectedContent: ArchieMlTransformationResult<ArchieBlockOrWpComponent>[] =
         []
-    while (remainingNodes.length > 0) {
-        const node = remainingNodes[0]
-        if (isWpComponentEnd(node)) {
-            const closingDetails = getWpComponentDetails(node)
-            if (closingDetails.tagName !== componentDetails.tagName) {
-                throw new Error(
-                    `Found a closing tag (${closingDetails.tagName}) that did not match the expected open tag (${componentDetails.tagName})`
-                )
-            }
-            const collectedChildren =
-                joinArchieMLTransformationResults(collectedContent)
 
-            return {
-                result: finishWpComponent(
-                    componentDetails,
-                    withoutEmptyOrWhitespaceOnlyTextBlocks(collectedChildren)
-                ),
-                remainingNodes,
-            }
-        } else if (isWpComponentStart(node)) {
-            const result = parseWpComponent(remainingNodes, $)
-            remainingNodes = result.remainingNodes
-            collectedContent.push(result.result)
-        } else {
-            const parsed = cheerioToArchieML(node, $)
-            collectedContent.push(parsed)
-            remainingNodes = remainingNodes.slice(1)
+    if (!componentDetails.canHaveChildren)
+        return {
+            remainingNodes,
+            result: {
+                errors: [],
+                content: [componentDetails],
+            },
         }
-    }
+    else
+        while (remainingNodes.length > 0) {
+            const node = remainingNodes[0]
+            if (isWpComponentEnd(node)) {
+                const closingDetails = getWpComponentDetails(node)
+                if (closingDetails.tagName !== componentDetails.tagName) {
+                    throw new Error(
+                        `Found a closing tag (${closingDetails.tagName}) that did not match the expected open tag (${componentDetails.tagName})`
+                    )
+                }
+                const collectedChildren =
+                    joinArchieMLTransformationResults(collectedContent)
+
+                return {
+                    result: finishWpComponent(
+                        componentDetails,
+                        withoutEmptyOrWhitespaceOnlyTextBlocks(
+                            collectedChildren
+                        )
+                    ),
+                    remainingNodes: remainingNodes.slice(1),
+                }
+            } else if (isWpComponentStart(node)) {
+                const result = parseWpComponent(remainingNodes, $)
+                remainingNodes = result.remainingNodes
+                collectedContent.push(result.result)
+            } else {
+                const parsed = cheerioToArchieML(node, $)
+                collectedContent.push(parsed)
+                remainingNodes = remainingNodes.slice(1)
+            }
+        }
     throw new Error(
         `Tried parsing a WP component but never found a matching end tag for ${componentDetails.tagName}`
     )
@@ -656,6 +671,7 @@ function cheerioToArchieML(
                     { tagName: "ul" },
                     (): ArchieMlTransformationResult<EnrichedBlockList> => {
                         const children = node.children?.flatMap((child) => {
+                            if (!child.children) return []
                             const grandChildren = cheerioNodesToArchieML(
                                 child.children,
                                 $
@@ -824,6 +840,11 @@ function cheerioNodesToArchieML(
     nodes: CheerioElement[],
     $: CheerioStatic
 ): ArchieMlTransformationResult<ArchieBlockOrWpComponent> {
+    if (!nodes)
+        return {
+            errors: [],
+            content: [],
+        }
     let remainingNodes: CheerioElement[] = nodes
     const parsedContent: ArchieMlTransformationResult<ArchieBlockOrWpComponent>[] =
         []
@@ -866,7 +887,7 @@ function withoutEmptyOrWhitespaceOnlyTextBlocks(
 }
 
 const migrate = async (): Promise<void> => {
-    const writeToFile = true
+    const writeToFile = false
     await db.getConnection()
 
     const posts = await Post.select(
@@ -876,73 +897,82 @@ const migrate = async (): Promise<void> => {
         "content",
         "published_at",
         "updated_at"
-    ).from(db.knexTable(Post.postsTable).where("id", "=", "54652"))
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "671"))
 
     // const tagCounts = new Map<string, number>()
 
     for (const post of posts) {
-        const $: CheerioStatic = cheerio.load(post.content)
-        const bodyContents = $("body").contents().toArray()
-        const parseResult = cheerioNodesToArchieML(bodyContents, $)
-        const archieMlBodyElements = convertAllWpComponentsToArchieMLBlocks(
-            withoutEmptyOrWhitespaceOnlyTextBlocks(parseResult).content
-        )
+        try {
+            //TODO: we don't seem to get the first node if it is a comment. Maybe this is benign but if not this works as a workaround: `<div>${post.content}</div>`)
+            const $: CheerioStatic = cheerio.load(post.content)
+            const bodyContents = $("body").contents().toArray()
+            const parseResult = cheerioNodesToArchieML(bodyContents, $)
+            const archieMlBodyElements = convertAllWpComponentsToArchieMLBlocks(
+                withoutEmptyOrWhitespaceOnlyTextBlocks(parseResult).content
+            )
 
-        const errors = parseResult.errors
-        // archieMlForPosts.push([
-        //     post.id,
-        //     JSON.stringify(archieMlBlocks, null, 2),
-        //     JSON.stringify(errors, null, 2),
-        // ])
+            const errors = parseResult.errors
+            // archieMlForPosts.push([
+            //     post.id,
+            //     JSON.stringify(archieMlBlocks, null, 2),
+            //     JSON.stringify(errors, null, 2),
+            // ])
 
-        const archieMlFieldContent: OwidArticleType = {
-            id: `wp-${post.id}`,
-            slug: post.slug,
-            content: {
-                body: archieMlBodyElements,
-                title: post.title,
-                byline: "todo", // TOOD: fetch authors from WP and store them in posts table
-                dateline: post.published_at?.toISOString() ?? "",
-            },
-            published: false, // post.published_at !== null,
-            createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem we have a created date in the posts table
-            publishedAt: null, // post.published_at,
-            updatedAt: null, // post.updated_at,
-            publicationContext: OwidArticlePublicationContext.listed,
-        }
-        const archieMlStatsContent = {
-            errors,
-            numErrors: errors.length,
-            numBlocks: archieMlBodyElements.length,
-        }
-
-        // const insertQuery = `
-        // UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?
-        // `
-        // await db.queryMysql(insertQuery, [
-        //     JSON.stringify(archieMlFieldContent, null, 2),
-        //     JSON.stringify(archieMlStatsContent, null, 2),
-        //     post.id,
-        // ])
-        // console.log("inserted", post.id)
-
-        if (writeToFile) {
-            try {
-                fs.writeFileSync(
-                    `./wpmigration/${post.slug}.html`,
-                    post.content
-                )
-                // file written successfully
-            } catch (err) {
-                console.error(err)
+            const archieMlFieldContent: OwidArticleType = {
+                id: `wp-${post.id}`,
+                slug: post.slug,
+                content: {
+                    body: archieMlBodyElements,
+                    title: post.title,
+                    byline: "todo", // TOOD: fetch authors from WP and store them in posts table
+                    dateline: post.published_at?.toISOString() ?? "",
+                },
+                published: false, // post.published_at !== null,
+                createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem we have a created date in the posts table
+                publishedAt: null, // post.published_at,
+                updatedAt: null, // post.updated_at,
+                publicationContext: OwidArticlePublicationContext.listed,
             }
-            const parsedJson = JSON.stringify(archieMlBodyElements, null, 2)
-            try {
-                fs.writeFileSync(`./wpmigration/${post.slug}.json`, parsedJson)
-                // file written successfully
-            } catch (err) {
-                console.error(err)
+            const archieMlStatsContent = {
+                errors,
+                numErrors: errors.length,
+                numBlocks: archieMlBodyElements.length,
             }
+
+            const insertQuery = `
+        UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?
+        `
+            await db.queryMysql(insertQuery, [
+                JSON.stringify(archieMlFieldContent, null, 2),
+                JSON.stringify(archieMlStatsContent, null, 2),
+                post.id,
+            ])
+            console.log("inserted", post.id)
+
+            if (writeToFile) {
+                try {
+                    fs.writeFileSync(
+                        `./wpmigration/${post.slug}.html`,
+                        post.content
+                    )
+                    // file written successfully
+                } catch (err) {
+                    console.error(err)
+                }
+                const parsedJson = JSON.stringify(archieMlBodyElements, null, 2)
+                try {
+                    fs.writeFileSync(
+                        `./wpmigration/${post.slug}.json`,
+                        parsedJson
+                    )
+                    // file written successfully
+                } catch (err) {
+                    console.error(err)
+                }
+            }
+        } catch (e) {
+            console.error("Caught an exception", post.id)
+            throw e
         }
     }
 
