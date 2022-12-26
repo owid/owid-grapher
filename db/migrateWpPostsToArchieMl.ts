@@ -72,6 +72,18 @@ interface ArchieMlTransformationResult<T> {
     content: T[]
 }
 
+// type WpComponentTagNames =
+//     | "column"
+//     | "columns"
+
+interface WpComponent {
+    tagName: string
+    attributes: Record<string, unknown> | undefined
+    childrenResults: ArchieBlockOrWpComponent[]
+}
+
+type ArchieBlockOrWpComponent = OwidEnrichedArticleBlock | WpComponent
+
 function emptyArchieMLTransformationResult<
     T
 >(): ArchieMlTransformationResult<T> {
@@ -185,9 +197,9 @@ function getSpansFromChildren(
 function unwrapNode(
     node: CheerioElement,
     $: CheerioStatic
-): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
-    const result = htmlParser()(node.children, $)
-    return result.result
+): ArchieMlTransformationResult<ArchieBlockOrWpComponent> {
+    const result = cheerioNodesToArchieML(node.children, $)
+    return result
 }
 
 function isWpComponentStart(node: CheerioElement): boolean {
@@ -206,12 +218,6 @@ function isWpComponentEnd(node: CheerioElement): boolean {
 
 const wpTagRegex = /wp:(?<tag>\w+)\s*(?<attributes>.*)?/
 
-interface WpComponent {
-    tagName: string
-    attributes: Record<string, unknown> | undefined
-    childrenResults: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[]
-}
-
 function getWpComponentDetails(node: CheerioElement): WpComponent {
     const match = node.data?.match(wpTagRegex)
     if (!match) throw new Error("WpComponent could not match")
@@ -222,24 +228,30 @@ function getWpComponentDetails(node: CheerioElement): WpComponent {
     return {
         tagName: match.groups!.tag!,
         attributes,
-        childrenResults: [{ errors: [], content: [] }],
+        childrenResults: [],
     }
 }
 
 interface ParseWpComponentResult {
-    result: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
+    result: ArchieMlTransformationResult<ArchieBlockOrWpComponent>
     remainingNodes: CheerioElement[]
 }
 
 function finishWpComponent(
     details: WpComponent,
-    content: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[]
-): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
+    content: ArchieMlTransformationResult<ArchieBlockOrWpComponent>[]
+): ArchieMlTransformationResult<ArchieBlockOrWpComponent> {
     return match(details.tagName)
         .with("column", () => {
             return {
+                content: [
+                    {
+                        ...details,
+                        childrenResults:
+                            joinArchieMLTransformationResults(content).content,
+                    },
+                ],
                 errors: content.flatMap((c) => c.errors),
-                content: content.flatMap((c) => c.content),
             }
         })
         .with("columns", () => {
@@ -283,6 +295,19 @@ function finishWpComponent(
         })
 }
 
+function convertAllWpComponentsToArchieMLBlocks(
+    blocksOrComponents: ArchieBlockOrWpComponent[]
+): OwidEnrichedArticleBlock[] {
+    return blocksOrComponents.flatMap((blockOrComponent) => {
+        if ("type" in blockOrComponent) return [blockOrComponent]
+        else {
+            return convertAllWpComponentsToArchieMLBlocks(
+                blockOrComponent.childrenResults
+            )
+        }
+    })
+}
+
 function parseWpComponent(
     nodes: CheerioElement[],
     $: CheerioStatic
@@ -297,7 +322,7 @@ function parseWpComponent(
     // TODO: advance one element at a time through nodes. If it is a wp component recurse and
     // on getting back updates nodes. If it is a normal element parse it with cheerioToAachieML.
     let remainingNodes = nodes.slice(1)
-    const collectedContent: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
+    const collectedContent: ArchieMlTransformationResult<ArchieBlockOrWpComponent>[] =
         []
     while (remainingNodes.length > 0) {
         const node = remainingNodes[0]
@@ -325,6 +350,12 @@ function parseWpComponent(
     throw new Error(
         `Tried parsing a WP component but never found a matching end tag for ${componentDetails.tagName}`
     )
+}
+
+function isEnrichedTextBlock(
+    item: ArchieBlockOrWpComponent
+): item is EnrichedBlockText {
+    return "type" in item && item.type === "text"
 }
 
 function cheerioToArchieML(
@@ -403,12 +434,16 @@ function cheerioToArchieML(
                                     })
                                 else {
                                     const element = figCaption.content[0]
-                                    if (element?.type === "text")
+                                    if (isEnrichedTextBlock(element))
                                         figcaptionElement = element
                                     else
                                         errors.push({
                                             name: "figcaption element is not structured text",
-                                            details: `Found ${element?.type} element after transforming to archieml`,
+                                            details: `Found ${
+                                                "type" in element
+                                                    ? element.type
+                                                    : ""
+                                            } element after transforming to archieml`,
                                         })
                                 }
                         }
@@ -529,8 +564,7 @@ function cheerioToArchieML(
 
                         const [textChildren, otherChildren] = _.partition(
                             children.content,
-                            (child): child is EnrichedBlockText =>
-                                child.type === "text"
+                            isEnrichedTextBlock
                         )
                         const errors = children.errors
                         if (otherChildren.length > 0)
@@ -576,12 +610,11 @@ function cheerioToArchieML(
                             }
 
                         const handleListChildren = (
-                            listContent: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
+                            listContent: ArchieMlTransformationResult<ArchieBlockOrWpComponent>
                         ): ArchieMlTransformationResult<EnrichedBlockText> => {
                             const [textChildren, otherChildren] = _.partition(
                                 listContent.content,
-                                (child): child is EnrichedBlockText =>
-                                    child.type === "text"
+                                isEnrichedTextBlock
                             )
                             const errors = listContent.errors
                             if (otherChildren.length > 0)
@@ -651,9 +684,9 @@ function cheerioToArchieML(
 function cheerioNodesToArchieML(
     nodes: CheerioElement[],
     $: CheerioStatic
-): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
+): ArchieMlTransformationResult<ArchieBlockOrWpComponent> {
     let remainingNodes: CheerioElement[] = nodes
-    const parsedContent: ArchieMlTransformationResult<OwidEnrichedArticleBlock>[] =
+    const parsedContent: ArchieMlTransformationResult<ArchieBlockOrWpComponent>[] =
         []
     while (remainingNodes.length > 0) {
         const node = remainingNodes[0]
@@ -675,13 +708,14 @@ function cheerioNodesToArchieML(
 }
 
 function withoutEmptyOrWhitespaceOnlyTextBlocks(
-    result: ArchieMlTransformationResult<OwidEnrichedArticleBlock>
-): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
+    result: ArchieMlTransformationResult<ArchieBlockOrWpComponent>
+): ArchieMlTransformationResult<ArchieBlockOrWpComponent> {
     return {
         ...result,
         content: result.content.filter(
             (element) =>
-                element.type !== "text" ||
+                !("type" in element) ||
+                ("type" in element && element.type !== "text") ||
                 (element.value.length > 0 &&
                     element.value.some(
                         (span) =>
@@ -711,8 +745,9 @@ const migrate = async (): Promise<void> => {
         const $: CheerioStatic = cheerio.load(post.content)
         const bodyContents = $("body").contents().toArray()
         const parseResult = cheerioNodesToArchieML(bodyContents, $)
-        const archieMlBodyElements =
+        const archieMlBodyElements = convertAllWpComponentsToArchieMLBlocks(
             withoutEmptyOrWhitespaceOnlyTextBlocks(parseResult).content
+        )
 
         const errors = parseResult.errors
         // archieMlForPosts.push([
