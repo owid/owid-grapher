@@ -19,6 +19,7 @@ import {
     OwidArticlePublicationContext,
     OwidArticleType,
     EnrichedBlockStickyRightContainer,
+    EnrichedBlockNumberedList,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import { match, P } from "ts-pattern"
@@ -63,6 +64,8 @@ type ErrorNames =
     | "unexpected wp component tag"
     | "columns block expects 2 children"
     | "columns block expects children to be column components"
+    | "ol without children"
+    | "unhandled html tag found"
 interface ArchieMlTransformationError {
     name: ErrorNames
 
@@ -434,7 +437,7 @@ function cheerioToArchieML(
                     { tagName: "blockquote" },
                     (): ArchieMlTransformationResult<EnrichedBlockPullQuote> => {
                         const spansResult = getSimpleTextSpansFromChildren(
-                            node,
+                            node, //bla
                             $
                         )
 
@@ -715,6 +718,71 @@ function cheerioToArchieML(
                     }
                 )
                 .with(
+                    { tagName: "ol" },
+                    (): ArchieMlTransformationResult<EnrichedBlockNumberedList> => {
+                        const children = node.children?.flatMap((child) => {
+                            const grandChildren = cheerioNodesToArchieML(
+                                child.children,
+                                $
+                            )
+                            if (grandChildren.content) return [grandChildren]
+                            else return []
+                        })
+
+                        if (!children)
+                            return {
+                                errors: [
+                                    {
+                                        name: "ol without children" as const,
+                                        details: `Found ol without children`,
+                                    },
+                                ],
+                                content: [],
+                            }
+
+                        const handleListChildren = (
+                            listContent: ArchieMlTransformationResult<ArchieBlockOrWpComponent>
+                        ): ArchieMlTransformationResult<EnrichedBlockText> => {
+                            const [textChildren, otherChildren] = _.partition(
+                                listContent.content,
+                                isEnrichedTextBlock
+                            )
+                            const errors = listContent.errors
+                            if (otherChildren.length > 0)
+                                errors.push({
+                                    name: "unexpected elements in list item",
+                                    details: `Found ${otherChildren.length} elements`,
+                                })
+                            return {
+                                errors: errors,
+                                content: [
+                                    {
+                                        type: "text",
+                                        value: textChildren.flatMap(
+                                            (child) => child.value
+                                        ),
+                                        parseErrors: [],
+                                    },
+                                ],
+                            }
+                        }
+
+                        const listChildren = joinArchieMLTransformationResults(
+                            children.map(handleListChildren)
+                        )
+                        return {
+                            errors: listChildren.errors,
+                            content: [
+                                {
+                                    type: "numbered-list",
+                                    items: listChildren.content,
+                                    parseErrors: [],
+                                },
+                            ],
+                        }
+                    }
+                )
+                .with(
                     { tagName: P.union("svg", "table", "video") },
                     (): ArchieMlTransformationResult<EnrichedBlockHtml> => {
                         return {
@@ -730,7 +798,15 @@ function cheerioToArchieML(
                     }
                 )
                 // TODO: this is missing a lot of html tags still
-                .otherwise(() => ({ errors: [], content: [] }))
+                .otherwise(() => ({
+                    errors: [
+                        {
+                            name: "unhandled html tag found",
+                            details: `Encountered the unhandled tag ${node.tagName}`,
+                        },
+                    ],
+                    content: [],
+                }))
         return result
     } else
         return {

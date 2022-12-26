@@ -11,6 +11,7 @@ import {
     RawBlockHtml,
     RawBlockImage,
     RawBlockList,
+    RawBlockNumberedList,
     RawBlockPosition,
     RawBlockProminentLink,
     RawBlockPullQuote,
@@ -130,6 +131,14 @@ function* rawBlockListToArchieMLString(
     block: RawBlockList
 ): Generator<string, void, undefined> {
     yield "[.list]"
+    if (typeof block.value !== "string") yield* block.value
+    yield "[]"
+}
+
+function* rawBlockNumberedListToArchieMLString(
+    block: RawBlockNumberedList
+): Generator<string, void, undefined> {
+    yield "[.numbered-list]"
     if (typeof block.value !== "string") yield* block.value
     yield "[]"
 }
@@ -338,6 +347,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "fixed-graphic" }, rawBlockFixedGraphicToArchieMLString)
         .with({ type: "image" }, rawBlockImageToArchieMLString)
         .with({ type: "list" }, rawBlockListToArchieMLString)
+        .with({ type: "numbered-list" }, rawBlockNumberedListToArchieMLString)
         .with({ type: "pull-quote" }, rawBlockPullQuoteToArchieMLString)
         .with(
             { type: "horizontal-rule" },

@@ -12,6 +12,7 @@ import {
     EnrichedBlockHtml,
     EnrichedBlockImage,
     EnrichedBlockList,
+    EnrichedBlockNumberedList,
     EnrichedBlockMissingData,
     EnrichedBlockProminentLink,
     EnrichedBlockPullQuote,
@@ -43,6 +44,7 @@ import {
     RawBlockHtml,
     RawBlockImage,
     RawBlockList,
+    RawBlockNumberedList,
     RawBlockProminentLink,
     RawBlockPullQuote,
     RawBlockRecirc,
@@ -79,6 +81,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "fixed-graphic" }, parseFixedGraphic)
         .with({ type: "image" }, parseImage)
         .with({ type: "list" }, parseList)
+        .with({ type: "numbered-list" }, parseNumberedList)
         .with({ type: "pull-quote" }, parsePullQuote)
         .with(
             { type: "horizontal-rule" },
@@ -459,6 +462,32 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
             src,
             parseErrors: [],
         }
+    }
+}
+
+const parseNumberedList = (
+    raw: RawBlockNumberedList
+): EnrichedBlockNumberedList => {
+    const createError = (
+        error: ParseError,
+        items: EnrichedBlockText[] = []
+    ): EnrichedBlockNumberedList => ({
+        type: "numbered-list",
+        items,
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: "Value is a string, not a list of strings",
+        })
+
+    const items = raw.value.map(htmlToEnrichedTextBlock)
+
+    return {
+        type: "numbered-list",
+        items,
+        parseErrors: [],
     }
 }
 
