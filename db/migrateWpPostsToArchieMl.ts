@@ -61,6 +61,8 @@ type ErrorNames =
     | "columns item needs to have 2 children"
     | "expected only text inside heading"
     | "unexpected wp component tag"
+    | "columns block expects 2 children"
+    | "columns block expects children to be column components"
 interface ArchieMlTransformationError {
     name: ErrorNames
 
@@ -120,6 +122,7 @@ function getSimpleSpans(spans: Span[]): [SpanSimpleText[], Span[]] {
     )
 }
 
+// TODO: do we still want to do this this way?
 function getSimpleTextSpansFromChildren(
     node: CheerioElement,
     $: CheerioStatic
@@ -133,6 +136,7 @@ function getSimpleTextSpansFromChildren(
     // )
     if (
         childElements.content.length !== 1 ||
+        !("type" in childElements.content[0]) ||
         childElements.content[0].type !== "text"
     )
         return {
@@ -173,7 +177,7 @@ function getSpansFromChildren(
 
     const [textChildren, otherChildren] = partition(
         childElements.content,
-        (child): child is EnrichedBlockText => child.type === "text"
+        isEnrichedTextBlock
     )
 
     const spans = textChildren.flatMap((text) => text.value)
@@ -237,26 +241,68 @@ interface ParseWpComponentResult {
     remainingNodes: CheerioElement[]
 }
 
+function checkIsWpComponentOfType(
+    blockOrComponent: ArchieBlockOrWpComponent,
+    expectedTagName: string
+): WpComponent | undefined {
+    return !("tagName" in blockOrComponent) ||
+        blockOrComponent.tagName !== expectedTagName
+        ? undefined
+        : blockOrComponent
+}
+
 function finishWpComponent(
     details: WpComponent,
-    content: ArchieMlTransformationResult<ArchieBlockOrWpComponent>[]
+    content: ArchieMlTransformationResult<ArchieBlockOrWpComponent>
 ): ArchieMlTransformationResult<ArchieBlockOrWpComponent> {
     return match(details.tagName)
-        .with("column", () => {
-            return {
-                content: [
-                    {
-                        ...details,
-                        childrenResults:
-                            joinArchieMLTransformationResults(content).content,
-                    },
-                ],
-                errors: content.flatMap((c) => c.errors),
+        .with(
+            "column",
+            (): ArchieMlTransformationResult<ArchieBlockOrWpComponent> => {
+                return {
+                    content: [
+                        {
+                            ...details,
+                            childrenResults: content.content,
+                        },
+                    ],
+                    errors: content.errors,
+                }
             }
-        })
+        )
         .with("columns", () => {
+            const errors = content.errors
+            if (content.content.length !== 2) {
+                errors.push({
+                    name: "columns block expects 2 children",
+                    details: `Got ${content.content.length} children instead`,
+                })
+                return { ...content, errors }
+            }
+            const firstChild = checkIsWpComponentOfType(
+                content.content[0],
+                "column"
+            )
+            if (firstChild === undefined) {
+                errors.push({
+                    name: "columns block expects children to be column components",
+                    details: `Got ${firstChild} child instead`,
+                })
+                return { ...content, errors }
+            }
+            const secondChild = checkIsWpComponentOfType(
+                content.content[1],
+                "column"
+            )
+            if (secondChild === undefined) {
+                errors.push({
+                    name: "columns block expects children to be column components",
+                    details: `Got ${secondChild} child instead`,
+                })
+                return { ...content, errors }
+            }
             return {
-                errors: content.flatMap((c) => c.errors),
+                errors,
                 // TODO: damn - columsn contains one non-empty div which has a class
                 // wp-block-columns. This one then contains the wp:column stuff.
                 // The problem is that at the moment we collapse a list of results
@@ -268,29 +314,30 @@ function finishWpComponent(
                 content: [
                     {
                         type: "sticky-right",
-                        left: content[0].content,
-                        right: content[1].content,
+                        left: convertAllWpComponentsToArchieMLBlocks(
+                            firstChild.childrenResults
+                        ),
+                        right: convertAllWpComponentsToArchieMLBlocks(
+                            secondChild.childrenResults
+                        ),
                         parseErrors: [],
                     } as EnrichedBlockStickyRightContainer,
                 ],
             }
         })
         .with("paragraph", () => {
-            return {
-                errors: content.flatMap((c) => c.errors),
-                content: content.flatMap((c) => c.content),
-            }
+            return content
         })
         .otherwise(() => {
             return {
                 errors: [
-                    ...content.flatMap((c) => c.errors),
+                    ...content.errors,
                     {
                         name: "unexpected wp component tag",
                         details: `Found unexpected tag ${details.tagName}`,
                     },
                 ],
-                content: content.flatMap((c) => c.content),
+                content: content.content,
             }
         })
 }
@@ -333,8 +380,14 @@ function parseWpComponent(
                     `Found a closing tag (${closingDetails.tagName}) that did not match the expected open tag (${componentDetails.tagName})`
                 )
             }
+            const collectedChildren =
+                joinArchieMLTransformationResults(collectedContent)
+
             return {
-                result: finishWpComponent(componentDetails, collectedContent),
+                result: finishWpComponent(
+                    componentDetails,
+                    withoutEmptyOrWhitespaceOnlyTextBlocks(collectedChildren)
+                ),
                 remainingNodes,
             }
         } else if (isWpComponentStart(node)) {
@@ -361,7 +414,7 @@ function isEnrichedTextBlock(
 function cheerioToArchieML(
     node: CheerioElement,
     $: CheerioStatic
-): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
+): ArchieMlTransformationResult<ArchieBlockOrWpComponent> {
     if (node.type === "comment") return { errors: [], content: [] }
 
     const unwrapNodeWithContext = (node: CheerioElement) => unwrapNode(node, $)
@@ -374,7 +427,7 @@ function cheerioToArchieML(
             content: [{ type: "text", value: [span], parseErrors: [] }],
         }
     else if (node.type === "tag") {
-        const result: ArchieMlTransformationResult<OwidEnrichedArticleBlock> =
+        const result: ArchieMlTransformationResult<ArchieBlockOrWpComponent> =
             match(node)
                 .with({ tagName: "address" }, unwrapNodeWithContext)
                 .with(
@@ -405,7 +458,7 @@ function cheerioToArchieML(
                 .with({ tagName: "figcaption" }, unwrapNodeWithContext)
                 .with(
                     { tagName: "figure" },
-                    (): ArchieMlTransformationResult<EnrichedBlockImage> => {
+                    (): ArchieMlTransformationResult<ArchieBlockOrWpComponent> => {
                         const errors: ArchieMlTransformationError[] = []
                         const [figcaptionChildren, otherChildren] = _.partition(
                             node.children,
@@ -447,8 +500,24 @@ function cheerioToArchieML(
                                         })
                                 }
                         }
+                        if (otherChildren.length > 1)
+                            errors.push({
+                                name: "too many elements in figure",
+                                details: `Found ${otherChildren.length} elements`,
+                            })
                         const image = findRecursive(otherChildren, "img")
                         if (!image) {
+                            if (otherChildren[0].tagName === "table") {
+                                const childResult = cheerioToArchieML(
+                                    otherChildren[0],
+                                    $
+                                )
+
+                                return {
+                                    errors: [...errors, ...childResult.errors],
+                                    content: childResult.content,
+                                }
+                            }
                             // TODO: this is a legitimate case, there may be other content in a figure
                             // but for now we treat it as an error and see how often this error happens
                             errors.push({
@@ -456,12 +525,6 @@ function cheerioToArchieML(
                                 details: `Found ${otherChildren.length} elements`,
                             })
                         }
-
-                        if (otherChildren.length > 1)
-                            errors.push({
-                                name: "too many elements in figure",
-                                details: `Found ${otherChildren.length} elements`,
-                            })
 
                         return {
                             errors,

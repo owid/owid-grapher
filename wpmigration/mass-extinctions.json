@@ -205,69 +205,7 @@
         "value": [
           {
             "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      }
-    ],
-    "right": [
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
             "text": "There have been five mass extinction events in Earth’s history. At least, since 500 million years ago; we know very little about extinction events in the Precambrian and early Cambrian earlier which predates this.{ref}Jenkins RJF (1989) The supposed terminal Precambrian extinction event in relation to the Cnideria. Memoirs of the Association of Australasian Paleonotologist 8:307–317.{/ref} These are called the ‘Big Five’, for obvious reasons."
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
           }
         ],
         "parseErrors": []
@@ -407,97 +345,7 @@
         "value": [
           {
             "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
             "text": "We see the spikes in extinction rates marked as the five events:"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
           }
         ],
         "parseErrors": []
@@ -517,115 +365,17 @@
         "value": [
           {
             "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
             "text": "There are a range of trajectories that the extinction rate could take in the decades and centuries to follow; which one we follow is determined by us."
           }
         ],
         "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
+      }
+    ],
+    "right": [
       {
         "type": "image",
         "src": "https://owid.cloud/app/uploads/2021/03/Big-Five-Mass-Extinctions-800x511.png",
         "caption": [],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
         "parseErrors": []
       }
     ],
@@ -650,69 +400,7 @@
         "value": [
           {
             "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      }
-    ],
-    "right": [
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
             "text": "All of the ‘Big Five’ were caused by some combination of rapid and dramatic changes in climate, combined with significant changes in the composition of environments on land or in the ocean (such as ocean acidification or acid rain from intense volcanic activity)."
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
           }
         ],
         "parseErrors": []
@@ -766,81 +454,12 @@
           }
         ],
         "parseErrors": []
-      },
+      }
+    ],
+    "right": [
       {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "image",
-        "src": "",
-        "caption": [],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
-        "parseErrors": []
-      },
-      {
-        "type": "text",
-        "value": [
-          {
-            "spanType": "span-simple-text",
-            "text": "\n"
-          }
-        ],
+        "type": "html",
+        "value": "<table><tbody><tr><td><strong>Extinction Event</strong></td><td><strong>Age</strong><strong>(mya)</strong></td><td><strong>Percentage of species lost</strong></td><td><strong>Cause of extinctions</strong></td></tr><tr><td>End Ordovician</td><td>444</td><td>86%</td><td>Intense glacial and interglacial periods created large swings in sea levels and moved shorelines dramatically. Tectonic uplift of the Appalachian mountains created lots of weathering, sequestration of CO<sub>2</sub> and with it, changes in climate and ocean chemistry.</td></tr><tr><td>Late Devonian</td><td>360</td><td>75%</td><td>Rapid growth and diversification of land plants generated rapid and severe global cooling.</td></tr><tr><td>End Permian</td><td>250</td><td>96%</td><td>Intense volcanic activity in Siberia. This caused global warming. Elevated CO<sub>2</sub> and sulphur (H<sub>2</sub>S) levels from volcanoes caused ocean acidification, acid rain, and other changes in ocean and land chemistry.</td></tr><tr><td>End Triassic</td><td>200</td><td>80%</td><td>Underwater volcanic activity in the Central Atlantic Magmatic Province (CAMP) caused global warming, and a dramatic change in chemistry composition in the oceans.</td></tr><tr><td>End Cretaceous</td><td>65</td><td>76%</td><td>Asteroid impact in Yucatán, Mexico. This caused global cataclysm and rapid cooling. Some changes may have already pre-dated this asteroid, with intense volcanic activity and tectonic uplift.</td></tr></tbody></table>",
         "parseErrors": []
       }
     ],
