@@ -4,6 +4,7 @@ import * as db from "./db.js"
 import * as cheerio from "cheerio"
 
 import {
+    EnrichedBlockText,
     OwidArticlePublicationContext,
     OwidArticleType,
 } from "@ourworldindata/utils"
@@ -13,6 +14,10 @@ import {
     cheerioElementsToArchieML,
     withoutEmptyOrWhitespaceOnlyTextBlocks,
     convertAllWpComponentsToArchieMLBlocks,
+    htmlToEnrichedTextBlock,
+    getSpansFromBlockParseResult,
+    getEnrichedBlockTextFromBlockParseResult,
+    joinBlockParseResults,
 } from "./model/Gdoc/htmlToEnriched.js"
 
 const migrate = async (): Promise<void> => {
@@ -28,24 +33,53 @@ const migrate = async (): Promise<void> => {
         "updated_at"
     ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "22821"))
 
-    // const tagCounts = new Map<string, number>()
-
     for (const post of posts) {
         try {
+            let text = post.content
+            const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(
+                function (val: string, i: number) {
+                    // mutate original text
+                    text = text.replace(
+                        val,
+                        `<a class="ref" href="#note-${i + 1}"><sup>${
+                            i + 1
+                        }</sup></a>`
+                    )
+                    // return inner text
+                    return val.replace(/\{\/?ref\}/g, "")
+                }
+            )
             //TODO: we don't seem to get the first node if it is a comment. Maybe this is benign but if not this works as a workaround: `<div>${post.content}</div>`)
-            const $: CheerioStatic = cheerio.load(post.content)
+            const $: CheerioStatic = cheerio.load(text)
             const bodyContents = $("body").contents().toArray()
             const parseResult = cheerioElementsToArchieML(bodyContents, $)
             const archieMlBodyElements = convertAllWpComponentsToArchieMLBlocks(
                 withoutEmptyOrWhitespaceOnlyTextBlocks(parseResult).content
             )
 
-            const errors = parseResult.errors
-            // archieMlForPosts.push([
-            //     post.id,
-            //     JSON.stringify(archieMlBlocks, null, 2),
-            //     JSON.stringify(errors, null, 2),
-            // ])
+            let errors = parseResult.errors
+            const refParsingResults = refs.map(
+                (refString): EnrichedBlockText => {
+                    const ref$ = cheerio.load(refString)
+                    const refElements = ref$("body").contents().toArray()
+                    const parseResult = cheerioElementsToArchieML(
+                        refElements,
+                        $
+                    )
+                    const textContentResult =
+                        getEnrichedBlockTextFromBlockParseResult(parseResult)
+                    errors = errors.concat(textContentResult.errors)
+                    return {
+                        type: "text",
+                        value: textContentResult.content.flatMap(
+                            (b) => b.value
+                        ),
+                        parseErrors: textContentResult.content.flatMap(
+                            (b) => b.parseErrors
+                        ),
+                    }
+                }
+            )
 
             const archieMlFieldContent: OwidArticleType = {
                 id: `wp-${post.id}`,
@@ -55,6 +89,8 @@ const migrate = async (): Promise<void> => {
                     title: post.title,
                     byline: "todo", // TOOD: fetch authors from WP and store them in posts table
                     dateline: post.published_at?.toISOString() ?? "",
+                    // TODO: this discards block level elements - those might be needed?
+                    refs: refParsingResults,
                 },
                 published: false, // post.published_at !== null,
                 createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem we have a created date in the posts table

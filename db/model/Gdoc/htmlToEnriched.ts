@@ -193,6 +193,7 @@ type ErrorNames =
     | "figcaption element is not structured text"
     | "unkown element tag"
     | "expected only plain text"
+    | "expected only text"
     | "exepcted a single plain text element, got more than one"
     | "exepcted a single plain text element, got zero"
     | "iframe without src"
@@ -337,7 +338,13 @@ function parseWpComponent(
     // Below are tags we don't want to try and track as components but just fully ignore -
     // the reason for this is that in some cases they have come up not matching and they
     // don't contain structure that we need to parse
-    const wpComponentTagsToIgnore = ["html"]
+    // Note that only html was strictly necessary before we started {ref} parsing. {ref}
+    // parsing butchers the raw html with regexes which can cut across component borders
+    // which then leaves unfinished wp components in either the main text or the cut out
+    // ref text. If we need to instead parse one of these components then we could also
+    // see if parsing the inside of refs in a mode that ignores wp components could be an
+    // option as inside refs we probably never used components
+    const wpComponentTagsToIgnore = ["html", "paragraph", "heading", "list"]
 
     const startElement = elements[0]
     if (!isWpComponentStart(startElement))
@@ -950,7 +957,7 @@ function emptyBlockParseResult<T>(): BlockParseResult<T> {
 
 /** Joins an array of BlockParseResults into a single one by
     flattening the errors and content arrays inside of them. */
-function joinBlockParseResults<T>(
+export function joinBlockParseResults<T>(
     results: BlockParseResult<T>[]
 ): BlockParseResult<T> {
     const errors = flatten(results.map((r) => r.errors))
@@ -1014,21 +1021,34 @@ function getSpansFromChildren(
     const childElements = joinBlockParseResults(
         element.children.map((child) => cheerioToArchieML(child, $))
     )
+    return getSpansFromBlockParseResult(childElements)
+}
 
+export function getSpansFromBlockParseResult(
+    result: BlockParseResult<ArchieBlockOrWpComponent>
+): BlockParseResult<Span> {
+    const textBlockResult = getEnrichedBlockTextFromBlockParseResult(result)
+    return {
+        content: textBlockResult.content.flatMap((text) => text.value),
+        errors: textBlockResult.errors,
+    }
+}
+
+export function getEnrichedBlockTextFromBlockParseResult(
+    result: BlockParseResult<ArchieBlockOrWpComponent>
+): BlockParseResult<EnrichedBlockText> {
     const [textChildren, otherChildren] = partition(
-        childElements.content,
+        result.content,
         isEnrichedTextBlock
     )
 
-    const spans = textChildren.flatMap((text) => text.value)
-
     const errors =
-        spans.length === 0
-            ? childElements.errors
+        otherChildren.length === 0
+            ? result.errors
             : [
-                  ...childElements.errors,
+                  ...result.errors,
                   {
-                      name: "expected only text inside heading" as const,
+                      name: "expected only text" as const,
                       details: `suppressed tags: ${otherChildren
                           .map((c) => ("type" in c && c.type) ?? "")
                           .join(", ")}`,
@@ -1036,7 +1056,7 @@ function getSpansFromChildren(
               ]
     return {
         errors: errors,
-        content: spans,
+        content: textChildren,
     }
 }
 
