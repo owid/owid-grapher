@@ -14,10 +14,7 @@ import {
     cheerioElementsToArchieML,
     withoutEmptyOrWhitespaceOnlyTextBlocks,
     convertAllWpComponentsToArchieMLBlocks,
-    htmlToEnrichedTextBlock,
-    getSpansFromBlockParseResult,
     getEnrichedBlockTextFromBlockParseResult,
-    joinBlockParseResults,
 } from "./model/Gdoc/htmlToEnriched.js"
 
 const migrate = async (): Promise<void> => {

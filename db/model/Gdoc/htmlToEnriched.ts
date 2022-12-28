@@ -509,8 +509,9 @@ function cheerioToArchieML(
 ): BlockParseResult<ArchieBlockOrWpComponent> {
     if (element.type === "comment") return { errors: [], content: [] }
 
-    const unwrapElementWithContext = (element: CheerioElement) =>
-        unwrapElement(element, $)
+    const unwrapElementWithContext = (
+        element: CheerioElement
+    ): BlockParseResult<ArchieBlockOrWpComponent> => unwrapElement(element, $)
 
     const span = cheerioToSpan(element)
     if (span)
@@ -949,10 +950,6 @@ export function withoutEmptyOrWhitespaceOnlyTextBlocks(
                     ))
         ),
     }
-}
-
-function emptyBlockParseResult<T>(): BlockParseResult<T> {
-    return { errors: [], content: [] }
 }
 
 /** Joins an array of BlockParseResults into a single one by

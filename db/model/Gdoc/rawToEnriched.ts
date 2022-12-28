@@ -515,14 +515,14 @@ const parseList = (raw: RawBlockList): EnrichedBlockList => {
     }
 }
 
-const parseSimpleTextsWithErrors = (
-    raw: string[]
-): { errors: ParseError[]; texts: SpanSimpleText[] } => {
-    const parsedAsBlocks = raw.map(htmlToSimpleTextBlock)
-    const errors = parsedAsBlocks.flatMap((block) => block.parseErrors)
-    const texts = parsedAsBlocks.map((block) => block.value)
-    return { errors, texts }
-}
+// const parseSimpleTextsWithErrors = (
+//     raw: string[]
+// ): { errors: ParseError[]; texts: SpanSimpleText[] } => {
+//     const parsedAsBlocks = raw.map(htmlToSimpleTextBlock)
+//     const errors = parsedAsBlocks.flatMap((block) => block.parseErrors)
+//     const texts = parsedAsBlocks.map((block) => block.value)
+//     return { errors, texts }
+// }
 
 const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     const createError = (
