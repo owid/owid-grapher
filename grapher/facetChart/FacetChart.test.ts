@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { FacetChart } from "./FacetChart.js"
 import { SynthesizeGDPTable } from "../../coreTable/OwidTableSynthesizers.js"

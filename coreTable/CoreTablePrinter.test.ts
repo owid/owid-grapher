@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { toAlignedTextTable, toMarkdownTable } from "./CoreTablePrinters.js"
 import { parseDelimited } from "./CoreTableUtils.js"
@@ -15,8 +16,8 @@ it("to aligned table", () => {
         maxCharactersPerColumn: 100,
     })
     expect(result).toEqual(`name score color
-bob  12    red  
-mike 321   blue 
+bob  12    red
+mike 321   blue
 al   1214  green`)
 })
 

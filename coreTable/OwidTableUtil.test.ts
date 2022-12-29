@@ -5,7 +5,7 @@ import {
     SynthesizeGDPTable,
 } from "./OwidTableSynthesizers.js"
 import { toPercentageColumnDef } from "./OwidTableUtil.js"
-
+import { it, describe, expect, test, window } from "vitest"
 describe(toPercentageColumnDef, () => {
     it("should format resulting column as percent", () => {
         const table = SynthesizeGDPTable(undefined, undefined, {

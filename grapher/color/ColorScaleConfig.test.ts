@@ -1,5 +1,5 @@
 #! yarn testJest
-
+import { it, describe, expect, test, window } from "vitest"
 import { BinningStrategy } from "./BinningStrategy.js"
 import { ColorSchemeName } from "./ColorConstants.js"
 import { NO_DATA_LABEL } from "./ColorScale.js"

@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { DimensionProperty } from "../../clientUtils/owidTypes.js"
 import {

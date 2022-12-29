@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import cheerio from "cheerio"
 import ReactDOMServer from "react-dom/server.js"

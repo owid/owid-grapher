@@ -1,5 +1,5 @@
 import { mdParser } from "./parser.js"
-
+import { it, describe, expect, test, window } from "vitest"
 describe("mdast parsers", () => {
     it("mdParser works for non-link brackets", () => {
         expect(mdParser.markdown.parse("[some text]")).toEqual({

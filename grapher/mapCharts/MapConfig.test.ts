@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { MapConfig } from "./MapConfig.js"
 import { MapProjectionName } from "./MapProjections.js"

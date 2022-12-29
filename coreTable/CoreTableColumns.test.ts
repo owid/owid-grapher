@@ -2,7 +2,7 @@ import { ColumnTypeNames } from "./CoreColumnDef.js"
 import { ColumnTypeMap } from "./CoreTableColumns.js"
 import { ErrorValueTypes } from "./ErrorValues.js"
 import { OwidTable } from "./OwidTable.js"
-
+import { it, describe, expect, test, window } from "vitest"
 describe(ColumnTypeNames.Quarter, () => {
     const col = new ColumnTypeMap.Numeric(new OwidTable(), { slug: "test" })
 

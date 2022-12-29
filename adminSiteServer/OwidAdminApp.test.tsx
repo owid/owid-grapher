@@ -1,6 +1,5 @@
 import { OwidAdminApp } from "./OwidAdminApp.js"
-import { jest } from "@jest/globals"
-
+import { it, describe, expect, test, window } from "vitest"
 jest.setTimeout(10000) // wait for up to 10s for the app server to start
 
 describe.skip(OwidAdminApp, () => {

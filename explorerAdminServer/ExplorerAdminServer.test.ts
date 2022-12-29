@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 import { jest } from "@jest/globals"
 
 jest.setTimeout(10000) // wait up to 10s

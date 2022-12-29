@@ -1,5 +1,5 @@
 #! yarn testJest
-
+import { it, describe, expect, test, window } from "vitest"
 import { Explorer } from "./Explorer.js"
 import {
     SampleExplorerOfGraphers,

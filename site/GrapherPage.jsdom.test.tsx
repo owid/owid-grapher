@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test, beforeAll } from "vitest"
 
 import React from "react"
 import { GrapherPage } from "./GrapherPage.js"

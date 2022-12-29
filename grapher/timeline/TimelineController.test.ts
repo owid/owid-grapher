@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { TimeBoundValue } from "../../clientUtils/TimeBounds.js"
 import { range } from "../../clientUtils/Util.js"

@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test, window } from "vitest"
 
 import React from "react"
 import { CollapsibleList, numItemsVisible } from "./CollapsibleList.js"

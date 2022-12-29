@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { SortOrder, SortBy } from "../../clientUtils/owidTypes.js"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"

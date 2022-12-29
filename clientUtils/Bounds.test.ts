@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test, window } from "vitest"
 
 import { Bounds } from "./Bounds.js"
 import { Position } from "./owidTypes.js"

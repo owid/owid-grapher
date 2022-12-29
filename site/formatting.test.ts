@@ -5,7 +5,7 @@ import {
     GRAPHER_PREVIEW_CLASS,
     splitContentIntoSectionsAndColumns,
 } from "./formatting.js"
-
+import { it, describe, expect, test, window } from "vitest"
 const paragraph = `<p>Some paragraph</p>`
 const chart = `<figure data-grapher-src="https://ourworldindata.org/grapher/pneumococcal-vaccination-averted-deaths" class="${GRAPHER_PREVIEW_CLASS}"></figure>`
 const chart2 = `<figure data-grapher-src="https://ourworldindata.org/grapher/pneumonia-and-lower-respiratory-diseases-deaths" class="${GRAPHER_PREVIEW_CLASS}"></figure>`

@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
 import { OwidTable } from "../../coreTable/OwidTable.js"

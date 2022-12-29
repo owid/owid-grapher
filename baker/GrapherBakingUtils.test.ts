@@ -2,7 +2,7 @@ import {
     grapherSlugToExportFileKey,
     grapherUrlToSlugAndQueryStr,
 } from "./GrapherBakingUtils.js"
-
+import { it, describe, expect, test, window } from "vitest"
 describe(grapherUrlToSlugAndQueryStr, () => {
     it("can extract a slug", () => {
         const grapherUrl = "https://ourworldindata.org/grapher/soil-lifespans"

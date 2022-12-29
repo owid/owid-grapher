@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { SortOrder, SortBy } from "../../clientUtils/owidTypes.js"

@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { Bounds } from "../../clientUtils/Bounds.js"
 import { ColumnTypeNames } from "../../coreTable/CoreColumnDef.js"
