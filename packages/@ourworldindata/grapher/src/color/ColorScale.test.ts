@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
 import { BinningStrategy } from "./BinningStrategy"

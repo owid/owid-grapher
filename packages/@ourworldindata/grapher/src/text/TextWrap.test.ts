@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { TextWrap, shortenForTargetWidth } from "./TextWrap"
 import { Bounds } from "@ourworldindata/utils"

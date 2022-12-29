@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { FontFamily } from "@ourworldindata/utils"
 import { IRText, MarkdownTextWrap, getLineWidth } from "./MarkdownTextWrap"

@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { getBinMaximums } from "./BinningStrategies"
 import { BinningStrategy } from "./BinningStrategy"

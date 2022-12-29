@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { GrapherInterface } from "@ourworldindata/grapher"
 import { DimensionProperty, PostRow, RelatedChart } from "@ourworldindata/utils"

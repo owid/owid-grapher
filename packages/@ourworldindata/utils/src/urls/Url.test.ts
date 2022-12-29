@@ -1,5 +1,6 @@
 #! yarn testJest
 
+import { it, describe, expect, test } from "vitest"
 import { Url } from "./Url.js"
 
 describe(Url, () => {

@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { AxisConfig } from "../axis/AxisConfig"
 import { LineLegend, LineLegendManager } from "./LineLegend"

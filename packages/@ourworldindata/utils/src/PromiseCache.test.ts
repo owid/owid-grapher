@@ -1,5 +1,6 @@
 import { PromiseCache } from "./PromiseCache.js"
 
+import { it, describe, expect, test } from "vitest"
 const wait = (ms: number): Promise<void> =>
     new Promise((resolve) => {
         setTimeout(resolve, ms)

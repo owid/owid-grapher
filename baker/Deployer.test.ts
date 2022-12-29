@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { Deployer } from "./Deployer.js"
 import { DeployTarget } from "./DeployTarget.js"

@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import React from "react"
 import { ExplorerControlType } from "./ExplorerConstants.js"

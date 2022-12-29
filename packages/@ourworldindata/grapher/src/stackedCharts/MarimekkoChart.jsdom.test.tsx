@@ -1,4 +1,5 @@
 #! /usr/bin/env jest
+import { it, describe, expect, test } from "vitest"
 
 import { Bounds } from "@ourworldindata/utils"
 import { ColumnTypeNames, OwidTable } from "@ourworldindata/core-table"

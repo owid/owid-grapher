@@ -1,5 +1,6 @@
 #! /usr/bin/env yarn jest
 
+import { it, describe, expect, test } from "vitest"
 import {
     DocumentNode,
     GraphDocumentType,
