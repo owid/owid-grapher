@@ -1,4 +1,6 @@
-#! /usr/bin/env jest
+/**
+ * @vitest-environment happy-dom
+ */
 import { it, describe, expect, test } from "vitest"
 import { configure, mount } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"

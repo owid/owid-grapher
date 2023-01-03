@@ -1,4 +1,6 @@
-#! yarn testJest
+/**
+ * @vitest-environment happy-dom
+ */
 
 import { Explorer } from "./Explorer.js"
 import {
