@@ -6696,12 +6696,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:^8.5.9":
-  version: 8.5.9
-  resolution: "@types/jsonwebtoken@npm:8.5.9"
+"@types/jsonwebtoken@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "@types/jsonwebtoken@npm:9.0.0"
   dependencies:
     "@types/node": "*"
-  checksum: 33815ab02d1371b423118316b7706d2f2ec03eeee5e1494be72da50425d2384e5e0a09ea193f7a5ab4b4f6a9c5847147305f50e965f3d927a95bdf8adb471b2a
+  checksum: c7791354ba895759524c18ba609ea04efdc576e2b660bd6f80d5b917db8dc4b01acd4d1bc115a62d35406a82e627067973d475c4b36035dabaa27862b141ae49
   languageName: node
   linkType: hard
 
@@ -15704,7 +15704,7 @@ __metadata:
     "@types/html-to-text": ^8.1.1
     "@types/jest": ^29.0.3
     "@types/js-cookie": ^3.0.2
-    "@types/jsonwebtoken": ^8.5.9
+    "@types/jsonwebtoken": ^9.0.0
     "@types/linkifyjs": ^2.1.4
     "@types/lodash": ^4.14.185
     "@types/md5": ^2.3.2
