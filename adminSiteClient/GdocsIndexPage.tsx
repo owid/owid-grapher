@@ -11,6 +11,7 @@ import { GdocsAdd } from "./GdocsAdd.js"
 import { Observer } from "mobx-react"
 import { useGdocsStore } from "./GdocsStore.js"
 import { runInAction } from "mobx"
+import { GdocsEditLink } from "./GdocsEditLink.js"
 interface GdocsMatchParams {
     id: string
 }
@@ -85,6 +86,9 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                             >
                                                 Preview
                                             </Link>
+                                            <p style={{ marginTop: 8 }}>
+                                                <GdocsEditLink gdoc={gdoc} />
+                                            </p>
                                         </td>
                                     </tr>
                                 ))}
