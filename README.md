@@ -8,7 +8,8 @@ The monorepo we use at [Our World in Data](https://ourworldindata.org) to create
 
 [![A Grapher chart showing world-wide life expectancy at birth. Click for interactive.](https://ourworldindata.org/grapher/exports/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
 
-## ✋ Disclaimer 
+## ✋ Disclaimer
+
 This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure.
 
 We're gradually making steps towards making our work more reusable, however we still prioritize [needs specific to our project](#why-did-we-start-this-project) that can be at odds with making our tools reusable.
