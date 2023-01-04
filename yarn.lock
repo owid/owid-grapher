@@ -7786,16 +7786,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^8.4.1, acorn@npm:^8.5.0, acorn@npm:^8.6.0, acorn@npm:^8.7.1, acorn@npm:^8.8.0":
-  version: 8.8.0
-  resolution: "acorn@npm:8.8.0"
-  bin:
-    acorn: bin/acorn
-  checksum: 7270ca82b242eafe5687a11fea6e088c960af712683756abf0791b68855ea9cace3057bd5e998ffcef50c944810c1e0ca1da526d02b32110e13c722aa959afdc
-  languageName: node
-  linkType: hard
-
-"acorn@npm:^8.8.1":
+"acorn@npm:^8.4.1, acorn@npm:^8.5.0, acorn@npm:^8.6.0, acorn@npm:^8.7.1, acorn@npm:^8.8.0, acorn@npm:^8.8.1":
   version: 8.8.1
   resolution: "acorn@npm:8.8.1"
   bin:
@@ -15696,6 +15687,7 @@ __metadata:
     glob: ^8.0.3
     googleapis: ^108.0.0
     handsontable: ^12.1.2
+    happy-dom: ^8.1.2
     html-to-text: ^8.2.0
     http-server: ^14.1.1
     jest-environment-jsdom: ^29.0.3
@@ -15859,6 +15851,20 @@ __metadata:
     hyperformula:
       optional: true
   checksum: 69a58e6b236ec238107c355f9780db31c5c172dee9459ebe35a8a689d33175da83a72b31edcff6187bffd9fcc645ff53c0f03278a01b420514675b04e2058c46
+  languageName: node
+  linkType: hard
+
+"happy-dom@npm:^8.1.2":
+  version: 8.1.2
+  resolution: "happy-dom@npm:8.1.2"
+  dependencies:
+    css.escape: ^1.5.1
+    he: ^1.2.0
+    node-fetch: ^2.x.x
+    webidl-conversions: ^7.0.0
+    whatwg-encoding: ^2.0.0
+    whatwg-mimetype: ^3.0.0
+  checksum: c4a61b89134057f80d0df36cd6c0491264cad5758553703f704f8d4cbcaa383806ef26a3e4a4edd14bc96f97a8005b474ca40b166f8d372752f84bbacb436382
   languageName: node
   linkType: hard
 
@@ -20385,7 +20391,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.3.0, node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.7":
+"node-fetch@npm:^2.3.0, node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.7, node-fetch@npm:^2.x.x":
   version: 2.6.7
   resolution: "node-fetch@npm:2.6.7"
   dependencies:
