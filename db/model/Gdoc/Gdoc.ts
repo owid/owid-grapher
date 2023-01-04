@@ -9,9 +9,10 @@ import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,
     GDOCS_PRIVATE_KEY,
-} from "../../settings/serverSettings.js"
-import { google, Auth } from "googleapis"
-import { gdocToArchieML } from "../gdocToArchieml.js"
+} from "../../../settings/serverSettings.js"
+import { google, Auth, docs_v1 } from "googleapis"
+import { gdocToArchie } from "./gdocToArchie.js"
+import { archieToEnriched } from "./archieToEnriched.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -33,6 +34,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         this.content = {}
     }
     static cachedGoogleAuth?: Auth.GoogleAuth
+    static cachedGoogleClient?: docs_v1.Docs
 
     static getGoogleAuth(): Auth.GoogleAuth {
         if (!Gdoc.cachedGoogleAuth) {
@@ -50,14 +52,34 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         return Gdoc.cachedGoogleAuth
     }
 
-    async updateWithDraft(): Promise<void> {
-        const auth = Gdoc.getGoogleAuth()
+    static getGoogleClient(): docs_v1.Docs {
+        if (!Gdoc.cachedGoogleClient) {
+            Gdoc.cachedGoogleClient = google.docs({
+                version: "v1",
+                auth: Gdoc.cachedGoogleAuth,
+            })
+        }
+        return Gdoc.cachedGoogleClient
+    }
 
-        const draftContent = await gdocToArchieML({
-            documentId: this.id,
-            auth,
+    async getEnrichedArticle(): Promise<void> {
+        const client = google.docs({
+            version: "v1",
+            auth: Gdoc.getGoogleAuth(),
         })
-        this.content = draftContent
+
+        // Retrieve raw data from Google
+        const { data } = await client.documents.get({
+            documentId: this.id,
+        })
+
+        // Convert the doc to ArchieML syntax
+        const { text } = await gdocToArchie(data)
+
+        // Convert the ArchieML to our enriched JSON structure
+        const content = archieToEnriched(text)
+
+        this.content = content
     }
 
     static async getPublishedGdocs(): Promise<OwidArticleTypePublished[]> {

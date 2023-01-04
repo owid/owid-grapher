@@ -4,7 +4,7 @@ import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { DeployChange, OwidArticleTypePublished } from "@ourworldindata/utils"
-import { Gdoc } from "../db/model/Gdoc.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 const deployQueueServer = new DeployQueueServer()
 

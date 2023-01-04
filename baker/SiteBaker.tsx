@@ -55,7 +55,7 @@ import {
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
-import { Gdoc } from "../db/model/Gdoc.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
