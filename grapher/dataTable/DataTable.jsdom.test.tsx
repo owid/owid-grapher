@@ -2,7 +2,6 @@
  * @vitest-environment happy-dom
  */
 import { it, describe, expect, test } from "vitest"
-import { it, describe, expect, test } from "vitest"
 
 import React from "react"
 

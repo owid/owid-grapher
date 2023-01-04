@@ -1,4 +1,4 @@
-import * as shell from "shelljs"
+import shell from "shelljs"
 import * as util from "util"
 import { quote } from "shell-quote"
 

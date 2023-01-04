@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import { it, describe, expect, test } from "vitest"
+import { it, describe, expect, test, vi } from "vitest"
 
 import React from "react"
 import {
@@ -20,7 +20,7 @@ const KEY_INSIGHTS_SLUG = "key-insights"
 
 //from https://stackoverflow.com/a/62148101
 beforeEach(() => {
-    const mockIntersectionObserver = jest.fn()
+    const mockIntersectionObserver = vi.fn()
     mockIntersectionObserver.mockReturnValue({
         observe: () => null,
         unobserve: () => null,

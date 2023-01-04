@@ -1,6 +1,6 @@
 import { PromiseSwitcher } from "./PromiseSwitcher.js"
 
-import { it, describe, expect, test } from "vitest"
+import { it, describe, expect, test, vi } from "vitest"
 const delayResolve = (result: any, ms: number = 10): Promise<void> =>
     new Promise((resolve) => {
         setTimeout(() => resolve(result), ms)
@@ -12,7 +12,7 @@ const delayReject = (error: any, ms: number = 10): Promise<void> =>
     })
 
 it("handles fulfilling single promise", async () => {
-    const onResolve = jest.fn(() => undefined)
+    const onResolve = vi.fn(() => undefined)
     const selector = new PromiseSwitcher({ onResolve })
     await selector.set(Promise.resolve("done"))
     expect(onResolve).toBeCalledWith("done")
@@ -21,7 +21,7 @@ it("handles fulfilling single promise", async () => {
 })
 
 it("selecting a new promise while one is pending discards the pending promise", async () => {
-    const onResolve = jest.fn(() => undefined)
+    const onResolve = vi.fn(() => undefined)
     const selector = new PromiseSwitcher({ onResolve })
     selector.set(delayResolve("first"))
     await selector.set(Promise.resolve("second"))
@@ -30,8 +30,8 @@ it("selecting a new promise while one is pending discards the pending promise", 
 })
 
 it("handles promise rejections", async () => {
-    const onResolve = jest.fn(() => undefined)
-    const onReject = jest.fn(() => undefined)
+    const onResolve = vi.fn(() => undefined)
+    const onReject = vi.fn(() => undefined)
     const selector = new PromiseSwitcher({ onResolve, onReject })
 
     await selector.set(Promise.reject("error"))
@@ -44,8 +44,8 @@ it("handles promise rejections", async () => {
 })
 
 it("handles clearing pending promise", async () => {
-    const onResolve = jest.fn(() => undefined)
-    const onReject = jest.fn(() => undefined)
+    const onResolve = vi.fn(() => undefined)
+    const onReject = vi.fn(() => undefined)
     const selector = new PromiseSwitcher({ onResolve, onReject })
 
     const resolve = delayResolve("done")
