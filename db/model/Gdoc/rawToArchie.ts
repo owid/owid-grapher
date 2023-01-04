@@ -6,7 +6,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockFixedGraphic,
-    RawBlockGreySection,
+    RawBlockGraySection,
     RawBlockHorizontalRule,
     RawBlockHtml,
     RawBlockImage,
@@ -276,10 +276,10 @@ function* RawBlockSideBySideContainerToArchieMLString(
     yield "{}"
 }
 
-function* RawBlockGreySectionToArchieMLString(
-    block: RawBlockGreySection
+function* RawBlockGraySectionToArchieMLString(
+    block: RawBlockGraySection
 ): Generator<string, void, undefined> {
-    yield "[+grey-section]"
+    yield "[+gray-section]"
     if (typeof block.value !== "string") {
         for (const b of block.value)
             yield* owidRawArticleBlockToArchieMLStringGenerator(b)
@@ -362,7 +362,7 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
             { type: "side-by-side" },
             RawBlockSideBySideContainerToArchieMLString
         )
-        .with({ type: "grey-section" }, RawBlockGreySectionToArchieMLString)
+        .with({ type: "gray-section" }, RawBlockGraySectionToArchieMLString)
         .with({ type: "prominent-link" }, RawBlockProminentLinkToArchieMLString)
         .with({ type: "sdg-toc" }, rawBlockSDGTocToArchieMLString)
         .with({ type: "missing-data" }, rawBlockMissingDataToArchieMLString)

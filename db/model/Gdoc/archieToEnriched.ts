@@ -74,7 +74,7 @@ export const archieToEnriched = (text: string): OwidArticleContent => {
                 pointer[0] = index
                 traverseBlocks(value, callback)
             })
-        } else if (value.type === "grey-section") {
+        } else if (value.type === "gray-section") {
             const pointerLength = pointer.length
             value.value.forEach((value, index) => {
                 pointer[pointerLength] = index
