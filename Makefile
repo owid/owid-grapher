@@ -28,7 +28,8 @@ help:
 	@echo '  make refresh       (while up) download a new grapher snapshot and update MySQL'
 	@echo '  make refresh.meta  (while up) refresh grapher metadata only'
 	@echo '  make migrate       (while up) run any outstanding db migrations'
-	@echo '  make test          run full suite of CI checks including unit tests'
+	@echo '  make test          run full suite (except db tests) of CI checks including unit tests'
+	@echo '  make dbtest        run db test suite that needs a running mysql db'
 	@echo '  make svgtest       compare current rendering against reference SVGs'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
@@ -136,7 +137,7 @@ refresh:
 refresh.meta:
 	@echo '==> Downloading chart metadata'
 	./devTools/docker/download-grapher-metadata-mysql.sh
-	
+
 	@echo '==> Updating grapher database'
 	@. ./.env && DATA_FOLDER=tmp-downloads SKIP_CHARTDATA=1 ./devTools/docker/refresh-grapher-data.sh
 
@@ -226,12 +227,12 @@ wordpress/web/app/uploads/2022:
 deploy:
 	@echo '==> Starting from a clean slate...'
 	rm -rf itsJustJavascript
-	
+
 	@echo '==> Building...'
 	yarn
 	yarn lerna run build
 	yarn run tsc -b
-	
+
 	@echo '==> Deploying...'
 	yarn buildAndDeploySite live
 
@@ -239,24 +240,41 @@ stage:
 	@echo '==> Preparing to deploy to $(STAGING)'
 	@echo '==> Starting from a clean slate...'
 	rm -rf itsJustJavascript
-	
+
 	@echo '==> Building...'
 	yarn
 	yarn lerna run build
 	yarn run tsc -b
-	
+
 	@echo '==> Deploying to $(STAGING)...'
 	yarn buildAndDeploySite $(STAGING)
 
-test: 
+test:
 	@echo '==> Linting'
 	yarn
 	yarn run eslint
 	yarn lerna run buildTests
-	
+
 	@echo '==> Checking formatting'
 	yarn testPrettierChanged
-	
+
+	@echo '==> Running tests'
+	yarn run jest --all --testPathIgnorePatterns=db/tests/redirects
+
+dbtest:
+	@echo '==> Linting'
+	yarn
+	yarn run eslint
+	yarn buildTsc
+
+	@echo '==> Checking formatting'
+	yarn testPrettierChanged
+
+    @echo '==> Starting mysql database'
+    docker-compose -f docker-compose.test.yml up db
+
+         yarn runDbMigrations
+
 	@echo '==> Running tests'
 	yarn run jest --all
 
@@ -280,12 +298,12 @@ unittest:
 
 svgtest: ../owid-grapher-svgs
 	@echo '==> Comparing against reference SVGs'
-	
+
 	@# get ../owid-grapher-svgs reliably to a base state at origin/master
 	cd ../owid-grapher-svgs && git fetch && git checkout -f master && git reset --hard origin/master
-	
+
 	@# generate a full new set of svgs
 	node itsJustJavascript/devTools/svgTester/verify-graphs.js -i ../owid-grapher-svgs/configs -o ../owid-grapher-svgs/svg -r ../owid-grapher-svgs/svg
-	
+
 	@# summarize differences
 	cd ../owid-grapher-svgs && git diff --stat
