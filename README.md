@@ -4,11 +4,11 @@
 [![Test coverage](https://owid.github.io/badges/coverage.svg)](https://owid.github.io/coverage/)
 [![Storybook](https://raw.githubusercontent.com/storybookjs/brand/master/badge/badge-storybook.svg)](https://owid.github.io/stories/)
 
-> The monorepo we use at [Our World in Data](https://ourworldindata.org) to create and publish embeddable, interactive visualizations like this one:
+The monorepo we use at [Our World in Data](https://ourworldindata.org) to create and publish embeddable, interactive visualizations like this one:
 
 [![A Grapher chart showing world-wide life expectancy at birth. Click for interactive.](https://ourworldindata.org/grapher/exports/life-expectancy.svg)](https://ourworldindata.org/grapher/life-expectancy)
 
----
+## ✋ Disclaimer
 
 This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure.
 
@@ -16,9 +16,13 @@ We're gradually making steps towards making our work more reusable, however we s
 
 You are still very welcome to reuse and adapt any of our code for your own purposes, and we welcome [contributions](CONTRIBUTING.md)!
 
----
+## 🏎 &nbsp;Quick start
 
-## Overview
+To quickly get a version of the site running for developing Grapher features, we recommend following the [local development setup](docs/docker-compose-mysql.md) guide.
+
+[Additional setup options](docs/setup-options-overview.md) are also available for other use cases.
+
+## 🗂 Overview
 
 Multiple projects are maintained in this repo:
 
@@ -51,12 +55,6 @@ Our Wordpress content and configuration is stored in a MySQL database, which cur
 ### [Baker](baker/)
 
 A [PM2](https://github.com/Unitech/pm2) project that builds a static copy of the Our World in Data website by merging the content authored in Wordpress with the grapher charts created in Grapher Admin.
-
-## Usage
-
-To quickly get a version of the site running for developing Grapher features, we recommend following the [local development setup](docs/docker-compose-mysql.md) guide.
-
-[Additional setup options](docs/setup-options-overview.md) are also available for other use cases.
 
 ## Tooling
 
