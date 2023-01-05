@@ -936,18 +936,20 @@ export function cheerioElementsToArchieML(
 export function withoutEmptyOrWhitespaceOnlyTextBlocks(
     result: BlockParseResult<ArchieBlockOrWpComponent>
 ): BlockParseResult<ArchieBlockOrWpComponent> {
+    const hasAnyNonWSSpans = (spans: Span[]): boolean =>
+        spans.length > 0 &&
+        spans.some(
+            (span) =>
+                span.spanType !== "span-simple-text" ||
+                span.text.trimStart() !== ""
+        )
     return {
         ...result,
         content: result.content.filter(
             (element) =>
                 !("type" in element) ||
                 ("type" in element && element.type !== "text") ||
-                (element.value.length > 0 &&
-                    element.value.some(
-                        (span) =>
-                            span.spanType !== "span-simple-text" ||
-                            span.text.trimStart() !== ""
-                    ))
+                hasAnyNonWSSpans(element.value)
         ),
     }
 }
