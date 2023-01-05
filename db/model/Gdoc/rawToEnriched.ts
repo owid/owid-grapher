@@ -6,7 +6,7 @@ import {
     EnrichedBlockChart,
     EnrichedBlockChartStory,
     EnrichedBlockFixedGraphic,
-    EnrichedBlockGreySection,
+    EnrichedBlockGraySection,
     EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
     EnrichedBlockHtml,
@@ -38,7 +38,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockFixedGraphic,
-    RawBlockGreySection,
+    RawBlockGraySection,
     RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
@@ -104,7 +104,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "sticky-left" }, parseStickyLeft)
         .with({ type: "sticky-right" }, parseStickyRight)
         .with({ type: "side-by-side" }, parseSideBySide)
-        .with({ type: "grey-section" }, parseGreySection)
+        .with({ type: "gray-section" }, parseGraySection)
         .with({ type: "prominent-link" }, parseProminentLink)
         .with(
             { type: "sdg-toc" },
@@ -873,9 +873,9 @@ function parseSideBySide(
     }
 }
 
-function parseGreySection(raw: RawBlockGreySection): EnrichedBlockGreySection {
+function parseGraySection(raw: RawBlockGraySection): EnrichedBlockGraySection {
     return {
-        type: "grey-section",
+        type: "gray-section",
         items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
     }

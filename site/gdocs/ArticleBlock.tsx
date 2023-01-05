@@ -49,7 +49,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
         ["fixed-graphic"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        ["grey-section"]: "span-cols-14 grid grid-cols-12-full-width",
+        ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
         ["heading"]: "align-center col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -470,8 +470,8 @@ export default function ArticleBlock({
                         </div>
                     </div>
                 ))
-                .with({ type: "grey-section" }, (block) => (
-                    <div className={getLayout("grey-section")}>
+                .with({ type: "gray-section" }, (block) => (
+                    <div className={getLayout("gray-section")}>
                         {block.items.map((item, i) => (
                             <ArticleBlock key={i} b={item} />
                         ))}
