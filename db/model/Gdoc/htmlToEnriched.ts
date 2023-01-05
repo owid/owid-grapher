@@ -26,6 +26,11 @@ import { match, P } from "ts-pattern"
 import { compact, flatten, partition } from "lodash"
 import * as cheerio from "cheerio"
 
+interface ParseContext {
+    $: CheerioStatic
+    shouldParseWpComponents: boolean
+}
+
 //#region Spans
 function spanFallback(element: CheerioElement): SpanFallback {
     return {
@@ -255,9 +260,9 @@ const wpTagRegex =
     the children. */
 function unwrapElement(
     element: CheerioElement,
-    $: CheerioStatic
+    context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
-    const result = cheerioElementsToArchieML(element.children, $)
+    const result = cheerioElementsToArchieML(element.children, context)
     return result
 }
 
@@ -290,21 +295,29 @@ function getWpComponentDetails(element: CheerioElement): WpComponent {
     }
 }
 
-function checkIsWpComponentOfType(
+function tryGetAsWpComponentOfType(
     blockOrComponent: ArchieBlockOrWpComponent,
     expectedTagName: string
 ): WpComponent | undefined {
+    // This function returns the narrowed type instead of doing a type guard
+    // so that the useage site can immediately use the narrowed value
     return !("tagName" in blockOrComponent) ||
         blockOrComponent.tagName !== expectedTagName
         ? undefined
         : blockOrComponent
 }
 
+function isArchieMlComponent(
+    block: ArchieBlockOrWpComponent
+): block is OwidEnrichedArticleBlock {
+    return "type" in block
+}
+
 export function convertAllWpComponentsToArchieMLBlocks(
     blocksOrComponents: ArchieBlockOrWpComponent[]
 ): OwidEnrichedArticleBlock[] {
     return blocksOrComponents.flatMap((blockOrComponent) => {
-        if ("type" in blockOrComponent) return [blockOrComponent]
+        if (isArchieMlComponent(blockOrComponent)) return [blockOrComponent]
         else {
             return convertAllWpComponentsToArchieMLBlocks(
                 blockOrComponent.childrenResults
@@ -333,18 +346,17 @@ export function convertAllWpComponentsToArchieMLBlocks(
      */
 function parseWpComponent(
     elements: CheerioElement[],
-    $: CheerioStatic
+    context: ParseContext
 ): WpComponentIntermediateParseResult {
     // Below are tags we don't want to try and track as components but just fully ignore -
-    // the reason for this is that in some cases they have come up not matching and they
-    // don't contain structure that we need to parse
-    // Note that only html was strictly necessary before we started {ref} parsing. {ref}
-    // parsing butchers the raw html with regexes which can cut across component borders
-    // which then leaves unfinished wp components in either the main text or the cut out
-    // ref text. If we need to instead parse one of these components then we could also
-    // see if parsing the inside of refs in a mode that ignores wp components could be an
-    // option as inside refs we probably never used components
-    const wpComponentTagsToIgnore = ["html", "paragraph", "heading", "list"]
+    // The reason for this differs a bit by tag. For wp:html the issue is that the opening
+    // and closing tags are on different nesting levels which totally messes up the rest of
+    // the logic and we don't really care for those tags.
+    // wp:heading and wp:paragraph are redundant. They would parse finde if we weren't doing
+    // the somewhat brutal ref parsing via regex that just cuts some parts of the raw html
+    // out. But by ignoring these three component tags that for now we don't seem to need
+    // we get clean parsing of the rest of the components.
+    const wpComponentTagsToIgnore = ["html", "heading", "paragraph"]
 
     const startElement = elements[0]
     if (!isWpComponentStart(startElement))
@@ -359,7 +371,7 @@ function parseWpComponent(
     // tag that we want to ignore then don't try to find a closing tag
     if (
         !componentDetails.canHaveChildren ||
-        wpComponentTagsToIgnore.indexOf(componentDetails.tagName) > -1
+        wpComponentTagsToIgnore.includes(componentDetails.tagName)
     )
         return {
             remainingElements,
@@ -400,11 +412,11 @@ function parseWpComponent(
                     remainingElements: remainingElements.slice(1),
                 }
             } else if (isWpComponentStart(element)) {
-                const result = parseWpComponent(remainingElements, $)
+                const result = parseWpComponent(remainingElements, context)
                 remainingElements = result.remainingElements
                 collectedContent.push(result.result)
             } else {
-                const parsed = cheerioToArchieML(element, $)
+                const parsed = cheerioToArchieML(element, context)
                 collectedContent.push(parsed)
                 remainingElements = remainingElements.slice(1)
             }
@@ -442,7 +454,7 @@ function finishWpComponent(
                 })
                 return { ...content, errors }
             }
-            const firstChild = checkIsWpComponentOfType(
+            const firstChild = tryGetAsWpComponentOfType(
                 content.content[0],
                 "column"
             )
@@ -453,7 +465,7 @@ function finishWpComponent(
                 })
                 return { ...content, errors }
             }
-            const secondChild = checkIsWpComponentOfType(
+            const secondChild = tryGetAsWpComponentOfType(
                 content.content[1],
                 "column"
             )
@@ -500,18 +512,19 @@ function finishWpComponent(
 function isEnrichedTextBlock(
     item: ArchieBlockOrWpComponent
 ): item is EnrichedBlockText {
-    return "type" in item && item.type === "text"
+    return isArchieMlComponent(item) && item.type === "text"
 }
 
 function cheerioToArchieML(
     element: CheerioElement,
-    $: CheerioStatic
+    context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
     if (element.type === "comment") return { errors: [], content: [] }
 
     const unwrapElementWithContext = (
         element: CheerioElement
-    ): BlockParseResult<ArchieBlockOrWpComponent> => unwrapElement(element, $)
+    ): BlockParseResult<ArchieBlockOrWpComponent> =>
+        unwrapElement(element, context)
 
     const span = cheerioToSpan(element)
     if (span)
@@ -530,7 +543,7 @@ function cheerioToArchieML(
                 (): BlockParseResult<EnrichedBlockPullQuote> => {
                     const spansResult = getSimpleTextSpansFromChildren(
                         element, //bla
-                        $
+                        context
                     )
 
                     return {
@@ -571,7 +584,7 @@ function cheerioToArchieML(
                             figcaptionChildren.length > 0
                                 ? cheerioElementsToArchieML(
                                       figcaptionChildren,
-                                      $
+                                      context
                                   )
                                 : undefined
                         if (figCaption)
@@ -588,7 +601,7 @@ function cheerioToArchieML(
                                     errors.push({
                                         name: "figcaption element is not structured text",
                                         details: `Found ${
-                                            "type" in element
+                                            isArchieMlComponent(element)
                                                 ? element.type
                                                 : ""
                                         } element after transforming to archieml`,
@@ -608,7 +621,7 @@ function cheerioToArchieML(
                         if (otherChildren[0].tagName === "table") {
                             const childResult = cheerioToArchieML(
                                 otherChildren[0],
-                                $
+                                context
                             )
 
                             return {
@@ -641,12 +654,12 @@ function cheerioToArchieML(
                 { tagName: P.union("h1", "h2", "h3", "h4", "h5", "h6") },
                 (): BlockParseResult<EnrichedBlockHeading> => {
                     const level = parseInt(element.tagName.slice(1))
-                    const spansResult = getSpansFromChildren(element, $)
+                    const spansResult = getSpansFromChildren(element, context)
                     const errors = spansResult.errors
                     if (spansResult.content.length == 0)
                         errors.push({
                             name: "exepcted a single plain text element, got zero" as const,
-                            details: `Found ${spansResult.content.length} elements after transforming to archieml`,
+                            details: `Found 0 elements after transforming to archieml`,
                         })
                     return {
                         errors: spansResult.errors,
@@ -671,7 +684,16 @@ function cheerioToArchieML(
                             name: "iframe without src" as const,
                             details: `Found iframe without src attribute`,
                         })
-                    if (!src?.startsWith("https://ourworldindata.org/grapher/"))
+                    if (
+                        !(
+                            src?.startsWith(
+                                "https://ourworldindata.org/grapher/"
+                            ) ||
+                            src?.startsWith(
+                                "https://ourworldindata.org/explorers/"
+                            )
+                        )
+                    )
                         errors.push({
                             name: "iframe with src that is not a grapher",
                             details: `Found iframe with src that is not a grapher`,
@@ -712,7 +734,10 @@ function cheerioToArchieML(
                 }
             )
             .with({ tagName: "p" }, (): BlockParseResult<EnrichedBlockText> => {
-                const children = cheerioElementsToArchieML(element.children, $)
+                const children = cheerioElementsToArchieML(
+                    element.children,
+                    context
+                )
 
                 const [textChildren, otherChildren] = partition(
                     children.content,
@@ -742,7 +767,7 @@ function cheerioToArchieML(
                         if (!child.children) return []
                         const grandChildren = cheerioElementsToArchieML(
                             child.children,
-                            $
+                            context
                         )
                         if (grandChildren.content) return [grandChildren]
                         else return []
@@ -807,7 +832,7 @@ function cheerioToArchieML(
                     const children = element.children?.flatMap((child) => {
                         const grandChildren = cheerioElementsToArchieML(
                             child.children,
-                            $
+                            context
                         )
                         if (grandChildren.content) return [grandChildren]
                         else return []
@@ -874,7 +899,7 @@ function cheerioToArchieML(
                         content: [
                             {
                                 type: "html",
-                                value: $.html(element) ?? "",
+                                value: context.$.html(element) ?? "",
                                 parseErrors: [],
                             },
                         ],
@@ -905,9 +930,9 @@ function cheerioToArchieML(
 
 export function cheerioElementsToArchieML(
     elements: CheerioElement[],
-    $: CheerioStatic
+    context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
-    if (!elements)
+    if (!elements.length)
         return {
             errors: [],
             content: [],
@@ -916,14 +941,14 @@ export function cheerioElementsToArchieML(
     const parsedContent: BlockParseResult<ArchieBlockOrWpComponent>[] = []
     while (remainingElements.length > 0) {
         const element = remainingElements[0]
-        if (isWpComponentStart(element)) {
-            const parseResult = parseWpComponent(remainingElements, $)
+        if (isWpComponentStart(element) && context.shouldParseWpComponents) {
+            const parseResult = parseWpComponent(remainingElements, context)
             parsedContent.push(parseResult.result)
             remainingElements = parseResult.remainingElements
         } else if (element.type === "comment") {
             remainingElements = remainingElements.slice(1)
         } else {
-            const parsed = cheerioToArchieML(element, $)
+            const parsed = cheerioToArchieML(element, context)
             const cleaned = withoutEmptyOrWhitespaceOnlyTextBlocks(parsed)
             if (cleaned.content.length > 0 || cleaned.errors.length > 0)
                 parsedContent.push(parsed)
@@ -947,8 +972,8 @@ export function withoutEmptyOrWhitespaceOnlyTextBlocks(
         ...result,
         content: result.content.filter(
             (element) =>
-                !("type" in element) ||
-                ("type" in element && element.type !== "text") ||
+                !isArchieMlComponent(element) ||
+                (isArchieMlComponent(element) && element.type !== "text") ||
                 hasAnyNonWSSpans(element.value)
         ),
     }
@@ -991,9 +1016,9 @@ function getSimpleSpans(spans: Span[]): [SpanSimpleText[], Span[]] {
 
 function getSimpleTextSpansFromChildren(
     element: CheerioElement,
-    $: CheerioStatic
+    context: ParseContext
 ): BlockParseResult<SpanSimpleText> {
-    const spansResult = getSpansFromChildren(element, $)
+    const spansResult = getSpansFromChildren(element, context)
     const [simpleSpans, otherSpans] = getSimpleSpans(spansResult.content)
     const errors =
         otherSpans.length === 0
@@ -1015,10 +1040,10 @@ function getSimpleTextSpansFromChildren(
 
 function getSpansFromChildren(
     element: CheerioElement,
-    $: CheerioStatic
+    context: ParseContext
 ): BlockParseResult<Span> {
     const childElements = joinBlockParseResults(
-        element.children.map((child) => cheerioToArchieML(child, $))
+        element.children.map((child) => cheerioToArchieML(child, context))
     )
     return getSpansFromBlockParseResult(childElements)
 }
@@ -1049,7 +1074,7 @@ export function getEnrichedBlockTextFromBlockParseResult(
                   {
                       name: "expected only text" as const,
                       details: `suppressed tags: ${otherChildren
-                          .map((c) => ("type" in c && c.type) ?? "")
+                          .map((c) => (isArchieMlComponent(c) && c.type) ?? "")
                           .join(", ")}`,
                   },
               ]

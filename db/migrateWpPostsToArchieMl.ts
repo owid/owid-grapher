@@ -49,7 +49,10 @@ const migrate = async (): Promise<void> => {
             //TODO: we don't seem to get the first node if it is a comment. Maybe this is benign but if not this works as a workaround: `<div>${post.content}</div>`)
             const $: CheerioStatic = cheerio.load(text)
             const bodyContents = $("body").contents().toArray()
-            const parseResult = cheerioElementsToArchieML(bodyContents, $)
+            const parseResult = cheerioElementsToArchieML(bodyContents, {
+                $,
+                shouldParseWpComponents: true,
+            })
             const archieMlBodyElements = convertAllWpComponentsToArchieMLBlocks(
                 withoutEmptyOrWhitespaceOnlyTextBlocks(parseResult).content
             )
@@ -59,10 +62,10 @@ const migrate = async (): Promise<void> => {
                 (refString): EnrichedBlockText => {
                     const ref$ = cheerio.load(refString)
                     const refElements = ref$("body").contents().toArray()
-                    const parseResult = cheerioElementsToArchieML(
-                        refElements,
-                        $
-                    )
+                    const parseResult = cheerioElementsToArchieML(refElements, {
+                        $,
+                        shouldParseWpComponents: false,
+                    })
                     const textContentResult =
                         getEnrichedBlockTextFromBlockParseResult(parseResult)
                     errors = errors.concat(textContentResult.errors)
