@@ -937,7 +937,7 @@ export function cheerioElementsToArchieML(
     elements: CheerioElement[],
     context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
-    if (!elements.length)
+    if (!elements || !elements.length)
         return {
             errors: [],
             content: [],
