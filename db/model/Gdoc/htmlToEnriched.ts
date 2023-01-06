@@ -23,13 +23,8 @@ import {
     EnrichedBlockNumberedList,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { compact, flatten, partition } from "lodash"
+import { compact, flatten, isPlainObject, partition } from "lodash"
 import * as cheerio from "cheerio"
-
-interface ParseContext {
-    $: CheerioStatic
-    shouldParseWpComponents: boolean
-}
 
 //#region Spans
 function spanFallback(element: CheerioElement): SpanFallback {
@@ -230,7 +225,7 @@ interface BlockParseResult<T> {
 interface WpComponent {
     tagName: string
     attributes: Record<string, unknown> | undefined
-    canHaveChildren: boolean
+    isVoidElement: boolean
     childrenResults: ArchieBlockOrWpComponent[]
 }
 
@@ -243,16 +238,21 @@ interface WpComponentIntermediateParseResult {
     remainingElements: CheerioElement[]
 }
 
+interface ParseContext {
+    $: CheerioStatic
+    shouldParseWpComponents: boolean
+}
+
 /** Regular expression to identify wordpress components in html components. These
     components always have the structure
     wp:TAGNAME {"optionalAttributeExample": 4}
     This regex parses this structure and captures the groups tag (tagname), attributes
-    (optional JSON attributes) and isEmptyElement which indicates if the comment ends with
-    /--> to indicate an empty wp component, i.e. one without a matching closing tag similar
+    (optional JSON attributes) and isVoidElement which indicates if the comment ends with
+    /--> to indicate a void wp component, i.e. one without a matching closing tag similar
     to some html tags like <br />
     */
 const wpTagRegex =
-    /wp:(?<tag>([\w\/-]+))\s*(?<attributes>{.*})?\s*(?<isEmptyElement>\/)?$/
+    /wp:(?<tag>([\w\/-]+))\s*(?<attributes>{.*})?\s*(?<isVoidElement>\/)?$/
 
 /** Unwraps a CheerioElement in the sense that it applies cheerioelementsToArchieML
     on the children, returning the result. In effect this "removes" an html element
@@ -283,14 +283,21 @@ function isWpComponentEnd(element: CheerioElement): boolean {
 function getWpComponentDetails(element: CheerioElement): WpComponent {
     const match = element.data?.match(wpTagRegex)
     if (!match) throw new Error("WpComponent could not match")
-    const attributes =
-        match.groups?.attributes && match.groups.attributes.trim() !== ""
-            ? JSON.parse(match.groups?.attributes ?? "")
-            : undefined
+    let attributes
+    if (match.groups?.attributes) {
+        try {
+            const parsed = JSON.parse(match.groups?.attributes)
+            if (isPlainObject(parsed)) {
+                attributes = parsed
+            }
+        } catch {
+            throw new Error("Invalid JSON in WpComponent attributes")
+        }
+    }
     return {
         tagName: match.groups!.tag!,
         attributes,
-        canHaveChildren: match.groups?.isEmptyElement === undefined,
+        isVoidElement: match.groups?.isVoidElement !== undefined,
         childrenResults: [],
     }
 }
@@ -370,7 +377,7 @@ function parseWpComponent(
     // If the wp component tag was closing (ended with /--> ) or if this is a component
     // tag that we want to ignore then don't try to find a closing tag
     if (
-        !componentDetails.canHaveChildren ||
+        componentDetails.isVoidElement ||
         wpComponentTagsToIgnore.includes(componentDetails.tagName)
     )
         return {
@@ -387,9 +394,7 @@ function parseWpComponent(
             const element = remainingElements[0]
             if (isWpComponentEnd(element)) {
                 const closingDetails = getWpComponentDetails(element)
-                if (
-                    wpComponentTagsToIgnore.indexOf(closingDetails.tagName) > -1
-                ) {
+                if (wpComponentTagsToIgnore.includes(closingDetails.tagName)) {
                     remainingElements = remainingElements.slice(1)
                     continue
                 }
