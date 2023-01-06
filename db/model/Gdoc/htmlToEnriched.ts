@@ -241,6 +241,8 @@ interface WpComponentIntermediateParseResult {
 interface ParseContext {
     $: CheerioStatic
     shouldParseWpComponents: boolean
+    htmlTagCounts: Record<string, number>
+    wpTagCounts: Record<string, number>
 }
 
 /** Regular expression to identify wordpress components in html components. These
@@ -371,6 +373,8 @@ export function parseWpComponent(
             "Tried to start parsing a WP component on a non-comment block!"
         )
     const componentDetails = getWpComponentDetails(startElement)
+    context.wpTagCounts[componentDetails.tagName] =
+        (context.wpTagCounts[componentDetails.tagName] ?? 0) + 1
 
     let remainingElements = elements.slice(1)
     const collectedContent: BlockParseResult<ArchieBlockOrWpComponent>[] = []
@@ -536,6 +540,8 @@ function cheerioToArchieML(
             content: [{ type: "text", value: [span], parseErrors: [] }],
         }
     else if (element.type === "tag") {
+        context.htmlTagCounts[element.tagName] =
+            (context.htmlTagCounts[element.tagName] ?? 0) + 1
         const result: BlockParseResult<ArchieBlockOrWpComponent> = match(
             element
         )
