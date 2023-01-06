@@ -1291,6 +1291,11 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     }
 }
 
+.GdocsViewPage {
+    width: 100%;
+    height: inherit;
+}
+
 .GdocsSettingsForm {
     .edit-in-gdocs {
         position: relative;

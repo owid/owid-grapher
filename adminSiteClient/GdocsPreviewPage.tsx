@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
-import { OwidArticle } from "../site/gdocs/OwidArticle.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     OwidArticleType,
@@ -234,7 +233,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 </Drawer>
 
                 <DebugProvider>
-                    <OwidArticle {...gdoc} />
+                    <iframe
+                        src={`/admin/gdocs/${gdoc.id}/view`}
+                        className="GdocsViewPage"
+                    />
                 </DebugProvider>
 
                 {gdoc.published && (

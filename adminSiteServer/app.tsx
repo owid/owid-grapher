@@ -9,6 +9,7 @@ import * as http from "http"
 import {
     ADMIN_SERVER_HOST,
     ADMIN_SERVER_PORT,
+    BAKED_BASE_URL,
     ENV,
     SLACK_ERRORS_WEBHOOK_URL,
 } from "../settings/serverSettings.js"
@@ -27,6 +28,9 @@ import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
+import { GdocsContentSource } from "@ourworldindata/utils/dist/owidTypes.js"
+import OwidArticlePage from "../site/gdocs/OwidArticlePage.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 // library does not provide type definitions
 // eslint-disable-next-line
@@ -92,6 +96,19 @@ export class OwidAdminApp {
         app.use("/admin/assets", express.static("itsJustJavascript/webpack"))
         app.use("/admin/storybook", express.static(".storybook/build"))
         app.use("/admin", adminRouter)
+
+        app.get("/admin/gdocs/:id/view", async (req, res) => {
+            const gdoc = await Gdoc.getGdocFromContentSource(
+                req.params.id,
+                GdocsContentSource.Gdocs
+            )
+
+            res.send(
+                renderToHtmlPage(
+                    <OwidArticlePage baseUrl={BAKED_BASE_URL} article={gdoc} />
+                )
+            )
+        })
 
         // Default route: single page admin app
         app.get("/admin/*", async (req, res) => {

@@ -4,6 +4,8 @@ import {
     OwidArticleType,
     OwidArticleTypePublished,
     OwidArticlePublicationContext,
+    GdocsContentSource,
+    JsonError,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -80,6 +82,20 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         const content = archieToEnriched(text)
 
         this.content = content
+    }
+
+    static async getGdocFromContentSource(
+        id: string,
+        contentSource?: GdocsContentSource
+    ): Promise<OwidArticleType> {
+        const gdoc = await Gdoc.findOneBy({ id })
+
+        if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+
+        if (contentSource === GdocsContentSource.Gdocs) {
+            await gdoc.getEnrichedArticle()
+        }
+        return gdoc
     }
 
     static async getPublishedGdocs(): Promise<OwidArticleTypePublished[]> {
