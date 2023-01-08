@@ -13,6 +13,7 @@ import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreative
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
+import { DebugProvider } from "./DebugContext.js"
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt, slug } = props
@@ -185,8 +186,15 @@ export function OwidArticle(props: OwidArticleType) {
     )
 }
 
-export const hydrateOwidArticle = () => {
+export const hydrateOwidArticle = (debug?: boolean) => {
     const wrapper = document.querySelector("#owid-article-root")
     const props = getArticleFromJSON(window._OWID_ARTICLE_PROPS)
-    ReactDOM.hydrate(<OwidArticle {...props} />, wrapper)
+    ReactDOM.hydrate(
+        <React.StrictMode>
+            <DebugProvider debug={debug}>
+                <OwidArticle {...props} />
+            </DebugProvider>
+        </React.StrictMode>,
+        wrapper
+    )
 }

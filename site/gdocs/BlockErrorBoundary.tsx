@@ -1,5 +1,6 @@
 import React from "react"
 import { ErrorBoundary } from "react-error-boundary"
+import { getLayout } from "./ArticleBlock.js"
 import { useDebug } from "./DebugContext.js"
 
 export const BlockErrorBoundary = ({
@@ -7,25 +8,23 @@ export const BlockErrorBoundary = ({
 }: {
     children: React.ReactNode
 }) => {
-    const debug = useDebug()
-    return debug ? (
+    return (
         <ErrorBoundary FallbackComponent={BlockErrorFallback}>
             {children}
         </ErrorBoundary>
-    ) : (
-        <>{children}</>
     )
 }
 
 export const BlockErrorFallback = ({
     error,
     resetErrorBoundary,
-    className = "",
+    className = getLayout(),
 }: {
-    error?: Error
-    resetErrorBoundary: VoidFunction
+    error: Error
+    resetErrorBoundary?: VoidFunction
     className?: string
 }): JSX.Element => {
+    const debug = useDebug()
     return (
         <div
             className={className}
@@ -33,16 +32,26 @@ export const BlockErrorFallback = ({
                 textAlign: "center",
                 backgroundColor: "rgba(255,0,0,0.1)",
                 padding: "20px",
+                marginTop: "20px",
+                marginBottom: "20px",
             }}
         >
-            <h3>Error while rendering the block</h3>
-            Please check the source content.
-            <div>
-                <button style={{ margin: "10px" }} onClick={resetErrorBoundary}>
-                    Try again
-                </button>
-            </div>
-            <div>{error?.message}</div>
+            <h3 style={{ margin: 0 }}>{error.name}</h3>
+            {debug ? (
+                <>
+                    <div>{error.message}</div>
+                    {resetErrorBoundary ? (
+                        <div>
+                            <button
+                                style={{ margin: "10px" }}
+                                onClick={resetErrorBoundary}
+                            >
+                                Try again
+                            </button>
+                        </div>
+                    ) : null}
+                </>
+            ) : null}
         </div>
     )
 }

@@ -11,14 +11,14 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runHeaderMenus } from "./SiteHeaderMenus.js"
 import { runSiteTools } from "./SiteTools.js"
 
-export const runSiteFooterScripts = (context: SiteFooterContext) => {
+export const runSiteFooterScripts = ({
+    debug,
+    context,
+}: {
+    debug?: boolean
+    context?: SiteFooterContext
+}) => {
     switch (context) {
-        case SiteFooterContext.gdocsPreview:
-            runBlocks()
-            runLightbox()
-            runFootnotes()
-            MultiEmbedderSingleton.embedAll()
-            break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
             runHeaderMenus(BAKED_BASE_URL)
@@ -26,7 +26,7 @@ export const runSiteFooterScripts = (context: SiteFooterContext) => {
             runCookiePreferencesManager()
             break
         case SiteFooterContext.gdocsArticle:
-            hydrateOwidArticle()
+            hydrateOwidArticle(debug)
         // no break here, we additionally want to run the default scripts
         default:
             runHeaderMenus(BAKED_BASE_URL)

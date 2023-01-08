@@ -98,7 +98,7 @@ const layouts: { [key in Container]: Layouts} = {
     },
 }
 
-function getLayout(
+export function getLayout(
     blockType: string = "default",
     containerType: Container = "default"
 ): string {
@@ -150,11 +150,8 @@ export default function ArticleBlock({
             <BlockErrorFallback
                 className={getLayout("default", containerType)}
                 error={{
-                    name: `error in ${block.type}`,
+                    name: `Error in ${block.type}`,
                     message: block.parseErrors[0].message,
-                }}
-                resetErrorBoundary={() => {
-                    return
                 }}
             />
         )

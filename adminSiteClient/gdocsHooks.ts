@@ -3,11 +3,9 @@ import {
     GdocsContentSource,
     OwidArticleType,
     OwidArticleTypeJSON,
-    SiteFooterContext,
     getArticleFromJSON,
 } from "@ourworldindata/utils"
 import { useDebounceCallback, useInterval } from "../site/hooks.js"
-import { runSiteFooterScripts } from "../site/runSiteFooterScripts.js"
 import { Admin } from "./Admin.js"
 import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"
@@ -103,10 +101,6 @@ export const useUpdatePreviewContent = (
             admin.loadingIndicatorSetting = "off"
         }
     }, [admin, updatePreviewContent, initialLoad])
-
-    useEffect(() => {
-        runSiteFooterScripts(SiteFooterContext.gdocsPreview)
-    }, [gdoc])
 
     // Sync content every 5 seconds
     useInterval(updatePreviewContent, 5000)

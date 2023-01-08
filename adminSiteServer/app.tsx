@@ -105,7 +105,11 @@ export class OwidAdminApp {
 
             res.send(
                 renderToHtmlPage(
-                    <OwidArticlePage baseUrl={BAKED_BASE_URL} article={gdoc} />
+                    <OwidArticlePage
+                        baseUrl={BAKED_BASE_URL}
+                        article={gdoc}
+                        debug={true}
+                    />
                 )
             )
         })

@@ -232,12 +232,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     <GdocsDiff originalGdoc={originalGdoc} gdoc={gdoc} />
                 </Drawer>
 
-                <DebugProvider>
-                    <iframe
-                        src={`/admin/gdocs/${gdoc.id}/view`}
-                        className="GdocsViewPage"
-                    />
-                </DebugProvider>
+                <iframe
+                    src={`/admin/gdocs/${gdoc.id}/view`}
+                    className="GdocsViewPage"
+                />
 
                 {gdoc.published && (
                     <div
