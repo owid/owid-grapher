@@ -68,7 +68,7 @@ export function OwidArticle(props: OwidArticleType) {
                 <div className="centered-article-header__meta-container col-start-2 span-cols-6 grid grid-cols-2">
                     <div className="span-cols-1 span-sm-cols-2">
                         <div className="centered-article-header__byline">
-                            By:{" "}
+                            {"By: "}
                             <a href="/team">
                                 {formatAuthors({
                                     authors,
