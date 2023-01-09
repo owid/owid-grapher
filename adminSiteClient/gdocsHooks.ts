@@ -83,7 +83,11 @@ export const useUpdatePreviewContent = (
 
             setGdoc((currGdoc: OwidArticleType | undefined) =>
                 currGdoc
-                    ? { ...currGdoc, content: draftGdoc.content }
+                    ? {
+                          ...currGdoc,
+                          content: draftGdoc.content,
+                          revisionId: draftGdoc.revisionId,
+                      }
                     : draftGdoc
             )
             setSyncingError(false)

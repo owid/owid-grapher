@@ -19,8 +19,5 @@ export const GdocsDiff = ({
                 wordBreak: "break-word",
             },
         }}
-        onLineNumberClick={(lineNumber) => {
-            console.log(lineNumber)
-        }}
     />
 )

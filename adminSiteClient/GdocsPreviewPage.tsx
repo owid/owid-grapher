@@ -29,7 +29,6 @@ import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
-import { DebugProvider } from "../site/gdocs/DebugContext.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
 
@@ -233,8 +232,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 </Drawer>
 
                 <iframe
-                    src={`/admin/gdocs/${gdoc.id}/view`}
+                    src={`/admin/gdocs/${gdoc.id}/view#owid-article-root`}
                     className="GdocsViewPage"
+                    key={gdoc.revisionId}
                 />
 
                 {gdoc.published && (
