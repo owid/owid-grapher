@@ -97,7 +97,7 @@ export class OwidAdminApp {
         app.use("/admin/storybook", express.static(".storybook/build"))
         app.use("/admin", adminRouter)
 
-        app.get("/admin/gdocs/:id/view", async (req, res) => {
+        app.get("/admin/gdocs/:id/draft", async (req, res) => {
             const gdoc = await Gdoc.getGdocFromContentSource(
                 req.params.id,
                 GdocsContentSource.Gdocs
