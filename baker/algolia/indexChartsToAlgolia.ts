@@ -42,7 +42,7 @@ const getChartsRecords = async () => {
         // otherwise they will fail when rendered in the search results
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
-        const relatedArticles = (await getRelatedArticles(c.slug)) ?? []
+        const relatedArticles = (await getRelatedArticles(c.id)) ?? []
 
         records.push({
             objectID: c.id,
