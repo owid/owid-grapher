@@ -10,5 +10,11 @@ export default function Image({
     d: EnrichedBlockImage
     className?: string
 }) {
-    return <img className={cx(LIGHTBOX_IMAGE_CLASS, className)} src={d.src} />
+    return (
+        <img
+            src=""
+            alt={d.alt}
+            className={cx(LIGHTBOX_IMAGE_CLASS, className)}
+        />
+    )
 }

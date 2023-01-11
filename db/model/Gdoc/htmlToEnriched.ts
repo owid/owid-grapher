@@ -644,8 +644,9 @@ function cheerioToArchieML(
                         content: [
                             {
                                 type: "image",
-                                src: image?.attribs.src ?? "",
-                                caption: figcaptionElement?.value ?? [],
+                                // TODO ike
+                                filename: "",
+                                alt: "",
                                 parseErrors: [],
                             },
                         ],
@@ -727,8 +728,9 @@ function cheerioToArchieML(
                         content: [
                             {
                                 type: "image",
-                                src: src,
-                                caption: [],
+                                // TODO: ike
+                                filename: src,
+                                alt: "",
                                 parseErrors: [],
                             },
                         ],
