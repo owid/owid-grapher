@@ -46,7 +46,9 @@ const migrate = async (): Promise<void> => {
                     return val.replace(/\{\/?ref\}/g, "")
                 }
             )
-            //TODO: we don't seem to get the first node if it is a comment. Maybe this is benign but if not this works as a workaround: `<div>${post.content}</div>`)
+            //TODO: we don't seem to get the first node if it is a comment.
+            // Maybe this is benign but if not this works as a workaround:
+            //`<div>${post.content}</div>`)
             const $: CheerioStatic = cheerio.load(text)
             const bodyContents = $("body").contents().toArray()
             const parseResult = cheerioElementsToArchieML(bodyContents, {
