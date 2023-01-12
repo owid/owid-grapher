@@ -175,7 +175,7 @@ export const enrichedBlockExamples: OwidEnrichedArticleBlock[] = [
         parseErrors: [],
     },
     {
-        type: "grey-section",
+        type: "gray-section",
         items: [enrichedBlockText],
         parseErrors: [],
     },
