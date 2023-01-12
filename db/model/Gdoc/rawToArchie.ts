@@ -51,7 +51,8 @@ function* propertyToArchieMLString<T extends Record<string, any>>(
             // This is a case where the user gave a string value instead of an object
             // We assume that this was an error here. Not handling this here would make
             // the serialization code below more complex.
-        } else yield `${key}: ${appendDotEndIfMultiline(value[key])}`
+        } else if (key in value && value[key] !== undefined)
+            yield `${key}: ${appendDotEndIfMultiline(value[key])}`
 }
 
 function* rawBlockAsideToArchieMLString(
@@ -99,7 +100,9 @@ function* rawBlockChartStoryToArchieMLString(
             yield* propertyToArchieMLString("narrative", item)
             yield* propertyToArchieMLString("chart", item)
             // TODO: we might need to reverse some regex sanitization here (e.g. colons?)
-            yield* item.technical || []
+            if (item.technical) {
+                yield* listToArchieMLString(item.technical, "technical")
+            }
         }
     }
     yield "[]"
@@ -127,20 +130,25 @@ function* rawBlockImageToArchieMLString(
     yield "{}"
 }
 
+function* listToArchieMLString(
+    items: string[] | string,
+    blockName: string
+): Generator<string, void, undefined> {
+    yield `[.${blockName}]`
+    if (typeof items !== "string") for (const item of items) yield `* ${item}`
+    yield "[]"
+}
+
 function* rawBlockListToArchieMLString(
     block: RawBlockList
 ): Generator<string, void, undefined> {
-    yield "[.list]"
-    if (typeof block.value !== "string") yield* block.value
-    yield "[]"
+    yield* listToArchieMLString(block.value, "list")
 }
 
 function* rawBlockNumberedListToArchieMLString(
     block: RawBlockNumberedList
 ): Generator<string, void, undefined> {
-    yield "[.numbered-list]"
-    if (typeof block.value !== "string") yield* block.value
-    yield "[]"
+    yield* listToArchieMLString(block.value, "numbered-list")
 }
 
 function* rawBlockPullQuoteToArchieMLString(
@@ -171,6 +179,7 @@ function* rawBlockRecircToArchieMLString(
                 yield "[.list]"
                 for (const subItem of item.list) {
                     yield* propertyToArchieMLString("author", subItem)
+                    yield* propertyToArchieMLString("article", subItem)
                     yield* propertyToArchieMLString("url", subItem)
                 }
                 yield "[]"
@@ -195,7 +204,9 @@ function* rawBlockTextToArchieMLString(
 function* rawBlockHtmlToArchieMLString(
     block: RawBlockHtml
 ): Generator<string, void, undefined> {
+    yield "[+html]"
     yield escapeRawText(block.value)
+    yield "[]"
 }
 
 function* rawBlockUrlToArchieMLString(
@@ -207,7 +218,7 @@ function* rawBlockUrlToArchieMLString(
 function* rawBlockPositionToArchieMLString(
     block: RawBlockPosition
 ): Generator<string, void, undefined> {
-    yield keyValueToArchieMlString("url", block.value)
+    yield keyValueToArchieMlString("position", block.value)
 }
 
 function* RawBlockHeadingToArchieMLString(

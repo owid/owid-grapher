@@ -5,10 +5,16 @@ import {
     RawBlockAdditionalCharts,
     EnrichedBlockHeading,
     RawBlockHeading,
+    OwidRawArticleBlock,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
 import { owidRawArticleBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js"
+import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
+import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichtedToRaw.js"
+import { load } from "archieml"
+import { parseRawBlocksToEnrichedBlocks } from "./model/Gdoc/rawToEnriched.js"
 
 function getArchieMLDocWithContent(content: string): string {
     return `title: Writing OWID Articles With Google Docs
@@ -137,4 +143,29 @@ level: 2
             owidRawArticleBlockToArchieMLString(expectedRawBlock)
         expect(serializedRawBlock).toEqual(archieMLString)
     })
+
+    it.each(enrichedBlockExamples)(
+        "Parse <-> Serialize roundtrip should be equal - example type $type",
+        (example) => {
+            const rawBlock = enrichedBlockToRawBlock(example)
+            const serializedRawBlock =
+                owidRawArticleBlockToArchieMLString(rawBlock)
+            const simpleArchieMLDocument = `[+body]
+            ${serializedRawBlock}
+            []
+            `
+            const deserializedRawBlock = load(simpleArchieMLDocument)
+            const bodyNodes: OwidRawArticleBlock[] = deserializedRawBlock.body
+            const deserializedEnrichedBlocks = bodyNodes.map(
+                parseRawBlocksToEnrichedBlocks
+            )
+            expect(deserializedEnrichedBlocks).toHaveLength(1)
+            expect(omitUndefinedValues(bodyNodes[0])).toEqual(
+                omitUndefinedValues(rawBlock)
+            )
+            expect(omitUndefinedValues(deserializedEnrichedBlocks[0])).toEqual(
+                omitUndefinedValues(example)
+            )
+        }
+    )
 })
