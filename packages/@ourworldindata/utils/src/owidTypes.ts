@@ -589,6 +589,16 @@ export type EnrichedBlockList = {
     items: EnrichedBlockText[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockNumberedList = {
+    type: "numbered-list"
+    value: string[] | ArchieMLUnexpectedNonObjectValue
+}
+
+export type EnrichedBlockNumberedList = {
+    type: "numbered-list"
+    items: EnrichedBlockText[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockPullQuote = {
     type: "pull-quote"
     value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
@@ -827,6 +837,7 @@ export type OwidRawArticleBlock =
     | RawBlockSDGToc
     | RawBlockMissingData
     | RawBlockAdditionalCharts
+    | RawBlockNumberedList
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -851,6 +862,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockSDGToc
     | EnrichedBlockMissingData
     | EnrichedBlockAdditionalCharts
+    | EnrichedBlockNumberedList
 
 export enum OwidArticlePublicationContext {
     unlisted = "unlisted",

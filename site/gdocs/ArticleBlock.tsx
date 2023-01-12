@@ -8,6 +8,7 @@ import PullQuote from "./PullQuote.js"
 import FixedGraphic from "./FixedGraphic.js"
 import Recirc from "./Recirc.js"
 import List from "./List.js"
+import NumberedList from "./NumberedList.js"
 import Image from "./Image.js"
 import {
     get,
@@ -55,6 +56,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["image"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
         ["pull-quote"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["recirc"]: "col-start-11 span-cols-3 span-rows-3 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -219,6 +221,13 @@ export default function ArticleBlock({
                 .with({ type: "recirc" }, (block) => (
                     <Recirc
                         className={getLayout("recirc", containerType)}
+                        d={block}
+                        key={key}
+                    />
+                ))
+                .with({ type: "numbered-list" }, (block) => (
+                    <NumberedList
+                        className={getLayout("numbered-list", containerType)}
                         d={block}
                         key={key}
                     />
@@ -499,7 +508,7 @@ export default function ArticleBlock({
                     />
                 ))
                 .with({ type: "additional-charts" }, (block) => (
-                    <AdditionalCharts
+                    <AdditionalCharts // bla
                         items={block.items}
                         className={getLayout(
                             "additional-charts",
