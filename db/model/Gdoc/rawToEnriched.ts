@@ -835,7 +835,12 @@ function parseStickyRight(
         parseErrors: [error],
     })
     const { left, right } = raw.value
-    if (!left.length || !right.length) {
+    if (
+        left === undefined ||
+        right === undefined ||
+        !left.length ||
+        !right.length
+    ) {
         return createError({
             message: "Empty column in the sticky right container",
         })
@@ -864,7 +869,12 @@ function parseStickyLeft(
         parseErrors: [error],
     })
     const { left, right } = raw.value
-    if (!left.length || !right.length) {
+    if (
+        left === undefined ||
+        right === undefined ||
+        !left.length ||
+        !right.length
+    ) {
         return createError({
             message: "Empty column in the sticky left container",
         })

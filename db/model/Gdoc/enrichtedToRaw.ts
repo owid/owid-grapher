@@ -166,7 +166,7 @@ export function enrichedBlockToRawBlock(
                     text: b.supertitle
                         ? [
                               spansToHtmlText(b.supertitle),
-                              "|",
+                              "\u000b",
                               spansToHtmlText(b.text),
                           ].join("")
                         : spansToHtmlText(b.text),
