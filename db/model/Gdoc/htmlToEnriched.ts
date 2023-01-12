@@ -351,7 +351,7 @@ export function convertAllWpComponentsToArchieMLBlocks(
     temporary structure of a WpCompnent around (e.g. the latter is the case for wp:column
     contained inside wp:columns)
      */
-function parseWpComponent(
+export function parseWpComponent(
     elements: CheerioElement[],
     context: ParseContext
 ): WpComponentIntermediateParseResult {
