@@ -6,7 +6,7 @@ import {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockFixedGraphic,
-    RawBlockGreySection,
+    RawBlockGraySection,
     RawBlockHeading,
     RawBlockHtml,
     RawBlockImage,
@@ -204,8 +204,8 @@ export function enrichedBlockToRawBlock(
             })
         )
         .with(
-            { type: "grey-section" },
-            (b): RawBlockGreySection => ({
+            { type: "gray-section" },
+            (b): RawBlockGraySection => ({
                 type: b.type,
                 value: b.items.map(enrichedBlockToRawBlock),
             })
