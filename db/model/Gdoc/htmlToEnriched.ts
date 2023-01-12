@@ -340,10 +340,10 @@ export function convertAllWpComponentsToArchieMLBlocks(
     wp component.
 
     Nested components are properly taken care of - if it should find e.g.:
-    <-- wp:column -->
+    <-- wp:columns -->
     <-- wp:column -->
     <-- /wp:column -->
-    <-- /wp:column -->
+    <-- /wp:columns -->
 
     then the result will be one component nested in another. Whether components are parsed
     as WpComponent or directly as an OwidEnrichedArticleBlock depends on whether we have all
@@ -359,7 +359,7 @@ function parseWpComponent(
     // The reason for this differs a bit by tag. For wp:html the issue is that the opening
     // and closing tags are on different nesting levels which totally messes up the rest of
     // the logic and we don't really care for those tags.
-    // wp:heading and wp:paragraph are redundant. They would parse finde if we weren't doing
+    // wp:heading and wp:paragraph are redundant. They would parse find if we weren't doing
     // the somewhat brutal ref parsing via regex that just cuts some parts of the raw html
     // out. But by ignoring these three component tags that for now we don't seem to need
     // we get clean parsing of the rest of the components.
@@ -496,9 +496,6 @@ function finishWpComponent(
                     } as EnrichedBlockStickyRightContainer,
                 ],
             }
-        })
-        .with("paragraph", () => {
-            return content
         })
         .otherwise(() => {
             return {
@@ -956,6 +953,11 @@ export function cheerioElementsToArchieML(
             const parsed = cheerioToArchieML(element, context)
             const cleaned = withoutEmptyOrWhitespaceOnlyTextBlocks(parsed)
             if (cleaned.content.length > 0 || cleaned.errors.length > 0)
+                // we don't use cleaned here because we want to keep
+                // whitespaces if there is text content. The purpose
+                // of cleaned is just to tell us if the parsed nodes
+                // are exclusively whitespace blocks in which case we don't
+                // want to keep them around at all
                 parsedContent.push(parsed)
             remainingElements = remainingElements.slice(1)
         }
@@ -967,7 +969,6 @@ export function withoutEmptyOrWhitespaceOnlyTextBlocks(
     result: BlockParseResult<ArchieBlockOrWpComponent>
 ): BlockParseResult<ArchieBlockOrWpComponent> {
     const hasAnyNonWSSpans = (spans: Span[]): boolean =>
-        spans.length > 0 &&
         spans.some(
             (span) =>
                 span.spanType !== "span-simple-text" ||

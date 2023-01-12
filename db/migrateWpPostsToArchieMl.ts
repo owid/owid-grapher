@@ -51,19 +51,19 @@ const migrate = async (): Promise<void> => {
             //`<div>${post.content}</div>`)
             const $: CheerioStatic = cheerio.load(text)
             const bodyContents = $("body").contents().toArray()
-            const parseResult = cheerioElementsToArchieML(bodyContents, {
+            const parsedResult = cheerioElementsToArchieML(bodyContents, {
                 $,
                 shouldParseWpComponents: true,
             })
             const archieMlBodyElements = convertAllWpComponentsToArchieMLBlocks(
-                withoutEmptyOrWhitespaceOnlyTextBlocks(parseResult).content
+                withoutEmptyOrWhitespaceOnlyTextBlocks(parsedResult).content
             )
 
-            let errors = parseResult.errors
+            let errors = parsedResult.errors
             const refParsingResults = refs.map(
                 (refString): EnrichedBlockText => {
-                    const ref$ = cheerio.load(refString)
-                    const refElements = ref$("body").contents().toArray()
+                    const $ref = cheerio.load(refString)
+                    const refElements = $ref("body").contents().toArray()
                     const parseResult = cheerioElementsToArchieML(refElements, {
                         $,
                         shouldParseWpComponents: false,
@@ -98,7 +98,7 @@ const migrate = async (): Promise<void> => {
                 createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem we have a created date in the posts table
                 publishedAt: null, // post.published_at,
                 updatedAt: null, // post.updated_at,
-                publicationContext: OwidArticlePublicationContext.listed,
+                publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB
             }
             const archieMlStatsContent = {
                 errors,
