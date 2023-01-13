@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
@@ -31,6 +31,9 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
+import { createPortal } from "react-dom"
+import { OwidArticle } from "../site/gdocs/OwidArticle.js"
+import { DebugProvider } from "../site/gdocs/DebugContext.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -39,6 +42,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [isSettingsOpen, setSettingsOpen] = useState(false)
     const [isDiffOpen, setDiffOpen] = useState(false)
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
+    const [countSiteStylesLoaded, setCountSiteStylesLoaded] = useState(0)
 
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
@@ -103,6 +107,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         const errors = getErrors(gdoc)
         setErrors(errors)
     }, [gdoc])
+
+    const incrementCountSiteStylesLoaded = () =>
+        setCountSiteStylesLoaded(countSiteStylesLoaded + 1)
 
     return gdoc ? (
         <AdminLayout
@@ -231,11 +238,43 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     <GdocsDiff originalGdoc={originalGdoc} gdoc={gdoc} />
                 </Drawer>
 
+                {/* 
+                    This uses the full SSR rendering pipeline. It is more accurate but comes
+                    with an additional requests to the Google API and has a less polished
+                    authoring experience at the moment (content flashes and scrolling position
+                    resets on every change)
+                */}
                 {/* <iframe
                     src={`/admin/gdocs/${gdoc.id}/draft#owid-article-root`}
                     className="GdocsViewPage"
                     key={gdoc.revisionId}
                 /> */}
+
+                <IframePortal
+                    className="GdocsViewPage"
+                    head={admin.settings.siteStylesheetUrls.map((url) => (
+                        <link
+                            onLoad={incrementCountSiteStylesLoaded}
+                            key={url}
+                            href={url}
+                            rel="stylesheet"
+                        />
+                    ))}
+                >
+                    {/* Wait for all site styles to load before rendering since CSS doesn't seem to
+                         block rendering in this scenario and causes a FOUC. <link> doesn't accept the
+                         blocking="render" attribute either. Loading the <link> tags in the <head> of a 
+                         srcdoc set on the <iframe> also causes a FOUC and also takes longer to render.
+                    */}
+                    {countSiteStylesLoaded ===
+                        admin.settings.siteStylesheetUrls.length && (
+                        <React.StrictMode>
+                            <DebugProvider debug={true}>
+                                <OwidArticle {...gdoc} />
+                            </DebugProvider>
+                        </React.StrictMode>
+                    )}
+                </IframePortal>
 
                 {gdoc.published && (
                     <div
@@ -251,4 +290,25 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             </main>
         </AdminLayout>
     ) : null
+}
+
+const IframePortal = ({
+    children,
+    head,
+    ...props
+}: {
+    children: React.ReactNode
+    head?: React.ReactNode
+} & React.IframeHTMLAttributes<HTMLIFrameElement>) => {
+    const iframeRef = useRef<HTMLIFrameElement>(null)
+
+    const mountNode = iframeRef?.current?.contentWindow?.document.body
+    const mountNodeHead = iframeRef?.current?.contentWindow?.document.head
+
+    return (
+        <iframe {...props} ref={iframeRef}>
+            {mountNodeHead && createPortal(head, mountNodeHead)}
+            {mountNode && createPortal(children, mountNode)}
+        </iframe>
+    )
 }

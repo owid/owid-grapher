@@ -11,12 +11,24 @@ export const IndexPage = (props: {
     isSuperuser: boolean
     gitCmsBranchName: string
 }) => {
+    const siteStylesheetUrls = [
+        "https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap",
+        webpackUrl("owid.css", "/admin"),
+        webpackUrl("commons.css", "/admin"),
+    ]
+
+    const adminStylesheetUrls = [
+        "https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap",
+        webpackUrl("admin.css", "/admin"),
+        webpackUrl("commons.css", "/admin"),
+    ]
+
     const script = `
         window.isEditor = true
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-        { ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI }
+        { ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI, siteStylesheetUrls }
     )}})
         admin.start(document.querySelector("#app"), '${props.gitCmsBranchName}')
 `
@@ -30,20 +42,9 @@ export const IndexPage = (props: {
                     name="viewport"
                     content="width=device-width, initial-scale=1"
                 />
-                <link
-                    href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap"
-                    rel="stylesheet"
-                />
-                <link
-                    href={webpackUrl("admin.css", "/admin")}
-                    rel="stylesheet"
-                    type="text/css"
-                />
-                <link
-                    href={webpackUrl("commons.css", "/admin")}
-                    rel="stylesheet"
-                    type="text/css"
-                />
+                {adminStylesheetUrls.map((url) => (
+                    <link key={url} href={url} rel="stylesheet" />
+                ))}
             </head>
             <body>
                 <div id="app"></div>
