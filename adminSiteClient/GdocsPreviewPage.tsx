@@ -7,6 +7,7 @@ import {
     OwidArticleType,
     OwidArticleTypeJSON,
     getArticleFromJSON,
+    SiteFooterContext,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -34,6 +35,7 @@ import { GdocsDiff } from "./GdocsDiff.js"
 import { createPortal } from "react-dom"
 import { OwidArticle } from "../site/gdocs/OwidArticle.js"
 import { DebugProvider } from "../site/gdocs/DebugContext.js"
+import { runSiteFooterScripts } from "../site/runSiteFooterScripts.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -250,8 +252,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     key={gdoc.revisionId}
                 /> */}
 
-                <IframePortal
-                    className="GdocsViewPage"
+                <GdocsPreviewIframe
+                    style={{ width: "100%", height: "inherit", border: "none" }}
                     head={admin.settings.siteStylesheetUrls.map((url) => (
                         <link
                             onLoad={incrementCountSiteStylesLoaded}
@@ -274,7 +276,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             </DebugProvider>
                         </React.StrictMode>
                     )}
-                </IframePortal>
+                </GdocsPreviewIframe>
 
                 {gdoc.published && (
                     <div
@@ -292,7 +294,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     ) : null
 }
 
-const IframePortal = ({
+const GdocsPreviewIframe = ({
     children,
     head,
     ...props
@@ -302,13 +304,20 @@ const IframePortal = ({
 } & React.IframeHTMLAttributes<HTMLIFrameElement>) => {
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
-    const mountNode = iframeRef?.current?.contentWindow?.document.body
     const mountNodeHead = iframeRef?.current?.contentWindow?.document.head
+    const mountNodeBody = iframeRef?.current?.contentWindow?.document.body
+
+    useEffect(() => {
+        runSiteFooterScripts({
+            context: SiteFooterContext.gdocsPreview,
+            container: mountNodeBody,
+        })
+    }, [children, mountNodeBody])
 
     return (
         <iframe {...props} ref={iframeRef}>
             {mountNodeHead && createPortal(head, mountNodeHead)}
-            {mountNode && createPortal(children, mountNode)}
+            {mountNodeBody && createPortal(children, mountNodeBody)}
         </iframe>
     )
 }
