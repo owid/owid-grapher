@@ -245,8 +245,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     resets on every change)
                 */}
                 {/* <iframe
-                    src={`/admin/gdocs/${gdoc.id}/draft#owid-article-root`}
-                    className="GdocsViewPage"
+                    src={`/gdocs/${gdoc.id}/preview#owid-article-root`}
+                    style={{ width: "100%", height: "inherit", border: "none" }}
                     key={gdoc.revisionId}
                 /> */}
 
