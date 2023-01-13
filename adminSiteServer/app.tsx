@@ -97,23 +97,6 @@ export class OwidAdminApp {
         app.use("/admin/storybook", express.static(".storybook/build"))
         app.use("/admin", adminRouter)
 
-        app.get("/admin/gdocs/:id/draft", async (req, res) => {
-            const gdoc = await Gdoc.getGdocFromContentSource(
-                req.params.id,
-                GdocsContentSource.Gdocs
-            )
-
-            res.send(
-                renderToHtmlPage(
-                    <OwidArticlePage
-                        baseUrl={BAKED_BASE_URL}
-                        article={gdoc}
-                        debug={true}
-                    />
-                )
-            )
-        })
-
         // Default route: single page admin app
         app.get("/admin/*", async (req, res) => {
             res.send(
@@ -122,6 +105,24 @@ export class OwidAdminApp {
                         username={res.locals.user.fullName}
                         isSuperuser={res.locals.user.isSuperuser}
                         gitCmsBranchName={this.gitCmsBranchName}
+                    />
+                )
+            )
+        })
+
+        // Public preview of a Gdoc article
+        app.get("/gdocs/:id/preview", async (req, res) => {
+            const gdoc = await Gdoc.getGdocFromContentSource(
+                req.params.id,
+                GdocsContentSource.Gdocs
+            )
+            res.set("X-Robots-Tag", "noindex")
+            res.send(
+                renderToHtmlPage(
+                    <OwidArticlePage
+                        baseUrl={BAKED_BASE_URL}
+                        article={gdoc}
+                        debug={true}
                     />
                 )
             )
