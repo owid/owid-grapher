@@ -405,6 +405,33 @@ export function lineToPlaintext(tokens: IRToken[]): string {
     return tokens.map((t) => t.toPlaintext()).join("")
 }
 
+export const isTextToken = (token: IRToken): token is IRText | IRWhitespace =>
+    token instanceof IRText || token instanceof IRWhitespace
+
+export const recursiveMergeTextTokens = (tokens: IRToken[]): IRToken[] => {
+    if (tokens.length === 0) return []
+    const [first, ...tail] = tokens
+
+    if (first instanceof IRElement) {
+        // go into children of first
+        return [
+            first.getClone(recursiveMergeTextTokens(first.children)),
+            ...recursiveMergeTextTokens(tail),
+        ]
+    } else if (tail.length > 0) {
+        const [second, ...rest] = tail
+        if (isTextToken(first) && isTextToken(second)) {
+            // merge first and second into single IRText node
+            return recursiveMergeTextTokens([
+                new IRText(first.toPlaintext() + second.toPlaintext()),
+                ...rest,
+            ])
+        } else return [first, ...recursiveMergeTextTokens(tail)]
+    }
+
+    return [first]
+}
+
 export function splitIntoLines(
     tokens: IRToken[],
     maxWidth: number
@@ -547,7 +574,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
 
     @computed get htmlLines(): IRToken[][] {
         const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
-        return splitIntoLines(tokens, this.maxWidth)
+        const lines = splitIntoLines(tokens, this.maxWidth)
+        return lines.map(recursiveMergeTextTokens)
     }
 
     // We render DoDs differently for SVG (superscript reference  numbers) so we need to calculate
@@ -619,16 +647,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                         .map((token) => token.toPlaintext())
                         .join("")
                     return (
-                        <span
-                            className="markdown-text-wrap__line"
-                            key={`${i}-${plaintextLine}`}
-                        >
-                            {line.length ? (
-                                line.map((token, i) => token.toHTML(i))
-                            ) : (
-                                <br />
-                            )}
-                        </span>
+                        <MarkdownTextWrapLine
+                            key={`${plaintextLine}-${i}`}
+                            line={line}
+                        />
                     )
                 })}
             </span>
@@ -679,4 +701,12 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     render(): JSX.Element | null {
         return this.renderHTML()
     }
+}
+
+function MarkdownTextWrapLine({ line }: { line: IRToken[] }): JSX.Element {
+    return (
+        <span className="markdown-text-wrap__line">
+            {line.length ? line.map((token, i) => token.toHTML(i)) : <br />}
+        </span>
+    )
 }
