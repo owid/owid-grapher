@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
@@ -7,7 +7,6 @@ import {
     OwidArticleType,
     OwidArticleTypeJSON,
     getArticleFromJSON,
-    SiteFooterContext,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -32,10 +31,9 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { createPortal } from "react-dom"
 import { OwidArticle } from "../site/gdocs/OwidArticle.js"
 import { DebugProvider } from "../site/gdocs/DebugContext.js"
-import { runSiteFooterScripts } from "../site/runSiteFooterScripts.js"
+import { GdocsPreviewIframe } from "./GdocsPreviewIframe.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -292,32 +290,4 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
             </main>
         </AdminLayout>
     ) : null
-}
-
-const GdocsPreviewIframe = ({
-    children,
-    head,
-    ...props
-}: {
-    children: React.ReactNode
-    head?: React.ReactNode
-} & React.IframeHTMLAttributes<HTMLIFrameElement>) => {
-    const iframeRef = useRef<HTMLIFrameElement>(null)
-
-    const mountNodeHead = iframeRef?.current?.contentWindow?.document.head
-    const mountNodeBody = iframeRef?.current?.contentWindow?.document.body
-
-    useEffect(() => {
-        runSiteFooterScripts({
-            context: SiteFooterContext.gdocsPreview,
-            container: mountNodeBody,
-        })
-    }, [children, mountNodeBody])
-
-    return (
-        <iframe {...props} ref={iframeRef}>
-            {mountNodeHead && createPortal(head, mountNodeHead)}
-            {mountNodeBody && createPortal(children, mountNodeBody)}
-        </iframe>
-    )
 }
