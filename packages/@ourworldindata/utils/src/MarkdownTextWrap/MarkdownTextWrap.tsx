@@ -39,7 +39,7 @@ export class IRText implements IRToken {
         return undefined
     }
     toHTML(key?: React.Key): JSX.Element {
-        return <React.Fragment key={key}>{this.text}</React.Fragment>
+        return <span key={key}>{this.text}</span>
     }
     toSVG(key?: React.Key): JSX.Element {
         return <React.Fragment key={key}>{this.text}</React.Fragment>
@@ -60,7 +60,7 @@ export class IRWhitespace implements IRToken {
         return { tokenIndex: 0, tokenStartOffset: 0, breakOffset: 0.0001 }
     }
     toHTML(key?: React.Key): JSX.Element {
-        return <React.Fragment key={key}> </React.Fragment>
+        return <span key={key}> </span>
     }
     toSVG(key?: React.Key): JSX.Element {
         return <React.Fragment key={key}> </React.Fragment>

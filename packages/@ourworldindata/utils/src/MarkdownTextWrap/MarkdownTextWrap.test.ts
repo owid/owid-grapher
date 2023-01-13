@@ -99,42 +99,43 @@ describe("MarkdownTextWrap", () => {
         expect(element.htmlLines.map(lineToPlaintext)).toEqual([
             "I am some bold text with a really really really long detail on demand and because I am so long you would think that I span multiple lines but when you transform me into plaintext I actually just stay as one line",
         ])
-        describe(recursiveMergeTextTokens, () => {
-            it("should merge adjacent text tokens", () => {
-                const tokens = [
+    })
+
+    describe(recursiveMergeTextTokens, () => {
+        it("should merge adjacent text tokens", () => {
+            const tokens = [
+                new IRText("one"),
+                new IRWhitespace(),
+                new IRText("two"),
+            ]
+
+            const merged = recursiveMergeTextTokens(tokens)
+            expect(merged.length).toEqual(1)
+            expect(merged[0].toPlaintext()).toEqual("one two")
+        })
+
+        it("should merge inside complicated tokens", () => {
+            const tokens = [
+                new IRBold([
                     new IRText("one"),
                     new IRWhitespace(),
                     new IRText("two"),
-                ]
+                ]),
+                new IRText("three"),
+                new IRText("four"),
+            ]
 
-                const merged = recursiveMergeTextTokens(tokens)
-                expect(merged.length).toEqual(1)
-                expect(merged[0].toPlaintext()).toEqual("one two")
-            })
+            const merged = recursiveMergeTextTokens(tokens)
+            expect(merged.length).toEqual(2)
 
-            it("should merge inside complicated tokens", () => {
-                const tokens = [
-                    new IRBold([
-                        new IRText("one"),
-                        new IRWhitespace(),
-                        new IRText("two"),
-                    ]),
-                    new IRText("three"),
-                    new IRText("four"),
-                ]
+            const [boldNode, textNode] = merged as [IRBold, IRText]
+            expect(boldNode).toBeInstanceOf(IRBold)
+            expect(textNode).toBeInstanceOf(IRText)
 
-                const merged = recursiveMergeTextTokens(tokens)
-                expect(merged.length).toEqual(2)
+            expect(boldNode.toPlaintext()).toEqual("one two")
+            expect(textNode.toPlaintext()).toEqual("threefour")
 
-                const [boldNode, textNode] = merged as [IRBold, IRText]
-                expect(boldNode).toBeInstanceOf(IRBold)
-                expect(textNode).toBeInstanceOf(IRText)
-
-                expect(boldNode.toPlaintext()).toEqual("one two")
-                expect(textNode.toPlaintext()).toEqual("threefour")
-
-                expect(boldNode.children.length).toEqual(1)
-            })
+            expect(boldNode.children.length).toEqual(1)
         })
     })
 })
