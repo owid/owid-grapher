@@ -14,7 +14,7 @@ export const dataSource = new DataSource({
     username: GRAPHER_DB_USER || "root",
     password: GRAPHER_DB_PASS || "",
     database: GRAPHER_DB_NAME,
-    entities: ["itsJustJavascript/db/model/**/*.js"],
-    migrations: ["itsJustJavascript/db/migration/**/*.js"],
+    entities: ["itsJustJavascript/db/model/**/!(*.test).js"],
+    migrations: ["itsJustJavascript/db/migration/**/!(*.test).js"],
     charset: "utf8mb4",
 })
