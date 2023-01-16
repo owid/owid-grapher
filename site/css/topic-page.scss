@@ -1,8 +1,21 @@
 // added to the body of a page via formattingOptions
 // scopes styles just to topic pages when necessary
 .topic-page {
-    .page.large-banner .article-titles {
-        margin-bottom: 0;
+    // Overriding header defaults from old-style entries
+    .page.large-banner {
+        .article-header {
+            @include xlg-up {
+                padding-top: 56px;
+            }
+            .tools {
+                margin-top: 24px;
+            }
+            .article-titles,
+            .entry-title {
+                margin-bottom: 0;
+                margin-top: 0;
+            }
+        }
     }
 
     .article-content > section:not(:first-of-type),
