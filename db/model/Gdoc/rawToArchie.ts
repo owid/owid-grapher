@@ -23,8 +23,14 @@ import {
     RawBlockText,
     RawBlockUrl,
     RawBlockAdditionalCharts,
+    Span,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
+
+export interface ArchieMLLine {
+    line: string
+    spans: Span[] | undefined
+}
 
 function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n:end"
