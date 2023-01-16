@@ -31,9 +31,6 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { OwidArticle } from "../site/gdocs/OwidArticle.js"
-import { DebugProvider } from "../site/gdocs/DebugContext.js"
-import { GdocsPreviewIframe } from "./GdocsPreviewIframe.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
@@ -42,7 +39,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [isSettingsOpen, setSettingsOpen] = useState(false)
     const [isDiffOpen, setDiffOpen] = useState(false)
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
-    const [countSiteStylesLoaded, setCountSiteStylesLoaded] = useState(0)
 
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
@@ -108,8 +104,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         setErrors(errors)
     }, [gdoc])
 
-    const incrementCountSiteStylesLoaded = () =>
-        setCountSiteStylesLoaded(countSiteStylesLoaded + 1)
+    // const incrementCountSiteStylesLoaded = () =>
+    //     setCountSiteStylesLoaded(countSiteStylesLoaded + 1)
 
     return gdoc ? (
         <AdminLayout
@@ -244,13 +240,16 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     authoring experience at the moment (content flashes and scrolling position
                     resets on every change)
                 */}
-                {/* <iframe
+                <iframe
                     src={`/gdocs/${gdoc.id}/preview#owid-article-root`}
                     style={{ width: "100%", height: "inherit", border: "none" }}
                     key={gdoc.revisionId}
-                /> */}
+                />
 
-                <GdocsPreviewIframe
+                {/* Operational alternative for preview rendering, with some unresolved issues.
+                See https://github.com/owid/owid-grapher/pull/1844#issuecomment-1383985274 
+                */}
+                {/* <GdocsPreviewIframe
                     style={{ width: "100%", height: "inherit", border: "none" }}
                     head={admin.settings.siteStylesheetUrls.map((url) => (
                         <link
@@ -260,13 +259,13 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             rel="stylesheet"
                         />
                     ))}
-                >
-                    {/* Wait for all site styles to load before rendering since CSS doesn't seem to
+                > */}
+                {/* Wait for all site styles to load before rendering since CSS doesn't seem to
                          block rendering in this scenario and causes a FOUC. <link> doesn't accept the
                          blocking="render" attribute either. Loading the <link> tags in the <head> of a 
                          srcdoc set on the <iframe> also causes a FOUC and also takes longer to render.
                     */}
-                    {countSiteStylesLoaded ===
+                {/* {countSiteStylesLoaded ===
                         admin.settings.siteStylesheetUrls.length && (
                         <React.StrictMode>
                             <DebugProvider debug={true}>
@@ -274,7 +273,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             </DebugProvider>
                         </React.StrictMode>
                     )}
-                </GdocsPreviewIframe>
+                </GdocsPreviewIframe> */}
 
                 {gdoc.published && (
                     <div
