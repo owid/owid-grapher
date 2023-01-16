@@ -3,7 +3,7 @@ import { formatUrls } from "../site/formatting.js"
 import * as redirects from "./redirects.js"
 import { resolveInternalRedirect } from "./redirects.js"
 
-jest.mock("../settings/clientSettings.js", () => ({
+jest.mock("../settings/serverSettings.js", () => ({
     WORDPRESS_URL: "http://localhost:8080",
     BAKED_BASE_URL: "http://localhost:3030",
 }))

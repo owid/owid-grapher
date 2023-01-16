@@ -8,7 +8,7 @@ import {
 } from "@ourworldindata/utils"
 import { getContentGraph } from "../../db/contentGraph.js"
 import * as wpdb from "../../db/wpdb.js"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/clientSettings.js"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../settings/serverSettings.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { formatUrls } from "../../site/formatting.js"
 import {

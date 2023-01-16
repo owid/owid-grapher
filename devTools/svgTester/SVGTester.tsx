@@ -1,7 +1,7 @@
 import * as fs from "fs-extra"
 import { csvParse } from "d3-dsv"
 import md5 from "md5"
-import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL } from "../../settings/serverSettings.js"
 import React from "react"
 import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
 import {

@@ -28,13 +28,11 @@ import * as cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
-} from "../settings/serverSettings.js"
-import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
     RECAPTCHA_SITE_KEY,
-} from "../settings/clientSettings.js"
+} from "../settings/serverSettings.js"
 import {
     EntriesByYearPage,
     EntriesForYearPage,

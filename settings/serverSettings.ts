@@ -31,6 +31,8 @@ export const WORDPRESS_URL: string = clientSettings.WORDPRESS_URL
 
 export const BAKED_GRAPHER_URL: string =
     serverSettings.BAKED_GRAPHER_URL ?? `${BAKED_BASE_URL}/grapher`
+export const BAKED_GRAPHER_EXPORTS_BASE_URL: string =
+    clientSettings.BAKED_GRAPHER_EXPORTS_BASE_URL
 
 export const OPTIMIZE_SVG_EXPORTS: boolean =
     serverSettings.OPTIMIZE_SVG_EXPORTS === "true" ?? false
@@ -73,10 +75,13 @@ export const WORDPRESS_API_PASS: string =
     serverSettings.WORDPRESS_API_PASS ?? ""
 export const SESSION_COOKIE_AGE: number =
     parseIntOrUndefined(serverSettings.SESSION_COOKIE_AGE) ?? 1209600
+export const ALGOLIA_ID = clientSettings.ALGOLIA_ID
 export const ALGOLIA_SECRET_KEY: string =
     serverSettings.ALGOLIA_SECRET_KEY ?? ""
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true" ?? false
+
+export const RECAPTCHA_SITE_KEY = clientSettings.RECAPTCHA_SITE_KEY
 
 // Wordpress target setting
 export const WORDPRESS_DIR: string = serverSettings.WORDPRESS_DIR ?? "wordpress"
@@ -109,6 +114,8 @@ export const CLOUDFLARE_AUD: string = serverSettings.CLOUDFLARE_AUD ?? ""
 export const DATA_FILES_CHECKSUMS_DIRECTORY: string =
     serverSettings.DATA_FILES_CHECKSUMS_DIRECTORY ??
     `${BASE_DIR}/data_files_checksums`
+
+export const TOPICS_CONTENT_GRAPH = clientSettings.TOPICS_CONTENT_GRAPH
 
 // Either remote catalog `https://owid-catalog.nyc3.digitaloceanspaces.com/` or local catalog `.../etl/data/`
 // Note that Cloudflare proxy on `https://catalog.ourworldindata.org` does not support range requests yet
