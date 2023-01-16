@@ -1,249 +1,146 @@
 // WIP: Script to export the data_values for all variables attached to charts
 
 import * as db from "./db.js"
-import _, * as lodash from "lodash"
 import * as cheerio from "cheerio"
 
 import {
-    EnrichedBlockImage,
-    OwidEnrichedArticleBlock,
-    EnrichedBlockPullQuote,
     EnrichedBlockText,
-    Span,
-    SpanSimpleText,
+    OwidArticlePublicationContext,
+    OwidArticleType,
 } from "@ourworldindata/utils"
-import { match } from "ts-pattern"
-import { cheerioToSpan } from "./model/Gdoc/htmlToEnriched.js"
-
-// Note: all of this code is heavvy WIP - please ignore it for now
-
-// function mapCheerioChildren(
-//     node: CheerioElement,
-//     handler: (node: CheerioElement) => void
-// ): void {
-//     node.children?.forEach((child) => {
-//         handler(child)
-//         mapCheerioChildren(child, handler)
-//     })
-// }
-
-// TODO: add context for per post stats and error message context
-
-function unwrapNode(
-    node: CheerioElement
-): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
-    const children = node.children.map(cheerioToArchieML)
-    return joinArchieMLTransformationResults(children)
-}
-
-type ErrorNames =
-    | "blockquote content is not just text"
-    | "too many figcaption elements"
-    | "too many figcaption elements after archieml transform"
-    | "too many figcaption elements after archieml transform"
-    | "figcaption element is not structured text"
-    | "unkown element tag"
-
-interface ArchieMlTransformationError {
-    name: ErrorNames
-
-    details: string
-}
-
-interface ArchieMlTransformationResult<T> {
-    errors: ArchieMlTransformationError[]
-    content: T[]
-}
-
-function joinArchieMLTransformationResults<T>(
-    results: ArchieMlTransformationResult<T>[]
-): ArchieMlTransformationResult<T> {
-    const errors = lodash.flatten(results.map((r) => r.errors))
-    const content = lodash.flatten(results.map((r) => r.content))
-    return { errors, content }
-}
-
-function findRecursive(
-    nodes: CheerioElement[],
-    tagName: string
-): CheerioElement | undefined {
-    for (const node of nodes) {
-        if (node.tagName === tagName) return node
-        else {
-            const result = findRecursive(node.children ?? [], tagName)
-            if (result !== undefined) return result
-        }
-    }
-    return undefined
-}
-
-function getSimpleSpans(spans: Span[]): [SpanSimpleText[], Span[]] {
-    return _.partition(
-        spans,
-        (span: Span): span is SpanSimpleText =>
-            span.spanType === "span-simple-text"
-    )
-}
-
-function cheerioToArchieML(
-    node: CheerioElement
-): ArchieMlTransformationResult<OwidEnrichedArticleBlock> {
-    if (node.type === "comment") return { errors: [], content: [] }
-    const span = cheerioToSpan(node)
-    if (span)
-        return {
-            errors: [],
-            // TODO: below should be a list of spans and a rich text block
-            content: [{ type: "text", value: [span], parseErrors: [] }],
-        }
-    else if (node.type === "tag") {
-        const result: ArchieMlTransformationResult<OwidEnrichedArticleBlock> =
-            match(node)
-                .with({ tagName: "address" }, unwrapNode)
-                .with(
-                    { tagName: "blockquote" },
-                    (): ArchieMlTransformationResult<EnrichedBlockPullQuote> => {
-                        const childElements = joinArchieMLTransformationResults(
-                            node.children.map(cheerioToArchieML)
-                        )
-                        // TODO: put this in place again
-                        // const cleanedChildElements = consolidateSpans(
-                        //     childElements.content
-                        // )
-                        if (
-                            childElements.content.length !== 1 ||
-                            childElements.content[0].type !== "text"
-                        )
-                            return {
-                                errors: [
-                                    {
-                                        name: "blockquote content is not just text",
-                                        details: ``,
-                                    },
-                                ],
-                                content: [],
-                            }
-                        const [simpleSpans, otherSpans] = getSimpleSpans(
-                            childElements.content[0].value
-                        )
-
-                        return {
-                            errors: [],
-                            content: [
-                                {
-                                    type: "pull-quote",
-                                    // TODO: this is incomplete - needs to match to all text-ish elements like StructuredText
-                                    text: simpleSpans,
-                                    parseErrors:
-                                        otherSpans.length === 0
-                                            ? []
-                                            : [
-                                                  {
-                                                      message:
-                                                          "Dropped text fragments that were not just unformatted text",
-                                                  },
-                                              ],
-                                },
-                            ],
-                        }
-                    }
-                )
-                .with({ tagName: "body" }, unwrapNode)
-                .with({ tagName: "center" }, unwrapNode) // might want to translate this to a block with a centered style?
-                .with({ tagName: "details" }, unwrapNode)
-                .with({ tagName: "div" }, unwrapNode)
-                .with({ tagName: "figcaption" }, unwrapNode)
-                .with(
-                    { tagName: "figure" },
-                    (): ArchieMlTransformationResult<EnrichedBlockImage> => {
-                        const errors: ArchieMlTransformationError[] = []
-                        const [figcaptionChildren, otherChildren] = _.partition(
-                            node.children,
-                            (n) => n.tagName === "figcaption"
-                        )
-                        let figcaptionElement: EnrichedBlockText | undefined =
-                            undefined
-                        if (figcaptionChildren.length > 1) {
-                            errors.push({
-                                name: "too many figcaption elements",
-                                details: `Found ${figcaptionChildren.length} elements`,
-                            })
-                        } else {
-                            const figCaption =
-                                figcaptionChildren.length > 0
-                                    ? cheerioToArchieML(figcaptionChildren[0])
-                                    : undefined
-                            if (figCaption)
-                                if (figCaption.content.length > 1)
-                                    errors.push({
-                                        name: "too many figcaption elements after archieml transform",
-                                        details: `Found ${figCaption.content.length} elements after transforming to archieml`,
-                                    })
-                                else {
-                                    const element = figCaption.content[0]
-                                    if (element?.type === "text")
-                                        figcaptionElement = element
-                                    else
-                                        errors.push({
-                                            name: "figcaption element is not structured text",
-                                            details: `Found ${element?.type} element after transforming to archieml`,
-                                        })
-                                }
-                        }
-                        const image = findRecursive(otherChildren, "img")
-                        if (!image) {
-                            // TODO: this is a legitimate case, there may be other content in a figure
-                            // but for now we treat it as an error and see how often this error happens
-                            errors.push({
-                                name: "too many figcaption elements after archieml transform",
-                                details: `Found ${otherChildren.length} elements`,
-                            })
-                        }
-
-                        return {
-                            errors,
-                            content: [
-                                {
-                                    type: "image",
-                                    src: image?.attribs.src ?? "",
-                                    caption: figcaptionElement?.value ?? [],
-                                    parseErrors: [],
-                                },
-                            ],
-                        }
-                    }
-                )
-                // TODO: this is missing a lot of html tags still
-                .otherwise(() => ({ errors: [], content: [] }))
-        return result
-    } else
-        return {
-            errors: [
-                {
-                    name: "unkown element tag",
-                    details: `type was ${node.type}`,
-                },
-            ],
-            content: [],
-        }
-}
+import * as Post from "./model/Post.js"
+import fs from "fs"
+import {
+    cheerioElementsToArchieML,
+    withoutEmptyOrWhitespaceOnlyTextBlocks,
+    convertAllWpComponentsToArchieMLBlocks,
+    getEnrichedBlockTextFromBlockParseResult,
+} from "./model/Gdoc/htmlToEnriched.js"
 
 const migrate = async (): Promise<void> => {
+    const writeToFile = false
     await db.getConnection()
 
-    const posts: { id: number; content: string }[] = await db.queryMysql(`
-        SELECT id, content from posts where type<>'wp_block' limit 1
-    `)
-
-    // const tagCounts = new Map<string, number>()
+    const posts = await Post.select(
+        "id",
+        "slug",
+        "title",
+        "content",
+        "published_at",
+        "updated_at"
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "22821"))
 
     for (const post of posts) {
-        const $: CheerioStatic = cheerio.load(post.content)
-        const archieMlBodyElements = $("body")
-            .contents()
-            .toArray()
-            .flatMap(cheerioToArchieML)
-        console.log(archieMlBodyElements)
+        try {
+            let text = post.content
+            const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(
+                function (val: string, i: number) {
+                    // mutate original text
+                    text = text.replace(
+                        val,
+                        `<a class="ref" href="#note-${i + 1}"><sup>${
+                            i + 1
+                        }</sup></a>`
+                    )
+                    // return inner text
+                    return val.replace(/\{\/?ref\}/g, "")
+                }
+            )
+            //TODO: we don't seem to get the first node if it is a comment.
+            // Maybe this is benign but if not this works as a workaround:
+            //`<div>${post.content}</div>`)
+            const $: CheerioStatic = cheerio.load(text)
+            const bodyContents = $("body").contents().toArray()
+            const parsedResult = cheerioElementsToArchieML(bodyContents, {
+                $,
+                shouldParseWpComponents: true,
+            })
+            const archieMlBodyElements = convertAllWpComponentsToArchieMLBlocks(
+                withoutEmptyOrWhitespaceOnlyTextBlocks(parsedResult).content
+            )
+
+            let errors = parsedResult.errors
+            const refParsingResults = refs.map(
+                (refString): EnrichedBlockText => {
+                    const $ref = cheerio.load(refString)
+                    const refElements = $ref("body").contents().toArray()
+                    const parseResult = cheerioElementsToArchieML(refElements, {
+                        $,
+                        shouldParseWpComponents: false,
+                    })
+                    const textContentResult =
+                        getEnrichedBlockTextFromBlockParseResult(parseResult)
+                    errors = errors.concat(textContentResult.errors)
+                    return {
+                        type: "text",
+                        value: textContentResult.content.flatMap(
+                            (b) => b.value
+                        ),
+                        parseErrors: textContentResult.content.flatMap(
+                            (b) => b.parseErrors
+                        ),
+                    }
+                }
+            )
+
+            const archieMlFieldContent: OwidArticleType = {
+                id: `wp-${post.id}`,
+                slug: post.slug,
+                content: {
+                    body: archieMlBodyElements,
+                    title: post.title,
+                    byline: "todo", // TOOD: fetch authors from WP and store them in posts table
+                    dateline: post.published_at?.toISOString() ?? "",
+                    // TODO: this discards block level elements - those might be needed?
+                    refs: refParsingResults,
+                },
+                published: false, // post.published_at !== null,
+                createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem we have a created date in the posts table
+                publishedAt: null, // post.published_at,
+                updatedAt: null, // post.updated_at,
+                publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB
+            }
+            const archieMlStatsContent = {
+                errors,
+                numErrors: errors.length,
+                numBlocks: archieMlBodyElements.length,
+            }
+
+            const insertQuery = `
+        UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?
+        `
+            await db.queryMysql(insertQuery, [
+                JSON.stringify(archieMlFieldContent, null, 2),
+                JSON.stringify(archieMlStatsContent, null, 2),
+                post.id,
+            ])
+            console.log("inserted", post.id)
+
+            if (writeToFile) {
+                try {
+                    fs.writeFileSync(
+                        `./wpmigration/${post.slug}.html`,
+                        post.content
+                    )
+                    // file written successfully
+                } catch (err) {
+                    console.error(err)
+                }
+                const parsedJson = JSON.stringify(archieMlBodyElements, null, 2)
+                try {
+                    fs.writeFileSync(
+                        `./wpmigration/${post.slug}.json`,
+                        parsedJson
+                    )
+                    // file written successfully
+                } catch (err) {
+                    console.error(err)
+                }
+            }
+        } catch (e) {
+            console.error("Caught an exception", post.id)
+            throw e
+        }
     }
 
     // const sortedTagCount = _.sortBy(
