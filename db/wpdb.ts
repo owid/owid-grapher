@@ -11,6 +11,7 @@ import {
     WORDPRESS_URL,
     BAKED_BASE_URL,
     BLOG_SLUG,
+    TOPICS_CONTENT_GRAPH,
 } from "../settings/serverSettings.js"
 import * as db from "./db.js"
 import { Knex, knex } from "knex"
@@ -41,7 +42,6 @@ import {
     getContentGraph,
     WPPostTypeToGraphDocumentType,
 } from "./contentGraph.js"
-import { TOPICS_CONTENT_GRAPH } from "../settings/serverSettings.js"
 import { Gdoc } from "./model/Gdoc/Gdoc.js"
 
 let _knexInstance: Knex

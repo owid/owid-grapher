@@ -3,9 +3,6 @@ import { Synonym, Settings } from "@algolia/client-search"
 import {
     ALGOLIA_ID,
     TOPICS_CONTENT_GRAPH,
-} from "../../settings/serverSettings.js"
-
-import {
     ALGOLIA_INDEXING,
     ALGOLIA_SECRET_KEY,
 } from "../../settings/serverSettings.js"
