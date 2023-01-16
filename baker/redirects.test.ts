@@ -4,8 +4,9 @@ import * as redirects from "./redirects.js"
 import { resolveInternalRedirect } from "./redirects.js"
 
 jest.mock("../settings/serverSettings.js", () => ({
-    WORDPRESS_URL: "http://localhost:8080",
     BAKED_BASE_URL: "http://localhost:3030",
+    WORDPRESS_DB_NAME: "wp_test", // just a dummy, doesn't have to exist
+    WORDPRESS_URL: "http://localhost:8080",
 }))
 
 type ArrayForMap = [string, string][]
