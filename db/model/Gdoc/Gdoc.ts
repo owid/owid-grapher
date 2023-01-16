@@ -74,6 +74,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         // Retrieve raw data from Google
         const { data } = await client.documents.get({
             documentId: this.id,
+            suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
         })
 
         // Convert the doc to ArchieML syntax
