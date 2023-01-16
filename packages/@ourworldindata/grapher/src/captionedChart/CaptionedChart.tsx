@@ -282,7 +282,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             controls.push(<ZoomToggle key="ZoomToggle" manager={manager} />)
 
         if (
-            !manager.hideFacetControl &&
+            manager.showFacetControl &&
             manager.availableFacetStrategies.length > 1
         ) {
             controls.push(
