@@ -31,7 +31,7 @@ import {
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/siteClientSettings.js"
 import { hydrateAnnotatingDataValue } from "../AnnotatingDataValue.js"
 
 const figuresFromDOM = (

@@ -4,7 +4,7 @@ import { Grapher } from "@ourworldindata/grapher"
 import { BLOCK_WRAPPER_DATATYPE, DataValueProps } from "@ourworldindata/utils"
 import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
-import { ENV } from "../settings/clientSettings.js"
+import { ENV } from "../settings/siteClientSettings.js"
 import { DataValue, processTemplate } from "./DataValue.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 

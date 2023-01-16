@@ -25,7 +25,7 @@ import {
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { ENV } from "../settings/clientSettings.js"
+import { ENV } from "../settings/siteClientSettings.js"
 
 const analytics = new SiteAnalytics(ENV)
 @observer

@@ -8,7 +8,7 @@ import Adapter from "enzyme-adapter-react-16"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_EXPORTS_BASE_URL,
-} from "../../settings/clientSettings.js"
+} from "../../settings/siteClientSettings.js"
 configure({ adapter: new Adapter() })
 
 const charts = [

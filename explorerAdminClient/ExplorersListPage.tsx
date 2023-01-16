@@ -31,7 +31,7 @@ import {
     GIT_CMS_DEFAULT_BRANCH,
     GIT_CMS_REPO_URL,
 } from "../gitCms/GitCmsConstants.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/adminClientSettings.js"
 import { AdminManager } from "./AdminManager.js"
 
 @observer

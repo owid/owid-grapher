@@ -7,7 +7,7 @@ import { Bounds } from "@ourworldindata/utils"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
+} from "../settings/siteClientSettings.js"
 
 // Wrapper for Grapher that uses css on figure element to determine the bounds
 @observer

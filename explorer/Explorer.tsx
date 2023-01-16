@@ -52,7 +52,7 @@ import {
     ExplorerControlPanel,
 } from "../explorer/ExplorerControls.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../settings/grapherClientSettings.js"
 import {
     ExplorerChoiceParams,
     ExplorerContainerId,
