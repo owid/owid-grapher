@@ -1,0 +1,7 @@
+export {
+    GDOCS_CLIENT_EMAIL,
+    GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
+    FASTTRACK_URL,
+    TOPICS_CONTENT_GRAPH,
+    WORDPRESS_URL,
+} from "./clientSettings.js"
