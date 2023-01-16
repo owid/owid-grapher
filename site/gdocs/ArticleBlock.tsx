@@ -208,7 +208,6 @@ export default function ArticleBlock({
             <NumberedList
                 className={getLayout("numbered-list", containerType)}
                 d={block}
-                key={key}
             />
         ))
         .with({ type: "list" }, (block) => (
