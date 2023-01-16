@@ -27,7 +27,7 @@ import {
 import { match } from "ts-pattern"
 
 function appendDotEndIfMultiline(line: string): string {
-    if (line.includes("\n")) return line + "\n.end"
+    if (line.includes("\n")) return line + "\n:end"
     return line
 }
 
