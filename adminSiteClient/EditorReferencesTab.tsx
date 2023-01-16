@@ -2,7 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, ChartRedirect } from "./ChartEditor.js"
 import { computed, action, observable, runInAction } from "mobx"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL } from "../settings/adminClientSettings.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { stringifyUnkownError } from "@ourworldindata/utils"
 

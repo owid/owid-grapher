@@ -8,7 +8,7 @@ import { faTimesCircle } from "@fortawesome/free-solid-svg-icons/faTimesCircle"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL } from "../settings/adminClientSettings.js"
 import { ChartListItem } from "./ChartList.js"
 import { Link } from "./Link.js"
 import { SuggestedChartRevisionStatus } from "@ourworldindata/utils"

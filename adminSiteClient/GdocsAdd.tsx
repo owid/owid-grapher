@@ -2,7 +2,7 @@ import React from "react"
 import {
     GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
     GDOCS_CLIENT_EMAIL,
-} from "../settings/clientSettings.js"
+} from "../settings/adminClientSettings.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
 export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {

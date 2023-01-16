@@ -14,7 +14,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import Select from "react-select"
 import slugify from "slugify"
-import { TOPICS_CONTENT_GRAPH } from "../settings/clientSettings.js"
+import { TOPICS_CONTENT_GRAPH } from "../settings/adminClientSettings.js"
 import { ChartEditor } from "./ChartEditor.js"
 import {
     AutoTextField,

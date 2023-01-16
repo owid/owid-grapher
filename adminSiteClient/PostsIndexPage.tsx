@@ -8,7 +8,7 @@ import { highlight as fuzzyHighlight } from "@ourworldindata/grapher"
 import { AdminLayout } from "./AdminLayout.js"
 import { SearchField, FieldsRow, EditableTags, Timeago } from "./Forms.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { WORDPRESS_URL } from "../settings/clientSettings.js"
+import { WORDPRESS_URL } from "../settings/adminClientSettings.js"
 import { Tag } from "./TagBadge.js"
 
 interface PostIndexMeta {

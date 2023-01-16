@@ -22,7 +22,7 @@ import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons/faSatelliteDi
 import { faCodeBranch } from "@fortawesome/free-solid-svg-icons/faCodeBranch"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 
-import { FASTTRACK_URL } from "../settings/clientSettings.js"
+import { FASTTRACK_URL } from "../settings/adminClientSettings.js"
 
 export const AdminSidebar = (): JSX.Element => (
     <aside className="AdminSidebar">

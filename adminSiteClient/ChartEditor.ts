@@ -7,7 +7,7 @@
 
 import { Grapher, GrapherInterface, Topic } from "@ourworldindata/grapher"
 import { computed, observable, runInAction, when } from "mobx"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
+import { BAKED_GRAPHER_URL } from "../settings/adminClientSettings.js"
 import { Admin } from "./Admin.js"
 import { EditorFeatures } from "./EditorFeatures.js"
 
