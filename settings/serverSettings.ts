@@ -127,3 +127,10 @@ export const GDOCS_PRIVATE_KEY: string = (
     .replaceAll("'", "")
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
 export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
+
+export const IMAGE_HOSTING_SPACE_URL: string =
+    serverSettings.IMAGE_HOSTING_SPACE_URL || ""
+export const IMAGE_HOSTING_SPACE_ACCESS_KEY_ID: string =
+    serverSettings.IMAGE_HOSTING_SPACE_ACCESS_KEY_ID || ""
+export const IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY: string =
+    serverSettings.IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY || ""
