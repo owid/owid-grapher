@@ -1,6 +1,5 @@
 import ReactDOM from "react-dom"
-import React from "react"
-import { useEffect, useReducer } from "react"
+import React, { useEffect, useReducer } from "react"
 import Cookies from "js-cookie"
 import { CookiePreferences } from "../site/blocks/CookiePreferences.js"
 import { CookieNotice } from "../site/CookieNotice.js"

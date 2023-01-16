@@ -26,10 +26,10 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
     ColumnTypeNames,
+    OwidTable,
 } from "@ourworldindata/core-table"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
 import { setSelectedEntityNamesParam } from "./EntityUrlBuilder"
-import { OwidTable } from "@ourworldindata/core-table"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import {

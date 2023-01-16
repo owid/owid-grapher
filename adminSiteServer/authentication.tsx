@@ -7,11 +7,12 @@ import {
     CLOUDFLARE_AUD,
     SECRET_KEY,
     SESSION_COOKIE_AGE,
+    ADMIN_BASE_URL,
+    ENV,
 } from "../settings/serverSettings.js"
 import { BCryptHasher } from "../db/hashers.js"
 import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
-import { ADMIN_BASE_URL, ENV } from "../settings/serverSettings.js"
 import { JsonError } from "@ourworldindata/utils"
 
 export type CurrentUser = User

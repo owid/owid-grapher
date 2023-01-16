@@ -8,8 +8,6 @@ import {
     WORDPRESS_DB_PASS,
     WORDPRESS_API_PASS,
     WORDPRESS_API_USER,
-} from "../settings/serverSettings.js"
-import {
     WORDPRESS_URL,
     BAKED_BASE_URL,
     BLOG_SLUG,

@@ -7,6 +7,9 @@ import {
     SynthesizeFruitTableWithNonPositives,
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
+    OwidTable,
+    ColumnTypeNames,
+    ErrorValueTypes,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import {
@@ -14,11 +17,6 @@ import {
     ScaleType,
     SeriesStrategy,
 } from "../core/GrapherConstants"
-import {
-    OwidTable,
-    ColumnTypeNames,
-    ErrorValueTypes,
-} from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
 import { LineChartManager } from "./LineChartConstants"
 import { BinningStrategy } from "../color/BinningStrategy"

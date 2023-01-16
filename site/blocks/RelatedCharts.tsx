@@ -1,6 +1,5 @@
-import React from "react"
+import React, { useState, useRef } from "react"
 import ReactDOM from "react-dom"
-import { useState, useRef } from "react"
 import { RelatedChart } from "@ourworldindata/utils"
 import { useEmbedChart } from "../hooks.js"
 import { GalleryArrow, GalleryArrowDirection } from "./GalleryArrow.js"

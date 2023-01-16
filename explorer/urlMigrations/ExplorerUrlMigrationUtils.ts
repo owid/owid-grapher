@@ -1,7 +1,6 @@
-import { Url, QueryParams } from "@ourworldindata/utils"
+import { Url, QueryParams, identity, omit } from "@ourworldindata/utils"
 
 import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants.js"
-import { identity, omit } from "@ourworldindata/utils"
 
 export const decodeURIComponentOrUndefined = (value: string | undefined) =>
     value !== undefined

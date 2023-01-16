@@ -93,9 +93,14 @@ import {
     fetchVariablesParametersToQueryParameters,
     postprocessJsonLogicTree,
 } from "./GrapherConfigGridEditorTypesAndUtils.js"
-import { Query, Utils as QbUtils, Utils } from "react-awesome-query-builder"
-// types
-import { SimpleField, Config, ImmutableTree } from "react-awesome-query-builder"
+import {
+    Query,
+    Utils as QbUtils,
+    Utils,
+    SimpleField,
+    Config,
+    ImmutableTree,
+} from "react-awesome-query-builder"
 import codemirror from "codemirror"
 import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
