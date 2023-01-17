@@ -145,6 +145,11 @@ export class StackedBarChart
         return this.sidebarWidth + 20
     }
 
+    @computed get shouldRunLinearInterpolation(): boolean {
+        // disabled by default
+        return this.props.enableLinearInterpolation ?? false
+    }
+
     // All currently hovered group keys, combining the legend and the main UI
     @computed get hoverKeys(): string[] {
         const { hoverColor, manager } = this
