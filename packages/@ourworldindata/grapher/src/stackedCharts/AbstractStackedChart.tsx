@@ -41,7 +41,7 @@ import { HorizontalColorLegendManager } from "../horizontalColorLegend/Horizonta
 export interface AbstractStackedChartProps {
     bounds?: Bounds
     manager: ChartManager
-    disableLinearInterpolation?: boolean // just for testing
+    enableLinearInterpolation?: boolean // defaults to true
 }
 
 @observer
@@ -59,7 +59,7 @@ export class AbstractStackedChart
             .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
             .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
 
-        if (!this.props.disableLinearInterpolation) {
+        if (this.shouldRunLinearInterpolation) {
             this.yColumnSlugs.forEach((slug) => {
                 table = table.interpolateColumnLinearly(slug)
             })
@@ -80,6 +80,11 @@ export class AbstractStackedChart
                   )
         }
         return table
+    }
+
+    @computed get shouldRunLinearInterpolation(): boolean {
+        // enabled by default
+        return this.props.enableLinearInterpolation ?? true
     }
 
     @computed get inputTable(): OwidTable {
