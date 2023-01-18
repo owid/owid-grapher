@@ -12,7 +12,7 @@ export default function Image({
 }) {
     return (
         <img
-            src=""
+            src={d.filename}
             alt={d.alt}
             className={cx(LIGHTBOX_IMAGE_CLASS, className)}
         />
