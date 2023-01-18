@@ -58,7 +58,7 @@ export const EntitiesAsSeriesWithMissingRowsNoInterpolation =
     (): JSX.Element => (
         <svg width={600} height={600}>
             <StackedAreaChart
-                disableLinearInterpolation={true}
+                enableLinearInterpolation={false}
                 manager={{
                     ...entitiesChart,
                     table: table.dropRandomRows(30, seed),
@@ -84,7 +84,7 @@ export const EntitiesAsSeriesWithMissingRowsNoInterpolationRelative =
     (): JSX.Element => (
         <svg width={600} height={600}>
             <StackedAreaChart
-                disableLinearInterpolation={true}
+                enableLinearInterpolation={false}
                 manager={{
                     ...entitiesChart,
                     table: table.dropRandomRows(30, seed),
