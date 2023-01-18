@@ -92,7 +92,7 @@ describe("readValuesFromParquet", () => {
         jest.spyOn(Variable, "executeSQL").mockResolvedValueOnce([
             { value: 286800000, year: 1, entityName: "Belgium" },
         ])
-        jest.spyOn(Variable, "fetchEntities").mockResolvedValueOnce([
+        jest.spyOn(Variable, "fetchEntitiesByNames").mockResolvedValueOnce([
             { entityId: 2, entityCode: "BE", entityName: "Belgium" },
         ])
 

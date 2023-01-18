@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/utils"
 import { CATALOG_PATH } from "../../settings/serverSettings.js"
 import * as util from "util"
+import fetch from "node-fetch"
 
 export interface VariableRow {
     id: number
@@ -38,6 +39,7 @@ export interface VariableRow {
     timespan?: string
     columnOrder?: number
     catalogPath?: string
+    dataPath?: string
     dimensions?: Dimensions
 }
 
@@ -144,9 +146,14 @@ export async function getVariableData(
     // use parquet only if CATALOG_PATH env var is set and we have path to catalog in MySQL
     const parquetDataExists = row.catalogPath && row.shortName && CATALOG_PATH
 
-    const results = parquetDataExists
-        ? await readValuesFromParquet(variableId, row)
-        : await readValuesFromMysql(variableId)
+    let results: DataRow[] = []
+    if (await getOwidVariableDataPath(variableId)) {
+        results = await readValuesFromS3(variableId)
+    } else if (parquetDataExists) {
+        results = await readValuesFromParquet(variableId, row)
+    } else {
+        results = await readValuesFromMysql(variableId)
+    }
 
     const {
         sourceId,
@@ -410,6 +417,16 @@ export const getOwidVariableDisplayConfig = async (
     return JSON.parse(row.display)
 }
 
+export const getOwidVariableDataPath = async (
+    variableId: OwidVariableId
+): Promise<string | undefined> => {
+    const row = await db.mysqlFirst(
+        `SELECT dataPath FROM variables WHERE id = ?`,
+        [variableId]
+    )
+    return row.dataPath
+}
+
 const readValuesFromMysql = async (
     variableId: OwidVariableId
 ): Promise<DataRow[]> => {
@@ -476,7 +493,7 @@ export const constructParquetQuery = (row: VariableQueryRow): string => {
     }
 }
 
-export const fetchEntities = async (
+export const fetchEntitiesByNames = async (
     entityNames: string[]
 ): Promise<EntityRow[]> => {
     return db.queryMysql(
@@ -488,6 +505,21 @@ export const fetchEntities = async (
             FROM entities WHERE LOWER(name) in (?)
             `,
         [_(entityNames).map(normalizeEntityName).uniq().value()]
+    )
+}
+
+export const fetchEntitiesByIds = async (
+    entityIds: number[]
+): Promise<EntityRow[]> => {
+    return db.queryMysql(
+        `
+            SELECT
+                id AS entityId,
+                name AS entityName,
+                code AS entityCode
+            FROM entities WHERE id in (?)
+            `,
+        [_(entityIds).uniq().value()]
     )
 }
 
@@ -521,7 +553,7 @@ export const readValuesFromParquet = async (
         return results
     }
 
-    const entityInfo = await fetchEntities(_.map(results, "entityName"))
+    const entityInfo = await fetchEntitiesByNames(_.map(results, "entityName"))
 
     // merge results with entity info
     const entityInfoDict = _.keyBy(entityInfo, (e) =>
@@ -538,4 +570,41 @@ export const readValuesFromParquet = async (
         row.entityCode = entityInfoDict[normEntityName].entityCode
         return row
     })
+}
+
+interface S3Response {
+    entities: number[]
+    years: number[]
+    values: string[]
+}
+
+export const readValuesFromS3 = async (
+    variableId: OwidVariableId
+): Promise<DataRow[]> => {
+    const dataPath = await getOwidVariableDataPath(variableId)
+    if (!dataPath) {
+        throw new Error(`Missing dataPath for variable ${variableId}`)
+    }
+    const result = (await (await fetch(dataPath)).json()) as S3Response
+
+    // fetch entities info
+    const entities = await fetchEntitiesByIds(result.entities)
+
+    return _.zip(result.entities, result.years, result.values).map(
+        (row: any) => {
+            const entity = entities.find((e) => e.entityId === row[0])
+            if (!entity) {
+                throw new Error(
+                    `Missing entity ${row[0]} for variable ${variableId}`
+                )
+            }
+            return {
+                entityId: entity.entityId,
+                entityName: entity.entityName,
+                entityCode: entity.entityCode,
+                year: row[1],
+                value: row[2],
+            } as DataRow
+        }
+    )
 }

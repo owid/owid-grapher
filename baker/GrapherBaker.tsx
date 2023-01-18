@@ -45,7 +45,10 @@ import {
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import fetch from "node-fetch"
-import { getVariableData } from "../db/model/Variable.js"
+import {
+    getVariableData,
+    getOwidVariableDataPath,
+} from "../db/model/Variable.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -194,6 +197,13 @@ async function getDataMetadataFromMysql(
     ]
 }
 
+async function assertFileExistsInS3(dataPath: string): Promise<void> {
+    const resp = await fetch(dataPath, { method: "HEAD" })
+    if (resp.status !== 200) {
+        throw new Error("URL not found on S3: " + dataPath)
+    }
+}
+
 export const bakeVariableData = async (
     bakeArgs: BakeVariableDataArguments
 ): Promise<BakeVariableDataArguments> => {
@@ -223,13 +233,19 @@ export const bakeVariableData = async (
           )
         : await getDataMetadataFromMysql(bakeArgs.variableId)
 
-    const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
-        bakeArgs.variableId
-    )}`
-    if (data.kind === "fetched") {
-        await fs.writeFile(path, JSON.stringify(data.data))
-        if (data.checksum) {
-            await fs.writeFile(dataChecksumPath, data.checksum)
+    // If variable data exists in S3, we don't need to write it to disk
+    const dataPath = await getOwidVariableDataPath(bakeArgs.variableId)
+    if (dataPath) {
+        await assertFileExistsInS3(dataPath)
+    } else {
+        const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
+            bakeArgs.variableId
+        )}`
+        if (data.kind === "fetched") {
+            await fs.writeFile(path, JSON.stringify(data.data))
+            if (data.checksum) {
+                await fs.writeFile(dataChecksumPath, data.checksum)
+            }
         }
     }
 
@@ -293,9 +309,10 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
                     const metadataJson = JSON.parse(
                         metadataString
                     ) as OwidVariableWithSourceAndDimension
-                    const dataPath = `${bakedSiteDir}${getVariableDataRoute(
-                        variableId
-                    )}`
+                    // Use path to S3 if available
+                    const dataPath =
+                        (await getOwidVariableDataPath(variableId)) ||
+                        `${bakedSiteDir}${getVariableDataRoute(variableId)}`
                     const dataString = await fs.readFile(dataPath, "utf8")
                     const dataJson = JSON.parse(
                         dataString
