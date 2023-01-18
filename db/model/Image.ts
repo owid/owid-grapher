@@ -100,7 +100,7 @@ export class Image extends BaseEntity {
             Bucket: `owid-image-upload`, // TODO: directories per environment? How to tell which staging environment we're on?
             Key: image.filename,
             Body: imageArrayBuffer,
-            ACL: "private",
+            ACL: "public-read",
         }
         try {
             await s3Client.send(new PutObjectCommand(params))
