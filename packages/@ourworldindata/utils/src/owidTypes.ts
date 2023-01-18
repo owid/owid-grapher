@@ -868,6 +868,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockMissingData
     | EnrichedBlockAdditionalCharts
     | EnrichedBlockNumberedList
+    | EnrichedBlockSimpleText
 
 export enum OwidArticlePublicationContext {
     unlisted = "unlisted",
