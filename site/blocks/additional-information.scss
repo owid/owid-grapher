@@ -1,7 +1,7 @@
 .wp-block-owid-additional-information {
     margin-bottom: 2rem;
     h3.additional-information__heading {
-        @include h3-style;
+        @include h2-bold;
         display: flex;
         align-items: center;
         margin-bottom: 0;
@@ -32,14 +32,14 @@
         @include left-media-columns;
         h3.additional-information__heading {
             padding: 1.5rem $padding-x-sm;
-            @include md-up {
-                padding: 1.5rem $padding-x-md;
+        }
+        &.with-image {
+            figure {
+                margin-bottom: 16px;
             }
         }
         .content-wrapper {
-            @include wrapper-x-spacing;
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
+            padding: 0 24px 24px;
 
             background-color: $blue-10;
         }

@@ -500,23 +500,12 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
     /* Subsections e.g. I.1 Historical perspective */
     > h3 {
-        @include h3-style;
-        margin-top: 5rem;
-        margin-bottom: 2.5rem;
-        padding-top: 2.5rem;
-        border-top: 1px solid $blue-20;
+        @include h2-bold;
     }
 
     // e.g. see "Sector by sector: where do global greenhouse gas emissions come from?"
     .wp-block-column > h3 {
-        @include h3-style;
-        margin-bottom: 1.5rem;
-        margin-top: 2.5rem;
-    }
-
-    > .section-heading + h3 {
-        border-top: none;
-        padding-top: 0;
+        @include h2-bold;
     }
 
     /* Intratext headings e.g. How different are countries in terms of central government involvement in the economy? */
