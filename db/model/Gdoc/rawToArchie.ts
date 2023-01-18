@@ -32,12 +32,30 @@ export interface ArchieMLLine {
     spans: Span[] | undefined
 }
 
-function appendDotEndIfMultiline(line: string): string {
+export function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n:end"
     return line
 }
 
-function keyValueToArchieMlString(
+export function* encloseLinesAsPropertyPossiblyMultiline(
+    key: string,
+    lines: Iterable<string>
+) {
+    let first = true
+    let multiLine = false
+    for (const line of lines) {
+        if (first) {
+            yield `${key}: ${line}`
+            first = false
+        } else {
+            yield line
+            multiLine = true
+        }
+    }
+    if (multiLine) yield ":end"
+}
+
+export function keyValueToArchieMlString(
     key: string,
     val: string | undefined
 ): string {
@@ -48,7 +66,7 @@ function keyValueToArchieMlString(
 // The Record<string, any> here is not ideal - it would be nicer to
 // restrict the field type to string but then it only works if all
 // fields are strings. Maybe there is some TS magic to do this?
-function* propertyToArchieMLString<T extends Record<string, any>>(
+export function* propertyToArchieMLString<T extends Record<string, any>>(
     key: keyof T,
     value: T | undefined
 ): Generator<string, void, undefined> {
@@ -347,7 +365,7 @@ function* rawBlockAdditionalChartsToArchieMLString(
     yield "[]"
 }
 
-function* owidRawArticleBlockToArchieMLStringGenerator(
+export function* owidRawArticleBlockToArchieMLStringGenerator(
     block: OwidRawArticleBlock
 ): Generator<string, void, undefined> {
     const content = match(block)
@@ -398,7 +416,6 @@ function* owidRawArticleBlockToArchieMLStringGenerator(
 export function owidRawArticleBlockToArchieMLString(
     block: OwidRawArticleBlock
 ): string {
-    return [...owidRawArticleBlockToArchieMLStringGenerator(block), ""].join(
-        "\n"
-    )
+    const lines = [...owidRawArticleBlockToArchieMLStringGenerator(block)]
+    return [...lines, ""].join("\n")
 }
