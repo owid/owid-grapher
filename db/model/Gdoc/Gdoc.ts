@@ -1,3 +1,4 @@
+import path from "node:path"
 import { Entity, PrimaryColumn, Column, BaseEntity } from "typeorm"
 import {
     OwidArticleContent,
@@ -12,6 +13,9 @@ import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,
     GDOCS_PRIVATE_KEY,
+    ENV,
+    IMAGE_HOSTING_CDN_URL,
+    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
 } from "../../../settings/serverSettings.js"
 import { google, Auth, docs_v1, drive_v3 } from "googleapis"
 
@@ -25,7 +29,7 @@ interface GDriveImageMeta {
     name: string
     modifiedTime: string
     id: string // Google Drive ID
-    description: string
+    description: string // to be used as alt text
 }
 
 @Entity("posts_gdocs")
@@ -102,20 +106,19 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         const content = archieToEnriched(text)
 
         // Get the filenames of the images referenced in the article
-        const filenames = await this.extractImages(content)
+        const filenames = this.extractImagesPaths(content)
 
-        // At the moment, isEmpty will always be true, because the server is instantiating a new Gdoc every time
+        // isEmpty will always be true, because the server is instantiating a new Gdoc every time
+        // but we could implement a socket session in the future
         if (filenames.length && isEmpty(this.cachedImageList)) {
             await this.fetchDriveImageData()
-        }
-
-        await Promise.all(
-            filenames.map((filename) =>
-                Image.syncImage(this.cachedImageList[filename])
+            await Promise.all(
+                filenames.map((filename) =>
+                    Image.syncImage(this.cachedImageList[filename])
+                )
             )
-        )
-
-        this.content = content
+            this.content = this.replaceImagePaths(content)
+        }
     }
 
     async fetchDriveImageData(): Promise<void> {
@@ -162,7 +165,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         }
     }
 
-    async extractImages(enriched: OwidArticleContent): Promise<string[]> {
+    extractImagesPaths(enriched: OwidArticleContent): string[] {
         const articleString = JSON.stringify(enriched.body)
 
         // quick solution instead of tree traversal
@@ -172,19 +175,36 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             matches.map(([_, filename]) => filename)
         )
 
-        // lol
-        // just for testing, don't actually do this
-        // filenames.forEach((filename) => {
-        //     if (this.cachedImageList[filename]) {
-        //         articleString = articleString.replaceAll(
-        //             filename,
-        //             this.cachedImageList[filename].webContentLink
-        //         )
-        //     }
-        // })
-        // enriched.body = JSON.parse(articleString)
-
         return filenames
+    }
+
+    replaceImagePaths(content: OwidArticleContent): OwidArticleContent {
+        // just for testing, don't actually do it like this
+        let articleString = JSON.stringify(content.body)
+        const matches = [...articleString.matchAll(/"filename":"([\w\.\-]+)"/g)]
+
+        const filenames: string[] = uniq(
+            matches.map(([_, filename]) => filename)
+        )
+
+        const assetPath =
+            ENV === "production"
+                ? "TODO"
+                : path.join(
+                      IMAGE_HOSTING_CDN_URL,
+                      IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH
+                  )
+
+        filenames.forEach((filename) => {
+            if (this.cachedImageList[filename]) {
+                articleString = articleString.replaceAll(
+                    filename,
+                    path.join(assetPath, filename)
+                )
+            }
+        })
+        content.body = JSON.parse(articleString)
+        return content
     }
 
     static async getPublishedGdocs(): Promise<OwidArticleTypePublished[]> {

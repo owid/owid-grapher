@@ -3,6 +3,7 @@ import {
     IMAGE_HOSTING_SPACE_URL,
     IMAGE_HOSTING_SPACE_ACCESS_KEY_ID,
     IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY,
+    IMAGE_HOSTING_BUCKET_PATH,
 } from "../../settings/serverSettings.js"
 import { google } from "googleapis"
 
@@ -17,8 +18,8 @@ export interface ImageMeta {
     googleId: string
     filename: string
     defaultAlt: string
-    // Storing as epoch to circumvent timezone issues with Google
-    // MySQL Dates strip milliseconds which was making it hard to compare with the date from Google
+    // MySQL Date objects round to the nearest second, whereas Google includes milliseconds
+    // so we store as an epoch to avoid any conversion issues
     updatedAt: number
 }
 
@@ -96,9 +97,13 @@ export class Image extends BaseEntity {
 
         const imageArrayBuffer = file.data as Buffer
 
+        const indexOfFirstSlash = IMAGE_HOSTING_BUCKET_PATH.indexOf("/")
+        const bucket = IMAGE_HOSTING_BUCKET_PATH.slice(0, indexOfFirstSlash)
+        const directory = IMAGE_HOSTING_BUCKET_PATH.slice(indexOfFirstSlash + 1)
+
         const params: PutObjectCommandInput = {
-            Bucket: `owid-image-upload`, // TODO: directories per environment? How to tell which staging environment we're on?
-            Key: image.filename,
+            Bucket: bucket,
+            Key: `${directory}/${image.filename}`,
             Body: imageArrayBuffer,
             ACL: "public-read",
         }
