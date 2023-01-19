@@ -21,11 +21,11 @@ import { google, Auth, docs_v1, drive_v3 } from "googleapis"
 
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
-import { Image, ImageMeta } from "../Image.js"
+import { Image, ImageMetadata } from "../Image.js"
 
 const GOOGLE_DRIVE_IMAGES_FOLDER_ID = "1dfArzg3JrAJupVl4YyJpb2FOnBn4irPX"
 
-interface GDriveImageMeta {
+interface GDriveImageMetadata {
     name: string
     modifiedTime: string
     id: string // Google Drive ID
@@ -51,13 +51,13 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         if (id) {
             this.id = id
         }
-        this.cachedImageList = {}
+        this.cachedImageMetadata = {}
         this.content = {}
     }
     static cachedGoogleAuth?: Auth.GoogleAuth
     static cachedGoogleClient?: docs_v1.Docs
 
-    cachedImageList: Record<string, ImageMeta>
+    cachedImageMetadata: Record<string, ImageMetadata>
 
     static getGoogleAuth(): Auth.GoogleAuth {
         if (!Gdoc.cachedGoogleAuth) {
@@ -106,16 +106,26 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         const content = archieToEnriched(text)
 
         // Get the filenames of the images referenced in the article
-        const filenames = this.extractImagesPaths(content)
+        const filenames = this.extractImagesFilenames(content)
 
-        // isEmpty will always be true, because the server is instantiating a new Gdoc every time
+        // currently, isEmpty will always be true, because the server is instantiating a new Gdoc every time
         // but we could implement a socket session in the future
-        if (filenames.length && isEmpty(this.cachedImageList)) {
+        if (filenames.length && isEmpty(this.cachedImageMetadata)) {
             await this.fetchDriveImageData()
             await Promise.all(
-                filenames.map((filename) =>
-                    Image.syncImage(this.cachedImageList[filename])
-                )
+                filenames.map((filename) => {
+                    if (this.cachedImageMetadata[filename]) {
+                        return Image.syncImage(
+                            this.cachedImageMetadata[filename]
+                        )
+                    } else {
+                        // TODO: if we're baking for prod, log error to slack
+                        console.error(
+                            `Error: ${filename} could not be found in Google Drive`
+                        )
+                        return
+                    }
+                })
             )
             this.content = this.replaceImagePaths(content)
         }
@@ -130,7 +140,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             // TODO: fetch all pages (current limit = 1000)
             const res = await driveClient.files.list({
                 // modifiedTime format: "2023-01-11T19:45:27.000Z"
-                fields: "nextPageToken, files(id, name, description, webContentLink, modifiedTime)",
+                fields: "nextPageToken, files(id, name, description, modifiedTime)",
                 q: `'${GOOGLE_DRIVE_IMAGES_FOLDER_ID}' in parents`,
             })
 
@@ -138,34 +148,27 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
             function validateImage(
                 image: drive_v3.Schema$File
-            ): image is GDriveImageMeta {
+            ): image is GDriveImageMetadata {
                 // image.description can be undefined or "", which we should handle
                 return Boolean(image.id && image.name && image.modifiedTime)
             }
 
-            const images: ImageMeta[] = files
+            const images: ImageMetadata[] = files
                 .filter(validateImage)
-                .map(
-                    ({
-                        id,
-                        name,
-                        description,
-                        modifiedTime,
-                    }: GDriveImageMeta) => ({
-                        googleId: id,
-                        filename: name,
-                        defaultAlt: description,
-                        updatedAt: new Date(modifiedTime).getTime(),
-                    })
-                )
+                .map((google: GDriveImageMetadata) => ({
+                    googleId: google.id,
+                    filename: google.name,
+                    defaultAlt: google.description,
+                    updatedAt: new Date(google.modifiedTime).getTime(),
+                }))
 
-            this.cachedImageList = keyBy(images, "filename")
+            this.cachedImageMetadata = keyBy(images, "filename")
         } catch (e) {
             console.log("Error fetching images from Drive", e)
         }
     }
 
-    extractImagesPaths(enriched: OwidArticleContent): string[] {
+    extractImagesFilenames(enriched: OwidArticleContent): string[] {
         const articleString = JSON.stringify(enriched.body)
 
         // quick solution instead of tree traversal
@@ -196,7 +199,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                   )
 
         filenames.forEach((filename) => {
-            if (this.cachedImageList[filename]) {
+            if (this.cachedImageMetadata[filename]) {
                 articleString = articleString.replaceAll(
                     filename,
                     path.join(assetPath, filename)

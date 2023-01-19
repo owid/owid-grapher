@@ -73,7 +73,6 @@ export const useUpdatePreviewContent = (
     const initialLoad = !gdoc
 
     const updatePreviewContent = useCallback(async () => {
-        console.log("updatePreviewContent")
         try {
             // Because there's no ongoing connection between the server and client, a new document is being fetched every 5 seconds
             // Meaning we query Gdocs every 5 seconds for everything, which may become taxing at some point.

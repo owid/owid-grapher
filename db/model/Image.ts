@@ -14,7 +14,7 @@ import {
 } from "@aws-sdk/client-s3"
 import { Gdoc } from "./Gdoc/Gdoc.js"
 
-export interface ImageMeta {
+export interface ImageMetadata {
     googleId: string
     filename: string
     defaultAlt: string
@@ -55,30 +55,33 @@ export class Image extends BaseEntity {
         this.updatedAt = updatedAt
     }
 
-    static async syncImage(fresh: ImageMeta): Promise<void> {
+    static async syncImage(fresh: ImageMetadata): Promise<void> {
         const results = await Image.findBy({ googleId: fresh.googleId })
         const stored = results[0]
 
-        if (stored) {
-            if (stored.updatedAt != fresh.updatedAt) {
-                // TODO: handle errors - we shouldn't update the DB if this fails
+        try {
+            if (stored) {
+                if (stored.updatedAt != fresh.updatedAt) {
+                    await Image.fetchFromDriveAndUploadToS3(fresh)
+                    stored.updatedAt = fresh.updatedAt
+                    await stored.save()
+                }
+            } else {
                 await Image.fetchFromDriveAndUploadToS3(fresh)
-                stored.updatedAt = fresh.updatedAt
-                await stored.save()
+                await new Image(
+                    fresh.filename,
+                    fresh.defaultAlt,
+                    fresh.updatedAt,
+                    fresh.googleId
+                ).save()
             }
-        } else {
-            await Image.fetchFromDriveAndUploadToS3(fresh)
-            await new Image(
-                fresh.filename,
-                fresh.defaultAlt,
-                fresh.updatedAt,
-                fresh.googleId
-            ).save()
+        } catch (e) {
+            console.error(`Error syncing ${fresh.filename}`, e)
         }
     }
 
     static async fetchFromDriveAndUploadToS3(
-        image: Image | ImageMeta
+        image: Image | ImageMetadata
     ): Promise<void> {
         const driveClient = google.drive({
             version: "v3",
@@ -107,13 +110,9 @@ export class Image extends BaseEntity {
             Body: imageArrayBuffer,
             ACL: "public-read",
         }
-        try {
-            await s3Client.send(new PutObjectCommand(params))
-            console.log(
-                `Successfully uploaded object: ${params.Bucket}/${params.Key}`
-            )
-        } catch (err) {
-            console.log(`Error uploading ${params.Key} to S3`, err)
-        }
+        await s3Client.send(new PutObjectCommand(params))
+        console.log(
+            `Successfully uploaded object: ${params.Bucket}/${params.Key}`
+        )
     }
 }
