@@ -500,5 +500,9 @@ export default function ArticleBlock({
     //         </div>
     //     )
 
-    return <BlockErrorBoundary>{content}</BlockErrorBoundary>
+    return (
+        <BlockErrorBoundary className={getLayout("default", containerType)}>
+            {content}
+        </BlockErrorBoundary>
+    )
 }

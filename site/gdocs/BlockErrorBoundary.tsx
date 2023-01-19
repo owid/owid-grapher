@@ -1,15 +1,20 @@
 import React from "react"
 import { ErrorBoundary } from "react-error-boundary"
-import { getLayout } from "./ArticleBlock.js"
 import { useDebug } from "./DebugContext.js"
 
 export const BlockErrorBoundary = ({
     children,
+    className,
 }: {
     children: React.ReactNode
+    className: string
 }) => {
     return (
-        <ErrorBoundary FallbackComponent={BlockErrorFallback}>
+        <ErrorBoundary
+            FallbackComponent={(props) => (
+                <BlockErrorFallback {...props} className={className} />
+            )}
+        >
             {children}
         </ErrorBoundary>
     )
@@ -18,11 +23,11 @@ export const BlockErrorBoundary = ({
 export const BlockErrorFallback = ({
     error,
     resetErrorBoundary,
-    className = getLayout(),
+    className,
 }: {
     error: Error
     resetErrorBoundary?: VoidFunction
-    className?: string
+    className: string
 }): JSX.Element => {
     const debug = useDebug()
     return (
