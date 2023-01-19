@@ -104,9 +104,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         setErrors(errors)
     }, [gdoc])
 
-    // const incrementCountSiteStylesLoaded = () =>
-    //     setCountSiteStylesLoaded(countSiteStylesLoaded + 1)
-
     return gdoc ? (
         <AdminLayout
             title={`Previewing ${gdoc.content.title}`}
@@ -245,35 +242,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     style={{ width: "100%", height: "inherit", border: "none" }}
                     key={gdoc.revisionId}
                 />
-
-                {/* Operational alternative for preview rendering, with some unresolved issues.
-                See https://github.com/owid/owid-grapher/pull/1844#issuecomment-1383985274 
-                */}
-                {/* <GdocsPreviewIframe
-                    style={{ width: "100%", height: "inherit", border: "none" }}
-                    head={admin.settings.siteStylesheetUrls.map((url) => (
-                        <link
-                            onLoad={incrementCountSiteStylesLoaded}
-                            key={url}
-                            href={url}
-                            rel="stylesheet"
-                        />
-                    ))}
-                > */}
-                {/* Wait for all site styles to load before rendering since CSS doesn't seem to
-                         block rendering in this scenario and causes a FOUC. <link> doesn't accept the
-                         blocking="render" attribute either. Loading the <link> tags in the <head> of a 
-                         srcdoc set on the <iframe> also causes a FOUC and also takes longer to render.
-                    */}
-                {/* {countSiteStylesLoaded ===
-                        admin.settings.siteStylesheetUrls.length && (
-                        <React.StrictMode>
-                            <DebugProvider debug={true}>
-                                <OwidArticle {...gdoc} />
-                            </DebugProvider>
-                        </React.StrictMode>
-                    )}
-                </GdocsPreviewIframe> */}
 
                 {gdoc.published && (
                     <div
