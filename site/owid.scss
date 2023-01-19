@@ -515,6 +515,7 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 
     .wp-block-columns h5 {
         @include h4-semibold;
+        color: $blue-50;
     }
 
     /* Image captions */
