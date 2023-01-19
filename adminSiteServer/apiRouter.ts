@@ -28,7 +28,9 @@ import {
     JsonError,
     omit,
     OperationContext,
+    OwidArticleContent,
     OwidArticleTypeJSON,
+    OwidArticleType,
     parseIntOrUndefined,
     parseToOperation,
     PostRow,
@@ -77,6 +79,7 @@ import {
     checkIsLightningUpdate,
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
+import { createGdocAndInsertOwidArticleContent } from "../db/model/Gdoc/archieToGdoc.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2264,6 +2267,22 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
         .select("*")
         .first()) as PostRow | undefined
     return camelCaseProperties({ ...post })
+})
+
+apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
+    const postId = expectInt(req.params.postId)
+    const post = (await db
+        .knexTable(postsTable)
+        .where({ id: postId })
+        .select("*")
+        .first()) as PostRow | undefined
+    if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
+    const archieMl = JSON.parse(post.archieml) as OwidArticleType
+    const gdocId = await createGdocAndInsertOwidArticleContent(archieMl.content)
+
+    // TODO: fill the rest of content required for an entry in the gdoc table,
+    // mark the post in the posts table as no-longer editable/publish-able,
+    // publish through gdocs?
 })
 
 apiRouter.get("/importData.json", async (req) => {
