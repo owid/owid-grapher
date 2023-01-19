@@ -28,7 +28,7 @@ import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
-import { GdocsContentSource } from "@ourworldindata/utils/dist/owidTypes.js"
+import { GdocsContentSource } from "@ourworldindata/utils"
 import OwidArticlePage from "../site/gdocs/OwidArticlePage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
