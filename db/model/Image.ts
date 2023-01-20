@@ -15,6 +15,14 @@ import {
     GDOCS_CLIENT_EMAIL,
 } from "../../settings/serverSettings.js"
 
+// This is the JSON we get from Google's API before remapping the keys to be consistent with the rest of our interfaces
+interface GDriveImageMetadata {
+    name: string
+    modifiedTime: string
+    id: string // Google Drive ID e.g. "1dfArzg3JrAJupVl4YyJpb2FOnBn4irPX"
+    description?: string // TODO: to be used as alt text
+}
+
 export interface ImageMetadata {
     googleId: string
     filename: string
@@ -23,13 +31,6 @@ export interface ImageMetadata {
     // so we store as an epoch to avoid any conversion issues
     updatedAt: number
     description?: string
-}
-
-interface GDriveImageMetadata {
-    name: string
-    modifiedTime: string
-    id: string // Google Drive ID
-    description?: string // to be used as alt text
 }
 
 // Trying this to share the Google Drive image directory throughout the codebase
@@ -82,7 +83,7 @@ class ImageStore {
                 if (imageMetadata) {
                     return Image.syncImage(imageMetadata!)
                 } else {
-                    // TODO: if we're baking for prod, log error to slack
+                    // TODO: if we're baking for prod, log error to slack?
                     console.error(
                         `Error: ${filename} could not be found in Google Drive`
                     )

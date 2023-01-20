@@ -15,10 +15,10 @@ export default function Image({
     d: EnrichedBlockImage
     className?: string
 }) {
-    const src =
-        ENV === "production"
-            ? "TODO"
-            : `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${d.filename}`
+    const src = `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${d.filename}`
+    // ENV === "production"
+    //     ? "TODO"
+    //     : `${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${d.filename}`
 
     return (
         <img
