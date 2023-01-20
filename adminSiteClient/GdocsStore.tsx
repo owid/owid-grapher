@@ -24,7 +24,7 @@ export class GdocsStore {
     }
 
     async update(gdoc: OwidArticleType) {
-        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
+        await this.admin.requestJSON(`/api/gdocs/${gdoc.googleId}`, gdoc, "PUT")
     }
 
     async publish(gdoc: OwidArticleType) {
@@ -52,7 +52,11 @@ export class GdocsStore {
     }
 
     async delete(gdoc: OwidArticleType) {
-        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, {}, "DELETE")
+        await this.admin.requestJSON(
+            `/api/gdocs/${gdoc.googleId}`,
+            {},
+            "DELETE"
+        )
     }
 }
 

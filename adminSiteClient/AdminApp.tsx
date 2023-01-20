@@ -297,7 +297,7 @@ export class AdminApp extends React.Component<{
                             />
                             <Route
                                 exact
-                                path="/gdocs/:id/preview"
+                                path="/gdocs/:googleId/preview"
                                 render={(props: GdocsMatchProps) => (
                                     <GdocsStoreProvider>
                                         <GdocsPreviewPage {...props} />

@@ -12,7 +12,7 @@ import { Observer } from "mobx-react"
 import { useGdocsStore } from "./GdocsStore.js"
 import { runInAction } from "mobx"
 interface GdocsMatchParams {
-    id: string
+    googleId: string
 }
 
 export type GdocsMatchProps = RouteComponentProps<GdocsMatchParams>
@@ -67,7 +67,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                             </thead>
                             <tbody>
                                 {store.gdocs.map((gdoc) => (
-                                    <tr key={gdoc.id}>
+                                    <tr key={gdoc.googleId}>
                                         <td>{gdoc.content.title}</td>
                                         <td>{gdoc.slug}</td>
                                         <td>Article</td>
@@ -80,7 +80,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                         <td>{gdoc.updatedAt}</td>
                                         <td>
                                             <Link
-                                                to={`${match.path}/${gdoc.id}/preview`}
+                                                to={`${match.path}/${gdoc.googleId}/preview`}
                                                 className="btn btn-primary"
                                             >
                                                 Preview

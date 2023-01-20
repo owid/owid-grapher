@@ -2652,21 +2652,21 @@ apiRouter.put("/details/:id", async (req, res) => {
 
 apiRouter.get("/gdocs", async () => Gdoc.find())
 
-apiRouter.get("/gdocs/:id", async (req) => {
-    const { id } = req.params
+apiRouter.get("/gdocs/:googleId", async (req) => {
+    const { googleId } = req.params
     const contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
 
-    return Gdoc.getGdocFromContentSource(id, contentSource)
+    return Gdoc.getGdocFromContentSource(googleId, contentSource)
 })
 
-apiRouter.get("/gdocs/:id/validate", async (req) => {
-    const { id } = req.params
+apiRouter.get("/gdocs/:googleId/validate", async (req) => {
+    const { googleId } = req.params
 
-    const gdoc = await Gdoc.findOneBy({ id })
+    const gdoc = await Gdoc.findOneBy({ googleId })
 
-    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${googleId} found`)
 
     return getErrors(gdoc)
 })
@@ -2676,20 +2676,21 @@ apiRouter.get("/gdocs/:id/validate", async (req) => {
  * support creating a new Gdoc from an existing one. Relevant updates will
  * trigger a deploy.
  */
-apiRouter.put("/gdocs/:id", async (req, res) => {
-    const { id } = req.params
+apiRouter.put("/gdocs/:googleId", async (req, res) => {
+    const { googleId } = req.params
     const nextGdocJSON: OwidArticleTypeJSON = req.body
 
     if (isEmpty(nextGdocJSON)) {
-        const newGdoc = new Gdoc(id)
+        const newGdoc = new Gdoc(googleId)
         // this will fail if the gdoc already exists, as opposed to a call to
         // newGdoc.save().
         await dataSource.getRepository(Gdoc).insert(newGdoc)
         return newGdoc
     }
 
-    const prevGdoc = await Gdoc.findOneBy({ id })
-    if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+    const prevGdoc = await Gdoc.findOneBy({ googleId })
+    if (!prevGdoc)
+        throw new JsonError(`No Google Doc with id ${googleId} found`)
 
     const nextGdoc = getArticleFromJSON(nextGdocJSON)
 
@@ -2732,13 +2733,13 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     return nextGdoc
 })
 
-apiRouter.delete("/gdocs/:id", async (req, res) => {
-    const { id } = req.params
+apiRouter.delete("/gdocs/:googleId", async (req, res) => {
+    const { googleId } = req.params
 
-    const gdoc = await Gdoc.findOneBy({ id })
-    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
+    const gdoc = await Gdoc.findOneBy({ googleId })
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${googleId} found`)
 
-    await Gdoc.delete(id)
+    await Gdoc.delete({ googleId })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })

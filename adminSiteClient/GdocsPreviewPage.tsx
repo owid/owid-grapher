@@ -33,7 +33,7 @@ import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
-    const { id } = match.params
+    const { googleId } = match.params
     const [gdoc, setGdoc] = useState<OwidArticleType>()
     const [originalGdoc, setOriginalGdoc] = useState<OwidArticleType>()
     const [isSettingsOpen, setSettingsOpen] = useState(false)
@@ -44,20 +44,20 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const store = useGdocsStore()
 
     const hasChanges = useGdocsChanged(originalGdoc, gdoc)
-    const syncingError = useUpdatePreviewContent(id, gdoc, setGdoc, admin)
+    const syncingError = useUpdatePreviewContent(googleId, gdoc, setGdoc, admin)
     const isLightningUpdate = useLightningUpdate(originalGdoc, gdoc, hasChanges)
     useAutoSaveDraft(gdoc, setOriginalGdoc, hasChanges)
 
     useEffect(() => {
         const fetchOriginalGdoc = async () => {
             const originalGdocJson = (await admin.getJSON(
-                `/api/gdocs/${id}`
+                `/api/gdocs/${googleId}`
             )) as OwidArticleTypeJSON
 
             setOriginalGdoc(getArticleFromJSON(originalGdocJson))
         }
         fetchOriginalGdoc()
-    }, [admin, id])
+    }, [admin, googleId])
 
     const hasWarnings =
         errors?.some((error) => error.type === ErrorMessageType.Warning) ??
@@ -127,7 +127,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <Typography.Title className="mb-0" level={4}>
                                 {gdoc.content.title}
                             </Typography.Title>
-                            [ <GdocsEditLink gdocId={gdoc.id} /> ]
+                            [ <GdocsEditLink gdocId={gdoc.googleId} /> ]
                             <div>
                                 {!gdoc.published && (
                                     <Tag color="default">Draft</Tag>
@@ -238,7 +238,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     resets on every change)
                 */}
                 <iframe
-                    src={`/gdocs/${gdoc.id}/preview#owid-article-root`}
+                    src={`/gdocs/${gdoc.googleId}/preview#owid-article-root`}
                     style={{ width: "100%", height: "inherit", border: "none" }}
                     key={gdoc.revisionId}
                 />
