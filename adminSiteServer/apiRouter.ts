@@ -2195,7 +2195,8 @@ apiRouter.get("/posts.json", async (req) => {
         "title",
         "type",
         "status",
-        "updated_at"
+        "updated_at",
+        "gdocSuccessorId"
     ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
 
     const tagsByPostId = await getTagsByPostId()
@@ -2279,10 +2280,15 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
     const archieMl = JSON.parse(post.archieml) as OwidArticleType
     const gdocId = await createGdocAndInsertOwidArticleContent(archieMl.content)
-
+    post.gdocSuccessorId = gdocId
+    await db
+        .knexTable(postsTable)
+        .where({ id: postId })
+        .update("gdocSuccessorId", gdocId)
     // TODO: fill the rest of content required for an entry in the gdoc table,
     // mark the post in the posts table as no-longer editable/publish-able,
     // publish through gdocs?
+    return { gdocId }
 })
 
 apiRouter.get("/importData.json", async (req) => {
