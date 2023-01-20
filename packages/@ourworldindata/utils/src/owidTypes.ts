@@ -164,6 +164,7 @@ export interface PostRow {
     updated_at: Date
     archieml: string
     archieml_update_statistics: string
+    gdocSuccessorId: string
 }
 
 export interface Tag extends TagReactTagAutocomplete {
