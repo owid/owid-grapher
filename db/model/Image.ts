@@ -106,7 +106,7 @@ const s3Client = new S3Client({
 
 @Entity("images")
 export class Image extends BaseEntity {
-    @PrimaryGeneratedColumn() id!: string
+    @PrimaryGeneratedColumn() id!: number
     @Column() googleId: string
     @Column() filename: string
     @Column() defaultAlt: string

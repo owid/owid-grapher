@@ -11,8 +11,8 @@ export const GdocsEditLink = ({
     style?: React.CSSProperties
 }) => (
     <a
-        href={`https://docs.google.com/document/d/${gdoc.id}/edit`}
-        target={gdoc.id}
+        href={`https://docs.google.com/document/d/${gdoc.googleId}/edit`}
+        target={gdoc.googleId}
         style={style}
         rel="noopener noreferrer"
     >

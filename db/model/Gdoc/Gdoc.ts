@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, BaseEntity } from "typeorm"
+import { Entity, Column, BaseEntity, PrimaryGeneratedColumn } from "typeorm"
 import {
     OwidArticleContent,
     OwidArticleType,
@@ -19,8 +19,9 @@ import { imageStore } from "../Image.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
-    @PrimaryColumn() id!: string
-    @Column() slug: string = ""
+    @PrimaryGeneratedColumn() id!: number
+    @Column({ unique: true }) googleId!: string
+    @Column({ unique: true }) slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
     @Column() published: boolean = false
     @Column() publicationContext: OwidArticlePublicationContext =
@@ -29,12 +30,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
 
-    constructor(id?: string) {
+    constructor(googleId?: string) {
         super()
         // TODO: the class is re-initializing every single auto-reload
         // Implement Page Visibility API ?
-        if (id) {
-            this.id = id
+        if (googleId) {
+            this.googleId = googleId
         }
         this.content = {}
     }
@@ -78,7 +79,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         // Retrieve raw data from Google
         const { data } = await docsClient.documents.get({
-            documentId: this.id,
+            documentId: this.googleId,
         })
 
         // Convert the doc to ArchieML syntax
