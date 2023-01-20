@@ -55,11 +55,15 @@
             }
 
             .active {
+                pointer-events: none;
+
                 img {
                     border: 1px solid $oxford-blue;
                 }
-                pointer-events: none;
-                // opacity: 0.5;
+
+                a {
+                    text-decoration: none;
+                }
             }
         }
 
