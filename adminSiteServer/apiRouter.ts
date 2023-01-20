@@ -4,7 +4,8 @@ import * as lodash from "lodash"
 import { transaction } from "../db/db.js"
 import express from "express"
 import * as db from "../db/db.js"
-import { Image, imageStore } from "../db/model/Image.js"
+import { imageStore } from "../db/model/Image.js"
+import { GdocXImage } from "../db/model/GdocXImage.js"
 import * as wpdb from "../db/wpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -2663,12 +2664,27 @@ apiRouter.put("/gdocs/:googleId", async (req, res) => {
     const nextGdoc = dataSource
         .getRepository(Gdoc)
         .create(getArticleFromJSON(nextGdocJSON))
-
+    // Deleting and recreating these is simpler than tracking orphans over the next code block
+    await GdocXImage.delete({ docId: nextGdoc.id })
     const filenames = nextGdoc.filenames
 
     if (filenames.length) {
-        await imageStore.getImages()
-        await imageStore.syncImages(filenames)
+        const images = await imageStore.syncImagesToS3(filenames)
+        for (const image of images) {
+            if (image) {
+                try {
+                    await GdocXImage.save({
+                        docId: nextGdoc.id,
+                        imageId: image.id,
+                    })
+                } catch (e) {
+                    console.error(
+                        `Error tracking image reference ${image.filename} with Google ID ${nextGdoc.googleId}`,
+                        e
+                    )
+                }
+            }
+        }
     }
 
     //todo #gdocsvalidationserver: run validation before saving published
@@ -2716,6 +2732,7 @@ apiRouter.delete("/gdocs/:googleId", async (req, res) => {
     const gdoc = await Gdoc.findOneBy({ googleId })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${googleId} found`)
 
+    await GdocXImage.delete({ docId: gdoc.id })
     await Gdoc.delete({ googleId })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}

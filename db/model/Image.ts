@@ -36,8 +36,8 @@ interface GDriveImageMetadata {
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
 
-    async getImages(): Promise<Record<string, ImageMetadata> | void> {
-        console.log("Fetching image list from Google Drive")
+    async fetchImageMetadata(): Promise<void> {
+        console.log("Fetching all image metadata from Google Drive")
         const driveClient = google.drive({
             version: "v3",
             auth: Gdoc.getGoogleAuth(),
@@ -74,10 +74,11 @@ class ImageStore {
         }
     }
 
-    async syncImages(filenames: string[]): Promise<(void | undefined)[]> {
+    async syncImagesToS3(filenames: string[]): Promise<(Image | undefined)[]> {
+        await this.fetchImageMetadata()
         return Promise.all(
             filenames.map((filename) => {
-                const imageMetadata = imageStore.images?.[filename]
+                const imageMetadata = this.images?.[filename]
                 if (imageMetadata) {
                     return Image.syncImage(imageMetadata!)
                 } else {
@@ -121,7 +122,7 @@ export class Image extends BaseEntity {
         this.updatedAt = updatedAt
     }
 
-    static async syncImage(fresh: ImageMetadata): Promise<void> {
+    static async syncImage(fresh: ImageMetadata): Promise<Image | undefined> {
         const results = await Image.findBy({ googleId: fresh.googleId })
         const stored = results[0]
 
@@ -133,9 +134,10 @@ export class Image extends BaseEntity {
                     stored.defaultAlt = fresh.defaultAlt
                     await stored.save()
                 }
+                return stored
             } else {
                 await Image.fetchFromDriveAndUploadToS3(fresh)
-                await new Image(
+                return new Image(
                     fresh.filename,
                     fresh.defaultAlt,
                     fresh.updatedAt,
@@ -145,12 +147,12 @@ export class Image extends BaseEntity {
         } catch (e) {
             console.error(`Error syncing ${fresh.filename}`, e)
         }
+        return
     }
 
     static async fetchFromDriveAndUploadToS3(
         image: Image | ImageMetadata
     ): Promise<void> {
-        console.log("fetchFromDriveAndUploadToS3")
         const driveClient = google.drive({
             version: "v3",
             auth: Gdoc.getGoogleAuth(), // TODO: extract auth from Gdoc

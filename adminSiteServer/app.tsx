@@ -70,7 +70,7 @@ export class OwidAdminApp {
 
     async startListening(adminServerPort: number, adminServerHost: string) {
         this.gitCmsBranchName = await this.getGitCmsBranchName()
-        await imageStore.getImages()
+        await imageStore.fetchImageMetadata()
         const { app } = this
 
         // since the server is running behind a reverse proxy (nginx), we need to "trust"

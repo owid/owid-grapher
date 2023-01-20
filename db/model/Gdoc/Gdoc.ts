@@ -92,8 +92,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         const filenames = this.filenames
 
         if (filenames.length) {
-            await imageStore.getImages()
-            await imageStore.syncImages(filenames)
+            await imageStore.syncImagesToS3(filenames)
         }
     }
 
