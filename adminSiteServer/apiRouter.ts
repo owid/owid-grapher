@@ -4,6 +4,7 @@ import * as lodash from "lodash"
 import { transaction } from "../db/db.js"
 import express from "express"
 import * as db from "../db/db.js"
+import { Image, imageStore } from "../db/model/Image.js"
 import * as wpdb from "../db/wpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -28,6 +29,7 @@ import {
     JsonError,
     omit,
     OperationContext,
+    OwidArticleType,
     OwidArticleTypeJSON,
     parseIntOrUndefined,
     parseToOperation,
@@ -2657,7 +2659,16 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const prevGdoc = await Gdoc.findOneBy({ id })
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = getArticleFromJSON(nextGdocJSON)
+    const nextGdoc = dataSource
+        .getRepository(Gdoc)
+        .create(getArticleFromJSON(nextGdocJSON))
+
+    const filenames = nextGdoc.filenames
+
+    if (filenames.length) {
+        await imageStore.getImages()
+        await imageStore.syncImages(filenames)
+    }
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
@@ -2676,7 +2687,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     // enqueue), so I opted for the version that matches the closest the current
     // baking model, which is "bake what is persisted in the DB". Ultimately, a
     // full sucessful deploy would resolve the state discrepancy either way.
-    await dataSource.getRepository(Gdoc).save(nextGdoc)
+    await nextGdoc.save()
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {

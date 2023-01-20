@@ -14,9 +14,9 @@ import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 
-export function OwidArticle(props: OwidArticleType) {
-    const { content, publishedAt, slug } = props
+type OwidArticleProps = OwidArticleType
 
+export function OwidArticle({ content, publishedAt, slug }: OwidArticleProps) {
     const coverStyle = content["cover-image"]
         ? {
               background: `url(${content["cover-image"][0].value.src})`,

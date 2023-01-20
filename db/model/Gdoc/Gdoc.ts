@@ -1,4 +1,3 @@
-import path from "node:path"
 import { Entity, PrimaryColumn, Column, BaseEntity } from "typeorm"
 import {
     OwidArticleContent,
@@ -6,31 +5,17 @@ import {
     OwidArticleTypePublished,
     OwidArticlePublicationContext,
     uniq,
-    keyBy,
-    isEmpty,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,
     GDOCS_PRIVATE_KEY,
-    ENV,
-    IMAGE_HOSTING_CDN_URL,
-    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
 } from "../../../settings/serverSettings.js"
-import { google, Auth, docs_v1, drive_v3 } from "googleapis"
+import { google, Auth, docs_v1 } from "googleapis"
 
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
-import { Image, ImageMetadata } from "../Image.js"
-
-const GOOGLE_DRIVE_IMAGES_FOLDER_ID = "1dfArzg3JrAJupVl4YyJpb2FOnBn4irPX"
-
-interface GDriveImageMetadata {
-    name: string
-    modifiedTime: string
-    id: string // Google Drive ID
-    description: string // to be used as alt text
-}
+import { imageStore } from "../Image.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -51,13 +36,10 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         if (id) {
             this.id = id
         }
-        this.cachedImageMetadata = {}
         this.content = {}
     }
     static cachedGoogleAuth?: Auth.GoogleAuth
     static cachedGoogleClient?: docs_v1.Docs
-
-    cachedImageMetadata: Record<string, ImageMetadata>
 
     static getGoogleAuth(): Auth.GoogleAuth {
         if (!Gdoc.cachedGoogleAuth) {
@@ -103,111 +85,30 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         const { text } = await gdocToArchie(data)
 
         // Convert the ArchieML to our enriched JSON structure
-        const content = archieToEnriched(text)
+        this.content = archieToEnriched(text)
 
         // Get the filenames of the images referenced in the article
-        const filenames = this.extractImagesFilenames(content)
+        const filenames = this.filenames
 
-        // currently, isEmpty will always be true, because the server is instantiating a new Gdoc every time
-        // but we could implement a socket session in the future
-        if (filenames.length && isEmpty(this.cachedImageMetadata)) {
-            await this.fetchDriveImageData()
-            await Promise.all(
-                filenames.map((filename) => {
-                    if (this.cachedImageMetadata[filename]) {
-                        return Image.syncImage(
-                            this.cachedImageMetadata[filename]
-                        )
-                    } else {
-                        // TODO: if we're baking for prod, log error to slack
-                        console.error(
-                            `Error: ${filename} could not be found in Google Drive`
-                        )
-                        return
-                    }
-                })
-            )
-            this.content = this.replaceImagePaths(content)
+        if (filenames.length) {
+            await imageStore.getImages()
+            await imageStore.syncImages(filenames)
         }
     }
 
-    async fetchDriveImageData(): Promise<void> {
-        const driveClient = google.drive({
-            version: "v3",
-            auth: Gdoc.getGoogleAuth(),
-        })
-        try {
-            // TODO: fetch all pages (current limit = 1000)
-            const res = await driveClient.files.list({
-                // modifiedTime format: "2023-01-11T19:45:27.000Z"
-                fields: "nextPageToken, files(id, name, description, modifiedTime)",
-                q: `'${GOOGLE_DRIVE_IMAGES_FOLDER_ID}' in parents`,
-            })
-
-            const files = res.data.files ?? []
-
-            function validateImage(
-                image: drive_v3.Schema$File
-            ): image is GDriveImageMetadata {
-                // image.description can be undefined or "", which we should handle
-                return Boolean(image.id && image.name && image.modifiedTime)
-            }
-
-            const images: ImageMetadata[] = files
-                .filter(validateImage)
-                .map((google: GDriveImageMetadata) => ({
-                    googleId: google.id,
-                    filename: google.name,
-                    defaultAlt: google.description,
-                    updatedAt: new Date(google.modifiedTime).getTime(),
-                }))
-
-            this.cachedImageMetadata = keyBy(images, "filename")
-        } catch (e) {
-            console.log("Error fetching images from Drive", e)
-        }
+    get filenames(): string[] {
+        return Gdoc.extractImagesFilenames(this.content)
     }
 
-    extractImagesFilenames(enriched: OwidArticleContent): string[] {
-        const articleString = JSON.stringify(enriched.body)
-
+    static extractImagesFilenames(enriched: OwidArticleContent): string[] {
         // quick solution instead of tree traversal
+        const articleString = JSON.stringify(enriched.body)
         const matches = [...articleString.matchAll(/"filename":"([\w\.\-]+)"/g)]
-
         const filenames: string[] = uniq(
             matches.map(([_, filename]) => filename)
         )
 
         return filenames
-    }
-
-    replaceImagePaths(content: OwidArticleContent): OwidArticleContent {
-        // just for testing, don't actually do it like this
-        let articleString = JSON.stringify(content.body)
-        const matches = [...articleString.matchAll(/"filename":"([\w\.\-]+)"/g)]
-
-        const filenames: string[] = uniq(
-            matches.map(([_, filename]) => filename)
-        )
-
-        const assetPath =
-            ENV === "production"
-                ? "TODO"
-                : path.join(
-                      IMAGE_HOSTING_CDN_URL,
-                      IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH
-                  )
-
-        filenames.forEach((filename) => {
-            if (this.cachedImageMetadata[filename]) {
-                articleString = articleString.replaceAll(
-                    filename,
-                    path.join(assetPath, filename)
-                )
-            }
-        })
-        content.body = JSON.parse(articleString)
-        return content
     }
 
     static async getPublishedGdocs(): Promise<OwidArticleTypePublished[]> {

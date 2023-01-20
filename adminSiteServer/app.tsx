@@ -27,6 +27,7 @@ import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
+import { imageStore } from "../db/model/Image.js"
 
 // library does not provide type definitions
 // eslint-disable-next-line
@@ -69,6 +70,7 @@ export class OwidAdminApp {
 
     async startListening(adminServerPort: number, adminServerHost: string) {
         this.gitCmsBranchName = await this.getGitCmsBranchName()
+        await imageStore.getImages()
         const { app } = this
 
         // since the server is running behind a reverse proxy (nginx), we need to "trust"

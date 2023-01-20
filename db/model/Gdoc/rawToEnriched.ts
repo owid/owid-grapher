@@ -66,6 +66,7 @@ import {
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
+import { imageStore } from "../Image.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawArticleBlock
@@ -364,16 +365,23 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     })
 
     const filename = image.value.filename
-    const alt = image.value.alt
     if (!filename) {
         return createError({
             message: "filename property is missing or empty",
         })
     }
 
+    const alt = image.value.alt
     if (!alt) {
         return createError({
             message: "alt property is missing or empty",
+        })
+    }
+
+    const imageMetadata = imageStore.images?.[filename]
+    if (!imageMetadata) {
+        return createError({
+            message: `image with filename ${filename} not found in Google Drive`,
         })
     }
 
