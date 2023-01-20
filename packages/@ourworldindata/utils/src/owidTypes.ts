@@ -855,7 +855,7 @@ export enum OwidArticlePublicationContext {
 }
 
 export interface OwidArticleType {
-    id: number
+    id?: number
     googleId: string
     slug: string
     content: OwidArticleContent
