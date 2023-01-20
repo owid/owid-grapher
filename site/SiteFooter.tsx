@@ -8,6 +8,7 @@ interface SiteFooterProps {
     hideDonate?: boolean
     baseUrl: string
     context?: SiteFooterContext
+    debug?: boolean
 }
 
 export const SiteFooter = (props: SiteFooterProps) => (
@@ -264,9 +265,10 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <script src={webpackUrl("owid.js", props.baseUrl)} />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `window.runSiteFooterScripts(${JSON.stringify(
-                        props.context
-                    )})`, // todo: gotta be a better way.
+                    __html: `window.runSiteFooterScripts(${JSON.stringify({
+                        context: props.context,
+                        debug: props.debug,
+                    })})`, // todo: gotta be a better way.
                 }}
             />
         </footer>
