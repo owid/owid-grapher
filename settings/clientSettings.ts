@@ -1,3 +1,47 @@
+export abstract class ClientSettings<T extends Record<string, PrimitiveType>> {
+    defaults: T
+    private settingsObj: Partial<T>
+
+    constructor(defaults: T, settingsObject: Record<string, unknown>) {
+        this.defaults = defaults
+        this.settingsObj = this.prune(settingsObject)
+    }
+
+    // In comes an unsanitized settings object, which may contain secret serverSettings that we absolutely don't want to expose to the client.
+    prune(settings: Record<string, unknown>): Partial<T> {
+        const picked = pick(settings, Object.keys(this.defaults))
+        for (const key in picked) {
+            const actualType = typeof picked[key]
+            const expectedType = typeof this.defaults[key]
+            if (actualType !== expectedType) {
+                if (expectedType === "string") picked[key] = String(picked[key])
+                else if (expectedType === "number") {
+                    picked[key] = Number(picked[key])
+                    if (Number.isNaN(picked[key]))
+                        throw new Error(
+                            `Expected setting ${key} to be a number, but got "${settings[key]}"`
+                        )
+                } else if (expectedType === "boolean")
+                    picked[key] = picked[key] === "true"
+            }
+        }
+        return picked as Partial<T>
+    }
+
+    toMergedObject(): T {
+        return {
+            ...this.defaults,
+            ...this.settingsObj,
+        }
+    }
+
+    toSparseJsonString(): string {
+        return JSON.stringify(this.settingsObj)
+    }
+}
+
+// ----
+
 // All of this information is available to the client-side code
 // DO NOT retrieve sensitive information from the environment in here! :O
 // Settings in here will be made available to the client-side code that is
@@ -9,7 +53,7 @@ import findBaseDir from "./findBaseDir.js"
 const baseDir = findBaseDir(__dirname)
 if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 
-import { parseIntOrUndefined } from "@ourworldindata/utils"
+import { parseIntOrUndefined, PrimitiveType, pick } from "@ourworldindata/utils"
 
 export const ENV: "development" | "production" =
     process.env.ENV === "production" ? "production" : "development"
