@@ -10,6 +10,7 @@ export abstract class ClientSettings<T extends Record<string, PrimitiveType>> {
     // In comes an unsanitized settings object, which may contain secret serverSettings that we absolutely don't want to expose to the client.
     prune(settings: Record<string, unknown>): Partial<T> {
         const picked = pick(settings, Object.keys(this.defaults))
+
         for (const key in picked) {
             const actualType = typeof picked[key]
             const expectedType = typeof this.defaults[key]
@@ -33,6 +34,10 @@ export abstract class ClientSettings<T extends Record<string, PrimitiveType>> {
             ...this.defaults,
             ...this.settingsObj,
         }
+    }
+
+    toSparseObject(): Partial<T> {
+        return this.settingsObj
     }
 
     toSparseJsonString(): string {

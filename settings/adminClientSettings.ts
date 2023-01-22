@@ -20,7 +20,7 @@ const defaults = {
     WORDPRESS_URL: "",
 }
 
-type AdminClientSettingsObject = typeof defaults
+export type AdminClientSettingsObject = typeof defaults
 
 export class AdminClientSettings extends ClientSettings<AdminClientSettingsObject> {
     constructor(settings: Record<string, unknown>) {

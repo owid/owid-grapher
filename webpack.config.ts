@@ -2,12 +2,17 @@ import webpack from "webpack"
 import "webpack-dev-server" // just imported for type magic
 import path from "path"
 
+import dotenv from "dotenv"
+import { SiteClientSettings } from "./settings/siteClientSettings.js"
+
 /* eslint-disable @typescript-eslint/no-var-requires */
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const { WebpackManifestPlugin } = require("webpack-manifest-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const DotenvWebpackPlugin = require("dotenv-webpack")
 /* eslint-enable @typescript-eslint/no-var-requires */
+
+const parsedEnvFile = dotenv.config().parsed ?? {}
 
 const config = (env: any, argv: any): webpack.Configuration => {
     const isProduction = argv.mode === "production"
@@ -30,6 +35,7 @@ const config = (env: any, argv: any): webpack.Configuration => {
         context: javascriptDir,
         entry: {
             admin: "./adminSiteClient/admin.entry.js",
+            clientSettings: "./site/clientSettings.entry.js",
             owid: "./site/owid.entry.js",
         },
         optimization: {
@@ -116,6 +122,12 @@ const config = (env: any, argv: any): webpack.Configuration => {
             // Ensure serverSettings.ts never end up in a webpack build by accident
             new webpack.IgnorePlugin({
                 resourceRegExp: /settings\/serverSettings/,
+            }),
+
+            new webpack.DefinePlugin({
+                __OWID_SITE_CLIENT_SETTINGS: new SiteClientSettings(
+                    parsedEnvFile
+                ).toSparseJsonString(),
             }),
         ],
         devServer: {
