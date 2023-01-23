@@ -79,7 +79,7 @@ class PostRow extends React.Component<PostRowProps> {
             "POST"
         )
         this.postGdocStatus = GdocStatus.CONVERTED
-        this.props.post.gdocSuccessorId = json.gdocId
+        this.props.post.gdocSuccessorId = json.googleDocsId
     }
 
     render() {
