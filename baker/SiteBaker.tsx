@@ -4,6 +4,7 @@ import * as glob from "glob"
 import { without } from "lodash"
 import * as lodash from "lodash"
 import * as cheerio from "cheerio"
+import fetch from "node-fetch"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
@@ -11,6 +12,8 @@ import {
     BLOG_POSTS_PER_PAGE,
     BASE_DIR,
     WORDPRESS_DIR,
+    IMAGE_HOSTING_CDN_URL,
+    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
 } from "../settings/serverSettings.js"
 
 import {
@@ -56,6 +59,7 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { Image } from "../db/model/Image.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -336,11 +340,50 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked rss" })
     }
 
+    private async fetchImages() {
+        const images: Image[] = await db.queryMysql(
+            `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
+        )
+
+        for (const image of images) {
+            const remoteFilePath = path.join(
+                IMAGE_HOSTING_CDN_URL,
+                IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+                image.filename
+            )
+            await fetch(remoteFilePath)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText)
+                    }
+                    return response.buffer()
+                })
+                .then((buffer) => {
+                    this.ensureDir("images")
+                    const localFilePath = path.join(
+                        this.bakedSiteDir,
+                        "images",
+                        image.filename
+                    )
+                    fs.writeFileSync(localFilePath, buffer)
+                })
+                .catch((e) => {
+                    console.error(
+                        `Error fetching ${image.filename} from S3: `,
+                        e
+                    )
+                })
+        }
+    }
+
     // Bake the static assets
     private async bakeAssets() {
         await execWrapper(
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
+
+        await this.fetchImages()
+
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/itsJustJavascript/webpack ${this.bakedSiteDir}/assets`
         )
@@ -389,13 +432,15 @@ export class SiteBaker {
     }
 
     async bakeNonWordpressPages() {
+        console.log("bakeNonWordpressPages fetchImages")
+
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
                 total: 5,
             }
         )
-        await this._bakeNonWordpressPages()
+        // await this._bakeNonWordpressPages()
     }
 
     async bakeAll() {
