@@ -27,11 +27,6 @@ import {
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
-export interface ArchieMLLine {
-    line: string
-    spans: Span[] | undefined
-}
-
 export function appendDotEndIfMultiline(line: string): string {
     if (line.includes("\n")) return line + "\n:end"
     return line

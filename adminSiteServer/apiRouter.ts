@@ -2278,6 +2278,8 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
         .select("*")
         .first()) as PostRow | undefined
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
+    if (post.gdocSuccessorId)
+        throw new JsonError("A gdoc already exists for this post", 400)
     const archieMl = JSON.parse(post.archieml) as OwidArticleType
     const gdocId = await createGdocAndInsertOwidArticleContent(archieMl.content)
     post.gdocSuccessorId = gdocId
@@ -2288,7 +2290,7 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     // TODO: fill the rest of content required for an entry in the gdoc table,
     // mark the post in the posts table as no-longer editable/publish-able,
     // publish through gdocs?
-    return { gdocId }
+    return { googleDocsId: gdocId }
 })
 
 apiRouter.get("/importData.json", async (req) => {

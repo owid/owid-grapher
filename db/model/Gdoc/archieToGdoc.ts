@@ -1,25 +1,18 @@
 import {
-    Span,
-    RawBlockHorizontalRule,
-    RawBlockImage,
-    RawBlockHeading,
     OwidArticleContent,
     EnrichedBlockText,
     EnrichedBlockSimpleText,
 } from "@ourworldindata/utils"
-import { spanToHtmlString } from "./gdocUtils"
 import {
-    keyValueToArchieMlString,
     propertyToArchieMLString,
     encloseLinesAsPropertyPossiblyMultiline,
     owidRawArticleBlockToArchieMLStringGenerator,
 } from "./rawToArchie.js"
-import { match, P } from "ts-pattern"
+import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSettings.js"
 import { enrichedBlockToRawBlock } from "./enrichtedToRaw.js"
-import { google, Auth, drive_v3, docs_v1 } from "googleapis"
+import { google, docs_v1 } from "googleapis"
 import { Gdoc } from "./Gdoc.js"
 import * as cheerio from "cheerio"
-import { style } from "d3"
 
 function* yieldMultiBlockPropertyIfDefined(
     property: keyof OwidArticleContent,
@@ -55,6 +48,7 @@ function* owidArticleToArchieMLStringGenerator(
     yield* propertyToArchieMLString("cover-image", article)
     yield* propertyToArchieMLString("cover-color", article)
     yield* propertyToArchieMLString("featured-image", article)
+    yield ""
     if (article.body) {
         yield "[+body]"
         for (const block of article.body) {
@@ -63,6 +57,7 @@ function* owidArticleToArchieMLStringGenerator(
                 ...owidRawArticleBlockToArchieMLStringGenerator(rawBlock),
             ]
             yield* lines
+            yield ""
         }
         yield "[]"
     }
@@ -143,6 +138,8 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
         },
     }
     for (const fragment of line.fragments) {
+        // Fragments will be reversed after they are generated - this is why we first
+        // emit the style change and then the text.
         yield {
             updateTextStyle: {
                 range: {
@@ -155,10 +152,6 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
         }
         yield {
             insertText: {
-                // The first text inserted into the document must create a paragraph,
-                // which can't be done with the `location` property.  Use the
-                // `endOfSegmentLocation` instead, which assumes the Body if
-                // unspecified.
                 location: {
                     index: 1,
                 },
@@ -195,6 +188,9 @@ function articleToBatchUpdates(
         ...lineToBatchUpdates(l),
     ])
 
+    // The batch updates are in their logical order here. To work in one batch update
+    // we want to insert gdoc DOM spans in reverse order, so we reverse the batches here.
+    // The code above already works under the assumption that the batches will be reversed.
     batchUpdates.reverse()
     return batchUpdates
 }
@@ -205,8 +201,10 @@ export async function createGdocAndInsertOwidArticleContent(
     const batchUpdates = articleToBatchUpdates(article)
 
     const docsMimeType = "application/vnd.google-apps.document"
-    const targetFolder = "1JNP-guV4nYh6-ql_z5xOagfSnSy2LIP2"
-    const auth = Gdoc.getGoogleAuth()
+    const targetFolder = GDOCS_BACKPORTING_TARGET_FOLDER
+    if (targetFolder === undefined || targetFolder === "")
+        throw new Error("GDOCS_BACKPORTING_TARGET_FOLDER is not set")
+    const auth = Gdoc.getGoogleReadWriteAuth()
     const client = google.docs({
         version: "v1",
         auth,
@@ -229,12 +227,6 @@ export async function createGdocAndInsertOwidArticleContent(
     })
     const documentId = createResp.data.id!
 
-    // const { data } = await client.documents.create({
-    //     requestBody: {
-    //         title: article.title,
-    //     },
-    // })
-
     await client.documents.batchUpdate({
         // The ID of the document to update.
         documentId,
@@ -244,17 +236,6 @@ export async function createGdocAndInsertOwidArticleContent(
             requests: batchUpdates,
         },
     })
-
-    // const resp = await client.documents.get({
-    //     documentId: documentId,
-    // })
-    // console.log(JSON.stringify(resp.data.body, undefined, 2))
-
-    // const deleteRes = await driveClient.files.delete({
-    //     fileId: data.documentId!,
-    // })
-    // console.log("deleteRes status", deleteRes.status)
-    // console.log("deleteRes statustext", deleteRes.statusText)
 
     return documentId
 }
