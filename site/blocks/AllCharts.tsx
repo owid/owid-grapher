@@ -7,7 +7,7 @@ export const AllCharts = ({ post }: { post: FullPost }) => {
     if (!post.relatedCharts?.length) return null
     return (
         <>
-            <h3>All our interactive charts on {post.title}</h3>
+            <h3>Interactive charts on {post.title}</h3>
             <div className={WP_BlockClass.FullContentWidth}>
                 <RelatedCharts charts={post.relatedCharts} />
             </div>
