@@ -175,11 +175,28 @@ export class Image extends BaseEntity {
         const bucket = IMAGE_HOSTING_BUCKET_PATH.slice(0, indexOfFirstSlash)
         const directory = IMAGE_HOSTING_BUCKET_PATH.slice(indexOfFirstSlash + 1)
 
+        const fileExtension = image.filename.slice(
+            image.filename.indexOf(".") + 1
+        )
+        const MIMEType = {
+            png: "image/png",
+            svg: "image/svg+xml",
+            jpg: "image/jpg",
+            jpeg: "image/jpeg",
+        }[fileExtension]
+
+        if (!MIMEType) {
+            throw new Error(
+                `Error uploading image: unsupported file extension ${fileExtension}`
+            )
+        }
+
         const params: PutObjectCommandInput = {
             Bucket: bucket,
             Key: `${directory}/${image.filename}`,
             Body: imageArrayBuffer,
             ACL: "public-read",
+            ContentType: MIMEType,
         }
         await s3Client.send(new PutObjectCommand(params))
         console.log(
