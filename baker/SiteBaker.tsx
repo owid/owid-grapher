@@ -382,14 +382,14 @@ export class SiteBaker {
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
 
-        await this.fetchImages()
-
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/itsJustJavascript/webpack ${this.bakedSiteDir}/assets`
         )
         await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
         )
+
+        await this.fetchImages()
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
@@ -432,8 +432,6 @@ export class SiteBaker {
     }
 
     async bakeNonWordpressPages() {
-        console.log("bakeNonWordpressPages fetchImages")
-
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
