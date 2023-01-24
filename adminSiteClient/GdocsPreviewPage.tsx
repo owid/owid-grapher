@@ -234,7 +234,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 </Drawer>
 
                 <DebugProvider>
-                    <OwidArticle {...gdoc} />
+                    <OwidArticle {...gdoc} isPreviewing />
                 </DebugProvider>
 
                 {gdoc.published && (
