@@ -9,6 +9,7 @@ import * as http from "http"
 import {
     ADMIN_SERVER_HOST,
     ADMIN_SERVER_PORT,
+    BAKED_BASE_URL,
     ENV,
     SLACK_ERRORS_WEBHOOK_URL,
 } from "../settings/serverSettings.js"
@@ -28,6 +29,9 @@ import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { imageStore } from "../db/model/Image.js"
+import { GdocsContentSource } from "@ourworldindata/utils"
+import OwidArticlePage from "../site/gdocs/OwidArticlePage.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 // library does not provide type definitions
 // eslint-disable-next-line
@@ -103,6 +107,25 @@ export class OwidAdminApp {
                         username={res.locals.user.fullName}
                         isSuperuser={res.locals.user.isSuperuser}
                         gitCmsBranchName={this.gitCmsBranchName}
+                    />
+                )
+            )
+        })
+
+        // Public preview of a Gdoc article
+        app.get("/gdocs/:id/preview", async (req, res) => {
+            const gdoc = await Gdoc.getGdocFromContentSource(
+                req.params.id,
+                GdocsContentSource.Gdocs
+            )
+            res.set("X-Robots-Tag", "noindex")
+            res.send(
+                renderToHtmlPage(
+                    <OwidArticlePage
+                        baseUrl={BAKED_BASE_URL}
+                        article={gdoc}
+                        debug
+                        isPreviewing
                     />
                 )
             )

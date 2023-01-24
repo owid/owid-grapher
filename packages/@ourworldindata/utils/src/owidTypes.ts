@@ -864,6 +864,7 @@ export interface OwidArticleType {
     publishedAt: Date | null
     updatedAt: Date | null
     publicationContext: OwidArticlePublicationContext
+    revisionId: string | null
 }
 
 // see also: getArticleFromJSON()

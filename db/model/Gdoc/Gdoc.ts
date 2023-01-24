@@ -5,6 +5,8 @@ import {
     OwidArticleTypePublished,
     OwidArticlePublicationContext,
     uniq,
+    GdocsContentSource,
+    JsonError,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -29,6 +31,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column() createdAt: Date = new Date()
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
+    @Column({ type: String, nullable: true }) revisionId: string | null = null
 
     constructor(googleId?: string) {
         super()
@@ -80,7 +83,10 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         // Retrieve raw data from Google
         const { data } = await docsClient.documents.get({
             documentId: this.googleId,
+            suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
         })
+
+        this.revisionId = data.revisionId ?? null
 
         // Convert the doc to ArchieML syntax
         const { text } = await gdocToArchie(data)
@@ -109,6 +115,21 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         )
 
         return filenames
+    }
+
+    static async getGdocFromContentSource(
+        googleId: string,
+        contentSource?: GdocsContentSource
+    ): Promise<OwidArticleType> {
+        const gdoc = await Gdoc.findOneBy({ googleId })
+
+        if (!gdoc)
+            throw new JsonError(`No Google Doc with id ${googleId} found`)
+
+        if (contentSource === GdocsContentSource.Gdocs) {
+            await gdoc.getEnrichedArticle()
+        }
+        return gdoc
     }
 
     static async getPublishedGdocs(): Promise<OwidArticleTypePublished[]> {

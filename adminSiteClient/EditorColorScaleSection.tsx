@@ -5,11 +5,15 @@ import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { ColorScale } from "@ourworldindata/grapher"
 import {
+    ColorScale,
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
+    binningStrategyLabels,
+    ColorSchemeName,
+    BinningStrategy,
+    ChartTypeName,
 } from "@ourworldindata/grapher"
 import { clone, noop, last } from "@ourworldindata/utils"
 import { Color } from "@ourworldindata/core-table"
@@ -29,10 +33,6 @@ import {
     ColorSchemeOption,
     ColorSchemeDropdown,
 } from "./ColorSchemeDropdown.js"
-import { binningStrategyLabels } from "@ourworldindata/grapher"
-import { ColorSchemeName } from "@ourworldindata/grapher"
-import { BinningStrategy } from "@ourworldindata/grapher"
-import { ChartTypeName } from "@ourworldindata/grapher"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean

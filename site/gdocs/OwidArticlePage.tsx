@@ -8,6 +8,7 @@ import { OwidArticle } from "./OwidArticle.js"
 import { get } from "lodash"
 
 import { OwidArticleType, SiteFooterContext } from "@ourworldindata/utils"
+import { DebugProvider } from "./DebugContext.js"
 
 declare global {
     interface Window {
@@ -18,9 +19,13 @@ declare global {
 export default function OwidArticlePage({
     baseUrl,
     article,
+    debug,
+    isPreviewing = false,
 }: {
     baseUrl: string
     article: OwidArticleType
+    debug?: boolean
+    isPreviewing?: boolean
 }) {
     const { content, slug, createdAt, updatedAt } = article
 
@@ -67,11 +72,14 @@ export default function OwidArticlePage({
             <body>
                 <SiteHeader baseUrl={baseUrl} />
                 <div id="owid-article-root">
-                    <OwidArticle {...article} />
+                    <DebugProvider debug={debug}>
+                        <OwidArticle {...article} isPreviewing={isPreviewing} />
+                    </DebugProvider>
                 </div>
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.gdocsArticle}
+                    debug={debug}
                 />
             </body>
         </html>

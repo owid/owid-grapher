@@ -7,10 +7,9 @@ import {
 } from "../core/GrapherConstants"
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { TooltipManager } from "../tooltip/TooltipProps"
-import { OwidTable } from "@ourworldindata/core-table"
+import { OwidTable, EntityName, CoreColumn } from "@ourworldindata/core-table"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import { ColorSchemeName } from "../color/ColorConstants"
-import { EntityName, CoreColumn } from "@ourworldindata/core-table"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     Annotation,

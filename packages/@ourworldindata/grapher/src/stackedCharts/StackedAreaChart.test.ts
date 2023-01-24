@@ -7,12 +7,12 @@ import {
     SynthesizeFruitTableWithStringValues,
     SynthesizeGDPTable,
     ColumnTypeNames,
+    OwidTable,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-import { OwidTable } from "@ourworldindata/core-table"
 import { isNumber } from "@ourworldindata/utils"
 
 class MockManager implements ChartManager {

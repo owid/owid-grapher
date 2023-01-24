@@ -3,8 +3,8 @@ import { SlopeChart } from "./SlopeChart"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
+    BlankOwidTable,
 } from "@ourworldindata/core-table"
-import { BlankOwidTable } from "@ourworldindata/core-table"
 
 export default {
     title: "SlopeChart",

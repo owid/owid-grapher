@@ -3,13 +3,13 @@ import { Grapher, GrapherProgrammaticInterface } from "./Grapher"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
+    BlankOwidTable,
 } from "@ourworldindata/core-table"
 import {
     ChartTypeName,
     FacetStrategy,
     GrapherTabOption,
 } from "./GrapherConstants"
-import { BlankOwidTable } from "@ourworldindata/core-table"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartTypeSwitcher } from "../chart/ChartTypeSwitcher"

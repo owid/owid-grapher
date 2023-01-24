@@ -1,5 +1,4 @@
-import React from "react"
-import { useRef } from "react"
+import React, { useRef } from "react"
 import { useEmbedChart } from "../hooks.js"
 import { EnrichedBlockChart, Url } from "@ourworldindata/utils"
 import { renderSpans } from "./utils.js"

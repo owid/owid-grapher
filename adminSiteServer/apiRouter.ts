@@ -2620,14 +2620,7 @@ apiRouter.get("/gdocs/:googleId", async (req) => {
         | GdocsContentSource
         | undefined
 
-    const gdoc = await Gdoc.findOneBy({ googleId })
-
-    if (!gdoc) throw new JsonError(`No Google Doc with id ${googleId} found`)
-
-    if (contentSource === GdocsContentSource.Gdocs) {
-        await gdoc.getEnrichedArticle()
-    }
-    return gdoc
+    return Gdoc.getGdocFromContentSource(googleId, contentSource)
 })
 
 apiRouter.get("/gdocs/:googleId/validate", async (req) => {

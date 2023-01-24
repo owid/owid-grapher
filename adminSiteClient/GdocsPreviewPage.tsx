@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
-import { OwidArticle } from "../site/gdocs/OwidArticle.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     OwidArticleType,
@@ -30,7 +29,6 @@ import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
-import { DebugProvider } from "../site/gdocs/DebugContext.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
 
@@ -233,9 +231,17 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     <GdocsDiff originalGdoc={originalGdoc} gdoc={gdoc} />
                 </Drawer>
 
-                <DebugProvider>
-                    <OwidArticle {...gdoc} isPreviewing />
-                </DebugProvider>
+                {/* 
+                    This uses the full SSR rendering pipeline. It is more accurate but comes
+                    with an additional requests to the Google API and has a less polished
+                    authoring experience at the moment (content flashes and scrolling position
+                    resets on every change)
+                */}
+                <iframe
+                    src={`/gdocs/${gdoc.googleId}/preview#owid-article-root`}
+                    style={{ width: "100%", height: "inherit", border: "none" }}
+                    key={gdoc.revisionId}
+                />
 
                 {gdoc.published && (
                     <div

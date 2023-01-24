@@ -1,6 +1,9 @@
 import { observable, computed, action } from "mobx"
-import { queryParamsToStr } from "@ourworldindata/utils"
-import { differenceObj, trimObject } from "@ourworldindata/utils"
+import {
+    queryParamsToStr,
+    differenceObj,
+    trimObject,
+} from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
     CoreTable,
