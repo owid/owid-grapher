@@ -7,6 +7,13 @@ import type { Manifest } from "vite"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
+const googleFontsStyles = (
+    <link
+        href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap"
+        rel="stylesheet"
+    />
+)
+
 const polyfillScript = <script key="polyfill" src={POLYFILL_URL} />
 
 interface Assets {
@@ -16,7 +23,7 @@ interface Assets {
 
 const devAssets = (entry: string): Assets => {
     return {
-        styles: [],
+        styles: [googleFontsStyles],
         scripts: [
             polyfillScript,
             <script
@@ -110,7 +117,7 @@ const prodAssets = (entry: string): Assets => {
     const assets = createTagsForManifestEntry(manifest, entry, assetBaseUrl)
 
     return {
-        styles: assets.styles,
+        styles: [googleFontsStyles, ...assets.styles],
         scripts: [polyfillScript, ...assets.scripts],
     }
 }
