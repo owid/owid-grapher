@@ -1,5 +1,5 @@
 import React from "react"
-import { webpackUrl } from "../site/webpackUtils.js"
+import { viteAssets } from "./viteUtils.js"
 
 export const Head = (props: {
     canonicalUrl: string
@@ -55,8 +55,7 @@ export const Head = (props: {
                 href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap"
                 rel="stylesheet"
             />
-            {/* <link rel="stylesheet" href={webpackUrl("owid.css", baseUrl)} />
-            <link rel="stylesheet" href={webpackUrl("commons.css", baseUrl)} /> */}
+            {viteAssets.styles}
             {props.children}
         </head>
     )
