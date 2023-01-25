@@ -3,6 +3,7 @@ import findBaseDir from "../settings/findBaseDir.js"
 import fs from "fs-extra"
 import { ENV, BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { POLYFILL_URL } from "./SiteConstants.js"
+import type { Manifest } from "vite"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
@@ -13,7 +14,7 @@ interface Assets {
     scripts: JSX.Element[]
 }
 
-const devAssets = (): Assets => {
+const devAssets = (entry: string): Assets => {
     return {
         styles: [],
         scripts: [
@@ -35,20 +36,69 @@ const devAssets = (): Assets => {
                 src={`${VITE_DEV_URL}/@vite/client`}
             />,
             <script
-                key="owid-entry"
+                key={entry}
                 type="module"
-                src={`${VITE_DEV_URL}/site/owid.entry.ts`}
+                src={`${VITE_DEV_URL}/${entry}`}
             />,
         ],
     }
 }
 
-const prodAssets = (): Assets => {
+const createTagsForManifestEntry = (
+    manifest: Manifest,
+    entry: string,
+    assetBaseUrl: string
+): Assets => {
+    const createTags = (entry: string): JSX.Element[] => {
+        const manifestEntry =
+            Object.values(manifest).find((e) => e.file === entry) ??
+            manifest[entry]
+        let assets = [] as JSX.Element[]
+
+        if (!manifestEntry)
+            throw new Error(`Could not find manifest entry for ${entry}`)
+
+        if (entry.endsWith(".css")) {
+            assets = [
+                ...assets,
+                <link
+                    key={entry}
+                    rel="stylesheet"
+                    href={`${assetBaseUrl}${manifestEntry.file}`}
+                />,
+            ]
+        } else if (entry.match(/\.[cm]?(js|jsx|ts|tsx)$/)) {
+            assets = [
+                ...assets,
+                <script
+                    key={entry}
+                    type="module"
+                    src={`${assetBaseUrl}${manifestEntry.file}`}
+                />,
+            ]
+        }
+        if (manifestEntry.imports) {
+            assets = [...assets, ...manifestEntry.imports.flatMap(createTags)]
+        }
+        if (manifestEntry.css) {
+            assets = [...assets, ...manifestEntry.css.flatMap(createTags)]
+        }
+        return assets
+    }
+
+    const assets = createTags(entry)
+    return {
+        styles: assets.filter((el) => el.type === "link"),
+        scripts: assets.filter((el) => el.type === "script"),
+    }
+}
+
+const prodAssets = (entry: string): Assets => {
     const baseDir = findBaseDir(__dirname)
     const manifestPath = `${baseDir}/dist/manifest.json`
     let manifest
     try {
-        manifest = fs.readJSONSync(manifestPath)
+        manifest = fs.readJSONSync(manifestPath) as Manifest
     } catch (err) {
         throw new Error(
             `Could not read build manifest ('${manifestPath}'), which is required for production.`,
@@ -56,24 +106,14 @@ const prodAssets = (): Assets => {
         )
     }
 
-    const assetBaseUrl = `${BAKED_BASE_URL}/assets/`
+    const assetBaseUrl = `${BAKED_BASE_URL}/`
+    const assets = createTagsForManifestEntry(manifest, entry, assetBaseUrl)
 
     return {
-        styles: [
-            <link
-                key="style.css"
-                rel="stylesheet"
-                href={`${assetBaseUrl}${manifest["style.css"].file}`}
-            />,
-        ],
-        scripts: [
-            polyfillScript,
-            <script
-                key="owid-entry"
-                src={`${assetBaseUrl}${manifest["site/owid.entry.ts"].file}`}
-            />,
-        ],
+        styles: assets.styles,
+        scripts: [polyfillScript, ...assets.scripts],
     }
 }
 
-export const viteAssets = ENV === "production" ? prodAssets() : devAssets()
+export const viteAssets = (entry: string) =>
+    ENV === "production" ? prodAssets(entry) : devAssets(entry)

@@ -15,18 +15,22 @@ export default defineConfig({
     },
     build: {
         manifest: true,
-        emptyOutDir: false,
+        emptyOutDir: true,
         outDir: "dist",
         sourcemap: true,
         lib: {
             entry: {
                 owid: "./site/owid.entry.ts",
-                // admin: "./adminSiteClient/admin.entry.ts",
+                admin: "./adminSiteClient/admin.entry.ts",
             },
             formats: ["es"],
         },
         commonjsOptions: {
             include: [/@ourworldindata\/.*/, /node_modules/],
+        },
+        cssCodeSplit: true,
+        rollupOptions: {
+            cache: false, // https://github.com/vitejs/vite/issues/2433#issuecomment-1361094727
         },
     },
     plugins: [

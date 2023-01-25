@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { SiteFooterContext } from "@ourworldindata/utils"
 import { viteAssets } from "./viteUtils.js"
-import { POLYFILL_URL } from "./SiteConstants.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -262,7 +261,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                 </div>
             </div>
             <div className="site-tools" />
-            {viteAssets.scripts}
+            {viteAssets("site/owid.entry.ts").scripts}
             <script
                 type="module"
                 dangerouslySetInnerHTML={{

@@ -55,7 +55,7 @@ export const Head = (props: {
                 href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap"
                 rel="stylesheet"
             />
-            {viteAssets.styles}
+            {viteAssets("site/owid.entry.css").styles}
             {props.children}
         </head>
     )
