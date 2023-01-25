@@ -35,7 +35,7 @@
                     }
                 }
 
-                @include lg-up {
+                @include md-up {
                     display: grid;
                     grid-template-columns: repeat(2, 1fr);
                     gap: $vertical-spacing;
@@ -55,17 +55,15 @@
             }
 
             .active {
-                a {
-                    @include cancel-link-styles;
-                }
+                pointer-events: none;
+
                 img {
                     border: 1px solid $oxford-blue;
                 }
-                pointer-events: none;
-                // opacity: 0.5;
-            }
-            a:visited {
-                color: $link-color;
+
+                a {
+                    text-decoration: none;
+                }
             }
         }
 

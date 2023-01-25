@@ -1,26 +1,10 @@
 // added to the body of a page via formattingOptions
 // scopes styles just to topic pages when necessary
 .topic-page {
-    .page.large-banner .article-titles {
-        margin-bottom: 0;
-    }
-
     .article-content > section:not(:first-of-type),
     section {
         margin: 0;
         padding: 0;
-    }
-
-    // specificity overrides for "titling" mixin
-    .large-banner h1.entry-title {
-        @include md-down {
-            @include display-1-semibold;
-            margin-bottom: 0;
-        }
-        @include md-up {
-            @include display-1-semibold;
-            margin-bottom: 0;
-        }
     }
 
     .authors-byline {
