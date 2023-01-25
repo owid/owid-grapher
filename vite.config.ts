@@ -13,6 +13,10 @@ export default defineConfig({
             "@ourworldindata/core-table",
         ],
     },
+    define: {
+        global: "window", // https://github.com/scniro/react-codemirror2/issues/259#issuecomment-1283889590
+        // __dirname: `""`,
+    },
     build: {
         manifest: true,
         emptyOutDir: true,

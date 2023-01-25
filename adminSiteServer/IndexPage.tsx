@@ -4,6 +4,7 @@ import {
     GITHUB_USERNAME,
     DATA_API_FOR_ADMIN_UI,
 } from "../settings/serverSettings.js"
+import { viteAssets } from "../site/viteUtils.js"
 import { webpackUrl } from "../site/webpackUtils.js"
 
 export const IndexPage = (props: {
@@ -26,6 +27,7 @@ export const IndexPage = (props: {
     )}})
         admin.start(document.querySelector("#app"), '${props.gitCmsBranchName}')
 `
+    const assets = viteAssets("adminSiteClient/admin.entry.ts")
 
     return (
         <html lang="en">
@@ -36,17 +38,13 @@ export const IndexPage = (props: {
                     name="viewport"
                     content="width=device-width, initial-scale=1"
                 />
-                {adminStylesheetUrls.map((url) => (
-                    <link key={url} href={url} rel="stylesheet" />
-                ))}
+                {assets.styles}
             </head>
             <body>
                 <div id="app"></div>
-                <script src={webpackUrl("commons.js", "/admin")}></script>
-                <script src={webpackUrl("vendors.js", "/admin")}></script>
-                <script src={webpackUrl("admin.js", "/admin")}></script>
+                {assets.scripts}
                 <script
-                    type="text/javascript"
+                    type="module"
                     dangerouslySetInnerHTML={{ __html: script }}
                 />
                 {/* This lets the public frontend know to show edit links and such */}
