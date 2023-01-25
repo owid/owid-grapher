@@ -1,5 +1,6 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
+import * as clientSettings from "./settings/clientSettings.js"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,6 +16,7 @@ export default defineConfig({
     },
     define: {
         global: "window", // https://github.com/scniro/react-codemirror2/issues/259#issuecomment-1283889590
+        "process.env": JSON.stringify(clientSettings),
     },
     build: {
         manifest: true,
