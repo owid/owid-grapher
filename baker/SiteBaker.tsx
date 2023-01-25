@@ -422,7 +422,7 @@ export class SiteBaker {
         )
 
         await execWrapper(
-            `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/itsJustJavascript/webpack ${this.bakedSiteDir}/assets`
+            `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/dist ${this.bakedSiteDir}/assets`
         )
         await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
