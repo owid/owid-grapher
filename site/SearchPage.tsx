@@ -18,19 +18,7 @@ export const SearchPage = (props: { baseUrl: string }) => {
             <body className="SearchPage">
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <form action="/search" method="GET">
-                        <div className="inputWrapper">
-                            <input
-                                type="search"
-                                name="q"
-                                placeholder={`Try "Poverty", "Population growth" or "Plastic pollution"`}
-                                autoFocus
-                            />
-                            <FontAwesomeIcon icon={faSearch} />
-                        </div>
-                        <button type="submit">Search</button>
-                    </form>
-                    <div className="searchResults"></div>
+                    <div className="searchWrapper"></div>
                 </main>
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />
                 <script>{`window.runSearchPage()`}</script>

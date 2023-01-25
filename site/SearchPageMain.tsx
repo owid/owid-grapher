@@ -5,6 +5,7 @@ import { siteSearch, SiteSearchResults } from "./searchClient.js"
 import { SearchResults } from "../site/SearchResults.js"
 import { observer } from "mobx-react"
 import { action, observable, runInAction } from "mobx"
+import { SearchAutocomplete } from "./SearchAutocomplete.js"
 
 @observer
 export class SearchPageMain extends React.Component {
@@ -66,7 +67,7 @@ export class SearchPageMain extends React.Component {
 
 export function runSearchPage() {
     ReactDOM.render(
-        <SearchPageMain />,
-        document.querySelector(".searchResults")
+        <SearchAutocomplete />,
+        document.querySelector(".searchWrapper")
     )
 }
