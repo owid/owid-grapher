@@ -222,7 +222,7 @@ yarn testPrettierAll`
             createSettingsSoftlinks: `ln -sf ${finalDataDir}/.env ${rsyncTargetDirTmp}/.env`,
             yarn: `cd ${rsyncTargetDirTmp} && yarn install --immutable`,
             lernaBuild: `cd ${rsyncTargetDirTmp} && yarn lerna run build`,
-            webpack: `cd ${rsyncTargetDirTmp} && yarn buildWebpack`,
+            webpack: `cd ${rsyncTargetDirTmp} && yarn buildVite`,
             migrateDb: `cd ${rsyncTargetDirTmp} && yarn runDbMigrations`,
             algolia: `cd ${rsyncTargetDirTmp} && node --unhandled-rejections=strict itsJustJavascript/baker/algolia/configureAlgolia.js`,
             createQueueFile: `cd ${rsyncTargetDirTmp} && touch .queue && chmod 0666 .queue`,

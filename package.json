@@ -12,7 +12,7 @@
         "buildStorybook": "build-storybook -c ./itsJustJavascript/.storybook -o .storybook/build",
         "buildTsc": "tsc -b -verbose",
         "buildLerna": "lerna run build",
-        "buildWebpack": "rm -rf itsJustJavascript/webpack && ENV=production webpack --mode production --config ./itsJustJavascript/webpack.config.js --progress",
+        "buildVite": "vite build",
         "buildWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn build",
         "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "deployWordpress": "./wordpress/scripts/deploy.sh",
