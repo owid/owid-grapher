@@ -13,8 +13,8 @@ STAGING ?= staging
 # setting .env variables as Make variables for validate.env targets
 # https://lithic.tech/blog/2020-05/makefile-dot-env/
 ifneq (,$(wildcard ./.env))
-    include .env
-    export
+	include .env
+	export
 endif
 
 .PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest
@@ -270,10 +270,10 @@ dbtest:
 	@echo '==> Checking formatting'
 	yarn testPrettierChanged
 
-    @echo '==> Starting mysql database'
-    docker-compose -f docker-compose.test.yml up db
+	@echo '==> Starting mysql database'
+	docker-compose -f docker-compose.test.yml up db
 
-         yarn runDbMigrations
+	yarn runDbMigrations
 
 	@echo '==> Running tests'
 	yarn run jest --all
