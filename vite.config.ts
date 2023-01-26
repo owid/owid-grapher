@@ -40,6 +40,32 @@ export default defineConfig({
         cssCodeSplit: true,
         rollupOptions: {
             cache: false, // https://github.com/vitejs/vite/issues/2433#issuecomment-1361094727
+            output: {
+                assetFileNames: (assetInfo) => {
+                    if (assetInfo.name?.endsWith(".css")) {
+                        if (assetInfo.name.includes("admin")) {
+                            return "assets/admin.css"
+                        } else if (assetInfo.name.includes("owid")) {
+                            return "assets/owid.css"
+                        } else {
+                            return "assets/common.css"
+                        }
+                    }
+                    return "assets/[name]-[hash][extname]"
+                },
+                chunkFileNames() {
+                    // there's only one chunk currently, so we can do this
+                    return "assets/common.mjs"
+                },
+                entryFileNames(entryInfo) {
+                    if (entryInfo.name === "admin") {
+                        return "assets/admin.mjs"
+                    } else if (entryInfo.name === "owid") {
+                        return "assets/owid.mjs"
+                    }
+                    return "assets/[name]-[hash][extname]"
+                },
+            },
         },
     },
     plugins: [
