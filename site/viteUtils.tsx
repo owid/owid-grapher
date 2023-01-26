@@ -85,11 +85,11 @@ const createTagsForManifestEntry = (
                 />,
             ]
         }
-        if (manifestEntry.imports) {
-            assets = [...assets, ...manifestEntry.imports.flatMap(createTags)]
-        }
         if (manifestEntry.css) {
             assets = [...assets, ...manifestEntry.css.flatMap(createTags)]
+        }
+        if (manifestEntry.imports) {
+            assets = [...assets, ...manifestEntry.imports.flatMap(createTags)]
         }
         return assets
     }
