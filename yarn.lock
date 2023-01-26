@@ -36,6 +36,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@algolia/autocomplete-plugin-tags@npm:^1.7.4":
+  version: 1.7.4
+  resolution: "@algolia/autocomplete-plugin-tags@npm:1.7.4"
+  checksum: e328aca3f1b97bab5d62cc69155a2c20dd7364ea2035099fc1d37feb555728eb02427b39c0aa28c184f04e29f660fe1e68fef157291013516433422838a0af3f
+  languageName: node
+  linkType: hard
+
 "@algolia/autocomplete-preset-algolia@npm:1.7.4":
   version: 1.7.4
   resolution: "@algolia/autocomplete-preset-algolia@npm:1.7.4"
@@ -16521,6 +16528,7 @@ __metadata:
   dependencies:
     "@algolia/autocomplete-core": ^1.7.4
     "@algolia/autocomplete-js": ^1.7.4
+    "@algolia/autocomplete-plugin-tags": ^1.7.4
     "@algolia/autocomplete-theme-classic": ^1.7.4
     "@bugsnag/core": ^7.17.0
     "@bugsnag/js": ^7.17.0
