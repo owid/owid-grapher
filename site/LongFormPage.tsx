@@ -443,6 +443,7 @@ export const LongFormPage = (props: {
                     baseUrl={baseUrl}
                 />
                 <script
+                    type="module"
                     dangerouslySetInnerHTML={{
                         __html: `
                         runTableOfContents(${JSON.stringify({

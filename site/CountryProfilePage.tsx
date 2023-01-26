@@ -99,7 +99,10 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                     </section>
                 </main>
                 <SiteFooter baseUrl={baseUrl} />
-                <script dangerouslySetInnerHTML={{ __html: script }} />
+                <script
+                    type="module"
+                    dangerouslySetInnerHTML={{ __html: script }}
+                />
             </body>
         </html>
     )

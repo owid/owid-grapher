@@ -83,6 +83,7 @@ export const EntriesByYearPage = (props: {
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />
 
                 <script
+                    type="module"
                     dangerouslySetInnerHTML={{
                         __html: `
                         runTableOfContents(${JSON.stringify({
