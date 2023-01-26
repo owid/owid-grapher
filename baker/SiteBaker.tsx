@@ -428,10 +428,11 @@ export class SiteBaker {
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
         )
 
-        await fs.writeFile(
-            `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            bakeEmbedSnippet(this.baseUrl)
-        )
+        // TODO re-add with vite
+        // await fs.writeFile(
+        //     `${this.bakedSiteDir}/grapher/embedCharts.js`,
+        //     bakeEmbedSnippet(this.baseUrl)
+        // )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
         this.progressBar.tick({ name: "✅ baked assets" })
     }
