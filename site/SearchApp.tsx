@@ -23,6 +23,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                     className="SearchAutocomplete"
                     detachedMediaQuery="none"
                     openOnFocus
+                    searchClient={searchClient}
                 />
 
                 <RefinementList attribute="_tags" />
