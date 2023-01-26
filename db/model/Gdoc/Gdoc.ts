@@ -99,6 +99,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         if (filenames.length) {
             await imageStore.syncImagesToS3(filenames)
+            // TODO: add default image alt text to archie
         }
     }
 

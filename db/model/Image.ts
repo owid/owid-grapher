@@ -1,4 +1,10 @@
-import { Entity, Column, BaseEntity, PrimaryGeneratedColumn } from "typeorm"
+import {
+    Entity,
+    Column,
+    BaseEntity,
+    PrimaryGeneratedColumn,
+    ValueTransformer,
+} from "typeorm"
 import { drive_v3, google } from "googleapis"
 import {
     PutObjectCommand,
@@ -17,10 +23,10 @@ import {
 
 // This is the JSON we get from Google's API before remapping the keys to be consistent with the rest of our interfaces
 interface GDriveImageMetadata {
-    name: string
-    modifiedTime: string
-    id: string // Google Drive ID e.g. "1dfArzg3JrAJupVl4YyJpb2FOnBn4irPX"
-    description?: string // TODO: to be used as alt text
+    name: string // -> filename
+    modifiedTime: string // -> updatedAt e.g. "2023-01-11T19:45:27.000Z"
+    id: string // -> googleId e.g. "1dfArzg3JrAJupVl4YyJpb2FOnBn4irPX"
+    description?: string // -> defaultAlt
 }
 
 export interface ImageMetadata {
@@ -30,7 +36,6 @@ export interface ImageMetadata {
     // MySQL Date objects round to the nearest second, whereas Google includes milliseconds
     // so we store as an epoch to avoid any conversion issues
     updatedAt: number
-    description?: string
 }
 
 // Trying this to share the Google Drive image directory throughout the codebase
@@ -46,7 +51,6 @@ class ImageStore {
         try {
             // TODO: fetch all pages (current limit = 1000)
             const res = await driveClient.files.list({
-                // modifiedTime format: "2023-01-11T19:45:27.000Z"
                 fields: "nextPageToken, files(id, name, description, modifiedTime)",
                 q: `'${GDOCS_CLIENT_EMAIL}' in writers and mimeType contains 'image/'`,
             })
@@ -56,7 +60,9 @@ class ImageStore {
             function validateImage(
                 image: drive_v3.Schema$File
             ): image is GDriveImageMetadata {
-                // image.description can be undefined or "", which we should handle
+                if (!image.description) {
+                    throw new Error(`${image.name} missing description`)
+                }
                 return Boolean(image.id && image.name && image.modifiedTime)
             }
 
@@ -106,13 +112,27 @@ const s3Client = new S3Client({
     },
 })
 
+// https://github.com/typeorm/typeorm/issues/873#issuecomment-424643086
+// otherwise epochs are retrieved as string instead of number
+export class ColumnNumericTransformer implements ValueTransformer {
+    to(data: number): number {
+        return data
+    }
+    from(data: string): number {
+        return parseFloat(data)
+    }
+}
+
 @Entity("images")
 export class Image extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column() googleId: string
     @Column() filename: string
     @Column() defaultAlt: string
-    @Column() updatedAt: number
+    @Column({
+        transformer: new ColumnNumericTransformer(),
+    })
+    updatedAt: number
 
     constructor(filename = "", description = "", updatedAt = 0, googleId = "") {
         super()
@@ -129,7 +149,10 @@ export class Image extends BaseEntity {
 
         try {
             if (stored) {
-                if (stored.updatedAt != fresh.updatedAt) {
+                if (
+                    stored.updatedAt !== fresh.updatedAt ||
+                    stored.defaultAlt !== fresh.defaultAlt
+                ) {
                     await Image.fetchFromDriveAndUploadToS3(fresh)
                     stored.updatedAt = fresh.updatedAt
                     stored.defaultAlt = fresh.defaultAlt
