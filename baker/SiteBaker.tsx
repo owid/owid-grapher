@@ -1,4 +1,5 @@
 import * as fs from "fs-extra"
+import { writeFile } from "node:fs/promises"
 import * as path from "path"
 import * as glob from "glob"
 import { without } from "lodash"
@@ -59,7 +60,8 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
-import { Image } from "../db/model/Image.js"
+import { Image, ImageMetadata } from "../db/model/Image.js"
+import sharp from "sharp"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -340,40 +342,67 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked rss" })
     }
 
-    private async fetchImages() {
-        const images: Image[] = await db.queryMysql(
-            `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
-        )
-
-        for (const image of images) {
-            const remoteFilePath = path.join(
-                IMAGE_HOSTING_CDN_URL,
-                IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
-                image.filename
+    private async bakeDriveImages() {
+        const images: Image[] = await db
+            .queryMysql(
+                `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
             )
-            await fetch(remoteFilePath)
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(response.statusText)
-                    }
-                    return response.buffer()
-                })
-                .then((buffer) => {
-                    this.ensureDir("images")
-                    const localFilePath = path.join(
-                        this.bakedSiteDir,
-                        "images",
-                        image.filename
-                    )
-                    fs.writeFileSync(localFilePath, buffer)
-                })
-                .catch((e) => {
-                    console.error(
-                        `Error fetching ${image.filename} from S3: `,
-                        e
-                    )
-                })
-        }
+            .then((results: ImageMetadata[]) =>
+                results.map(
+                    (result) =>
+                        new Image(
+                            result.filename,
+                            result.defaultAlt,
+                            result.updatedAt,
+                            result.googleId,
+                            result.originalWidth
+                        )
+                )
+            )
+
+        this.ensureDir("images")
+        const imagesDirectory = path.join(this.bakedSiteDir, "images")
+
+        await Promise.all(
+            images.map(async (image) => {
+                const remoteFilePath = path.join(
+                    IMAGE_HOSTING_CDN_URL,
+                    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+                    image.filename
+                )
+                return fetch(remoteFilePath)
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(response.statusText)
+                        }
+                        return response.buffer()
+                    })
+                    .then(async (buffer) => {
+                        if (!image.isSvg) {
+                            await Promise.all(
+                                image.sizes!.map((width) => {
+                                    const localResizedFilepath = path.join(
+                                        imagesDirectory,
+                                        `${image.filenameWithoutExtension}_${width}.webp`
+                                    )
+                                    return sharp(buffer)
+                                        .resize(width)
+                                        .webp({
+                                            lossless: true,
+                                        })
+                                        .toFile(localResizedFilepath)
+                                })
+                            )
+                        } else {
+                            await writeFile(
+                                path.join(imagesDirectory, image.filename),
+                                buffer
+                            )
+                        }
+                    })
+            })
+        )
+        this.progressBar.tick({ name: "✅ baked google drive images" })
     }
 
     // Bake the static assets
@@ -388,8 +417,6 @@ export class SiteBaker {
         await execWrapper(
             `rsync -hav --delete ${BASE_DIR}/public/* ${this.bakedSiteDir}/`
         )
-
-        await this.fetchImages()
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
@@ -439,6 +466,8 @@ export class SiteBaker {
             }
         )
         // await this._bakeNonWordpressPages()
+        await this.bakeGDocPosts()
+        await this.bakeDriveImages()
     }
 
     async bakeAll() {
@@ -446,6 +475,7 @@ export class SiteBaker {
         this.flushCache()
         await this.removeDeletedPosts()
         await this.bakeWordpressPages()
+        await this.bakeDriveImages()
         await this._bakeNonWordpressPages()
         await this.bakeGDocPosts()
         this.flushCache()

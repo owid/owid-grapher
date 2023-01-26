@@ -561,7 +561,8 @@ export type RawBlockImage = {
 export type EnrichedBlockImage = {
     type: "image"
     filename: string
-    alt: string
+    alt?: string // optional as we can use the default alt from the file
+    originalWidth?: number
 } & EnrichedBlockWithParseErrors
 
 // TODO: This is what lists staring with * are converted to in gdocToArhcieml

@@ -202,7 +202,7 @@
         "safe-stable-stringify": "^2.4.1",
         "sass": "^1.52.1",
         "sass-loader": "^13.0.2",
-        "sharp": "^0.31.0",
+        "sharp": "^0.31.3",
         "shell-quote": "^1.7.3",
         "shelljs": "^0.8.5",
         "simple-git": "^3.7.1",

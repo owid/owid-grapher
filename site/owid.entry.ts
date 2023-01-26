@@ -5,6 +5,7 @@ import "@ourworldindata/grapher/src/core/grapher.scss"
 // from a very large icon down to a properly sized one a moment later."
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
+import lazysizes from "lazysizes"
 import SmoothScroll from "smooth-scroll"
 import { runChartsIndexPage } from "./runChartsIndexPage.js"
 import { runSearchPage } from "./SearchPageMain.js"

@@ -371,13 +371,6 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         })
     }
 
-    const alt = image.value.alt
-    if (!alt) {
-        return createError({
-            message: "alt property is missing or empty",
-        })
-    }
-
     const imageMetadata = imageStore.images?.[filename]
     if (!imageMetadata) {
         return createError({
@@ -388,7 +381,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     return {
         type: "image",
         filename,
-        alt,
+        alt: image.value.alt,
         parseErrors: [],
     }
 }

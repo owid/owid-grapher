@@ -27,6 +27,9 @@ interface GDriveImageMetadata {
     modifiedTime: string // -> updatedAt e.g. "2023-01-11T19:45:27.000Z"
     id: string // -> googleId e.g. "1dfArzg3JrAJupVl4YyJpb2FOnBn4irPX"
     description?: string // -> defaultAlt
+    imageMediaMetadata?: {
+        width?: number // -> originalWidth
+    }
 }
 
 export interface ImageMetadata {
@@ -36,6 +39,7 @@ export interface ImageMetadata {
     // MySQL Date objects round to the nearest second, whereas Google includes milliseconds
     // so we store as an epoch to avoid any conversion issues
     updatedAt: number
+    originalWidth: number
 }
 
 // Trying this to share the Google Drive image directory throughout the codebase
@@ -51,7 +55,7 @@ class ImageStore {
         try {
             // TODO: fetch all pages (current limit = 1000)
             const res = await driveClient.files.list({
-                fields: "nextPageToken, files(id, name, description, modifiedTime)",
+                fields: "nextPageToken, files(id, name, description, modifiedTime, imageMediaMetadata)",
                 q: `'${GDOCS_CLIENT_EMAIL}' in writers and mimeType contains 'image/'`,
             })
 
@@ -73,6 +77,7 @@ class ImageStore {
                     filename: google.name,
                     defaultAlt: google.description ?? "",
                     updatedAt: new Date(google.modifiedTime).getTime(),
+                    originalWidth: google.imageMediaMetadata?.width || 100,
                 }))
 
             this.images = keyBy(images, "filename")
@@ -133,14 +138,52 @@ export class Image extends BaseEntity {
         transformer: new ColumnNumericTransformer(),
     })
     updatedAt: number
+    @Column({
+        transformer: new ColumnNumericTransformer(),
+        nullable: true,
+    })
+    originalWidth?: number
 
-    constructor(filename = "", description = "", updatedAt = 0, googleId = "") {
+    constructor(
+        filename = "",
+        description = "",
+        updatedAt = 0,
+        googleId = "",
+        originalWidth?: number
+    ) {
         super()
         this.googleId = googleId
         this.filename = filename
         // we're storing the alt text in the GDrive description field
         this.defaultAlt = description
         this.updatedAt = updatedAt
+        this.originalWidth = originalWidth
+    }
+
+    get isSvg(): boolean {
+        return Image.getFileExtension(this) === "svg"
+    }
+
+    get sizes(): number[] | undefined {
+        if (this.isSvg) return
+        // ensure a thumbnail is generated thumbnail
+        const widths = [100]
+        // start at 350 and go up by 500 to a max of 1350 before we just show the original image
+        let width = 350
+        while (width < this.originalWidth! && width <= 1350) {
+            widths.push(width)
+            width += 500
+        }
+        widths.push(this.originalWidth!)
+        return widths
+    }
+
+    get filenameWithoutExtension(): string {
+        return this.filename.slice(0, this.filename.indexOf("."))
+    }
+
+    static getFileExtension(image: Image | ImageMetadata): string {
+        return image.filename.slice(image.filename.indexOf(".") + 1)
     }
 
     static async syncImage(fresh: ImageMetadata): Promise<Image | undefined> {
@@ -151,11 +194,13 @@ export class Image extends BaseEntity {
             if (stored) {
                 if (
                     stored.updatedAt !== fresh.updatedAt ||
-                    stored.defaultAlt !== fresh.defaultAlt
+                    stored.defaultAlt !== fresh.defaultAlt ||
+                    stored.originalWidth !== fresh.originalWidth
                 ) {
                     await Image.fetchFromDriveAndUploadToS3(fresh)
                     stored.updatedAt = fresh.updatedAt
                     stored.defaultAlt = fresh.defaultAlt
+                    stored.originalWidth = fresh.originalWidth
                     await stored.save()
                 }
                 return stored
@@ -165,7 +210,8 @@ export class Image extends BaseEntity {
                     fresh.filename,
                     fresh.defaultAlt,
                     fresh.updatedAt,
-                    fresh.googleId
+                    fresh.googleId,
+                    fresh.originalWidth
                 ).save()
             }
         } catch (e) {
@@ -198,9 +244,7 @@ export class Image extends BaseEntity {
         const bucket = IMAGE_HOSTING_BUCKET_PATH.slice(0, indexOfFirstSlash)
         const directory = IMAGE_HOSTING_BUCKET_PATH.slice(indexOfFirstSlash + 1)
 
-        const fileExtension = image.filename.slice(
-            image.filename.indexOf(".") + 1
-        )
+        const fileExtension = Image.getFileExtension(image)
         const MIMEType = {
             png: "image/png",
             svg: "image/svg+xml",

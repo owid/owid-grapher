@@ -7,6 +7,7 @@ import {
     uniq,
     GdocsContentSource,
     JsonError,
+    OwidEnrichedArticleBlock,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -99,7 +100,22 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         if (filenames.length) {
             await imageStore.syncImagesToS3(filenames)
-            // TODO: add default image alt text to archie
+
+            this.content.body = this.content.body?.map(
+                (block: OwidEnrichedArticleBlock) => {
+                    // temporary hack, will need to traverse to transform inside columns too
+                    if (block.type === "image") {
+                        if (!block.alt) {
+                            block.alt =
+                                imageStore?.images?.[block.filename]
+                                    ?.defaultAlt || ""
+                        }
+                        block.originalWidth =
+                            imageStore?.images?.[block.filename]?.originalWidth
+                    }
+                    return block
+                }
+            )
         }
     }
 
