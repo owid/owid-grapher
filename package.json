@@ -223,12 +223,6 @@
         "workerpool": "^6.2.0"
     },
     "devDependencies": {
-        "@storybook/addon-measure": "^6.5.10",
-        "@storybook/addon-outline": "^6.5.10",
-        "@storybook/addon-viewport": "^6.5.10",
-        "@storybook/builder-webpack5": "^6.5.10",
-        "@storybook/manager-webpack5": "^6.5.10",
-        "@storybook/react": "^6.5.10",
         "@testing-library/jest-dom": "^5.16.5",
         "@testing-library/react": "^12",
         "@types/jest": "^29.0.3",
@@ -253,7 +247,6 @@
         "vite": "^4.0.4"
     },
     "resolutions": {
-        "webpack": "^5.0.0",
         "react-codemirror2@^7.2.1": "patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch"
     },
     "prettier": {
