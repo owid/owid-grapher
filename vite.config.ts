@@ -15,8 +15,12 @@ export default defineConfig({
         ],
     },
     define: {
-        global: "window", // https://github.com/scniro/react-codemirror2/issues/259#issuecomment-1283889590
-        "process.env": JSON.stringify(clientSettings),
+        ...Object.fromEntries(
+            Object.entries(clientSettings).map(([key, value]) => [
+                `process.env.${key}`,
+                JSON.stringify(value),
+            ])
+        ),
     },
     build: {
         manifest: true,
