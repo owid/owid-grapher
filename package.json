@@ -42,6 +42,9 @@
         "testJest": "lerna run buildTests && jest"
     },
     "dependencies": {
+        "@algolia/autocomplete-core": "^1.7.4",
+        "@algolia/autocomplete-js": "^1.7.4",
+        "@algolia/autocomplete-theme-classic": "^1.7.4",
         "@bugsnag/core": "^7.17.0",
         "@bugsnag/js": "^7.17.0",
         "@bugsnag/plugin-react": "^7.17.0",

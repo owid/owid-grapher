@@ -77,6 +77,7 @@
 @import "site/gdocs/SDGTableOfContents.scss";
 @import "site/gdocs/MissingData.scss";
 @import "site/gdocs/AdditionalCharts.scss";
+@import "site/SearchApp.scss";
 
 /* HACK (Mispy): Fix search autozooming on iPhone Safari.
    http://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone */
@@ -999,7 +1000,6 @@ html:not(.js) {
     border-bottom: 1px solid $blue-20;
 }
 
-.SearchPage > main,
 .NotFoundPage > main {
     > form {
         max-width: 1200px;
@@ -1124,24 +1124,6 @@ html:not(.js) {
         margin-top: 2rem;
         text-align: right;
         opacity: 0.9;
-    }
-}
-
-@media (max-width: 768px) {
-    .SearchPage {
-        > main {
-            margin-left: 15px;
-            margin-right: 15px;
-        }
-
-        .SearchResults > .container {
-            display: block;
-        }
-
-        .postResults,
-        .chartResults {
-            width: 100%;
-        }
     }
 }
 

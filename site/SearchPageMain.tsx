@@ -5,8 +5,7 @@ import { getClient, siteSearch, SiteSearchResults } from "./searchClient.js"
 import { SearchResults } from "../site/SearchResults.js"
 import { observer } from "mobx-react"
 import { action, observable, runInAction } from "mobx"
-import { SearchAutocomplete } from "./SearchAutocomplete.js"
-import { Configure, InstantSearch } from "react-instantsearch-hooks-web"
+import { SearchApp } from "./SearchApp.js"
 
 @observer
 export class SearchPageMain extends React.Component {
@@ -69,10 +68,8 @@ export class SearchPageMain extends React.Component {
 export function runSearchPage() {
     const searchClient = getClient()
     ReactDOM.render(
-        <InstantSearch indexName="pages" searchClient={searchClient}>
-            <Configure distinct={1} />
-            <SearchAutocomplete />
-        </InstantSearch>,
+        <SearchApp searchClient={searchClient} />,
+
         document.querySelector(".searchWrapper")
     )
 }

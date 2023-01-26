@@ -1,108 +1,65 @@
-import React, { useCallback, useEffect } from "react"
-import Autocomplete from "@mui/material/Autocomplete"
-import TextField from "@mui/material/TextField"
-import { uniqBy } from "@ourworldindata/utils"
-import { countries as fullCountries } from "@ourworldindata/utils"
-import {
-    Hits,
-    useSearchBox,
-    UseSearchBoxProps,
-} from "react-instantsearch-hooks-web"
-import { TopicCard } from "./TopicCard.js"
+import React from "react"
+import { createElement, Fragment, useEffect, useRef, useState } from "react"
+import { render } from "react-dom"
 
-interface Facet {
-    label: string
-    type: FacetType
+import { usePagination, useSearchBox } from "react-instantsearch-hooks"
+import { autocomplete } from "@algolia/autocomplete-js"
+import { BaseItem } from "@algolia/autocomplete-core"
+import type { AutocompleteOptions, Render } from "@algolia/autocomplete-js"
+import "@algolia/autocomplete-theme-classic"
+
+type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
+    className?: string
 }
 
-enum FacetType {
-    Tag = "tag",
-    Author = "author",
-    Country = "country",
+type SetInstantSearchUiStateOptions = {
+    query: string
 }
 
-export const SearchAutocomplete = (props: UseSearchBoxProps) => {
-    const [tags, setTags] = React.useState<Facet[]>([])
-    const [countries, setCountries] = React.useState<Facet[]>([])
-    const [value, setValue] = React.useState<Facet[]>([])
-    const [inputValue, setInputValue] = React.useState("")
+export function SearchAutocomplete({
+    className,
+    ...autocompleteProps
+}: AutocompleteProps) {
+    const autocompleteContainer = useRef<HTMLDivElement>(null)
 
-    const queryHook: UseSearchBoxProps["queryHook"] = useCallback(
-        (query, search) => {
-            search(query, { tagFilters: "Energy" })
-            console.log("queryHook", query)
-        },
-        []
-    )
+    const { query, refine: setQuery } = useSearchBox()
+    const { refine: setPage } = usePagination()
 
-    const { query, refine, clear, isSearchStalled } = useSearchBox({
-        ...props,
-        // useCallback
-        queryHook,
-    })
+    const [instantSearchUiState, setInstantSearchUiState] =
+        useState<SetInstantSearchUiStateOptions>({ query })
 
-    // Fetch and process facets
     useEffect(() => {
-        const fetchTags = async () => {
-            const response = await fetch("/api/tags.json")
-            const data = await response.json()
+        setQuery(instantSearchUiState.query)
+        setPage(0)
+    }, [instantSearchUiState])
 
-            const tags = uniqBy(
-                data.tags.map((tag: { name: string }): Facet => {
-                    return { label: tag.name, type: FacetType.Tag }
-                }),
-                (t: Facet) => t.label
-            )
-
-            setTags(tags)
+    useEffect(() => {
+        if (!autocompleteContainer.current) {
+            return
         }
-        fetchTags()
+
+        const autocompleteInstance = autocomplete({
+            ...autocompleteProps,
+            container: autocompleteContainer.current,
+            initialState: { query },
+            onReset() {
+                setInstantSearchUiState({ query: "" })
+            },
+            onSubmit({ state }) {
+                setInstantSearchUiState({ query: state.query })
+            },
+            onStateChange({ prevState, state }) {
+                if (prevState.query !== state.query) {
+                    setInstantSearchUiState({
+                        query: state.query,
+                    })
+                }
+            },
+            renderer: { createElement, Fragment, render: render as Render },
+        })
+
+        return () => autocompleteInstance.destroy()
     }, [])
 
-    // Fetch and process countries
-    useEffect(() => {
-        setCountries(
-            fullCountries.map((c) => ({
-                label: c.name,
-                type: FacetType.Country,
-            }))
-        )
-    }, [])
-
-    const refineCallback = useCallback(refine, [refine])
-    useEffect(() => {
-        refineCallback(value.map((v) => v.label).join(","))
-    }, [refineCallback, value])
-
-    return (
-        <>
-            <div>{`value: ${
-                value !== null ? `'${value.join(",")}'` : "null"
-            }`}</div>
-            <div>{`inputValue: '${inputValue}'`}</div>
-            <Autocomplete
-                multiple
-                options={[...tags, ...countries]}
-                groupBy={(option) => option.type}
-                getOptionLabel={(option) => option.label}
-                filterSelectedOptions
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        label="filterSelectedOptions"
-                        placeholder="Favorites"
-                    />
-                )}
-                value={value}
-                onChange={(event: any, newValue: Facet[]) => {
-                    setValue(newValue)
-                }}
-                inputValue={inputValue}
-                onInputChange={(event, newInputValue) => {
-                    setInputValue(newInputValue)
-                }}
-            />
-            <Hits hitComponent={TopicCard}></Hits>
-        </>
-    )
+    return <div className={className} ref={autocompleteContainer} />
 }

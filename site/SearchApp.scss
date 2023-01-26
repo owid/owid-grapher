@@ -1,0 +1,23 @@
+.SearchApp {
+    @include grid(12);
+
+    .SearchAutocomplete {
+        grid-column: 1 / span 12;
+        padding: $vertical-spacing 0;
+    }
+
+    .ais-RefinementList {
+        grid-column: 1 / span 2;
+    }
+
+    .ais-Hits {
+        grid-column: 3 / span 10;
+        .ais-Hits-list {
+            @include grid(10);
+            row-gap: $grid-gap;
+            .ais-Hits-item {
+                grid-column: span 2;
+            }
+        }
+    }
+}

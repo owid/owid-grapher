@@ -1,9 +1,11 @@
 import React from "react"
 import { Hit as AlgoliaHit } from "instantsearch.js/es/types"
+import { Highlight } from "react-instantsearch-hooks-web"
 
 type HitProps = {
     hit: AlgoliaHit<{
         title: string
+        _tags: string[]
     }>
 }
 
@@ -11,7 +13,10 @@ export const TopicCard = ({ hit }: HitProps) => {
     return (
         <div className="TopicCard">
             <div className="TopicCard__title">
-                <h3>{hit.title}</h3>
+                <Highlight hit={hit} attribute="title" />
+                <div>
+                    <strong>{hit._tags[0]}</strong>
+                </div>
             </div>
         </div>
     )

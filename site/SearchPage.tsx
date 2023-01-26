@@ -18,7 +18,9 @@ export const SearchPage = (props: { baseUrl: string }) => {
             <body className="SearchPage">
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    <div className="searchWrapper"></div>
+                    <article className="page">
+                        <div className="searchWrapper"></div>
+                    </article>
                 </main>
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />
                 <script>{`window.runSearchPage()`}</script>
