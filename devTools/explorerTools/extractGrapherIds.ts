@@ -1,5 +1,6 @@
 import fs from "fs-extra"
 import glob from "glob"
+import path from "path"
 
 import { GIT_CMS_DIR } from "../../gitCms/GitCmsConstants.js"
 import {
@@ -13,25 +14,25 @@ async function main(): Promise<void> {
         `${GIT_CMS_DIR}/${EXPLORERS_GIT_CMS_FOLDER}/*${EXPLORER_FILE_SUFFIX}`
     )
 
-    const subtitles: string[] = []
-    const notes: string[] = []
+    const csvRows: string[] = []
+    csvRows.push("explorerSlug,isPublished,grapherId")
 
     for (const filePath of allExplorerFilePaths) {
         const tsv = fs.readFileSync(filePath, "utf8")
         const explorer = new ExplorerProgram(filePath, tsv)
 
-        // skip non-published explorers
-        if (!explorer.isPublished) continue
+        const explorerSlug = path.basename(filePath, EXPLORER_FILE_SUFFIX)
 
         const graphersTable = explorer.decisionMatrix.table
-        subtitles.push(...graphersTable.get("subtitle").valuesAscending)
-        notes.push(...graphersTable.get("note").valuesAscending)
+        const grapherIdCol = graphersTable.get("grapherId")
+
+        for (const grapherId of grapherIdCol.values)
+            csvRows.push(
+                [explorerSlug, explorer.isPublished, grapherId].join(",")
+            )
     }
 
-    fs.writeFileSync(
-        "subtitlesAndNotes.json",
-        JSON.stringify({ subtitles, notes })
-    )
+    console.log(csvRows.join("\n"))
 }
 
 main()
