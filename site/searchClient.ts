@@ -3,7 +3,7 @@ import { countries, Country } from "@ourworldindata/utils"
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
 
 let algolia: SearchClient | undefined
-const getClient = () => {
+export const getClient = () => {
     if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     return algolia
 }

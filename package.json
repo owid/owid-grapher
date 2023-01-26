@@ -191,6 +191,7 @@
         "react-error-boundary": "^3.1.4",
         "react-flip-toolkit": "^7.0.9",
         "react-horizontal-scrolling-menu": "^2.7.1",
+        "react-instantsearch-hooks-web": "^6.39.0",
         "react-intersection-observer": "^9.4.0",
         "react-move": "^6.5.0",
         "react-recaptcha": "^2.3.10",

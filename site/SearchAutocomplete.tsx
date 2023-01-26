@@ -1,8 +1,14 @@
-import React, { useEffect } from "react"
+import React, { useCallback, useEffect } from "react"
 import Autocomplete from "@mui/material/Autocomplete"
 import TextField from "@mui/material/TextField"
 import { uniqBy } from "@ourworldindata/utils"
 import { countries as fullCountries } from "@ourworldindata/utils"
+import {
+    Hits,
+    useSearchBox,
+    UseSearchBoxProps,
+} from "react-instantsearch-hooks-web"
+import { TopicCard } from "./TopicCard.js"
 
 interface Facet {
     label: string
@@ -15,9 +21,25 @@ enum FacetType {
     Country = "country",
 }
 
-export const SearchAutocomplete = () => {
+export const SearchAutocomplete = (props: UseSearchBoxProps) => {
     const [tags, setTags] = React.useState<Facet[]>([])
     const [countries, setCountries] = React.useState<Facet[]>([])
+    const [value, setValue] = React.useState<Facet[]>([])
+    const [inputValue, setInputValue] = React.useState("")
+
+    const queryHook: UseSearchBoxProps["queryHook"] = useCallback(
+        (query, search) => {
+            search(query, { tagFilters: "Energy" })
+            console.log("queryHook", query)
+        },
+        []
+    )
+
+    const { query, refine, clear, isSearchStalled } = useSearchBox({
+        ...props,
+        // useCallback
+        queryHook,
+    })
 
     // Fetch and process facets
     useEffect(() => {
@@ -47,8 +69,17 @@ export const SearchAutocomplete = () => {
         )
     }, [])
 
+    const refineCallback = useCallback(refine, [refine])
+    useEffect(() => {
+        refineCallback(value.map((v) => v.label).join(","))
+    }, [refineCallback, value])
+
     return (
         <>
+            <div>{`value: ${
+                value !== null ? `'${value.join(",")}'` : "null"
+            }`}</div>
+            <div>{`inputValue: '${inputValue}'`}</div>
             <Autocomplete
                 multiple
                 options={[...tags, ...countries]}
@@ -62,7 +93,16 @@ export const SearchAutocomplete = () => {
                         placeholder="Favorites"
                     />
                 )}
+                value={value}
+                onChange={(event: any, newValue: Facet[]) => {
+                    setValue(newValue)
+                }}
+                inputValue={inputValue}
+                onInputChange={(event, newInputValue) => {
+                    setInputValue(newInputValue)
+                }}
             />
+            <Hits hitComponent={TopicCard}></Hits>
         </>
     )
 }

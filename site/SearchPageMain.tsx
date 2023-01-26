@@ -1,11 +1,12 @@
 import ReactDOM from "react-dom"
 import React from "react"
 import { getWindowQueryParams } from "@ourworldindata/utils"
-import { siteSearch, SiteSearchResults } from "./searchClient.js"
+import { getClient, siteSearch, SiteSearchResults } from "./searchClient.js"
 import { SearchResults } from "../site/SearchResults.js"
 import { observer } from "mobx-react"
 import { action, observable, runInAction } from "mobx"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
+import { Configure, InstantSearch } from "react-instantsearch-hooks-web"
 
 @observer
 export class SearchPageMain extends React.Component {
@@ -66,8 +67,12 @@ export class SearchPageMain extends React.Component {
 }
 
 export function runSearchPage() {
+    const searchClient = getClient()
     ReactDOM.render(
-        <SearchAutocomplete />,
+        <InstantSearch indexName="pages" searchClient={searchClient}>
+            <Configure distinct={1} />
+            <SearchAutocomplete />
+        </InstantSearch>,
         document.querySelector(".searchWrapper")
     )
 }
