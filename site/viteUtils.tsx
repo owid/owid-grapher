@@ -9,6 +9,7 @@ const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
 const googleFontsStyles = (
     <link
+        key="google-fonts"
         href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap"
         rel="stylesheet"
     />
