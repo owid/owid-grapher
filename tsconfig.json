@@ -17,6 +17,7 @@
         { "path": "./.storybook" },
         { "path": "./devTools/svgTester" },
         { "path": "./devTools/schemaProcessor" },
-        { "path": "./devTools/dodParserTestGenerator" }
+        { "path": "./devTools/dodParserTestGenerator" },
+        { "path": "./devTools/explorerTools" }
     ]
 }
