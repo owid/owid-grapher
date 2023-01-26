@@ -22,11 +22,8 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import {
-    MapProjectionName,
-    MapProjectionGeos,
-    PathToStringWithRoundedNumbersContext,
-} from "./MapProjections"
+import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
+import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
@@ -100,7 +97,8 @@ const geoPathsFor = (projectionName: MapProjectionName): string[] => {
     if (geoPathCache.has(projectionName))
         return geoPathCache.get(projectionName)!
 
-    const ctx = new PathToStringWithRoundedNumbersContext()
+    // Use this context to round the path coordinates to a set number of decimal places
+    const ctx = new GeoPathRoundingContext()
     const projectionGeo = MapProjectionGeos[projectionName].context(ctx)
     const strs = GeoFeatures.map((feature) => {
         ctx.beginPath() // restart the path
