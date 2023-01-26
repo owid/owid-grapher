@@ -114,7 +114,7 @@ const prodAssets = (entry: string): Assets => {
         )
     }
 
-    const assetBaseUrl = `${BAKED_BASE_URL}/`
+    const assetBaseUrl = `${BAKED_BASE_URL}/assets/`
     const assets = createTagsForManifestEntry(manifest, entry, assetBaseUrl)
 
     return {
