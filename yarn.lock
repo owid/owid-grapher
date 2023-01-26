@@ -25245,13 +25245,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-codemirror2@npm:^7.2.1":
+"react-codemirror2@npm:7.2.1":
   version: 7.2.1
   resolution: "react-codemirror2@npm:7.2.1"
   peerDependencies:
     codemirror: 5.x
     react: ">=15.5 <=16.x"
   checksum: 5c524a073167fbd89429a32f6ccbda83b78890231dd743219fb95335c2fd4c90fecc906fe9410a26b42c3baea62e00800d0e4e85c67965ab05234b6f7d4dd82d
+  languageName: node
+  linkType: hard
+
+"react-codemirror2@patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch::locator=grapher%40workspace%3A.":
+  version: 7.2.1
+  resolution: "react-codemirror2@patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch::version=7.2.1&hash=b75cae&locator=grapher%40workspace%3A."
+  peerDependencies:
+    codemirror: 5.x
+    react: ">=15.5 <=16.x"
+  checksum: 7f50863f5935dc438091387927427d8c46b5318cf36b56a9f874b2dad9ad36d08424c6c8374237be573a85e99505ceaf62f5f5dd4147db045371356354610d1b
   languageName: node
   linkType: hard
 
