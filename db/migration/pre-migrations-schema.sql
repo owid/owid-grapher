@@ -12,9 +12,14 @@
 -- that was not the case and there is an explicit migration that changed this but that
 -- just becomes a no-op now.
 
--- Another difference is that there existed a table user_invitations that was dropped
--- with a migration at some point. Instead of trying to recreate this, the migration
--- was modified to use "IF EXISTS"
+-- Another difference is that the user_invitations table gets dropped at some point
+-- in the migrations and I didn't want to bother searching for the original create
+-- statement so we just create a dummy table with that name so that the drop works.
+
+CREATE TABLE `user_invitations` (
+    `id` int unsigned NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_as_cs;
 
 CREATE TABLE `knex_migrations` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -76,8 +81,8 @@ CREATE TABLE `posts` (
   `type` mediumtext COLLATE utf8mb4_0900_as_cs NOT NULL,
   `status` mediumtext COLLATE utf8mb4_0900_as_cs NOT NULL,
   `content` longtext COLLATE utf8mb4_0900_as_cs NOT NULL,
-  `archieml` json DEFAULT NULL,
-  `archieml_update_statistics` json DEFAULT NULL,
+--   `archieml` json DEFAULT NULL,
+--   `archieml_update_statistics` json DEFAULT NULL,
   `published_at` datetime DEFAULT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`)
@@ -143,13 +148,13 @@ CREATE TABLE `datasets` (
   `dataEditedAt` datetime NOT NULL,
   `dataEditedByUserId` int NOT NULL,
   -- `nonRedistributable` tinyint(1) NOT NULL DEFAULT '0',
-  `isArchived` tinyint(1) NOT NULL DEFAULT '0',
-  `sourceChecksum` varchar(64) COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
-  `shortName` varchar(255) COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
-  `version` varchar(255) COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
+--   `isArchived` tinyint(1) NOT NULL DEFAULT '0',
+--   `sourceChecksum` varchar(64) COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
+--   `shortName` varchar(255) COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
+--   `version` varchar(255) COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `datasets_name_namespace_d3d60d22_uniq` (`name`,`namespace`),
-  UNIQUE KEY `unique_short_name_version_namespace` (`shortName`,`version`,`namespace`),
+--   UNIQUE KEY `unique_short_name_version_namespace` (`shortName`,`version`,`namespace`),
   KEY `datasets_metadataEditedByUserId` (`metadataEditedByUserId`),
   KEY `datasets_dataEditedByUserId` (`dataEditedByUserId`),
   KEY `datasets_createdByUserId` (`createdByUserId`),
@@ -187,7 +192,7 @@ CREATE TABLE `variables` (
   `display` json NOT NULL,
   `columnOrder` int NOT NULL DEFAULT '0',
   `originalMetadata` json DEFAULT NULL,
-  `grapherConfig` json DEFAULT NULL,
+--   `grapherConfig` json DEFAULT NULL,
 --   `shortName` varchar(255) COLLATE utf8mb4_0900_as_cs DEFAULT NULL,
 --   `catalogPath` text COLLATE utf8mb4_0900_as_cs,
 --   `dimensions` json DEFAULT NULL,
@@ -274,6 +279,7 @@ CREATE TABLE `chart_slug_redirects` (
 CREATE TABLE `chart_tags` (
   `chartId` int NOT NULL,
   `tagId` int NOT NULL,
+--   `isKey` tinyint unsigned DEFAULT NULL,
   PRIMARY KEY (`chartId`,`tagId`),
   KEY `FK_chart_tags_tagId` (`tagId`),
   CONSTRAINT `FK_chart_tags_chartId` FOREIGN KEY (`chartId`) REFERENCES `charts` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
