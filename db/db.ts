@@ -12,10 +12,12 @@ import {
 import { registerExitHandler } from "./cleanup.js"
 let typeormDataSource: typeorm.DataSource
 
-export const getConnection = async (): Promise<typeorm.DataSource> => {
+export const getConnection = async (
+    source: typeorm.DataSource = dataSource
+): Promise<typeorm.DataSource> => {
     if (typeormDataSource) return typeormDataSource
 
-    typeormDataSource = await dataSource.initialize()
+    typeormDataSource = await source.initialize()
 
     registerExitHandler(async () => {
         if (typeormDataSource) await typeormDataSource.destroy()
