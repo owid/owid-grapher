@@ -10496,6 +10496,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"canvas@npm:^2.6.1":
+  version: 2.11.0
+  resolution: "canvas@npm:2.11.0"
+  dependencies:
+    "@mapbox/node-pre-gyp": ^1.0.0
+    nan: ^2.17.0
+    node-gyp: latest
+    simple-get: ^3.0.3
+  checksum: a69a6e0c90014a1b02e52c4c38a627d1a01ffe9539047bec84105cb3554907a947cf39b4a333be43fc1583dd142b641bb5480a4e23f59c6098618c33bf78f67f
+  languageName: node
+  linkType: hard
+
 "case-sensitive-paths-webpack-plugin@npm:^2.3.0":
   version: 2.4.0
   resolution: "case-sensitive-paths-webpack-plugin@npm:2.4.0"
@@ -10694,6 +10706,13 @@ __metadata:
   version: 2.0.0
   resolution: "chownr@npm:2.0.0"
   checksum: c57cf9dd0791e2f18a5ee9c1a299ae6e801ff58fee96dc8bfd0dcb4738a6ce58dd252a3605b1c93c6418fe4f9d5093b28ffbf4d66648cb2a9c67eaef9679be2f
+  languageName: node
+  linkType: hard
+
+"chroma-js@npm:^2.1.0":
+  version: 2.4.2
+  resolution: "chroma-js@npm:2.4.2"
+  checksum: cf9884c02d406286e4370599bcd1afbf089384407df46b3a69edfedcba7bb99e8f959a5cfdbfec750b305c441c06ca40cd1f70ba3a6c2ce739ac09a92520ddae
   languageName: node
   linkType: hard
 
@@ -12625,6 +12644,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"decompress-response@npm:^4.2.0":
+  version: 4.2.1
+  resolution: "decompress-response@npm:4.2.1"
+  dependencies:
+    mimic-response: ^2.0.0
+  checksum: 4e783ca4dfe9417354d61349750fe05236f565a4415a6ca20983a311be2371debaedd9104c0b0e7b36e5f167aeaae04f84f1a0b3f8be4162f1d7d15598b8fdba
+  languageName: node
+  linkType: hard
+
 "decompress-response@npm:^5.0.0":
   version: 5.0.0
   resolution: "decompress-response@npm:5.0.0"
@@ -12856,7 +12884,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"delaunator@npm:4":
+"delaunator@npm:4, delaunator@npm:^4.0.1":
   version: 4.0.1
   resolution: "delaunator@npm:4.0.1"
   checksum: a49f1c23edbcb79079a13577d32fcd46d0db30879c8484f742a0d840923085f2f3de35a9bfbb96eadd12201ffb7c3adf45b0f528d08b71cb547c5f8068b5d61b
@@ -16708,6 +16736,7 @@ __metadata:
     react-router-dom: ^5.3.1
     react-select: ^5.4.0
     react-tag-autocomplete: ^6.3.0
+    react-trianglify: ^3.0.3
     react-zoom-pan-pinch: ^2.1.3
     reflect-metadata: ^0.1.13
     rxjs: 6
@@ -16733,6 +16762,7 @@ __metadata:
     timezone-mock: ^1.0.18
     tmex: ^1.0.8
     topojson-client: ^3.1.0
+    trianglify: ^4.1.1
     ts-pattern: ^4.0.4
     tsc-watch: ^4.2.9
     typeorm: ^0.3.10
@@ -21567,7 +21597,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.16.0":
+"nan@npm:^2.16.0, nan@npm:^2.17.0":
   version: 2.17.0
   resolution: "nan@npm:2.17.0"
   dependencies:
@@ -25882,6 +25912,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-trianglify@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "react-trianglify@npm:3.0.3"
+  peerDependencies:
+    react: 17.x
+    trianglify: 4.x
+  checksum: c514cf3bf01fd1c070f9653b0f87141194da0369ce87167471e3635a15a266411a2c8e33fd8a3970672b9e1b86a0927b42d85c2f9e699b7de1cd05bc4a708933
+  languageName: node
+  linkType: hard
+
 "react-zoom-pan-pinch@npm:^2.1.3":
   version: 2.1.3
   resolution: "react-zoom-pan-pinch@npm:2.1.3"
@@ -27425,6 +27465,17 @@ __metadata:
   version: 1.0.1
   resolution: "simple-concat@npm:1.0.1"
   checksum: 4d211042cc3d73a718c21ac6c4e7d7a0363e184be6a5ad25c8a1502e49df6d0a0253979e3d50dbdd3f60ef6c6c58d756b5d66ac1e05cda9cacd2e9fc59e3876a
+  languageName: node
+  linkType: hard
+
+"simple-get@npm:^3.0.3":
+  version: 3.1.1
+  resolution: "simple-get@npm:3.1.1"
+  dependencies:
+    decompress-response: ^4.2.0
+    once: ^1.3.1
+    simple-concat: ^1.0.0
+  checksum: 80195e70bf171486e75c31e28e5485468195cc42f85940f8b45c4a68472160144d223eb4d07bc82ef80cb974b7c401db021a540deb2d34ac4b3b8883da2d6401
   languageName: node
   linkType: hard
 
@@ -29242,6 +29293,17 @@ __metadata:
   version: 2.0.0
   resolution: "treeverse@npm:2.0.0"
   checksum: 3c6b2b890975a4d42c86b9a0f1eb932b4450db3fa874be5c301c4f5e306fd76330c6a490cf334b0937b3a44b049787ba5d98c88bc7b140f34fdb3ab1f83e5269
+  languageName: node
+  linkType: hard
+
+"trianglify@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "trianglify@npm:4.1.1"
+  dependencies:
+    canvas: ^2.6.1
+    chroma-js: ^2.1.0
+    delaunator: ^4.0.1
+  checksum: 568ee3be34af8e5535c5559f79862975f80a1cd105b333cc03e3a15291a0cd495425708995d61117d3fc7a7acf5d2876d1e4ba2211df7da69022e068d4a291ad
   languageName: node
   linkType: hard
 

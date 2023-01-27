@@ -1,14 +1,15 @@
 .SearchApp {
+    padding: 32px 0;
     @include grid(12);
 
     .search-header {
         grid-column: 3 / span 10;
-        padding: 32px 0;
 
         h2 {
             @include h1-semibold;
             margin-bottom: 8px;
         }
+        margin-bottom: 40px;
     }
     .SearchAutocomplete {
         width: 50vw;
@@ -16,8 +17,12 @@
         padding-top: 24px;
     }
 
-    h3:first-of-type {
-        margin-top: 0;
+    h3 {
+        @include h1-semibold;
+        margin-bottom: 16px;
+        &:first-of-type {
+            margin-top: 0;
+        }
     }
 
     .refinements {
@@ -49,5 +54,15 @@
 
     .SearchChartsHits {
         grid-column: 1 / span 12;
+    }
+
+    .wp-block-research-and-writing {
+        padding-bottom: 0;
+        figure {
+            padding-bottom: 0;
+        }
+        canvas {
+            width: 100%;
+        }
     }
 }
