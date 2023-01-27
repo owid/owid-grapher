@@ -259,24 +259,20 @@ test:
 	yarn testPrettierChanged
 
 	@echo '==> Running tests'
-	yarn run jest --all --testPathIgnorePatterns=db/tests/redirects
+	yarn run jest
 
 dbtest:
 	@echo '==> Linting'
-	yarn
-	yarn run eslint
-	yarn buildTsc
+#	yarn
+#	yarn run eslint
+#	yarn buildTsc
 
 	@echo '==> Checking formatting'
-	yarn testPrettierChanged
+#	yarn testPrettierChanged
 
 	@echo '==> Starting mysql database'
-	docker-compose -f docker-compose.test.yml up db
-
-	yarn runDbMigrations
-
-	@echo '==> Running tests'
-	yarn run jest --all
+	docker-compose -f docker-compose.dbtests.yml up -d
+	./devTools/docker/run-db-tests.sh
 
 lint:
 	@echo '==> Linting'
