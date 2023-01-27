@@ -4,6 +4,7 @@
     .SearchAutocomplete {
         grid-column: 1 / span 12;
         padding: $vertical-spacing 0;
+        width: 50vw;
     }
 
     .ais-RefinementList {
@@ -19,5 +20,9 @@
                 grid-column: span 2;
             }
         }
+    }
+
+    .SearchChartsHits {
+        grid-column: 1 / span 12;
     }
 }

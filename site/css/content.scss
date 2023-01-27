@@ -106,7 +106,8 @@
 }
 
 .article-content figure[data-grapher-src]:not(.grapherPreview),
-.SearchResults figure[data-grapher-src]:not(.grapherPreview) {
+.SearchResults figure[data-grapher-src]:not(.grapherPreview),
+.SearchApp figure[data-grapher-src]:not(.grapherPreview) {
     height: $grapher-height;
 }
 

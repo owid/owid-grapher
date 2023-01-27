@@ -8,7 +8,7 @@
     .article-header,
     .site-subnavigation,
     .sticky-nav-container,
-    .SearchAutocomplete {
+    .SearchApp {
         @include content-wrapper;
         @include lg-up {
             max-width: $xlg;
