@@ -14,8 +14,15 @@ export const TopicCard = ({ hit }: HitProps) => {
         <div className="TopicCard">
             <div className="TopicCard__title">
                 <Highlight hit={hit} attribute="title" />
-                <div>
-                    <strong>{hit._tags[0]}</strong>
+                <div style={{ marginTop: "8px" }}>
+                    {hit._tags.map((tag) => (
+                        <span
+                            key={tag}
+                            className="tag ais-RefinementList-count"
+                        >
+                            {tag}
+                        </span>
+                    ))}
                 </div>
             </div>
         </div>

@@ -10,6 +10,7 @@ import "@algolia/autocomplete-plugin-tags/dist/theme.min.css"
 import { SearchClient } from "algoliasearch/lite.js"
 import { BaseTag, createTagsPlugin } from "@algolia/autocomplete-plugin-tags"
 import { useInstantSearch } from "react-instantsearch-hooks-web"
+import { PAGES_INDEX } from "./SearchApp.js"
 
 type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
     className?: string
@@ -30,7 +31,7 @@ export function SearchAutocomplete({
 
     const { query, refine: setQuery } = useSearchBox()
     const { refine: setPage } = usePagination()
-    const { indexUiState, setIndexUiState } = useInstantSearch()
+    const { setIndexUiState } = useInstantSearch()
 
     const [instantSearchUiState, setInstantSearchUiState] =
         useState<SetInstantSearchUiStateOptions>({ query })
@@ -108,7 +109,7 @@ function getSources(searchClient: SearchClient) {
                     searchClient,
                     queries: [
                         {
-                            indexName: "pages",
+                            indexName: PAGES_INDEX,
                             facet: "_tags",
                             params: {
                                 facetQuery: query,

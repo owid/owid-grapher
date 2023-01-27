@@ -1,25 +1,50 @@
 .SearchApp {
     @include grid(12);
 
+    .search-header {
+        grid-column: 3 / span 10;
+        padding: 32px 0;
+
+        h2 {
+            @include h1-semibold;
+            margin-bottom: 8px;
+        }
+    }
     .SearchAutocomplete {
-        grid-column: 1 / span 12;
-        padding: $vertical-spacing 0;
         width: 50vw;
+        margin: auto;
+        padding-top: 24px;
     }
 
-    .ais-RefinementList {
+    h3:first-of-type {
+        margin-top: 0;
+    }
+
+    .refinements {
         grid-column: 1 / span 2;
     }
 
-    .ais-Hits {
+    .ais-RefinementList {
+        position: sticky;
+        top: 8px;
+    }
+
+    .search-results {
         grid-column: 3 / span 10;
-        .ais-Hits-list {
-            @include grid(10);
-            row-gap: $grid-gap;
-            .ais-Hits-item {
-                grid-column: span 2;
-            }
+    }
+    .ais-Hits-list {
+        @include grid(10);
+        row-gap: $grid-gap;
+        .ais-Hits-item {
+            grid-column: span 2;
+            padding: 16px;
         }
+    }
+
+    .tag {
+        border-radius: 4px;
+        margin-left: 0;
+        margin-right: 4px;
     }
 
     .SearchChartsHits {
