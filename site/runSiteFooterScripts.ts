@@ -11,15 +11,20 @@ import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import { runHeaderMenus } from "./SiteHeaderMenus.js"
 import { runSiteTools } from "./SiteTools.js"
 
-export const runSiteFooterScripts = ({
-    debug,
-    context,
-    container,
-}: {
-    debug?: boolean
-    context?: SiteFooterContext
-    container?: HTMLElement
-}) => {
+export const runSiteFooterScripts = (
+    args:
+        | {
+              debug?: boolean
+              context?: SiteFooterContext
+              container?: HTMLElement
+          }
+        | undefined
+) => {
+    // We used to destructure this in the function signature, but that caused
+    // a weird issue reported by bugsnag: https://app.bugsnag.com/our-world-in-data/our-world-in-data-website/errors/63ca39b631e8660009464eb4?event_id=63d384c500acc25fc0810000&i=sk&m=ef
+    // So now we define the object as potentially undefined and then destructure it here.
+    const { debug, context, container } = args || {}
+
     switch (context) {
         case SiteFooterContext.gdocsPreview:
             runBlocks()
