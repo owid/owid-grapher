@@ -42,7 +42,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                 </div>
                 <div className="search-results">
                     <Index indexName={PAGES_INDEX}>
-                        <Configure distinct={1} />
+                        <Configure filters="type:entry" distinct={1} />
                         <h3>Topics</h3>
                         <Hits hitComponent={TopicCard}></Hits>
                     </Index>
