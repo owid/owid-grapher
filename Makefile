@@ -262,17 +262,12 @@ test:
 	yarn run jest
 
 dbtest:
-	@echo '==> Linting'
-#	yarn
-#	yarn run eslint
-#	yarn buildTsc
+	@echo '==> Building'
+	yarn
+	yarn buildTsc
 
-	@echo '==> Checking formatting'
-#	yarn testPrettierChanged
-
-	@echo '==> Starting mysql database'
-	docker-compose -f docker-compose.dbtests.yml up -d
-	./devTools/docker/run-db-tests.sh
+	@echo '==> Running db test script'
+	./db/tests/run-db-tests.sh
 
 lint:
 	@echo '==> Linting'
