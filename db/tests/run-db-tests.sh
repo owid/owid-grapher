@@ -24,7 +24,7 @@ echo '==> Running migrations'
 yarn typeorm migration:run -d itsJustJavascript/db/tests/dataSource.dbtests.js
 
 echo '==> Running tests'
-if ! yarn run jest --config=jest.db.config.js
+if ! yarn run jest --config=jest.db.config.js --runInBand # runInBand runs multiple test files serially - useful to avoid weird race conditions
 then
     echo '💀 Tests failed'
     docker-compose -f docker-compose.dbtests.yml stop
