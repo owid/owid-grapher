@@ -21,7 +21,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/autocomplete-js@npm:^1.7.4":
+"@algolia/autocomplete-js@npm:1.7.4, @algolia/autocomplete-js@npm:^1.7.4":
   version: 1.7.4
   resolution: "@algolia/autocomplete-js@npm:1.7.4"
   dependencies:
@@ -33,6 +33,20 @@ __metadata:
   peerDependencies:
     "@algolia/client-search": ">= 4.5.1 < 6"
   checksum: 10155b9aaebe25e9e03271ff0e3758deed5182562c123ad60c6f9d17de34d20e9f060278d1afd77f0fdbb95cd718d25fa807b09e91371014e02da6fef7f649b6
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-plugin-recent-searches@npm:^1.7.4":
+  version: 1.7.4
+  resolution: "@algolia/autocomplete-plugin-recent-searches@npm:1.7.4"
+  dependencies:
+    "@algolia/autocomplete-core": 1.7.4
+    "@algolia/autocomplete-js": 1.7.4
+    "@algolia/autocomplete-preset-algolia": 1.7.4
+    "@algolia/autocomplete-shared": 1.7.4
+  peerDependencies:
+    "@algolia/client-search": ">= 4.5.1 < 6"
+  checksum: 13e424dbb44cf41e9e11f97246a9d56d933db7ae2f050b9e4f7d9681c1db05cca97bf72cd77af7e808d03f7fa3a91a8ce3a2965b46b3573dbf4a1e5c56d12025
   languageName: node
   linkType: hard
 
@@ -16556,6 +16570,7 @@ __metadata:
   dependencies:
     "@algolia/autocomplete-core": ^1.7.4
     "@algolia/autocomplete-js": ^1.7.4
+    "@algolia/autocomplete-plugin-recent-searches": ^1.7.4
     "@algolia/autocomplete-plugin-tags": ^1.7.4
     "@algolia/autocomplete-theme-classic": ^1.7.4
     "@bugsnag/core": ^7.17.0

@@ -12,6 +12,7 @@ import { BaseTag, createTagsPlugin } from "@algolia/autocomplete-plugin-tags"
 import { useInstantSearch } from "react-instantsearch-hooks-web"
 import { createSearchTopicsPlugin } from "./searchPluginTopics.js"
 import { createSearchArticlesPlugin } from "./searchArticlesPlugin.js"
+import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 
 type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
     className?: string
@@ -79,6 +80,7 @@ export function SearchAutocomplete({
             },
             renderer: { createElement, Fragment, render: render as Render },
             plugins: [
+                recentSearchesPlugin,
                 tagsPlugin,
                 createSearchTopicsPlugin(searchClient),
                 createSearchArticlesPlugin(searchClient),
@@ -102,4 +104,9 @@ const tagsPlugin = createTagsPlugin({
             },
         ]
     },
+})
+
+const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
+    key: "RECENT_SEARCHES",
+    limit: 5,
 })
