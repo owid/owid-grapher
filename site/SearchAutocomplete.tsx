@@ -2,7 +2,7 @@ import React from "react"
 import { createElement, Fragment, useEffect, useRef, useState } from "react"
 import { render } from "react-dom"
 import { usePagination, useSearchBox } from "react-instantsearch-hooks"
-import { autocomplete, getAlgoliaFacets } from "@algolia/autocomplete-js"
+import { autocomplete } from "@algolia/autocomplete-js"
 import { BaseItem } from "@algolia/autocomplete-core"
 import type { AutocompleteOptions, Render } from "@algolia/autocomplete-js"
 import "@algolia/autocomplete-theme-classic"
@@ -10,7 +10,7 @@ import "@algolia/autocomplete-plugin-tags/dist/theme.min.css"
 import { SearchClient } from "algoliasearch/lite.js"
 import { BaseTag, createTagsPlugin } from "@algolia/autocomplete-plugin-tags"
 import { useInstantSearch } from "react-instantsearch-hooks-web"
-import { PAGES_INDEX } from "./SearchApp.js"
+import { createSearchTopicsPlugin } from "./searchPluginTopics.js"
 
 type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
     className?: string
@@ -77,8 +77,7 @@ export function SearchAutocomplete({
                 })
             },
             renderer: { createElement, Fragment, render: render as Render },
-            getSources: () => getSources(searchClient),
-            plugins: [tagsPlugin],
+            plugins: [tagsPlugin, createSearchTopicsPlugin(searchClient)],
         })
 
         return () => autocompleteInstance.destroy()
@@ -99,68 +98,3 @@ const tagsPlugin = createTagsPlugin({
         ]
     },
 })
-
-function getSources(searchClient: SearchClient) {
-    return [
-        {
-            sourceId: "topics",
-            getItems({ query }: { query: string }) {
-                return getAlgoliaFacets({
-                    searchClient,
-                    queries: [
-                        {
-                            indexName: PAGES_INDEX,
-                            facet: "_tags",
-                            params: {
-                                facetQuery: query,
-                                maxFacetHits: 5,
-                            },
-                        },
-                    ],
-                    transformResponse({ facetHits }) {
-                        return facetHits[0].map((hit) => ({
-                            ...hit,
-                            facet: "_tags",
-                        }))
-                    },
-                })
-            },
-            templates: {
-                item({ item, components, html }: any) {
-                    return html`<div className="aa-ItemWrapper">
-                        <div className="aa-ItemContent">
-                            <div className="aa-ItemContentBody">
-                                <div className="aa-ItemContentTitle">
-                                    ${components.Highlight({
-                                        hit: item,
-                                        attribute: "label",
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="aa-ItemActions">
-                            <button
-                                className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
-                                type="button"
-                                title="Filter"
-                            >
-                                <svg
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>`
-                },
-            },
-        },
-    ]
-}
