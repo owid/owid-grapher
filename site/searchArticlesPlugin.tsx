@@ -3,6 +3,8 @@ import { getAlgoliaResults } from "@algolia/autocomplete-js"
 import { SearchClient } from "algoliasearch/lite.js"
 import { PAGES_INDEX } from "./SearchApp.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
 type ArticleHit = {
     title: string
@@ -25,6 +27,7 @@ export const createSearchArticlesPlugin = (searchClient: SearchClient) => {
                                     params: {
                                         hitsPerPage: 2,
                                         filters: "type:post",
+                                        distinct: true,
                                     },
                                 },
                             ],
@@ -35,44 +38,35 @@ export const createSearchArticlesPlugin = (searchClient: SearchClient) => {
                         item({
                             item,
                             components,
-                            html,
                         }: {
                             item: ArticleHit
                             components: any
-                            html: any
                         }) {
-                            return html`<div className="aa-ItemWrapper">
-                                <div className="aa-ItemContent">
-                                    <div className="aa-ItemContentBody">
-                                        <div className="aa-ItemContentTitle">
-                                            ${components.Highlight({
-                                                hit: item,
-                                                attribute: "title",
-                                            })}
+                            return (
+                                <div className="aa-ItemWrapper">
+                                    <div className="aa-ItemContent">
+                                        <div className="aa-ItemContentBody">
+                                            <div className="aa-ItemContentTitle">
+                                                {components.Highlight({
+                                                    hit: item,
+                                                    attribute: "title",
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="aa-ItemActions">
-                                    <button
-                                        className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
-                                        type="button"
-                                        title="Filter"
-                                    >
-                                        <svg
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                    <div className="aa-ItemActions">
+                                        <button
+                                            className="aa-ItemActionButton aa-DesktopOnly aa-ActiveOnly"
+                                            type="button"
+                                            title="Filter"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="2"
-                                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                                            <FontAwesomeIcon
+                                                icon={faArrowRight}
                                             />
-                                        </svg>
-                                    </button>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>`
+                            )
                         },
 
                         header({ items }: { items: ArticleHit[] }) {

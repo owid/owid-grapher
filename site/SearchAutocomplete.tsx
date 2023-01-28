@@ -8,11 +8,12 @@ import type { AutocompleteOptions, Render } from "@algolia/autocomplete-js"
 import "@algolia/autocomplete-theme-classic"
 import "@algolia/autocomplete-plugin-tags/dist/theme.min.css"
 import { SearchClient } from "algoliasearch/lite.js"
-import { BaseTag, createTagsPlugin } from "@algolia/autocomplete-plugin-tags"
+import { BaseTag } from "@algolia/autocomplete-plugin-tags"
 import { useInstantSearch } from "react-instantsearch-hooks-web"
 import { createSearchTopicsPlugin } from "./searchPluginTopics.js"
 import { createSearchArticlesPlugin } from "./searchArticlesPlugin.js"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
+import { createSearchTagsPlugin } from "./searchTagsPlugin.js"
 
 type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
     className?: string
@@ -81,7 +82,7 @@ export function SearchAutocomplete({
             renderer: { createElement, Fragment, render: render as Render },
             plugins: [
                 recentSearchesPlugin,
-                tagsPlugin,
+                createSearchTagsPlugin(),
                 createSearchTopicsPlugin(searchClient),
                 createSearchArticlesPlugin(searchClient),
             ],
@@ -92,19 +93,6 @@ export function SearchAutocomplete({
 
     return <div className={className} ref={autocompleteContainer} />
 }
-
-const tagsPlugin = createTagsPlugin({
-    getTagsSubscribers() {
-        return [
-            {
-                sourceId: "topics",
-                getTag({ item }: any) {
-                    return item
-                },
-            },
-        ]
-    },
-})
 
 const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     key: "RECENT_SEARCHES",

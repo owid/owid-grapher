@@ -15,6 +15,15 @@
         width: 50vw;
         margin: auto;
         padding-top: 24px;
+        .aa-List {
+            margin-right: 4px;
+        }
+        .aa-Tags {
+            margin: 0;
+            svg {
+                margin: 0;
+            }
+        }
     }
 
     h3 {

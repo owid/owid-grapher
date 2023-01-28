@@ -31,7 +31,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         <div>Free, open and ad-free</div>
                     </div>
                     <SearchAutocomplete
-                        placeholder="Poverty, CO2 emissions, ..."
+                        placeholder=""
                         className="SearchAutocomplete"
                         detachedMediaQuery="none"
                         openOnFocus
