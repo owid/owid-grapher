@@ -107,11 +107,10 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                     if (block.type === "image") {
                         if (!block.alt) {
                             block.alt =
-                                imageStore?.images?.[block.filename]
-                                    ?.defaultAlt || ""
+                                imageStore.images?.[block.filename].defaultAlt
                         }
                         block.originalWidth =
-                            imageStore?.images?.[block.filename]?.originalWidth
+                            imageStore?.images?.[block.filename].originalWidth
                     }
                     return block
                 }

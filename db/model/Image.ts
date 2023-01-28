@@ -129,39 +129,23 @@ export class ColumnNumericTransformer implements ValueTransformer {
 }
 
 @Entity("images")
-export class Image extends BaseEntity {
+export class Image extends BaseEntity implements ImageMetadata {
     @PrimaryGeneratedColumn() id!: number
-    @Column() googleId: string
-    @Column() filename: string
-    @Column() defaultAlt: string
+    @Column() googleId!: string
+    @Column() filename!: string
+    @Column() defaultAlt!: string
     @Column({
         transformer: new ColumnNumericTransformer(),
     })
-    updatedAt: number
+    updatedAt!: number
     @Column({
         transformer: new ColumnNumericTransformer(),
         nullable: true,
     })
-    originalWidth?: number
-
-    constructor(
-        filename = "",
-        description = "",
-        updatedAt = 0,
-        googleId = "",
-        originalWidth?: number
-    ) {
-        super()
-        this.googleId = googleId
-        this.filename = filename
-        // we're storing the alt text in the GDrive description field
-        this.defaultAlt = description
-        this.updatedAt = updatedAt
-        this.originalWidth = originalWidth
-    }
+    originalWidth!: number
 
     get isSvg(): boolean {
-        return Image.getFileExtension(this) === "svg"
+        return this.fileExtension === "svg"
     }
 
     get sizes(): number[] | undefined {
@@ -178,17 +162,33 @@ export class Image extends BaseEntity {
         return widths
     }
 
+    get srcSets(): string | undefined {
+        if (this.isSvg) return
+        return (this.sizes as number[])
+            .map(
+                (size) =>
+                    `images/${this.filenameWithoutExtension}_${size}.webp ${size}w`
+            )
+            .join(", ")
+    }
+
     get filenameWithoutExtension(): string {
         return this.filename.slice(0, this.filename.indexOf("."))
     }
 
-    static getFileExtension(image: Image | ImageMetadata): string {
-        return image.filename.slice(image.filename.indexOf(".") + 1)
+    get fileExtension(): string {
+        return this.filename.slice(this.filename.indexOf(".") + 1)
     }
 
-    static async syncImage(fresh: ImageMetadata): Promise<Image | undefined> {
-        const results = await Image.findBy({ googleId: fresh.googleId })
-        const stored = results[0]
+    // Given a record from Drive, see if we're already aware of it
+    // If we are, see if Drive's version is different from the one we have stored
+    // If it is, upload it and update our record
+    // If we're not aware of it, upload and record it
+    static async syncImage(
+        metadata: ImageMetadata
+    ): Promise<Image | undefined> {
+        const fresh = Image.create<Image>(metadata)
+        const stored = await Image.findOneBy({ googleId: metadata.googleId })
 
         try {
             if (stored) {
@@ -197,7 +197,7 @@ export class Image extends BaseEntity {
                     stored.defaultAlt !== fresh.defaultAlt ||
                     stored.originalWidth !== fresh.originalWidth
                 ) {
-                    await Image.fetchFromDriveAndUploadToS3(fresh)
+                    await fresh.fetchFromDriveAndUploadToS3()
                     stored.updatedAt = fresh.updatedAt
                     stored.defaultAlt = fresh.defaultAlt
                     stored.originalWidth = fresh.originalWidth
@@ -205,14 +205,8 @@ export class Image extends BaseEntity {
                 }
                 return stored
             } else {
-                await Image.fetchFromDriveAndUploadToS3(fresh)
-                return new Image(
-                    fresh.filename,
-                    fresh.defaultAlt,
-                    fresh.updatedAt,
-                    fresh.googleId,
-                    fresh.originalWidth
-                ).save()
+                await fresh.fetchFromDriveAndUploadToS3()
+                return fresh.save()
             }
         } catch (e) {
             console.error(`Error syncing ${fresh.filename}`, e)
@@ -220,9 +214,7 @@ export class Image extends BaseEntity {
         return
     }
 
-    static async fetchFromDriveAndUploadToS3(
-        image: Image | ImageMetadata
-    ): Promise<void> {
+    async fetchFromDriveAndUploadToS3(): Promise<void> {
         const driveClient = google.drive({
             version: "v3",
             auth: Gdoc.getGoogleAuth(), // TODO: extract auth from Gdoc
@@ -230,7 +222,7 @@ export class Image extends BaseEntity {
 
         const file = await driveClient.files.get(
             {
-                fileId: image.googleId,
+                fileId: this.googleId,
                 alt: "media",
             },
             {
@@ -244,7 +236,7 @@ export class Image extends BaseEntity {
         const bucket = IMAGE_HOSTING_BUCKET_PATH.slice(0, indexOfFirstSlash)
         const directory = IMAGE_HOSTING_BUCKET_PATH.slice(indexOfFirstSlash + 1)
 
-        const fileExtension = Image.getFileExtension(image)
+        const fileExtension = this.fileExtension
         const MIMEType = {
             png: "image/png",
             svg: "image/svg+xml",
@@ -260,7 +252,7 @@ export class Image extends BaseEntity {
 
         const params: PutObjectCommandInput = {
             Bucket: bucket,
-            Key: `${directory}/${image.filename}`,
+            Key: `${directory}/${this.filename}`,
             Body: imageArrayBuffer,
             ACL: "public-read",
             ContentType: MIMEType,

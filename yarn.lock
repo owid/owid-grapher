@@ -17404,6 +17404,7 @@ __metadata:
     json8-pointer: ^1.0.6
     jsonwebtoken: ^9.0.0
     knex: ^2.3.0
+    lazysizes: ^5.3.2
     lerna: ^6.0.0
     linkifyjs: ^2.1.9
     lodash: ^4.17.20
@@ -20621,6 +20622,13 @@ __metadata:
     dotenv: ^8.0.0
     dotenv-expand: ^5.1.0
   checksum: a80509d8cb40dafcfab5859335920754a21814320aa16115e58c0ae5ef3b1d8bd4daa96349ea548e2833f2f89269ddbb103ebd55be06cfdba00e0af6785b5ba7
+  languageName: node
+  linkType: hard
+
+"lazysizes@npm:^5.3.2":
+  version: 5.3.2
+  resolution: "lazysizes@npm:5.3.2"
+  checksum: 6126c800bee810e27961ceab39e6940391f54ce42241cf11dcdc5effcf42d0f4ba509a6c126f578a20ba4d60ad6a9fbae2b2518c168494fa0184b644dac65bda
   languageName: node
   linkType: hard
 

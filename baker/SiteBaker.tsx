@@ -348,16 +348,7 @@ export class SiteBaker {
                 `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
             )
             .then((results: ImageMetadata[]) =>
-                results.map(
-                    (result) =>
-                        new Image(
-                            result.filename,
-                            result.defaultAlt,
-                            result.updatedAt,
-                            result.googleId,
-                            result.originalWidth
-                        )
-                )
+                results.map((result) => Image.create<Image>(result))
             )
 
         this.ensureDir("images")
@@ -443,13 +434,13 @@ export class SiteBaker {
         await this.bakeRSS()
         await this.bakeAssets()
         await this.bakeGoogleScholar()
-        await this.bakePosts()
+        // await this.bakePosts()
     }
 
     private async _bakeNonWordpressPages() {
         await bakeCountries(this)
         await this.bakeSpecialPages()
-        await this.bakeCountryProfiles()
+        // await this.bakeCountryProfiles()
         await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
             this.bakedSiteDir
         )
