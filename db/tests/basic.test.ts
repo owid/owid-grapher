@@ -34,6 +34,8 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+    // We leave the user in the database for other tests to use
+    // For other cases it is good to drop any rows created in the test
     await typeOrmConnection?.destroy()
     await knexInstance?.destroy()
 })
