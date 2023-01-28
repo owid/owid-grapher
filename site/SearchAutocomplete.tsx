@@ -11,6 +11,7 @@ import { SearchClient } from "algoliasearch/lite.js"
 import { BaseTag, createTagsPlugin } from "@algolia/autocomplete-plugin-tags"
 import { useInstantSearch } from "react-instantsearch-hooks-web"
 import { createSearchTopicsPlugin } from "./searchPluginTopics.js"
+import { createSearchArticlesPlugin } from "./searchArticlesPlugin.js"
 
 type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
     className?: string
@@ -77,7 +78,11 @@ export function SearchAutocomplete({
                 })
             },
             renderer: { createElement, Fragment, render: render as Render },
-            plugins: [tagsPlugin, createSearchTopicsPlugin(searchClient)],
+            plugins: [
+                tagsPlugin,
+                createSearchTopicsPlugin(searchClient),
+                createSearchArticlesPlugin(searchClient),
+            ],
         })
 
         return () => autocompleteInstance.destroy()
