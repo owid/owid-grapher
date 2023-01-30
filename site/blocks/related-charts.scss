@@ -3,7 +3,7 @@
     .wp-block-columns .wp-block-column {
         &:first-child {
             // refactor: merge with KeyInsights.css
-            @include lg-up {
+            @include md-up {
                 height: 575px;
                 overflow-y: auto;
                 -webkit-mask-image: linear-gradient(
@@ -24,7 +24,7 @@
                 padding: 0;
                 margin: 0;
 
-                @include lg-down {
+                @include md-down {
                     display: flex;
                     overflow-x: auto;
                     margin-bottom: $vertical-spacing * 0.5; // making space for the scrollbar
@@ -35,7 +35,7 @@
                     }
                 }
 
-                @include lg-up {
+                @include md-up {
                     display: grid;
                     grid-template-columns: repeat(2, 1fr);
                     gap: $vertical-spacing;
@@ -55,17 +55,15 @@
             }
 
             .active {
-                a {
-                    @include cancel-link-styles;
-                }
+                pointer-events: none;
+
                 img {
                     border: 1px solid $oxford-blue;
                 }
-                pointer-events: none;
-                // opacity: 0.5;
-            }
-            a:visited {
-                color: $link-color;
+
+                a {
+                    text-decoration: none;
+                }
             }
         }
 
