@@ -24,13 +24,17 @@ type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
 type SetInstantSearchUiStateOptions = {
     query: string
     tags?: BaseTag[]
+    countries?: string[]
 }
 
 export function SearchAutocomplete({
     className,
     searchClient,
+    setEntities,
     ...autocompleteProps
-}: AutocompleteProps) {
+}: AutocompleteProps & {
+    setEntities: React.Dispatch<React.SetStateAction<string[]>>
+}) {
     const autocompleteContainer = useRef<HTMLDivElement>(null)
 
     const { query, refine: setQuery } = useSearchBox()
@@ -45,6 +49,8 @@ export function SearchAutocomplete({
         setPage(0)
         setIndexUiState((prevIndexUiState: any) => {
             if (!instantSearchUiState.tags) return prevIndexUiState
+
+            setEntities(instantSearchUiState.countries || [])
 
             return {
                 ...prevIndexUiState,
@@ -78,6 +84,9 @@ export function SearchAutocomplete({
                     tags: state.context.tagsPlugin.tags
                         .filter((tag: BaseTag) => tag.facet === "_tags")
                         .map((tag: BaseTag) => tag.label),
+                    countries: state.context.tagsPlugin.tags
+                        .filter((tag: BaseTag) => tag.type === "country")
+                        .map((tag: BaseTag) => tag.title),
                 })
             },
             renderer: { createElement, Fragment, render: render as Render },

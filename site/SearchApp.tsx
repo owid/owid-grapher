@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import {
     Configure,
     Hits,
@@ -18,6 +18,8 @@ export const PAGES_INDEX = "pages-test"
 export const CHARTS_INDEX = "charts-test"
 
 export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
+    const [entities, setEntities] = useState<string[]>([])
+
     return (
         <div className="SearchApp">
             <InstantSearch
@@ -36,6 +38,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         detachedMediaQuery="none"
                         openOnFocus
                         searchClient={searchClient}
+                        setEntities={setEntities}
                     />
                 </div>
                 <div className="refinements">
@@ -64,7 +67,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                     <Index indexName={CHARTS_INDEX}>
                         <VirtualChartsRefinementList attribute="_tags" />
                         {/* TODO <VirtualChartsRefinementList attribute="availableEntities" /> */}
-                        <SearchChartsHits />
+                        <SearchChartsHits entities={entities} />
                     </Index>
                 </div>
             </InstantSearch>

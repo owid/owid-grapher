@@ -2,7 +2,7 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
-import { RelatedChart } from "@ourworldindata/utils"
+import { Url, RelatedChart } from "@ourworldindata/utils"
 import React from "react"
 import {
     BAKED_BASE_URL,
@@ -25,7 +25,10 @@ export const AllChartsListItem = ({
                 onClick={onClick}
             >
                 <img
-                    src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart.slug}.svg`}
+                    src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${
+                        // Todo hack: handle cases when slugs are slugs + query params
+                        Url.fromURL(chart.slug).slug
+                    }.svg`}
                     loading="lazy"
                     data-no-lightbox
                     data-no-img-formatting
