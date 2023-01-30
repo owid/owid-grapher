@@ -73,6 +73,16 @@ export const createSearchTagsPlugin = (searchClient: SearchClient) => {
                 },
                 {
                     sourceId: "countryTags",
+                    onSelect({ item, setQuery }: any) {
+                        // TODO?
+                        // if (
+                        //     item.label
+                        //         .toLowerCase()
+                        //         .includes(query.toLowerCase())
+                        // ) {
+                        setQuery("")
+                        // }
+                    },
                     getItems({ query }: { query: string }) {
                         return getAlgoliaResults({
                             searchClient,
