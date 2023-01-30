@@ -18,7 +18,7 @@ jobs:
 
             - name: Build and run db tests
               run: make dbtest
-              timeout-minutes: 2
+              timeout-minutes: 6
 
     testcheck:
         runs-on: ubuntu-latest
