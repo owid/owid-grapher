@@ -40,6 +40,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                 </div>
                 <div className="refinements">
                     <RefinementList attribute="_tags" />
+                    {/* TODO <RefinementList attribute="authors" /> */}
                 </div>
                 <div className="search-results">
                     <Index indexName={PAGES_INDEX} indexId="topics">
@@ -55,7 +56,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         <h3>Research & Writing</h3>
                         <Configure
                             hitsPerPage={9}
-                            filters="NOT type:entry"
+                            filters="(NOT type:entry) AND (NOT type:country)"
                             distinct={1}
                         />
                         <SearchResearchAndWriting />
@@ -64,13 +65,9 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                     <Index indexName={CHARTS_INDEX}>
                         <h3>Interactive charts</h3>
                         <VirtualChartsRefinementList attribute="_tags" />
+                        {/* TODO <VirtualChartsRefinementList attribute="availableEntities" /> */}
                         <SearchChartsHits />
                     </Index>
-                    {/* <Index indexName={PAGES_INDEX}>
-                        <Configure filters="NOT type:entry" distinct={1} />
-                        <h3>Articles</h3>
-                        <Hits hitComponent={TopicCard}></Hits>
-                    </Index> */}
                 </div>
             </InstantSearch>
         </div>

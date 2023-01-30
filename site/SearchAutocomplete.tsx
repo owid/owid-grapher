@@ -10,10 +10,11 @@ import "@algolia/autocomplete-plugin-tags/dist/theme.min.css"
 import { SearchClient } from "algoliasearch/lite.js"
 import { BaseTag } from "@algolia/autocomplete-plugin-tags"
 import { useInstantSearch } from "react-instantsearch-hooks-web"
-import { createSearchTopicsPlugin } from "./searchPluginTopics.js"
+import { createSearchTagsPlugin } from "./searchTagsPlugin.js"
 import { createSearchArticlesPlugin } from "./searchArticlesPlugin.js"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
-import { createSearchTagsPlugin } from "./searchTagsPlugin.js"
+import { createShowTagsPlugin } from "./showTagsPlugin.js"
+import { createSearchCountriesPlugin } from "./searchCountriesPlugin.js"
 
 type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
     className?: string
@@ -22,7 +23,7 @@ type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
 
 type SetInstantSearchUiStateOptions = {
     query: string
-    topics?: BaseTag[]
+    tags?: BaseTag[]
 }
 
 export function SearchAutocomplete({
@@ -43,13 +44,13 @@ export function SearchAutocomplete({
         setQuery(instantSearchUiState.query)
         setPage(0)
         setIndexUiState((prevIndexUiState: any) => {
-            if (!instantSearchUiState.topics) return prevIndexUiState
+            if (!instantSearchUiState.tags) return prevIndexUiState
 
             return {
                 ...prevIndexUiState,
                 refinementList: {
                     ...prevIndexUiState.refinementList,
-                    _tags: instantSearchUiState.topics,
+                    _tags: instantSearchUiState.tags,
                 },
             }
         })
@@ -74,16 +75,17 @@ export function SearchAutocomplete({
                 // todo debounce
                 setInstantSearchUiState({
                     query: state.query,
-                    topics: state.context.tagsPlugin.tags.map(
-                        (tag: BaseTag) => tag.label
-                    ),
+                    tags: state.context.tagsPlugin.tags
+                        .filter((tag: BaseTag) => tag.facet === "_tags")
+                        .map((tag: BaseTag) => tag.label),
                 })
             },
             renderer: { createElement, Fragment, render: render as Render },
             plugins: [
                 recentSearchesPlugin,
-                createSearchTagsPlugin(),
-                createSearchTopicsPlugin(searchClient),
+                createShowTagsPlugin(),
+                createSearchTagsPlugin(searchClient),
+                createSearchCountriesPlugin(searchClient),
                 createSearchArticlesPlugin(searchClient),
             ],
         })

@@ -1,39 +1,46 @@
 import React from "react"
-import { getAlgoliaFacets } from "@algolia/autocomplete-js"
+import { getAlgoliaResults } from "@algolia/autocomplete-js"
 import { SearchClient } from "algoliasearch/lite.js"
 import { PAGES_INDEX } from "./SearchApp.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faFilter } from "@fortawesome/free-solid-svg-icons/faFilter"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
-export const createSearchTopicsPlugin = (searchClient: SearchClient) => {
+type ArticleHit = {
+    title: string
+    slug: string
+}
+
+export const createSearchCountriesPlugin = (searchClient: SearchClient) => {
     return {
         getSources() {
             return [
                 {
-                    sourceId: "topics",
+                    sourceId: "countries",
                     getItems({ query }: { query: string }) {
-                        return getAlgoliaFacets({
+                        return getAlgoliaResults({
                             searchClient,
                             queries: [
                                 {
                                     indexName: PAGES_INDEX,
-                                    facet: "_tags",
+                                    query,
                                     params: {
-                                        facetQuery: query,
-                                        maxFacetHits: 5,
+                                        hitsPerPage: 2,
+                                        filters: "type:country",
                                     },
                                 },
                             ],
-                            transformResponse({ facetHits }) {
-                                return facetHits[0].map((hit) => ({
-                                    ...hit,
-                                    facet: "_tags",
-                                }))
-                            },
                         })
                     },
+
                     templates: {
-                        item({ item, components }: any) {
+                        item({
+                            item,
+                            components,
+                        }: {
+                            item: ArticleHit
+                            components: any
+                        }) {
                             return (
                                 <div className="aa-ItemWrapper">
                                     <div className="aa-ItemContent">
@@ -41,7 +48,7 @@ export const createSearchTopicsPlugin = (searchClient: SearchClient) => {
                                             <div className="aa-ItemContentTitle">
                                                 {components.Highlight({
                                                     hit: item,
-                                                    attribute: "label",
+                                                    attribute: "title",
                                                 })}
                                             </div>
                                         </div>
@@ -52,12 +59,32 @@ export const createSearchTopicsPlugin = (searchClient: SearchClient) => {
                                             type="button"
                                             title="Filter"
                                         >
-                                            <FontAwesomeIcon icon={faFilter} />
+                                            <FontAwesomeIcon
+                                                icon={faArrowRight}
+                                            />
                                         </button>
                                     </div>
                                 </div>
                             )
                         },
+
+                        header({ items }: { items: ArticleHit[] }) {
+                            if (items.length === 0) {
+                                return null
+                            }
+
+                            return (
+                                <>
+                                    <span className="aa-SourceHeaderTitle">
+                                        Countries
+                                    </span>
+                                    <div className="aa-SourceHeaderLine" />
+                                </>
+                            )
+                        },
+                    },
+                    getItemUrl({ item }: { item: ArticleHit }) {
+                        return `${BAKED_BASE_URL}/country/${item.slug}`
                     },
                 },
             ]
