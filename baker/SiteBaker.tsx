@@ -44,6 +44,7 @@ import {
     countries,
     FullPost,
     OwidArticleTypePublished,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -60,7 +61,7 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
-import { Image, ImageMetadata } from "../db/model/Image.js"
+import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
 
 export class SiteBaker {

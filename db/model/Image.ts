@@ -11,7 +11,14 @@ import {
     PutObjectCommandInput,
     S3Client,
 } from "@aws-sdk/client-s3"
-import { keyBy } from "@ourworldindata/utils"
+import {
+    generateSrcSet,
+    getFilenameWithoutExtension,
+    getSizes,
+    keyBy,
+    GDriveImageMetadata,
+    ImageMetadata,
+} from "@ourworldindata/utils"
 import { Gdoc } from "./Gdoc/Gdoc.js"
 import {
     IMAGE_HOSTING_SPACE_URL,
@@ -20,27 +27,6 @@ import {
     IMAGE_HOSTING_BUCKET_PATH,
     GDOCS_CLIENT_EMAIL,
 } from "../../settings/serverSettings.js"
-
-// This is the JSON we get from Google's API before remapping the keys to be consistent with the rest of our interfaces
-interface GDriveImageMetadata {
-    name: string // -> filename
-    modifiedTime: string // -> updatedAt e.g. "2023-01-11T19:45:27.000Z"
-    id: string // -> googleId e.g. "1dfArzg3JrAJupVl4YyJpb2FOnBn4irPX"
-    description?: string // -> defaultAlt
-    imageMediaMetadata?: {
-        width?: number // -> originalWidth
-    }
-}
-
-export interface ImageMetadata {
-    googleId: string
-    filename: string
-    defaultAlt: string
-    // MySQL Date objects round to the nearest second, whereas Google includes milliseconds
-    // so we store as an epoch to avoid any conversion issues
-    updatedAt: number
-    originalWidth: number
-}
 
 // Trying this to share the Google Drive image directory throughout the codebase
 class ImageStore {
@@ -150,30 +136,16 @@ export class Image extends BaseEntity implements ImageMetadata {
 
     get sizes(): number[] | undefined {
         if (this.isSvg) return
-        // ensure a thumbnail is generated thumbnail
-        const widths = [100]
-        // start at 350 and go up by 500 to a max of 1350 before we just show the original image
-        let width = 350
-        while (width < this.originalWidth! && width <= 1350) {
-            widths.push(width)
-            width += 500
-        }
-        widths.push(this.originalWidth!)
-        return widths
+        return getSizes(this.originalWidth)
     }
 
     get srcSets(): string | undefined {
         if (this.isSvg) return
-        return (this.sizes as number[])
-            .map(
-                (size) =>
-                    `images/${this.filenameWithoutExtension}_${size}.webp ${size}w`
-            )
-            .join(", ")
+        return generateSrcSet(this.sizes!, this.filename)
     }
 
     get filenameWithoutExtension(): string {
-        return this.filename.slice(0, this.filename.indexOf("."))
+        return getFilenameWithoutExtension(this.filename)
     }
 
     get fileExtension(): string {

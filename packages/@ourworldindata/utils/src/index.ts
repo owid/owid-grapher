@@ -477,3 +477,11 @@ export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
 export { PromiseCache } from "./PromiseCache.js"
 
 export { PromiseSwitcher } from "./PromiseSwitcher.js"
+
+export {
+    getSizes,
+    generateSrcSet,
+    getFilenameWithoutExtension,
+    GDriveImageMetadata,
+    ImageMetadata,
+} from "./image.js"
