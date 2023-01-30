@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
     # Checks for prettify errors, TypeScript errors and runs Jest tests.
-    testcheck:
+    testdbcheck:
         runs-on: ubuntu-latest
 
         steps:
@@ -13,13 +13,13 @@ jobs:
             - uses: ./.github/actions/setup-node-yarn-deps
 
             - name: Install dependencies
-              run: cp .env.exampe-grapher .env
+              run: cp .env.example-grapher .env
               shell: bash
 
             - name: Build and run db tests
               run: make dbtest
 
-    testdbcheck:
+    testcheck:
         runs-on: ubuntu-latest
 
         steps:
