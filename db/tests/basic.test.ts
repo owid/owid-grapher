@@ -33,11 +33,13 @@ beforeAll(async () => {
     typeOrmConnection = await getConnection(dataSource)
 })
 
-afterAll(async () => {
+afterAll((done: any) => {
     // We leave the user in the database for other tests to use
     // For other cases it is good to drop any rows created in the test
-    await typeOrmConnection?.destroy()
-    await knexInstance?.destroy()
+    Promise.allSettled([
+        typeOrmConnection?.destroy(),
+        knexInstance?.destroy(),
+    ]).then(() => done())
 })
 
 test("it can query a user created in fixture via TypeORM", async () => {
