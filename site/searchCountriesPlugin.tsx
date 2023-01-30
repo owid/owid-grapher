@@ -69,10 +69,6 @@ export const createSearchCountriesPlugin = (searchClient: SearchClient) => {
                         },
 
                         header({ items }: { items: ArticleHit[] }) {
-                            if (items.length === 0) {
-                                return null
-                            }
-
                             return (
                                 <>
                                     <span className="aa-SourceHeaderTitle">

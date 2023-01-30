@@ -53,7 +53,6 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         <Hits hitComponent={TopicCard}></Hits>
                     </Index>
                     <Index indexName={PAGES_INDEX} indexId="research">
-                        <h3>Research & Writing</h3>
                         <Configure
                             hitsPerPage={9}
                             filters="(NOT type:entry) AND (NOT type:country)"
@@ -63,7 +62,6 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                     </Index>
 
                     <Index indexName={CHARTS_INDEX}>
-                        <h3>Interactive charts</h3>
                         <VirtualChartsRefinementList attribute="_tags" />
                         {/* TODO <VirtualChartsRefinementList attribute="availableEntities" /> */}
                         <SearchChartsHits />

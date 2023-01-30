@@ -17,8 +17,11 @@ export const SearchChartsHits = () => {
     )
 
     return (
-        <div className="SearchChartsHits">
-            <RelatedCharts charts={charts} />
-        </div>
+        <>
+            <h3>Interactive charts</h3>
+            <div className="SearchChartsHits">
+                <RelatedCharts charts={charts} />
+            </div>
+        </>
     )
 }
