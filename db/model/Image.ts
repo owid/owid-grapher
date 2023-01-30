@@ -214,6 +214,7 @@ export class Image extends BaseEntity implements ImageMetadata {
             svg: "image/svg+xml",
             jpg: "image/jpg",
             jpeg: "image/jpeg",
+            webp: "image/webp",
         }[fileExtension]
 
         if (!MIMEType) {
