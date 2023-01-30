@@ -1,5 +1,5 @@
 module.exports = {
-    testTimeout: 2000,
+    testTimeout: 10000,
     projects: [
         {
             displayName: { name: "db", color: "blue" },
