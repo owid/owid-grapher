@@ -3,8 +3,8 @@ import { capitalize, Country, uniq, Url } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
-import { EmbedChart } from "./EmbedChart.js"
+import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
+import { EmbedChart } from "../EmbedChart.js"
 import {
     ArticleHit,
     ChartHit,

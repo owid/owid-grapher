@@ -7,7 +7,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import SmoothScroll from "smooth-scroll"
 import { runChartsIndexPage } from "./runChartsIndexPage.js"
-import { runSearchPage } from "./SearchPageMain.js"
+import { runSearchPage } from "./search/SearchPageMain.js"
 import { runNotFoundPage } from "./NotFoundPageMain.js"
 import { runFeedbackPage } from "./Feedback.js"
 import { runDonateForm } from "./stripe/DonateForm.js"

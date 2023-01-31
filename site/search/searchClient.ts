@@ -1,6 +1,9 @@
 import algoliasearch, { SearchClient } from "algoliasearch/lite"
 import { countries, Country } from "@ourworldindata/utils"
-import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
+import {
+    ALGOLIA_ID,
+    ALGOLIA_SEARCH_KEY,
+} from "../../settings/clientSettings.js"
 
 let algolia: SearchClient | undefined
 const getClient = () => {
