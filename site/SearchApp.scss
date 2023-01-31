@@ -62,7 +62,13 @@
         row-gap: $grid-gap;
         .ais-Hits-item {
             grid-column: span 2;
-            padding: 16px;
+            padding: 0;
+            display: flex;
+            a {
+                display: block;
+                flex-grow: 1;
+                padding: 16px;
+            }
         }
     }
 
