@@ -4,7 +4,8 @@
 /*******************************************************************************
  * Links
  */
-.article-content a {
+.article-content a,
+.SearchApp a {
     @include owid-link-90;
 }
 
@@ -17,7 +18,8 @@
  * Figures, images
  */
 
-.article-content img {
+.article-content img,
+.SearchApp img {
     display: block;
     margin: 0 auto 1rem;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
