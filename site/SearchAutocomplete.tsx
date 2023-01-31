@@ -15,6 +15,7 @@ import { createSearchArticlesPlugin } from "./searchArticlesPlugin.js"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import { createShowTagsPlugin } from "./showTagsPlugin.js"
 import { createSearchCountriesPlugin } from "./searchCountriesPlugin.js"
+import { debounce } from "@algolia/autocomplete-shared"
 
 type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
     className?: string
@@ -43,6 +44,11 @@ export function SearchAutocomplete({
 
     const [instantSearchUiState, setInstantSearchUiState] =
         useState<SetInstantSearchUiStateOptions>({ query })
+
+    const debouncedSetInstantSearchUiState = debounce(
+        setInstantSearchUiState,
+        500
+    )
 
     useEffect(() => {
         setQuery(instantSearchUiState.query)
@@ -78,8 +84,7 @@ export function SearchAutocomplete({
                 setInstantSearchUiState({ query: state.query })
             },
             onStateChange({ prevState, state }: any) {
-                // todo debounce
-                setInstantSearchUiState({
+                debouncedSetInstantSearchUiState({
                     query: state.query,
                     tags: state.context.tagsPlugin.tags
                         .filter((tag: BaseTag) => tag.facet === "_tags")
