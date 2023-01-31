@@ -77,15 +77,20 @@ export const configureAlgolia = async () => {
         ...baseSettings,
         searchableAttributes: [
             "unordered(title)",
-            "unordered(content)",
-            "unordered(_tags)",
+            "unordered(excerpt)",
+            "unordered(tags)",
             "unordered(authors)",
+            "unordered(content)",
         ],
         customRanking: ["desc(importance)"],
-        attributesToSnippet: ["content:24"],
+        attributesToSnippet: ["excerpt:20", "content:24"],
         attributeForDistinct: "slug",
-        attributesForFaceting: ["searchable(_tags)", "searchable(authors)"],
-        disableExactOnAttributes: ["_tags"],
+        attributesForFaceting: [
+            "type",
+            "searchable(tags)",
+            "searchable(authors)",
+        ],
+        disableExactOnAttributes: ["tags"],
     })
 
     const synonyms = [

@@ -13,8 +13,13 @@ export interface PageRecord {
     type: PageType
     slug: string
     title: string
-    excerpt?: string
     content: string
+    postId?: number
+    excerpt?: string
+    authors?: string[]
+    date?: string
+    modifiedDate?: string
+    tags?: string[]
 }
 
 export interface PageHit extends PageRecord {
