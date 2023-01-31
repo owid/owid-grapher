@@ -5,10 +5,10 @@ import {
     SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
+    OwidTableSlugs,
 } from "@ourworldindata/core-table"
 import { ScaleType } from "../core/GrapherConstants"
 import { Bounds, makeAnnotationsSlug } from "@ourworldindata/utils"
-import { OwidTableSlugs } from "@ourworldindata/core-table"
 
 export default {
     title: "LineChart",

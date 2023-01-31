@@ -1,7 +1,13 @@
 import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import {
+    Bounds,
+    DEFAULT_BOUNDS,
+    isEmpty,
+    triggerDownloadFromBlob,
+    triggerDownloadFromUrl,
+} from "@ourworldindata/utils"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
@@ -12,11 +18,6 @@ import {
     OwidColumnDef,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import {
-    isEmpty,
-    triggerDownloadFromBlob,
-    triggerDownloadFromUrl,
-} from "@ourworldindata/utils"
 import { MarkdownTextWrap, sumTextWrapHeights } from "../text/MarkdownTextWrap"
 import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 

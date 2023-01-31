@@ -42,10 +42,7 @@ import {
     BuilderProps,
     JsonTree,
     SimpleField,
-} from "react-awesome-query-builder"
-import { Utils as QbUtils } from "react-awesome-query-builder"
-// types
-import {
+    Utils as QbUtils,
     JsonGroup,
     JsonItem,
     Config,

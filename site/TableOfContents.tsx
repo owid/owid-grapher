@@ -1,5 +1,4 @@
-import React from "react"
-import { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import ReactDOM from "react-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"

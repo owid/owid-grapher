@@ -8,13 +8,13 @@ import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclama
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
-import { Tippy } from "@ourworldindata/grapher"
-
 import {
+    Tippy,
     SparkBars,
     SparkBarsProps,
     SparkBarTimeSeriesValue,
 } from "@ourworldindata/grapher"
+
 import { nouns } from "./CovidConstants.js"
 import { CovidDoublingTooltip } from "./CovidDoublingTooltip.js"
 import {

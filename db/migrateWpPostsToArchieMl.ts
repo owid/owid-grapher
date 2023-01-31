@@ -99,6 +99,7 @@ const migrate = async (): Promise<void> => {
                 publishedAt: null, // post.published_at,
                 updatedAt: null, // post.updated_at,
                 publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB
+                revisionId: null,
             }
             const archieMlStatsContent = {
                 errors,

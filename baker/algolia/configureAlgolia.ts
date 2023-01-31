@@ -123,6 +123,7 @@ export const configureAlgolia = async () => {
         ["water demand", "water withdrawal"],
         ["vaccine hesitancy", "vaccine attitude", "vaccine willingness"],
         ["electric power", "power", "electricity"],
+        ["artificial intelligence", "ai", "machine learning", "neural network"],
     ]
 
     // Send all our country variant names to algolia as synonyms

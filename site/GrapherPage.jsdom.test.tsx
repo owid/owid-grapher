@@ -1,6 +1,10 @@
 #! /usr/bin/env jest
 
-import { GrapherInterface } from "@ourworldindata/grapher"
+import {
+    GrapherInterface,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
+} from "@ourworldindata/grapher"
 import { DimensionProperty, PostRow, RelatedChart } from "@ourworldindata/utils"
 import React from "react"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
@@ -8,10 +12,6 @@ import { GrapherPage } from "./GrapherPage.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 
-import {
-    getVariableDataRoute,
-    getVariableMetadataRoute,
-} from "@ourworldindata/grapher"
 import { configure, shallow, ShallowWrapper } from "enzyme"
 import Adapter from "enzyme-adapter-react-16"
 configure({ adapter: new Adapter() })

@@ -1,6 +1,9 @@
 import { observable, computed, action } from "mobx"
-import { queryParamsToStr } from "@ourworldindata/utils"
-import { differenceObj, trimObject } from "@ourworldindata/utils"
+import {
+    queryParamsToStr,
+    differenceObj,
+    trimObject,
+} from "@ourworldindata/utils"
 import {
     ColumnTypeNames,
     CoreTable,
@@ -78,7 +81,7 @@ const makeCheckBoxOption = (
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
 export class DecisionMatrix {
-    private table: CoreTable
+    table: CoreTable
     @observable currentParams: ExplorerChoiceParams = {}
     constructor(delimited: string, hash = "") {
         this.choices = makeChoicesMap(delimited)

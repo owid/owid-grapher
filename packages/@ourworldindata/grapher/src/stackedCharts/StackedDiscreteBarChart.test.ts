@@ -1,8 +1,9 @@
 #! /usr/bin/env jest
 
 import { SortOrder, SortBy } from "@ourworldindata/utils"
-import { ColumnTypeNames, OwidTable } from "@ourworldindata/core-table"
 import {
+    ColumnTypeNames,
+    OwidTable,
     SampleColumnSlugs,
     SynthesizeFruitTable,
 } from "@ourworldindata/core-table"

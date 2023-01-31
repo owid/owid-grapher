@@ -84,7 +84,7 @@
 
     // Cite this research and other potential tools located at the top of entries
     .tools {
-        margin-top: 3rem;
+        margin-top: 1.5rem;
         color: $secondary-text-color;
         font-size: 0.875rem;
         > * {
@@ -115,29 +115,14 @@
             background-color: $blue-10;
         }
 
-        .article-titles {
-            margin-top: $vertical-spacing;
-            margin-bottom: $vertical-spacing * 2;
-        }
-
         .article-header {
             padding-top: 2 * $vertical-spacing;
             padding-bottom: 2 * $vertical-spacing;
 
-            @include titling(2.5rem);
-
-            @include md-up {
-                @include titling(3rem);
-            }
-
-            @include lg-up {
-                padding-top: 4rem;
-                @include titling(4rem);
-            }
-            @include xlg-up {
-                padding-top: 6rem;
-                padding-bottom: 3 * $vertical-spacing;
-                @include titling(5rem);
+            h1 {
+                @include display-1-semibold;
+                margin-top: 2rem;
+                margin-bottom: 0;
             }
         }
 

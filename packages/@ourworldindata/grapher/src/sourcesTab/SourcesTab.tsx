@@ -4,8 +4,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { CoreColumn } from "@ourworldindata/core-table"
-import { OwidColumnDef } from "@ourworldindata/core-table"
+import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 
 const formatText = (s: string): string =>
     linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")

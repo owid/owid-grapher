@@ -11,6 +11,7 @@ import {
     OwidTableSlugs,
     Color,
     makeOriginalTimeSlugFromColumnSlug,
+    OwidTable,
 } from "@ourworldindata/core-table"
 import {
     ScatterPlotManager,
@@ -26,7 +27,6 @@ import {
     ScaleType,
     ScatterPointLabelStrategy,
 } from "../core/GrapherConstants"
-import { OwidTable } from "@ourworldindata/core-table"
 import { ContinentColors } from "../color/CustomSchemes"
 import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"

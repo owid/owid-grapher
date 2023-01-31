@@ -1,8 +1,11 @@
 import React, { createRef } from "react"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { MarkdownTextWrap, parsimmonToTextTokens } from "./MarkdownTextWrap"
-import { IRToken } from "./MarkdownTextWrap"
+import {
+    MarkdownTextWrap,
+    parsimmonToTextTokens,
+    IRToken,
+} from "./MarkdownTextWrap"
 import { mdParser } from "./parser"
 import { TextWrap } from "./TextWrap"
 
