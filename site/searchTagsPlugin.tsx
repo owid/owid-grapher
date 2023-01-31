@@ -36,10 +36,18 @@ export const createSearchTagsPlugin = (searchClient: SearchClient) => {
                                 },
                             ],
                             transformResponse({ facetHits }) {
-                                return facetHits[0].map((hit) => ({
-                                    ...hit,
-                                    facet: "_tags",
-                                }))
+                                return facetHits[0]
+                                    .filter(
+                                        (hit) =>
+                                            ![
+                                                "Entries",
+                                                "Uncategorized",
+                                            ].includes(hit.label)
+                                    )
+                                    .map((hit) => ({
+                                        ...hit,
+                                        facet: "_tags",
+                                    }))
                             },
                         })
                     },
