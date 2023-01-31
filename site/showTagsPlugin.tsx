@@ -60,6 +60,9 @@ export const createShowTagsPlugin = () =>
                 container?.appendChild(tagsContainer)
             })
         },
+        transformSource() {
+            return undefined
+        },
     })
 
 function TagItem({
