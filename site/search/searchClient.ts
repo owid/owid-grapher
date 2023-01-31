@@ -4,20 +4,13 @@ import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
-import {
-    ArticleHit,
-    CountryHit,
-    SiteSearchResults,
-    ChartHit,
-} from "./searchTypes.js"
+import { PageHit, SiteSearchResults, ChartHit } from "./searchTypes.js"
 
 let algolia: SearchClient | undefined
 const getClient = () => {
     if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     return algolia
 }
-
-export type PageHit = ArticleHit | CountryHit
 
 export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
     // Some special ad hoc handling of country names for chart query
@@ -81,7 +74,7 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
 
     return {
         pages: json.results[0].hits as PageHit[],
-        charts: json.results[1].hits as unknown as ChartHit[],
+        charts: json.results[1].hits as ChartHit[],
         countries: matchCountries,
     }
 }

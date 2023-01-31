@@ -1,14 +1,23 @@
 import { Country } from "@ourworldindata/utils"
-import { PageHit } from "./searchClient"
 
-export interface CountryHit {
+export type PageType =
+    | "about"
+    | "topic"
+    | "country"
+    | "faq"
+    | "article"
+    | "other"
+
+export interface PageRecord {
     objectID: string
-    type: "country"
+    type: PageType
     slug: string
     title: string
-    code: string
+    excerpt?: string
     content: string
-    _highlightResult: any
+}
+
+export interface PageHit extends PageRecord {
     _snippetResult: {
         content: {
             value: string
@@ -16,26 +25,16 @@ export interface CountryHit {
     }
 }
 
-export interface ArticleHit {
+export interface ChartRecord {
     objectID: string
-    postId: number
-    slug: string
-    title: string
-    type: "post" | "page" | "entry" | "explainer" | "fact"
-    content: string
-    _snippetResult: {
-        content: {
-            value: string
-        }
-    }
-}
-
-export interface ChartHit {
     chartId: number
     slug: string
     title: string
     subtitle: string
     variantName: string
+}
+
+export interface ChartHit extends ChartRecord {
     _snippetResult?: {
         subtitle: {
             value: string

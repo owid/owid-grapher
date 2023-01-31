@@ -6,10 +6,10 @@ import React from "react"
 import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
 import { EmbedChart } from "../EmbedChart.js"
 import {
-    ArticleHit,
+    PageHit,
     ChartHit,
-    CountryHit,
     SiteSearchResults,
+    PageType,
 } from "./searchTypes.js"
 
 class ChartResult extends React.Component<{
@@ -63,29 +63,12 @@ class ChartResult extends React.Component<{
     }
 }
 
-class CountryResult extends React.Component<{ hit: CountryHit }> {
-    render() {
-        const { hit } = this.props
-        return (
-            <li>
-                {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
-                <a href={`/country/${hit.slug}`}>{hit.title}</a>{" "}
-                <span className="variantName">Country</span>
-                <p
-                    dangerouslySetInnerHTML={{
-                        __html: hit._snippetResult.content.value,
-                    }}
-                />
-            </li>
-        )
-    }
-}
-
-class ArticleResult extends React.Component<{ hit: ArticleHit }> {
+class PageResult extends React.Component<{ hit: PageHit }> {
     render() {
         const { hit } = this.props
 
-        const showType = hit.type === "entry"
+        const typesToShow: PageType[] = ["topic", "country", "article"]
+        const showType = typesToShow.includes(hit.type)
 
         return (
             <li>
@@ -132,14 +115,6 @@ export class SearchResults extends React.Component<{
             : undefined
     }
 
-    @computed get entries() {
-        return this.props.results.pages.filter((p) => p.type === "page")
-    }
-
-    @computed get blogposts() {
-        return this.props.results.pages.filter((p) => p.type === "post")
-    }
-
     @computed get bestChartEntities() {
         const hit = this.bestChartHit
         if (!hit) return []
@@ -173,19 +148,9 @@ export class SearchResults extends React.Component<{
                             <p>No matching pages.</p>
                         ) : undefined}
                         <ul>
-                            {results.pages.map((hit) =>
-                                hit.type === "country" ? (
-                                    <CountryResult
-                                        key={hit.objectID}
-                                        hit={hit}
-                                    />
-                                ) : (
-                                    <ArticleResult
-                                        key={hit.objectID}
-                                        hit={hit}
-                                    />
-                                )
-                            )}
+                            {results.pages.map((hit) => (
+                                <PageResult key={hit.objectID} hit={hit} />
+                            ))}
                         </ul>
                     </div>
                     <div className="chartResults">
