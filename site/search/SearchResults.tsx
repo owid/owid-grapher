@@ -10,7 +10,7 @@ import {
     ChartHit,
     CountryHit,
     SiteSearchResults,
-} from "./searchClient.js"
+} from "./searchTypes.js"
 
 class ChartResult extends React.Component<{
     hit: ChartHit
