@@ -16,6 +16,7 @@ import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-pl
 import { createShowTagsPlugin } from "./showTagsPlugin.js"
 import { createSearchCountriesPlugin } from "./searchCountriesPlugin.js"
 import { debounce } from "@algolia/autocomplete-shared"
+import { ChartHit } from "./SearchChartsHits.js"
 
 type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
     className?: string
@@ -26,15 +27,18 @@ type SetInstantSearchUiStateOptions = {
     query: string
     tags?: BaseTag[]
     countries?: string[]
+    charts?: ChartHit[]
 }
 
 export function SearchAutocomplete({
     className,
     searchClient,
     setEntities,
+    setCharts,
     ...autocompleteProps
 }: AutocompleteProps & {
     setEntities: React.Dispatch<React.SetStateAction<string[]>>
+    setCharts: React.Dispatch<React.SetStateAction<ChartHit[]>>
 }) {
     const autocompleteContainer = useRef<HTMLDivElement>(null)
 
@@ -57,6 +61,7 @@ export function SearchAutocomplete({
             if (!instantSearchUiState.tags) return prevIndexUiState
 
             setEntities(instantSearchUiState.countries || [])
+            setCharts(instantSearchUiState.charts || [])
 
             return {
                 ...prevIndexUiState,
@@ -92,6 +97,11 @@ export function SearchAutocomplete({
                     countries: state.context.tagsPlugin.tags
                         .filter((tag: BaseTag) => tag.type === "country")
                         .map((tag: BaseTag) => tag.title),
+                    charts: state.context.tagsPlugin.tags
+                        .filter((tag: BaseTag) => tag.type === "chart")
+                        .map((tag: BaseTag) => {
+                            return { title: tag.title, slug: tag.slug }
+                        }),
                 })
             },
             renderer: { createElement, Fragment, render: render as Render },

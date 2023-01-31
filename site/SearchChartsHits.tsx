@@ -4,16 +4,24 @@ import { RelatedChart, Url } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import { setSelectedEntityNamesParam } from "@ourworldindata/grapher"
 
-type AlgoliaHit = {
+export type ChartHit = {
     title: string
     slug: string
 }
 
-export const SearchChartsHits = ({ entities }: { entities: string[] }) => {
-    const { hits } = useHits<AlgoliaHit>()
-    if (!hits?.length) return null
+export const SearchChartsHits = ({
+    entities,
+    charts,
+}: {
+    entities: string[]
+    charts?: ChartHit[]
+}) => {
+    const { hits } = useHits<ChartHit>()
+    if (!hits?.length && !charts?.length) return null
 
-    const charts: RelatedChart[] = hits.map(({ title, slug }) => {
+    const chartsToDisplay: RelatedChart[] = (
+        charts?.length ? charts : hits
+    ).map(({ title, slug }) => {
         const chartSlugWithEntities = setSelectedEntityNamesParam(
             Url.fromURL(slug).updateQueryParams({
                 tab: "chart",
@@ -27,7 +35,7 @@ export const SearchChartsHits = ({ entities }: { entities: string[] }) => {
         <>
             <h3>Interactive charts</h3>
             <div className="SearchChartsHits">
-                <RelatedCharts charts={charts} />
+                <RelatedCharts charts={chartsToDisplay} />
             </div>
         </>
     )

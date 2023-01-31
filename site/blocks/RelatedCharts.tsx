@@ -12,6 +12,8 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const refChartContainer = useRef<HTMLDivElement>(null)
     const [activeChartIdx, setActiveChartIdx] = useState(0)
 
+    if (!charts.length) return null
+
     const isFirstSlideActive = activeChartIdx === 0
     const isLastSlideActive = activeChartIdx === charts.length - 1
 

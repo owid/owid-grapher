@@ -5,6 +5,7 @@ import { PAGES_INDEX } from "./SearchApp.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { SearchAutocompleteSectionHeader } from "./SearchAutocompleteSectionHeader.js"
 
 type ArticleHit = {
     title: string
@@ -69,14 +70,9 @@ export const createSearchArticlesPlugin = (searchClient: SearchClient) => {
                             )
                         },
 
-                        header({ items }: { items: ArticleHit[] }) {
+                        header() {
                             return (
-                                <>
-                                    <span className="aa-SourceHeaderTitle">
-                                        Articles
-                                    </span>
-                                    <div className="aa-SourceHeaderLine" />
-                                </>
+                                <SearchAutocompleteSectionHeader label="Articles" />
                             )
                         },
                     },

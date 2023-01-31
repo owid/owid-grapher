@@ -4,6 +4,7 @@ import { createTagsPlugin } from "@algolia/autocomplete-plugin-tags"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
 import { flag } from "country-emoji"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 
 export const createShowTagsPlugin = () =>
     createTagsPlugin({
@@ -21,6 +22,20 @@ export const createShowTagsPlugin = () =>
                         return {
                             ...item,
                             label: `${flag(item.title)} ${item.title}`,
+                        }
+                    },
+                },
+                {
+                    sourceId: "chartTags",
+                    getTag({ item }: any) {
+                        return {
+                            ...item,
+                            label: (
+                                <>
+                                    <FontAwesomeIcon icon={faChartLine} />{" "}
+                                    {item.title}
+                                </>
+                            ),
                         }
                     },
                 },

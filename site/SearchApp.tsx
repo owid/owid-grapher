@@ -9,7 +9,7 @@ import {
 import { TopicCard } from "./TopicCard.js"
 import { SearchClient } from "algoliasearch/lite.js"
 import { VirtualChartsRefinementList } from "./VirtualChartsRefinementList.js"
-import { SearchChartsHits } from "./SearchChartsHits.js"
+import { ChartHit, SearchChartsHits } from "./SearchChartsHits.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import "instantsearch.css/themes/satellite.css"
 import { SearchResearchAndWriting } from "./blocks/SearchResearchAndWriting.js"
@@ -19,6 +19,7 @@ export const CHARTS_INDEX = "charts-test"
 
 export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
     const [entities, setEntities] = useState<string[]>([])
+    const [charts, setCharts] = useState<ChartHit[]>([])
 
     return (
         <div className="SearchApp">
@@ -41,6 +42,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         openOnFocus
                         searchClient={searchClient}
                         setEntities={setEntities}
+                        setCharts={setCharts}
                     />
                 </div>
                 <div className="refinements">
@@ -57,6 +59,11 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         <h3>Topics</h3>
                         <Hits hitComponent={TopicCard}></Hits>
                     </Index>
+                    <Index indexName={CHARTS_INDEX}>
+                        <VirtualChartsRefinementList attribute="_tags" />
+                        {/* TODO <VirtualChartsRefinementList attribute="availableEntities" /> */}
+                        <SearchChartsHits charts={charts} entities={entities} />
+                    </Index>
                     <Index indexName={PAGES_INDEX} indexId="research">
                         <Configure
                             hitsPerPage={9}
@@ -64,12 +71,6 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                             distinct={1}
                         />
                         <SearchResearchAndWriting />
-                    </Index>
-
-                    <Index indexName={CHARTS_INDEX}>
-                        <VirtualChartsRefinementList attribute="_tags" />
-                        {/* TODO <VirtualChartsRefinementList attribute="availableEntities" /> */}
-                        <SearchChartsHits entities={entities} />
                     </Index>
                 </div>
             </InstantSearch>
