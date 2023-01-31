@@ -15,7 +15,7 @@ import {
     GDOCS_PRIVATE_KEY,
 } from "../../../settings/serverSettings.js"
 import { google, Auth, docs_v1 } from "googleapis"
-
+import { recursivelyMapArticleBlock } from "./gdocUtils.js"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { imageStore } from "../Image.js"
@@ -100,21 +100,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         if (filenames.length) {
             await imageStore.syncImagesToS3(filenames)
-
-            this.content.body = this.content.body?.map(
-                (block: OwidEnrichedArticleBlock) => {
-                    // temporary hack, will need to traverse to transform inside columns too
-                    if (block.type === "image") {
-                        if (!block.alt) {
-                            block.alt =
-                                imageStore.images?.[block.filename].defaultAlt
-                        }
-                        block.originalWidth =
-                            imageStore?.images?.[block.filename].originalWidth
-                    }
-                    return block
-                }
-            )
+            this.setAdditionalImageMetadata()
         }
     }
 
@@ -123,14 +109,35 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     static extractImagesFilenames(enriched: OwidArticleContent): string[] {
-        // quick solution instead of tree traversal
-        const articleString = JSON.stringify(enriched.body)
-        const matches = [...articleString.matchAll(/"filename":"([\w\.\-]+)"/g)]
-        const filenames: string[] = uniq(
-            matches.map(([_, filename]) => filename)
+        const filenames: string[] = []
+        enriched.body?.forEach((node) =>
+            recursivelyMapArticleBlock(node, (node) => {
+                if (node.type === "image") {
+                    filenames.push(node.filename)
+                }
+                return node
+            })
         )
 
-        return filenames
+        return uniq(filenames)
+    }
+
+    setAdditionalImageMetadata(): void {
+        this.content.body = this.content.body?.map((block) =>
+            recursivelyMapArticleBlock(
+                block,
+                (block: OwidEnrichedArticleBlock) => {
+                    if (block.type === "image") {
+                        const metadata = imageStore.images?.[block.filename]
+                        if (!block.alt) {
+                            block.alt = metadata?.defaultAlt
+                        }
+                        block.originalWidth = metadata?.originalWidth
+                    }
+                    return block
+                }
+            )
+        )
     }
 
     static async getGdocFromContentSource(
