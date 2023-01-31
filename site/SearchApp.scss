@@ -9,12 +9,23 @@
             @include h1-semibold;
             margin-bottom: 8px;
         }
-        margin-bottom: 40px;
     }
+
+    .search-sticky-bar {
+        grid-column: 3 / span 10;
+        margin-bottom: 40px;
+        margin-top: 24px;
+        padding: 16px;
+        position: sticky;
+        top: 0;
+        z-index: $zindex-search-overlay;
+        background: rgba(#fff, 0.8);
+    }
+
     .SearchAutocomplete {
         width: 50vw;
         margin: auto;
-        padding-top: 24px;
+        top: 24px;
         .aa-List {
             margin-right: 4px;
         }
@@ -73,5 +84,11 @@
         canvas {
             width: 100%;
         }
+    }
+}
+
+.SearchPage {
+    .aa-Panel {
+        z-index: $zindex-search-overlay;
     }
 }

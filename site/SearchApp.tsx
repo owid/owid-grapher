@@ -32,6 +32,8 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         <h2>Search Our World in Data</h2>
                         <div>Free, open and ad-free</div>
                     </div>
+                </div>
+                <div className="search-sticky-bar">
                     <SearchAutocomplete
                         placeholder=""
                         className="SearchAutocomplete"
