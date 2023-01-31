@@ -9,6 +9,7 @@ type AlgoliaHit = {
     excerpt: string
     authors: string[]
     slug: string
+    _tags?: string[]
 }
 
 export const SearchResearchAndWriting = () => {
@@ -25,13 +26,7 @@ export const SearchResearchAndWriting = () => {
                         className="wp-block-owid-card with-image"
                         data-no-lightbox=""
                     >
-                        <ArticleCard
-                            title={hits[0].title}
-                            description={hits[0].excerpt}
-                            authors={hits[0].authors}
-                            slug={hits[0].slug}
-                            className={"featured"}
-                        />
+                        <ArticleCard article={hits[0]} className={"featured"} />
                     </div>
                     {hits.length >= 2 && (
                         <div className="wp-block-group research-and-writing__top-right">
@@ -39,12 +34,7 @@ export const SearchResearchAndWriting = () => {
                                 className="wp-block-owid-card"
                                 data-no-lightbox=""
                             >
-                                <ArticleCard
-                                    title={hits[1].title}
-                                    description={hits[1].excerpt}
-                                    authors={hits[1].authors}
-                                    slug={hits[1].slug}
-                                />
+                                <ArticleCard article={hits[1]} />
                             </div>
                             <div className="wp-block-group">
                                 <div className="wp-block-group research-and-writing__shorts">
@@ -78,13 +68,7 @@ export const SearchResearchAndWriting = () => {
 
                         <div className="wp-block-owid-grid research-and-writing__sub-category">
                             {hits.slice(5).map((hit) => (
-                                <ArticleCard
-                                    key={hit.objectID}
-                                    title={hit.title}
-                                    description={hit.excerpt}
-                                    authors={hit.authors}
-                                    slug={hit.slug}
-                                />
+                                <ArticleCard key={hit.objectID} article={hit} />
                             ))}
                         </div>
                     </>
@@ -95,18 +79,13 @@ export const SearchResearchAndWriting = () => {
 }
 
 const ArticleCard = ({
-    title,
-    description,
-    authors,
-    slug,
+    article,
     className,
 }: {
-    title: string
-    description: string
-    authors: string[]
-    slug: string
+    article: AlgoliaHit
     className?: string
 }) => {
+    const { title, excerpt, authors, slug } = article
     return (
         <div className="wp-block-owid-card  with-image" data-no-lightbox="">
             <a className={className} href={`${BAKED_BASE_URL}/${slug}`}>
@@ -118,9 +97,21 @@ const ArticleCard = ({
                         <strong>{title}</strong>
                     </div>
                     <div className="description">
-                        <p>{description}</p>
+                        <p>{excerpt}</p>
 
                         <p>{authors.join(", ")}</p>
+                    </div>
+                    <div style={{ marginTop: "8px" }}>
+                        {article._tags
+                            ? article._tags.map((tag) => (
+                                  <span
+                                      key={tag}
+                                      className="tag ais-RefinementList-count"
+                                  >
+                                      {tag}
+                                  </span>
+                              ))
+                            : null}
                     </div>
                 </div>
             </a>
