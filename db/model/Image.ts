@@ -43,6 +43,8 @@ class ImageStore {
             const res = await driveClient.files.list({
                 fields: "nextPageToken, files(id, name, description, modifiedTime, imageMediaMetadata)",
                 q: `'${GDOCS_CLIENT_EMAIL}' in writers and mimeType contains 'image/'`,
+                supportsAllDrives: true,
+                includeItemsFromAllDrives: true,
             })
 
             const files = res.data.files ?? []
