@@ -122,6 +122,7 @@ export const enrichedBlockExamples: Record<
     },
     "horizontal-rule": {
         type: "horizontal-rule",
+        value: {},
         parseErrors: [],
     },
     recirc: {
@@ -190,10 +191,12 @@ export const enrichedBlockExamples: Record<
     },
     "sdg-toc": {
         type: "sdg-toc",
+        value: {},
         parseErrors: [],
     },
     "missing-data": {
         type: "missing-data",
+        value: {},
         parseErrors: [],
     },
 }
