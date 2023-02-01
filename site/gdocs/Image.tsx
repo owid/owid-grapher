@@ -74,13 +74,17 @@ export default function Image({
     const srcSet = generateSrcSet(sizes!, d.filename)
 
     return (
-        <picture className={cx(LIGHTBOX_IMAGE_CLASS, className)}>
+        <picture className={className}>
             <source
                 srcSet={srcSet}
                 type="image/webp"
                 sizes={containerSizes[containerType] ?? containerSizes.default}
             />
-            <img src={`/images/${d.filename}`} alt={d.alt} />
+            <img
+                src={`/images/${d.filename}`}
+                alt={d.alt}
+                className={LIGHTBOX_IMAGE_CLASS}
+            />
         </picture>
     )
 }
