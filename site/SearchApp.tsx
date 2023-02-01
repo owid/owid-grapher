@@ -13,6 +13,7 @@ import { ChartHit, SearchChartsHits } from "./SearchChartsHits.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import "instantsearch.css/themes/satellite.css"
 import { SearchResearchAndWriting } from "./blocks/SearchResearchAndWriting.js"
+import { SearchTopics } from "./SearchTopics.js"
 
 export const PAGES_INDEX = "pages-test"
 export const CHARTS_INDEX = "charts-test"
@@ -56,8 +57,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                             filters="type:entry"
                             distinct={1}
                         />
-                        <h3>Topics</h3>
-                        <Hits hitComponent={TopicCard}></Hits>
+                        <SearchTopics />
                     </Index>
                     <Index indexName={CHARTS_INDEX}>
                         <VirtualChartsRefinementList attribute="_tags" />
