@@ -50,6 +50,14 @@ export const enrichedBlockExamples: Record<
     OwidEnrichedArticleBlock
 > = {
     text: enrichedBlockText,
+    "simple-text": {
+        type: "simple-text",
+        value: {
+            spanType: "span-simple-text",
+            text: "This is a simple text block",
+        },
+        parseErrors: [],
+    },
     aside: {
         type: "aside",
         position: "right",
