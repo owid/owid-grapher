@@ -127,7 +127,8 @@ figure[data-explorer-src] {
     overflow-x: auto;
 }
 
-.article-content .tableContainer > table:not(.plain) {
+.article-content .tableContainer > table:not(.plain),
+.SearchApp .EmbedGrapherWithSources > .sources table {
     border-collapse: collapse;
     border-spacing: 0;
     color: #000;

@@ -103,3 +103,4 @@ export {
     SlideShowManager,
     SlideShowController,
 } from "./slideshowController/SlideShowController"
+export { SourcesTab } from "./sourcesTab/SourcesTab"

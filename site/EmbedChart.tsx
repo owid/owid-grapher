@@ -10,9 +10,13 @@ import {
 import { observer } from "mobx-react"
 import React from "react"
 import { GrapherFigureView } from "./GrapherFigureView.js"
+import { SourcesTab } from "@ourworldindata/grapher"
 
 @observer
-export class EmbedChart extends React.Component<{ src: string }> {
+export class EmbedChart extends React.Component<{
+    src: string
+    showSources?: boolean
+}> {
     @computed private get url(): Url {
         return Url.fromURL(this.props.src)
     }
@@ -54,10 +58,17 @@ export class EmbedChart extends React.Component<{ src: string }> {
     }
 
     render() {
-        return this.grapher ? (
-            <GrapherFigureView grapher={this.grapher} />
-        ) : (
+        return !this.grapher ? (
             <figure data-grapher-src={this.props.src} />
+        ) : this.props.showSources ? (
+            <div className="EmbedGrapherWithSources">
+                <GrapherFigureView grapher={this.grapher} />
+                <div className="sources">
+                    <SourcesTab key="sourcesTab" manager={this.grapher} />
+                </div>
+            </div>
+        ) : (
+            <GrapherFigureView grapher={this.grapher} />
         )
     }
 }

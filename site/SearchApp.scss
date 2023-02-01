@@ -98,3 +98,43 @@
         z-index: $zindex-search-overlay;
     }
 }
+
+.EmbedGrapherWithSources {
+    @include grid(12);
+    figure {
+        grid-column: 1 / span 7;
+    }
+    .sources {
+        grid-column: 8 / span 5;
+        height: $slide-content-height;
+        // From KeyInsights.scss
+        overflow-y: auto;
+        -webkit-mask-image: linear-gradient(180deg, #000 90%, transparent);
+        // Shifting margin to padding to make space for scrollbar
+        margin-right: 0;
+        padding-right: 16px;
+        scrollbar-color: #ddd #0000;
+        scrollbar-width: thin;
+
+        > *:first-child {
+            margin-top: 0;
+        }
+
+        > *:last-child {
+            margin-bottom: 3rem;
+        }
+    }
+    .sourcesTab {
+        position: initial !important;
+        width: initial !important;
+        height: initial !important;
+    }
+    h2 {
+        @include h2-bold;
+    }
+    .datasource-wrapper {
+        h2 {
+            @include h3-bold;
+        }
+    }
+}
