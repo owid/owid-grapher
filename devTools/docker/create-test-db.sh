@@ -21,8 +21,6 @@ createTestDb() {
     echo "Waiting for DB to be online"
     mysqladmin ping -h$DB_ROOT_HOST -uroot --password=$DB_ROOT_PASS --wait=30
 
-    # DB_EXISTS=$(_mysql -e "SHOW DATABASES LIKE '"${GRAPHER_TEST_DB_NAME}"';" | grep "${GRAPHER_TEST_DB_NAME}" > /dev/null; echo "$?")
-
     _mysql -e "DROP DATABASE IF EXISTS $GRAPHER_TEST_DB_NAME;"
 
     echo "executing: CREATE DATABASE $GRAPHER_TEST_DB_NAME;"
