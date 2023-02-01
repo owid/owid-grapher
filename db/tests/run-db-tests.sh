@@ -17,8 +17,6 @@ docker-compose -f docker-compose.dbtests.yml up -d
 
 ./devTools/docker/wait-for-tests-mysql.sh
 
-sleep 3s # This is to give the db init script time to create the user, database and tables
-
 echo '==> Running migrations'
 
 yarn typeorm migration:run -d itsJustJavascript/db/tests/dataSource.dbtests.js
@@ -27,10 +25,12 @@ echo '==> Running tests'
 if ! yarn run jest --config=jest.db.config.js --runInBand # runInBand runs multiple test files serially - useful to avoid weird race conditions
 then
     echo '💀 Tests failed'
+    ./devTools/docker/mark-test-mysql-dirty.sh
     docker-compose -f docker-compose.dbtests.yml stop
     exit 23
 else
     echo '✅ DB tests succeeded'
+    ./devTools/docker/mark-test-mysql-dirty.sh
     docker-compose -f docker-compose.dbtests.yml stop
     exit 0
 fi

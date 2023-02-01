@@ -29,9 +29,11 @@ createTestDb() {
     echo "creating user if it doesn't exist"
     _mysql -e "CREATE USER IF NOT EXISTS '$GRAPHER_TEST_DB_USER' IDENTIFIED BY '$GRAPHER_TEST_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$GRAPHER_TEST_DB_USER'; FLUSH PRIVILEGES;"
 
-
     echo "Ingesting sql creation script"
     cat /migration/pre-migrations-schema.sql | _mysql $GRAPHER_TEST_DB_NAME
+
+    echo "Indicating we are done"
+    _mysql -e "CREATE TABLE _test_db_ready (id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));" $GRAPHER_TEST_DB_NAME
 
     echo "done"
     return 0

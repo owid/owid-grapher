@@ -1,4 +1,11 @@
 #!/usr/bin/env  bash
+#
+#  mark-test-mysql-dirty.sh
+#
+#  Remove the _test_db_ready table from the test database, so that next time
+#  we run the tests, our runner will wait until the database has been
+#  recreated.
+#
 
 set -o errexit
 set -o pipefail
@@ -14,9 +21,10 @@ fi
 : "${GRAPHER_TEST_DB_HOST:?Need to set GRAPHER_TEST_DB_HOST non-empty}"
 : "${GRAPHER_TEST_DB_PORT:?Need to set GRAPHER_TEST_DB_PORT non-empty}"
 
-printf 'Waiting for MySQL to come up...'
-while ! mysql -u$GRAPHER_TEST_DB_USER -p$GRAPHER_TEST_DB_PASS -h $GRAPHER_TEST_DB_HOST --port=$GRAPHER_TEST_DB_PORT -e 'select 1 from _test_db_ready' $GRAPHER_TEST_DB_NAME &>/dev/null; do
-    printf '.'
-    sleep 1
-done
-printf 'ok\n'
+mysql \
+    -u$GRAPHER_TEST_DB_USER \
+    -p$GRAPHER_TEST_DB_PASS \
+    -h $GRAPHER_TEST_DB_HOST \
+    --port=$GRAPHER_TEST_DB_PORT \
+    -e 'drop table _test_db_ready' \
+    $GRAPHER_TEST_DB_NAME
