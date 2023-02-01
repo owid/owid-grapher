@@ -1,6 +1,7 @@
 import _ from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
+import https from "https"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
@@ -16,6 +17,7 @@ import {
     OwidVariableId,
     OwidSource,
 } from "@ourworldindata/utils"
+import fetch from "node-fetch"
 import pl from "nodejs-polars"
 
 export interface VariableRow {
@@ -35,6 +37,7 @@ export interface VariableRow {
     timespan?: string
     columnOrder?: number
     catalogPath?: string
+    dataPath?: string
     dimensions?: Dimensions
 }
 
@@ -345,10 +348,44 @@ export const entitiesAsDF = async (
     )
 }
 
-export const dataAsDF = async (
+export const _dataAsDFfromS3 = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
-    // return data values as a dataframe
+    const dfs = await Promise.all(
+        variableIds.map(async (variableId) => {
+            return pl
+                .DataFrame(await readValuesFromS3(variableId))
+                .select(
+                    pl.col("entityId").cast(pl.Int32),
+                    pl.col("year").cast(pl.Int32),
+                    pl.col("value").cast(pl.Utf8),
+                    pl.lit(variableId).cast(pl.Int32).alias("variableId")
+                )
+        })
+    )
+
+    const df = pl.concat(dfs)
+
+    if (df.height == 0) {
+        return pl.DataFrame({
+            variableId: [],
+            entityId: [],
+            entityName: [],
+            entityCode: [],
+            year: [],
+            value: [],
+        })
+    }
+
+    const entityDF = await entitiesAsDF(df.getColumn("entityId").toArray())
+
+    return df.join(entityDF, { on: "entityId" })
+}
+
+const _dataAsDFfromMySQL = async (
+    variableIds: OwidVariableId[]
+): Promise<pl.DataFrame> => {
+    // this function will be eventually deprecated by _dataAsDFfromS3
     let df = await readSQLasDF(
         `
     SELECT
@@ -383,6 +420,86 @@ export const dataAsDF = async (
         pl.col("entityCode").cast(pl.Utf8),
         pl.col("year").cast(pl.Int32),
         pl.col("value").cast(pl.Utf8)
+    )
+}
+
+export const dataAsDF = async (
+    variableIds: OwidVariableId[]
+): Promise<pl.DataFrame> => {
+    // return variables values as a DataFrame from either S3 or data_values table
+    const rows = await db.queryMysql(
+        `
+    SELECT
+        id,
+        dataPath
+    FROM variables
+    `,
+        [variableIds]
+    )
+
+    // variables with dataPath are stored in S3 and variables without it
+    // are stored in data_values table
+    const variableIdsWithDataPath = rows
+        .filter((row: any) => row.dataPath)
+        .map((row: any) => row.id)
+
+    const variableIdsWithoutDataPath = rows
+        .filter((row: any) => !row.dataPath)
+        .map((row: any) => row.id)
+
+    return pl.concat([
+        await _dataAsDFfromMySQL(variableIdsWithoutDataPath),
+        await _dataAsDFfromS3(variableIdsWithDataPath),
+    ])
+}
+
+export const getOwidVariableDataPath = async (
+    variableId: OwidVariableId
+): Promise<string | undefined> => {
+    const row = await db.mysqlFirst(
+        `SELECT dataPath FROM variables WHERE id = ?`,
+        [variableId]
+    )
+    return row.dataPath
+}
+
+interface S3Response {
+    entities: number[]
+    years: number[]
+    values: string[]
+}
+
+// limit number of concurrent requests to 50 when fetching values from S3
+const httpsAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 50,
+})
+
+const fetchS3Values = async (
+    variableId: OwidVariableId
+): Promise<S3Response> => {
+    const dataPath = await getOwidVariableDataPath(variableId)
+    if (!dataPath) {
+        throw new Error(`Missing dataPath for variable ${variableId}`)
+    }
+    return (await (
+        await fetch(dataPath, { agent: httpsAgent })
+    ).json()) as S3Response
+}
+
+export const readValuesFromS3 = async (
+    variableId: OwidVariableId
+): Promise<S3DataRow[]> => {
+    const result = await fetchS3Values(variableId)
+
+    return _.zip(result.entities, result.years, result.values).map(
+        (row: any) => {
+            return {
+                entityId: row[0],
+                year: row[1],
+                value: row[2],
+            }
+        }
     )
 }
 
