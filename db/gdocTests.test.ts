@@ -144,7 +144,7 @@ level: 2
         expect(serializedRawBlock).toEqual(archieMLString)
     })
 
-    it.each(enrichedBlockExamples)(
+    it.each(Object.values(enrichedBlockExamples))(
         "Parse <-> Serialize roundtrip should be equal - example type $type",
         (example) => {
             const rawBlock = enrichedBlockToRawBlock(example)
