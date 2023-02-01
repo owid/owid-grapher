@@ -1,0 +1,19 @@
+.mermaid {
+    text-align: center;
+}
+
+
+/* fix some horrible jupyter cell margins */
+.jp-Cell h1 {
+    margin-bottom: 10px;
+}
+
+.jp-Cell h2 {
+    margin-top: 20px;
+    margin-bottom: 5px;
+}
+
+.jp-Cell p {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
