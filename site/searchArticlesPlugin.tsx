@@ -19,6 +19,7 @@ export const createSearchArticlesPlugin = (searchClient: SearchClient) => {
                 {
                     sourceId: "articles",
                     getItems({ query }: { query: string }) {
+                        if (!query) return []
                         return getAlgoliaResults({
                             searchClient,
                             queries: [

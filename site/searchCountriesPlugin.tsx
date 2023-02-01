@@ -19,6 +19,7 @@ export const createSearchCountriesPlugin = (searchClient: SearchClient) => {
                 {
                     sourceId: "countries",
                     getItems({ query }: { query: string }) {
+                        if (!query) return []
                         return getAlgoliaResults({
                             searchClient,
                             queries: [

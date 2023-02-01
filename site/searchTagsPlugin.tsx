@@ -24,7 +24,8 @@ export const createSearchTagsPlugin = (searchClient: SearchClient) => {
                         setQuery("")
                         // }
                     },
-                    getItems({ query }: { query: string }) {
+                    getItems({ query, state }: { query: string; state: any }) {
+                        if (!query) return []
                         return getAlgoliaFacets({
                             searchClient,
                             queries: [
@@ -99,6 +100,7 @@ export const createSearchTagsPlugin = (searchClient: SearchClient) => {
                         // }
                     },
                     getItems({ query }: { query: string }) {
+                        if (!query) return []
                         return getAlgoliaResults({
                             searchClient,
                             queries: [
@@ -160,6 +162,7 @@ export const createSearchTagsPlugin = (searchClient: SearchClient) => {
                         // }
                     },
                     getItems({ query }: { query: string }) {
+                        if (!query) return []
                         return getAlgoliaResults({
                             searchClient,
                             queries: [
@@ -172,7 +175,6 @@ export const createSearchTagsPlugin = (searchClient: SearchClient) => {
                                 },
                             ],
                             transformResponse({ hits }) {
-                                console.log(hits[0])
                                 return hits[0].map((hit) => ({
                                     ...hit,
                                     type: "chart",
