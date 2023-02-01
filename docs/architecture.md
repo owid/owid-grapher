@@ -1,8 +1,4 @@
-# Our World In Data - Architecture
-
-_27th Jan 2023_
-
-## About this doc
+# Architecture
 
 Our World in Data is a living online publication, whose mission is to make data and research on the world's biggest problems accessible and understandable.
 

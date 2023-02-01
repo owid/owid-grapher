@@ -1,6 +1,11 @@
 site_name: OWID Grapher
+repo_name: owid/owid-grapher
 repo_url: https://github.com/owid/owid-grapher
 
+nav:
+  - Home: "index.md"
+  - Architecture: "architecture.md"
+  - Contributing: "contributing.md"
 theme:
   name: material
   features:
@@ -9,7 +14,6 @@ theme:
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.indexes
-    
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -25,3 +29,9 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
