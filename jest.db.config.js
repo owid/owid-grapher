@@ -9,8 +9,3 @@ module.exports = {
         },
     ],
 }
-
-// special envs for tests
-process.env = Object.assign(process.env, {
-    CATALOG_PATH: "https://owid-catalog.nyc3.digitaloceanspaces.com",
-})
