@@ -4,6 +4,7 @@ import * as express from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
 import React from "react"
+import { Writable } from "stream"
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
@@ -130,7 +131,14 @@ adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
     ).name
     res.attachment(filenamify(datasetName) + ".csv")
 
-    return Dataset.writeCSV(datasetId, res)
+    const writeStream = new Writable({
+        write(chunk, encoding, callback) {
+            res.write(chunk.toString())
+            callback(null)
+        },
+    })
+    await Dataset.writeCSV(datasetId, writeStream)
+    res.end()
 })
 
 adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
