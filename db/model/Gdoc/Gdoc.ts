@@ -19,6 +19,7 @@ import { recursivelyMapArticleBlock } from "./gdocUtils.js"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { imageStore } from "../Image.js"
+import { createGdocAndInsertOwidArticleContent } from "./archieToGdoc.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -43,12 +44,31 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         }
         this.content = {}
     }
-    static cachedGoogleAuth?: Auth.GoogleAuth
+    static cachedGoogleReadonlyAuth?: Auth.GoogleAuth
+    static cachedGoogleReadWriteAuth?: Auth.GoogleAuth
     static cachedGoogleClient?: docs_v1.Docs
 
-    static getGoogleAuth(): Auth.GoogleAuth {
-        if (!Gdoc.cachedGoogleAuth) {
-            Gdoc.cachedGoogleAuth = new google.auth.GoogleAuth({
+    static getGoogleReadWriteAuth(): Auth.GoogleAuth {
+        if (!Gdoc.cachedGoogleReadWriteAuth) {
+            Gdoc.cachedGoogleReadWriteAuth = new google.auth.GoogleAuth({
+                credentials: {
+                    type: "service_account",
+                    private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
+                    client_email: GDOCS_CLIENT_EMAIL,
+                    client_id: GDOCS_CLIENT_ID,
+                },
+                scopes: [
+                    "https://www.googleapis.com/auth/documents",
+                    "https://www.googleapis.com/auth/drive.file",
+                ],
+            })
+        }
+        return Gdoc.cachedGoogleReadWriteAuth
+    }
+
+    static getGoogleReadonlyAuth(): Auth.GoogleAuth {
+        if (!Gdoc.cachedGoogleReadonlyAuth) {
+            Gdoc.cachedGoogleReadonlyAuth = new google.auth.GoogleAuth({
                 credentials: {
                     type: "service_account",
                     private_key: GDOCS_PRIVATE_KEY.split("\\n").join("\n"),
@@ -62,23 +82,13 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                 ],
             })
         }
-        return Gdoc.cachedGoogleAuth
-    }
-
-    static getGoogleClient(): docs_v1.Docs {
-        if (!Gdoc.cachedGoogleClient) {
-            Gdoc.cachedGoogleClient = google.docs({
-                version: "v1",
-                auth: Gdoc.cachedGoogleAuth,
-            })
-        }
-        return Gdoc.cachedGoogleClient
+        return Gdoc.cachedGoogleReadonlyAuth
     }
 
     async getEnrichedArticle(): Promise<void> {
         const docsClient = google.docs({
             version: "v1",
-            auth: Gdoc.getGoogleAuth(),
+            auth: Gdoc.getGoogleReadonlyAuth(),
         })
 
         // Retrieve raw data from Google

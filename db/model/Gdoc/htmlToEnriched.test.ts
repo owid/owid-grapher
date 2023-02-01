@@ -18,10 +18,14 @@ it("parses a Wordpress paragraph within the content", () => {
     // The first element of the <div> contents is a new line, so we skip it
     const bodyContents = $("body > div").contents().toArray().slice(1)
 
-    const parsedResult = cheerioElementsToArchieML(bodyContents, {
+    const context = {
         $,
         shouldParseWpComponents: true,
-    })
+        htmlTagCounts: {},
+        wpTagCounts: {},
+    }
+
+    const parsedResult = cheerioElementsToArchieML(bodyContents, context)
 
     expect(parsedResult.content).toEqual([
         // The first element will be removed by the subsequent call to
@@ -62,6 +66,8 @@ it("parses a Wordpress paragraph as the first element", () => {
     const parsedResult = cheerioElementsToArchieML(bodyContents, {
         $,
         shouldParseWpComponents: true,
+        wpTagCounts: {},
+        htmlTagCounts: {},
     })
 
     expect(parsedResult.content).toEqual([

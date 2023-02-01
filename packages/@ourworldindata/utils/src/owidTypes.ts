@@ -164,6 +164,7 @@ export interface PostRow {
     updated_at: Date
     archieml: string
     archieml_update_statistics: string
+    gdocSuccessorId: string
 }
 
 export interface Tag extends TagReactTagAutocomplete {
@@ -600,11 +601,12 @@ export type EnrichedBlockPullQuote = {
 
 export type RawBlockHorizontalRule = {
     type: "horizontal-rule"
-    value?: string // dummy value to unify block shapes
+    value?: Record<string, never> // dummy value to unify block shapes
 }
 
 export type EnrichedBlockHorizontalRule = {
     type: "horizontal-rule"
+    value?: Record<string, never> // dummy value to unify block shapes
 } & EnrichedBlockWithParseErrors
 
 export type RawRecircItem = {
@@ -776,18 +778,22 @@ export type EnrichedBlockProminentLink = {
 
 export type RawBlockSDGToc = {
     type: "sdg-toc"
+    value?: Record<string, never>
 }
 
 export type EnrichedBlockSDGToc = {
     type: "sdg-toc"
+    value?: Record<string, never>
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockMissingData = {
     type: "missing-data"
+    value?: Record<string, never>
 }
 
 export type EnrichedBlockMissingData = {
     type: "missing-data"
+    value?: Record<string, never>
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockAdditionalCharts = {
@@ -849,6 +855,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockMissingData
     | EnrichedBlockAdditionalCharts
     | EnrichedBlockNumberedList
+    | EnrichedBlockSimpleText
 
 export enum OwidArticlePublicationContext {
     unlisted = "unlisted",

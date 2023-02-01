@@ -1,7 +1,12 @@
 #! /usr/bin/env jest
 
 import { FontFamily } from "@ourworldindata/utils"
-import { IRText, MarkdownTextWrap, getLineWidth } from "./MarkdownTextWrap"
+import {
+    IRText,
+    MarkdownTextWrap,
+    getLineWidth,
+    lineToPlaintext,
+} from "./MarkdownTextWrap"
 
 describe("MarkdownTextWrap", () => {
     it("heavier fontWeight should be wider than plain IRText", () => {
@@ -79,5 +84,17 @@ describe("MarkdownTextWrap", () => {
         })
 
         expect(element.height).toEqual(40)
+    })
+
+    it("should convert to plaintext", () => {
+        const element = new MarkdownTextWrap({
+            text: "I am some _bold_ text with a [really really really long detail on demand](hover::general::test) and because I am so long you would think that I **span multiple lines** but when you transform me into plaintext I actually just stay as one line",
+            fontSize: 10,
+            lineHeight: 1,
+        })
+
+        expect(element.htmlLines.map(lineToPlaintext)).toEqual([
+            "I am some bold text with a really really really long detail on demand and because I am so long you would think that I span multiple lines but when you transform me into plaintext I actually just stay as one line",
+        ])
     })
 })

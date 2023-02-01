@@ -254,6 +254,7 @@
         "opener": "^1.5.2",
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
+        "sql-fixtures": "^1.0.4",
         "storybook": "^6.5.10",
         "tmex": "^1.0.8",
         "tsc-watch": "^4.2.9"

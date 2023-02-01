@@ -217,6 +217,9 @@ export default function ArticleBlock({
                 />
             )
         })
+        .with({ type: "simple-text" }, (block) => {
+            return block.value
+        })
         .with({ type: "heading", level: 1 }, (block) => (
             <h1
                 className={cx(

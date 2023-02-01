@@ -55,6 +55,18 @@ export const GRAPHER_DB_HOST: string =
 export const GRAPHER_DB_PORT: number =
     parseIntOrUndefined(serverSettings.GRAPHER_DB_PORT) ?? 3306
 
+export const GRAPHER_TEST_DB_NAME: string =
+    serverSettings.GRAPHER_TEST_DB_NAME ?? "owid"
+export const GRAPHER_TEST_DB_USER: string =
+    serverSettings.GRAPHER_TEST_DB_USER ?? "root"
+export const GRAPHER_TEST_DB_PASS: string =
+    serverSettings.GRAPHER_TEST_DB_PASS ?? ""
+export const GRAPHER_TEST_DB_HOST: string =
+    serverSettings.GRAPHER_TEST_DB_HOST ?? "localhost"
+// The OWID stack uses 3307, but incase it's unset, assume user is running a local setup
+export const GRAPHER_TEST_DB_PORT: number =
+    parseIntOrUndefined(serverSettings.GRAPHER_TEST_DB_PORT) ?? 3306
+
 export const BAKED_SITE_DIR: string =
     serverSettings.BAKED_SITE_DIR ?? path.resolve(BASE_DIR, "bakedSite") // Where the static build output goes
 export const SECRET_KEY: string =
@@ -127,6 +139,8 @@ export const GDOCS_PRIVATE_KEY: string = (
     .replaceAll("'", "")
 export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
 export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
+export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
+    serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
 export const IMAGE_HOSTING_SPACE_URL: string =
     serverSettings.IMAGE_HOSTING_SPACE_URL || ""

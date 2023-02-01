@@ -36,7 +36,7 @@ class ImageStore {
         console.log("Fetching all image metadata from Google Drive")
         const driveClient = google.drive({
             version: "v3",
-            auth: Gdoc.getGoogleAuth(),
+            auth: Gdoc.getGoogleReadonlyAuth(),
         })
         try {
             // TODO: fetch all pages (current limit = 1000)
@@ -191,7 +191,7 @@ export class Image extends BaseEntity implements ImageMetadata {
     async fetchFromDriveAndUploadToS3(): Promise<void> {
         const driveClient = google.drive({
             version: "v3",
-            auth: Gdoc.getGoogleAuth(), // TODO: extract auth from Gdoc
+            auth: Gdoc.getGoogleReadonlyAuth(), // TODO: extract auth from Gdoc
         })
 
         const file = await driveClient.files.get(

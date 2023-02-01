@@ -4,15 +4,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidArticleType } from "@ourworldindata/utils"
 
 export const GdocsEditLink = ({
-    gdoc,
+    gdocId,
     style,
 }: {
-    gdoc: OwidArticleType
+    gdocId: string
     style?: React.CSSProperties
 }) => (
     <a
-        href={`https://docs.google.com/document/d/${gdoc.googleId}/edit`}
-        target={gdoc.googleId}
+        href={`https://docs.google.com/document/d/${gdocId}/edit`}
+        target={gdocId}
         style={style}
         rel="noopener noreferrer"
     >

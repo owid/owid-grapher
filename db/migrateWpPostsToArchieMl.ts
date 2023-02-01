@@ -51,10 +51,16 @@ const migrate = async (): Promise<void> => {
             //`<div>${post.content}</div>`)
             const $: CheerioStatic = cheerio.load(text)
             const bodyContents = $("body").contents().toArray()
-            const parsedResult = cheerioElementsToArchieML(bodyContents, {
+            const parsingContext = {
                 $,
                 shouldParseWpComponents: true,
-            })
+                htmlTagCounts: {},
+                wpTagCounts: {},
+            }
+            const parsedResult = cheerioElementsToArchieML(
+                bodyContents,
+                parsingContext
+            )
             const archieMlBodyElements = convertAllWpComponentsToArchieMLBlocks(
                 withoutEmptyOrWhitespaceOnlyTextBlocks(parsedResult).content
             )
@@ -67,6 +73,8 @@ const migrate = async (): Promise<void> => {
                     const parseResult = cheerioElementsToArchieML(refElements, {
                         $,
                         shouldParseWpComponents: false,
+                        htmlTagCounts: {},
+                        wpTagCounts: {},
                     })
                     const textContentResult =
                         getEnrichedBlockTextFromBlockParseResult(parseResult)
@@ -105,6 +113,8 @@ const migrate = async (): Promise<void> => {
                 errors,
                 numErrors: errors.length,
                 numBlocks: archieMlBodyElements.length,
+                htmlTagCounts: parsingContext.htmlTagCounts,
+                wpTagCounts: parsingContext.wpTagCounts,
             }
 
             const insertQuery = `

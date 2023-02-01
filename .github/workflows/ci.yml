@@ -3,6 +3,23 @@ on: [push, pull_request]
 
 jobs:
     # Checks for prettify errors, TypeScript errors and runs Jest tests.
+    testdbcheck:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Clone repository
+              uses: actions/checkout@v3
+
+            - uses: ./.github/actions/setup-node-yarn-deps
+
+            - name: Install dependencies
+              run: cp .env.example-grapher .env
+              shell: bash
+
+            - name: Build and run db tests
+              run: make dbtest
+              timeout-minutes: 6
+
     testcheck:
         runs-on: ubuntu-latest
 

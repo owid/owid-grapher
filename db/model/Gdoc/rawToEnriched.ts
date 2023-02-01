@@ -54,6 +54,8 @@ import {
     RawBlockText,
     Span,
     SpanSimpleText,
+    omitUndefinedValues,
+    EnrichedBlockSimpleText,
 } from "@ourworldindata/utils"
 import {
     extractPlaintextUrl,
@@ -83,8 +85,9 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "pull-quote" }, parsePullQuote)
         .with(
             { type: "horizontal-rule" },
-            (): EnrichedBlockHorizontalRule => ({
+            (b): EnrichedBlockHorizontalRule => ({
                 type: "horizontal-rule",
+                value: b.value,
                 parseErrors: [],
             })
         )
@@ -109,12 +112,17 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "prominent-link" }, parseProminentLink)
         .with(
             { type: "sdg-toc" },
-            (): EnrichedBlockSDGToc => ({ type: "sdg-toc", parseErrors: [] })
+            (b): EnrichedBlockSDGToc => ({
+                type: "sdg-toc",
+                value: b.value,
+                parseErrors: [],
+            })
         )
         .with(
             { type: "missing-data" },
-            (): EnrichedBlockMissingData => ({
+            (b): EnrichedBlockMissingData => ({
                 type: "missing-data",
+                value: b.value,
                 parseErrors: [],
             })
         )
@@ -196,11 +204,6 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         return {
             type: "chart",
             url: val,
-            height: undefined,
-            row: undefined,
-            column: undefined,
-            position: undefined,
-            caption: [],
             parseErrors: [],
         }
     } else {
@@ -231,16 +234,16 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
             }
         const caption = val.caption ? htmlToSpans(val.caption) : []
 
-        return {
+        return omitUndefinedValues({
             type: "chart",
             url,
             height,
             row,
             column,
             position,
-            caption,
+            caption: caption.length > 0 ? caption : undefined,
             parseErrors: [],
-        }
+        }) as EnrichedBlockChart
     }
 }
 
@@ -403,7 +406,11 @@ const parseNumberedList = (
             message: "Value is a string, not a list of strings",
         })
 
-    const items = raw.value.map(htmlToEnrichedTextBlock)
+    // ArchieML only has lists, not numbered lists. By convention,
+    const valuesWithoutLeadingNumbers = raw.value.map((val) =>
+        val.replace(/^\s*\d+\.\s*/, "")
+    )
+    const items = valuesWithoutLeadingNumbers.map(htmlToEnrichedTextBlock)
 
     return {
         type: "numbered-list",
@@ -611,6 +618,29 @@ const parseText = (raw: RawBlockText): EnrichedBlockText => {
     }
 }
 
+/** Note that this function is not automatically called from parseRawBlocksToEnrichedBlocks as all
+    the others are. SimpleTexts only exist on the Enriched level, not on the raw level, and they
+    only make sense when the code requesting a block to be parsed wants to exclude formatting.
+    Use this function if you have a RawBlockText and want to try to parse it to a SimpleText.
+*/
+export const parseSimpleText = (raw: RawBlockText): EnrichedBlockSimpleText => {
+    const createError = (
+        error: ParseError,
+        value: SpanSimpleText = { spanType: "span-simple-text", text: "" }
+    ): EnrichedBlockSimpleText => ({
+        type: "simple-text",
+        value,
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value !== "string")
+        return createError({
+            message: "Value is a not a string but a " + typeof raw.value,
+        })
+
+    return htmlToSimpleTextBlock(raw.value)
+}
+
 const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
     const createError = (
         error: ParseError,
@@ -750,7 +780,12 @@ function parseStickyRight(
         parseErrors: [error],
     })
     const { left, right } = raw.value
-    if (!left.length || !right.length) {
+    if (
+        left === undefined ||
+        right === undefined ||
+        !left.length ||
+        !right.length
+    ) {
         return createError({
             message: "Empty column in the sticky right container",
         })
@@ -779,7 +814,12 @@ function parseStickyLeft(
         parseErrors: [error],
     })
     const { left, right } = raw.value
-    if (!left.length || !right.length) {
+    if (
+        left === undefined ||
+        right === undefined ||
+        !left.length ||
+        !right.length
+    ) {
         return createError({
             message: "Empty column in the sticky left container",
         })
@@ -808,7 +848,12 @@ function parseSideBySide(
         parseErrors: [error],
     })
     const { left, right } = raw.value
-    if (!left.length || !right.length) {
+    if (
+        left === undefined ||
+        right === undefined ||
+        !left.length ||
+        !right.length
+    ) {
         return createError({
             message: "Empty column in the side-by-side container",
         })
