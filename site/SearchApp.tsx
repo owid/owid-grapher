@@ -1,12 +1,10 @@
 import React, { useState } from "react"
 import {
     Configure,
-    Hits,
     Index,
     InstantSearch,
     RefinementList,
 } from "react-instantsearch-hooks-web"
-import { TopicCard } from "./TopicCard.js"
 import { SearchClient } from "algoliasearch/lite.js"
 import { VirtualChartsRefinementList } from "./VirtualChartsRefinementList.js"
 import { ChartHit, SearchChartsHits } from "./SearchChartsHits.js"
@@ -21,6 +19,15 @@ export const CHARTS_INDEX = "charts-test"
 export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
     const [entities, setEntities] = useState<string[]>([])
     const [charts, setCharts] = useState<ChartHit[]>([])
+    const [tags, setTags] = useState<string[]>([])
+
+    const tagFilters = `type:entry${
+        !tags.length
+            ? ""
+            : tags.length === 1
+            ? ` AND _tags:'${tags[0]}'`
+            : ` AND (${tags.map((tag) => `_tags:'${tag}'`).join(" OR ")})`
+    }`
 
     return (
         <div className="SearchApp">
@@ -44,6 +51,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         searchClient={searchClient}
                         setEntities={setEntities}
                         setCharts={setCharts}
+                        setTags={setTags}
                     />
                 </div>
                 <div className="refinements">
@@ -54,7 +62,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                     <Index indexName={PAGES_INDEX} indexId="topics">
                         <Configure
                             hitsPerPage={10}
-                            filters="type:entry"
+                            filters={tagFilters}
                             distinct={1}
                         />
                         <SearchTopics />

@@ -25,7 +25,7 @@ type AutocompleteProps = Partial<AutocompleteOptions<BaseItem>> & {
 
 type SetInstantSearchUiStateOptions = {
     query: string
-    tags?: BaseTag[]
+    tags?: string[]
     countries?: string[]
     charts?: ChartHit[]
 }
@@ -35,10 +35,12 @@ export function SearchAutocomplete({
     searchClient,
     setEntities,
     setCharts,
+    setTags,
     ...autocompleteProps
 }: AutocompleteProps & {
     setEntities: React.Dispatch<React.SetStateAction<string[]>>
     setCharts: React.Dispatch<React.SetStateAction<ChartHit[]>>
+    setTags: React.Dispatch<React.SetStateAction<string[]>>
 }) {
     const autocompleteContainer = useRef<HTMLDivElement>(null)
 
@@ -62,6 +64,7 @@ export function SearchAutocomplete({
 
             setEntities(instantSearchUiState.countries || [])
             setCharts(instantSearchUiState.charts || [])
+            setTags(instantSearchUiState.tags || [])
 
             return {
                 ...prevIndexUiState,
@@ -91,9 +94,17 @@ export function SearchAutocomplete({
             onStateChange({ prevState, state }: any) {
                 debouncedSetInstantSearchUiState({
                     query: state.query,
-                    tags: state.context.tagsPlugin.tags
-                        .filter((tag: BaseTag) => tag.facet === "_tags")
-                        .map((tag: BaseTag) => tag.label),
+                    tags: Array.from(
+                        new Set([
+                            ...state.context.tagsPlugin.tags
+                                .filter((tag: BaseTag) => tag.facet === "_tags")
+                                .map((tag: BaseTag) => tag.label),
+
+                            ...state.context.tagsPlugin.tags
+                                .filter((tag: BaseTag) => tag.type === "chart")
+                                .flatMap((item: BaseTag) => item._tags),
+                        ])
+                    ),
                     countries: state.context.tagsPlugin.tags
                         .filter((tag: BaseTag) => tag.type === "country")
                         .map((tag: BaseTag) => tag.title),
