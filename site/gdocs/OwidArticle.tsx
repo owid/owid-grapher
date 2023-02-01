@@ -199,13 +199,13 @@ export function OwidArticle({
     )
 }
 
-export const hydrateOwidArticle = (debug?: boolean) => {
+export const hydrateOwidArticle = (debug?: boolean, isPreviewing?: boolean) => {
     const wrapper = document.querySelector("#owid-article-root")
     const props = getArticleFromJSON(window._OWID_ARTICLE_PROPS)
     ReactDOM.hydrate(
         <React.StrictMode>
             <DebugProvider debug={debug}>
-                <OwidArticle {...props} />
+                <OwidArticle {...props} isPreviewing={isPreviewing} />
             </DebugProvider>
         </React.StrictMode>,
         wrapper

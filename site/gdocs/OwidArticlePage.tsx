@@ -80,6 +80,7 @@ export default function OwidArticlePage({
                     baseUrl={baseUrl}
                     context={SiteFooterContext.gdocsArticle}
                     debug={debug}
+                    isPreviewing={isPreviewing}
                 />
             </body>
         </html>
