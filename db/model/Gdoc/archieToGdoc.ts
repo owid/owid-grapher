@@ -20,7 +20,6 @@ function* yieldMultiBlockPropertyIfDefined(
     target: (EnrichedBlockText | EnrichedBlockSimpleText)[] | undefined
 ): Generator<string, void, undefined> {
     if (property in article && target) {
-        article[property]
         yield* encloseLinesAsPropertyPossiblyMultiline(
             property,
             target.flatMap((item) => [
@@ -162,9 +161,9 @@ function* lineToBatchUpdates(line: Line): Generator<docs_v1.Schema$Request> {
 }
 
 function articleToBatchUpdates(
-    article: OwidArticleContent
+    content: OwidArticleContent
 ): docs_v1.Schema$Request[] {
-    const archieMlLines = [...owidArticleToArchieMLStringGenerator(article)]
+    const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
 
     const lines: Line[] = archieMlLines.map((line) => {
         const styleStack: docs_v1.Schema$TextStyle[] = []
@@ -196,9 +195,9 @@ function articleToBatchUpdates(
 }
 
 export async function createGdocAndInsertOwidArticleContent(
-    article: OwidArticleContent
+    content: OwidArticleContent
 ): Promise<string> {
-    const batchUpdates = articleToBatchUpdates(article)
+    const batchUpdates = articleToBatchUpdates(content)
 
     const docsMimeType = "application/vnd.google-apps.document"
     const targetFolder = GDOCS_BACKPORTING_TARGET_FOLDER
@@ -218,7 +217,7 @@ export async function createGdocAndInsertOwidArticleContent(
         requestBody: {
             parents: [targetFolder],
             mimeType: docsMimeType,
-            name: article.title,
+            name: content.title,
         },
         media: {
             mimeType: docsMimeType,

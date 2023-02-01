@@ -127,7 +127,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <Typography.Title className="mb-0" level={4}>
                                 {gdoc.content.title}
                             </Typography.Title>
-                            [ <GdocsEditLink gdoc={gdoc} /> ]
+                            [ <GdocsEditLink gdocId={gdoc.id} /> ]
                             <div>
                                 {!gdoc.published && (
                                     <Tag color="default">Draft</Tag>
@@ -231,7 +231,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     <GdocsDiff originalGdoc={originalGdoc} gdoc={gdoc} />
                 </Drawer>
 
-                {/* 
+                {/*
                     This uses the full SSR rendering pipeline. It is more accurate but comes
                     with an additional requests to the Google API and has a less polished
                     authoring experience at the moment (content flashes and scrolling position
