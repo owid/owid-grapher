@@ -83,7 +83,6 @@ export async function getVariableData(
     variableId: number
 ): Promise<OwidVariableDataMetadataDimensions> {
     const data = await fetchS3Values(variableId)
-
     // NOTE: we could be fetching metadata from S3, but there's a latency that could
     // cause problems with admin. It's safer to fetch it directly from the database.
     // In the future when we isolate ETL from admin and use variable fallbacks (i.e.
@@ -91,6 +90,8 @@ export async function getVariableData(
     // The only thing preventing us from doing so is that we allow editing non-ETL variables
     // (in owid namespace). These are pretty rarely edited anyway.
     // const metadata = await fetchS3MetadataByPath(metadataPath)
+    //
+    // This only applies to admin! Our website fetches metadata from S3.
     const metadata = await getVariableMetadataFromMySQL(variableId, data)
 
     return {

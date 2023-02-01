@@ -103,15 +103,15 @@ export enum ScatterPointLabelStrategy {
 
 export type SeriesName = string
 
-export const GRAPHER_VARIABLES_ROUTE = "/grapher/data/variables"
-export const GRAPHER_VARIABLE_DATA_ROUTE = `${GRAPHER_VARIABLES_ROUTE}/data`
-export const GRAPHER_VARIABLE_METADATA_ROUTE = `${GRAPHER_VARIABLES_ROUTE}/metadata`
+export const getVariableDataRoute = (
+    dataBaseUrl: string,
+    variableId: number
+): string => `${dataBaseUrl}data/${variableId}.json`
 
-export const getVariableDataRoute = (variableId: number): string =>
-    `${GRAPHER_VARIABLE_DATA_ROUTE}/${variableId}.json`
-
-export const getVariableMetadataRoute = (variableId: number): string =>
-    `${GRAPHER_VARIABLE_METADATA_ROUTE}/${variableId}.json`
+export const getVariableMetadataRoute = (
+    dataBaseUrl: string,
+    variableId: number
+): string => `${dataBaseUrl}metadata/${variableId}.json`
 
 export enum Patterns {
     noDataPattern = "noDataPattern",

@@ -85,6 +85,8 @@ import {
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
     SeriesStrategy,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -214,11 +216,13 @@ async function loadVariablesDataAdmin(
 
 async function loadVariablesDataSite(
     variableIds: number[],
-    baseUrl: string
+    dataBaseUrl: string
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map(async (variableId) => {
-        const dataPromise = fetch(`${baseUrl}data/${variableId}.json`)
-        const metadataPromise = fetch(`${baseUrl}metadata/${variableId}.json`)
+        const dataPromise = fetch(getVariableDataRoute(dataBaseUrl, variableId))
+        const metadataPromise = fetch(
+            getVariableMetadataRoute(dataBaseUrl, variableId)
+        )
         const [dataResponse, metadataResponse] = await Promise.all([
             dataPromise,
             metadataPromise,
@@ -250,6 +254,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     table?: OwidTable
     bakedGrapherURL?: string
     adminBaseUrl?: string
+    dataBaseUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
 
@@ -402,6 +407,7 @@ export class Grapher
         typeof window !== "undefined" && (window as any).isEditor === true
     @observable bakedGrapherURL = this.props.bakedGrapherURL
     adminBaseUrl = this.props.adminBaseUrl
+    dataBaseUrl = this.props.dataBaseUrl
 
     @observable.ref inputTable: OwidTable
 
@@ -761,7 +767,8 @@ export class Grapher
             } else {
                 const variablesDataMap = await loadVariablesDataSite(
                     this.variableIds,
-                    this.dataBaseUrl
+                    this.dataBaseUrl ||
+                        `${this.bakedGrapherURL ?? ""}/data/variables/`
                 )
                 this._receiveOwidDataAndApplySelection(variablesDataMap)
             }
@@ -966,10 +973,6 @@ export class Grapher
 
     @computed.struct private get variableIds(): number[] {
         return uniq(this.dimensions.map((d) => d.variableId))
-    }
-
-    @computed get dataBaseUrl(): string {
-        return `${this.bakedGrapherURL ?? ""}/data/variables/`
     }
 
     externalCsvLink = ""
