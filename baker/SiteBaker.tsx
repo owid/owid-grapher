@@ -63,6 +63,7 @@ import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
+import { dataSource } from "../db/dataSource.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -385,12 +386,12 @@ export class SiteBaker {
                                         .toFile(localResizedFilepath)
                                 })
                             )
-                        } else {
-                            await writeFile(
-                                path.join(imagesDirectory, image.filename),
-                                buffer
-                            )
                         }
+                        // For SVG, and a non-webp fallback copy of the image
+                        await writeFile(
+                            path.join(imagesDirectory, image.filename),
+                            buffer
+                        )
                     })
             })
         )
@@ -435,16 +436,19 @@ export class SiteBaker {
         await this.bakeRSS()
         await this.bakeAssets()
         await this.bakeGoogleScholar()
-        // await this.bakePosts()
+        await this.bakePosts()
     }
 
     private async _bakeNonWordpressPages() {
-        await bakeCountries(this)
-        await this.bakeSpecialPages()
+        // await bakeCountries(this)
+        // await this.bakeSpecialPages()
         // await this.bakeCountryProfiles()
-        await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-            this.bakedSiteDir
-        )
+        // await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+        //     this.bakedSiteDir
+        // )
+        await db.getConnection()
+        await this.bakeGDocPosts()
+        await this.bakeDriveImages()
         this.progressBar.tick({
             name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
         })
@@ -457,9 +461,7 @@ export class SiteBaker {
                 total: 5,
             }
         )
-        // await this._bakeNonWordpressPages()
-        await this.bakeGDocPosts()
-        await this.bakeDriveImages()
+        await this._bakeNonWordpressPages()
     }
 
     async bakeAll() {

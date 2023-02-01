@@ -36,6 +36,10 @@ $banner-height: 200px;
 .article-block__image {
     width: 100%;
     margin-bottom: 32px;
+
+    img {
+        width: 100%;
+    }
 }
 
 h2.article-block__heading.has-supertitle {

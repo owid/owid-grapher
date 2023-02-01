@@ -185,7 +185,11 @@ export default function ArticleBlock({
             />
         ))
         .with({ type: "image" }, (block) => (
-            <Image className={getLayout("image", containerType)} d={block} />
+            <Image
+                className={getLayout("image", containerType)}
+                d={block}
+                containerType={containerType}
+            />
         ))
         .with({ type: "pull-quote" }, (block) => (
             <PullQuote
