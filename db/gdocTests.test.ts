@@ -7,6 +7,7 @@ import {
     RawBlockHeading,
     OwidRawArticleBlock,
     omitUndefinedValues,
+    RawBlockText,
 } from "@ourworldindata/utils"
 import { spansToHtmlString } from "./model/Gdoc/gdocUtils.js"
 import { archieToEnriched } from "./model/Gdoc/archieToEnriched.js"
@@ -14,7 +15,10 @@ import { owidRawArticleBlockToArchieMLString } from "./model/Gdoc/rawToArchie.js
 import { enrichedBlockExamples } from "./model/Gdoc/exampleEnrichedBlocks.js"
 import { enrichedBlockToRawBlock } from "./model/Gdoc/enrichtedToRaw.js"
 import { load } from "archieml"
-import { parseRawBlocksToEnrichedBlocks } from "./model/Gdoc/rawToEnriched.js"
+import {
+    parseRawBlocksToEnrichedBlocks,
+    parseSimpleText,
+} from "./model/Gdoc/rawToEnriched.js"
 
 function getArchieMLDocWithContent(content: string): string {
     return `title: Writing OWID Articles With Google Docs
@@ -156,9 +160,15 @@ level: 2
             `
             const deserializedRawBlock = load(simpleArchieMLDocument)
             const bodyNodes: OwidRawArticleBlock[] = deserializedRawBlock.body
-            const deserializedEnrichedBlocks = bodyNodes.map(
+            let deserializedEnrichedBlocks = bodyNodes.map(
                 parseRawBlocksToEnrichedBlocks
             )
+            if (example.type === "simple-text")
+                // RawBlockText blocks are always parsed to EnrichedBlockText, never automatically
+                // to EnrichedBlockSimpleText. So we need to manually parse them here.
+                deserializedEnrichedBlocks = [
+                    parseSimpleText(bodyNodes[0] as RawBlockText),
+                ]
             expect(deserializedEnrichedBlocks).toHaveLength(1)
             expect(omitUndefinedValues(bodyNodes[0])).toEqual(
                 omitUndefinedValues(rawBlock)
