@@ -44,6 +44,13 @@ export function enrichedBlockToRawBlock(
             })
         )
         .with(
+            { type: "simple-text" },
+            (b): RawBlockText => ({
+                type: "text",
+                value: b.value.text,
+            })
+        )
+        .with(
             { type: "additional-charts" },
             (b): RawBlockAdditionalCharts => ({
                 type: b.type,

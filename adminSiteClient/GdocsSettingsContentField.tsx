@@ -37,7 +37,7 @@ export const GdocsSettingsContentField = ({
                 <span className="text-capitalize">{property}</span>
             </label>
             <div className="edit-in-gdocs">
-                <GdocsEditLink gdoc={gdoc} />
+                <GdocsEditLink gdocId={gdoc.id} />
                 {render({
                     name: property,
                     value: gdoc.content[property],

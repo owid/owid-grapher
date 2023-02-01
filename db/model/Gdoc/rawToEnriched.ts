@@ -57,6 +57,7 @@ import {
     Span,
     SpanSimpleText,
     omitUndefinedValues,
+    EnrichedBlockSimpleText,
 } from "@ourworldindata/utils"
 import {
     extractPlaintextUrl,
@@ -694,6 +695,29 @@ const parseText = (raw: RawBlockText): EnrichedBlockText => {
         value,
         parseErrors: [],
     }
+}
+
+/** Note that this function is not automatically called from parseRawBlocksToEnrichedBlocks as all
+    the others are. SimpleTexts only exist on the Enriched level, not on the raw level, and they
+    only make sense when the code requesting a block to be parsed wants to exclude formatting.
+    Use this function if you have a RawBlockText and want to try to parse it to a SimpleText.
+*/
+export const parseSimpleText = (raw: RawBlockText): EnrichedBlockSimpleText => {
+    const createError = (
+        error: ParseError,
+        value: SpanSimpleText = { spanType: "span-simple-text", text: "" }
+    ): EnrichedBlockSimpleText => ({
+        type: "simple-text",
+        value,
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value !== "string")
+        return createError({
+            message: "Value is a not a string but a " + typeof raw.value,
+        })
+
+    return htmlToSimpleTextBlock(raw.value)
 }
 
 const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {

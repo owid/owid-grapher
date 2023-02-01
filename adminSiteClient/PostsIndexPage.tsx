@@ -10,6 +10,8 @@ import { SearchField, FieldsRow, EditableTags, Timeago } from "./Forms.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { WORDPRESS_URL } from "../settings/clientSettings.js"
 import { Tag } from "./TagBadge.js"
+import { match } from "ts-pattern"
+import { GdocsEditLink } from "./GdocsEditLink.js"
 
 interface PostIndexMeta {
     id: number
@@ -19,6 +21,7 @@ interface PostIndexMeta {
     authors: string[]
     updatedAt: string
     tags: Tag[]
+    gdocSuccessorId: string | undefined
 }
 
 interface Searchable {
@@ -26,14 +29,31 @@ interface Searchable {
     term?: Fuzzysort.Prepared
 }
 
-@observer
-class PostRow extends React.Component<{
+enum GdocStatus {
+    "MISSING" = "MISSING",
+    "CONVERTING" = "CONVERTING",
+    "CONVERTED" = "CONVERTED",
+}
+
+interface PostRowProps {
     post: PostIndexMeta
     highlight: (text: string) => string | JSX.Element
     availableTags: Tag[]
-}> {
+}
+
+@observer
+class PostRow extends React.Component<PostRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
+
+    @observable private postGdocStatus: GdocStatus = GdocStatus.MISSING
+
+    constructor(props: PostRowProps) {
+        super(props)
+        this.postGdocStatus = props.post.gdocSuccessorId
+            ? GdocStatus.CONVERTED
+            : GdocStatus.MISSING
+    }
 
     async saveTags(tags: Tag[]) {
         const { post } = this.props
@@ -51,8 +71,30 @@ class PostRow extends React.Component<{
         this.saveTags(tags)
     }
 
+    @action.bound async onConvertGdoc() {
+        this.postGdocStatus = GdocStatus.CONVERTING
+        const { admin } = this.context
+        const json = await admin.requestJSON(
+            `/api/posts/${this.props.post.id}/createGdoc`,
+            {},
+            "POST"
+        )
+        this.postGdocStatus = GdocStatus.CONVERTED
+        this.props.post.gdocSuccessorId = json.googleDocsId
+    }
+
     render() {
         const { post, highlight, availableTags } = this.props
+        const { postGdocStatus } = this
+        const gdocElement = match(postGdocStatus)
+            .with(GdocStatus.MISSING, () => (
+                <button onClick={this.onConvertGdoc}>Create GDoc</button>
+            ))
+            .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
+            .with(GdocStatus.CONVERTED, () => (
+                <GdocsEditLink gdocId={post.gdocSuccessorId!} />
+            ))
+            .exhaustive()
 
         return (
             <tr>
@@ -78,6 +120,16 @@ class PostRow extends React.Component<{
                         Edit
                     </a>
                 </td>
+                <td>
+                    <a
+                        href={`/admin/posts/compare/${post.id}`}
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        Compare view
+                    </a>
+                </td>
+                <td>{gdocElement}</td>
                 {/*<td>
                 <button className="btn btn-danger" onClick={_ => this.props.onDelete(chart)}>Delete</button>
             </td>*/}
@@ -171,6 +223,8 @@ export class PostsIndexPage extends React.Component {
                                 <th>Tags</th>
                                 <th>Last Updated</th>
                                 <th></th>
+                                <th>WP vs Archie compare view</th>
+                                <th>Gdoc</th>
                             </tr>
                         </thead>
                         <tbody>
