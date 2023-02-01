@@ -9,6 +9,7 @@ theme:
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.indexes
+    
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
