@@ -43,6 +43,7 @@ export const createShowTagsPlugin = () =>
         },
         onChange({ tags, setIsOpen }) {
             requestAnimationFrame(() => {
+                setIsOpen(false)
                 const container = document.querySelector(
                     ".aa-InputWrapperPrefix"
                 )
@@ -60,7 +61,7 @@ export const createShowTagsPlugin = () =>
                                 label={label}
                                 onRemove={() => {
                                     remove()
-                                    requestAnimationFrame(() => setIsOpen(true))
+                                    // requestAnimationFrame(() => setIsOpen(true))
                                 }}
                             />
                         ))}
