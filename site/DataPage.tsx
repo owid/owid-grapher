@@ -18,6 +18,7 @@ import urljoin from "url-join"
 import {
     ADMIN_BASE_URL,
     BAKED_GRAPHER_URL,
+    DATA_BASE_URL,
 } from "../settings/clientSettings.js"
 import {
     DataPageContent,
@@ -73,6 +74,9 @@ export const DataPage = (props: {
     const imageWidth: string = "1200"
     const imageHeight: string = "628"
 
+    const dataBaseUrl =
+        DATA_BASE_URL || `${BAKED_GRAPHER_URL ?? ""}/data/variables/`
+
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
     const grapherConfig: GrapherProgrammaticInterface = {
@@ -102,8 +106,8 @@ export const DataPage = (props: {
                 </noscript>
                 {variableIds.flatMap((variableId) =>
                     [
-                        getVariableDataRoute(variableId),
-                        getVariableMetadataRoute(variableId),
+                        getVariableDataRoute(dataBaseUrl, variableId),
+                        getVariableMetadataRoute(dataBaseUrl, variableId),
                     ].map((href) => (
                         <link
                             key={href}

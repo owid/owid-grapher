@@ -190,4 +190,5 @@ export const grapherKeysToSerialize = [
     "adminBaseUrl",
     "bakedGrapherURL",
     "missingDataStrategy",
+    "dataBaseUrl",
 ]

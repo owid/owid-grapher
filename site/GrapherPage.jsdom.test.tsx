@@ -1,10 +1,6 @@
 #! /usr/bin/env jest
 
-import {
-    GrapherInterface,
-    getVariableDataRoute,
-    getVariableMetadataRoute,
-} from "@ourworldindata/grapher"
+import { GrapherInterface } from "@ourworldindata/grapher"
 import { DimensionProperty, PostRow, RelatedChart } from "@ourworldindata/utils"
 import React from "react"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
@@ -76,14 +72,19 @@ describe("when the page is rendered", () => {
 
     it("preloads the data", () => {
         expect(
-            view.find(
-                `link[rel="preload"][href="${getVariableDataRoute(3512)}"]`
-            )
+            view
+                .find(`link[rel="preload"]`)
+                .filterWhere((element: any): boolean =>
+                    element.prop("href").endsWith("/data/3512.json")
+                )
         ).toHaveLength(1)
+
         expect(
-            view.find(
-                `link[rel="preload"][href="${getVariableMetadataRoute(3512)}"]`
-            )
+            view
+                .find(`link[rel="preload"]`)
+                .filterWhere((element: any): boolean =>
+                    element.prop("href").endsWith("/metadata/3512.json")
+                )
         ).toHaveLength(1)
     })
 
