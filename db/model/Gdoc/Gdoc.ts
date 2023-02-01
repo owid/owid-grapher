@@ -74,16 +74,6 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         return Gdoc.cachedGoogleReadonlyAuth
     }
 
-    async createGdocArticleFromArchieMl(
-        article: OwidArticleContent
-    ): Promise<void> {
-        this.id = await createGdocAndInsertOwidArticleContent(article)
-
-        this.content = article
-
-        await this.save()
-    }
-
     async getEnrichedArticle(): Promise<void> {
         const client = google.docs({
             version: "v1",

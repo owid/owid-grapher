@@ -28,7 +28,6 @@ import {
     JsonError,
     omit,
     OperationContext,
-    OwidArticleContent,
     OwidArticleTypeJSON,
     OwidArticleType,
     parseIntOrUndefined,

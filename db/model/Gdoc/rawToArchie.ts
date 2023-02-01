@@ -23,7 +23,6 @@ import {
     RawBlockText,
     RawBlockUrl,
     RawBlockAdditionalCharts,
-    Span,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 

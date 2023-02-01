@@ -11,6 +11,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { WORDPRESS_URL } from "../settings/clientSettings.js"
 import { Tag } from "./TagBadge.js"
 import { match } from "ts-pattern"
+import { GdocsEditLink } from "./GdocsEditLink.js"
 
 interface PostIndexMeta {
     id: number
@@ -91,13 +92,7 @@ class PostRow extends React.Component<PostRowProps> {
             ))
             .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
             .with(GdocStatus.CONVERTED, () => (
-                <a
-                    href={`https://docs.google.com/document/d/${post.gdocSuccessorId}/edit`}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    View GDoc
-                </a>
+                <GdocsEditLink gdocId={post.gdocSuccessorId!} />
             ))
             .exhaustive()
 
