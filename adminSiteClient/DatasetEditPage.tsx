@@ -165,6 +165,22 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         }
     }
 
+    async archive() {
+        const { dataset } = this.props
+        if (
+            !window.confirm(
+                `Are you sure you want to archive: ${dataset.name}?`
+            )
+        ) {
+            return
+        }
+        await this.context.admin.requestJSON(
+            `/api/datasets/${dataset.id}/setArchived`,
+            {},
+            "POST"
+        )
+    }
+
     async republishCharts() {
         const { dataset } = this.props
         if (
@@ -427,10 +443,16 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                         </p>
                         <div className="card-footer">
                             <button
-                                className="btn btn-danger"
+                                className="btn btn-danger mr-3"
                                 onClick={() => this.delete()}
                             >
                                 Delete dataset
+                            </button>
+                            <button
+                                className="btn btn-outline-danger"
+                                onClick={() => this.archive()}
+                            >
+                                Archive dataset
                             </button>
                         </div>
                     </section>
