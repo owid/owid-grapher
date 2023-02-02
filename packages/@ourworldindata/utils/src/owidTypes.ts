@@ -943,7 +943,6 @@ export enum GdocsContentSource {
 }
 
 export enum SiteFooterContext {
-    gdocsPreview = "gdocsPreview", // the previewed version (in the admin)
     gdocsArticle = "gdocsArticle", // the rendered version (on the site)
     grapherPage = "grapherPage",
     explorerPage = "explorerPage",
