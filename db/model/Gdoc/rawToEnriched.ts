@@ -376,9 +376,13 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
 
     const imageMetadata = imageStore.images?.[filename]
     if (!imageMetadata) {
-        return createError({
-            message: `image with filename ${filename} not found in Google Drive`,
-        })
+        return createError(
+            {
+                message: `image with filename ${filename} not found in Google Drive`,
+            },
+            filename,
+            image.value.alt
+        )
     }
 
     return {
