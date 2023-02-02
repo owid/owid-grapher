@@ -37,18 +37,11 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
     const json = await getClient().search([
         {
             indexName: "pages",
-            query: query,
+            query,
             params: {
-                attributesToRetrieve: [
-                    "objectID",
-                    "postId",
-                    "slug",
-                    "title",
-                    "type",
-                    "content",
-                ],
+                attributesToRetrieve: ["slug", "title", "type"],
                 attributesToSnippet: ["excerpt:20", "content:20"],
-                attributesToHighlight: ["title", "excerpt", "content"],
+                attributesToHighlight: ["title"],
                 distinct: true,
                 hitsPerPage: 10,
             },
