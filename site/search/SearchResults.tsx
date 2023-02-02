@@ -72,8 +72,8 @@ class PageResult extends React.Component<{ hit: PageHit }> {
      */
     @computed get textToShow(): string {
         const { hit } = this.props
-        if (!hit._snippetResult.excerpt?.value?.length)
-            return hit._snippetResult.content?.value || ""
+        if (!hit._snippetResult?.excerpt?.value?.length)
+            return hit._snippetResult?.content?.value || ""
 
         const highlightMatches = [
             { name: "title", ...hit._highlightResult.title },
@@ -83,7 +83,7 @@ class PageResult extends React.Component<{ hit: PageHit }> {
         const algoliaMatchLevels = ["none", "partial", "full"]
         const highlighted = highlightMatches.map((e) => ({
             ...e,
-            matchLevel: algoliaMatchLevels.indexOf(e.matchLevel),
+            matchLevel: algoliaMatchLevels.indexOf(e.matchLevel ?? ""),
         }))
         const best = maxBy(highlighted, (h) => h.matchLevel)
         if (best?.name === "content")

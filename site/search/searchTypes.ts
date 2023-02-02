@@ -25,12 +25,12 @@ export interface PageRecord {
 type AlgoliaMatchLevel = "none" | "full" | "partial"
 
 export interface PageHit extends PageRecord {
-    _snippetResult: {
-        content: {
+    _snippetResult?: {
+        content?: {
             value: string
             matchLevel: AlgoliaMatchLevel
         }
-        excerpt: {
+        excerpt?: {
             value: string
             matchLevel: AlgoliaMatchLevel
         }
