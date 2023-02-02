@@ -47,6 +47,9 @@ export const configureAlgolia = async () => {
         exactOnSingleWordQuery: "none",
         removeStopWords: ["en"],
         snippetEllipsisText: "…",
+        distinct: true,
+        advancedSyntax: true,
+        advancedSyntaxFeatures: ["exactPhrase"],
     }
 
     const chartsIndex = client.initIndex("charts")
@@ -80,8 +83,8 @@ export const configureAlgolia = async () => {
             "unordered(title)",
             "unordered(excerpt)",
             "unordered(tags)",
-            "unordered(authors)",
             "unordered(content)",
+            "unordered(authors)",
         ],
         customRanking: ["desc(importance)"],
         attributesToSnippet: ["excerpt:20", "content:20"],
