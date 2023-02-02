@@ -56,7 +56,7 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
                     "variantName",
                 ],
                 attributesToSnippet: ["subtitle:24"],
-                attributesToHighlight: ["availableEntities"],
+                attributesToHighlight: ["title", "availableEntities"],
                 hitsPerPage: 10,
                 removeStopWords: true,
                 replaceSynonymsInHighlight: false,

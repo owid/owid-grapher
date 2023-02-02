@@ -67,6 +67,10 @@ export interface ChartHit extends ChartRecord {
         }
     }
     _highlightResult?: {
+        title?: {
+            value: string
+            matchLevel: AlgoliaMatchLevel
+        }
         availableEntities?: {
             value: string
             matchLevel: AlgoliaMatchLevel

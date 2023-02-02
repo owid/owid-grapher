@@ -34,11 +34,20 @@ class ChartResult extends React.Component<{
             ).fullUrl
     }
 
-    @computed get title() {
+    @computed get title(): JSX.Element {
         const { hit } = this.props
         const { entities } = this
-        if (!entities.length) return hit.title
-        else return hit.title.trim() + `, ${entities.join(", ")}`
+        const highlightedTitle = hit._highlightResult?.title?.value ?? ""
+        const title = (
+            <span dangerouslySetInnerHTML={{ __html: highlightedTitle }} />
+        )
+        if (!entities.length) return title
+        else
+            return (
+                <>
+                    {title}, {entities.join(", ")}
+                </>
+            )
     }
 
     render() {
@@ -47,7 +56,6 @@ class ChartResult extends React.Component<{
 
         return (
             <li className="ChartResult">
-                {/* <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
                 <a href={`${BAKED_GRAPHER_URL}/${slug}`}>{title}</a>
                 {hit.variantName ? (
                     <span className="variantName"> {hit.variantName}</span>
