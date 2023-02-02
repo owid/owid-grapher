@@ -50,6 +50,7 @@ export interface ChartRecord {
     title: string
     subtitle: string
     variantName: string
+    keyChartForTags: string[]
     tags: string[]
     availableEntities: string[]
     publishedAt: string

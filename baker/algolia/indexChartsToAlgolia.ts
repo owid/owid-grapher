@@ -16,13 +16,14 @@ const getChartsRecords = async () => {
     `)
 
     const chartTags = await db.queryMysql(`
-        SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
+        SELECT ct.chartId, ct.tagId, ct.isKeyChart, t.name as tagName FROM chart_tags ct
         JOIN charts c ON c.id=ct.chartId
         JOIN tags t ON t.id=ct.tagId
     `)
 
     for (const c of allCharts) {
         c.tags = []
+        c.keyChartForTags = []
     }
 
     const chartsById = lodash.keyBy(allCharts, (c) => c.id)
@@ -33,6 +34,11 @@ const getChartsRecords = async () => {
         if (c) {
             c.tags.push({ id: ct.tagId, name: ct.tagName })
             chartsToIndex.push(c)
+
+            if (ct.isKeyChart) {
+                // chart is a key chart for this tag
+                c.keyChartForTags.push({ id: ct.tagId, name: ct.tagName })
+            }
         }
     }
 
@@ -52,6 +58,7 @@ const getChartsRecords = async () => {
             title: c.title,
             variantName: c.variantName,
             subtitle: c.subtitle,
+            keyChartForTags: c.keyChartForTags.map((t: any) => t.name),
             tags: c.tags.map((t: any) => t.name),
             availableEntities: JSON.parse(c.availableEntitiesStr),
             publishedAt: c.publishedAt,

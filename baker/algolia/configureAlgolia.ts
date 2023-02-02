@@ -57,11 +57,18 @@ export const configureAlgolia = async () => {
     await chartsIndex.setSettings({
         ...baseSettings,
         searchableAttributes: [
+            /**
+             * It may seem unintuitive that we're ranking `keyChartForTags` higher than `title`.
+             * However, many of the search queries we get are for "topics", like `migration` or
+             * `tourism`. If for this topic we have a key chart, we want to show that first,
+             * since that's hand-picked to be super relevant for the topic.
+             */
+            "unordered(keyChartForTags)",
             "unordered(title)",
             "unordered(slug)",
             "unordered(variantName)",
             "unordered(subtitle)",
-            "unordered(_tags)",
+            "unordered(tags)",
             "unordered(availableEntities)",
         ],
         customRanking: [
@@ -71,7 +78,7 @@ export const configureAlgolia = async () => {
         ],
         attributesToSnippet: ["subtitle:24"],
         attributeForDistinct: "id",
-        disableExactOnAttributes: ["_tags"],
+        disableExactOnAttributes: ["tags"],
         optionalWords: ["vs"],
     })
 
