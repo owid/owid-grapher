@@ -8,6 +8,7 @@ import {
     GdocsContentSource,
     JsonError,
     OwidEnrichedArticleBlock,
+    recursivelyMapArticleBlock,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -15,11 +16,9 @@ import {
     GDOCS_PRIVATE_KEY,
 } from "../../../settings/serverSettings.js"
 import { google, Auth, docs_v1 } from "googleapis"
-import { recursivelyMapArticleBlock } from "./gdocUtils.js"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { imageStore } from "../Image.js"
-import { createGdocAndInsertOwidArticleContent } from "./archieToGdoc.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {

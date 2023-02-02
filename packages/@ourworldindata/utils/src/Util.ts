@@ -152,6 +152,7 @@ import {
     GridParameters,
     OwidArticleType,
     OwidArticleTypeJSON,
+    OwidEnrichedArticleBlock,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds.js"
@@ -1283,6 +1284,25 @@ export const getArticleFromJSON = (
         publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
         updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
     }
+}
+
+export function recursivelyMapArticleBlock(
+    block: OwidEnrichedArticleBlock,
+    callback: (block: OwidEnrichedArticleBlock) => OwidEnrichedArticleBlock
+): OwidEnrichedArticleBlock {
+    if (block.type === "gray-section") {
+        block.items.map((block) => recursivelyMapArticleBlock(block, callback))
+    }
+    if (
+        block.type === "sticky-left" ||
+        block.type === "sticky-right" ||
+        block.type === "side-by-side"
+    ) {
+        block.left.map((node) => recursivelyMapArticleBlock(node, callback))
+        block.right.map((node) => recursivelyMapArticleBlock(node, callback))
+    }
+
+    return callback(block)
 }
 
 // Checking whether we have clipboard write access is surprisingly complicated.

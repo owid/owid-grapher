@@ -252,6 +252,7 @@ export {
     getArticleFromJSON,
     formatDate,
     canWriteToClipboard,
+    recursivelyMapArticleBlock,
 } from "./Util.js"
 
 export {
