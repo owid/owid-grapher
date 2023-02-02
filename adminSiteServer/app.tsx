@@ -5,11 +5,13 @@ require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import "reflect-metadata"
 import * as http from "http"
+import Bugsnag from "@bugsnag/js"
 
 import {
     ADMIN_SERVER_HOST,
     ADMIN_SERVER_PORT,
     BAKED_BASE_URL,
+    BUGSNAG_API_KEY,
     ENV,
     SLACK_ERRORS_WEBHOOK_URL,
 } from "../settings/serverSettings.js"
@@ -74,6 +76,12 @@ export class OwidAdminApp {
 
     async startListening(adminServerPort: number, adminServerHost: string) {
         this.gitCmsBranchName = await this.getGitCmsBranchName()
+        if (BUGSNAG_API_KEY && ENV === "production") {
+            Bugsnag.start({
+                apiKey: BUGSNAG_API_KEY,
+                context: "admin-server",
+            })
+        }
         await imageStore.fetchImageMetadata()
         const { app } = this
 

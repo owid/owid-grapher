@@ -42,6 +42,9 @@ export const GIT_DEFAULT_USERNAME: string =
 export const GIT_DEFAULT_EMAIL: string =
     serverSettings.GIT_DEFAULT_EMAIL ?? "info@ourworldindata.org"
 
+export const BUGSNAG_API_KEY: string | undefined =
+    serverSettings.BUGSNAG_API_KEY
+
 export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21
 export const BLOG_SLUG: string = serverSettings.BLOG_SLUG ?? "blog"
