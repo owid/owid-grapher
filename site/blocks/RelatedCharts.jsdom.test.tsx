@@ -15,10 +15,12 @@ const charts = [
     {
         title: "Chart 1",
         slug: "chart-1",
+        isKey: false,
     },
     {
         title: "Chart 2",
         slug: "chart-2",
+        isKey: true,
     },
 ]
 
@@ -28,26 +30,30 @@ it("renders active chart links and loads respective chart on click", () => {
     expect(wrapper.find("li")).toHaveLength(2)
 
     expect(wrapper.find("li").first().hasClass("active")).toEqual(true)
-    expect(wrapper.find("li").first().text()).toBe("Chart 1")
+    expect(wrapper.find("li").first().text()).toBe("Chart 2")
     expect(
         wrapper
             .find("li")
             .first()
             .find(
-                `img[src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${charts[0].slug}.svg"]`
+                `img[src="${BAKED_GRAPHER_EXPORTS_BASE_URL}/${charts[1].slug}.svg"]`
             )
     ).toHaveLength(1)
 
     wrapper.find("a").forEach((link, idx) => {
+        // Chart 2 is a key chart, so the charts should be in reverse order: `Chart 2, Chart 1`
+        const expectedChartIdx = 1 - idx
         link.simulate("click")
         expect(wrapper.find("figure")).toHaveLength(1)
         expect(
             wrapper.find(
-                `figure[data-grapher-src="${BAKED_BASE_URL}/grapher/${charts[idx].slug}"]`
+                `figure[data-grapher-src="${BAKED_BASE_URL}/grapher/${charts[expectedChartIdx].slug}"]`
             )
         ).toHaveLength(1)
         // should have forced re-render by changing the `key`
-        expect(wrapper.find("figure").key()).toEqual(charts[idx].slug)
+        expect(wrapper.find("figure").key()).toEqual(
+            charts[expectedChartIdx].slug
+        )
     })
 
     expect(wrapper.find("li").last().hasClass("active")).toEqual(true)

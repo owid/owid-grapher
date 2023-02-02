@@ -1,7 +1,11 @@
 import React from "react"
-import { RelatedChart } from "@ourworldindata/utils"
+import { BasicChartInformation } from "@ourworldindata/utils"
 
-export const ChartListItemVariant = ({ chart }: { chart: RelatedChart }) => {
+export const ChartListItemVariant = ({
+    chart,
+}: {
+    chart: BasicChartInformation
+}) => {
     return (
         <li>
             <a href={`/grapher/${chart.slug}`}>{chart.title}</a>

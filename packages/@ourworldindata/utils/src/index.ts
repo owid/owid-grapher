@@ -118,6 +118,7 @@ export {
     RawSDGGridItem,
     RawBlockSDGToc,
     RawBlockMissingData,
+    BasicChartInformation,
     RelatedChart,
     ScaleType,
     SerializedGridProgram,

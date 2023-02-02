@@ -51,11 +51,14 @@ export enum ScaleType {
     log = "log",
 }
 
-export interface RelatedChart {
+export interface BasicChartInformation {
     title: string
     slug: string
     variantName?: string | null
-    isKey?: boolean
+}
+
+export interface RelatedChart extends BasicChartInformation {
+    isKey: boolean
 }
 
 export type OwidVariableId = Integer // remove.
