@@ -52,13 +52,13 @@ class ChartResult extends React.Component<{
                 {hit.variantName ? (
                     <span className="variantName"> {hit.variantName}</span>
                 ) : undefined}
-                {hit._snippetResult ? (
+                {hit._snippetResult?.subtitle && (
                     <p
                         dangerouslySetInnerHTML={{
                             __html: hit._snippetResult.subtitle.value,
                         }}
                     />
-                ) : undefined}
+                )}
             </li>
         )
     }
@@ -131,9 +131,7 @@ class PageResult extends React.Component<{ hit: PageHit }> {
 
 function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
     const entities = []
-    const availableEntities = hit._highlightResult
-        ? hit._highlightResult.availableEntities
-        : []
+    const availableEntities = hit._highlightResult?.availableEntities ?? []
     for (const res of availableEntities) {
         const entity = res.value.replace(/<\/?em>/g, "")
         if (

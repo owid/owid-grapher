@@ -5,6 +5,7 @@ import { getRelatedArticles } from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
+import { ChartRecord } from "../../site/search/searchTypes.js"
 
 const getChartsRecords = async () => {
     const allCharts = await db.queryMysql(`
@@ -35,7 +36,7 @@ const getChartsRecords = async () => {
         }
     }
 
-    const records = []
+    const records: ChartRecord[] = []
     for (const c of chartsToIndex) {
         if (!c.tags) continue
         // Our search currently cannot render explorers, so don't index them because
@@ -51,7 +52,7 @@ const getChartsRecords = async () => {
             title: c.title,
             variantName: c.variantName,
             subtitle: c.subtitle,
-            _tags: c.tags.map((t: any) => t.name),
+            tags: c.tags.map((t: any) => t.name),
             availableEntities: JSON.parse(c.availableEntitiesStr),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
