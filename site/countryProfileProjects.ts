@@ -28,7 +28,7 @@ const countryProfileProjectConfigurations: CountryProfileProjectConfiguration[] 
         {
             project: CountryProfileProject.co2,
             pageTitle: "CO2",
-            landingPageSlug: "co2-and-other-greenhouse-gas-emissions",
+            landingPageSlug: "co2-and-greenhouse-gas-emissions",
         },
         {
             project: CountryProfileProject.energy,
