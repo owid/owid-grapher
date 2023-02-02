@@ -140,6 +140,12 @@ export const configureAlgolia = async () => {
         ["vaccine hesitancy", "vaccine attitude", "vaccine willingness"],
         ["electric power", "power", "electricity"],
         ["artificial intelligence", "ai", "machine learning", "neural network"],
+        ["hdi", "human development index"],
+        ["drug", "drugs", "substance use"],
+        ["r&d", "r & d", "research"],
+        ["plane", "airplane", "aviation", "airline"],
+        ["ev", "electric vehicle", "electric car"],
+        ["train", "railway"],
     ]
 
     // Send all our country variant names to algolia as synonyms
