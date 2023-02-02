@@ -1,4 +1,4 @@
-# Local development setup with MySQL and the Grapher admin
+# Local development setup with MySQL and Grapher admin
 
 This page describes how to set up a MySQL database loaded with example charts so you can use the Admin UI to visually create and edit charts.
 

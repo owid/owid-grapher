@@ -1,4 +1,4 @@
-# Full wordpress setup
+# Full setup with Wordpress
 
 This page describes how to get the full setup of our site running locally including wordpress (and thus also allowing running the baking etc). Note that this setup requires pullung a database dump from our live server which only OWID staff can do. This setup thus only works for OWID staff.
 
@@ -16,9 +16,9 @@ The full setup includes an nginx server exposed at http://localhost:8080 that do
 
 The most important URLs:
 
-http://localhost:8080/admin - the grapher admin
+`http://localhost:8080/admin` - the grapher admin
 
-http://localhost:8080/wp/wp-admin - the wordpress admin
+`http://localhost:8080/wp/wp-admin` - the wordpress admin
 
 Note that in the MySQL database that was set up, the `data_values` table will be incomplete – it will only contain data used in charts. In production, this table is >30GB (uncompressed) and contains unreviewed and undocumented data, so we currently don't offer a full export of it.
 

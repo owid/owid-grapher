@@ -1,4 +1,4 @@
-# WIP
+# Coding Style
 
 This document is work in progress. For now please check out the existing code to get a feeling for our coding style.
 

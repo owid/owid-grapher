@@ -6,6 +6,14 @@ nav:
   - Home: "index.md"
   - Architecture: "architecture.md"
   - Contributing: "contributing.md"
+  - Coding Style: "coding-style.md"
+  - Development:
+    - Overview: "development/index.md"
+    - Visual Studio Code Devcontainer setup: "development/devcontainer-setup.md"
+    - Setting up a local TypeScript environment: "development/local-typescript-setup.md"
+    - Local setup with MySQL and Grapher admin: "development/full-wordpress-setup.md"
+    - Full setup with Wordpress: "development/docker-compose-mysql.md"
+
 theme:
   name: material
   features:
@@ -14,6 +22,7 @@ theme:
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.indexes
+
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -29,7 +38,10 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
+
 markdown_extensions:
+  - admonition
+  - pymdownx.details
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid

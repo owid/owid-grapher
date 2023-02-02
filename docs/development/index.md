@@ -20,7 +20,7 @@ This version needs a copy of our wordpress content that is currently only availa
 
 In increasing order of sophistication:
 
-**[Visual Studio Code development containers](devcontainer-setup.md)** (🚜.)
+**[Visual Studio Code Devcontainer setup](devcontainer-setup.md)** (🚜.)
 
 This uses Visual Studio Code with the [remote containers extension](https://code.visualstudio.com/docs/remote/containers) and the [Docker runtime](https://www.docker.com/getting-started) installed. Everything else is automated to happen inside Docker containers so while you are developing locally, you do not have to install Node.js, MySQL, WordPress or any other dependencies on your main operating system. This also makes this setup easy to run on Windows if you are not familiar with using the Windows Subsystem for Linux.
 
