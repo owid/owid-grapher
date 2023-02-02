@@ -2,7 +2,7 @@ import * as db from "../../db/db.js"
 import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { chunkParagraphs } from "../chunk.js"
-import { countries, FormattedPost } from "@ourworldindata/utils"
+import { countries, FormattedPost, isEmpty } from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
@@ -65,6 +65,13 @@ const getPagesRecords = async () => {
 
     for (const postApi of postsApi) {
         const rawPost = await wpdb.getFullPost(postApi)
+        if (isEmpty(rawPost.content)) {
+            // we have some posts that are only placeholders (e.g. for a redirect); don't index these
+            console.log(
+                `skipping post ${rawPost.slug} in search indexing because it's empty`
+            )
+            continue
+        }
 
         const post = await formatPost(rawPost, { footnotes: false })
         const postText = htmlToText(post.html, {
