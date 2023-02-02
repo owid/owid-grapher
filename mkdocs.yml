@@ -1,0 +1,32 @@
+site_name: OWID site
+
+nav:
+  - Home: "index.md"
+  - Getting started: "getting-started/index.md"
+  - Architecture:
+      - Overview: "architecture/index.md"
+  - Contributing: "contributing.md"
+  - Other: "other/index.md"
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.indexes
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra_css:
+  - css/extra.css

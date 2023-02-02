@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "owid-grapher-docs"
+version = "0.1.0"
+description = ""
+authors = ["Our World in Data <tech@ourworldindata.org>"]
+readme = "README.md"
+packages = [{include = "owid_grapher_docs"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+mkdocs = "^1.4.2"
+mkdocs-material = "^9.0.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	export
 endif
 
-.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest
+.PHONY: help up up.full down down.full refresh refresh.wp refresh.full migrate svgtest docs
 
 help:
 	@echo 'Available commands:'
@@ -31,6 +31,7 @@ help:
 	@echo '  make test          run full suite (except db tests) of CI checks including unit tests'
 	@echo '  make dbtest        run db test suite that needs a running mysql db'
 	@echo '  make svgtest       compare current rendering against reference SVGs'
+	@echo '  make docs          run local documentation server'
 	@echo
 	@echo '  GRAPHER + WORDPRESS (staff-only)'
 	@echo '  make up.full       start dev environment via docker-compose and tmux'
@@ -302,3 +303,6 @@ svgtest: ../owid-grapher-svgs
 
 	@# summarize differences
 	cd ../owid-grapher-svgs && git diff --stat
+
+docs:
+	cd docs && make serve
