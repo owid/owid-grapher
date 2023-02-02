@@ -1330,3 +1330,16 @@ export const canWriteToClipboard = async (): Promise<boolean> => {
     // navigator.clipboard is available, but we couldn't check for permissions -- assume we can use it.
     return true
 }
+
+export function findDuplicates<T>(arr: T[]): T[] {
+    const set = new Set()
+    const duplicates: T[] = []
+    arr.forEach((item) => {
+        if (set.has(item)) {
+            duplicates.push(item)
+        } else {
+            set.add(item)
+        }
+    })
+    return uniq(duplicates)
+}

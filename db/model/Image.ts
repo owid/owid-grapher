@@ -26,7 +26,9 @@ import {
     IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY,
     IMAGE_HOSTING_BUCKET_PATH,
     GDOCS_CLIENT_EMAIL,
+    GDOCS_SHARED_DRIVE_ID,
 } from "../../settings/serverSettings.js"
+import { findDuplicates } from "@ourworldindata/utils/dist/Util.js"
 
 // Trying this to share the Google Drive image directory throughout the codebase
 class ImageStore {
@@ -41,10 +43,13 @@ class ImageStore {
         try {
             // TODO: fetch all pages (current limit = 1000)
             const res = await driveClient.files.list({
-                fields: "nextPageToken, files(id, name, description, modifiedTime, imageMediaMetadata)",
-                q: `'${GDOCS_CLIENT_EMAIL}' in writers and mimeType contains 'image/'`,
+                fields: "nextPageToken, files(*)",
+                q: `'${GDOCS_CLIENT_EMAIL}' in readers and mimeType contains 'image/'`,
+                driveId: GDOCS_SHARED_DRIVE_ID,
+                corpora: "drive",
                 supportsAllDrives: true,
                 includeItemsFromAllDrives: true,
+                pageSize: 1000,
             })
 
             const files = res.data.files ?? []
@@ -52,9 +57,9 @@ class ImageStore {
             function validateImage(
                 image: drive_v3.Schema$File
             ): image is GDriveImageMetadata {
-                if (!image.description) {
-                    throw new Error(`${image.name} missing description`)
-                }
+                // if (!image.description) {
+                //     throw new Error(`${image.name} missing description`)
+                // }
                 return Boolean(image.id && image.name && image.modifiedTime)
             }
 
@@ -68,9 +73,19 @@ class ImageStore {
                     originalWidth: google.imageMediaMetadata?.width || 100,
                 }))
 
+            const duplicateFilenames = findDuplicates(
+                images.map((image) => image.filename)
+            )
+
+            if (duplicateFilenames.length) {
+                throw new Error(
+                    `Multiple images are named ${duplicateFilenames.join(", ")}`
+                )
+            }
+
             this.images = keyBy(images, "filename")
         } catch (e) {
-            console.log("Error fetching image list from Google Drive", e)
+            console.log("Error fetching image list from Google Drive: ", e)
         }
     }
 
