@@ -72,14 +72,21 @@ class PageResult extends React.Component<{ hit: PageHit }> {
 
         return (
             <li>
-                {/* <a href={`/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
-                <a href={`/${hit.slug}`}>{hit.title}</a>{" "}
+                <a
+                    href={`/${hit.slug}`}
+                    dangerouslySetInnerHTML={{
+                        __html: hit._highlightResult.title.value,
+                    }}
+                />
+                {/* <a href={`/${hit.slug}`}>{hit.title}</a> */}
                 {showType ? (
                     <span className="variantName">{capitalize(hit.type)}</span>
                 ) : undefined}
                 <p
                     dangerouslySetInnerHTML={{
-                        __html: hit._snippetResult.content.value,
+                        __html:
+                            hit._snippetResult.excerpt?.value ||
+                            hit._snippetResult.content?.value,
                     }}
                 />
             </li>

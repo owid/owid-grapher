@@ -46,6 +46,7 @@ export const configureAlgolia = async () => {
         ignorePlurals: true,
         exactOnSingleWordQuery: "none",
         removeStopWords: ["en"],
+        snippetEllipsisText: "…",
     }
 
     const chartsIndex = client.initIndex("charts")
@@ -83,7 +84,7 @@ export const configureAlgolia = async () => {
             "unordered(content)",
         ],
         customRanking: ["desc(importance)"],
-        attributesToSnippet: ["excerpt:20", "content:24"],
+        attributesToSnippet: ["excerpt:20", "content:20"],
         attributeForDistinct: "slug",
         attributesForFaceting: [
             "type",

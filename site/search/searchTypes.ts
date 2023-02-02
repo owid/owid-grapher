@@ -27,6 +27,14 @@ export interface PageHit extends PageRecord {
         content: {
             value: string
         }
+        excerpt: {
+            value: string
+        }
+    }
+    _highlightResult: {
+        title: {
+            value: string
+        }
     }
 }
 
