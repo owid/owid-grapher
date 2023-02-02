@@ -1,5 +1,5 @@
 import { setSelectedEntityNamesParam } from "@ourworldindata/grapher"
-import { capitalize, Country, uniq, Url } from "@ourworldindata/utils"
+import { capitalize, Country, maxBy, uniq, Url } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
@@ -64,6 +64,33 @@ class ChartResult extends React.Component<{
 }
 
 class PageResult extends React.Component<{ hit: PageHit }> {
+    /**
+     * We want to decide whether to show the excerpt or the content, in addition to the title.
+     * The excerpt is usually more useful, but there can be cases where the content is better:
+     * - There is no excerpt.
+     * - We have a good search match in the content, but not in the excerpt or the title.
+     */
+    @computed get textToShow(): string {
+        const { hit } = this.props
+        if (!hit._snippetResult.excerpt?.value?.length)
+            return hit._snippetResult.content?.value || ""
+
+        const highlightMatches = [
+            { name: "title", ...hit._highlightResult.title },
+            { name: "excerpt", ...hit._snippetResult.excerpt },
+            { name: "content", ...hit._snippetResult.content },
+        ]
+        const algoliaMatchLevels = ["none", "partial", "full"]
+        const highlighted = highlightMatches.map((e) => ({
+            ...e,
+            matchLevel: algoliaMatchLevels.indexOf(e.matchLevel),
+        }))
+        const best = maxBy(highlighted, (h) => h.matchLevel)
+        if (best?.name === "content")
+            return hit._snippetResult.content?.value || ""
+        else return hit._snippetResult.excerpt?.value || ""
+    }
+
     render() {
         const { hit } = this.props
 
@@ -84,9 +111,7 @@ class PageResult extends React.Component<{ hit: PageHit }> {
                 ) : undefined}
                 <p
                     dangerouslySetInnerHTML={{
-                        __html:
-                            hit._snippetResult.excerpt?.value ||
-                            hit._snippetResult.content?.value,
+                        __html: this.textToShow,
                     }}
                 />
             </li>

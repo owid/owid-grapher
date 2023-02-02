@@ -22,18 +22,23 @@ export interface PageRecord {
     tags?: string[]
 }
 
+type AlgoliaMatchLevel = "none" | "full" | "partial"
+
 export interface PageHit extends PageRecord {
     _snippetResult: {
         content: {
             value: string
+            matchLevel: AlgoliaMatchLevel
         }
         excerpt: {
             value: string
+            matchLevel: AlgoliaMatchLevel
         }
     }
     _highlightResult: {
         title: {
             value: string
+            matchLevel: AlgoliaMatchLevel
         }
     }
 }
