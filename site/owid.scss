@@ -1089,28 +1089,16 @@ html:not(.js) {
             padding-bottom: 1rem;
             border-bottom: 1px solid #ccc;
         }
-    }
 
-    .postResults li {
-        list-style-type: none;
-
-        a {
-            font-size: 16px;
-        }
-
-        p {
-            font-size: 13px;
-            margin-top: 0;
+        li {
+            list-style-type: none;
             margin-bottom: 1.75rem;
-        }
-    }
 
-    .chartResults > ul > li {
-        list-style-type: none;
-        line-height: 1.8em;
-
-        p {
-            font-size: 13px;
+            p {
+                margin-top: 0;
+                margin-bottom: 0;
+                font-size: 13px;
+            }
         }
     }
 
