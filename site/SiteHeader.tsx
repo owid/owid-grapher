@@ -2,6 +2,8 @@ import React from "react"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
+import { faListUl } from "@fortawesome/free-solid-svg-icons/faListUl"
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AlertBanner } from "./AlertBanner.js"
 import {
@@ -48,19 +50,35 @@ export const SiteHeader = (props: SiteHeaderProps) => (
                 </div>
                 <nav className="site-primary-links">
                     <ul>
-                        <li>Browse by topic</li>
+                        <li>
+                            <FontAwesomeIcon
+                                icon={faListUl}
+                                style={{ marginRight: "8px" }}
+                            />
+                            Browse by topic
+                        </li>
                         <li>
                             <a href="/blog" data-track-note="header-navigation">
                                 Latest
                             </a>
                         </li>
-                        <li>Resources</li>
+                        <li>
+                            Resources
+                            <FontAwesomeIcon
+                                icon={faCaretDown}
+                                style={{ marginLeft: "8px" }}
+                            />
+                        </li>
                         <li>
                             <a
                                 href="/about"
                                 data-track-note="header-navigation"
                             >
                                 About
+                                <FontAwesomeIcon
+                                    icon={faCaretDown}
+                                    style={{ marginLeft: "8px" }}
+                                />
                             </a>
                         </li>
                     </ul>

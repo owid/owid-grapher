@@ -65,8 +65,18 @@
             list-style-type: none;
             display: inline-block;
             margin-right: 24px;
+
             &:last-child {
                 margin-right: 0;
+            }
+        }
+
+        li,
+        a {
+            color: $blue-20;
+            cursor: pointer;
+            &:hover {
+                color: $blue-40;
             }
         }
     }
