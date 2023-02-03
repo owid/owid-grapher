@@ -71,6 +71,7 @@
         }
     }
 
+    $search-cta-height: 40px;
     .site-search-cta {
         display: flex;
         flex-direction: row;
@@ -83,15 +84,37 @@
                 margin-right: 0;
             }
         }
+        button,
+        a {
+            display: flex;
+            align-items: center;
+            height: $search-cta-height;
+            padding: 0 24px;
+            background: none;
+            color: $white;
+        }
+        button {
+            border: 1px solid $white;
+            cursor: pointer;
+            &:hover {
+                background-color: $white;
+                color: $blue-90;
+            }
+        }
+        a {
+            background-color: $vermillion;
+            &:hover {
+                background-color: #b40000;
+            }
+        }
     }
 
     .HeaderSearch {
         position: relative;
-        height: inherit;
 
         > input {
             display: block;
-            height: inherit;
+            height: $search-cta-height;
             width: 300px;
             padding: 0 40px 0 16px;
             background-color: transparent;
