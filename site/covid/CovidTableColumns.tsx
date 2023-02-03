@@ -9,12 +9,11 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import {
-    Tippy,
     SparkBars,
     SparkBarsProps,
     SparkBarTimeSeriesValue,
 } from "@ourworldindata/grapher"
-
+import { Tippy } from "@ourworldindata/utils"
 import { nouns } from "./CovidConstants.js"
 import { CovidDoublingTooltip } from "./CovidDoublingTooltip.js"
 import {

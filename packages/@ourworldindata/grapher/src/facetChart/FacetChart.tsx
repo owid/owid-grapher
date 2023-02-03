@@ -18,6 +18,7 @@ import {
     PositionMap,
     HorizontalAlign,
     Color,
+    shortenForTargetWidth,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import {
@@ -58,7 +59,6 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
-import { shortenForTargetWidth } from "../text/TextWrap"
 
 const facetBackgroundColor = "transparent" // we don't use color yet but may use it for background later
 

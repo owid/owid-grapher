@@ -965,3 +965,11 @@ export enum SiteFooterContext {
     explorerPage = "explorerPage",
     default = "default",
 }
+
+export interface Detail {
+    category: string
+    term: string
+    title: string
+    content: string
+    id: number
+}

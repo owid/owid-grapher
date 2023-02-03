@@ -1,16 +1,11 @@
 import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser"
-import {
-    Bounds,
-    FontFamily,
-    excludeUndefined,
-    last,
-    sum,
-} from "@ourworldindata/utils"
+import { excludeUndefined, last, sum } from "../Util.js"
+import { Bounds, FontFamily } from "../Bounds.js"
 import { imemo } from "@ourworldindata/core-table"
-import { DoDWrapper } from "../detailsOnDemand/detailsOnDemand"
-import { TextWrap } from "./TextWrap"
+import { DoDWrapper } from "../DetailsOnDemand/detailsOnDemand.js"
+import { TextWrap } from "../TextWrap/TextWrap.js"
 
 export interface IRFontParams {
     fontSize?: number

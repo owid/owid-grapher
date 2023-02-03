@@ -18,7 +18,7 @@ import {
     OwidColumnDef,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { MarkdownTextWrap, sumTextWrapHeights } from "../text/MarkdownTextWrap"
+import { MarkdownTextWrap, sumTextWrapHeights } from "@ourworldindata/utils"
 import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 
 export interface DownloadTabManager {

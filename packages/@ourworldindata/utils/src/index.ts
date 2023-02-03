@@ -24,6 +24,7 @@ export {
     Deploy,
     DeployChange,
     DeployStatus,
+    Detail,
     DimensionProperty,
     DocumentNode,
     EnrichedBlockAdditionalCharts,
@@ -483,3 +484,19 @@ export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
 export { PromiseCache } from "./PromiseCache.js"
 
 export { PromiseSwitcher } from "./PromiseSwitcher.js"
+
+export { Tippy, TippyIfInteractive } from "./Tippy.js"
+
+export { TextWrap, shortenForTargetWidth } from "./TextWrap/TextWrap.js"
+
+export {
+    MarkdownTextWrap,
+    sumTextWrapHeights,
+} from "./MarkdownTextWrap/MarkdownTextWrap.js"
+
+export { detailOnDemandRegex, mdParser } from "./MarkdownTextWrap/parser.js"
+
+export {
+    DoDWrapper,
+    globalDetailsOnDemand,
+} from "./DetailsOnDemand/detailsOnDemand.js"

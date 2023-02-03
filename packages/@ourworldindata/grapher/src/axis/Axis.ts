@@ -17,7 +17,7 @@ import {
     VerticalAlign,
     TickFormattingOptions,
 } from "@ourworldindata/utils"
-import { TextWrap } from "../text/TextWrap"
+import { TextWrap } from "@ourworldindata/utils"
 import { AxisConfig } from "./AxisConfig"
 import {
     ColumnTypeMap,

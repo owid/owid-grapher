@@ -1,9 +1,9 @@
 import React from "react"
-import { Tippy } from "../chart/Tippy"
-import { MarkdownTextWrap } from "../text/MarkdownTextWrap"
+import { Tippy } from "../Tippy.js"
+import { MarkdownTextWrap } from "../MarkdownTextWrap/MarkdownTextWrap.js"
 import { computed, observable, ObservableMap } from "mobx"
 import { observer } from "mobx-react"
-import { Detail } from "../core/GrapherConstants"
+import { Detail } from "../owidTypes.js"
 
 class DetailsOnDemand {
     @observable details = new ObservableMap<
@@ -19,7 +19,9 @@ class DetailsOnDemand {
         }
     }
 
-    @observable addDetails(details: Record<string, Record<string, Detail>>) {
+    @observable addDetails(
+        details: Record<string, Record<string, Detail>>
+    ): void {
         const observableDetails = Object.entries(details).reduce(
             (acc, [category, terms]) => {
                 acc.set(category, new ObservableMap(terms))

@@ -7,7 +7,7 @@ import {
     IRToken,
 } from "./MarkdownTextWrap"
 import { mdParser } from "./parser"
-import { TextWrap } from "./TextWrap"
+import { TextWrap } from "../TextWrap/TextWrap.js"
 
 export default {
     title: "MarkdownTextWrap",

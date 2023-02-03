@@ -18,7 +18,7 @@ import {
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
 import { AxisConfig } from "../axis/AxisConfig"
-import { Tippy } from "../chart/Tippy"
+import { Tippy } from "@ourworldindata/utils"
 import { Bounds } from "@ourworldindata/utils"
 import classnames from "classnames"
 

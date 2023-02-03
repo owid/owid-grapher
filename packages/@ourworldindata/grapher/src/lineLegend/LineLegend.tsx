@@ -12,7 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "../text/TextWrap"
+import { TextWrap } from "@ourworldindata/utils"
 import { VerticalAxis } from "../axis/Axis"
 import { EntityName } from "@ourworldindata/core-table"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"

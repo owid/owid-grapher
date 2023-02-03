@@ -54,8 +54,8 @@ $zindex-Tooltip: 20;
     @import "../sourcesTab/SourcesTab.scss";
     @import "../mapCharts/MapTooltip.scss";
     @import "../loadingIndicator/LoadingIndicator.scss";
-    @import "../text/MarkdownTextWrap.scss";
-    @import "../detailsOnDemand/detailsOnDemand.scss";
+    @import "@ourworldindata/utils/src/MarkdownTextWrap/MarkdownTextWrap.scss";
+    @import "@ourworldindata/utils/src/detailsOnDemand/detailsOnDemand.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
