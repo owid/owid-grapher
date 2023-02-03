@@ -111,24 +111,30 @@
 
     .HeaderSearch {
         position: relative;
+        color: $white;
 
         > input {
             display: block;
             height: $search-cta-height;
             width: 300px;
             padding: 0 40px 0 16px;
-            background-color: transparent;
-            border: 1px solid $blue-60;
-            color: white;
+            background-color: $blue-90;
+            border: 1px solid $blue-90;
+            color: inherit;
             outline: none;
             @include body-3-medium;
+
+            &:hover {
+                border: 1px solid $blue-60;
+            }
+
+            &:focus {
+                border: 1px solid $blue-40;
+            }
 
             &::placeholder {
                 color: $blue-30;
                 transition: color 150ms ease;
-            }
-            &:focus::placeholder {
-                color: $blue-60;
             }
         }
 
@@ -139,7 +145,7 @@
             bottom: 0;
             display: flex;
             align-items: center;
-            color: $blue-60;
+            color: $blue-30;
         }
     }
 
