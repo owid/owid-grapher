@@ -56,71 +56,34 @@
         }
     }
 
-    .site-navigation {
-        display: none;
-        @include md-up {
-            display: flex;
-        }
-    }
-
-    .site-primary-navigation {
+    .site-primary-links {
         display: flex;
         flex-direction: row;
-        margin-bottom: 0.5rem;
-        align-items: center;
-    }
-
-    .site-primary-links,
-    .site-secondary-links {
-        a {
-            transition: color 150ms ease;
-        }
-    }
-
-    .site-primary-links {
-        font-size: 1.0625rem;
-        margin-top: 0.1em;
 
         li {
             list-style-type: none;
             display: inline-block;
-            margin-right: 1.5rem;
+            margin-right: 24px;
             &:last-child {
                 margin-right: 0;
             }
         }
-
-        a {
-            color: $blue-30;
-            &:hover {
-                color: white;
-            }
-        }
     }
 
-    .site-secondary-navigation {
+    .site-search-cta {
+        display: flex;
+        flex-direction: row;
         align-items: center;
-    }
+        > * {
+            margin-right: 16px;
 
-    .site-secondary-links {
-        font-size: 0.9375rem;
-
-        li {
-            list-style-type: none;
-            display: inline-block;
-            margin-right: 1rem;
-        }
-
-        a {
-            color: $blue-50;
-            &:hover {
-                color: $blue-30;
+            &:last-child {
+                margin-right: 0;
             }
         }
     }
 
     .HeaderSearch {
-        margin-right: 1.5rem;
         position: relative;
 
         > input {
@@ -278,61 +241,6 @@
     }
 
     /* Topics dropdown menu */
-
-    .topics-button-wrapper {
-        display: flex;
-        align-items: stretch;
-        margin-right: 1.5rem;
-        margin-bottom: 0.25em;
-        position: relative;
-    }
-
-    .topics-button {
-        font-family: inherit;
-        font-size: 1.0625rem;
-        line-height: 1.35;
-        color: $blue-40;
-        border: 1px solid $blue-60;
-        border-radius: 6px;
-        background-color: transparent;
-        outline: none;
-        padding: 0.5rem 0.8rem;
-        position: relative;
-        display: flex;
-        align-items: center;
-        text-align: left;
-
-        strong {
-            color: $blue-20;
-            font-weight: 800;
-        }
-
-        .label {
-            flex: 1 0 auto;
-        }
-
-        .icon {
-            color: $blue-60;
-            flex: 0;
-            display: flex;
-            padding-left: 3px;
-        }
-
-        &.active,
-        &:active {
-            background-color: white;
-            border-color: white;
-            color: $blue-90;
-
-            strong {
-                color: $blue-100;
-            }
-
-            .icon {
-                color: $blue-30;
-            }
-        }
-    }
 
     .topics-dropdown {
         display: none;
