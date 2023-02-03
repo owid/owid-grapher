@@ -10,6 +10,7 @@
         padding-top: 14px;
         padding-bottom: 11px;
         @include wrapper-x-spacing;
+        @include body-3-medium;
     }
 
     .logo-owid a {
@@ -74,6 +75,7 @@
         display: flex;
         flex-direction: row;
         align-items: center;
+        height: 40px;
         > * {
             margin-right: 16px;
 
@@ -85,22 +87,21 @@
 
     .HeaderSearch {
         position: relative;
+        height: inherit;
 
         > input {
-            font-family: inherit;
-            font-size: 1.0625rem;
-            line-height: 1.375;
-            color: white;
+            display: block;
+            height: inherit;
+            width: 300px;
+            padding: 0 40px 0 16px;
             background-color: transparent;
             border: 1px solid $blue-60;
-            border-radius: 100px;
-            padding: 0.3rem 1rem 0.3rem 2.25rem;
-            display: block;
-            width: 18rem;
+            color: white;
             outline: none;
+            @include body-3-medium;
 
             &::placeholder {
-                color: $blue-40;
+                color: $blue-30;
                 transition: color 150ms ease;
             }
             &:focus::placeholder {
@@ -111,7 +112,7 @@
         > .icon {
             position: absolute;
             top: 0;
-            left: 0.75rem;
+            right: 16px;
             bottom: 0;
             display: flex;
             align-items: center;

@@ -71,7 +71,10 @@ export const SiteHeader = (props: SiteHeaderProps) => (
                         action="/search"
                         method="GET"
                     >
-                        <input type="search" name="q" placeholder="Search..." />
+                        <input
+                            name="search"
+                            placeholder="Search for a topic or chart..."
+                        />
                         <div className="icon">
                             <FontAwesomeIcon icon={faSearch} />
                         </div>
