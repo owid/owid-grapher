@@ -8,7 +8,7 @@ import { runFootnotes } from "./Footnote.js"
 import { hydrateOwidArticle } from "./gdocs/OwidArticle.js"
 import { runLightbox } from "./Lightbox.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import { runHeaderMenus } from "./SiteHeaderMenus.js"
+import { runSiteNavigation } from "./SiteNavigation.js"
 import { runSiteTools } from "./SiteTools.js"
 
 export const runSiteFooterScripts = (
@@ -35,7 +35,7 @@ export const runSiteFooterScripts = (
             break
         case SiteFooterContext.grapherPage:
         case SiteFooterContext.explorerPage:
-            runHeaderMenus(BAKED_BASE_URL)
+            runSiteNavigation(BAKED_BASE_URL)
             runSiteTools()
             runCookiePreferencesManager()
             break
@@ -43,7 +43,7 @@ export const runSiteFooterScripts = (
             hydrateOwidArticle(debug)
         // no break here, we additionally want to run the default scripts
         default:
-            runHeaderMenus(BAKED_BASE_URL)
+            runSiteNavigation(BAKED_BASE_URL)
             runBlocks()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll()
