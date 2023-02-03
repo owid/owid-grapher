@@ -5,7 +5,6 @@ import { CoreMatrix } from "./CoreTableConstants.js"
 import {
     emptyColumnsInFirstRowInDelimited,
     getDropIndexes,
-    imemo,
     toleranceInterpolation,
     interpolateRowValuesWithTolerance,
     matrixToDelimited,
@@ -22,6 +21,7 @@ import {
     cartesianProduct,
 } from "./CoreTableUtils.js"
 import { ErrorValueTypes } from "./ErrorValues.js"
+import { imemo } from "@ourworldindata/utils"
 
 describe(interpolateRowValuesWithTolerance, () => {
     it("handles empty array", () => {

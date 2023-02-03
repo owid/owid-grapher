@@ -1,5 +1,6 @@
-import { imemo, trimMatrix } from "@ourworldindata/core-table"
+import { trimMatrix } from "@ourworldindata/core-table"
 import {
+    imemo,
     isPresent,
     GitCommit,
     SerializedGridProgram,

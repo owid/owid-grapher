@@ -21,6 +21,7 @@ import {
     OwidVariableDisplayConfigInterface,
     ColumnSlug,
     PrimitiveType,
+    imemo,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import { Time, JsTypes, CoreValueType } from "./CoreTableConstants.js"
@@ -28,7 +29,6 @@ import { ColumnTypeNames, CoreColumnDef } from "./CoreColumnDef.js"
 import { EntityName, OwidVariableRow } from "./OwidTableConstants.js" // todo: remove. Should not be on CoreTable
 import { ErrorValue, ErrorValueTypes, isNotErrorValue } from "./ErrorValues.js"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil.js"
-import { imemo } from "./CoreTableUtils.js"
 
 interface ColumnSummary {
     numErrorValues: number

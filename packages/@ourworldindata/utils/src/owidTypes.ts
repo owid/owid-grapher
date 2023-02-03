@@ -973,3 +973,18 @@ export interface Detail {
     content: string
     id: number
 }
+
+/**
+ * An unbounded value (±Infinity) or a concrete point in time (year or date).
+ */
+export type TimeBound = number
+
+export type TimeBounds = [TimeBound, TimeBound]
+
+/**
+ * The two special TimeBound values: unbounded left & unbounded right.
+ */
+export enum TimeBoundValue {
+    negativeInfinity = -Infinity,
+    positiveInfinity = Infinity,
+}

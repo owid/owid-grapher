@@ -1,9 +1,8 @@
 import React, { CSSProperties } from "react"
 import { computed } from "mobx"
 import { EveryMarkdownNode, MarkdownRoot, mdParser } from "./parser"
-import { excludeUndefined, last, sum } from "../Util.js"
+import { excludeUndefined, last, sum, imemo } from "../Util.js"
 import { Bounds, FontFamily } from "../Bounds.js"
-import { imemo } from "@ourworldindata/core-table"
 import { DoDWrapper } from "../DetailsOnDemand/detailsOnDemand.js"
 import { TextWrap } from "../TextWrap/TextWrap.js"
 
