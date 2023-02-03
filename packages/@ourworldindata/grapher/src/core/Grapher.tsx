@@ -1406,7 +1406,7 @@ export class Grapher
         // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
         if (
             colorColumnSlug !== undefined &&
-            isContinentsVariableId(colorColumnSlug)
+            !isContinentsVariableId(colorColumnSlug)
         )
             columnSlugs.push(colorColumnSlug)
 
