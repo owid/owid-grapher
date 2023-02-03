@@ -1,16 +1,15 @@
 .site-header {
-    background-color: $oxford-blue;
-    border-bottom: $mobile-header-border-height solid $vermillion;
-
     .site-navigation-bar {
+        @include wrapper-x-spacing;
+        @include body-3-medium;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
         padding-top: 14px;
         padding-bottom: 11px;
-        @include wrapper-x-spacing;
-        @include body-3-medium;
+        background-color: $oxford-blue;
+        border-bottom: $mobile-header-border-height solid $vermillion;
     }
 
     .logo-owid a {
