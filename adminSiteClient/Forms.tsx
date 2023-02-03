@@ -1018,7 +1018,7 @@ export class EditableTags extends React.Component<{
     }
 
     @action.bound onToggleKey(index: number) {
-        this.tags[index].isKey = !this.tags[index].isKey
+        this.tags[index].isKeyChart = !this.tags[index].isKeyChart
         this.props.onSave(this.tags.filter(filterUncategorizedTag))
     }
 

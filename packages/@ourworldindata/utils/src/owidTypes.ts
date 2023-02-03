@@ -58,7 +58,7 @@ export interface BasicChartInformation {
 }
 
 export interface RelatedChart extends BasicChartInformation {
-    isKey: boolean
+    isKeyChart: boolean
 }
 
 export type OwidVariableId = Integer // remove.
@@ -171,7 +171,7 @@ export interface PostRow {
 }
 
 export interface Tag extends TagReactTagAutocomplete {
-    isKey?: boolean
+    isKeyChart?: boolean
 }
 
 export interface EntryMeta {

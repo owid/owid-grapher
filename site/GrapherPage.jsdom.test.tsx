@@ -48,12 +48,12 @@ beforeAll(() => {
         {
             title: "Chart 1",
             slug: "chart-1",
-            isKey: false,
+            isKeyChart: false,
         },
         {
             title: "Chart 2",
             slug: "chart-2",
-            isKey: true,
+            isKeyChart: true,
         },
     ]
 })

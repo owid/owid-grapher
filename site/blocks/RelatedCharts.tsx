@@ -15,7 +15,7 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     const isFirstSlideActive = activeChartIdx === 0
     const isLastSlideActive = activeChartIdx === charts.length - 1
 
-    const sortedCharts = orderBy(charts, (chart) => chart.isKey, "desc")
+    const sortedCharts = orderBy(charts, (chart) => chart.isKeyChart, "desc")
     const activeChartSlug = sortedCharts[activeChartIdx].slug
 
     const onClickItem = (event: React.MouseEvent, idx: number) => {

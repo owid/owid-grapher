@@ -611,7 +611,7 @@ export const getRelatedCharts = async (
             charts.config->>"$.slug" AS slug,
             charts.config->>"$.title" AS title,
             charts.config->>"$.variantName" AS variantName,
-            chart_tags.isKey
+            chart_tags.isKeyChart
         FROM charts
         INNER JOIN chart_tags ON charts.id=chart_tags.chartId
         INNER JOIN post_tags ON chart_tags.tagId=post_tags.tag_id
