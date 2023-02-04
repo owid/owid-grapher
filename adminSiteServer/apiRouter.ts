@@ -167,7 +167,7 @@ const getReferencesByChartId = async (
     // careful not to erroneously match those, which is why we switched to a
     // REGEXP.
     try {
-        posts = await wpdb.singleton.query(
+        posts = await wpdb.getSingleton().query(
             `
                 SELECT ID, post_title, post_name
                 FROM wp_posts
@@ -2212,7 +2212,7 @@ apiRouter.get("/posts.json", async (req) => {
 })
 
 apiRouter.get("/newsletterPosts.json", async (req) => {
-    const rows = await wpdb.singleton.query(`
+    const rows = await wpdb.getSingleton().query(`
         SELECT
             ID AS id,
             post_name AS name,

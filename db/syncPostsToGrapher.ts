@@ -18,9 +18,11 @@ interface ReusableBlock {
 const fetchAllReusableBlocks = async (): Promise<
     Record<string, ReusableBlock>
 > => {
-    const blocks: ReusableBlock[] = await wpdb.singleton.query(
-        "select ID, post_content from wp_posts where post_type='wp_block' AND post_status = 'publish'"
-    )
+    const blocks: ReusableBlock[] = await wpdb
+        .getSingleton()
+        .query(
+            "select ID, post_content from wp_posts where post_type='wp_block' AND post_status = 'publish'"
+        )
 
     const allBlocks = keyBy(blocks, "ID")
     return allBlocks
@@ -103,9 +105,11 @@ export async function buildReusableBlocksResolver(): Promise<BlockResolveFunctio
 const syncPostsToGrapher = async (): Promise<void> => {
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
 
-    const rows = await wpdb.singleton.query(
-        "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
-    )
+    const rows = await wpdb
+        .getSingleton()
+        .query(
+            "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
+        )
 
     const doesExistInWordpress = keyBy(rows, "ID")
     const existsInGrapher = await select("id").from(
@@ -154,7 +158,7 @@ const main = async (): Promise<void> => {
     try {
         await syncPostsToGrapher()
     } finally {
-        await wpdb.singleton.end()
+        await wpdb.getSingleton().end()
         await db.closeTypeOrmAndKnexConnections()
     }
 }

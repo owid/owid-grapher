@@ -17,10 +17,12 @@ const zeroDateString = "0000-00-00 00:00:00"
 const syncPostToGrapher = async (
     postId: number
 ): Promise<string | undefined> => {
-    const rows = await wpdb.singleton.query(
-        "SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'",
-        [postId]
-    )
+    const rows = await wpdb
+        .getSingleton()
+        .query(
+            "SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'",
+            [postId]
+        )
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
 
     const matchingRows = await db.knexTable(postsTable).where({ id: postId })

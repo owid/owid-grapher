@@ -110,7 +110,12 @@ class WPDB {
     }
 }
 
-export const singleton = new WPDB()
+let singleton: WPDB | undefined = undefined
+
+export function getSingleton(): WPDB {
+    if (!singleton) singleton = new WPDB()
+    return singleton
+}
 
 const WP_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/wp/v2`
 const OWID_API_ENDPOINT = `${WORDPRESS_URL}/wp-json/owid/v1`
@@ -188,7 +193,7 @@ let cachedAuthorship: Map<number, string[]> | undefined
 export const getAuthorship = async (): Promise<Map<number, string[]>> => {
     if (cachedAuthorship) return cachedAuthorship
 
-    const authorRows = await singleton.query(`
+    const authorRows = await getSingleton().query(`
         SELECT object_id, terms.description FROM wp_term_relationships AS rels
         LEFT JOIN wp_term_taxonomy AS terms ON terms.term_taxonomy_id=rels.term_taxonomy_id
         WHERE terms.taxonomy='author'
@@ -211,7 +216,7 @@ export const getAuthorship = async (): Promise<Map<number, string[]>> => {
 
 export const getTagsByPostId = async (): Promise<Map<number, string[]>> => {
     const tagsByPostId = new Map<number, string[]>()
-    const rows = await singleton.query(`
+    const rows = await getSingleton().query(`
         SELECT p.id, t.name
         FROM wp_posts p
         JOIN wp_term_relationships tr
@@ -443,7 +448,7 @@ let cachedFeaturedImages: Map<number, string> | undefined
 export const getFeaturedImages = async (): Promise<Map<number, string>> => {
     if (cachedFeaturedImages) return cachedFeaturedImages
 
-    const rows = await singleton.query(
+    const rows = await getSingleton().query(
         `SELECT wp_postmeta.post_id, wp_posts.guid FROM wp_postmeta INNER JOIN wp_posts ON wp_posts.ID=wp_postmeta.meta_value WHERE wp_postmeta.meta_key='_thumbnail_id'`
     )
 
@@ -543,7 +548,7 @@ export const getPostType = async (search: number | string): Promise<string> => {
 export const getPostIdAndTypeBySlug = async (
     slug: string
 ): Promise<{ id: number; type: string } | undefined> => {
-    const rows = await singleton.query(
+    const rows = await getSingleton().query(
         "SELECT ID, post_type FROM wp_posts WHERE `post_name` = ? AND post_type IN ( ? )",
         [slug, [WP_PostType.Post, WP_PostType.Page]]
     )
@@ -782,13 +787,13 @@ let cachedTables: Map<string, TablepressTable> | undefined
 export const getTables = async (): Promise<Map<string, TablepressTable>> => {
     if (cachedTables) return cachedTables
 
-    const optRows = await singleton.query(`
+    const optRows = await getSingleton().query(`
         SELECT option_value AS json FROM wp_options WHERE option_name='tablepress_tables'
     `)
 
     const tableToPostIds = JSON.parse(optRows[0].json).table_post
 
-    const rows = await singleton.query(`
+    const rows = await getSingleton().query(`
         SELECT ID, post_content FROM wp_posts WHERE post_type='tablepress_table'
     `)
 

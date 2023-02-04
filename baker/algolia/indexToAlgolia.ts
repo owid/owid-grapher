@@ -116,7 +116,7 @@ const indexToAlgolia = async () => {
     const records = await getPagesRecords()
     index.replaceAllObjects(records)
 
-    await wpdb.singleton.end()
+    await wpdb.getSingleton().end()
     await db.closeTypeOrmAndKnexConnections()
 }
 

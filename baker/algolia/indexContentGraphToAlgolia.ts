@@ -155,7 +155,7 @@ const indexContentGraphToAlgolia = async () => {
         })
     }
 
-    await wpdb.singleton.end()
+    await wpdb.getSingleton().end()
 }
 
 if (require.main === module) indexContentGraphToAlgolia()

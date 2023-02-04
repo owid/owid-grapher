@@ -218,7 +218,7 @@ export class OwidAdminApp {
 
         if (wpdb.isWordpressDBEnabled) {
             try {
-                await wpdb.singleton.connect()
+                await wpdb.getSingleton().connect()
             } catch (error) {
                 if (!this.options.quiet) {
                     console.error(error)

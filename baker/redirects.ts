@@ -56,9 +56,11 @@ export const getRedirects = async () => {
     )
 
     // Redirects from Wordpress admin UI
-    const rows = await wpdb.singleton.query(
-        `SELECT url, action_data, action_code FROM wp_redirection_items WHERE status = 'enabled'`
-    )
+    const rows = await wpdb
+        .getSingleton()
+        .query(
+            `SELECT url, action_data, action_code FROM wp_redirection_items WHERE status = 'enabled'`
+        )
     redirects.push(
         ...rows.map(
             (row) =>
@@ -98,9 +100,11 @@ export const getGrapherAndWordpressRedirectsMap = memoize(
     `)
 
         // todo(refactor) : export as function to reuse in getRedirects?
-        const wordpressRedirectRows = await wpdb.singleton.query(
-            `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
-        )
+        const wordpressRedirectRows = await wpdb
+            .getSingleton()
+            .query(
+                `SELECT url, action_data FROM wp_redirection_items WHERE status = 'enabled'`
+            )
 
         // The order the redirects are added to the map is important. Adding the
         // Wordpress redirects last means that Wordpress redirects can overwrite
