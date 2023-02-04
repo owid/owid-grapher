@@ -4658,7 +4658,6 @@ __metadata:
     "@fortawesome/free-regular-svg-icons": ^6.2.0
     "@fortawesome/free-solid-svg-icons": ^6.2.0
     "@fortawesome/react-fontawesome": ^0.2.0
-    "@handsontable/react": ^12.1.2
     "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@tippyjs/react": ^4.2.6
@@ -4687,7 +4686,6 @@ __metadata:
     eslint-plugin-react-hooks: ^4.6.0
     expr-eval: ^2.0.2
     fuzzysort: ^1.1.4
-    handsontable: ^12.1.2
     js-cookie: ^3.0.1
     mobx: ^5.15.7
     mobx-formatters: ^1.0.2
