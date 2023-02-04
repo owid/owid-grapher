@@ -18,7 +18,16 @@ const syncPostToGrapher = async (
     postId: number
 ): Promise<string | undefined> => {
     const rows = await wpdb.singleton.query(
-        "SELECT * FROM wp_posts WHERE ID = ? AND post_status != 'trash'",
+        `--sql
+        -- we select all the fields from wp_posts and then we also
+        -- json array aggregate the authors. The authors come as strings like
+        -- Charlie Giattino Charlie Giattino Charlie Giattino 44 charlie@ourworldindata.org
+        -- so we use regexp_replace to cut out the first two words
+        SELECT p.*, JSON_ARRAYAGG(regexp_replace(t.description, '^([[:alnum:]]+) ([[:alnum:]]+) .+$' , '$1 $2')) as authors
+         FROM wp_posts p
+         left join wp_term_relationships r on p.id = r.object_id
+         left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
+         WHERE p.ID = ? AND p.post_status != 'trash' AND t.taxonomy = 'author'`,
         [postId]
     )
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
@@ -43,6 +52,7 @@ const syncPostToGrapher = async (
                   wpPost.post_modified_gmt === zeroDateString
                       ? "1970-01-01 00:00:00"
                       : wpPost.post_modified_gmt,
+              authors: wpPost.authors,
           } as PostRow)
         : undefined
 

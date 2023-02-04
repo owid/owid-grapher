@@ -103,9 +103,9 @@ const migrate = async (): Promise<void> => {
                     refs: refParsingResults,
                 },
                 published: false, // post.published_at !== null,
-                createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem we have a created date in the posts table
-                publishedAt: null, // post.published_at,
-                updatedAt: null, // post.updated_at,
+                createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem that wordpress tracks the creation date
+                publishedAt: post.published_at,
+                updatedAt: post.updated_at,
                 publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB
                 revisionId: null,
             }

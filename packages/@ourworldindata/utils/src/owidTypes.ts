@@ -168,6 +168,7 @@ export interface PostRow {
     archieml: string
     archieml_update_statistics: string
     gdocSuccessorId: string
+    authors: string[]
 }
 
 export interface Tag extends TagReactTagAutocomplete {

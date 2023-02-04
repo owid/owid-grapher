@@ -104,7 +104,27 @@ const syncPostsToGrapher = async (): Promise<void> => {
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
 
     const rows = await wpdb.singleton.query(
-        "select * from wp_posts where (post_type='page' or post_type='post') AND post_status != 'trash'"
+        `-- sql
+        -- CTE to get all posts joined with the authors via the wp_term_relationships and wp_term_taxonomy tables
+        -- A post with 3 authors will result in three rows in this CTE like this:
+        -- 418, Charlie Giattino Charlie Giattino Charlie Giattino 44 charlie@ourworldindata.org
+        -- 418, Esteban Ortiz-Ospina Esteban Ortiz-Ospina EOO 10 esteban@ourworldindata.org
+        -- 418, Max Roser Max Roser 1942max1944 2 max@ourworldindata.org
+        -- The author text comes from a WP plugin and is a bit weird. It seems to always be separated by
+        -- spaces with the names the first two things so we extract only those.
+        with posts_authors as (
+            select p.ID as id, regexp_replace(t.description, '^([[:alnum:]-]+) ([[:alnum:]-]*) .+$' , '$1 $2') as author
+            from wp_posts p
+            left join wp_term_relationships r on p.ID = r.object_id
+            left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
+            where p.post_type in ('post', 'page') and t.taxonomy = 'author' AND post_status != 'trash'
+            order by p.ID, r.term_order
+        )
+        -- now we just group by post id and aggregate the authors into a json array called authors
+        select p.*, JSON_ARRAYAGG(pa.author) as authors
+        from posts_authors pa
+        left join wp_posts p on p.ID  = pa.id
+        group by p.ID`
     )
 
     const doesExistInWordpress = keyBy(rows, "ID")
@@ -135,6 +155,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 post.post_modified_gmt === zeroDateString
                     ? "1970-01-01 00:00:00"
                     : post.post_modified_gmt,
+            authors: post.authors,
         }
     }) as PostRow[]
 
