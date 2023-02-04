@@ -11,11 +11,22 @@ export interface SubnavItem {
     parentId?: string
 }
 
+export const landingPageSlugs: { [key in SubNavId]: string } = {
+    about: "about",
+    coronavirus: "coronavirus",
+    co2: "co2-and-greenhouse-gas-emissions",
+    energy: "energy",
+    forests: "forests-and-deforestation",
+    biodiversity: "biodiversity",
+    water: "clean-water-sanitation",
+    explorers: "food-explorers",
+}
+
 export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     about: [
         // `label` is shown in the UI, `id` is specified as a formatting option
         // on a page (the top html comment in WordPress)
-        { label: "About", href: "/about", id: "about" },
+        { label: "About", href: `/${landingPageSlugs.about}`, id: "about" },
         { label: "Team", href: "/team", id: "team" },
         { label: "Organization", href: "/organization", id: "organization" },
         { label: "Funding", href: "/funding", id: "supporters" },
@@ -31,7 +42,11 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         { label: "Contact", href: "/about#contact", id: "contact" },
     ],
     coronavirus: [
-        { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
+        {
+            label: "Coronavirus",
+            href: `/${landingPageSlugs.coronavirus}`,
+            id: "coronavirus",
+        },
         {
             label: "By country",
             href: "/coronavirus#coronavirus-country-profiles",
@@ -76,7 +91,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     co2: [
         {
             label: "CO₂ and GHG Emissions",
-            href: "/co2-and-greenhouse-gas-emissions",
+            href: `/${landingPageSlugs.co2}`,
             id: "co2-and-ghg-emissions",
             highlight: true,
         },
@@ -112,7 +127,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     energy: [
         {
             label: "Energy",
-            href: "/energy",
+            href: `/${landingPageSlugs.energy}`,
             id: "energy",
             highlight: true,
         },
@@ -150,7 +165,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     forests: [
         {
             label: "Forests",
-            href: "/forests-and-deforestation",
+            href: `/${landingPageSlugs.forests}`,
             id: "forests",
         },
         {
@@ -187,7 +202,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     biodiversity: [
         {
             label: "Biodiversity",
-            href: "/biodiversity",
+            href: `/${landingPageSlugs.biodiversity}`,
             id: "biodiversity",
             highlight: true,
         },
@@ -250,7 +265,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     water: [
         {
             label: "Clean Water and Sanitation",
-            href: "/clean-water-sanitation",
+            href: `/${landingPageSlugs.water}`,
             id: "wash",
         },
         {
@@ -277,7 +292,7 @@ export const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     explorers: [
         {
             label: "Data Explorers",
-            href: "/food-explorers",
+            href: `/${landingPageSlugs.explorers}`,
             id: "food-explorers",
             highlight: true,
         },
