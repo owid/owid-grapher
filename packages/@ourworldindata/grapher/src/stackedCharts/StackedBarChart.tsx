@@ -112,6 +112,8 @@ export class StackedBarChart
 
     // currently hovered legend color
     @observable hoverColor?: string
+    // currently hovered axis label
+    @observable hoverTick?: TickmarkPlacement
     // current hovered individual bar
     @observable hoverBar?: StackedPoint<Time>
     @observable hoverSeries?: StackedSeries<Time>
@@ -232,26 +234,42 @@ export class StackedBarChart
             yColumns,
             hoverSeries,
             series,
+            hoverTick,
         } = this
-        if (hoverBar === undefined) return
-
-        const xPos = mapXValueToOffset.get(hoverBar.position)
-        if (xPos === undefined) return
+        if (hoverBar === undefined && hoverTick === undefined) return
+        const xPos = mapXValueToOffset.get(
+            hoverBar ? hoverBar.position : Number(hoverTick?.text)
+        )
+        if (xPos === undefined) {
+            return
+        }
 
         const yPos = dualAxis.verticalAxis.place(
-            hoverBar.valueOffset + hoverBar.value
+            hoverBar
+                ? hoverBar.valueOffset + hoverBar.value
+                : hoverTick?.bounds.y
         )
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
+        let emptySeries = 1
         const seriesRows = [...series].reverse().map((series) => ({
             seriesName: series.seriesName,
             color: series.color,
             isHovered: hoverSeries?.seriesName === series.seriesName,
             point: series.points.find(
-                (bar) => bar.position === hoverBar.position
+                (bar) =>
+                    bar.position ===
+                    (hoverBar ? hoverBar.position : Number(hoverTick?.text))
             ),
         }))
-        const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
+        const totalValue = sum(
+            seriesRows.map((bar) => {
+                if (!bar.point?.fake) {
+                    emptySeries = 0
+                }
+                return bar.point?.value ?? 0
+            })
+        )
         const showTotalValue: boolean = seriesRows.length > 1
         return (
             <Tooltip
@@ -267,7 +285,11 @@ export class StackedBarChart
                         <tr>
                             <td colSpan={3}>
                                 <strong>
-                                    {yColumn.formatTime(hoverBar.position)}
+                                    {yColumn.formatTime(
+                                        hoverBar
+                                            ? hoverBar.position
+                                            : hoverTick!.text
+                                    )}
                                 </strong>
                             </td>
                         </tr>
@@ -276,10 +298,14 @@ export class StackedBarChart
                                 <tr
                                     key={seriesName}
                                     style={{
-                                        color: isHovered ? "#000" : "#888",
-                                        fontWeight: isHovered
-                                            ? "bold"
-                                            : undefined,
+                                        color:
+                                            isHovered || !point?.fake
+                                                ? "#000"
+                                                : "#888",
+                                        fontWeight:
+                                            isHovered && hoverBar
+                                                ? "bold"
+                                                : undefined,
                                     }}
                                 >
                                     <td>
@@ -301,9 +327,14 @@ export class StackedBarChart
                                             paddingLeft: "0.8em",
                                         }}
                                     >
-                                        {yColumn.formatValueLong(point?.value, {
-                                            trailingZeroes: true,
-                                        })}
+                                        {point?.fake
+                                            ? "NA"
+                                            : yColumn.formatValueLong(
+                                                  point?.value,
+                                                  {
+                                                      trailingZeroes: true,
+                                                  }
+                                              )}
                                     </td>
                                 </tr>
                             )
@@ -318,9 +349,11 @@ export class StackedBarChart
                                         whiteSpace: "nowrap",
                                     }}
                                 >
-                                    {yColumn.formatValueLong(totalValue, {
-                                        trailingZeroes: true,
-                                    })}
+                                    {!emptySeries
+                                        ? yColumn.formatValueLong(totalValue, {
+                                              trailingZeroes: true,
+                                          })
+                                        : "NA"}
                                 </td>
                             </tr>
                         )}
@@ -394,6 +427,15 @@ export class StackedBarChart
         this.hoverColor = undefined
     }
 
+    @action.bound onLabelMouseOver(tick: TickmarkPlacement): void {
+        this.hoverTick = tick
+        console.log("hovered", tick)
+    }
+
+    @action.bound onLabelMouseLeave(): void {
+        this.hoverTick = undefined
+    }
+
     @action.bound onBarMouseOver(
         bar: StackedPoint<Time>,
         series: StackedSeries<Time>
@@ -404,6 +446,7 @@ export class StackedBarChart
 
     @action.bound onBarMouseLeave(): void {
         this.hoverBar = undefined
+        this.hoverSeries = undefined
     }
 
     render(): JSX.Element {
@@ -474,11 +517,16 @@ export class StackedBarChart
                                 y={tick.bounds.y}
                                 fill={textColor}
                                 fontSize={this.tickFontSize}
+                                onMouseOver={(): void => {
+                                    this.onLabelMouseOver(tick)
+                                }}
+                                onMouseLeave={this.onLabelMouseLeave}
                             >
                                 {tick.text}
                             </Text>
                         )
                     })}
+                    {/* {tooltip} */}
                 </g>
 
                 <g clipPath={clipPath.id}>
