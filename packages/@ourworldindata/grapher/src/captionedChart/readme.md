@@ -1,6 +1,6 @@
 # CaptionedChart
 
-This Component renders a chart between a header and footer. It also can stick controls between the header and chart in interfactive charts.
+This Component renders a chart between a header and footer. It can also stick controls between the header and chart in interactive charts.
 
 A CaptionedChart is like a chart sandwich:
 
