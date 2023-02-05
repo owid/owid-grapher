@@ -251,7 +251,6 @@ export class StackedBarChart
         )
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
-        let emptySeries = 1
         const seriesRows = [...series].reverse().map((series) => ({
             seriesName: series.seriesName,
             color: series.color,
@@ -262,14 +261,7 @@ export class StackedBarChart
                     (hoverBar ? hoverBar.position : Number(hoverTick?.text))
             ),
         }))
-        const totalValue = sum(
-            seriesRows.map((bar) => {
-                if (!bar.point?.fake) {
-                    emptySeries = 0
-                }
-                return bar.point?.value ?? 0
-            })
-        )
+        const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
         const showTotalValue: boolean = seriesRows.length > 1
         return (
             <Tooltip
@@ -349,11 +341,9 @@ export class StackedBarChart
                                         whiteSpace: "nowrap",
                                     }}
                                 >
-                                    {!emptySeries
-                                        ? yColumn.formatValueLong(totalValue, {
-                                              trailingZeroes: true,
-                                          })
-                                        : "NA"}
+                                    {yColumn.formatValueLong(totalValue, {
+                                        trailingZeroes: true,
+                                    })}
                                 </td>
                             </tr>
                         )}
