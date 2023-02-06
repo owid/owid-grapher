@@ -141,7 +141,7 @@ function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
     const entities = []
     const availableEntities = hit._highlightResult?.availableEntities ?? []
     for (const res of availableEntities) {
-        const entity = res.value.replace(/<\/?em>/g, "")
+        const entity = res.value.replace(/<\/?strong>/g, "")
         if (
             res.matchLevel !== "none" ||
             queryCountries.some((c) => c.name === entity)
