@@ -237,30 +237,29 @@ export class StackedBarChart
             series,
             hoveredTick,
         } = this
-        if (hoverBar === undefined && hoveredTick === undefined) return
-        const xPos = mapXValueToOffset.get(
-            hoverBar ? hoverBar.position : hoveredTick?.time
-        )
-        if (xPos === undefined) {
-            return
-        }
 
-        const yPos = dualAxis.verticalAxis.place(
-            hoverBar
-                ? hoverBar.valueOffset + hoverBar.value
-                : hoveredTick?.bounds.y
-        )
+        let hoverTime: number
+        let yPos: number
+
+        if (hoverBar !== undefined) {
+            hoverTime = hoverBar.position
+            yPos = dualAxis.verticalAxis.place(
+                hoverBar.valueOffset + hoverBar.value
+            )
+        } else if (hoveredTick !== undefined) {
+            hoverTime = hoveredTick.time
+            yPos = dualAxis.verticalAxis.rangeMax
+        } else return
+
+        const xPos = mapXValueToOffset.get(hoverTime)
+        if (xPos === undefined) return
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
         const seriesRows = [...series].reverse().map((series) => ({
             seriesName: series.seriesName,
             color: series.color,
             isHovered: hoverSeries?.seriesName === series.seriesName,
-            point: series.points.find(
-                (bar) =>
-                    bar.position ===
-                    (hoverBar ? hoverBar.position : hoveredTick?.time)
-            ),
+            point: series.points.find((bar) => bar.position === hoverTime),
         }))
         const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
         const showTotalValue: boolean = seriesRows.length > 1
@@ -277,13 +276,7 @@ export class StackedBarChart
                     <tbody>
                         <tr>
                             <td colSpan={3}>
-                                <strong>
-                                    {yColumn.formatTime(
-                                        hoverBar
-                                            ? hoverBar.position
-                                            : hoveredTick!.time
-                                    )}
-                                </strong>
+                                <strong>{yColumn.formatTime(hoverTime)}</strong>
                             </td>
                         </tr>
                         {seriesRows.map(
@@ -295,10 +288,9 @@ export class StackedBarChart
                                             isHovered || !point?.fake
                                                 ? "#000"
                                                 : "#888",
-                                        fontWeight:
-                                            isHovered && hoverBar
-                                                ? "bold"
-                                                : undefined,
+                                        fontWeight: isHovered
+                                            ? "bold"
+                                            : undefined,
                                     }}
                                 >
                                     <td>
@@ -518,7 +510,6 @@ export class StackedBarChart
                             </Text>
                         )
                     })}
-                    {/* {tooltip} */}
                 </g>
 
                 <g clipPath={clipPath.id}>
