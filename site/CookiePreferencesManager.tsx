@@ -168,8 +168,9 @@ export const parseDate = (date?: string): number | undefined => {
 
 export const getPreferenceValue = (
     type: PreferenceType,
-    preferences: Preference[]
+    preferences?: Preference[]
 ) => {
+    preferences ??= getInitialState().preferences
     return (
         preferences.find((preference) => {
             return preference.type === type

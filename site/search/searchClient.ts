@@ -7,6 +7,10 @@ import {
 import { PageHit, SiteSearchResults, ChartHit } from "./searchTypes.js"
 import insightsClient, { InsightsClient } from "search-insights"
 import type { InsightsSearchClickEvent } from "search-insights/dist/click.js"
+import {
+    getPreferenceValue,
+    PreferenceType,
+} from "../CookiePreferencesManager.js"
 
 let algolia: SearchClient | undefined
 const getClient = () => {
@@ -20,7 +24,8 @@ const getInsightsClient = (): InsightsClient => {
         insightsClient("init", {
             appId: ALGOLIA_ID,
             apiKey: ALGOLIA_SEARCH_KEY,
-            useCookie: true,
+            userHasOptedOut: !getPreferenceValue(PreferenceType.Analytics),
+            useCookie: true, // insightsClient doesn't set the cookie when userHasOptedOut is true
         })
         insightsInitialized = true
     }
