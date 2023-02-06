@@ -5,6 +5,7 @@ import {
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import { PageHit, SiteSearchResults, ChartHit } from "./searchTypes.js"
+import type { SearchResponse } from "@algolia/client-search"
 import insightsClient, { InsightsClient } from "search-insights"
 import type { InsightsSearchClickEvent } from "search-insights/dist/click.js"
 import {
@@ -88,8 +89,8 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
     ])
 
     return {
-        pages: json.results[0].hits as PageHit[],
-        charts: json.results[1].hits as ChartHit[],
+        pages: json.results[0] as SearchResponse<PageHit>,
+        charts: json.results[1] as SearchResponse<ChartHit>,
         countries: matchCountries,
     }
 }
