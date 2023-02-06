@@ -44,6 +44,7 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
 }
 
 interface TickmarkPlacement {
+    time: number
     text: string
     bounds: Bounds
     isHidden: boolean
@@ -238,7 +239,7 @@ export class StackedBarChart
         } = this
         if (hoverBar === undefined && hoveredTick === undefined) return
         const xPos = mapXValueToOffset.get(
-            hoverBar ? hoverBar.position : Number(hoveredTick?.text)
+            hoverBar ? hoverBar.position : hoveredTick?.time
         )
         if (xPos === undefined) {
             return
@@ -258,7 +259,7 @@ export class StackedBarChart
             point: series.points.find(
                 (bar) =>
                     bar.position ===
-                    (hoverBar ? hoverBar.position : Number(hoveredTick?.text))
+                    (hoverBar ? hoverBar.position : hoveredTick?.time)
             ),
         }))
         const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
@@ -280,7 +281,7 @@ export class StackedBarChart
                                     {yColumn.formatTime(
                                         hoverBar
                                             ? hoverBar.position
-                                            : hoveredTick!.text
+                                            : hoveredTick!.time
                                     )}
                                 </strong>
                             </td>
@@ -378,6 +379,7 @@ export class StackedBarChart
 
             const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
             return {
+                time: x,
                 text,
                 bounds: bounds.set({
                     x: xPos + barWidth / 2 - bounds.width / 2,
