@@ -16405,6 +16405,7 @@ __metadata:
     safe-stable-stringify: ^2.4.1
     sass: ^1.52.1
     sass-loader: ^13.0.2
+    search-insights: ^2.2.3
     sharp: ^0.31.0
     shell-quote: ^1.7.3
     shelljs: ^0.8.5
@@ -26804,6 +26805,13 @@ __metadata:
   dependencies:
     compute-scroll-into-view: ^1.0.17
   checksum: 6b888404ccf68fe2f2f1da8977e1a8a0a64a7139352e02e98621a0e8be3b3db393519ee3dcfb7c32aff3c4790a36829f1be1cccc0cfb2b90a60a61caa669eee2
+  languageName: node
+  linkType: hard
+
+"search-insights@npm:^2.2.3":
+  version: 2.2.3
+  resolution: "search-insights@npm:2.2.3"
+  checksum: cf828b5677ff2108963965cc55a23ea2e751a55eabdcb0a1ef575a9b3b148510c0a6f29805e649eb99638d016dcdf3ff4274e62f0b993d05a13fe243e1c8fea8
   languageName: node
   linkType: hard
 
