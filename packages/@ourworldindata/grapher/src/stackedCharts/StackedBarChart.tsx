@@ -113,7 +113,7 @@ export class StackedBarChart
     // currently hovered legend color
     @observable hoverColor?: string
     // currently hovered axis label
-    @observable hoverTick?: TickmarkPlacement
+    @observable hoveredTick?: TickmarkPlacement
     // current hovered individual bar
     @observable hoverBar?: StackedPoint<Time>
     @observable hoverSeries?: StackedSeries<Time>
@@ -234,11 +234,11 @@ export class StackedBarChart
             yColumns,
             hoverSeries,
             series,
-            hoverTick,
+            hoveredTick,
         } = this
-        if (hoverBar === undefined && hoverTick === undefined) return
+        if (hoverBar === undefined && hoveredTick === undefined) return
         const xPos = mapXValueToOffset.get(
-            hoverBar ? hoverBar.position : Number(hoverTick?.text)
+            hoverBar ? hoverBar.position : Number(hoveredTick?.text)
         )
         if (xPos === undefined) {
             return
@@ -247,7 +247,7 @@ export class StackedBarChart
         const yPos = dualAxis.verticalAxis.place(
             hoverBar
                 ? hoverBar.valueOffset + hoverBar.value
-                : hoverTick?.bounds.y
+                : hoveredTick?.bounds.y
         )
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
@@ -258,7 +258,7 @@ export class StackedBarChart
             point: series.points.find(
                 (bar) =>
                     bar.position ===
-                    (hoverBar ? hoverBar.position : Number(hoverTick?.text))
+                    (hoverBar ? hoverBar.position : Number(hoveredTick?.text))
             ),
         }))
         const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
@@ -280,7 +280,7 @@ export class StackedBarChart
                                     {yColumn.formatTime(
                                         hoverBar
                                             ? hoverBar.position
-                                            : hoverTick!.text
+                                            : hoveredTick!.text
                                     )}
                                 </strong>
                             </td>
@@ -418,12 +418,12 @@ export class StackedBarChart
     }
 
     @action.bound onLabelMouseOver(tick: TickmarkPlacement): void {
-        this.hoverTick = tick
+        this.hoveredTick = tick
         console.log("hovered", tick)
     }
 
     @action.bound onLabelMouseLeave(): void {
-        this.hoverTick = undefined
+        this.hoveredTick = undefined
     }
 
     @action.bound onBarMouseOver(
