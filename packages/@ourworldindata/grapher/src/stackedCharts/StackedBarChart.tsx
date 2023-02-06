@@ -414,7 +414,6 @@ export class StackedBarChart
 
     @action.bound onLabelMouseOver(tick: TickmarkPlacement): void {
         this.hoveredTick = tick
-        console.log("hovered", tick)
     }
 
     @action.bound onLabelMouseLeave(): void {
