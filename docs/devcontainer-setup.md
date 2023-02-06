@@ -85,7 +85,7 @@ Storybook allows you to interact with our Grapher and Explorer components visual
 
 This section explains how to check the logs for the database loading script that runs the first time you use this setup.
 
-An important note first: when using the VS Code Devcontainers extension, there is difference between the terminal in VS Code and a normal terminal that you open on your computer (i.e. your normal Windows or Mac terminal). The VS Code terminal gives you a shell running **inside** the development container. It has access to all the tools like node, yarn etc that you need to compile and run the codebase. It does not have access to the docker runtime though which the container is running. A normal terminal is the opposite, it operates **outside** the container - it has access to the docker command line tools but not all the tools running inside the development container.
+An important note first: when using the VS Code Devcontainers extension, there is difference between the terminal in VS Code and a normal terminal that you open on your computer (i.e. your normal Windows or Mac terminal). The VS Code terminal gives you a shell running **inside** the development container. It has access to all the tools like node, yarn etc that you need to compile and run the codebase. It does not have access to the docker runtime though which is running the container. A normal terminal is the opposite, it operates **outside** the container - it has access to the docker command line tools but not all the tools running inside the development container.
 
 To check the status, make sure you run the following commands in a terminal **outside** your devcontainer, in the working directory root of this repository:
 
