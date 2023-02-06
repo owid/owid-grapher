@@ -32,7 +32,6 @@ import * as DownloadTab from "./downloadTab/DownloadTab.stories"
 import * as LineLegend from "./lineLegend/LineLegend.stories"
 import * as MapChart from "./mapCharts/MapChart.stories"
 import * as MapTooltip from "./mapCharts/MapTooltip.stories"
-import * as Spreadsheet from "./spreadsheet/Spreadsheet.stories"
 import * as SourcesTab from "./sourcesTab/SourcesTab.stories"
 import * as VerticalColorLegend from "./verticalColorLegend/VerticalColorLegend.stories"
 
@@ -74,5 +73,4 @@ runTests(MapChart)
 runTests(MapTooltip)
 runTests(SourcesTab)
 runTests(GlobalEntitySelector)
-runTests(Spreadsheet)
 runTests(VerticalColorLegend)
