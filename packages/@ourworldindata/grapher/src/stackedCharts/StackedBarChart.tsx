@@ -284,10 +284,11 @@ export class StackedBarChart
                                 <tr
                                     key={seriesName}
                                     style={{
-                                        color:
-                                            isHovered || !point?.fake
-                                                ? "#000"
-                                                : "#888",
+                                        color: point?.fake
+                                            ? "#888"
+                                            : isHovered
+                                            ? "#000"
+                                            : "#333",
                                         fontWeight: isHovered
                                             ? "bold"
                                             : undefined,
@@ -313,7 +314,7 @@ export class StackedBarChart
                                         }}
                                     >
                                         {point?.fake
-                                            ? "NA"
+                                            ? "No data"
                                             : yColumn.formatValueLong(
                                                   point?.value,
                                                   {
