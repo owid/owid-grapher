@@ -47,8 +47,12 @@ interface Dimensions {
     }[]
 }
 
+export type UnparsedVariableRow = Omit<VariableRow, "display"> & {
+    display: string
+}
+
 export type VariableQueryRow = Readonly<
-    UnparsedVariableRow & {
+    Omit<UnparsedVariableRow, "dimensions"> & {
         display: string
         datasetName: string
         nonRedistributable: number
@@ -66,8 +70,6 @@ interface S3DataRow {
 
 type DataRow = S3DataRow & { entityName: string; entityCode: string }
 
-export type UnparsedVariableRow = VariableRow & { display: string }
-
 export type Field = keyof VariableRow
 
 export const variableTable = "variables"
@@ -78,7 +80,7 @@ export function parseVariableRows(
     for (const row of plainRows) {
         row.display = row.display ? JSON.parse(row.display) : undefined
     }
-    return plainRows
+    return plainRows as VariableRow[]
 }
 
 // TODO: we'll want to split this into getVariableData and getVariableMetadata once
@@ -88,17 +90,6 @@ export function parseVariableRows(
 export async function getVariableData(
     variableId: number
 ): Promise<OwidVariableDataMetadataDimensions> {
-    type VariableQueryRow = Readonly<
-        UnparsedVariableRow & {
-            display: string
-            datasetName: string
-            nonRedistributable: number
-            sourceName: string
-            sourceDescription: string
-            dimensions: string
-        }
-    >
-
     const variableQuery: Promise<VariableQueryRow | undefined> = db.mysqlFirst(
         `
         SELECT
@@ -358,9 +349,8 @@ export const dataAsDF = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
     // return data values as a dataframe
-    return (
-        await readSQLasDF(
-            `
+    let df = await readSQLasDF(
+        `
     SELECT
         data_values.variableId as variableId,
         value,
@@ -372,9 +362,21 @@ export const dataAsDF = async (
     LEFT JOIN entities ON data_values.entityId = entities.id
     WHERE data_values.variableId in (?)
         `,
-            [variableIds]
-        )
-    ).select(
+        [variableIds]
+    )
+
+    if (df.height == 0) {
+        df = pl.DataFrame({
+            variableId: [],
+            entityId: [],
+            entityName: [],
+            entityCode: [],
+            year: [],
+            value: [],
+        })
+    }
+
+    return df.select(
         pl.col("variableId").cast(pl.Int32),
         pl.col("entityId").cast(pl.Int32),
         pl.col("entityName").cast(pl.Utf8),
