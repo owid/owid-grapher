@@ -36,7 +36,7 @@ markdown_extensions:
 
 plugins:
     - git-revision-date-localized:
-        enable_creation_date: false
+          enable_creation_date: false
 
 extra_css:
     - css/extra.css
