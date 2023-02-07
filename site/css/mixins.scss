@@ -181,6 +181,17 @@
     button {
         @include popover-box-button;
     }
+
+    button.close {
+        align-self: flex-end;
+        border: 1px solid $oxford-blue;
+        color: $oxford-blue;
+        background-color: $white;
+        &:hover {
+            color: $white;
+            background-color: $oxford-blue;
+        }
+    }
 }
 
 @mixin expandable-block-button {
@@ -259,4 +270,13 @@
 @mixin image-hover {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     opacity: 0.9;
+}
+
+@mixin overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.5);
 }

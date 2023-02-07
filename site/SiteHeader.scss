@@ -93,8 +93,8 @@
                 margin-right: 0;
             }
         }
-        button,
-        a {
+        button.prompt,
+        a.donate {
             display: flex;
             align-items: center;
             height: $search-cta-height;
@@ -102,7 +102,7 @@
             background: none;
             color: $white;
         }
-        button {
+        button.prompt {
             border: 1px solid $white;
             cursor: pointer;
             &:hover {
@@ -110,7 +110,7 @@
                 color: $blue-90;
             }
         }
-        a {
+        a.donate {
             background-color: $vermillion;
             &:hover {
                 background-color: #b40000;
