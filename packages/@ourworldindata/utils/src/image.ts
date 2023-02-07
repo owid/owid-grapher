@@ -45,9 +45,8 @@ export function generateSrcSet(
     return sizes
         .map(
             (size) =>
-                `/images/${filename.slice(
-                    0,
-                    filename.indexOf(".")
+                `/images/${getFilenameWithoutExtension(
+                    filename
                 )}_${size}.webp ${size}w`
         )
         .join(", ")
