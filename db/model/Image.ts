@@ -30,7 +30,6 @@ import {
 } from "../../settings/serverSettings.js"
 import { findDuplicates } from "@ourworldindata/utils/dist/Util.js"
 
-// Trying this to share the Google Drive image directory throughout the codebase
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
 
@@ -53,14 +52,9 @@ class ImageStore {
 
         const files = res.data.files ?? []
 
-        // console.log("filenames", filenames)
-
         function validateImage(
             image: drive_v3.Schema$File
         ): image is GDriveImageMetadata {
-            // if (!image.description) {
-            //     throw new Error(`${image.name} missing description`)
-            // }
             return Boolean(
                 image.id && image.name && image.modifiedTime && !image.trashed
             )
@@ -96,13 +90,8 @@ class ImageStore {
                 const imageMetadata = this.images?.[filename]
                 if (imageMetadata) {
                     return Image.syncImage(imageMetadata!)
-                } else {
-                    // TODO: if we're baking for prod, log error to slack?
-                    console.error(
-                        `Error: ${filename} could not be found in Google Drive`
-                    )
-                    return
                 }
+                return
             })
         )
     }

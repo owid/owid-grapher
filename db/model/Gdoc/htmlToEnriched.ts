@@ -654,6 +654,7 @@ function cheerioToArchieML(
                                 filename: "",
                                 alt: "",
                                 parseErrors: [],
+                                dataErrors: [],
                             },
                         ],
                     }
@@ -738,6 +739,7 @@ function cheerioToArchieML(
                                 filename: src,
                                 alt: "",
                                 parseErrors: [],
+                                dataErrors: [],
                             },
                         ],
                     }

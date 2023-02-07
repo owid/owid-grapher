@@ -1,4 +1,8 @@
-import { OwidArticleContent, OwidArticleType } from "@ourworldindata/utils"
+import {
+    EnrichedBlockImage,
+    OwidArticleContent,
+    OwidArticleType,
+} from "@ourworldindata/utils"
 import { recursivelyMapArticleBlock } from "@ourworldindata/utils/dist/Util.js"
 
 export enum ErrorMessageType {
@@ -111,14 +115,22 @@ export class ContentHandler extends AbstractHandler {
     handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
         gdoc.content.body?.map((block) => {
             recursivelyMapArticleBlock(block, (block) => {
-                if (block.parseErrors.length) {
-                    block.parseErrors.forEach((parseError) => {
+                block.parseErrors.forEach((parseError) => {
+                    messages.push({
+                        property: "body",
+                        type: parseError.isWarning
+                            ? ErrorMessageType.Warning
+                            : ErrorMessageType.Error,
+                        message: parseError.message,
+                    })
+                })
+                // For now, only images can have data errors
+                if (block.type === "image") {
+                    block.dataErrors.forEach((dataError) => {
                         messages.push({
                             property: "body",
-                            type: parseError.isWarning
-                                ? ErrorMessageType.Warning
-                                : ErrorMessageType.Error,
-                            message: parseError.message,
+                            type: ErrorMessageType.Error,
+                            message: dataError.message,
                         })
                     })
                 }

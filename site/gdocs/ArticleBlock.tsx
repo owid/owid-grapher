@@ -156,6 +156,17 @@ export default function ArticleBlock({
             />
         )
     }
+    if (block.type === "image" && block.dataErrors.length > 0) {
+        return (
+            <BlockErrorFallback
+                className={getLayout("default", containerType)}
+                error={{
+                    name: `Error in ${block.type} with filename ${block.filename}`,
+                    message: block.dataErrors[0].message,
+                }}
+            />
+        )
+    }
     const content: any | null = match(block)
         .with({ type: "aside" }, ({ caption, position = "right" }) => (
             <figure

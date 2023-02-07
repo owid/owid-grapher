@@ -19,6 +19,10 @@ import { google, Auth, docs_v1 } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { imageStore } from "../Image.js"
+import {
+    ImageNotFound,
+    NoDefaultAlt,
+} from "@ourworldindata/utils/dist/owidTypes.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -138,10 +142,21 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                 (block: OwidEnrichedArticleBlock) => {
                     if (block.type === "image") {
                         const metadata = imageStore.images?.[block.filename]
-                        if (!block.alt) {
-                            block.alt = metadata?.defaultAlt
+                        if (!metadata) {
+                            block.dataErrors.push({ message: ImageNotFound })
+                        } else {
+                            block.originalWidth = metadata.originalWidth
+
+                            // Error if default alt doesn't exist
+                            // Use default alt if override isn't set
+                            if (!metadata.defaultAlt) {
+                                block.dataErrors.push({
+                                    message: NoDefaultAlt,
+                                })
+                            } else if (!block.alt) {
+                                block.alt = metadata.defaultAlt
+                            }
                         }
-                        block.originalWidth = metadata?.originalWidth
                     }
                     return block
                 }
