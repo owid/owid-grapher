@@ -4,6 +4,7 @@ import {
     OwidArticleType,
     OwidArticleTypeJSON,
     getArticleFromJSON,
+    checkIsPlainObjectWithGuard,
 } from "@ourworldindata/utils"
 import { useDebounceCallback, useInterval } from "../site/hooks.js"
 import { Admin } from "./Admin.js"
@@ -66,15 +67,20 @@ export const useUpdatePreviewContent = (
     gdoc: OwidArticleType | undefined,
     setGdoc: React.Dispatch<React.SetStateAction<OwidArticleType | undefined>>,
     admin: Admin
-) => {
-    const [syncingError, setSyncingError] = useState(false)
+): { hasSyncingError: boolean; criticalErrorMessage?: string } => {
+    // When the server 500s, we don't want to continue polling it every 5 seconds
+    const [criticalErrorMessage, setCriticalErrorMessage] = useState<
+        undefined | string
+    >()
+    const [hasSyncingError, setHasSyncingError] = useState(false)
     const initialLoad = !gdoc
 
     const updatePreviewContent = useCallback(async () => {
+        if (criticalErrorMessage) return
         try {
             // Because there's no ongoing connection between the server and client, a new document is being fetched every 5 seconds
             // Meaning we query Gdocs every 5 seconds for everything, which may become taxing at some point.
-            // Might be better to create a socket
+            // We should use the Page Visibility API to not query when the tab is inactive
             const draftGdocJson = (await admin.requestJSON(
                 `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
                 {},
@@ -93,12 +99,17 @@ export const useUpdatePreviewContent = (
                       }
                     : draftGdoc
             )
-            setSyncingError(false)
+            setHasSyncingError(false)
         } catch (e) {
-            console.log(e)
-            setSyncingError(true)
+            if (checkIsPlainObjectWithGuard(e) && e.status === 500) {
+                console.log("Critical error", e)
+                setCriticalErrorMessage(e.message as string)
+            } else {
+                console.log("Syncing error", e)
+                setHasSyncingError(true)
+            }
         }
-    }, [admin, id, setGdoc])
+    }, [admin, id, setGdoc, criticalErrorMessage])
 
     // Initial load behaviours
     useEffect(() => {
@@ -112,5 +123,5 @@ export const useUpdatePreviewContent = (
     // Sync content every 5 seconds
     useInterval(updatePreviewContent, 5000)
 
-    return syncingError
+    return { hasSyncingError, criticalErrorMessage }
 }

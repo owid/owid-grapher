@@ -82,7 +82,11 @@ export class OwidAdminApp {
                 context: "admin-server",
             })
         }
-        await imageStore.fetchImageMetadata()
+        try {
+            await imageStore.fetchImageMetadata()
+        } catch (e) {
+            console.log("Error fetching image metadata on startup\n", e)
+        }
         const { app } = this
 
         // since the server is running behind a reverse proxy (nginx), we need to "trust"

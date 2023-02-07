@@ -2645,7 +2645,12 @@ apiRouter.get("/gdocs/:googleId", async (req) => {
         | GdocsContentSource
         | undefined
 
-    return Gdoc.getGdocFromContentSource(googleId, contentSource)
+    try {
+        const gdoc = Gdoc.getGdocFromContentSource(googleId, contentSource)
+        return gdoc
+    } catch (error) {
+        throw new JsonError(`Error fetching document ${error}`)
+    }
 })
 
 apiRouter.get("/gdocs/:googleId/validate", async (req) => {

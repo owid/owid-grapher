@@ -44,17 +44,25 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const store = useGdocsStore()
 
     const hasChanges = useGdocsChanged(originalGdoc, gdoc)
-    const syncingError = useUpdatePreviewContent(id, gdoc, setGdoc, admin)
+    const { hasSyncingError, criticalErrorMessage } = useUpdatePreviewContent(
+        id,
+        gdoc,
+        setGdoc,
+        admin
+    )
     const isLightningUpdate = useLightningUpdate(originalGdoc, gdoc, hasChanges)
     useAutoSaveDraft(gdoc, setOriginalGdoc, hasChanges)
 
     useEffect(() => {
         const fetchOriginalGdoc = async () => {
-            const originalGdocJson = (await admin.getJSON(
-                `/api/gdocs/${id}`
-            )) as OwidArticleTypeJSON
-
-            setOriginalGdoc(getArticleFromJSON(originalGdocJson))
+            try {
+                const originalGdocJson = (await admin.getJSON(
+                    `/api/gdocs/${id}`
+                )) as OwidArticleTypeJSON
+                setOriginalGdoc(getArticleFromJSON(originalGdocJson))
+            } catch (e) {
+                console.log("Error fetching original gdoc: ", e)
+            }
         }
         fetchOriginalGdoc()
     }, [admin, id])
@@ -104,6 +112,23 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         setErrors(errors)
     }, [gdoc])
 
+    if (criticalErrorMessage) {
+        return (
+            <AdminLayout title="Preview error" noSidebar fixedNav={false}>
+                <main className="GdocsEditPage">
+                    <div className="GdocsEditPage__error-container">
+                        <p>Something went wrong preparing the article.</p>
+                        <pre>{criticalErrorMessage}</pre>
+                        <p>
+                            Ask a dev for help if necessary, and reload this
+                            page when it's fixed 🙂
+                        </p>
+                    </div>
+                </main>
+            </AdminLayout>
+        )
+    }
+
     return gdoc ? (
         <AdminLayout
             title={`Previewing ${gdoc.content.title}`}
@@ -114,7 +139,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 <Row
                     justify="space-between"
                     align="middle"
-                    gutter={[16, 8]}
+                    gutter={[0, 8]}
                     className={`p-3 admin-bar ${
                         gdoc.published ? "published" : "draft"
                     }`}
@@ -132,7 +157,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 {!gdoc.published && (
                                     <Tag color="default">Draft</Tag>
                                 )}
-                                {syncingError ? (
+                                {hasSyncingError ? (
                                     <Tag
                                         icon={
                                             <FontAwesomeIcon
@@ -239,7 +264,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                 */}
                 <iframe
                     src={`/gdocs/${gdoc.googleId}/preview#owid-article-root`}
-                    style={{ width: "100%", height: "inherit", border: "none" }}
+                    style={{ width: "100%", border: "none" }}
                     key={gdoc.revisionId}
                 />
 

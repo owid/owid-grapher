@@ -40,53 +40,53 @@ class ImageStore {
             version: "v3",
             auth: Gdoc.getGoogleReadonlyAuth(),
         })
-        try {
-            // TODO: fetch all pages (current limit = 1000)
-            const res = await driveClient.files.list({
-                fields: "nextPageToken, files(*)",
-                q: `'${GDOCS_CLIENT_EMAIL}' in readers and mimeType contains 'image/'`,
-                driveId: GDOCS_SHARED_DRIVE_ID,
-                corpora: "drive",
-                supportsAllDrives: true,
-                includeItemsFromAllDrives: true,
-                pageSize: 1000,
-            })
+        // TODO: fetch all pages (current limit = 1000)
+        const res = await driveClient.files.list({
+            fields: "nextPageToken, files(id, name, description, modifiedTime, imageMediaMetadata, trashed)",
+            q: `'${GDOCS_CLIENT_EMAIL}' in readers and mimeType contains 'image/'`,
+            driveId: GDOCS_SHARED_DRIVE_ID,
+            corpora: "drive",
+            supportsAllDrives: true,
+            includeItemsFromAllDrives: true,
+            pageSize: 1000,
+        })
 
-            const files = res.data.files ?? []
+        const files = res.data.files ?? []
 
-            function validateImage(
-                image: drive_v3.Schema$File
-            ): image is GDriveImageMetadata {
-                // if (!image.description) {
-                //     throw new Error(`${image.name} missing description`)
-                // }
-                return Boolean(image.id && image.name && image.modifiedTime)
-            }
+        // console.log("filenames", filenames)
 
-            const images: ImageMetadata[] = files
-                .filter(validateImage)
-                .map((google: GDriveImageMetadata) => ({
-                    googleId: google.id,
-                    filename: google.name,
-                    defaultAlt: google.description ?? "",
-                    updatedAt: new Date(google.modifiedTime).getTime(),
-                    originalWidth: google.imageMediaMetadata?.width || 100,
-                }))
-
-            const duplicateFilenames = findDuplicates(
-                images.map((image) => image.filename)
+        function validateImage(
+            image: drive_v3.Schema$File
+        ): image is GDriveImageMetadata {
+            // if (!image.description) {
+            //     throw new Error(`${image.name} missing description`)
+            // }
+            return Boolean(
+                image.id && image.name && image.modifiedTime && !image.trashed
             )
-
-            if (duplicateFilenames.length) {
-                throw new Error(
-                    `Multiple images are named ${duplicateFilenames.join(", ")}`
-                )
-            }
-
-            this.images = keyBy(images, "filename")
-        } catch (e) {
-            console.log("Error fetching image list from Google Drive: ", e)
         }
+
+        const images: ImageMetadata[] = files
+            .filter(validateImage)
+            .map((google: GDriveImageMetadata) => ({
+                googleId: google.id,
+                filename: google.name,
+                defaultAlt: google.description ?? "",
+                updatedAt: new Date(google.modifiedTime).getTime(),
+                originalWidth: google.imageMediaMetadata?.width || 100,
+            }))
+
+        const duplicateFilenames = findDuplicates(
+            images.map((image) => image.filename)
+        )
+
+        if (duplicateFilenames.length) {
+            throw new Error(
+                `Multiple images are named ${duplicateFilenames.join(", ")}`
+            )
+        }
+
+        this.images = keyBy(images, "filename")
     }
 
     async syncImagesToS3(filenames: string[]): Promise<(Image | undefined)[]> {
