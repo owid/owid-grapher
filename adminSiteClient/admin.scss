@@ -28,6 +28,8 @@ body {
     height: 100%;
 }
 
+$nav-height: 45px;
+
 .AdminApp {
     height: 100%;
 
@@ -127,11 +129,11 @@ body {
     > nav {
         background-color: #001c3d;
         width: 100%;
-        height: 45px;
+        height: $nav-height;
     }
 
     > main {
-        height: 100%;
+        height: calc(100vh - $nav-height);
     }
 }
 
@@ -1288,6 +1290,14 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
                 #fff 20px
             );
         }
+    }
+
+    iframe {
+        height: calc(100% - 65px);
+    }
+
+    .GdocsEditPage__error-container {
+        padding: 32px;
     }
 }
 
