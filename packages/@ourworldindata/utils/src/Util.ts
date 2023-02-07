@@ -1333,13 +1333,15 @@ export const canWriteToClipboard = async (): Promise<boolean> => {
 
 export function findDuplicates<T>(arr: T[]): T[] {
     const set = new Set()
-    const duplicates: T[] = []
+    const duplicates: Set<T> = new Set()
     arr.forEach((item) => {
         if (set.has(item)) {
-            duplicates.push(item)
+            if (!duplicates.has(item)) {
+                duplicates.add(item)
+            }
         } else {
             set.add(item)
         }
     })
-    return uniq(duplicates)
+    return [...duplicates]
 }
