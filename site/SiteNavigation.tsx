@@ -85,7 +85,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                 <NewsletterSubscription
                     context={NewsletterSubscriptionContext.Floating}
                 />
-                <a href="/donate" data-track-note="header-navigation">
+                <a
+                    href="/donate"
+                    className="donate"
+                    data-track-note="header-navigation"
+                >
                     Donate
                 </a>
             </div>

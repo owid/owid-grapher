@@ -33,6 +33,16 @@ export const NewsletterSubscription = ({
                         }}
                     />
                     <div className="box">
+                        <button
+                            aria-label={closeText}
+                            className="close"
+                            data-track-note="dialog-close-newsletter"
+                            onClick={() => {
+                                setIsOpen(false)
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faTimes} /> {closeText}
+                        </button>
                         <NewsletterSubscriptionForm context={context} />
                     </div>
                 </>
