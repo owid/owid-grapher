@@ -40,3 +40,5 @@ plugins:
 
 extra_css:
     - css/extra.css
+
+site_dir: _readthedocs/html
