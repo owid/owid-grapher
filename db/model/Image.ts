@@ -166,7 +166,7 @@ export class Image extends BaseEntity implements ImageMetadata {
         metadata: ImageMetadata
     ): Promise<Image | undefined> {
         const fresh = Image.create<Image>(metadata)
-        const stored = await Image.findOneBy({ googleId: metadata.googleId })
+        const stored = await Image.findOneBy({ filename: metadata.filename })
 
         try {
             if (stored) {
