@@ -1,10 +1,15 @@
-site_name: OWID site
+site_name: Building Our World In Data
 
 nav:
     - Home: "index.md"
     - Getting started: "getting-started/index.md"
     - Architecture:
           - Overview: "architecture/index.md"
+          - Admin site: "architecture/admin.md"
+          - Live site: "architecture/live-site.md"
+          - Data pipeline: "architecture/data-pipeline.md"
+    - Grapher:
+          - Overview: "grapher/index.md"
     - Contributing: "contributing.md"
     - Other: "other/index.md"
 
@@ -16,6 +21,7 @@ theme:
         - navigation.tabs
         - navigation.tabs.sticky
         - navigation.indexes
+        - navigation.footer
 
 markdown_extensions:
     - admonition
@@ -27,6 +33,10 @@ markdown_extensions:
                 format: !!python/name:pymdownx.superfences.fence_code_format
     - pymdownx.tabbed:
           alternate_style: true
+
+plugins:
+    - git-revision-date-localized:
+        enable_creation_date: false
 
 extra_css:
     - css/extra.css

@@ -1,10 +1,11 @@
 # Overall architecture
 
-_27th Jan 2023_
-
 ## Overview
 
-Our World In Data is a _statically rendered_ ("JAMstack") publication with no public facing backend. It has two primary codebases, a Typescript one used to build the site ([owid-grapher](https://github.com/owid/owid-grapher)) and a Python one used to build its datasets ([etl](https://github.com/owid/etl)). 
+Our World In Data is a statically rendered ("JAMstack") publication with no public facing backend. It has two primary codebases:
+
+- [owid-grapher](https://github.com/owid/owid-grapher): a Typescript project used to build the overall publication and its admin tools
+- [etl](https://github.com/owid/etl): a Python data-pipeline used to build the datasets that power our site
 
 There four different types of users of our infrastructure: _readers_, _authors_, _data scientists_ and _engineers_.
 
@@ -17,87 +18,14 @@ data(["👤 data scientist"]) -->|manages data| owid
 engineer(["👤 engineer"]) -->|deploys changes| owid
 ```
 
-```mermaid
-graph TB
+If we break it down one layer further, we can see two main workspaces for staff:
 
-reader(["👤 reader"]) -->|reads| live-site
-author(["👤 author"]) -->|writes articles| admin-site
-author(["👤 author"]) -->|writes articles| google-docs
-data(["👤 data scientist"]) -->|manages data| admin-site
-data(["👤 data scientist"]) -->|manages data| data-pipeline
+- An [internal admin site](admin.md) for managing the site and its data, used by _authors_ and _data managers_
+- A [data pipeline](data-pipeline.md) used by _data managers_ to import and transform datasets
 
-subgraph admin-site
-    grapher[grapher admin]
-    wordpress[wordpress admin]
-    grapher --> mysql
-    wordpress --> mysql
-end
-
-subgraph live-site
-    netlify
-end
-
-subgraph data-pipeline
-    etl
-end
-
-data-pipeline --> admin-site
-google-docs --> admin-site
-admin-site --> live-site
-```
-
-### Readers
-
-- Readers interact with a fully static published site, a snapshot of our work that functions with no backend whatsoever. The site is published to Netlify, with secondary files in S3. 
-  - This leads to very high performance and high uptime for the site
-- Although Netlify itself is a CDN, we also use CloudFlare on top for data resources to vastly reduce bandwidth costs to Netlify.
-- Since the site is static, this means that all interactivity is client side and all data used by the site is pre-determined at bake time, either in the snapshot sent to Netlify, or in S3.
-- Algolia is the only notable service that is not static. It provides a search API on the client.
-
-```mermaid
-graph TB
-
-subgraph live[live site]
-cloudflare --> netlify
-cloudflare --> s3
-algolia
-end
-
-reader(["👤 reader"]) --> browser -->|data files| cloudflare[cloudflare CDN]
-browser --> netlify
-browser -->|search API| algolia
-```
+The output of these two workspaces is our [live site](live-site.md) that _readers_ access. 
 
 ### Authors
-
-- Authors do their writing and editorial process on Google Docs
-  - When the writing is ready, they copy-paste it to Wordpress and tidy up before publishing
-- Authors use the Grapher admin site to create and manage charts and small datasets
-- A service called the _baker_ generates a snapshot of the site and deploys it
-- Wordpress and the Grapher admin are hosted on a Digital Ocean droplet called `live`, authenticated by Gsuite login
-
-```mermaid
-graph TB
-
-subgraph admin[admin site]
-    grapher[grapher admin]
-    wordpress[wordpress admin]
-    grapher --> mysql
-    wordpress --> mysql
-    grapher --> baker["⚙️ baker"]
-    wordpress --> baker
-    baker --> mysql
-end
-
-baker -->|deploy| live[live site]
-
-author(["👤 author"]) -->|manage charts| grapher
-author -->|write articles| gdocs["Google Docs"]
-gdocs -.->|copy paste| wordpress
-```
-
-- The Typescript code powering this work is in the public [owid-grapher](https://github.com/owid/owid-grapher) monorepo
-- Some basic orchestration lives in the private [ops](https://github.com/owid/ops) repo
 
 ### Data scientists
 
