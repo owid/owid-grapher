@@ -2691,7 +2691,7 @@ apiRouter.put("/gdocs/:googleId", async (req, res) => {
     await GdocXImage.delete({ docId: nextGdoc.id })
     const filenames = nextGdoc.filenames
 
-    if (filenames.length) {
+    if (filenames.length && nextGdoc.published) {
         const images = await imageStore.syncImagesToS3(filenames)
         for (const image of images) {
             if (image) {
