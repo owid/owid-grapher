@@ -113,15 +113,19 @@ const syncPostsToGrapher = async (): Promise<void> => {
         -- The author text comes from a WP plugin and is a bit weird. It seems to always be separated by
         -- spaces with the names the first two things so we extract only those.
         with posts_authors as (
-            select p.ID as id, regexp_replace(t.description, '^([[:alnum:]-]+) ([[:alnum:]-]*) .+$' , '$1 $2') as author
+            select p.ID as id,
+              regexp_replace(t.description, '^([[:alnum:]-]+) ([[:alnum:]-]*) .+$' , '$1 $2') as author,
+              r.term_order as term_order
             from wp_posts p
             left join wp_term_relationships r on p.ID = r.object_id
             left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
             where p.post_type in ('post', 'page') and t.taxonomy = 'author' AND post_status != 'trash'
-            order by p.ID, r.term_order
         )
         -- now we just group by post id and aggregate the authors into a json array called authors
-        select p.*, JSON_ARRAYAGG(pa.author) as authors
+        -- unfortunately JSON_ARRAYAGG does not obey the order, nor does it have it's own order by clause
+        -- (like some proper databases do). This makes it necessary to build up an object for each
+        -- author with the term_order.
+        select p.*, JSON_ARRAYAGG(JSON_OBJECT('author', pa.author, 'order', pa.term_order)) as authors
         from posts_authors pa
         left join wp_posts p on p.ID  = pa.id
         group by p.ID`
@@ -156,6 +160,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
                     ? "1970-01-01 00:00:00"
                     : post.post_modified_gmt,
             authors: post.authors,
+            excerpt: post.post_excerpt,
         }
     }) as PostRow[]
 

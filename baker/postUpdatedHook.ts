@@ -23,7 +23,12 @@ const syncPostToGrapher = async (
         -- json array aggregate the authors. The authors come as strings like
         -- Charlie Giattino Charlie Giattino Charlie Giattino 44 charlie@ourworldindata.org
         -- so we use regexp_replace to cut out the first two words
-        SELECT p.*, JSON_ARRAYAGG(regexp_replace(t.description, '^([[:alnum:]]+) ([[:alnum:]]+) .+$' , '$1 $2')) as authors
+        SELECT p.*, JSON_ARRAYAGG(
+            JSON_OBJECT('author',
+                regexp_replace(t.description, '^([[:alnum:]]+) ([[:alnum:]]+) .+$' , '$1 $2'),
+                'order',
+                r.term_order
+            )) as authors
          FROM wp_posts p
          left join wp_term_relationships r on p.id = r.object_id
          left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
@@ -53,6 +58,7 @@ const syncPostToGrapher = async (
                       ? "1970-01-01 00:00:00"
                       : wpPost.post_modified_gmt,
               authors: wpPost.authors,
+              excerpt: wpPost.post_excerpt,
           } as PostRow)
         : undefined
 
