@@ -43,32 +43,34 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
             <nav className="site-primary-links">
                 <ul>
                     <li>
-                        <FontAwesomeIcon
-                            icon={faListUl}
-                            style={{ marginRight: "8px" }}
-                        />
-                        Browse by topic
+                        <button>
+                            <FontAwesomeIcon
+                                icon={faListUl}
+                                style={{ marginRight: "8px" }}
+                            />
+                            Browse by topic
+                        </button>
                     </li>
                     <li>
-                        <a href="/blog" data-track-note="header-navigation">
-                            Latest
-                        </a>
+                        <a href="/blog">Latest</a>
                     </li>
                     <li>
-                        Resources
-                        <FontAwesomeIcon
-                            icon={faCaretDown}
-                            style={{ marginLeft: "8px" }}
-                        />
+                        <button>
+                            Resources
+                            <FontAwesomeIcon
+                                icon={faCaretDown}
+                                style={{ marginLeft: "8px" }}
+                            />
+                        </button>
                     </li>
                     <li>
-                        <a href="/about" data-track-note="header-navigation">
+                        <button>
                             About
                             <FontAwesomeIcon
                                 icon={faCaretDown}
                                 style={{ marginLeft: "8px" }}
                             />
-                        </a>
+                        </button>
                     </li>
                 </ul>
             </nav>
