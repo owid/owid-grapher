@@ -41,26 +41,22 @@ export const NewsletterSubscription = ({
                                 setIsOpen(false)
                             }}
                         >
-                            <FontAwesomeIcon icon={faTimes} /> {closeText}
+                            <FontAwesomeIcon icon={faTimes} />
+                            {closeText}
                         </button>
                         <NewsletterSubscriptionForm context={context} />
                     </div>
                 </>
             )}
             <button
-                aria-label={isOpen ? closeText : subscribeText}
+                aria-label={subscribeText}
                 className="prompt"
-                data-track-note={
-                    isOpen
-                        ? "dialog-close-newsletter"
-                        : "dialog-open-newsletter"
-                }
+                data-track-note="dialog-open-newsletter"
                 onClick={() => {
                     setIsOpen(!isOpen)
                 }}
             >
-                <FontAwesomeIcon icon={isOpen ? faTimes : faEnvelopeOpenText} />{" "}
-                {isOpen ? closeText : subscribeText}
+                {subscribeText}
             </button>
         </div>
     )
