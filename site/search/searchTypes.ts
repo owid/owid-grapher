@@ -22,7 +22,7 @@ export interface PageRecord {
     tags?: string[]
 }
 
-type AlgoliaMatchLevel = "none" | "full" | "partial"
+export type AlgoliaMatchLevel = "none" | "full" | "partial"
 
 export interface PageHit extends PageRecord {
     _snippetResult?: {

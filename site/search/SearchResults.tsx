@@ -10,6 +10,7 @@ import {
     ChartHit,
     SiteSearchResults,
     PageType,
+    AlgoliaMatchLevel,
 } from "./searchTypes.js"
 
 class ChartResult extends React.Component<{
@@ -69,6 +70,11 @@ class PageResult extends React.Component<{ hit: PageHit }> {
      * The excerpt is usually more useful, but there can be cases where the content is better:
      * - There is no excerpt.
      * - We have a good search match in the content, but not in the excerpt or the title.
+     *
+     * Also, note that if the title matches well _and_ the content matches well, we will still show the excerpt.
+     * That's because the excerpt is concise, and the search term matching the title already indicates to the user why the result is relevant.
+     * A snippet from the fulltext is usually out-of-context and not as useful.
+     * -- @marcelgerber, 2023-02-08
      */
     @computed get textToShow(): string {
         const { hit } = this.props
@@ -80,10 +86,14 @@ class PageResult extends React.Component<{ hit: PageHit }> {
             { name: "excerpt", ...hit._snippetResult.excerpt },
             { name: "content", ...hit._snippetResult.content },
         ]
-        const algoliaMatchLevels = ["none", "partial", "full"]
+        const algoliaMatchLevels: AlgoliaMatchLevel[] = [
+            "none",
+            "partial",
+            "full",
+        ]
         const highlighted = highlightMatches.map((e) => ({
             ...e,
-            matchLevel: algoliaMatchLevels.indexOf(e.matchLevel ?? ""),
+            matchLevel: algoliaMatchLevels.indexOf(e.matchLevel ?? "none"),
         }))
         const best = maxBy(highlighted, (h) => h.matchLevel)
         if (best?.name === "content")

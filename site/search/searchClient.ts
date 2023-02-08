@@ -42,7 +42,6 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
                 attributesToRetrieve: ["slug", "title", "type"],
                 attributesToSnippet: ["excerpt:20", "content:20"],
                 attributesToHighlight: ["title"],
-                distinct: true,
                 hitsPerPage: 10,
             },
         },
