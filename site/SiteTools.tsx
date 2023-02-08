@@ -21,9 +21,6 @@ const SiteTools = () => {
                 (scrollDirection === ScrollDirection.Down && " hide") || ""
             }`}
         >
-            <NewsletterSubscription
-                context={NewsletterSubscriptionContext.Floating}
-            />
             <FeedbackPrompt />
             <a className="prompt" data-track-note="page-open-jobs" href="/jobs">
                 <FontAwesomeIcon icon={faHandshake} /> Jobs
