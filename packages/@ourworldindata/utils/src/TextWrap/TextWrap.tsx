@@ -1,11 +1,5 @@
-import {
-    isEmpty,
-    max,
-    stripHTML,
-    linkify,
-    Bounds,
-    FontFamily,
-} from "@ourworldindata/utils"
+import { isEmpty, max, stripHTML, linkify } from "../Util.js"
+import { Bounds, FontFamily } from "../Bounds.js"
 import { computed } from "mobx"
 import React from "react"
 

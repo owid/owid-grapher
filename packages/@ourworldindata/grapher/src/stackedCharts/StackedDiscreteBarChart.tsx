@@ -17,6 +17,7 @@ import {
     SortBy,
     SortConfig,
     HorizontalAlign,
+    TippyIfInteractive,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -46,7 +47,6 @@ import {
     HorizontalColorLegendManager,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { TippyIfInteractive } from "../chart/Tippy"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { isDarkColor } from "../color/ColorUtils"

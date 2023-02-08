@@ -10,13 +10,13 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-import { Bounds, capitalize, getIndexableKeys } from "@ourworldindata/utils"
 import {
-    Grapher,
+    Bounds,
+    capitalize,
+    getIndexableKeys,
     Detail,
-    Topic,
-    GrapherInterface,
-} from "@ourworldindata/grapher"
+} from "@ourworldindata/utils"
+import { Grapher, Topic, GrapherInterface } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import {
     ChartEditor,

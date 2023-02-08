@@ -3,23 +3,10 @@ import {
     isString,
     diffDateISOStringInDays,
     formatDay,
+    isNegativeInfinity,
+    isPositiveInfinity,
 } from "./Util.js"
-import { EPOCH_DATE, Time } from "./owidTypes.js"
-
-/**
- * An unbounded value (±Infinity) or a concrete point in time (year or date).
- */
-export type TimeBound = number
-
-export type TimeBounds = [TimeBound, TimeBound]
-
-/**
- * The two special TimeBound values: unbounded left & unbounded right.
- */
-export enum TimeBoundValue {
-    negativeInfinity = -Infinity,
-    positiveInfinity = Infinity,
-}
+import { EPOCH_DATE, Time, TimeBound, TimeBoundValue } from "./owidTypes.js"
 
 enum TimeBoundValueStr {
     unboundedLeft = "earliest",
@@ -33,14 +20,6 @@ export const timeFromTimebounds = (
 
 const hasAnInfinity = (timeBound: TimeBound): timeBound is TimeBoundValue =>
     isNegativeInfinity(timeBound) || isPositiveInfinity(timeBound)
-
-export const isNegativeInfinity = (
-    timeBound: TimeBound
-): timeBound is TimeBoundValue => timeBound === TimeBoundValue.negativeInfinity
-
-export const isPositiveInfinity = (
-    timeBound: TimeBound
-): timeBound is TimeBoundValue => timeBound === TimeBoundValue.positiveInfinity
 
 const formatTimeBound = (timeBound: TimeBound): string => {
     if (isNegativeInfinity(timeBound)) return TimeBoundValueStr.unboundedLeft

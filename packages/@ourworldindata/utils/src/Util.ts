@@ -152,9 +152,10 @@ import {
     GridParameters,
     OwidArticleType,
     OwidArticleTypeJSON,
+    TimeBound,
+    TimeBoundValue,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
-import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds.js"
 import React from "react"
 
 export type NoUndefinedValues<T> = {
@@ -642,6 +643,14 @@ export const findClosestTimeIndex = (
     }
     return closestIndex
 }
+
+export const isNegativeInfinity = (
+    timeBound: TimeBound
+): timeBound is TimeBoundValue => timeBound === TimeBoundValue.negativeInfinity
+
+export const isPositiveInfinity = (
+    timeBound: TimeBound
+): timeBound is TimeBoundValue => timeBound === TimeBoundValue.positiveInfinity
 
 export const findClosestTime = (
     times: Time[],
@@ -1309,4 +1318,26 @@ export const canWriteToClipboard = async (): Promise<boolean> => {
     }
     // navigator.clipboard is available, but we couldn't check for permissions -- assume we can use it.
     return true
+}
+
+// Memoization for immutable getters. Run the function once for this instance and cache the result.
+export const imemo = <Type>(
+    target: unknown,
+    propertyName: string,
+    descriptor: TypedPropertyDescriptor<Type>
+): void => {
+    const originalFn = descriptor.get!
+    descriptor.get = function (this: Record<string, Type>): Type {
+        const propName = `${propertyName}_memoized`
+        if (this[propName] === undefined) {
+            // Define the prop the long way so we don't enumerate over it
+            Object.defineProperty(this, propName, {
+                configurable: false,
+                enumerable: false,
+                writable: false,
+                value: originalFn.apply(this),
+            })
+        }
+        return this[propName]
+    }
 }

@@ -54,8 +54,6 @@ $zindex-Tooltip: 20;
     @import "../sourcesTab/SourcesTab.scss";
     @import "../mapCharts/MapTooltip.scss";
     @import "../loadingIndicator/LoadingIndicator.scss";
-    @import "../text/MarkdownTextWrap.scss";
-    @import "../detailsOnDemand/detailsOnDemand.scss";
 }
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
@@ -175,4 +173,58 @@ $zindex-Tooltip: 20;
 
 .Tooltip {
     z-index: $zindex-Tooltip;
+}
+
+.markdown-text-wrap__line {
+    display: block;
+}
+
+.markdown-text-wrap {
+    a,
+    a:visited {
+        color: #666;
+        text-decoration: underline;
+    }
+    a:hover {
+        color: darken(#666, 10%);
+    }
+
+    // needed so DoD border-bottom doesn't clip
+    .markdown-text-wrap__line:last-child {
+        margin-bottom: 2px;
+    }
+}
+
+.interactive-tippy-wrapper {
+    > div {
+        display: inline-block; // fix https://github.com/owid/owid-grapher/issues/1790
+        height: 50%;
+    }
+}
+
+span.dod-term {
+    border-bottom: 1px dotted #666;
+    color: #666;
+}
+
+.dod-tippy-container {
+    overflow-y: auto;
+    height: 100%;
+}
+
+.dod-tooltip {
+    margin: 16px;
+
+    h3 {
+        margin: 0;
+        margin-bottom: 8px;
+    }
+
+    a {
+        color: $controls-color;
+    }
+
+    p {
+        margin-bottom: 8px;
+    }
 }

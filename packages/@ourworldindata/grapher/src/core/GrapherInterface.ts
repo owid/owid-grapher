@@ -6,7 +6,6 @@ import {
     EntitySelectionMode,
     ChartTypeName,
     FacetStrategy,
-    Detail,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import {
@@ -16,6 +15,7 @@ import {
     ColumnSlug,
     SortConfig,
     TopicId,
+    Detail,
 } from "@ourworldindata/utils"
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { LogoOption } from "../captionedChart/Logos"

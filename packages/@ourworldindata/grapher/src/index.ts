@@ -29,7 +29,6 @@ export {
     ScaleType,
     RelatedQuestionsConfig,
     Topic,
-    Detail,
     WorldEntityName,
     ScatterPointLabelStrategy,
     SeriesName,
@@ -89,7 +88,6 @@ export {
     MapProjectionLabels,
     MapProjectionGeos,
 } from "./mapCharts/MapProjections"
-export { mdParser } from "./text/parser"
 export { SelectionArray } from "./selection/SelectionArray"
 export {
     setSelectedEntityNamesParam,
@@ -98,7 +96,6 @@ export {
 } from "./core/EntityUrlBuilder"
 export { SparkBars, SparkBarsProps } from "./sparkBars/SparkBars"
 export { SparkBarTimeSeriesValue } from "./sparkBars/SparkBarTimeSeriesValue"
-export { Tippy } from "./chart/Tippy"
 export {
     SlideShowManager,
     SlideShowController,

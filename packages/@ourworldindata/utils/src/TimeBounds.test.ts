@@ -1,7 +1,7 @@
 #! /usr/bin/env jest
 
+import { TimeBoundValue } from "./owidTypes.js"
 import {
-    TimeBoundValue,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
     minTimeToJSON,

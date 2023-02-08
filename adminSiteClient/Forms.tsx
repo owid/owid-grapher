@@ -10,7 +10,7 @@ import { bind } from "decko"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { pick, capitalize, dayjs } from "@ourworldindata/utils"
+import { pick, capitalize, dayjs, Tippy } from "@ourworldindata/utils"
 import { Colorpicker } from "./Colorpicker.js"
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
@@ -942,7 +942,6 @@ export class Timeago extends React.Component<{
 import { TagBadge, Tag } from "./TagBadge.js"
 
 import ReactTags from "react-tag-autocomplete"
-import { Tippy } from "@ourworldindata/grapher"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer

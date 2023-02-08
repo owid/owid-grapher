@@ -36,7 +36,7 @@ import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
 import { select } from "d3-selection"
 import { Text } from "../text/Text"
-import { TextWrap } from "../text/TextWrap"
+import { TextWrap } from "@ourworldindata/utils"
 import {
     DEFAULT_SLOPE_CHART_COLOR,
     LabelledSlopesProps,
