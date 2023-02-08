@@ -115,6 +115,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             await imageStore.syncImagesToS3(filenames)
             this.setAdditionalImageMetadata()
         }
+        return
     }
 
     get filenames(): string[] {

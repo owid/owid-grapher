@@ -3,11 +3,7 @@ import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import {
-    OwidArticleType,
-    OwidArticleTypeJSON,
-    getArticleFromJSON,
-} from "@ourworldindata/utils"
+import { OwidArticleType } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
@@ -52,20 +48,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     )
     const isLightningUpdate = useLightningUpdate(originalGdoc, gdoc, hasChanges)
     useAutoSaveDraft(gdoc, setOriginalGdoc, hasChanges)
-
-    useEffect(() => {
-        const fetchOriginalGdoc = async () => {
-            try {
-                const originalGdocJson = (await admin.getJSON(
-                    `/api/gdocs/${id}`
-                )) as OwidArticleTypeJSON
-                setOriginalGdoc(getArticleFromJSON(originalGdocJson))
-            } catch (e) {
-                console.log("Error fetching original gdoc: ", e)
-            }
-        }
-        fetchOriginalGdoc()
-    }, [admin, id])
 
     const hasWarnings =
         errors?.some((error) => error.type === ErrorMessageType.Warning) ??

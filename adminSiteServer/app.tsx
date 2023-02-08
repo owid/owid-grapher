@@ -82,11 +82,6 @@ export class OwidAdminApp {
                 context: "admin-server",
             })
         }
-        try {
-            await imageStore.fetchImageMetadata()
-        } catch (e) {
-            console.log("Error fetching image metadata on startup\n", e)
-        }
         const { app } = this
 
         // since the server is running behind a reverse proxy (nginx), we need to "trust"
@@ -125,9 +120,9 @@ export class OwidAdminApp {
         })
 
         // Public preview of a Gdoc article
-        app.get("/gdocs/:id/preview", async (req, res) => {
+        app.get("/gdocs/:googleId/preview", async (req, res) => {
             const gdoc = await Gdoc.getGdocFromContentSource(
-                req.params.id,
+                req.params.googleId,
                 GdocsContentSource.Gdocs
             )
             res.set("X-Robots-Tag", "noindex")

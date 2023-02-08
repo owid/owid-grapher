@@ -73,6 +73,8 @@ export const useUpdatePreviewContent = (
         undefined | string
     >()
     const [hasSyncingError, setHasSyncingError] = useState(false)
+    // Requests that sync images can take more than 5 seconds
+    const [isSyncing, setIsSyncing] = useState(false)
     const initialLoad = !gdoc
 
     const updatePreviewContent = useCallback(async () => {
@@ -81,25 +83,29 @@ export const useUpdatePreviewContent = (
             // Because there's no ongoing connection between the server and client, a new document is being fetched every 5 seconds
             // Meaning we query Gdocs every 5 seconds for everything, which may become taxing at some point.
             // We should use the Page Visibility API to not query when the tab is inactive
-            const draftGdocJson = (await admin.requestJSON(
-                `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
-                {},
-                "GET",
-                { onFailure: "continue" }
-            )) as OwidArticleTypeJSON
+            if (!isSyncing) {
+                setIsSyncing(true)
+                const draftGdocJson = (await admin.requestJSON(
+                    `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
+                    {},
+                    "GET",
+                    { onFailure: "continue" }
+                )) as OwidArticleTypeJSON
 
-            const draftGdoc = getArticleFromJSON(draftGdocJson)
+                const draftGdoc = getArticleFromJSON(draftGdocJson)
 
-            setGdoc((currGdoc: OwidArticleType | undefined) =>
-                currGdoc
-                    ? {
-                          ...currGdoc,
-                          content: draftGdoc.content,
-                          revisionId: draftGdoc.revisionId,
-                      }
-                    : draftGdoc
-            )
-            setHasSyncingError(false)
+                setGdoc((currGdoc: OwidArticleType | undefined) =>
+                    currGdoc
+                        ? {
+                              ...currGdoc,
+                              content: draftGdoc.content,
+                              revisionId: draftGdoc.revisionId,
+                          }
+                        : draftGdoc
+                )
+                setHasSyncingError(false)
+                setIsSyncing(false)
+            }
         } catch (e) {
             if (checkIsPlainObjectWithGuard(e) && e.status === 500) {
                 console.log("Critical error", e)
@@ -109,7 +115,7 @@ export const useUpdatePreviewContent = (
                 setHasSyncingError(true)
             }
         }
-    }, [admin, id, setGdoc, criticalErrorMessage])
+    }, [admin, id, setGdoc, criticalErrorMessage, isSyncing])
 
     // Initial load behaviours
     useEffect(() => {
