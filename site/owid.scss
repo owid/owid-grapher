@@ -1090,9 +1090,13 @@ html:not(.js) {
             border-bottom: 1px solid #ccc;
         }
 
-        li {
+        > ul li {
             list-style-type: none;
             margin-bottom: 1.75rem;
+
+            a {
+                @include owid-link-90;
+            }
 
             p {
                 margin-top: 0;
