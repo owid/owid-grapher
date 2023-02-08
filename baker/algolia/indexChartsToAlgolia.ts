@@ -6,6 +6,7 @@ import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
 import { ChartRecord } from "../../site/search/searchTypes.js"
+import { MarkdownTextWrap } from "@ourworldindata/utils"
 
 const getChartsRecords = async () => {
     const allCharts = await db.queryMysql(`
@@ -51,13 +52,18 @@ const getChartsRecords = async () => {
 
         const relatedArticles = (await getRelatedArticles(c.id)) ?? []
 
+        const plaintextSubtitle = new MarkdownTextWrap({
+            text: c.subtitle,
+            fontSize: 10, // doesn't matter, but is a mandatory field
+        }).plaintext
+
         records.push({
             objectID: c.id,
             chartId: c.id,
             slug: c.slug,
             title: c.title,
             variantName: c.variantName,
-            subtitle: c.subtitle,
+            subtitle: plaintextSubtitle,
             keyChartForTags: c.keyChartForTags.map((t: any) => t.name),
             tags: c.tags.map((t: any) => t.name),
             availableEntities: JSON.parse(c.availableEntitiesStr),
