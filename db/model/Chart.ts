@@ -78,7 +78,11 @@ export class Chart extends BaseEntity {
 
     static async setTags(chartId: number, tags: Tag[]): Promise<void> {
         await db.transaction(async (t) => {
-            const tagRows = tags.map((tag) => [tag.id, chartId, tag.isKeyChart])
+            const tagRows = tags.map((tag) => [
+                tag.id,
+                chartId,
+                !!tag.isKeyChart,
+            ])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(
