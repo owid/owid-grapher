@@ -1,0 +1,119 @@
+.site-navigation-bar {
+    @include wrapper-x-spacing;
+    @include body-3-medium;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    padding-bottom: 11px;
+    background-color: $oxford-blue;
+    border-bottom: $mobile-header-border-height solid $vermillion;
+
+    .logo-owid a {
+        margin-right: 32px;
+        font-size: 20px;
+        font-weight: 300;
+        line-height: 1.2;
+        color: $white;
+        display: block;
+        text-align: center;
+    }
+
+    .site-logos {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .logos-wrapper {
+        display: flex;
+        align-items: flex-start;
+        margin-top: 5px;
+
+        a {
+            display: none;
+            @media (min-width: $lg) {
+                display: initial;
+                margin: 1px;
+            }
+            color: white;
+            opacity: 0.6;
+            transition: color 150ms ease;
+            line-height: 1;
+            &:hover {
+                opacity: initial;
+            }
+        }
+        .oxford-logo img {
+            margin-right: 3px;
+            height: 46px;
+        }
+        .gcdl-logo img {
+            height: 42px;
+        }
+    }
+
+    .site-primary-links {
+        display: flex;
+        flex-direction: row;
+
+        > ul > li {
+            list-style-type: none;
+            display: inline-block;
+            margin-right: 24px;
+
+            &:last-child {
+                margin-right: 0;
+            }
+
+            > a,
+            > button {
+                color: $blue-20;
+                background-color: transparent;
+                border: none;
+                cursor: pointer;
+                &:hover {
+                    color: $blue-40;
+                }
+            }
+        }
+    }
+
+    .site-search-cta {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        height: 40px;
+        > * {
+            margin-right: 16px;
+
+            &:last-child {
+                margin-right: 0;
+            }
+        }
+        button.prompt,
+        a.donate {
+            display: flex;
+            align-items: center;
+            height: $search-cta-height;
+            padding: 0 24px;
+            background: none;
+            color: $white;
+        }
+        button.prompt {
+            border: 1px solid $white;
+            cursor: pointer;
+            &:hover {
+                background-color: $white;
+                color: $blue-90;
+            }
+        }
+        a.donate {
+            background-color: $vermillion;
+            &:hover {
+                background-color: #b40000;
+            }
+        }
+    }
+}
