@@ -13,3 +13,13 @@ mysqldump -h $HOST -u $USER -p --no-create-info --no-tablespaces --single-transa
 This SQL can then be specified in the code that sets up the database.
 
 It is good practice to be deliberate about how your tests leave the database behind for the next test file. By default the teardown of a file should remove any rows that were created, but it can also make sense to build up a set of state that is shared across tests. Communicating either clearly is key.
+
+### Running tests against all chart configs
+
+To make it easily possible to run code against all of our charts we keep a dump of the charts table as a gzipped .sql file in this folder. This is ingested as part of the fixtures setup. This allow us to quickly verify if e.g. changes to our subtitle markup parsing cause issues on any of our existing charts.
+
+To update the allcharts.sql.gz file, run the following command:
+
+```bash
+mysqldump -h $HOST -u $USER -p --compact --no-create-info --no-tablespaces --single-transaction  --skip-set-charset live_grapher charts | gzip -c -9 > allcharts.sql.gz
+```
