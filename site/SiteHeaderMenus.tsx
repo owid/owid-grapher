@@ -8,7 +8,7 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { observer } from "mobx-react"
-import { HeaderSearch } from "./HeaderSearch.js"
+import { HeaderSearch } from "./search/HeaderSearch.js"
 import classnames from "classnames"
 import { flatten, CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
 import { bind } from "decko"

@@ -1,8 +1,9 @@
 import ReactDOM from "react-dom"
 import React from "react"
 import { getWindowQueryParams } from "@ourworldindata/utils"
-import { siteSearch, SiteSearchResults } from "./searchClient.js"
-import { SearchResults } from "../site/SearchResults.js"
+import { siteSearch } from "./searchClient.js"
+import { SiteSearchResults } from "./searchTypes.js"
+import { SearchResults } from "./SearchResults.js"
 import { observer } from "mobx-react"
 import { action, observable, runInAction } from "mobx"
 

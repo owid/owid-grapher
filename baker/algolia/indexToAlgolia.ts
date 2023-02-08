@@ -2,14 +2,20 @@ import * as db from "../../db/db.js"
 import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { chunkParagraphs } from "../chunk.js"
-import { countries, FormattedPost } from "@ourworldindata/utils"
+import { countries, FormattedPost, isEmpty } from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
+import { PageRecord, PageType } from "../../site/search/searchTypes.js"
 
 interface Tag {
     id: number
     name: string
+}
+
+interface TypeAndImportance {
+    type: PageType
+    importance: number
 }
 
 const getPostTags = async (postId: number) => {
@@ -20,29 +26,33 @@ const getPostTags = async (postId: number) => {
         .join("tags", "tags.id", "=", "post_tags.tag_id")) as Tag[]
 }
 
-const getPostType = (post: FormattedPost, tags: Tag[]) => {
-    if (post.slug.startsWith("about/")) return "about"
-    if (post.type === "post") {
-        if (tags.some((t) => t.name === "Explainers")) return "explainer"
-        if (tags.some((t) => t.name === "Short updates and facts"))
-            return "fact"
-        return "post"
-    }
+const getPostTypeAndImportance = (
+    post: FormattedPost,
+    tags: Tag[]
+): TypeAndImportance => {
+    if (post.slug.startsWith("about/") || post.slug === "about")
+        return { type: "about", importance: 1 }
+    if (post.slug.match(/\bfaqs?\b/i)) return { type: "faq", importance: 1 }
+    if (post.type === "post") return { type: "article", importance: 0 }
+    if (tags.some((t) => t.name === "Entries"))
+        return { type: "topic", importance: 3 }
 
-    if (tags.some((t) => t.name === "Entries")) return "entry"
-
-    return "page"
+    return { type: "other", importance: 0 }
 }
 
 const getPagesRecords = async () => {
     const postsApi = await wpdb.getPosts()
 
-    const records = []
+    const records: PageRecord[] = []
     for (const country of countries) {
+        const postTypeAndImportance: TypeAndImportance = {
+            type: "country",
+            importance: -1,
+        }
         records.push({
             objectID: country.slug,
-            type: "country",
-            slug: country.slug,
+            ...postTypeAndImportance,
+            slug: `country/${country.slug}`,
             title: country.name,
             content: `All available indicators for ${country.name}.`,
         })
@@ -50,6 +60,13 @@ const getPagesRecords = async () => {
 
     for (const postApi of postsApi) {
         const rawPost = await wpdb.getFullPost(postApi)
+        if (isEmpty(rawPost.content)) {
+            // we have some posts that are only placeholders (e.g. for a redirect); don't index these
+            console.log(
+                `skipping post ${rawPost.slug} in search indexing because it's empty`
+            )
+            continue
+        }
 
         const post = await formatPost(rawPost, { footnotes: false })
         const postText = htmlToText(post.html, {
@@ -62,28 +79,22 @@ const getPagesRecords = async () => {
         const chunks = chunkParagraphs(postText, 1000)
 
         const tags = await getPostTags(post.id)
-        const postType = getPostType(post, tags)
-
-        let importance = 0
-        if (postType === "entry") importance = 3
-        else if (postType === "explainer") importance = 2
-        else if (postType === "fact") importance = 1
+        const postTypeAndImportance = getPostTypeAndImportance(post, tags)
 
         let i = 0
         for (const c of chunks) {
             records.push({
                 objectID: `${rawPost.id}-c${i}`,
                 postId: post.id,
-                type: postType,
+                ...postTypeAndImportance,
                 slug: post.path,
                 title: post.title,
                 excerpt: post.excerpt,
                 authors: post.authors,
-                date: post.date,
-                modifiedDate: post.modifiedDate,
+                date: post.date.toISOString(),
+                modifiedDate: post.modifiedDate.toISOString(),
                 content: c,
-                _tags: tags.map((t) => t.name),
-                importance: importance,
+                tags: tags.map((t) => t.name),
             })
             i += 1
         }

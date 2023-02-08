@@ -1,68 +1,15 @@
 import algoliasearch, { SearchClient } from "algoliasearch/lite"
-import { countries, Country } from "@ourworldindata/utils"
-import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "../settings/clientSettings.js"
+import { countries } from "@ourworldindata/utils"
+import {
+    ALGOLIA_ID,
+    ALGOLIA_SEARCH_KEY,
+} from "../../settings/clientSettings.js"
+import { PageHit, SiteSearchResults, ChartHit } from "./searchTypes.js"
 
 let algolia: SearchClient | undefined
 const getClient = () => {
     if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     return algolia
-}
-
-type PageHit = ArticleHit | CountryHit
-
-export interface CountryHit {
-    objectID: string
-    type: "country"
-    slug: string
-    title: string
-    code: string
-    content: string
-    _highlightResult: any
-    _snippetResult: {
-        content: {
-            value: string
-        }
-    }
-}
-
-export interface ArticleHit {
-    objectID: string
-    postId: number
-    slug: string
-    title: string
-    type: "post" | "page" | "entry" | "explainer" | "fact"
-    content: string
-    _snippetResult: {
-        content: {
-            value: string
-        }
-    }
-}
-
-export interface ChartHit {
-    chartId: number
-    slug: string
-    title: string
-    subtitle: string
-    variantName: string
-    _snippetResult?: {
-        subtitle: {
-            value: string
-        }
-    }
-    _highlightResult?: {
-        availableEntities: {
-            value: string
-            matchLevel: "none" | "full"
-            matchedWords: string[]
-        }[]
-    }
-}
-
-export interface SiteSearchResults {
-    pages: PageHit[]
-    charts: ChartHit[]
-    countries: Country[]
 }
 
 export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
@@ -90,19 +37,11 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
     const json = await getClient().search([
         {
             indexName: "pages",
-            query: query,
+            query,
             params: {
-                attributesToRetrieve: [
-                    "objectID",
-                    "postId",
-                    "slug",
-                    "title",
-                    "type",
-                    "code",
-                    "content",
-                ],
-                attributesToSnippet: ["content:24"],
-                distinct: true,
+                attributesToRetrieve: ["slug", "title", "type"],
+                attributesToSnippet: ["excerpt:20", "content:20"],
+                attributesToHighlight: ["title"],
                 hitsPerPage: 10,
             },
         },
@@ -127,7 +66,7 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
 
     return {
         pages: json.results[0].hits as PageHit[],
-        charts: json.results[1].hits as unknown as ChartHit[],
+        charts: json.results[1].hits as ChartHit[],
         countries: matchCountries,
     }
 }
