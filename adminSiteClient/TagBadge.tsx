@@ -21,16 +21,16 @@ export class TagBadge extends React.Component<{
 
         if (onToggleKey) {
             classes.push("hasKeyChartSupport")
-            if (tag.isKey) classes.push("isKey")
+            if (tag.isKeyChart) classes.push("isKeyChart")
             return (
                 <Tippy
                     content={`${
-                        tag.isKey ? "⬇️ Demote from" : "⬆️ Promote to"
+                        tag.isKeyChart ? "⬇️ Demote from" : "⬆️ Promote to"
                     } key charts on topic "${tag.name}"`}
                 >
                     <span className={classes.join(" ")} onClick={onToggleKey}>
                         {searchHighlight ? searchHighlight(tag.name) : tag.name}
-                        {tag.isKey && <FontAwesomeIcon icon={faStar} />}
+                        {tag.isKeyChart && <FontAwesomeIcon icon={faStar} />}
                     </span>
                 </Tippy>
             )

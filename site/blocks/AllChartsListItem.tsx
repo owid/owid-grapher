@@ -2,7 +2,7 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
-import { RelatedChart } from "@ourworldindata/utils"
+import { BasicChartInformation } from "@ourworldindata/utils"
 import React from "react"
 import {
     BAKED_BASE_URL,
@@ -14,7 +14,7 @@ export const AllChartsListItem = ({
     onClick,
     isActive,
 }: {
-    chart: RelatedChart
+    chart: BasicChartInformation
     onClick: (e: React.MouseEvent) => void
     isActive: boolean
 }) => {
