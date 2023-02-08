@@ -33,11 +33,6 @@ const getPostTypeAndImportance = (
     if (post.slug.startsWith("about/") || post.slug === "about")
         return { type: "about", importance: 1 }
     if (post.slug.match(/\bfaqs?\b/i)) return { type: "faq", importance: 1 }
-    if (post.slug.startsWith("country/"))
-        return {
-            type: "country",
-            importance: -1, // until we improve country pages, we don't really want to highlight them
-        }
     if (post.type === "post") return { type: "article", importance: 0 }
     if (tags.some((t) => t.name === "Entries"))
         return { type: "topic", importance: 3 }
