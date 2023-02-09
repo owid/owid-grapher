@@ -58,10 +58,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const store = useGdocsStore()
 
     const fetchGdoc = useCallback(
-        () =>
+        (contentSource: GdocsContentSource) =>
             admin
                 .requestJSON<OwidArticleTypeJSON>(
-                    `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
+                    `/api/gdocs/${id}?contentSource=${contentSource}`,
                     {},
                     "GET",
                     { onFailure: "continue" }
@@ -83,10 +83,13 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     // initialise
     useEffect(() => {
         if (!originalGdoc) {
-            fetchGdoc()
-                .then((gdoc) => {
+            Promise.all([
+                fetchGdoc(GdocsContentSource.Internal),
+                fetchGdoc(GdocsContentSource.Gdocs),
+            ])
+                .then(([original, current]) => {
                     admin.loadingIndicatorSetting = "off"
-                    setGdoc({ original: gdoc, current: gdoc })
+                    setGdoc({ original, current })
                 })
                 .catch(handleError)
         }
@@ -95,7 +98,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     // synchronise
     useInterval(() => {
         if (currentGdoc) {
-            fetchGdoc()
+            fetchGdoc(GdocsContentSource.Gdocs)
                 .then((gdoc) => {
                     setCurrentGdoc(gdoc)
                     setHasSyncingError(false)

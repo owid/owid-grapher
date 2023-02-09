@@ -1,13 +1,6 @@
-import { useCallback, useEffect, useState } from "react"
-import {
-    GdocsContentSource,
-    OwidArticleType,
-    OwidArticleTypeJSON,
-    getArticleFromJSON,
-    checkIsPlainObjectWithGuard,
-} from "@ourworldindata/utils"
-import { useDebounceCallback, useInterval } from "../site/hooks.js"
-import { Admin } from "./Admin.js"
+import { useEffect, useState } from "react"
+import { OwidArticleType } from "@ourworldindata/utils"
+import { useDebounceCallback } from "../site/hooks.js"
 import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
@@ -43,19 +36,19 @@ export const useLightningUpdate = (
 }
 
 export const useAutoSaveDraft = (
-    gdoc: OwidArticleType | undefined,
+    currentGdoc: OwidArticleType | undefined,
     setOriginalGdoc: (gdoc: OwidArticleType) => void,
     hasChanges: boolean
 ) => {
     const store = useGdocsStore()
 
-    const saveDraft = useDebounceCallback((gdoc: OwidArticleType) => {
-        store.update(gdoc)
-        setOriginalGdoc(gdoc)
+    const saveDraft = useDebounceCallback((currentGdoc: OwidArticleType) => {
+        store.update(currentGdoc)
+        setOriginalGdoc(currentGdoc)
     }, 2000)
 
     useEffect(() => {
-        if (!gdoc || !hasChanges || gdoc.published) return
-        saveDraft(gdoc)
-    }, [saveDraft, gdoc, hasChanges])
+        if (!currentGdoc || !hasChanges || currentGdoc.published) return
+        saveDraft(currentGdoc)
+    }, [saveDraft, currentGdoc, hasChanges])
 }
