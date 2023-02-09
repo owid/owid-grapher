@@ -2291,19 +2291,27 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
         .where({ id: postId })
         .select("*")
         .first()) as PostRow | undefined
+
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
     if (post.gdocSuccessorId)
         throw new JsonError("A gdoc already exists for this post", 400)
     const archieMl = JSON.parse(post.archieml) as OwidArticleType
     const gdocId = await createGdocAndInsertOwidArticleContent(archieMl.content)
     post.gdocSuccessorId = gdocId
+    // This is not ideal - we are using knex for on thing and typeorm for another
+    // which means that we can't wrap this in a transaction. We should probably
+    // move posts to use typeorm as well or at least have a typeorm alternative for it
     await db
         .knexTable(postsTable)
         .where({ id: postId })
         .update("gdocSuccessorId", gdocId)
-    // TODO: fill the rest of content required for an entry in the gdoc table,
-    // mark the post in the posts table as no-longer editable/publish-able,
-    // publish through gdocs?
+    const gdoc = new Gdoc(gdocId)
+    gdoc.slug = post.slug
+    gdoc.published = false
+    gdoc.createdAt = new Date()
+    gdoc.publishedAt = post.published_at
+    await dataSource.getRepository(Gdoc).insert(gdoc)
+
     return { googleDocsId: gdocId }
 })
 
