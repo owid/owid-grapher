@@ -12,6 +12,7 @@ import { WORDPRESS_URL } from "../settings/clientSettings.js"
 import { Tag } from "./TagBadge.js"
 import { match } from "ts-pattern"
 import { GdocsEditLink } from "./GdocsEditLink.js"
+import { Link } from "./Link.js"
 
 interface PostIndexMeta {
     id: number
@@ -92,7 +93,12 @@ class PostRow extends React.Component<PostRowProps> {
             ))
             .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
             .with(GdocStatus.CONVERTED, () => (
-                <GdocsEditLink gdocId={post.gdocSuccessorId!} />
+                <Link
+                    to={`gdocs/${post.gdocSuccessorId}/preview`}
+                    className="btn btn-primary"
+                >
+                    Preview
+                </Link>
             ))
             .exhaustive()
 
