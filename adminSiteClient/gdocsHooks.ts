@@ -44,9 +44,7 @@ export const useLightningUpdate = (
 
 export const useAutoSaveDraft = (
     gdoc: OwidArticleType | undefined,
-    setOriginalGdoc: React.Dispatch<
-        React.SetStateAction<OwidArticleType | undefined>
-    >,
+    setOriginalGdoc: (gdoc: OwidArticleType) => void,
     hasChanges: boolean
 ) => {
     const store = useGdocsStore()
@@ -60,74 +58,4 @@ export const useAutoSaveDraft = (
         if (!gdoc || !hasChanges || gdoc.published) return
         saveDraft(gdoc)
     }, [saveDraft, gdoc, hasChanges])
-}
-
-export const useUpdatePreviewContent = (
-    id: string,
-    gdoc: OwidArticleType | undefined,
-    setGdoc: React.Dispatch<React.SetStateAction<OwidArticleType | undefined>>,
-    admin: Admin
-): { hasSyncingError: boolean; criticalErrorMessage?: string } => {
-    // When the server 500s, we don't want to continue polling it every 5 seconds
-    const [criticalErrorMessage, setCriticalErrorMessage] = useState<
-        undefined | string
-    >()
-    const [hasSyncingError, setHasSyncingError] = useState(false)
-    // Requests that sync images can take more than 5 seconds
-    const [isSyncing, setIsSyncing] = useState(false)
-    const initialLoad = !gdoc
-
-    const updatePreviewContent = useCallback(async () => {
-        if (criticalErrorMessage) return
-        try {
-            // Because there's no ongoing connection between the server and client, a new document is being fetched every 5 seconds
-            // Meaning we query Gdocs every 5 seconds for everything, which may become taxing at some point.
-            // We should use the Page Visibility API to not query when the tab is inactive
-            if (!isSyncing) {
-                setIsSyncing(true)
-                const draftGdocJson = (await admin.requestJSON(
-                    `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
-                    {},
-                    "GET",
-                    { onFailure: "continue" }
-                )) as OwidArticleTypeJSON
-
-                const draftGdoc = getArticleFromJSON(draftGdocJson)
-
-                setGdoc((currGdoc: OwidArticleType | undefined) =>
-                    currGdoc
-                        ? {
-                              ...currGdoc,
-                              content: draftGdoc.content,
-                              revisionId: draftGdoc.revisionId,
-                          }
-                        : draftGdoc
-                )
-                setHasSyncingError(false)
-                setIsSyncing(false)
-            }
-        } catch (e) {
-            if (checkIsPlainObjectWithGuard(e) && e.status === 500) {
-                console.log("Critical error", e)
-                setCriticalErrorMessage(e.message as string)
-            } else {
-                console.log("Syncing error", e)
-                setHasSyncingError(true)
-            }
-        }
-    }, [admin, id, setGdoc, criticalErrorMessage, isSyncing])
-
-    // Initial load behaviours
-    useEffect(() => {
-        if (initialLoad) {
-            updatePreviewContent()
-        } else {
-            admin.loadingIndicatorSetting = "off"
-        }
-    }, [admin, updatePreviewContent, initialLoad])
-
-    // Sync content every 5 seconds
-    useInterval(updatePreviewContent, 5000)
-
-    return { hasSyncingError, criticalErrorMessage }
 }

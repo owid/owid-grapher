@@ -97,12 +97,12 @@ export class Admin {
 
     // Make a request and expect JSON
     // If we can't retrieve and parse JSON, it is treated as a fatal/unexpected error
-    async requestJSON(
+    async requestJSON<T extends Json = Json>(
         path: string,
         data: Json | File,
         method: HTTPMethod,
         opts: { onFailure?: "show" | "continue" } = {}
-    ): Promise<Json> {
+    ): Promise<T> {
         const onFailure = opts.onFailure || "show"
 
         let targetPath = path
@@ -113,7 +113,7 @@ export class Admin {
 
         let response: Response | undefined
         let text: string | undefined
-        let json: Json
+        let json: T
 
         let request: Promise<Response> | undefined
         try {

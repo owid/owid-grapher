@@ -1,9 +1,15 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
 import { AdminAppContext } from "./AdminAppContext.js"
-import { OwidArticleType } from "@ourworldindata/utils"
+import {
+    checkIsPlainObjectWithGuard,
+    GdocsContentSource,
+    getArticleFromJSON,
+    OwidArticleType,
+    OwidArticleTypeJSON,
+} from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
@@ -16,7 +22,6 @@ import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate
 import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
-    useUpdatePreviewContent,
     useGdocsChanged,
     useAutoSaveDraft,
     useLightningUpdate,
@@ -27,55 +32,111 @@ import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"
 import { GdocsDiff } from "./GdocsDiff.js"
+import { useInterval } from "../site/hooks.js"
 
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
-    const [gdoc, setGdoc] = useState<OwidArticleType>()
-    const [originalGdoc, setOriginalGdoc] = useState<OwidArticleType>()
+    const [gdoc, setGdoc] = useState<{
+        original?: OwidArticleType
+        current?: OwidArticleType
+    }>({ original: undefined, current: undefined })
+    const originalGdoc = gdoc.original
+    const currentGdoc = gdoc.current
+    const setOriginalGdoc = (original?: OwidArticleType) =>
+        setGdoc({ ...gdoc, original })
+    const setCurrentGdoc = (current: OwidArticleType | undefined) =>
+        setGdoc({ ...gdoc, current })
+    const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)
+    const [hasSyncingError, setHasSyncingError] = useState(false)
+    const [criticalErrorMessage, setCriticalErrorMessage] = useState<
+        undefined | string
+    >()
     const [isDiffOpen, setDiffOpen] = useState(false)
     const [errors, setErrors] = React.useState<ErrorMessage[]>()
-
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
 
-    const hasChanges = useGdocsChanged(originalGdoc, gdoc)
-    const { hasSyncingError, criticalErrorMessage } = useUpdatePreviewContent(
-        id,
-        gdoc,
-        setGdoc,
-        admin
+    const fetchGdoc = useCallback(
+        () =>
+            admin
+                .requestJSON<OwidArticleTypeJSON>(
+                    `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
+                    {},
+                    "GET",
+                    { onFailure: "continue" }
+                )
+                .then(getArticleFromJSON),
+        [id, admin]
     )
-    const isLightningUpdate = useLightningUpdate(originalGdoc, gdoc, hasChanges)
-    useAutoSaveDraft(gdoc, setOriginalGdoc, hasChanges)
+
+    const handleError = useCallback((error: unknown) => {
+        if (checkIsPlainObjectWithGuard(error) && error.status === 500) {
+            console.log("Critical error", error)
+            setCriticalErrorMessage(error.message as string)
+        } else {
+            console.log("Syncing error", error)
+            setHasSyncingError(true)
+        }
+    }, [])
+
+    // initialise
+    useEffect(() => {
+        if (!originalGdoc) {
+            fetchGdoc()
+                .then((gdoc) => {
+                    admin.loadingIndicatorSetting = "off"
+                    setGdoc({ original: gdoc, current: gdoc })
+                })
+                .catch(handleError)
+        }
+    }, [originalGdoc, fetchGdoc, handleError, admin])
+
+    // synchronise
+    useInterval(() => {
+        if (currentGdoc) {
+            fetchGdoc()
+                .then((gdoc) => {
+                    setCurrentGdoc(gdoc)
+                    setHasSyncingError(false)
+                })
+                .catch(handleError)
+        }
+    }, 5000)
+
+    // autosave
+    useAutoSaveDraft(currentGdoc, setOriginalGdoc, hasChanges)
+
+    const isLightningUpdate = useLightningUpdate(
+        originalGdoc,
+        currentGdoc,
+        hasChanges
+    )
 
     const hasWarnings =
         errors?.some((error) => error.type === ErrorMessageType.Warning) ??
         false
+
     const hasErrors =
         errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
 
     const doPublish = async () => {
-        if (!gdoc) return
-        const publishedGdoc = await store.publish(gdoc)
-
-        setGdoc(publishedGdoc)
-        setOriginalGdoc(publishedGdoc)
+        if (!currentGdoc) return
+        const publishedGdoc = await store.publish(currentGdoc)
+        setGdoc({ current: publishedGdoc, original: publishedGdoc })
         openSuccessNotification()
     }
 
     const doUnpublish = async () => {
-        if (!gdoc) return
-        const unpublishedGdoc = await store.unpublish(gdoc)
-
-        setGdoc(unpublishedGdoc)
-        setOriginalGdoc(unpublishedGdoc)
+        if (!currentGdoc) return
+        const unpublishedGdoc = await store.unpublish(currentGdoc)
+        setGdoc({ current: unpublishedGdoc, original: unpublishedGdoc })
         openSuccessNotification()
     }
 
     const onDelete = async () => {
-        if (!gdoc) return
-        await store.delete(gdoc)
+        if (!currentGdoc) return
+        await store.delete(currentGdoc)
         history.push("/gdocs")
     }
 
@@ -89,10 +150,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     // Handle errors and validation status
     useEffect(() => {
-        if (!gdoc) return
-        const errors = getErrors(gdoc)
+        if (!currentGdoc) return
+        const errors = getErrors(currentGdoc)
         setErrors(errors)
-    }, [gdoc])
+    }, [currentGdoc])
 
     if (criticalErrorMessage) {
         return (
@@ -111,9 +172,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         )
     }
 
-    return gdoc ? (
+    return currentGdoc ? (
         <AdminLayout
-            title={`Previewing ${gdoc.content.title}`}
+            title={`Previewing ${currentGdoc.content.title}`}
             noSidebar
             fixedNav={false}
         >
@@ -123,7 +184,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     align="middle"
                     gutter={[0, 8]}
                     className={`p-3 admin-bar ${
-                        gdoc.published ? "published" : "draft"
+                        currentGdoc.published ? "published" : "draft"
                     }`}
                 >
                     <Col flex={1}>
@@ -132,11 +193,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 <FontAwesomeIcon icon={faAngleLeft} />
                             </Button>
                             <Typography.Title className="mb-0" level={4}>
-                                {gdoc.content.title}
+                                {currentGdoc.content.title}
                             </Typography.Title>
-                            [ <GdocsEditLink gdocId={gdoc.googleId} /> ]
+                            [ <GdocsEditLink gdocId={currentGdoc.googleId} /> ]
                             <div>
-                                {!gdoc.published && (
+                                {!currentGdoc.published && (
                                     <Tag color="default">Draft</Tag>
                                 )}
                                 {hasSyncingError ? (
@@ -167,15 +228,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     </Col>
                     <Col>
                         <Space>
-                            {!gdoc.published && (
+                            {!currentGdoc?.published && (
                                 <span className="mr-2">
                                     <GdocsSaveStatus hasChanges={hasChanges} />
                                 </span>
                             )}
                             <GdocsSaveButtons
-                                published={gdoc.published}
+                                published={currentGdoc.published}
                                 originalGdoc={originalGdoc}
-                                gdoc={gdoc}
+                                gdoc={currentGdoc}
                                 errors={errors}
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
@@ -198,7 +259,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 </Button>
                             </IconBadge>
                             <GdocsMoreMenu
-                                gdoc={gdoc}
+                                gdoc={currentGdoc}
                                 onDebug={() => setDiffOpen(true)}
                                 onUnpublish={doUnpublish}
                                 onDelete={onDelete}
@@ -219,8 +280,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     }
                 >
                     <GdocsSettingsForm
-                        gdoc={gdoc}
-                        setGdoc={setGdoc}
+                        gdoc={currentGdoc}
+                        setGdoc={setCurrentGdoc}
                         errors={errors}
                     />
                 </Drawer>
@@ -235,7 +296,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         </Button>
                     }
                 >
-                    <GdocsDiff originalGdoc={originalGdoc} gdoc={gdoc} />
+                    <GdocsDiff originalGdoc={originalGdoc} gdoc={currentGdoc} />
                 </Drawer>
 
                 {/*
@@ -245,12 +306,12 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     resets on every change)
                 */}
                 <iframe
-                    src={`/gdocs/${gdoc.googleId}/preview#owid-article-root`}
+                    src={`/gdocs/${currentGdoc.googleId}/preview#owid-article-root`}
                     style={{ width: "100%", border: "none" }}
-                    key={gdoc.revisionId}
+                    key={currentGdoc.revisionId}
                 />
 
-                {gdoc.published && (
+                {currentGdoc.published && (
                     <div
                         className="position-fixed m-3"
                         style={{ bottom: 0, right: 0 }}
