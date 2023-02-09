@@ -28,7 +28,7 @@ export class Chart extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column({ type: "json" }) config: any
     @Column() lastEditedAt!: Date
-    @Column({ nullable: true }) lastEditedByUserId!: number
+    @Column() lastEditedByUserId!: number
     @Column({ nullable: true }) publishedAt!: Date
     @Column({ nullable: true }) publishedByUserId!: number
     @Column() createdAt!: Date
