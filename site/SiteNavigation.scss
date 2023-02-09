@@ -1,14 +1,17 @@
+.site-navigation-root {
+    background-color: $oxford-blue;
+    border-bottom: $mobile-header-border-height solid $vermillion;
+}
+
 .site-navigation-bar {
-    @include wrapper-x-spacing;
     @include body-3-medium;
+    position: relative;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     padding-top: 14px;
     padding-bottom: 11px;
-    background-color: $oxford-blue;
-    border-bottom: $mobile-header-border-height solid $vermillion;
 
     .logo-owid a {
         margin-right: 32px;
@@ -75,6 +78,62 @@
                 cursor: pointer;
                 &:hover {
                     color: $blue-40;
+                }
+            }
+        }
+    }
+
+    .site-topics {
+        @include grid(12);
+        position: absolute;
+        width: 100%;
+        top: 100%;
+        left: 0;
+        z-index: 1;
+        ul.categories {
+            grid-column: 1 / span 4;
+            margin-left: -$padding-x-md;
+            padding-left: $padding-x-md;
+            background-color: $accent-pale-blue;
+
+            > li {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+                &:hover,
+                &.active {
+                    background-color: #d5e7fe;
+                }
+                > button {
+                    display: block;
+                    width: 100%;
+                    padding: 8px 16px;
+                    text-align: left;
+                    color: $blue-90;
+                    background-color: transparent;
+                    cursor: pointer;
+                    border: none;
+                }
+            }
+        }
+        ul.topics {
+            grid-column-start: 5;
+            background-color: #d5e7fe;
+            margin-left: -$grid-gap;
+            padding-left: $grid-gap;
+
+            > li {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+                break-inside: avoid-column;
+                > a {
+                    display: block;
+                    padding: 8px 16px;
+                    color: $blue-90;
+                    &:hover {
+                        background-color: $blue-20;
+                    }
                 }
             }
         }
