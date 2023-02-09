@@ -1,3 +1,5 @@
+import { landingPageSlugs } from "./SiteSubnavigation.js"
+
 enum CountryProfileProject {
     coronavirus = "coronavirus",
     co2 = "co2",
@@ -23,17 +25,17 @@ const countryProfileProjectConfigurations: CountryProfileProjectConfiguration[] 
         {
             project: CountryProfileProject.coronavirus,
             pageTitle: "Coronavirus Pandemic",
-            landingPageSlug: "coronavirus",
+            landingPageSlug: landingPageSlugs.coronavirus,
         },
         {
             project: CountryProfileProject.co2,
             pageTitle: "CO2",
-            landingPageSlug: "co2-and-other-greenhouse-gas-emissions",
+            landingPageSlug: landingPageSlugs.co2,
         },
         {
             project: CountryProfileProject.energy,
             pageTitle: "Energy",
-            landingPageSlug: "energy",
+            landingPageSlug: landingPageSlugs.energy,
         },
     ]
 

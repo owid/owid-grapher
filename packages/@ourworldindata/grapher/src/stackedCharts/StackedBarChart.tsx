@@ -44,6 +44,7 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
 }
 
 interface TickmarkPlacement {
+    time: number
     text: string
     bounds: Bounds
     isHidden: boolean
@@ -112,6 +113,8 @@ export class StackedBarChart
 
     // currently hovered legend color
     @observable hoverColor?: string
+    // currently hovered axis label
+    @observable hoveredTick?: TickmarkPlacement
     // current hovered individual bar
     @observable hoverBar?: StackedPoint<Time>
     @observable hoverSeries?: StackedSeries<Time>
@@ -232,24 +235,31 @@ export class StackedBarChart
             yColumns,
             hoverSeries,
             series,
+            hoveredTick,
         } = this
-        if (hoverBar === undefined) return
 
-        const xPos = mapXValueToOffset.get(hoverBar.position)
+        let hoverTime: number
+        let yPos: number
+
+        if (hoverBar !== undefined) {
+            hoverTime = hoverBar.position
+            yPos = dualAxis.verticalAxis.place(
+                hoverBar.valueOffset + hoverBar.value
+            )
+        } else if (hoveredTick !== undefined) {
+            hoverTime = hoveredTick.time
+            yPos = dualAxis.verticalAxis.rangeMax
+        } else return
+
+        const xPos = mapXValueToOffset.get(hoverTime)
         if (xPos === undefined) return
-
-        const yPos = dualAxis.verticalAxis.place(
-            hoverBar.valueOffset + hoverBar.value
-        )
 
         const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
         const seriesRows = [...series].reverse().map((series) => ({
             seriesName: series.seriesName,
             color: series.color,
             isHovered: hoverSeries?.seriesName === series.seriesName,
-            point: series.points.find(
-                (bar) => bar.position === hoverBar.position
-            ),
+            point: series.points.find((bar) => bar.position === hoverTime),
         }))
         const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
         const showTotalValue: boolean = seriesRows.length > 1
@@ -266,9 +276,7 @@ export class StackedBarChart
                     <tbody>
                         <tr>
                             <td colSpan={3}>
-                                <strong>
-                                    {yColumn.formatTime(hoverBar.position)}
-                                </strong>
+                                <strong>{yColumn.formatTime(hoverTime)}</strong>
                             </td>
                         </tr>
                         {seriesRows.map(
@@ -276,7 +284,11 @@ export class StackedBarChart
                                 <tr
                                     key={seriesName}
                                     style={{
-                                        color: isHovered ? "#000" : "#888",
+                                        color: point?.fake
+                                            ? "#888"
+                                            : isHovered
+                                            ? "#000"
+                                            : "#333",
                                         fontWeight: isHovered
                                             ? "bold"
                                             : undefined,
@@ -301,9 +313,14 @@ export class StackedBarChart
                                             paddingLeft: "0.8em",
                                         }}
                                     >
-                                        {yColumn.formatValueLong(point?.value, {
-                                            trailingZeroes: true,
-                                        })}
+                                        {point?.fake
+                                            ? "No data"
+                                            : yColumn.formatValueLong(
+                                                  point?.value,
+                                                  {
+                                                      trailingZeroes: true,
+                                                  }
+                                              )}
                                     </td>
                                 </tr>
                             )
@@ -355,6 +372,7 @@ export class StackedBarChart
 
             const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
             return {
+                time: x,
                 text,
                 bounds: bounds.set({
                     x: xPos + barWidth / 2 - bounds.width / 2,
@@ -394,6 +412,14 @@ export class StackedBarChart
         this.hoverColor = undefined
     }
 
+    @action.bound onLabelMouseOver(tick: TickmarkPlacement): void {
+        this.hoveredTick = tick
+    }
+
+    @action.bound onLabelMouseLeave(): void {
+        this.hoveredTick = undefined
+    }
+
     @action.bound onBarMouseOver(
         bar: StackedPoint<Time>,
         series: StackedSeries<Time>
@@ -404,6 +430,7 @@ export class StackedBarChart
 
     @action.bound onBarMouseLeave(): void {
         this.hoverBar = undefined
+        this.hoverSeries = undefined
     }
 
     render(): JSX.Element {
@@ -474,6 +501,10 @@ export class StackedBarChart
                                 y={tick.bounds.y}
                                 fill={textColor}
                                 fontSize={this.tickFontSize}
+                                onMouseOver={(): void => {
+                                    this.onLabelMouseOver(tick)
+                                }}
+                                onMouseLeave={this.onLabelMouseLeave}
                             >
                                 {tick.text}
                             </Text>

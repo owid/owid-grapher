@@ -24,6 +24,7 @@ export {
     Deploy,
     DeployChange,
     DeployStatus,
+    Detail,
     DimensionProperty,
     DocumentNode,
     EnrichedBlockAdditionalCharts,
@@ -36,13 +37,14 @@ export {
     EnrichedBlockHtml,
     EnrichedBlockImage,
     EnrichedBlockList,
+    EnrichedBlockMissingData,
+    EnrichedBlockNumberedList,
     EnrichedBlockProminentLink,
     EnrichedBlockPullQuote,
     EnrichedBlockRecirc,
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
-    EnrichedBlockMissingData,
     EnrichedBlockSideBySideContainer,
     EnrichedBlockSimpleText,
     EnrichedBlockStickyLeftContainer,
@@ -52,7 +54,6 @@ export {
     EnrichedRecircItem,
     EnrichedScrollerItem,
     EnrichedSDGGridItem,
-    EnrichedBlockNumberedList,
     EntryMeta,
     EntryNode,
     EPOCH_DATE,
@@ -98,24 +99,25 @@ export {
     RawBlockHtml,
     RawBlockImage,
     RawBlockList,
+    RawBlockMissingData,
+    RawBlockNumberedList,
     RawBlockPosition,
     RawBlockProminentLink,
     RawBlockPullQuote,
     RawBlockRecirc,
     RawBlockRecircValue,
     RawBlockScroller,
-    RawRecircItem,
     RawBlockSDGGrid,
+    RawBlockSDGToc,
     RawBlockSideBySideContainer,
     RawBlockStickyLeftContainer,
     RawBlockStickyRightContainer,
     RawBlockText,
     RawBlockUrl,
-    RawBlockNumberedList,
     RawChartStoryValue,
+    RawRecircItem,
     RawSDGGridItem,
-    RawBlockSDGToc,
-    RawBlockMissingData,
+    BasicChartInformation,
     RelatedChart,
     ScaleType,
     SerializedGridProgram,
@@ -128,9 +130,9 @@ export {
     SpanFallback,
     SpanItalic,
     SpanLink,
-    SpanRef,
     SpanNewline,
     SpanQuote,
+    SpanRef,
     SpanSimpleText,
     SpanSubscript,
     SpanSuperscript,
@@ -139,6 +141,9 @@ export {
     SuggestedChartRevisionStatus,
     Tag,
     Time,
+    TimeBound,
+    TimeBounds,
+    TimeBoundValue,
     TimeRange,
     TocHeading,
     TocHeadingWithTitleSupertitle,
@@ -253,6 +258,9 @@ export {
     formatDate,
     canWriteToClipboard,
     recursivelyMapArticleBlock,
+    isNegativeInfinity,
+    isPositiveInfinity,
+    imemo,
 } from "./Util.js"
 
 export {
@@ -340,12 +348,7 @@ export {
 } from "./formatValue.js"
 
 export {
-    TimeBound,
-    TimeBounds,
-    TimeBoundValue,
     timeFromTimebounds,
-    isNegativeInfinity,
-    isPositiveInfinity,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
     minTimeToJSON,
@@ -489,3 +492,19 @@ export {
     GDriveImageMetadata,
     ImageMetadata,
 } from "./image.js"
+
+export { Tippy, TippyIfInteractive } from "./Tippy.js"
+
+export { TextWrap, shortenForTargetWidth } from "./TextWrap/TextWrap.js"
+
+export {
+    MarkdownTextWrap,
+    sumTextWrapHeights,
+} from "./MarkdownTextWrap/MarkdownTextWrap.js"
+
+export { detailOnDemandRegex, mdParser } from "./MarkdownTextWrap/parser.js"
+
+export {
+    DoDWrapper,
+    globalDetailsOnDemand,
+} from "./DetailsOnDemand/detailsOnDemand.js"

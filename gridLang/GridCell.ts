@@ -1,5 +1,5 @@
-import { imemo, trimArray } from "@ourworldindata/core-table"
-import { isPresent } from "@ourworldindata/utils"
+import { trimArray } from "@ourworldindata/core-table"
+import { imemo, isPresent } from "@ourworldindata/utils"
 
 import { didYouMean, isBlankLine, isEmpty } from "./GrammarUtils.js"
 import {

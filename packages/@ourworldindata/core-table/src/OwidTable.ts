@@ -21,6 +21,7 @@ import {
     isPresent,
     TimeBound,
     ColumnSlug,
+    imemo,
 } from "@ourworldindata/utils"
 import {
     Integer,
@@ -46,7 +47,6 @@ import {
     toPercentageColumnDef,
 } from "./OwidTableUtil.js"
 import {
-    imemo,
     linearInterpolation,
     toleranceInterpolation,
     replaceDef,

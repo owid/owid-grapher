@@ -40,6 +40,10 @@ import {
     OwidVariableWithSourceAndDimension,
     Bounds,
     DEFAULT_BOUNDS,
+    Detail,
+    detailOnDemandRegex,
+    globalDetailsOnDemand,
+    MarkdownTextWrap,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
     TimeBounds,
@@ -82,7 +86,6 @@ import {
     FacetAxisDomain,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
-    Detail,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -170,9 +173,6 @@ import { MarimekkoChartManager } from "../stackedCharts/MarimekkoChartConstants"
 import { AxisConfigInterface } from "../axis/AxisConfigInterface"
 import Bugsnag from "@bugsnag/js"
 import { FacetChartManager } from "../facetChart/FacetChartConstants"
-import { globalDetailsOnDemand } from "../detailsOnDemand/detailsOnDemand"
-import { MarkdownTextWrap } from "../text/MarkdownTextWrap"
-import { detailOnDemandRegex } from "../text/parser"
 
 declare const window: any
 
@@ -1406,7 +1406,7 @@ export class Grapher
         // exclude "Countries Continent" if it's used as the color dimension in a scatter plot, slope chart etc.
         if (
             colorColumnSlug !== undefined &&
-            isContinentsVariableId(colorColumnSlug)
+            !isContinentsVariableId(colorColumnSlug)
         )
             columnSlugs.push(colorColumnSlug)
 

@@ -2,7 +2,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { ScaleType } from "../core/GrapherConstants"
-import { TextWrap } from "../text/TextWrap"
+import { TextWrap } from "@ourworldindata/utils"
 import { Bounds } from "@ourworldindata/utils"
 
 export interface SlopeChartValue {

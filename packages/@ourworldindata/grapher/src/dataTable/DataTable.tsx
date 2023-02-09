@@ -32,7 +32,7 @@ import {
     TickFormattingOptions,
 } from "@ourworldindata/utils"
 import { SortIcon } from "../controls/SortIcon"
-import { Tippy } from "../chart/Tippy"
+import { Tippy } from "@ourworldindata/utils"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 

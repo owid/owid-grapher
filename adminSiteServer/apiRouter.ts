@@ -40,11 +40,11 @@ import {
     trimObject,
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
+    Detail,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
-    Detail,
 } from "@ourworldindata/grapher"
 import {
     CountryNameFormat,

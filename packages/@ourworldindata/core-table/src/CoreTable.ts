@@ -13,6 +13,7 @@ import {
     isPresent,
     ColumnSlug,
     PrimitiveType,
+    imemo,
 } from "@ourworldindata/utils"
 import {
     CoreColumn,
@@ -44,7 +45,6 @@ import {
 import {
     makeAutoTypeFn,
     columnStoreToRows,
-    imemo,
     makeKeyFn,
     makeRowFromColumnStore,
     standardizeSlugs,

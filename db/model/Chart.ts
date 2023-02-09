@@ -28,7 +28,7 @@ export class Chart extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
     @Column({ type: "json" }) config: any
     @Column() lastEditedAt!: Date
-    @Column({ nullable: true }) lastEditedByUserId!: number
+    @Column() lastEditedByUserId!: number
     @Column({ nullable: true }) publishedAt!: Date
     @Column({ nullable: true }) publishedByUserId!: number
     @Column() createdAt!: Date
@@ -78,11 +78,15 @@ export class Chart extends BaseEntity {
 
     static async setTags(chartId: number, tags: Tag[]): Promise<void> {
         await db.transaction(async (t) => {
-            const tagRows = tags.map((tag) => [tag.id, chartId, tag.isKey])
+            const tagRows = tags.map((tag) => [
+                tag.id,
+                chartId,
+                !!tag.isKeyChart,
+            ])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(
-                    `INSERT INTO chart_tags (tagId, chartId, isKey) VALUES ?`,
+                    `INSERT INTO chart_tags (tagId, chartId, isKeyChart) VALUES ?`,
                     [tagRows]
                 )
 
@@ -106,7 +110,7 @@ export class Chart extends BaseEntity {
         charts: { id: number; tags: any[] }[]
     ): Promise<void> {
         const chartTags = await db.queryMysql(`
-            SELECT ct.chartId, ct.tagId, ct.isKey, t.name as tagName FROM chart_tags ct
+            SELECT ct.chartId, ct.tagId, ct.isKeyChart, t.name as tagName FROM chart_tags ct
             JOIN charts c ON c.id=ct.chartId
             JOIN tags t ON t.id=ct.tagId
         `)
@@ -123,7 +127,7 @@ export class Chart extends BaseEntity {
                 chart.tags.push({
                     id: ct.tagId,
                     name: ct.tagName,
-                    isKey: !!ct.isKey,
+                    isKeyChart: !!ct.isKeyChart,
                 })
         }
     }

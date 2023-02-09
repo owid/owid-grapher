@@ -46,6 +46,10 @@ export const configureAlgolia = async () => {
         ignorePlurals: true,
         exactOnSingleWordQuery: "none",
         removeStopWords: ["en"],
+        snippetEllipsisText: "…",
+        distinct: true,
+        advancedSyntax: true,
+        advancedSyntaxFeatures: ["exactPhrase"],
     }
 
     const chartsIndex = client.initIndex("charts")
@@ -77,15 +81,20 @@ export const configureAlgolia = async () => {
         ...baseSettings,
         searchableAttributes: [
             "unordered(title)",
+            "unordered(excerpt)",
+            "unordered(tags)",
             "unordered(content)",
-            "unordered(_tags)",
             "unordered(authors)",
         ],
         customRanking: ["desc(importance)"],
-        attributesToSnippet: ["content:24"],
+        attributesToSnippet: ["excerpt:20", "content:20"],
         attributeForDistinct: "slug",
-        attributesForFaceting: ["searchable(_tags)", "searchable(authors)"],
-        disableExactOnAttributes: ["_tags"],
+        attributesForFaceting: [
+            "type",
+            "searchable(tags)",
+            "searchable(authors)",
+        ],
+        disableExactOnAttributes: ["tags"],
     })
 
     const synonyms = [
