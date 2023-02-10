@@ -213,10 +213,9 @@ export class SiteBaker {
         // we still want to bake them from the WP posts. Once the users presses publish there though, we want to stop
         // baking them from the wordpress post. Here we fetch all the slugs of posts that have been published via gdocs
         // and exclude them from the baking process.
-        const alreadyPublishedViaGdocsSlugs = await db.knexRaw(`--sql
-            select p.slug as slug from posts p
-            inner join posts_gdocs pg on p.gdocSuccessorId = pg.id
-            where pg.published = TRUE`)
+        const alreadyPublishedViaGdocsSlugs = await db.knexRaw(`-- sql
+            select slug from posts_with_gdoc_publish_status
+            where isGdocPublished = TRUE`)
         const alreadyPublishedViaGdocsSlugsSet = new Set(
             alreadyPublishedViaGdocsSlugs.map((row: any) => row.slug)
         )
