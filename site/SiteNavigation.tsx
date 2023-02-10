@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
 import classnames from "classnames"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
 // suppress useLayoutEffect (and its warnings) when not running in a browser
 // https://gist.github.com/gaearon/e7d97cdf38a2907924ea12e4ebdf3c85?permalink_comment_id=4150784#gistcomment-4150784
@@ -42,7 +43,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         fetchCategorizedTopics()
     }, [])
 
-    // effect to select the first category if none is selected
+    // select the first category if none is selected
     useEffect(() => {
         if (categorizedTopics.length > 0 && !activeCategory) {
             setActiveCategory(categorizedTopics[0])
@@ -125,22 +126,26 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
             </nav>
             {categorizedTopics.length > 0 && (
                 <div className="site-topics wrapper">
-                    <ul className="categories">
-                        {categorizedTopics.map((category) => (
-                            <li
-                                key={category.slug}
-                                className={classnames({
-                                    active: category === activeCategory,
-                                })}
-                            >
-                                <button
-                                    onClick={() => setActiveCategory(category)}
-                                >
-                                    {category.name}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="categories">
+                        <div className="heading">Browse by topic</div>
+                        <ul>
+                            {categorizedTopics.map((category) => (
+                                <li key={category.slug}>
+                                    <button
+                                        onClick={() =>
+                                            setActiveCategory(category)
+                                        }
+                                        className={classnames({
+                                            active: category === activeCategory,
+                                        })}
+                                    >
+                                        <span>{category.name}</span>
+                                        <FontAwesomeIcon icon={faArrowRight} />
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                     {activeCategory && (
                         <ul
                             className={classnames("topics", {

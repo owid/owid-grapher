@@ -90,35 +90,56 @@
         top: 100%;
         left: 0;
         z-index: 1;
-        ul.categories {
+
+        .categories {
             grid-column: 1 / span 6;
             @include sm-up {
                 grid-column-end: span 4;
             }
             margin-left: -$padding-x-md;
+            padding: 32px 0;
             padding-left: $padding-x-md;
             background-color: $accent-pale-blue;
 
-            > li {
+            .heading {
+                @include overline-black-caps;
+                margin-bottom: 16px;
+                color: $blue-40;
+            }
+            li {
                 list-style-type: none;
                 > button {
                     @include h3-bold;
-                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: calc(100% + 16px);
                     padding: 8px 16px;
                     margin: 8px 0;
+                    margin-left: -16px;
                     text-align: left;
                     color: $blue-60;
                     background-color: transparent;
                     cursor: pointer;
                     border: none;
+                    svg {
+                        color: $blue-40;
+                    }
                     &:hover,
                     &.active {
                         color: $blue-90;
                         background-color: #d5e7fe;
                     }
+                    &:hover svg {
+                        color: inherit;
+                    }
+                    &.active svg {
+                        visibility: hidden;
+                    }
                 }
             }
         }
+
         ul.topics {
             grid-column: 7 / span 6;
             @include sm-up {
