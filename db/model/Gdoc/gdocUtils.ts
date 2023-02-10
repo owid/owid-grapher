@@ -1,6 +1,29 @@
 import { Span } from "@ourworldindata/utils"
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
+
+export function spanToSimpleString(s: Span): string {
+    return match(s)
+        .with({ spanType: "span-simple-text" }, (span) => span.text)
+        .with({ spanType: "span-newline" }, () => "</br>")
+        .with(
+            {
+                spanType: P.union(
+                    "span-link",
+                    "span-ref",
+                    "span-italic",
+                    "span-bold",
+                    "span-underline",
+                    "span-subscript",
+                    "span-superscript",
+                    "span-quote",
+                    "span-fallback"
+                ),
+            },
+            (other) => other.children.map(spanToSimpleString).join("")
+        )
+        .exhaustive()
+}
 
 export function spanToHtmlString(s: Span): string {
     return match(s)
@@ -53,6 +76,14 @@ export function spansToHtmlString(spans: Span[]): string {
     if (spans.length === 0) return ""
     else {
         const result = spans.map(spanToHtmlString).join("")
+        return result
+    }
+}
+
+export function spansToSimpleString(spans: Span[]): string {
+    if (spans.length === 0) return ""
+    else {
+        const result = spans.map(spanToSimpleString).join("")
         return result
     }
 }

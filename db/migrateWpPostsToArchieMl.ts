@@ -30,10 +30,18 @@ const migrate = async (): Promise<void> => {
         "published_at",
         "updated_at_in_wordpress",
         "authors",
+<<<<<<< HEAD
         "excerpt",
         "created_at_in_wordpress",
         "updated_at"
     ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "22821"))
+||||||| parent of 727c5acc6 (feat: add backporting of prominent links)
+        "excerpt"
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "22821"))
+=======
+        "excerpt"
+    ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "1441"))
+>>>>>>> 727c5acc6 (feat: add backporting of prominent links)
 
     for (const post of posts) {
         try {
@@ -125,12 +133,20 @@ const migrate = async (): Promise<void> => {
                     // TODO: this discards block level elements - those might be needed?
                     refs: refParsingResults,
                 },
+<<<<<<< HEAD
                 published: false,
                 createdAt:
                     post.created_at_in_wordpress ??
                     post.updated_at_in_wordpress ??
                     post.updated_at ??
                     new Date(),
+||||||| parent of 727c5acc6 (feat: add backporting of prominent links)
+                published: false, // post.published_at !== null,
+                createdAt: post.updated_at_in_wordpress, // TODO: this is wrong but it doesn't seem that wordpress tracks the creation date
+=======
+                published: false, // post.published_at !== null,
+                createdAt: post.updated_at_in_wordpress ?? new Date(), // TODO: this is wrong but it doesn't seem that wordpress tracks the creation date
+>>>>>>> 727c5acc6 (feat: add backporting of prominent links)
                 publishedAt: post.published_at,
                 updatedAt: post.updated_at_in_wordpress,
                 publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB
