@@ -2209,9 +2209,14 @@ apiRouter.get("/posts.json", async (req) => {
         "title",
         "type",
         "status",
-        "updated_at",
+        "updated_at_in_wordpress",
         "gdocSuccessorId"
-    ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
+    ).from(
+        db
+            .knexInstance()
+            .from(postsTable)
+            .orderBy("updated_at_in_wordpress", "desc")
+    )
 
     const tagsByPostId = await getTagsByPostId()
 
@@ -2249,7 +2254,7 @@ apiRouter.get("/newsletterPosts.json", async (req) => {
         return {
             id: row.id,
             title: row.title,
-            updatedAt: row.updatedAt,
+            updatedAtInWordpress: row.updatedAt,
             publishedAt: row.publishedAt,
             type: row.type,
             status: row.status,

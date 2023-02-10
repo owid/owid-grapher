@@ -17,7 +17,7 @@ interface PostIndexMeta {
     type: string
     status: string
     publishedAt: string
-    updatedAt: string
+    updatedAtInWordpress: string
     excerpt: string
     slug: string
     url: string
@@ -55,7 +55,7 @@ class PostRow extends React.Component<{
                 <td>{post.type}</td>
                 <td>{post.status}</td>
                 <td>
-                    <Timeago time={post.updatedAt} />
+                    <Timeago time={post.updatedAtInWordpress} />
                 </td>
                 <td>
                     <a

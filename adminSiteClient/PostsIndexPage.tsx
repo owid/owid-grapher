@@ -20,7 +20,7 @@ interface PostIndexMeta {
     type: string
     status: string
     authors: string[]
-    updatedAt: string
+    updatedAtInWordpress: string
     tags: Tag[]
     gdocSuccessorId: string | undefined
 }
@@ -139,7 +139,7 @@ class PostRow extends React.Component<PostRowProps> {
                     />
                 </td>
                 <td>
-                    <Timeago time={post.updatedAt} />
+                    <Timeago time={post.updatedAtInWordpress} />
                 </td>
                 <td>
                     <a

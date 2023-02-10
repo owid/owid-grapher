@@ -28,7 +28,7 @@ const migrate = async (): Promise<void> => {
         "title",
         "content",
         "published_at",
-        "updated_at",
+        "updated_at_in_wordpress",
         "authors",
         "excerpt",
         "created_at_in_wordpress"
@@ -125,9 +125,12 @@ const migrate = async (): Promise<void> => {
                     refs: refParsingResults,
                 },
                 published: false,
-                createdAt: post.created_at_in_wordpress ?? post.updated_at,
+                createdAt:
+                    post.created_at_in_wordpress ??
+                    post.updated_at_in_wordpress ??
+                    post.updated_at,
                 publishedAt: post.published_at,
-                updatedAt: post.updated_at,
+                updatedAt: post.updated_at_in_wordpress,
                 publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB
                 revisionId: null,
             }
