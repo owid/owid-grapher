@@ -44,11 +44,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     }, [])
 
     // select the first category if none is selected
-    useEffect(() => {
-        if (categorizedTopics.length > 0 && !activeCategory) {
-            setActiveCategory(categorizedTopics[0])
-        }
-    }, [categorizedTopics, activeCategory])
+    // useEffect(() => {
+    //     if (categorizedTopics.length > 0 && !activeCategory) {
+    //         setActiveCategory(categorizedTopics[0])
+    //     }
+    // }, [categorizedTopics, activeCategory])
 
     // calculate the number of 10 topic columns we need based on the number of topics
     // using useLayoutEffect to avoid a flash of the wrong number of columns when switching categories
