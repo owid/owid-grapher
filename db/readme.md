@@ -39,7 +39,7 @@ You can find examples of older migrations here: https://github.com/owid/owid-gra
 
 ### Reverting a migration
 
-To revert the last migration on **your local development server**, use `yarn typeorm migration:revert`. Running that repeatedly will revert additional migrations. This is useful when working with migrations locally – when you make a change to an existing migration, you need to revert and re-run it.
+To revert the last migration on **your local development server**, use `yarn revertLastDbMigration`. Running that repeatedly will revert additional migrations. This is useful when working with migrations locally – when you make a change to an existing migration, you need to revert and re-run it.
 
 If the migration **has been run in production**, create a new migration that is a duplicate of the one you want to revert, and then swap the `up` and `down` functions.
 
