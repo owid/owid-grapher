@@ -9,6 +9,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
+import classnames from "classnames"
+
 // suppress useLayoutEffect (and its warnings) when not running in a browser
 // https://gist.github.com/gaearon/e7d97cdf38a2907924ea12e4ebdf3c85?permalink_comment_id=4150784#gistcomment-4150784
 
@@ -127,7 +129,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         {categorizedTopics.map((category) => (
                             <li
                                 key={category.slug}
-                                className={classNames({
+                                className={classnames({
                                     active: category === activeCategory,
                                 })}
                             >
@@ -141,11 +143,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                     </ul>
                     {activeCategory && (
                         <ul
-                            className="topics"
-                            style={{
-                                columnCount: numTopicColumns,
-                                gridColumnEnd: `span ${numTopicColumns * 2}`,
-                            }}
+                            className={classnames("topics", {
+                                "columns-medium": numTopicColumns === 2,
+                                "columns-large": numTopicColumns === 3,
+                            })}
                         >
                             {allTopicsInCategory(activeCategory).map((topic) =>
                                 renderTopic(topic)
