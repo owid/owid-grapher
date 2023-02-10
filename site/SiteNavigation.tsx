@@ -9,7 +9,13 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
-import classNames from "classnames"
+// suppress useLayoutEffect (and its warnings) when not running in a browser
+// https://gist.github.com/gaearon/e7d97cdf38a2907924ea12e4ebdf3c85?permalink_comment_id=4150784#gistcomment-4150784
+
+// this is ok here because the layout effect below doesn't do anything until an
+// other effect already triggered a paint, so there is no mismatch between the
+// server and client on first paint (which is what the warning is about)
+if (typeof window === "undefined") React.useLayoutEffect = () => {}
 
 export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     const [categorizedTopics, setCategorizedTopics] = useState<
@@ -42,6 +48,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     }, [categorizedTopics, activeCategory])
 
     // calculate the number of 10 topic columns we need based on the number of topics
+    // using useLayoutEffect to avoid a flash of the wrong number of columns when switching categories
     useLayoutEffect(() => {
         if (activeCategory) {
             const topics = allTopicsInCategory(activeCategory)
