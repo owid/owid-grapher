@@ -195,7 +195,8 @@ function articleToBatchUpdates(
 }
 
 export async function createGdocAndInsertOwidArticleContent(
-    content: OwidArticleContent
+    content: OwidArticleContent,
+    existingGdoc: string | undefined
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)
 
@@ -212,19 +213,51 @@ export async function createGdocAndInsertOwidArticleContent(
         version: "v3",
         auth,
     })
-    const createResp = await driveClient.files.create({
-        supportsAllDrives: true,
-        requestBody: {
-            parents: [targetFolder],
-            mimeType: docsMimeType,
-            name: content.title,
-        },
-        media: {
-            mimeType: docsMimeType,
-            body: "",
-        },
-    })
-    const documentId = createResp.data.id!
+    let documentId = existingGdoc
+    if (existingGdoc) {
+        // Retrieve raw data from Google
+        const { data } = await client.documents.get({
+            documentId: existingGdoc,
+            suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
+        })
+        const content = data.body?.content
+        if (content) {
+            const endIndex = content[content.length - 1].endIndex!
+            const deleteUpdate = [
+                {
+                    deleteContentRange: {
+                        range: {
+                            startIndex: 1,
+                            endIndex: endIndex - 1,
+                        },
+                    },
+                },
+            ]
+            await client.documents.batchUpdate({
+                // The ID of the document to update.
+                documentId,
+
+                // Request body metadata
+                requestBody: {
+                    requests: deleteUpdate,
+                },
+            })
+        }
+    } else {
+        const createResp = await driveClient.files.create({
+            supportsAllDrives: true,
+            requestBody: {
+                parents: [targetFolder],
+                mimeType: docsMimeType,
+                name: content.title,
+            },
+            media: {
+                mimeType: docsMimeType,
+                body: "",
+            },
+        })
+        documentId = createResp.data.id!
+    }
 
     await client.documents.batchUpdate({
         // The ID of the document to update.
@@ -236,5 +269,5 @@ export async function createGdocAndInsertOwidArticleContent(
         },
     })
 
-    return documentId
+    return documentId!
 }

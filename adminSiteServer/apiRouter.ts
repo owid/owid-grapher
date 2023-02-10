@@ -2286,6 +2286,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
 
 apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     const postId = expectInt(req.params.postId)
+    const allowRecreate = !!req.body.allowRecreate
     const post = (await db
         .knexTable(postsTable)
         .where({ id: postId })
@@ -2293,24 +2294,31 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
         .first()) as PostRow | undefined
 
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
-    if (post.gdocSuccessorId)
+    const existingGdocId = post.gdocSuccessorId
+    if (!allowRecreate && existingGdocId)
         throw new JsonError("A gdoc already exists for this post", 400)
     const archieMl = JSON.parse(post.archieml) as OwidArticleType
-    const gdocId = await createGdocAndInsertOwidArticleContent(archieMl.content)
-    post.gdocSuccessorId = gdocId
-    // This is not ideal - we are using knex for on thing and typeorm for another
-    // which means that we can't wrap this in a transaction. We should probably
-    // move posts to use typeorm as well or at least have a typeorm alternative for it
-    await db
-        .knexTable(postsTable)
-        .where({ id: postId })
-        .update("gdocSuccessorId", gdocId)
-    const gdoc = new Gdoc(gdocId)
-    gdoc.slug = post.slug
-    gdoc.published = false
-    gdoc.createdAt = new Date()
-    gdoc.publishedAt = post.published_at
-    await dataSource.getRepository(Gdoc).insert(gdoc)
+    const gdocId = await createGdocAndInsertOwidArticleContent(
+        archieMl.content,
+        post.gdocSuccessorId
+    )
+    if (!existingGdocId) {
+        post.gdocSuccessorId = gdocId
+        // This is not ideal - we are using knex for on thing and typeorm for another
+        // which means that we can't wrap this in a transaction. We should probably
+        // move posts to use typeorm as well or at least have a typeorm alternative for it
+        await db
+            .knexTable(postsTable)
+            .where({ id: postId })
+            .update("gdocSuccessorId", gdocId)
+
+        const gdoc = new Gdoc(gdocId)
+        gdoc.slug = post.slug
+        gdoc.published = false
+        gdoc.createdAt = new Date()
+        gdoc.publishedAt = post.published_at
+        await dataSource.getRepository(Gdoc).insert(gdoc)
+    }
 
     return { googleDocsId: gdocId }
 })

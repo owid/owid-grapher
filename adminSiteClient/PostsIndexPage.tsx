@@ -72,16 +72,26 @@ class PostRow extends React.Component<PostRowProps> {
         this.saveTags(tags)
     }
 
-    @action.bound async onConvertGdoc() {
+    @action.bound async onConvertGdoc(allowRecreate: boolean = false) {
         this.postGdocStatus = GdocStatus.CONVERTING
         const { admin } = this.context
         const json = await admin.requestJSON(
             `/api/posts/${this.props.post.id}/createGdoc`,
-            {},
+            { allowRecreate },
             "POST"
         )
         this.postGdocStatus = GdocStatus.CONVERTED
         this.props.post.gdocSuccessorId = json.googleDocsId
+    }
+
+    @action.bound async onRecreateGdoc() {
+        if (
+            window.confirm(
+                "This will overwrite the existing GDoc. Are you sure?"
+            )
+        ) {
+            this.onConvertGdoc(true)
+        }
     }
 
     render() {
@@ -89,16 +99,29 @@ class PostRow extends React.Component<PostRowProps> {
         const { postGdocStatus } = this
         const gdocElement = match(postGdocStatus)
             .with(GdocStatus.MISSING, () => (
-                <button onClick={this.onConvertGdoc}>Create GDoc</button>
+                <button
+                    onClick={async () => await this.onConvertGdoc()}
+                    className="btn btn-primary"
+                >
+                    Create GDoc
+                </button>
             ))
             .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
             .with(GdocStatus.CONVERTED, () => (
-                <Link
-                    to={`gdocs/${post.gdocSuccessorId}/preview`}
-                    className="btn btn-primary"
-                >
-                    Preview
-                </Link>
+                <>
+                    <Link
+                        to={`gdocs/${post.gdocSuccessorId}/preview`}
+                        className="btn btn-primary"
+                    >
+                        Preview
+                    </Link>
+                    <button
+                        onClick={async () => await this.onRecreateGdoc()}
+                        className="btn btn-primary alert-danger"
+                    >
+                        Recreate
+                    </button>
+                </>
             ))
             .exhaustive()
 
