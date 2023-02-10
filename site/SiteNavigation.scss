@@ -101,21 +101,21 @@
 
             > li {
                 list-style-type: none;
-                margin: 0;
-                padding: 0;
-                &:hover,
-                &.active {
-                    background-color: #d5e7fe;
-                }
                 > button {
-                    display: block;
+                    @include h3-bold;
                     width: 100%;
                     padding: 8px 16px;
+                    margin: 8px 0;
                     text-align: left;
-                    color: $blue-90;
+                    color: $blue-60;
                     background-color: transparent;
                     cursor: pointer;
                     border: none;
+                    &:hover,
+                    &.active {
+                        color: $blue-90;
+                        background-color: #d5e7fe;
+                    }
                 }
             }
         }
