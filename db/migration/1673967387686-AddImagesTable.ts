@@ -14,7 +14,7 @@ export class AddImagesTable1673967387686 implements MigrationInterface {
             \`originalWidth\` int DEFAULT NULL,
             \`updatedAt\` BIGINT,
             PRIMARY KEY (\`id\`),
-            UNIQUE(\`filename\`),
+            UNIQUE(\`filename\`)
         )`)
     }
 
