@@ -109,10 +109,12 @@ const Lightbox = ({
 
 const Image = ({
     src,
+    alt,
     isLoaded,
     setIsLoaded,
 }: {
     src: string
+    alt: string
     isLoaded: boolean
     setIsLoaded: any
 }) => {
@@ -123,6 +125,7 @@ const Image = ({
                     setIsLoaded(true)
                 }}
                 src={src}
+                alt={alt}
                 style={{ opacity: !isLoaded ? 0 : 1, transition: "opacity 1s" }}
             />
         </>
@@ -146,12 +149,14 @@ export const runLightbox = () => {
         img.classList.add("lightbox-enabled")
         img.addEventListener("click", () => {
             const imgSrc = img.getAttribute("data-high-res-src") ?? img.src
+            const imgAlt = img.alt
             if (imgSrc) {
                 ReactDOM.render(
                     <Lightbox imgSrc={imgSrc} containerNode={lightboxContainer}>
                         {(isLoaded: boolean, setIsLoaded: any) => (
                             <Image
                                 src={imgSrc}
+                                alt={imgAlt}
                                 isLoaded={isLoaded}
                                 setIsLoaded={setIsLoaded}
                             />
