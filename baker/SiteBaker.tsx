@@ -440,13 +440,12 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages() {
-        // await bakeCountries(this)
-        // await this.bakeSpecialPages()
-        // await this.bakeCountryProfiles()
-        // await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-        //     this.bakedSiteDir
-        // )
-        await db.getConnection()
+        await bakeCountries(this)
+        await this.bakeSpecialPages()
+        await this.bakeCountryProfiles()
+        await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+            this.bakedSiteDir
+        )
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
         this.progressBar.tick({
