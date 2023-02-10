@@ -43,9 +43,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
     const setOriginalGdoc = (original?: OwidArticleType) =>
-        setGdoc({ ...gdoc, original })
+        setGdoc({ original, current: gdoc.current })
     const setCurrentGdoc = (current: OwidArticleType | undefined) =>
-        setGdoc({ ...gdoc, current })
+        setGdoc({ original: gdoc.original, current })
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)
     const [hasSyncingError, setHasSyncingError] = useState(false)
@@ -95,7 +95,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
     }, [originalGdoc, fetchGdoc, handleError, admin])
 
-    // synchronise
+    // synchronise content every 5 seconds
     useInterval(() => {
         if (currentGdoc) {
             fetchGdoc(GdocsContentSource.Gdocs)
@@ -126,14 +126,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const doPublish = async () => {
         if (!currentGdoc) return
         const publishedGdoc = await store.publish(currentGdoc)
-        setGdoc({ current: publishedGdoc, original: publishedGdoc })
+        setGdoc({ original: publishedGdoc, current: publishedGdoc })
         openSuccessNotification()
     }
 
     const doUnpublish = async () => {
         if (!currentGdoc) return
         const unpublishedGdoc = await store.unpublish(currentGdoc)
-        setGdoc({ current: unpublishedGdoc, original: unpublishedGdoc })
+        setGdoc({ original: unpublishedGdoc, current: unpublishedGdoc })
         openSuccessNotification()
     }
 
@@ -239,7 +239,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <GdocsSaveButtons
                                 published={currentGdoc.published}
                                 originalGdoc={originalGdoc}
-                                gdoc={currentGdoc}
+                                currentGdoc={currentGdoc}
                                 errors={errors}
                                 hasErrors={hasErrors}
                                 hasWarnings={hasWarnings}
@@ -299,7 +299,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                         </Button>
                     }
                 >
-                    <GdocsDiff originalGdoc={originalGdoc} gdoc={currentGdoc} />
+                    <GdocsDiff
+                        originalGdoc={originalGdoc}
+                        currentGdoc={currentGdoc}
+                    />
                 </Drawer>
 
                 {/*

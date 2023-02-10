@@ -1,4 +1,10 @@
-import { Entity, Column, BaseEntity, PrimaryGeneratedColumn } from "typeorm"
+import {
+    Entity,
+    Column,
+    BaseEntity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from "typeorm"
 import {
     OwidArticleContent,
     OwidArticleType,
@@ -35,7 +41,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         OwidArticlePublicationContext.unlisted
     @Column() createdAt: Date = new Date()
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
-    @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
+    @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
 
     constructor(googleId?: string) {
