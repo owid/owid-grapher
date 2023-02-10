@@ -468,7 +468,6 @@ export class SiteBaker {
         this.flushCache()
         await this.removeDeletedPosts()
         await this.bakeWordpressPages()
-        await this.bakeDriveImages()
         await this._bakeNonWordpressPages()
         await this.bakeGDocPosts()
         this.flushCache()
