@@ -35,8 +35,9 @@ export const FrontPage = (props: {
     posts: IndexPost[]
     totalCharts: number
     baseUrl: string
+    featuredWork: IndexPost[]
 }) => {
-    const { entries, posts, totalCharts, baseUrl } = props
+    const { entries, posts, totalCharts, baseUrl, featuredWork } = props
 
     // Structured data for google
     const structuredMarkup = {
@@ -183,10 +184,10 @@ export const FrontPage = (props: {
                             <div className="owid-col flex-row">
                                 <div className="homepage-posts--explainers">
                                     <div className="header">
-                                        <h2>Our latest work</h2>
+                                        <h2>Featured work</h2>
                                     </div>
                                     <ul>
-                                        {posts.slice(0, 6).map((post) => (
+                                        {featuredWork.map((post) => (
                                             <li key={post.slug}>
                                                 <PostCard post={post} />
                                             </li>
