@@ -11,6 +11,26 @@ import pl from "nodejs-polars"
 import { Writable } from "stream"
 
 describe("writeVariableCSV", () => {
+    const getCSVOutput = async (
+        variablesDf: pl.DataFrame,
+        dataDf: pl.DataFrame,
+        variableIds: number[] = [1, 2]
+    ): Promise<string> => {
+        jest.spyOn(Variable, "readSQLasDF")
+            .mockResolvedValueOnce(variablesDf)
+            .mockResolvedValueOnce(dataDf)
+
+        let out = ""
+        const writeStream = new Writable({
+            write(chunk, encoding, callback) {
+                out += chunk.toString()
+                callback(null)
+            },
+        })
+        await writeVariableCSV(variableIds, writeStream)
+        return out
+    }
+
     it("writes to a stream", async () => {
         const variablesDf = pl.DataFrame({
             variableId: [1, 2],
@@ -27,23 +47,64 @@ describe("writeVariableCSV", () => {
             entityCode: ["code", "code", "code", "code"],
         })
 
-        jest.spyOn(Variable, "readSQLasDF")
-            .mockResolvedValueOnce(variablesDf)
-            .mockResolvedValueOnce(dataDf)
-
-        let out = ""
-        const writeStream = new Writable({
-            write(chunk, encoding, callback) {
-                out += chunk.toString()
-                callback(null)
-            },
-        })
-        await writeVariableCSV([1, 2], writeStream)
-
+        const out = await getCSVOutput(variablesDf, dataDf)
         expect(out).toEqual(`Entity,Year,a,b
 UK,2000,1.0,3.0
 UK,2001,2.0,4.0
 `)
+    })
+
+    it("handles null and NaN values", async () => {
+        const variablesDf = pl.DataFrame({
+            variableId: [1, 2],
+            variableName: ["a", "b"],
+            columnOrder: [0, 1],
+        })
+
+        const dataDf = pl.DataFrame({
+            variableId: [1, 1, 2, 2],
+            value: [null, 2, 1, NaN],
+            year: [2000, 2001, 2000, 2001],
+            entityId: [1, 1, 1, 1],
+            entityName: ["UK", "UK", "UK", "UK"],
+            entityCode: ["code", "code", "code", "code"],
+        })
+
+        const out = await getCSVOutput(variablesDf, dataDf)
+        expect(out).toEqual(`Entity,Year,a,b
+UK,2000,,1.0
+UK,2001,2.0,NaN
+`)
+    })
+
+    it("returns empty dataframe for variable without data", async () => {
+        const variablesDf = pl.DataFrame({
+            variableId: [1, 2],
+            variableName: ["a", "b"],
+            columnOrder: [0, 1],
+        })
+
+        const dataDf = pl.DataFrame()
+
+        const out = await getCSVOutput(variablesDf, dataDf)
+        expect(out).toEqual(`Entity,Year
+`)
+    })
+
+    it("raises error for missing variable", async () => {
+        const variablesDf = pl.DataFrame({
+            variableId: [1, 2],
+            variableName: ["a", "b"],
+            columnOrder: [0, 1],
+        })
+        const dataDf = pl.DataFrame()
+
+        expect.assertions(1)
+        try {
+            await getCSVOutput(variablesDf, dataDf, [1, 2, 3])
+        } catch (e: any) {
+            expect(e.message).toEqual("Variable IDs do not exist: 3")
+        }
     })
 })
 
