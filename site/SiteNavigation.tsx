@@ -9,38 +9,12 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
+import { SiteLogos } from "./SiteLogos.js"
 
 export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     return (
         <div className="site-navigation-bar wrapper">
-            <div className="site-logos">
-                <div className="logo-owid">
-                    <a href="/">
-                        Our World
-                        <br /> in Data
-                    </a>
-                </div>
-                <div className="logos-wrapper">
-                    <a
-                        href="https://www.oxfordmartin.ox.ac.uk/global-development"
-                        className="oxford-logo"
-                    >
-                        <img
-                            src={`${baseUrl}/oms-logo.svg`}
-                            alt="Oxford Martin School logo"
-                        />
-                    </a>
-                    <a
-                        href="https://global-change-data-lab.org/"
-                        className="gcdl-logo"
-                    >
-                        <img
-                            src={`${baseUrl}/gcdl-logo.svg`}
-                            alt="Global Change Data Lab logo"
-                        />
-                    </a>
-                </div>
-            </div>
+            <SiteLogos baseUrl={baseUrl} />
             <nav className="site-primary-links">
                 <ul>
                     <li>
