@@ -11,6 +11,8 @@ import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
 import { CategoryWithEntries } from "@ourworldindata/utils"
+import { SiteResources } from "./SiteResources.js"
+import { SiteAbout } from "./SiteAbout.js"
 
 enum NavigationRoots {
     Topics = "topics",
@@ -26,14 +28,6 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
     >([])
-
-    const AllNavigationRoots = {
-        [NavigationRoots.Topics]: (
-            <SiteNavigationTopics topics={categorizedTopics} />
-        ),
-        [NavigationRoots.Resources]: <div>Resources</div>,
-        [NavigationRoots.About]: <div>About</div>,
-    }
 
     useEffect(() => {
         const fetchCategorizedTopics = async () => {
@@ -71,7 +65,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                     <li>
                         <a href="/blog">Latest</a>
                     </li>
-                    <li>
+                    <li className="prompt">
                         <button
                             onClick={() =>
                                 setActiveRoot(NavigationRoots.Resources)
@@ -83,8 +77,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 style={{ marginLeft: "8px" }}
                             />
                         </button>
+                        {activeRoot === NavigationRoots.Resources && (
+                            <SiteResources />
+                        )}
                     </li>
-                    <li>
+                    <li className="prompt">
                         <button
                             onClick={() => setActiveRoot(NavigationRoots.About)}
                         >
@@ -94,10 +91,13 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 style={{ marginLeft: "8px" }}
                             />
                         </button>
+                        {activeRoot === NavigationRoots.About && <SiteAbout />}
                     </li>
                 </ul>
             </nav>
-            {activeRoot && AllNavigationRoots[activeRoot]}
+            {activeRoot === NavigationRoots.Topics && (
+                <SiteNavigationTopics topics={categorizedTopics} />
+            )}
             <div className="site-search-cta">
                 <form className="HeaderSearch" action="/search" method="GET">
                     <input
