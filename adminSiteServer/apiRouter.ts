@@ -1890,6 +1890,19 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
 })
 
 apiRouter.post(
+    "/datasets/:datasetId/setArchived",
+    async (req: Request, res: Response) => {
+        const datasetId = expectInt(req.params.datasetId)
+        const dataset = await Dataset.findOneBy({ id: datasetId })
+        if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
+        await db.transaction(async (t) => {
+            await t.execute(`UPDATE datasets SET isArchived = 1 WHERE id=?`, [datasetId])
+        })
+        return { success: true }
+    }
+)
+
+apiRouter.post(
     "/datasets/:datasetId/setTags",
     async (req: Request, res: Response) => {
         const datasetId = expectInt(req.params.datasetId)
