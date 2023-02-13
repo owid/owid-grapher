@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from "react"
+import React, { useLayoutEffect, useState } from "react"
 import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
@@ -12,27 +12,13 @@ import classnames from "classnames"
 // server and client on first paint (which is what the warning is about)
 if (typeof window === "undefined") React.useLayoutEffect = () => {}
 
-export const SiteNavigationTopics = () => {
-    const [categorizedTopics, setCategorizedTopics] = useState<
-        CategoryWithEntries[]
-    >([])
+export const SiteNavigationTopics = ({
+    topics,
+}: {
+    topics: CategoryWithEntries[]
+}) => {
     const [activeCategory, setActiveCategory] =
         useState<CategoryWithEntries | null>(null)
-
-    useEffect(() => {
-        const fetchCategorizedTopics = async () => {
-            const response = await fetch("/headerMenu.json", {
-                method: "GET",
-                credentials: "same-origin",
-                headers: {
-                    Accept: "application/json",
-                },
-            })
-            const json = await response.json()
-            setCategorizedTopics(json.categories)
-        }
-        fetchCategorizedTopics()
-    }, [])
 
     const [numTopicColumns, setNumTopicColumns] = useState(1)
 
@@ -46,12 +32,12 @@ export const SiteNavigationTopics = () => {
         }
     }, [activeCategory])
 
-    return categorizedTopics.length > 0 ? (
+    return topics.length > 0 ? (
         <div className="SiteNavigationTopics wrapper">
             <div className="categories">
                 <div className="heading">Browse by topic</div>
                 <ul>
-                    {categorizedTopics.map((category) => (
+                    {topics.map((category) => (
                         <li key={category.slug}>
                             <button
                                 onClick={() => setActiveCategory(category)}
