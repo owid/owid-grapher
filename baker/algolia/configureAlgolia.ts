@@ -52,6 +52,7 @@ export const configureAlgolia = async () => {
         distinct: true,
         advancedSyntax: true,
         advancedSyntaxFeatures: ["exactPhrase"],
+        unretrievableAttributes: ["views_7d"],
     }
 
     const chartsIndex = client.initIndex("charts")
@@ -75,6 +76,7 @@ export const configureAlgolia = async () => {
         ],
         customRanking: [
             "desc(numRelatedArticles)",
+            "desc(views_7d)",
             "asc(numDimensions)",
             "asc(titleLength)",
         ],
@@ -95,7 +97,7 @@ export const configureAlgolia = async () => {
             "unordered(content)",
             "unordered(authors)",
         ],
-        customRanking: ["desc(importance)"],
+        customRanking: ["desc(importance)", "desc(views_7d)"],
         attributesToSnippet: ["excerpt:20", "content:20"],
         attributeForDistinct: "slug",
         attributesForFaceting: [
