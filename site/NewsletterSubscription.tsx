@@ -1,5 +1,4 @@
 import React, { useState } from "react"
-import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"

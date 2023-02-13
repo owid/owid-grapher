@@ -3,7 +3,6 @@ import ReactDOM from "react-dom"
 import { FeedbackPrompt } from "./Feedback.js"
 import { ScrollDirection, useScrollDirection } from "./hooks.js"
 import {
-    NewsletterSubscription,
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription.js"
