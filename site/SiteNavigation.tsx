@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { faListUl } from "@fortawesome/free-solid-svg-icons/faListUl"
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown"
+import { faCaretUp } from "@fortawesome/free-solid-svg-icons/faCaretUp"
 import {
     NewsletterSubscription,
     NewsletterSubscriptionContext,
@@ -73,7 +74,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         >
                             Resources
                             <FontAwesomeIcon
-                                icon={faCaretDown}
+                                icon={
+                                    activeRoot === NavigationRoots.Resources
+                                        ? faCaretUp
+                                        : faCaretDown
+                                }
                                 style={{ marginLeft: "8px" }}
                             />
                         </button>
@@ -87,7 +92,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         >
                             About
                             <FontAwesomeIcon
-                                icon={faCaretDown}
+                                icon={
+                                    activeRoot === NavigationRoots.About
+                                        ? faCaretUp
+                                        : faCaretDown
+                                }
                                 style={{ marginLeft: "8px" }}
                             />
                         </button>
