@@ -108,7 +108,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }, 5000)
 
     // autosave
-    useAutoSaveDraft(currentGdoc, setOriginalGdoc, hasChanges)
+    useAutoSaveDraft(currentGdoc, hasChanges)
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,

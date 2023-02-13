@@ -37,14 +37,12 @@ export const useLightningUpdate = (
 
 export const useAutoSaveDraft = (
     currentGdoc: OwidArticleType | undefined,
-    setOriginalGdoc: (gdoc: OwidArticleType) => void,
     hasChanges: boolean
 ) => {
     const store = useGdocsStore()
 
     const saveDraft = useDebounceCallback((currentGdoc: OwidArticleType) => {
         store.update(currentGdoc)
-        setOriginalGdoc(currentGdoc)
     }, 2000)
 
     useEffect(() => {
