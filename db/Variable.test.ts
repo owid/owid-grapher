@@ -12,13 +12,13 @@ import { Writable } from "stream"
 
 describe("writeVariableCSV", () => {
     const getCSVOutput = async (
-        variablesDf: pl.DataFrame,
-        dataDf: pl.DataFrame,
+        variablesDf: pl.DataFrame | undefined,
+        dataDf: pl.DataFrame | undefined,
         variableIds: number[] = [1, 2]
     ): Promise<string> => {
-        jest.spyOn(Variable, "readSQLasDF")
-            .mockResolvedValueOnce(variablesDf)
-            .mockResolvedValueOnce(dataDf)
+        const spy = jest.spyOn(Variable, "readSQLasDF")
+        if (variablesDf) spy.mockResolvedValueOnce(variablesDf)
+        if (dataDf) spy.mockResolvedValueOnce(dataDf)
 
         let out = ""
         const writeStream = new Writable({
@@ -97,11 +97,10 @@ UK,2001,2.0,NaN
             variableName: ["a", "b"],
             columnOrder: [0, 1],
         })
-        const dataDf = pl.DataFrame()
 
         expect.assertions(1)
         try {
-            await getCSVOutput(variablesDf, dataDf, [1, 2, 3])
+            await getCSVOutput(variablesDf, undefined, [1, 2, 3])
         } catch (e: any) {
             expect(e.message).toEqual("Variable IDs do not exist: 3")
         }
