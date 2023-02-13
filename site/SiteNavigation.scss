@@ -13,50 +13,6 @@
     padding-top: 14px;
     padding-bottom: 11px;
 
-    .logo-owid a {
-        margin-right: 32px;
-        font-size: 20px;
-        font-weight: 300;
-        line-height: 1.2;
-        color: $white;
-        display: block;
-        text-align: center;
-    }
-
-    .site-logos {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .logos-wrapper {
-        display: flex;
-        align-items: flex-start;
-        margin-top: 5px;
-
-        a {
-            display: none;
-            @media (min-width: $lg) {
-                display: initial;
-                margin: 1px;
-            }
-            color: white;
-            opacity: 0.6;
-            transition: color 150ms ease;
-            line-height: 1;
-            &:hover {
-                opacity: initial;
-            }
-        }
-        .oxford-logo img {
-            margin-right: 3px;
-            height: 46px;
-        }
-        .gcdl-logo img {
-            height: 42px;
-        }
-    }
-
     .site-primary-links {
         display: flex;
         flex-direction: row;
