@@ -1896,7 +1896,9 @@ apiRouter.post(
         const dataset = await Dataset.findOneBy({ id: datasetId })
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
         await db.transaction(async (t) => {
-            await t.execute(`UPDATE datasets SET isArchived = 1 WHERE id=?`, [datasetId])
+            await t.execute(`UPDATE datasets SET isArchived = 1 WHERE id=?`, [
+                datasetId,
+            ])
         })
         return { success: true }
     }
