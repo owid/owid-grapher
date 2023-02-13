@@ -7,6 +7,7 @@ import { formatPost } from "../../baker/formatWordpressPost.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import { PageRecord, PageType } from "../../site/search/searchTypes.js"
+import { Pageview } from "../../db/model/Pageview.js"
 
 interface Tag {
     id: number
@@ -42,6 +43,7 @@ const getPostTypeAndImportance = (
 
 const getPagesRecords = async () => {
     const postsApi = await wpdb.getPosts()
+    const pageviews = await Pageview.viewsByUrlObj()
 
     const records: PageRecord[] = []
     for (const country of countries) {
@@ -55,6 +57,7 @@ const getPagesRecords = async () => {
             slug: `country/${country.slug}`,
             title: country.name,
             content: `All available indicators for ${country.name}.`,
+            views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
         })
     }
 
@@ -95,6 +98,7 @@ const getPagesRecords = async () => {
                 modifiedDate: post.modifiedDate.toISOString(),
                 content: c,
                 tags: tags.map((t) => t.name),
+                views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
             })
             i += 1
         }

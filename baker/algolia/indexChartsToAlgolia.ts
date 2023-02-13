@@ -5,6 +5,7 @@ import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
 import { ChartRecord } from "../../site/search/searchTypes.js"
 import { MarkdownTextWrap } from "@ourworldindata/utils"
+import { Pageview } from "../../db/model/Pageview.js"
 
 const getChartsRecords = async (): Promise<ChartRecord[]> => {
     const chartsToIndex = await db.queryMysql(`
@@ -36,6 +37,8 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
         )
     }
 
+    const pageviews = await Pageview.viewsByUrlObj()
+
     const records: ChartRecord[] = []
     for (const c of chartsToIndex) {
         // Our search currently cannot render explorers, so don't index them because
@@ -65,6 +68,7 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
             titleLength: c.title.length,
             // Number of references to this chart in all our posts and pages
             numRelatedArticles: relatedArticles.length,
+            views_7d: pageviews[`/grapher/${c.slug}`]?.views_7d ?? 0,
         })
     }
 

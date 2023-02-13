@@ -15,6 +15,7 @@ export interface PageRecord {
     slug: string
     title: string
     content: string
+    views_7d: number
     postId?: number
     excerpt?: string
     authors?: string[]
@@ -59,6 +60,7 @@ export interface ChartRecord {
     numDimensions: number
     titleLength: number
     numRelatedArticles: number
+    views_7d: number
 }
 
 export interface ChartHit extends ChartRecord {
