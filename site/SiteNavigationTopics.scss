@@ -88,14 +88,19 @@
 
         > li {
             list-style-type: none;
-            margin: 0;
-            padding: 0;
             break-inside: avoid-column;
+            padding: 8px 0;
+            margin: 8px 0;
+            &:first-child {
+                margin-top: 0;
+            }
+            &:last-child {
+                margin-bottom: 0;
+            }
             > a {
                 display: block;
-                padding: 8px 0;
-                margin: 8px 0;
                 color: $blue-90;
+
                 &:hover {
                     color: $blue-50;
                 }
