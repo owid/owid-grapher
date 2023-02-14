@@ -41,6 +41,11 @@ const getPostTypeAndImportance = (
     return { type: "other", importance: 0 }
 }
 
+const computeScore = (record: Omit<PageRecord, "score">): number => {
+    const { importance, views_7d } = record
+    return importance * 1000 + views_7d
+}
+
 const getPagesRecords = async () => {
     const postsApi = await wpdb.getPosts()
     const pageviews = await Pageview.viewsByUrlObj()
@@ -51,14 +56,16 @@ const getPagesRecords = async () => {
             type: "country",
             importance: -1,
         }
-        records.push({
+        const record = {
             objectID: country.slug,
             ...postTypeAndImportance,
             slug: `country/${country.slug}`,
             title: country.name,
             content: `All available indicators for ${country.name}.`,
             views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
-        })
+        }
+        const score = computeScore(record)
+        records.push({ ...record, score })
     }
 
     for (const postApi of postsApi) {
@@ -86,7 +93,7 @@ const getPagesRecords = async () => {
 
         let i = 0
         for (const c of chunks) {
-            records.push({
+            const record = {
                 objectID: `${rawPost.id}-c${i}`,
                 postId: post.id,
                 ...postTypeAndImportance,
@@ -99,7 +106,9 @@ const getPagesRecords = async () => {
                 content: c,
                 tags: tags.map((t) => t.name),
                 views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
-            })
+            }
+            const score = computeScore(record)
+            records.push({ ...record, score })
             i += 1
         }
     }

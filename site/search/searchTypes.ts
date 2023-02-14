@@ -12,10 +12,12 @@ export type PageType =
 export interface PageRecord {
     objectID: string
     type: PageType
+    importance: number
     slug: string
     title: string
     content: string
     views_7d: number
+    score: number
     postId?: number
     excerpt?: string
     authors?: string[]
@@ -61,6 +63,7 @@ export interface ChartRecord {
     titleLength: number
     numRelatedArticles: number
     views_7d: number
+    score: number
 }
 
 export interface ChartHit extends ChartRecord {

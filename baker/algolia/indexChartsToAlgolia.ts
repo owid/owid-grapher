@@ -7,6 +7,11 @@ import { ChartRecord } from "../../site/search/searchTypes.js"
 import { MarkdownTextWrap } from "@ourworldindata/utils"
 import { Pageview } from "../../db/model/Pageview.js"
 
+const computeScore = (record: Omit<ChartRecord, "score">): number => {
+    const { numRelatedArticles, views_7d } = record
+    return numRelatedArticles * 500 + views_7d
+}
+
 const getChartsRecords = async (): Promise<ChartRecord[]> => {
     const chartsToIndex = await db.queryMysql(`
     SELECT c.id,
@@ -52,7 +57,7 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
             fontSize: 10, // doesn't matter, but is a mandatory field
         }).plaintext
 
-        records.push({
+        const record = {
             objectID: c.id,
             chartId: c.id,
             slug: c.slug,
@@ -69,7 +74,9 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
             // Number of references to this chart in all our posts and pages
             numRelatedArticles: relatedArticles.length,
             views_7d: pageviews[`/grapher/${c.slug}`]?.views_7d ?? 0,
-        })
+        }
+        const score = computeScore(record)
+        records.push({ ...record, score })
     }
 
     return records
