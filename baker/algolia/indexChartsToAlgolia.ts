@@ -86,6 +86,7 @@ const indexChartsToAlgolia = async () => {
 
     const index = client.initIndex("charts")
 
+    await db.getConnection()
     const records = await getChartsRecords()
     await index.replaceAllObjects(records)
 

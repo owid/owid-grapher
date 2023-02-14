@@ -117,6 +117,7 @@ const indexToAlgolia = async () => {
     }
     const index = client.initIndex("pages")
 
+    await db.getConnection()
     const records = await getPagesRecords()
     index.replaceAllObjects(records)
 
