@@ -232,7 +232,7 @@ export const renderFrontPage = async () => {
     )
     await frontPageConfigGdoc.getEnrichedArticle()
     const frontPageConfig: any = frontPageConfigGdoc.content
-    const featuredPosts: { slug: String; position: Number }[] =
+    const featuredPosts: { slug: string; position: number }[] =
         frontPageConfig.featuredPosts
 
     // Generate the candidate posts to fill in any missing slots

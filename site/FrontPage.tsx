@@ -37,7 +37,7 @@ export const FrontPage = (props: {
     baseUrl: string
     featuredWork: IndexPost[]
 }) => {
-    const { entries, posts, totalCharts, baseUrl, featuredWork } = props
+    const { entries, totalCharts, baseUrl, featuredWork } = props
 
     // Structured data for google
     const structuredMarkup = {
