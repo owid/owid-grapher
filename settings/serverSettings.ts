@@ -22,8 +22,6 @@ export const ADMIN_SERVER_PORT: number = clientSettings.ADMIN_SERVER_PORT
 export const ADMIN_SERVER_HOST: string = clientSettings.ADMIN_SERVER_HOST
 export const DATA_API_FOR_ADMIN_UI: string | undefined =
     serverSettings.DATA_API_FOR_ADMIN_UI
-export const DATA_API_FOR_BAKING: string | undefined =
-    serverSettings.DATA_API_FOR_BAKING
 export const BAKED_BASE_URL: string = clientSettings.BAKED_BASE_URL
 
 export const ADMIN_BASE_URL: string = clientSettings.ADMIN_BASE_URL

@@ -14,7 +14,9 @@ import {
     parseVariableRows,
     VariableRow,
     variableTable,
+    dataAsDF,
 } from "../db/model/Variable.js"
+import pl from "nodejs-polars"
 
 export const countriesIndexPage = (baseUrl: string) =>
     renderToHtmlPage(
@@ -49,7 +51,7 @@ const countryIndicatorGraphers = async (): Promise<GrapherInterface[]> =>
         return graphers.filter(checkShouldShowIndicator)
     })
 
-const countryIndicatorVariables = async (): Promise<VariableRow[]> =>
+export const countryIndicatorVariables = async (): Promise<VariableRow[]> =>
     bakeCache(countryIndicatorVariables, async () => {
         const variableIds = (await countryIndicatorGraphers()).map(
             (c) => c.dimensions![0]!.variableId
@@ -69,41 +71,43 @@ export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
     }[]
 
     const entitiesByCode = lodash.keyBy(entities, (e) => e.code)
-    const entitiesById = lodash.keyBy(entities, (e) => e.id)
     const entityIds = countries.map((c) => entitiesByCode[c.code].id)
 
-    if (!variableIds)
+    if (!variableIds) {
         variableIds = (await countryIndicatorVariables()).map((v) => v.id)
+
+        // exclude variables that are already in country_latest_data
+        // NOTE: we always fetch all variables that don't have country entities because they never
+        // get saved to `country_latest_data`. This is wasteful, but until we have metadata about
+        // entities used in variables there's no easy way. It's not as bad since this still takes
+        // under a minute to run.
+        const existingVariableIds = (
+            await db.queryMysql(
+                `select variable_id from country_latest_data where variable_id in (?)`,
+                [variableIds]
+            )
+        ).map((r: any) => r.variable_id)
+        variableIds = lodash.difference(variableIds, existingVariableIds)
+    }
 
     const currentYear = new Date().getUTCFullYear()
 
-    const dataValuesQuery = db
-        .knexTable("data_values")
-        .select("variableId", "entityId", "value", "year")
-        .whereIn("variableId", variableIds)
-        .whereRaw(`entityId in (?)`, [entityIds])
-        .andWhere("year", ">", currentYear - 10) // latest data point should be at most 10 years old
-        .andWhere("year", "<=", currentYear)
-        .orderBy("year", "DESC")
+    const df = (await dataAsDF(variableIds))
+        .filter(
+            pl
+                .col("entityId")
+                .isIn(entityIds)
+                .and(pl.col("year").ltEq(currentYear))
+                .and(pl.col("year").gt(currentYear - 10)) // latest data point should be at most 10 years old
+        )
+        // keep only the latest data point for each variable and entity
+        .sort("year", true)
+        .unique(true, ["variableId", "entityId"], "first")
+        // only keep relevant columns
+        .select("variableId", "entityCode", "year", "value")
+        .rename({ variableId: "variable_id", entityCode: "country_code" })
 
-    let dataValues = (await dataValuesQuery) as {
-        variableId: number
-        entityId: number
-        value: string
-        year: number
-    }[]
-    dataValues = lodash.uniqBy(
-        dataValues,
-        (dv) => `${dv.variableId}-${dv.entityId}`
-    )
-    const rows = dataValues.map((dv) => ({
-        variable_id: dv.variableId,
-        country_code: entitiesById[dv.entityId].code,
-        year: dv.year,
-        value: dv.value,
-    }))
-
-    db.knexInstance().transaction(async (t) => {
+    await db.knexInstance().transaction(async (t) => {
         // Remove existing values
         await t
             .table("country_latest_data")
@@ -111,7 +115,9 @@ export const denormalizeLatestCountryData = async (variableIds?: number[]) => {
             .delete()
 
         // Insert new ones
-        if (rows.length) await t.table("country_latest_data").insert(rows)
+        if (df.height > 0) {
+            await t.table("country_latest_data").insert(df.toRecords())
+        }
     })
 }
 
