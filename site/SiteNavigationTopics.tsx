@@ -14,8 +14,10 @@ if (typeof window === "undefined") React.useLayoutEffect = () => {}
 
 export const SiteNavigationTopics = ({
     topics,
+    onClose,
 }: {
     topics: CategoryWithEntries[]
+    onClose: () => void
 }) => {
     const [activeCategory, setActiveCategory] =
         useState<CategoryWithEntries | null>(null)
@@ -33,14 +35,22 @@ export const SiteNavigationTopics = ({
     }, [activeCategory])
 
     return topics.length > 0 ? (
-        <div className="SiteNavigationTopics wrapper">
+        <div className="SiteNavigationTopics wrapper" onClick={onClose}>
             <div className="categories">
                 <div className="heading">Browse by topic</div>
                 <ul>
                     {topics.map((category) => (
                         <li key={category.slug}>
                             <button
-                                onClick={() => setActiveCategory(category)}
+                                onClick={(e) => {
+                                    setActiveCategory(category)
+                                    // prevent the click from bubbling up and
+                                    // closing the overlay. This is a
+                                    // side-effect of the way ul.topics is laid
+                                    // out, with its grid capturing what
+                                    // visually seems to be overlay clicks.
+                                    e.stopPropagation()
+                                }}
                                 className={classnames({
                                     active: category === activeCategory,
                                 })}

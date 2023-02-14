@@ -1,11 +1,19 @@
 .site-navigation-root {
-    background-color: $oxford-blue;
+    .overlay {
+        @include overlay;
+        z-index: $zindex-lightbox - 1;
+    }
+}
+
+.site-navigation {
+    position: relative;
+    z-index: $zindex-lightbox;
     border-bottom: $mobile-header-border-height solid $vermillion;
+    background-color: $oxford-blue;
 }
 
 .site-navigation-bar {
     @include body-3-medium;
-    position: relative;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -41,7 +49,6 @@
             .site-about {
                 position: absolute;
                 top: 100%;
-                z-index: $zindex-lightbox;
                 width: 330px;
                 margin-top: $vertical-spacing;
                 margin-left: -40px;
