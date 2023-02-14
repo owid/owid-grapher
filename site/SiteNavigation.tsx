@@ -45,90 +45,112 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         fetchCategorizedTopics()
     }, [])
 
+    const closeOverlay = () => {
+        setActiveRoot(null)
+    }
+
     return (
-        <div className="site-navigation-bar wrapper">
-            <SiteLogos baseUrl={baseUrl} />
-            <nav className="site-primary-links">
-                <ul>
-                    <li>
-                        <button
-                            onClick={() =>
-                                setActiveRoot(NavigationRoots.Topics)
-                            }
+        <>
+            {activeRoot && <div className="overlay" onClick={closeOverlay} />}
+            <div className="site-navigation">
+                <div className="site-navigation-bar wrapper">
+                    <SiteLogos baseUrl={baseUrl} />
+
+                    <nav className="site-primary-links">
+                        <ul>
+                            <li>
+                                <button
+                                    onClick={() =>
+                                        setActiveRoot(NavigationRoots.Topics)
+                                    }
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faListUl}
+                                        style={{ marginRight: "8px" }}
+                                    />
+                                    Browse by topic
+                                </button>
+                            </li>
+                            <li>
+                                <a href="/blog">Latest</a>
+                            </li>
+                            <li className="prompt">
+                                <button
+                                    onClick={() =>
+                                        setActiveRoot(NavigationRoots.Resources)
+                                    }
+                                >
+                                    Resources
+                                    <FontAwesomeIcon
+                                        icon={
+                                            activeRoot ===
+                                            NavigationRoots.Resources
+                                                ? faCaretUp
+                                                : faCaretDown
+                                        }
+                                        style={{ marginLeft: "8px" }}
+                                    />
+                                </button>
+                                {activeRoot === NavigationRoots.Resources && (
+                                    <SiteResources />
+                                )}
+                            </li>
+                            <li className="prompt">
+                                <button
+                                    onClick={() =>
+                                        setActiveRoot(NavigationRoots.About)
+                                    }
+                                >
+                                    About
+                                    <FontAwesomeIcon
+                                        icon={
+                                            activeRoot === NavigationRoots.About
+                                                ? faCaretUp
+                                                : faCaretDown
+                                        }
+                                        style={{ marginLeft: "8px" }}
+                                    />
+                                </button>
+                                {activeRoot === NavigationRoots.About && (
+                                    <SiteAbout />
+                                )}
+                            </li>
+                        </ul>
+                    </nav>
+                    {activeRoot === NavigationRoots.Topics && (
+                        <SiteNavigationTopics
+                            onClose={closeOverlay}
+                            topics={categorizedTopics}
+                        />
+                    )}
+                    <div className="site-search-cta">
+                        <form
+                            className="HeaderSearch"
+                            action="/search"
+                            method="GET"
                         >
-                            <FontAwesomeIcon
-                                icon={faListUl}
-                                style={{ marginRight: "8px" }}
+                            <input
+                                name="search"
+                                placeholder="Search for a topic or chart..."
                             />
-                            Browse by topic
-                        </button>
-                    </li>
-                    <li>
-                        <a href="/blog">Latest</a>
-                    </li>
-                    <li className="prompt">
-                        <button
-                            onClick={() =>
-                                setActiveRoot(NavigationRoots.Resources)
-                            }
+                            <div className="icon">
+                                <FontAwesomeIcon icon={faSearch} />
+                            </div>
+                        </form>
+                        <NewsletterSubscription
+                            context={NewsletterSubscriptionContext.Floating}
+                        />
+                        <a
+                            href="/donate"
+                            className="donate"
+                            data-track-note="header-navigation"
                         >
-                            Resources
-                            <FontAwesomeIcon
-                                icon={
-                                    activeRoot === NavigationRoots.Resources
-                                        ? faCaretUp
-                                        : faCaretDown
-                                }
-                                style={{ marginLeft: "8px" }}
-                            />
-                        </button>
-                        {activeRoot === NavigationRoots.Resources && (
-                            <SiteResources />
-                        )}
-                    </li>
-                    <li className="prompt">
-                        <button
-                            onClick={() => setActiveRoot(NavigationRoots.About)}
-                        >
-                            About
-                            <FontAwesomeIcon
-                                icon={
-                                    activeRoot === NavigationRoots.About
-                                        ? faCaretUp
-                                        : faCaretDown
-                                }
-                                style={{ marginLeft: "8px" }}
-                            />
-                        </button>
-                        {activeRoot === NavigationRoots.About && <SiteAbout />}
-                    </li>
-                </ul>
-            </nav>
-            {activeRoot === NavigationRoots.Topics && (
-                <SiteNavigationTopics topics={categorizedTopics} />
-            )}
-            <div className="site-search-cta">
-                <form className="HeaderSearch" action="/search" method="GET">
-                    <input
-                        name="search"
-                        placeholder="Search for a topic or chart..."
-                    />
-                    <div className="icon">
-                        <FontAwesomeIcon icon={faSearch} />
+                            Donate
+                        </a>
                     </div>
-                </form>
-                <NewsletterSubscription
-                    context={NewsletterSubscriptionContext.Floating}
-                />
-                <a
-                    href="/donate"
-                    className="donate"
-                    data-track-note="header-navigation"
-                >
-                    Donate
-                </a>
+                </div>
             </div>
-        </div>
+        </>
     )
 }
 
