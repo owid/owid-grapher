@@ -145,7 +145,7 @@ export const configureAlgolia = async () => {
         ["hdi", "human development index"],
         ["drug", "drugs", "substance use"],
         ["r&d", "r & d", "research"],
-        ["plane", "airplane", "aviation", "airline"],
+        ["plane", "airplane", "aviation", "airline", "flying"],
         ["ev", "electric vehicle", "electric car"],
         ["train", "railway"],
     ]
