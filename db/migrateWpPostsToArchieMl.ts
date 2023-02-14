@@ -92,7 +92,7 @@ const migrate = async (): Promise<void> => {
             )
 
             const archieMlFieldContent: OwidArticleType = {
-                googleId: `wp-${post.id}`,
+                id: `wp-${post.id}`,
                 slug: post.slug,
                 content: {
                     body: archieMlBodyElements,

@@ -120,9 +120,9 @@ export class OwidAdminApp {
         })
 
         // Public preview of a Gdoc article
-        app.get("/gdocs/:googleId/preview", async (req, res) => {
+        app.get("/gdocs/:id/preview", async (req, res) => {
             const gdoc = await Gdoc.getGdocFromContentSource(
-                req.params.googleId,
+                req.params.id,
                 GdocsContentSource.Gdocs
             )
             res.set("X-Robots-Tag", "noindex")

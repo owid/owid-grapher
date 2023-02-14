@@ -67,7 +67,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                             </thead>
                             <tbody>
                                 {store.gdocs.map((gdoc) => (
-                                    <tr key={gdoc.googleId}>
+                                    <tr key={gdoc.id}>
                                         <td>{gdoc.content.title}</td>
                                         <td>{gdoc.slug}</td>
                                         <td>Article</td>
@@ -80,7 +80,7 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                         <td>{gdoc.updatedAt}</td>
                                         <td>
                                             <Link
-                                                to={`${match.path}/${gdoc.googleId}/preview`}
+                                                to={`${match.path}/${gdoc.id}/preview`}
                                                 className="btn btn-primary"
                                             >
                                                 Preview

@@ -42,8 +42,6 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }>({ original: undefined, current: undefined })
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
-    const setOriginalGdoc = (original?: OwidArticleType) =>
-        setGdoc({ original, current: gdoc.current })
     const setCurrentGdoc = (current: OwidArticleType | undefined) =>
         setGdoc({ original: gdoc.original, current })
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
@@ -198,7 +196,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <Typography.Title className="mb-0" level={4}>
                                 {currentGdoc.content.title}
                             </Typography.Title>
-                            [ <GdocsEditLink gdocId={currentGdoc.googleId} /> ]
+                            [ <GdocsEditLink gdocId={currentGdoc.id} /> ]
                             <div>
                                 {!currentGdoc.published && (
                                     <Tag color="default">Draft</Tag>
@@ -312,7 +310,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     resets on every change)
                 */}
                 <iframe
-                    src={`/gdocs/${currentGdoc.googleId}/preview#owid-article-root`}
+                    src={`/gdocs/${currentGdoc.id}/preview#owid-article-root`}
                     style={{ width: "100%", border: "none" }}
                     key={currentGdoc.revisionId}
                 />

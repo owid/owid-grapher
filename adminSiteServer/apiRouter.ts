@@ -2639,29 +2639,26 @@ apiRouter.put("/details/:id", async (req, res) => {
 
 apiRouter.get("/gdocs", async () => Gdoc.find())
 
-apiRouter.get("/gdocs/:googleId", async (req) => {
-    const { googleId } = req.params
+apiRouter.get("/gdocs/:id", async (req) => {
+    const { id } = req.params
     const contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
 
     try {
-        const gdoc = await Gdoc.getGdocFromContentSource(
-            googleId,
-            contentSource
-        )
+        const gdoc = await Gdoc.getGdocFromContentSource(id, contentSource)
         return gdoc
     } catch (error) {
         throw new JsonError(`Error fetching document ${error}`)
     }
 })
 
-apiRouter.get("/gdocs/:googleId/validate", async (req) => {
-    const { googleId } = req.params
+apiRouter.get("/gdocs/:id/validate", async (req) => {
+    const { id } = req.params
 
-    const gdoc = await Gdoc.findOneBy({ googleId })
+    const gdoc = await Gdoc.findOneBy({ id })
 
-    if (!gdoc) throw new JsonError(`No Google Doc with id ${googleId} found`)
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     return getErrors(gdoc)
 })
@@ -2671,27 +2668,26 @@ apiRouter.get("/gdocs/:googleId/validate", async (req) => {
  * support creating a new Gdoc from an existing one. Relevant updates will
  * trigger a deploy.
  */
-apiRouter.put("/gdocs/:googleId", async (req, res) => {
-    const { googleId } = req.params
+apiRouter.put("/gdocs/:id", async (req, res) => {
+    const { id } = req.params
     const nextGdocJSON: OwidArticleTypeJSON = req.body
 
     if (isEmpty(nextGdocJSON)) {
-        const newGdoc = new Gdoc(googleId)
+        const newGdoc = new Gdoc(id)
         // this will fail if the gdoc already exists, as opposed to a call to
         // newGdoc.save().
         await dataSource.getRepository(Gdoc).insert(newGdoc)
         return newGdoc
     }
 
-    const prevGdoc = await Gdoc.findOneBy({ googleId })
-    if (!prevGdoc)
-        throw new JsonError(`No Google Doc with id ${googleId} found`)
+    const prevGdoc = await Gdoc.findOneBy({ id })
+    if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     const nextGdoc = dataSource
         .getRepository(Gdoc)
         .create(getArticleFromJSON(nextGdocJSON))
     // Deleting and recreating these is simpler than tracking orphans over the next code block
-    await GdocXImage.delete({ docId: nextGdoc.id })
+    await GdocXImage.delete({ gdocId: id })
     const filenames = nextGdoc.filenames
 
     if (filenames.length && nextGdoc.published) {
@@ -2700,12 +2696,12 @@ apiRouter.put("/gdocs/:googleId", async (req, res) => {
             if (image) {
                 try {
                     await GdocXImage.save({
-                        docId: nextGdoc.id,
+                        gdocId: nextGdoc.id,
                         imageId: image.id,
                     })
                 } catch (e) {
                     console.error(
-                        `Error tracking image reference ${image.filename} with Google ID ${nextGdoc.googleId}`,
+                        `Error tracking image reference ${image.filename} with Google ID ${nextGdoc.id}`,
                         e
                     )
                 }
@@ -2752,14 +2748,14 @@ apiRouter.put("/gdocs/:googleId", async (req, res) => {
     return nextGdoc
 })
 
-apiRouter.delete("/gdocs/:googleId", async (req, res) => {
-    const { googleId } = req.params
+apiRouter.delete("/gdocs/:id", async (req, res) => {
+    const { id } = req.params
 
-    const gdoc = await Gdoc.findOneBy({ googleId })
-    if (!gdoc) throw new JsonError(`No Google Doc with id ${googleId} found`)
+    const gdoc = await Gdoc.findOneBy({ id })
+    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    await GdocXImage.delete({ docId: gdoc.id })
-    await Gdoc.delete({ googleId })
+    await GdocXImage.delete({ gdocId: id })
+    await Gdoc.delete({ id })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })

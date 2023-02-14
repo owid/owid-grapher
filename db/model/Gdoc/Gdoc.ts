@@ -32,9 +32,8 @@ import {
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
-    @PrimaryGeneratedColumn() id!: number
-    @Column({ unique: true }) googleId!: string
-    @Column({ unique: true }) slug: string = ""
+    @PrimaryGeneratedColumn() id!: string
+    @Column() slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
     @Column() published: boolean = false
     @Column() publicationContext: OwidArticlePublicationContext =
@@ -44,12 +43,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
 
-    constructor(googleId?: string) {
+    constructor(id?: string) {
         super()
         // TODO: the class is re-initializing every single auto-reload
         // Implement Page Visibility API ?
-        if (googleId) {
-            this.googleId = googleId
+        if (id) {
+            this.id = id
         }
         this.content = {}
     }
@@ -102,7 +101,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         // Retrieve raw data from Google
         const { data } = await docsClient.documents.get({
-            documentId: this.googleId,
+            documentId: this.id,
             suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
         })
 
@@ -172,13 +171,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     static async getGdocFromContentSource(
-        googleId: string,
+        id: string,
         contentSource?: GdocsContentSource
     ): Promise<OwidArticleType> {
-        const gdoc = await Gdoc.findOneBy({ googleId })
+        const gdoc = await Gdoc.findOneBy({ id })
 
-        if (!gdoc)
-            throw new JsonError(`No Google Doc with id ${googleId} found`)
+        if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
         if (contentSource === GdocsContentSource.Gdocs) {
             await gdoc.getEnrichedArticle()
