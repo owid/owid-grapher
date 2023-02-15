@@ -9,6 +9,7 @@ export class links1676376942081 implements MigrationInterface {
             target VARCHAR(2047) NOT NULL,
             type ENUM("gdoc", "url") NOT NULL,
             context VARCHAR(255) NOT NULL,
+            text VARCHAR(255) NOT NULL,
             PRIMARY KEY(id),
             CONSTRAINT FOREIGN KEY (source) REFERENCES posts_gdocs (id)
         )`)
