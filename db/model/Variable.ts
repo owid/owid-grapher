@@ -382,14 +382,12 @@ export const _dataAsDFfromS3 = async (
 
     const dfs = await Promise.all(
         variableIds.map(async (variableId) => {
-            return pl
-                .DataFrame(await readValuesFromS3(variableId))
-                .select(
-                    pl.col("entityId").cast(pl.Int32),
-                    pl.col("year").cast(pl.Int32),
-                    pl.col("value").cast(pl.Utf8),
-                    pl.lit(variableId).cast(pl.Int32).alias("variableId")
-                )
+            return createDataFrame(await readValuesFromS3(variableId)).select(
+                pl.col("entityId").cast(pl.Int32),
+                pl.col("year").cast(pl.Int32),
+                pl.col("value").cast(pl.Utf8),
+                pl.lit(variableId).cast(pl.Int32).alias("variableId")
+            )
         })
     )
 
@@ -482,7 +480,7 @@ const httpsAgent = new https.Agent({
     maxSockets: 50,
 })
 
-const fetchS3Values = async (
+export const fetchS3Values = async (
     variableId: OwidVariableId
 ): Promise<OwidVariableMixedData> => {
     const dataPath = await getOwidVariableDataPath(variableId)
@@ -523,17 +521,23 @@ export const dataAsRecords = async (
     return (await dataAsDF(variableIds)).toRecords() as DataRow[]
 }
 
+export const createDataFrame = (data: any): pl.DataFrame => {
+    if (Array.isArray(data)) {
+        // transpose list of objects into object of lists because polars raises
+        // an error when creating a dataframe with null values (see https://github.com/pola-rs/nodejs-polars/issues/20)
+        // otherwise we'd just use pl.DataFrame(rows)
+        const keys = _.keys(data[0])
+        const values = _.map(keys, (key) => _.map(data, key))
+
+        return pl.DataFrame(_.zipObject(keys, values))
+    } else {
+        return pl.DataFrame(data)
+    }
+}
+
 export const readSQLasDF = async (
     sql: string,
     params: any[]
 ): Promise<pl.DataFrame> => {
-    const rows = await db.queryMysql(sql, params)
-
-    // transpose list of objects into object of lists because polars raises
-    // an error when creating a dataframe with null values (see https://github.com/pola-rs/nodejs-polars/issues/20)
-    // otherwise we'd just use pl.DataFrame(rows)
-    const keys = _.keys(rows[0])
-    const values = _.map(keys, (key) => _.map(rows, key))
-
-    return pl.DataFrame(_.zipObject(keys, values))
+    return createDataFrame(await db.queryMysql(sql, params))
 }
