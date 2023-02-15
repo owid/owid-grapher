@@ -262,6 +262,9 @@ export {
     isNegativeInfinity,
     isPositiveInfinity,
     imemo,
+    recursivelyMapArticleBlock,
+    checkNodeIsSpan,
+    spansToUnformattedPlainText,
 } from "./Util.js"
 
 export {

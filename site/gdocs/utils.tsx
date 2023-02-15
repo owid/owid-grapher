@@ -1,34 +1,7 @@
 import React from "react"
 
 import { Span } from "@ourworldindata/utils"
-import { match, P } from "ts-pattern"
-
-export function spansToUnformattedPlainText(spans: Span[]): string {
-    return spans
-        .map((span) =>
-            match(span)
-                .with({ spanType: "span-simple-text" }, (span) => span.text)
-                .with(
-                    {
-                        spanType: P.union(
-                            "span-link",
-                            "span-italic",
-                            "span-bold",
-                            "span-fallback",
-                            "span-quote",
-                            "span-superscript",
-                            "span-subscript",
-                            "span-underline",
-                            "span-ref"
-                        ),
-                    },
-                    (span) => spansToUnformattedPlainText(span.children)
-                )
-                .with({ spanType: "span-newline" }, () => "")
-                .exhaustive()
-        )
-        .join("")
-}
+import { match } from "ts-pattern"
 
 export function renderSpan(
     span: Span,

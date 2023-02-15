@@ -154,9 +154,12 @@ import {
     OwidArticleTypeJSON,
     TimeBound,
     TimeBoundValue,
+    OwidEnrichedArticleBlock,
+    Span,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
+import { match, P } from "ts-pattern"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -1340,4 +1343,67 @@ export const imemo = <Type>(
         }
         return this[propName]
     }
+}
+
+export function recursivelyMapArticleBlock<
+    Node extends OwidEnrichedArticleBlock | Span
+>(
+    node: Node,
+    callback: <Node extends OwidEnrichedArticleBlock | Span>(node: Node) => Node
+): Node {
+    if (checkNodeIsSpan(node)) {
+        if ("children" in node) {
+            node.children.map((node) =>
+                recursivelyMapArticleBlock(node, callback)
+            )
+        }
+    } else if (node.type === "gray-section") {
+        node.items.map((block) => recursivelyMapArticleBlock(block, callback))
+    } else if (
+        node.type === "sticky-left" ||
+        node.type === "sticky-right" ||
+        node.type === "side-by-side"
+    ) {
+        node.left.map((node) => recursivelyMapArticleBlock(node, callback))
+        node.right.map((node) => recursivelyMapArticleBlock(node, callback))
+    } else if (node.type === "text") {
+        node.value.map((node) =>
+            recursivelyMapArticleBlock(node as any, callback)
+        )
+    }
+
+    return callback(node)
+}
+
+export function checkNodeIsSpan(
+    node: OwidEnrichedArticleBlock | Span
+): node is Span {
+    return "spanType" in node
+}
+
+export function spansToUnformattedPlainText(spans: Span[]): string {
+    return spans
+        .map((span) =>
+            match(span)
+                .with({ spanType: "span-simple-text" }, (span) => span.text)
+                .with(
+                    {
+                        spanType: P.union(
+                            "span-link",
+                            "span-italic",
+                            "span-bold",
+                            "span-fallback",
+                            "span-quote",
+                            "span-superscript",
+                            "span-subscript",
+                            "span-underline",
+                            "span-ref"
+                        ),
+                    },
+                    (span) => spansToUnformattedPlainText(span.children)
+                )
+                .with({ spanType: "span-newline" }, () => "")
+                .exhaustive()
+        )
+        .join("")
 }
