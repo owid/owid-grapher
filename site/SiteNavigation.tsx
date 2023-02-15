@@ -14,6 +14,7 @@ import { SiteLogos } from "./SiteLogos.js"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
 import { SiteAbout } from "./SiteAbout.js"
+import { SiteSearchInput } from "./SiteSearchInput.js"
 
 enum NavigationRoots {
     Topics = "topics",
@@ -134,19 +135,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         />
                     )}
                     <div className="site-search-cta">
-                        <form
-                            className="HeaderSearch"
-                            action="/search"
-                            method="GET"
-                        >
-                            <input
-                                name="search"
-                                placeholder="Search for a topic or chart..."
-                            />
-                            <div className="icon">
-                                <FontAwesomeIcon icon={faSearch} />
-                            </div>
-                        </form>
+                        <SiteSearchInput />
                         <NewsletterSubscription
                             context={NewsletterSubscriptionContext.Floating}
                         />
