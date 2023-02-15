@@ -49,6 +49,14 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         setActiveRoot(null)
     }
 
+    const toggleActiveRoot = (root: NavigationRoots) => {
+        if (activeRoot === root) {
+            closeOverlay()
+        } else {
+            setActiveRoot(root)
+        }
+    }
+
     return (
         <>
             {activeRoot && <div className="overlay" onClick={closeOverlay} />}
@@ -61,7 +69,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             <li>
                                 <button
                                     onClick={() =>
-                                        setActiveRoot(NavigationRoots.Topics)
+                                        toggleActiveRoot(NavigationRoots.Topics)
                                     }
                                 >
                                     <FontAwesomeIcon
@@ -77,7 +85,9 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             <li className="prompt">
                                 <button
                                     onClick={() =>
-                                        setActiveRoot(NavigationRoots.Resources)
+                                        toggleActiveRoot(
+                                            NavigationRoots.Resources
+                                        )
                                     }
                                 >
                                     Resources
@@ -98,7 +108,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             <li className="prompt">
                                 <button
                                     onClick={() =>
-                                        setActiveRoot(NavigationRoots.About)
+                                        toggleActiveRoot(NavigationRoots.About)
                                     }
                                 >
                                     About
