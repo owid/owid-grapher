@@ -84,41 +84,18 @@ interface BakeVariableDataArguments {
     variableId: number
 }
 
-async function getDataMetadataFromMysql(
-    variableId: number
-): Promise<OwidVariableDataMetadataDimensions> {
-    const variableData = await getVariableData(variableId)
-    return {
-        data: variableData.data,
-        metadata: variableData.metadata,
-    }
-}
-
-async function assertFileExistsInS3(dataPath: string): Promise<void> {
-    const resp = await fetch(dataPath, { method: "HEAD" })
-    if (resp.status !== 200) {
-        throw new Error("URL not found on S3: " + dataPath)
-    }
-}
-
 export const bakeVariableData = async (
     bakeArgs: BakeVariableDataArguments
 ): Promise<BakeVariableDataArguments> => {
-    const { data, metadata } = await getDataMetadataFromMysql(
-        bakeArgs.variableId
-    )
+    const { data, metadata } = await getVariableData(bakeArgs.variableId)
 
-    // If variable data exists in S3, we don't need to write data to disk
-    // (we ignore `data` from `getDataMetadataFromMysql` in this case)
-    const dataPath = await getOwidVariableDataPath(bakeArgs.variableId)
-    if (dataPath) {
-        await assertFileExistsInS3(dataPath)
-    } else {
-        const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
-            bakeArgs.variableId
-        )}`
-        await fs.writeFile(path, JSON.stringify(data))
-    }
+    // NOTE: if variable has dataPath (its data exists in S3), we still write the data to disk
+    // in the future when all our data lives in S3 we should just pass the link to grapher and
+    // let it load the data from S3
+    const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
+        bakeArgs.variableId
+    )}`
+    await fs.writeFile(path, JSON.stringify(data))
 
     const metadataPath = `${bakeArgs.bakedSiteDir}${getVariableMetadataRoute(
         bakeArgs.variableId
@@ -175,10 +152,13 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
                         metadataString
                     ) as OwidVariableWithSourceAndDimension
 
-                    const dataJson = await getBakedVariableData(
-                        variableId,
-                        bakedSiteDir
-                    )
+                    const dataPath = `${bakedSiteDir}${getVariableDataRoute(
+                        variableId
+                    )}`
+                    const dataString = await fs.readFile(dataPath, "utf8")
+                    const dataJson = JSON.parse(
+                        dataString
+                    ) as OwidVariableMixedData
 
                     return {
                         data: dataJson,
@@ -202,23 +182,6 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
         }
     } catch (err) {
         console.error(err)
-    }
-}
-
-const getBakedVariableData = async (
-    variableId: number,
-    bakedSiteDir: string
-): Promise<OwidVariableMixedData> => {
-    // Get variable data, use path to S3 if `dataPath` is available. If not,
-    // use the baked data file in bakedSiteDir.
-    const s3dataPath = await getOwidVariableDataPath(variableId)
-
-    if (s3dataPath) {
-        return fetchS3ValuesByPath(s3dataPath)
-    } else {
-        const dataPath = `${bakedSiteDir}${getVariableDataRoute(variableId)}`
-        const dataString = await fs.readFile(dataPath, "utf8")
-        return JSON.parse(dataString) as OwidVariableMixedData
     }
 }
 

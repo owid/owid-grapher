@@ -112,6 +112,7 @@ export async function getVariableData(
     const row = await variableQuery
     if (row === undefined) throw new Error(`Variable ${variableId} not found`)
 
+    // load data from data_values or S3 if `dataPath` exists
     const results = await dataAsRecords([variableId])
 
     const {
