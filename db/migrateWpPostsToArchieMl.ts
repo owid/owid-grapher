@@ -18,12 +18,6 @@ import {
     getEnrichedBlockTextFromBlockParseResult,
 } from "./model/Gdoc/htmlToEnriched.js"
 
-function formatAuthors(authors: string[]): string {
-    if (authors.length === 0) return ""
-    if (authors.length === 1) return authors[0]
-    return `${authors.slice(0, -1).join(", ")} and ${authors.slice(-1)}`
-}
-
 const migrate = async (): Promise<void> => {
     const writeToFile = false
     await db.getConnection()
@@ -122,11 +116,10 @@ const migrate = async (): Promise<void> => {
                     body: archieMlBodyElements,
                     title: post.title,
                     subtitle: post.excerpt,
-                    byline: formatAuthors(
-                        sortBy(authors, ["order"]).map(
-                            (author) => author.author
-                        )
-                    ),
+                    excerpt: post.excerpt,
+                    byline: sortBy(authors, ["order"])
+                        .map((author) => author.author)
+                        .join(", "),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: refParsingResults,
