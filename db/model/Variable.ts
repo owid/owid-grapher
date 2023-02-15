@@ -382,12 +382,19 @@ export const _dataAsDFfromS3 = async (
 
     const dfs = await Promise.all(
         variableIds.map(async (variableId) => {
-            return createDataFrame(await readValuesFromS3(variableId)).select(
-                pl.col("entityId").cast(pl.Int32),
-                pl.col("year").cast(pl.Int32),
-                pl.col("value").cast(pl.Utf8),
-                pl.lit(variableId).cast(pl.Int32).alias("variableId")
-            )
+            const s3values = await fetchS3Values(variableId)
+            return createDataFrame(s3values)
+                .rename({
+                    values: "value",
+                    entities: "entityId",
+                    years: "year",
+                })
+                .select(
+                    pl.col("entityId").cast(pl.Int32),
+                    pl.col("year").cast(pl.Int32),
+                    pl.col("value").cast(pl.Utf8),
+                    pl.lit(variableId).cast(pl.Int32).alias("variableId")
+                )
         })
     )
 
@@ -496,22 +503,6 @@ export const fetchS3ValuesByPath = async (
     return (await (
         await fetch(dataPath, { agent: httpsAgent })
     ).json()) as OwidVariableMixedData
-}
-
-export const readValuesFromS3 = async (
-    variableId: OwidVariableId
-): Promise<S3DataRow[]> => {
-    const result = await fetchS3Values(variableId)
-
-    return _.zip(result.entities, result.years, result.values).map(
-        (row: any) => {
-            return {
-                entityId: row[0],
-                year: row[1],
-                value: row[2],
-            }
-        }
-    )
 }
 
 export const dataAsRecords = async (

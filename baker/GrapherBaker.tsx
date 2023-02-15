@@ -42,11 +42,7 @@ import {
 } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
-import {
-    getVariableData,
-    getOwidVariableDataPath,
-    fetchS3ValuesByPath,
-} from "../db/model/Variable.js"
+import { getVariableData } from "../db/model/Variable.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
