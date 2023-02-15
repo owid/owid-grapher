@@ -18,6 +18,12 @@ import {
     getEnrichedBlockTextFromBlockParseResult,
 } from "./model/Gdoc/htmlToEnriched.js"
 
+function formatAuthors(authors: string[]): string {
+    if (authors.length === 0) return ""
+    if (authors.length === 1) return authors[0]
+    return `${authors.slice(0, -1).join(", ")} and ${authors.slice(-1)}`
+}
+
 const migrate = async (): Promise<void> => {
     const writeToFile = false
     await db.getConnection()
@@ -30,7 +36,8 @@ const migrate = async (): Promise<void> => {
         "published_at",
         "updated_at",
         "authors",
-        "excerpt"
+        "excerpt",
+        "created_at_in_wordpress"
     ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "22821"))
 
     for (const post of posts) {
@@ -115,15 +122,17 @@ const migrate = async (): Promise<void> => {
                     body: archieMlBodyElements,
                     title: post.title,
                     subtitle: post.excerpt,
-                    byline: sortBy(authors, ["order"])
-                        .map((author) => author.author)
-                        .join(", "),
+                    byline: formatAuthors(
+                        sortBy(authors, ["order"]).map(
+                            (author) => author.author
+                        )
+                    ),
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: refParsingResults,
                 },
-                published: false, // post.published_at !== null,
-                createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem that wordpress tracks the creation date
+                published: false,
+                createdAt: post.created_at_in_wordpress ?? post.updated_at,
                 publishedAt: post.published_at,
                 updatedAt: post.updated_at,
                 publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB

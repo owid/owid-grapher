@@ -170,6 +170,7 @@ export interface PostRow {
     gdocSuccessorId: string
     authors: string
     excerpt: string
+    created_at_in_wordpress: Date | null
 }
 
 export interface Tag extends TagReactTagAutocomplete {

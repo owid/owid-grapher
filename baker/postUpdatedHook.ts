@@ -19,21 +19,58 @@ const syncPostToGrapher = async (
 ): Promise<string | undefined> => {
     const rows = await wpdb.singleton.query(
         `--sql
-        -- we select all the fields from wp_posts and then we also
+        -- This query extracts all the fields from the wp_posts table and then
+        -- adds a json array of authors, and a created_at field which is
+        -- constructed by finding the revisions related to this post/page and
+        -- taking the earliest one post_date.
+
+        -- We use a CTE to find the all revisions for each post/page
+        with revisions as (
+            select
+                post_date,
+                post_parent,
+                row_number() over
+                        ( order by post_date) row_num
+            from
+                wp_posts
+            where
+                post_type = 'revision' and post_parent = ?
+        ),
+        -- and then we use another CTE to find the first revision
+        first_revision as (
+            select
+                post_date as created_at,
+                post_parent as post_id
+            from
+                revisions
+            where
+                row_num = 1),
+        -- now we select all the fields from wp_posts and then we also
         -- json array aggregate the authors. The authors come as strings like
         -- Charlie Giattino Charlie Giattino Charlie Giattino 44 charlie@ourworldindata.org
         -- so we use regexp_replace to cut out the first two words
-        SELECT p.*, JSON_ARRAYAGG(
-            JSON_OBJECT('author',
-                regexp_replace(t.description, '^([[:alnum:]]+) ([[:alnum:]]+) .+$' , '$1 $2'),
-                'order',
-                r.term_order
-            )) as authors
-         FROM wp_posts p
-         left join wp_term_relationships r on p.id = r.object_id
-         left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
-         WHERE p.ID = ? AND p.post_status != 'trash' AND t.taxonomy = 'author'`,
-        [postId]
+        posts_with_authors as (
+        SELECT
+            p.*,
+            JSON_ARRAYAGG(
+                JSON_OBJECT('author',
+                    regexp_replace(t.description, '^([[:alnum:]-]+) ([[:alnum:]-]+) .+$' , '$1 $2'),
+                    'order',
+                    r.term_order
+                )) as authors
+            FROM wp_posts p
+            left join wp_term_relationships r on p.id = r.object_id
+            left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
+            WHERE p.ID = ? AND p.post_status != 'trash' AND t.taxonomy = 'author'
+        )
+        -- finally here we select all the fields from posts_with_authors and
+        -- then we join in the first_revision to get the created_at field
+        select
+            pwa.*,
+            fr.created_at as created_at
+        from posts_with_authors pwa
+        left join first_revision fr on fr.post_id = pwa.id`,
+        [postId, postId]
     )
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
 
@@ -59,6 +96,10 @@ const syncPostToGrapher = async (
                       : wpPost.post_modified_gmt,
               authors: wpPost.authors,
               excerpt: wpPost.post_excerpt,
+              created_at_in_wordpress:
+                  wpPost.created_at === zeroDateString
+                      ? "1970-01-01 00:00:00"
+                      : wpPost.created_at,
           } as PostRow)
         : undefined
 

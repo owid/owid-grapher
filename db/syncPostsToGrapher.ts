@@ -113,22 +113,59 @@ const syncPostsToGrapher = async (): Promise<void> => {
         -- The author text comes from a WP plugin and is a bit weird. It seems to always be separated by
         -- spaces with the names the first two things so we extract only those.
         with posts_authors as (
-            select p.ID as id,
+            select
+              p.ID as id,
               regexp_replace(t.description, '^([[:alnum:]-]+) ([[:alnum:]-]*) .+$' , '$1 $2') as author,
               r.term_order as term_order
             from wp_posts p
             left join wp_term_relationships r on p.ID = r.object_id
             left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
             where p.post_type in ('post', 'page') and t.taxonomy = 'author' AND post_status != 'trash'
-        )
-        -- now we just group by post id and aggregate the authors into a json array called authors
-        -- unfortunately JSON_ARRAYAGG does not obey the order, nor does it have it's own order by clause
+        ),
+        -- CTE to get the revision for each post so we can construct a meaningful created_at date
+        revisions as (
+            select
+                post_date,
+                post_parent,
+                -- this window function partitions by post_parent and orders by post_date. Later we will
+                -- keep only the first (oldest) row for each post_parent
+                row_number() over
+                        ( partition by post_parent
+                          order by post_date) row_num
+            from
+                wp_posts
+            where
+                post_type = 'revision'
+        ),
+        -- CET to now only keep the first revision for each post
+        first_revision as (
+            select
+                post_date as created_at,
+                post_parent as post_id
+            from
+                revisions
+            where
+                row_num = 1),
+        -- CTE to group by post id and aggregate the authors into a json array called authors
+        -- unfortunately JSON_ARRAYAGG does not obey the order, nor does it have its own order by clause
         -- (like some proper databases do). This makes it necessary to build up an object for each
         -- author with the term_order.
-        select p.*, JSON_ARRAYAGG(JSON_OBJECT('author', pa.author, 'order', pa.term_order)) as authors
-        from posts_authors pa
-        left join wp_posts p on p.ID  = pa.id
-        group by p.ID`
+        posts_with_authors as (
+            select
+                p.*,
+                JSON_ARRAYAGG(JSON_OBJECT('author', pa.author, 'order', pa.term_order)) as authors
+            from posts_authors pa
+            left join wp_posts p on p.ID  = pa.id
+            group by p.ID
+        )
+        -- Finally collect all the fields we want to keep - this is everything from wp_posts, the authors from the
+        -- posts_with_authors CTE and the created_at from the first_revision CTE
+        select
+            pwa.*,
+            fr.created_at as created_at
+        from posts_with_authors pwa
+        left join first_revision fr on fr.post_id = pwa.ID
+        `
     )
 
     const doesExistInWordpress = keyBy(rows, "ID")
@@ -161,6 +198,8 @@ const syncPostsToGrapher = async (): Promise<void> => {
                     : post.post_modified_gmt,
             authors: post.authors,
             excerpt: post.post_excerpt,
+            created_at_in_wordpress:
+                post.created_at === zeroDateString ? null : post.created_at,
         }
     }) as PostRow[]
 
