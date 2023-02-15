@@ -45,6 +45,7 @@ import ProgressBar from "progress"
 import {
     getVariableData,
     getOwidVariableDataPath,
+    fetchS3ValuesByPath,
 } from "../db/model/Variable.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
@@ -173,14 +174,12 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
                     const metadataJson = JSON.parse(
                         metadataString
                     ) as OwidVariableWithSourceAndDimension
-                    // Use path to S3 if available
-                    const dataPath =
-                        (await getOwidVariableDataPath(variableId)) ||
-                        `${bakedSiteDir}${getVariableDataRoute(variableId)}`
-                    const dataString = await fs.readFile(dataPath, "utf8")
-                    const dataJson = JSON.parse(
-                        dataString
-                    ) as OwidVariableMixedData
+
+                    const dataJson = await getBakedVariableData(
+                        variableId,
+                        bakedSiteDir
+                    )
+
                     return {
                         data: dataJson,
                         metadata: metadataJson,
@@ -203,6 +202,23 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
         }
     } catch (err) {
         console.error(err)
+    }
+}
+
+const getBakedVariableData = async (
+    variableId: number,
+    bakedSiteDir: string
+): Promise<OwidVariableMixedData> => {
+    // Get variable data, use path to S3 if `dataPath` is available. If not,
+    // use the baked data file in bakedSiteDir.
+    const s3dataPath = await getOwidVariableDataPath(variableId)
+
+    if (s3dataPath) {
+        return fetchS3ValuesByPath(s3dataPath)
+    } else {
+        const dataPath = `${bakedSiteDir}${getVariableDataRoute(variableId)}`
+        const dataString = await fs.readFile(dataPath, "utf8")
+        return JSON.parse(dataString) as OwidVariableMixedData
     }
 }
 

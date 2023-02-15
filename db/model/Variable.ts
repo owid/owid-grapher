@@ -348,9 +348,37 @@ export const entitiesAsDF = async (
     )
 }
 
+const _castDataDF = (df: pl.DataFrame): pl.DataFrame => {
+    return df.select(
+        pl.col("variableId").cast(pl.Int32),
+        pl.col("entityId").cast(pl.Int32),
+        pl.col("entityName").cast(pl.Utf8),
+        pl.col("entityCode").cast(pl.Utf8),
+        pl.col("year").cast(pl.Int32),
+        pl.col("value").cast(pl.Utf8)
+    )
+}
+
+const emptyDataDF = (): pl.DataFrame => {
+    return _castDataDF(
+        pl.DataFrame({
+            variableId: [],
+            entityId: [],
+            entityName: [],
+            entityCode: [],
+            year: [],
+            value: [],
+        })
+    )
+}
+
 export const _dataAsDFfromS3 = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
+    if (variableIds.length == 0) {
+        return emptyDataDF()
+    }
+
     const dfs = await Promise.all(
         variableIds.map(async (variableId) => {
             return pl
@@ -367,26 +395,23 @@ export const _dataAsDFfromS3 = async (
     const df = pl.concat(dfs)
 
     if (df.height == 0) {
-        return pl.DataFrame({
-            variableId: [],
-            entityId: [],
-            entityName: [],
-            entityCode: [],
-            year: [],
-            value: [],
-        })
+        return emptyDataDF()
     }
 
     const entityDF = await entitiesAsDF(df.getColumn("entityId").toArray())
 
-    return df.join(entityDF, { on: "entityId" })
+    return _castDataDF(df.join(entityDF, { on: "entityId" }))
 }
 
 const _dataAsDFfromMySQL = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
+    if (variableIds.length == 0) {
+        return emptyDataDF()
+    }
+
     // this function will be eventually deprecated by _dataAsDFfromS3
-    let df = await readSQLasDF(
+    const df = await readSQLasDF(
         `
     SELECT
         data_values.variableId as variableId,
@@ -403,24 +428,10 @@ const _dataAsDFfromMySQL = async (
     )
 
     if (df.height == 0) {
-        df = pl.DataFrame({
-            variableId: [],
-            entityId: [],
-            entityName: [],
-            entityCode: [],
-            year: [],
-            value: [],
-        })
+        return emptyDataDF()
     }
 
-    return df.select(
-        pl.col("variableId").cast(pl.Int32),
-        pl.col("entityId").cast(pl.Int32),
-        pl.col("entityName").cast(pl.Utf8),
-        pl.col("entityCode").cast(pl.Utf8),
-        pl.col("year").cast(pl.Int32),
-        pl.col("value").cast(pl.Utf8)
-    )
+    return _castDataDF(df)
 }
 
 export const dataAsDF = async (
@@ -433,6 +444,7 @@ export const dataAsDF = async (
         id,
         dataPath
     FROM variables
+    WHERE id in (?)
     `,
         [variableIds]
     )
@@ -463,12 +475,6 @@ export const getOwidVariableDataPath = async (
     return row.dataPath
 }
 
-interface S3Response {
-    entities: number[]
-    years: number[]
-    values: string[]
-}
-
 // limit number of concurrent requests to 50 when fetching values from S3
 const httpsAgent = new https.Agent({
     keepAlive: true,
@@ -477,14 +483,20 @@ const httpsAgent = new https.Agent({
 
 const fetchS3Values = async (
     variableId: OwidVariableId
-): Promise<S3Response> => {
+): Promise<OwidVariableMixedData> => {
     const dataPath = await getOwidVariableDataPath(variableId)
     if (!dataPath) {
         throw new Error(`Missing dataPath for variable ${variableId}`)
     }
+    return fetchS3ValuesByPath(dataPath)
+}
+
+export const fetchS3ValuesByPath = async (
+    dataPath: string
+): Promise<OwidVariableMixedData> => {
     return (await (
         await fetch(dataPath, { agent: httpsAgent })
-    ).json()) as S3Response
+    ).json()) as OwidVariableMixedData
 }
 
 export const readValuesFromS3 = async (
