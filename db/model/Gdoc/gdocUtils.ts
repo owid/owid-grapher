@@ -65,6 +65,13 @@ export function extractPlaintextUrl(html: string = ""): string {
     return $("a").text()
 }
 
+// When we want the href, not the plaintext
+export function extractUrl(html: string = ""): string {
+    if (html.trim().startsWith("http")) return html.trim()
+    const $ = cheerio.load(html)
+    return $("a").attr("href")
+}
+
 export const getTitleSupertitleFromHeadingText = (
     headingText: string
 ): [string, string | undefined] => {

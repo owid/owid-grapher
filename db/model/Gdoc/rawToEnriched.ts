@@ -61,6 +61,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     extractPlaintextUrl,
+    extractUrl,
     getTitleSupertitleFromHeadingText,
 } from "./gdocUtils.js"
 import {
@@ -974,7 +975,7 @@ function parseProminentLink(
         return createError({ message: "No title given for the prominent link" })
     }
 
-    const url = extractPlaintextUrl(raw.value.url)
+    const url = extractUrl(raw.value.url)
 
     return {
         type: "prominent-link",

@@ -1345,7 +1345,7 @@ export const imemo = <Type>(
     }
 }
 
-export function recursivelyMapArticleBlock<
+export function recursivelyMapArticleContent<
     Node extends OwidEnrichedArticleBlock | Span
 >(
     node: Node,
@@ -1354,21 +1354,21 @@ export function recursivelyMapArticleBlock<
     if (checkNodeIsSpan(node)) {
         if ("children" in node) {
             node.children.map((node) =>
-                recursivelyMapArticleBlock(node, callback)
+                recursivelyMapArticleContent(node, callback)
             )
         }
     } else if (node.type === "gray-section") {
-        node.items.map((block) => recursivelyMapArticleBlock(block, callback))
+        node.items.map((block) => recursivelyMapArticleContent(block, callback))
     } else if (
         node.type === "sticky-left" ||
         node.type === "sticky-right" ||
         node.type === "side-by-side"
     ) {
-        node.left.map((node) => recursivelyMapArticleBlock(node, callback))
-        node.right.map((node) => recursivelyMapArticleBlock(node, callback))
+        node.left.map((node) => recursivelyMapArticleContent(node, callback))
+        node.right.map((node) => recursivelyMapArticleContent(node, callback))
     } else if (node.type === "text") {
         node.value.map((node) =>
-            recursivelyMapArticleBlock(node as any, callback)
+            recursivelyMapArticleContent(node as any, callback)
         )
     }
 

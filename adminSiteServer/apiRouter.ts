@@ -79,6 +79,7 @@ import {
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidArticleContent } from "../db/model/Gdoc/archieToGdoc.js"
+import { Link } from "../db/model/Link.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2676,7 +2677,16 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const prevGdoc = await Gdoc.findOneBy({ id })
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = getArticleFromJSON(nextGdocJSON)
+    const nextGdoc = dataSource
+        .getRepository(Gdoc)
+        .create(getArticleFromJSON(nextGdocJSON))
+
+    await Link.delete({
+        source: {
+            id: id,
+        },
+    })
+    await dataSource.getRepository(Link).save(nextGdoc.links)
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
@@ -2724,6 +2734,11 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
     await Gdoc.delete(id)
+    await Link.delete({
+        source: {
+            id,
+        },
+    })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
