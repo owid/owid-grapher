@@ -77,7 +77,6 @@ export const configureAlgolia = async () => {
         customRanking: [
             "desc(score)",
             "desc(numRelatedArticles)",
-            "desc(views_7d)",
             "asc(numDimensions)",
             "asc(titleLength)",
         ],
@@ -98,7 +97,7 @@ export const configureAlgolia = async () => {
             "unordered(content)",
             "unordered(authors)",
         ],
-        customRanking: ["desc(score)", "desc(importance)", "desc(views_7d)"],
+        customRanking: ["desc(score)", "desc(importance)"],
         attributesToSnippet: ["excerpt:20", "content:20"],
         attributeForDistinct: "slug",
         attributesForFaceting: [
