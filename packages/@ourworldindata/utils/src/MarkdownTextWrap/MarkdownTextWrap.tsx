@@ -539,6 +539,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         return []
     }
 
+    @computed get plaintext(): string {
+        return this.htmlLines.map(lineToPlaintext).join("\n")
+    }
+
     @computed get htmlLines(): IRToken[][] {
         const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
         return splitIntoLines(tokens, this.maxWidth)

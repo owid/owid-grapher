@@ -34,11 +34,20 @@ class ChartResult extends React.Component<{
             ).fullUrl
     }
 
-    @computed get title() {
+    @computed get title(): JSX.Element {
         const { hit } = this.props
         const { entities } = this
-        if (!entities.length) return hit.title
-        else return hit.title.trim() + `, ${entities.join(", ")}`
+        const highlightedTitle = hit._highlightResult?.title?.value ?? ""
+        const title = (
+            <span dangerouslySetInnerHTML={{ __html: highlightedTitle }} />
+        )
+        if (!entities.length) return title
+        else
+            return (
+                <>
+                    {title}, {entities.join(", ")}
+                </>
+            )
     }
 
     render() {
@@ -47,18 +56,17 @@ class ChartResult extends React.Component<{
 
         return (
             <li className="ChartResult">
-                {/* <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
                 <a href={`${BAKED_GRAPHER_URL}/${slug}`}>{title}</a>
                 {hit.variantName ? (
                     <span className="variantName"> {hit.variantName}</span>
                 ) : undefined}
-                {hit._snippetResult ? (
+                {hit._snippetResult?.subtitle && (
                     <p
                         dangerouslySetInnerHTML={{
                             __html: hit._snippetResult.subtitle.value,
                         }}
                     />
-                ) : undefined}
+                )}
             </li>
         )
     }
@@ -131,11 +139,9 @@ class PageResult extends React.Component<{ hit: PageHit }> {
 
 function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
     const entities = []
-    const availableEntities = hit._highlightResult
-        ? hit._highlightResult.availableEntities
-        : []
+    const availableEntities = hit._highlightResult?.availableEntities ?? []
     for (const res of availableEntities) {
-        const entity = res.value.replace(/<\/?em>/g, "")
+        const entity = res.value.replace(/<\/?strong>/g, "")
         if (
             res.matchLevel !== "none" ||
             queryCountries.some((c) => c.name === entity)

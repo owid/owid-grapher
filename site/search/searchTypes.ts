@@ -50,19 +50,30 @@ export interface ChartRecord {
     title: string
     subtitle: string
     variantName: string
+    keyChartForTags: string[]
+    tags: string[]
+    availableEntities: string[]
+    publishedAt: string
+    updatedAt: string
+    numDimensions: number
+    titleLength: number
+    numRelatedArticles: number
 }
 
 export interface ChartHit extends ChartRecord {
     _snippetResult?: {
-        subtitle: {
+        subtitle?: {
             value: string
         }
     }
     _highlightResult?: {
-        availableEntities: {
+        title?: {
             value: string
-            matchLevel: "none" | "full"
-            matchedWords: string[]
+            matchLevel: AlgoliaMatchLevel
+        }
+        availableEntities?: {
+            value: string
+            matchLevel: AlgoliaMatchLevel
         }[]
     }
 }
