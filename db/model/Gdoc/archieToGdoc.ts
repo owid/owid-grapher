@@ -165,21 +165,33 @@ function articleToBatchUpdates(
 ): docs_v1.Schema$Request[] {
     const archieMlLines = [...owidArticleToArchieMLStringGenerator(content)]
 
+    let isInsideHtmlBlock = false
+
     const lines: Line[] = archieMlLines.map((line) => {
         const styleStack: docs_v1.Schema$TextStyle[] = []
+        // By convention our backported html blocks always end with
+        // and :end specifier (the archieml construct to allow properties
+        // to be multiline). This makes it easier to find the beginning and
+        // end of html blocks here which we should *not* parse with cheerio
+        // since this is meant to be literal html that we want to output as-is.
+        if (line.startsWith("html:")) isInsideHtmlBlock = true
+        else if (line === ":end") isInsideHtmlBlock = false
         // Cheerio.load has 3 params. Cheerio 1.0.0-rc.10 which we are using is
         // written in typescript, so the below should work without the ugly
         // any cast. But enzyme also uses cheerio and pulls in 1.0.0-rc.3 which
         // was not yet in typescript and thus also pulls in @types/cheerio which
         // does not have the correct signature for load with the third param and
         // which seems to win the battle in the TS load order. Thus the any cast
-        const $ = (cheerio as any).load(line, null, false)
-        const fragments: TextFragment[] = [
-            ...convertCheerioNodesToTextFragments(
-                $.root().contents() as Iterable<CheerioElement>,
-                styleStack
-            ),
-        ]
+        let fragments: TextFragment[]
+        if (!isInsideHtmlBlock) {
+            const $ = (cheerio as any).load(line, null, false)
+            fragments = [
+                ...convertCheerioNodesToTextFragments(
+                    $.root().contents() as Iterable<CheerioElement>,
+                    styleStack
+                ),
+            ]
+        } else fragments = [{ text: line, style: mergeStyleStack(styleStack) }]
         return { fragments }
     })
 
