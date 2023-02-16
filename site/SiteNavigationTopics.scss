@@ -56,34 +56,48 @@
         }
     }
 
+    @mixin pull-right-edge-out {
+        margin-right: -$padding-x-md;
+        padding-right: $padding-x-md;
+    }
+
+    @mixin reset-pull-right-edge-out {
+        margin-right: 0;
+        padding-right: 48px;
+    }
+
     ul.topics {
         grid-column: 7 / span 6;
-        @include sm-up {
-            grid-column: 5 / span 3;
-        }
         column-gap: $grid-gap;
         margin-left: -$grid-gap;
         padding: 32px 48px;
+        @include pull-right-edge-out;
         background-color: #d5e7fe;
+        @include sm-up {
+            grid-column: 5 / span 4;
+            @include reset-pull-right-edge-out;
+        }
 
         &.columns-medium {
+            @include pull-right-edge-out;
             @include sm-up {
                 column-count: 2;
                 grid-column: 5 / span 8;
             }
             @include lg-up {
                 grid-column-end: span 6;
+                @include reset-pull-right-edge-out;
             }
         }
 
         &.columns-large {
+            @include pull-right-edge-out;
             @include sm-up {
                 column-count: 2;
                 grid-column: 5 / span 8;
             }
             @include lg-up {
                 column-count: 3;
-                margin-right: -$padding-x-md;
             }
         }
 
