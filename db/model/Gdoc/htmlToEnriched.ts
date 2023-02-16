@@ -641,26 +641,19 @@ function cheerioToArchieML(
                                       context
                                   )
                                 : undefined
-                        if (figCaption)
-                            if (figCaption.content.length > 1)
-                                errors.push({
-                                    name: "too many figcaption elements after archieml transform",
-                                    details: `Found ${figCaption.content.length} elements after transforming to archieml`,
-                                })
+                        if (figCaption) {
+                            const figCaptionSpans =
+                                getSpansFromBlockParseResult(figCaption)
+                            if (figCaptionSpans.errors.length > 0)
+                                errors.unshift(...figCaptionSpans.errors)
                             else {
-                                const element = figCaption.content[0]
-                                if (isEnrichedTextBlock(element))
-                                    figcaptionElement = element
-                                else
-                                    errors.push({
-                                        name: "figcaption element is not structured text",
-                                        details: `Found ${
-                                            isArchieMlComponent(element)
-                                                ? element.type
-                                                : ""
-                                        } element after transforming to archieml`,
-                                    })
+                                figcaptionElement = {
+                                    type: "text",
+                                    value: figCaptionSpans.content,
+                                    parseErrors: [],
+                                }
                             }
+                        }
                     }
                     if (otherChildren.length > 1)
                         errors.push({
