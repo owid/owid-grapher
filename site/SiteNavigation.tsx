@@ -67,103 +67,111 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         <>
             {activeRoot && <div className="overlay" onClick={closeOverlay} />}
             <div className="site-navigation">
-                <div className="site-navigation-bar wrapper">
-                    <SiteLogos baseUrl={baseUrl} />
+                <div className="wrapper">
+                    <div className="site-navigation-bar">
+                        <SiteLogos baseUrl={baseUrl} />
 
-                    <nav className="site-primary-links hide-sm-only">
-                        <ul>
-                            <li>
-                                <button
-                                    onClick={() =>
-                                        toggleActiveRoot(NavigationRoots.Topics)
-                                    }
-                                >
-                                    <FontAwesomeIcon
-                                        icon={faListUl}
-                                        style={{ marginRight: "8px" }}
-                                    />
-                                    Browse by topic
-                                </button>
-                            </li>
-                            <li>
-                                <a href="/blog">Latest</a>
-                            </li>
-                            <li className="prompt">
-                                <button
-                                    onClick={() =>
-                                        toggleActiveRoot(
-                                            NavigationRoots.Resources
-                                        )
-                                    }
-                                >
-                                    Resources
-                                    <FontAwesomeIcon
-                                        icon={
-                                            activeRoot ===
-                                            NavigationRoots.Resources
-                                                ? faCaretUp
-                                                : faCaretDown
+                        <nav className="site-primary-links hide-sm-only">
+                            <ul>
+                                <li>
+                                    <button
+                                        onClick={() =>
+                                            toggleActiveRoot(
+                                                NavigationRoots.Topics
+                                            )
                                         }
-                                        style={{ marginLeft: "8px" }}
-                                    />
-                                </button>
-                                {activeRoot === NavigationRoots.Resources && (
-                                    <SiteResources />
-                                )}
-                            </li>
-                            <li className="prompt">
-                                <button
-                                    onClick={() =>
-                                        toggleActiveRoot(NavigationRoots.About)
-                                    }
-                                >
-                                    About
-                                    <FontAwesomeIcon
-                                        icon={
-                                            activeRoot === NavigationRoots.About
-                                                ? faCaretUp
-                                                : faCaretDown
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faListUl}
+                                            style={{ marginRight: "8px" }}
+                                        />
+                                        Browse by topic
+                                    </button>
+                                </li>
+                                <li>
+                                    <a href="/blog">Latest</a>
+                                </li>
+                                <li className="prompt">
+                                    <button
+                                        onClick={() =>
+                                            toggleActiveRoot(
+                                                NavigationRoots.Resources
+                                            )
                                         }
-                                        style={{ marginLeft: "8px" }}
-                                    />
-                                </button>
-                                {activeRoot === NavigationRoots.About && (
-                                    <SiteAbout />
-                                )}
-                            </li>
-                        </ul>
-                    </nav>
-                    {activeRoot === NavigationRoots.Topics && (
-                        <SiteNavigationTopics
-                            onClose={closeOverlay}
-                            topics={categorizedTopics}
-                        />
-                    )}
-                    <div className="site-search-cta">
-                        <div
-                            className="hide-lg-down"
-                            style={{ width: "300px" }}
-                        >
-                            <SiteSearchInput />
+                                    >
+                                        Resources
+                                        <FontAwesomeIcon
+                                            icon={
+                                                activeRoot ===
+                                                NavigationRoots.Resources
+                                                    ? faCaretUp
+                                                    : faCaretDown
+                                            }
+                                            style={{ marginLeft: "8px" }}
+                                        />
+                                    </button>
+                                    {activeRoot ===
+                                        NavigationRoots.Resources && (
+                                        <SiteResources />
+                                    )}
+                                </li>
+                                <li className="prompt">
+                                    <button
+                                        onClick={() =>
+                                            toggleActiveRoot(
+                                                NavigationRoots.About
+                                            )
+                                        }
+                                    >
+                                        About
+                                        <FontAwesomeIcon
+                                            icon={
+                                                activeRoot ===
+                                                NavigationRoots.About
+                                                    ? faCaretUp
+                                                    : faCaretDown
+                                            }
+                                            style={{ marginLeft: "8px" }}
+                                        />
+                                    </button>
+                                    {activeRoot === NavigationRoots.About && (
+                                        <SiteAbout />
+                                    )}
+                                </li>
+                            </ul>
+                        </nav>
+                        {activeRoot === NavigationRoots.Topics && (
+                            <SiteNavigationTopics
+                                onClose={closeOverlay}
+                                topics={categorizedTopics}
+                            />
+                        )}
+                        <div className="site-search-cta">
+                            <div
+                                className="hide-lg-down"
+                                style={{ width: "300px" }}
+                            >
+                                <SiteSearchInput />
+                            </div>
+                            <button
+                                onClick={onToggleMobileSearch}
+                                data-track-note="mobile-search-button"
+                                className="mobile-search hide-lg-up"
+                            >
+                                <FontAwesomeIcon icon={faSearch} />
+                            </button>
+
+                            <NewsletterSubscription
+                                context={NewsletterSubscriptionContext.Floating}
+                            />
+                            <a
+                                href="/donate"
+                                className="donate"
+                                data-track-note="header-navigation"
+                            >
+                                Donate
+                            </a>
                         </div>
-                        <button
-                            onClick={onToggleMobileSearch}
-                            data-track-note="mobile-search-button"
-                            className="mobile-search hide-lg-up"
-                        >
-                            <FontAwesomeIcon icon={faSearch} />
-                        </button>
-
-                        <NewsletterSubscription
-                            context={NewsletterSubscriptionContext.Floating}
-                        />
-                        <a
-                            href="/donate"
-                            className="donate"
-                            data-track-note="header-navigation"
-                        >
-                            Donate
-                        </a>
                     </div>
                 </div>
             </div>
