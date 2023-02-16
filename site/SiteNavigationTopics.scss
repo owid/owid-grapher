@@ -3,7 +3,7 @@
     position: absolute;
     width: 100%;
     top: 100%;
-    left: 0;
+    padding: 0;
     z-index: 1;
 
     .categories {
@@ -59,7 +59,7 @@
     ul.topics {
         grid-column: 7 / span 6;
         @include sm-up {
-            grid-column: 5 / span 4;
+            grid-column: 5 / span 3;
         }
         column-gap: $grid-gap;
         margin-left: -$grid-gap;
@@ -83,6 +83,7 @@
             }
             @include lg-up {
                 column-count: 3;
+                margin-right: -$padding-x-md;
             }
         }
 
