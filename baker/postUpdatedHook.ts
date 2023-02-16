@@ -24,27 +24,18 @@ const syncPostToGrapher = async (
         -- constructed by finding the revisions related to this post/page and
         -- taking the earliest one post_date.
 
-        -- We use a CTE to find the all revisions for each post/page
-        with revisions as (
-            select
-                post_date,
-                post_parent,
-                row_number() over
-                        ( order by post_date) row_num
-            from
-                wp_posts
-            where
-                post_type = 'revision' and post_parent = ?
-        ),
-        -- and then we use another CTE to find the first revision
-        first_revision as (
+        -- We use a CTE to find the first revisions for the post/page
+        with first_revision as (
             select
                 post_date as created_at,
                 post_parent as post_id
             from
-                revisions
+                wp_posts
             where
-                row_num = 1),
+                post_type = 'revision' and post_parent = ?
+            order by post_date
+            limit 1
+        ),
         -- now we select all the fields from wp_posts and then we also
         -- json array aggregate the authors. The authors come as strings like
         -- Charlie Giattino Charlie Giattino Charlie Giattino 44 charlie@ourworldindata.org
