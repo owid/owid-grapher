@@ -75,6 +75,7 @@ export {
     KeyInsight,
     KeyValueProps,
     OwidArticleContent,
+    OwidArticleLinkJSON,
     OwidArticlePublicationContext,
     OwidArticleType,
     OwidArticleTypeJSON,

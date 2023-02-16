@@ -115,8 +115,9 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         if (content.body) {
             content.body = content.body.map((node) =>
                 recursivelyMapArticleContent(node, (node) => {
-                    this.extractLinks(node, links)
-                    this.replaceLinks(node, gdocsDictionary)
+                    // We have to track the gdoc links in use before replacing them with our slugs
+                    this.extractLink(node, links)
+                    this.replaceLink(node, gdocsDictionary)
                     return node
                 })
             )
@@ -127,7 +128,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
     // If the node has a URL in it, create a Link object
     // then push it into the link array from the parent closure
-    extractLinks(node: OwidEnrichedArticleBlock | Span, links: Link[]): void {
+    extractLink(node: OwidEnrichedArticleBlock | Span, links: Link[]): void {
         function getText(node: OwidEnrichedArticleBlock | Span): string {
             // Can add component-specific text accessors here
             if (checkNodeIsSpan(node)) {
@@ -137,6 +138,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             } else if (node.type === "prominent-link") return node.title
             return ""
         }
+
         if ("url" in node) {
             const link: Link = Link.create({
                 type: getUrlType(node.url),
@@ -149,9 +151,9 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         }
     }
 
-    // Replace gdoc links with their corresponding slugs
+    // Replace a gdoc link (if present) with its corresponding slug
     // IMPURE
-    replaceLinks<Node extends OwidEnrichedArticleBlock | Span>(
+    replaceLink<Node extends OwidEnrichedArticleBlock | Span>(
         node: Node,
         gdocsDictionary: Dictionary<Gdoc>
     ): Node {

@@ -897,6 +897,15 @@ export interface OwidArticleTypeJSON
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
+    links: OwidArticleLinkJSON[]
+}
+
+export interface OwidArticleLinkJSON {
+    source: OwidArticleType
+    type: "gdoc" | "url"
+    target: string
+    context: string
+    text: string
 }
 
 /**

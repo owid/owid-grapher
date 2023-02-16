@@ -39,6 +39,7 @@ import {
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
     Detail,
+    OwidArticleLinkJSON,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -2686,7 +2687,13 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             id: id,
         },
     })
-    await dataSource.getRepository(Link).save(nextGdoc.links)
+    const links: OwidArticleLinkJSON[] = nextGdocJSON.links.map(
+        (link: OwidArticleLinkJSON) => ({
+            ...link,
+            source: dataSource.getRepository(Gdoc).create(link.source),
+        })
+    )
+    await dataSource.getRepository(Link).save(links)
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
