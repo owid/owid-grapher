@@ -79,7 +79,9 @@ const defaultStyle: docs_v1.Schema$TextStyle = {
     baselineOffset: "NONE",
     link: undefined,
 }
-function mergeStyleStack(styleStack: docs_v1.Schema$TextStyle[]) {
+function mergeStyleStack(
+    styleStack: docs_v1.Schema$TextStyle[]
+): docs_v1.Schema$TextStyle {
     const mergedStyle = styleStack.reduce(
         (acc, style) => ({
             ...acc,
