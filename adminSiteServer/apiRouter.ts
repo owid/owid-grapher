@@ -2677,9 +2677,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const prevGdoc = await Gdoc.findOneBy({ id })
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = dataSource
-        .getRepository(Gdoc)
-        .create(getArticleFromJSON(nextGdocJSON))
+    const nextGdoc = getArticleFromJSON(nextGdocJSON)
 
     await Link.delete({
         source: {
