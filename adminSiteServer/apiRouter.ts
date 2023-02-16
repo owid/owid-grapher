@@ -2302,6 +2302,9 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
         archieMl.content,
         post.gdocSuccessorId
     )
+    // If we did not yet have a gdoc associated with this post, we need to register
+    // the gdocSuccessorId and create an entry in the posts_gdocs table. Otherwise
+    // we don't need to make changes to the DB (only the gdoc regeneration was required)
     if (!existingGdocId) {
         post.gdocSuccessorId = gdocId
         // This is not ideal - we are using knex for on thing and typeorm for another
