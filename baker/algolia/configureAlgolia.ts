@@ -148,6 +148,7 @@ export const configureAlgolia = async () => {
         ["plane", "airplane", "aviation", "airline", "flying"],
         ["ev", "electric vehicle", "electric car"],
         ["train", "railway"],
+        ["dying", "death", "mortality"],
     ]
 
     // Send all our country variant names to algolia as synonyms
