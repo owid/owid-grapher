@@ -31,7 +31,8 @@ const migrate = async (): Promise<void> => {
         "updated_at_in_wordpress",
         "authors",
         "excerpt",
-        "created_at_in_wordpress"
+        "created_at_in_wordpress",
+        "updated_at"
     ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "22821"))
 
     for (const post of posts) {
@@ -128,7 +129,8 @@ const migrate = async (): Promise<void> => {
                 createdAt:
                     post.created_at_in_wordpress ??
                     post.updated_at_in_wordpress ??
-                    post.updated_at,
+                    post.updated_at ??
+                    new Date(),
                 publishedAt: post.published_at,
                 updatedAt: post.updated_at_in_wordpress,
                 publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB
