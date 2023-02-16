@@ -168,6 +168,9 @@ export interface PostRow {
     archieml: string
     archieml_update_statistics: string
     gdocSuccessorId: string
+    authors: string
+    excerpt: string
+    created_at_in_wordpress: Date | null
 }
 
 export interface Tag extends TagReactTagAutocomplete {
