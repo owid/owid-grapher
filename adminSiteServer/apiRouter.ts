@@ -39,7 +39,6 @@ import {
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
     Detail,
-    OwidArticleLinkJSON,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -2687,12 +2686,10 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             id: id,
         },
     })
-    const links: OwidArticleLinkJSON[] = nextGdocJSON.links.map(
-        (link: OwidArticleLinkJSON) => ({
-            ...link,
-            source: dataSource.getRepository(Gdoc).create(link.source),
-        })
-    )
+    const links = nextGdocJSON.links.map((link) => ({
+        ...link,
+        source: dataSource.getRepository(Gdoc).create(link.source),
+    }))
     await dataSource.getRepository(Link).save(links)
 
     //todo #gdocsvalidationserver: run validation before saving published
