@@ -78,11 +78,12 @@
     }
 
     .site-search-cta {
+        $search-cta-column-gap: 16px;
         display: flex;
         flex-direction: row;
         align-items: center;
         height: $search-cta-height;
-        column-gap: 16px;
+        column-gap: $search-cta-column-gap;
 
         button.mobile-search,
         button.prompt,
@@ -100,20 +101,19 @@
 
         button.mobile-search {
             padding: 0 16px;
-            background-color: $blue-90;
+            margin-right: -$search-cta-column-gap;
         }
 
         button.prompt {
             @include md-down {
                 padding: 0 16px;
-                background-color: $blue-90;
             }
             @include md-up {
                 border: 1px solid $white;
-            }
-            &:hover {
-                background-color: $white;
-                color: $blue-90;
+                &:hover {
+                    background-color: $white;
+                    color: $blue-90;
+                }
             }
         }
         a.donate {
