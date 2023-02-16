@@ -42,7 +42,7 @@ const getChartsRecords = async (): Promise<ChartRecord[]> => {
         )
     }
 
-    const pageviews = await Pageview.viewsByUrlObj()
+    const pageviews = await Pageview.getViewsByUrlObj()
 
     const records: ChartRecord[] = []
     for (const c of chartsToIndex) {

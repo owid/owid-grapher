@@ -23,7 +23,7 @@ export class Pageview extends BaseEntity implements RawPageview {
     /** Sum of pageviews over the last 14 days. */
     @Column() views_14d!: number
 
-    static async viewsByUrlObj(): Promise<{ [url: string]: RawPageview }> {
+    static async getViewsByUrlObj(): Promise<{ [url: string]: RawPageview }> {
         const pageviews = await Pageview.find()
 
         // Normalize URLs to be relative to the root of the site.

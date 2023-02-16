@@ -48,7 +48,7 @@ const computeScore = (record: Omit<PageRecord, "score">): number => {
 
 const getPagesRecords = async () => {
     const postsApi = await wpdb.getPosts()
-    const pageviews = await Pageview.viewsByUrlObj()
+    const pageviews = await Pageview.getViewsByUrlObj()
 
     const records: PageRecord[] = []
     for (const country of countries) {
