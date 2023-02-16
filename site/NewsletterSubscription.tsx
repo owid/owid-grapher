@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 
 const analytics = new SiteAnalytics()
 
@@ -55,7 +56,11 @@ export const NewsletterSubscription = ({
                     setIsOpen(!isOpen)
                 }}
             >
-                {subscribeText}
+                <span className="hide-md-down">{subscribeText}</span>
+                <FontAwesomeIcon
+                    className="hide-md-up"
+                    icon={faEnvelopeOpenText}
+                />
             </button>
         </div>
     )

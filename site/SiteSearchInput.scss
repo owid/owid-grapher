@@ -1,11 +1,12 @@
 .SiteSearchInput {
     position: relative;
     color: $white;
+    width: inherit;
 
     > input {
         display: block;
         height: $search-cta-height;
-        width: 300px;
+        width: inherit;
         padding: 0 40px 0 16px;
         background-color: $blue-90;
         border: 1px solid $blue-90;
