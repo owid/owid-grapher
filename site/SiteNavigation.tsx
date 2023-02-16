@@ -25,11 +25,28 @@ enum NavigationRoots {
 
 export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     const [activeRoot, setActiveRoot] = React.useState<NavigationRoots | null>(
-        null
+        NavigationRoots.Topics
     )
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
     >([])
+    const [showMobileSearch, setShowMobileSearch] = useState(false)
+
+    const closeOverlay = () => {
+        setActiveRoot(null)
+    }
+
+    const toggleActiveRoot = (root: NavigationRoots) => {
+        if (activeRoot === root) {
+            closeOverlay()
+        } else {
+            setActiveRoot(root)
+        }
+    }
+
+    const onToggleMobileSearch = () => {
+        setShowMobileSearch(!showMobileSearch)
+    }
 
     useEffect(() => {
         const fetchCategorizedTopics = async () => {
@@ -46,18 +63,6 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         fetchCategorizedTopics()
     }, [])
 
-    const closeOverlay = () => {
-        setActiveRoot(null)
-    }
-
-    const toggleActiveRoot = (root: NavigationRoots) => {
-        if (activeRoot === root) {
-            closeOverlay()
-        } else {
-            setActiveRoot(root)
-        }
-    }
-
     return (
         <>
             {activeRoot && <div className="overlay" onClick={closeOverlay} />}
@@ -65,7 +70,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                 <div className="site-navigation-bar wrapper">
                     <SiteLogos baseUrl={baseUrl} />
 
-                    <nav className="site-primary-links">
+                    <nav className="site-primary-links hide-sm-only">
                         <ul>
                             <li>
                                 <button
@@ -135,7 +140,20 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         />
                     )}
                     <div className="site-search-cta">
-                        <SiteSearchInput />
+                        <div
+                            className="hide-lg-down"
+                            style={{ width: "300px" }}
+                        >
+                            <SiteSearchInput />
+                        </div>
+                        <button
+                            onClick={onToggleMobileSearch}
+                            data-track-note="mobile-search-button"
+                            className="mobile-search hide-lg-up"
+                        >
+                            <FontAwesomeIcon icon={faSearch} />
+                        </button>
+
                         <NewsletterSubscription
                             context={NewsletterSubscriptionContext.Floating}
                         />
@@ -149,6 +167,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                     </div>
                 </div>
             </div>
+            {showMobileSearch && (
+                <div className="hide-lg-up" style={{ width: "100%" }}>
+                    <SiteSearchInput />
+                </div>
+            )}
         </>
     )
 }

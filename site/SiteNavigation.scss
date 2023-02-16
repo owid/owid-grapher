@@ -13,13 +13,12 @@
 }
 
 .site-navigation-bar {
-    @include body-3-medium;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding-top: 14px;
-    padding-bottom: 11px;
+    padding-top: 12px;
+    padding-bottom: 12px;
 
     .site-primary-links {
         > ul {
@@ -33,6 +32,7 @@
                     padding: 0;
                     border: none;
                     cursor: pointer;
+                    @include body-3-medium;
                     color: $blue-20;
                     background-color: transparent;
                     &:hover {
@@ -64,6 +64,7 @@
                         > a {
                             display: block;
                             padding: 8px 0;
+                            @include body-3-medium;
                             color: $blue-90;
                             &:hover {
                                 color: $blue-50;
@@ -79,26 +80,36 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        height: 40px;
-        > * {
-            margin-right: 16px;
+        height: $search-cta-height;
+        column-gap: 16px;
 
-            &:last-child {
-                margin-right: 0;
-            }
-        }
+        button.mobile-search,
         button.prompt,
         a.donate {
             display: flex;
             align-items: center;
             height: $search-cta-height;
             padding: 0 24px;
+            @include body-3-medium;
             background: none;
+            border: none;
             color: $white;
-        }
-        button.prompt {
-            border: 1px solid $white;
             cursor: pointer;
+        }
+
+        button.mobile-search {
+            padding: 0 16px;
+            background-color: $blue-90;
+        }
+
+        button.prompt {
+            @include md-down {
+                padding: 0 16px;
+                background-color: $blue-90;
+            }
+            @include md-up {
+                border: 1px solid $white;
+            }
             &:hover {
                 background-color: $white;
                 color: $blue-90;

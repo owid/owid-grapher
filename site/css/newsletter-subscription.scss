@@ -67,10 +67,6 @@
 .site-header .newsletter-subscription {
     position: relative;
 
-    .prompt {
-        margin-left: 0.75rem;
-    }
-
     .overlay {
         @include overlay;
         z-index: $zindex-lightbox;
