@@ -1,4 +1,5 @@
 import { Country } from "@ourworldindata/utils"
+import type { SearchResponse } from "@algolia/client-search"
 
 export type PageType =
     | "about"
@@ -79,7 +80,7 @@ export interface ChartHit extends ChartRecord {
 }
 
 export interface SiteSearchResults {
-    pages: PageHit[]
-    charts: ChartHit[]
+    pages: SearchResponse<PageHit>
+    charts: SearchResponse<ChartHit>
     countries: Country[]
 }

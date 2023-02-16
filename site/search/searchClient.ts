@@ -5,11 +5,32 @@ import {
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import { PageHit, SiteSearchResults, ChartHit } from "./searchTypes.js"
+import type { SearchResponse } from "@algolia/client-search"
+import insightsClient, { InsightsClient } from "search-insights"
+import type { InsightsSearchClickEvent } from "search-insights/dist/click.js"
+import {
+    getPreferenceValue,
+    PreferenceType,
+} from "../CookiePreferencesManager.js"
 
 let algolia: SearchClient | undefined
 const getClient = () => {
     if (!algolia) algolia = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     return algolia
+}
+
+let insightsInitialized = false
+const getInsightsClient = (): InsightsClient => {
+    if (!insightsInitialized) {
+        insightsClient("init", {
+            appId: ALGOLIA_ID,
+            apiKey: ALGOLIA_SEARCH_KEY,
+            userHasOptedOut: !getPreferenceValue(PreferenceType.Analytics),
+            useCookie: true, // insightsClient doesn't set the cookie when userHasOptedOut is true
+        })
+        insightsInitialized = true
+    }
+    return insightsClient
 }
 
 export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
@@ -39,10 +60,11 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
             indexName: "pages",
             query,
             params: {
-                attributesToRetrieve: ["slug", "title", "type"],
+                attributesToRetrieve: ["objectID", "slug", "title", "type"],
                 attributesToSnippet: ["excerpt:20", "content:20"],
                 attributesToHighlight: ["title"],
                 hitsPerPage: 10,
+                clickAnalytics: true,
             },
         },
         {
@@ -50,6 +72,7 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
             query: chartQuery,
             params: {
                 attributesToRetrieve: [
+                    "objectID",
                     "chartId",
                     "slug",
                     "title",
@@ -60,13 +83,21 @@ export const siteSearch = async (query: string): Promise<SiteSearchResults> => {
                 hitsPerPage: 10,
                 removeStopWords: true,
                 replaceSynonymsInHighlight: false,
+                clickAnalytics: true,
             },
         },
     ])
 
     return {
-        pages: json.results[0].hits as PageHit[],
-        charts: json.results[1].hits as ChartHit[],
+        pages: json.results[0] as SearchResponse<PageHit>,
+        charts: json.results[1] as SearchResponse<ChartHit>,
         countries: matchCountries,
     }
+}
+
+export const logSiteSearchClick = (
+    event: Omit<InsightsSearchClickEvent, "eventName">
+) => {
+    const client = getInsightsClient()
+    client("clickedObjectIDsAfterSearch", { ...event, eventName: "click" })
 }

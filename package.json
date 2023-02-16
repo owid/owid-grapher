@@ -201,6 +201,7 @@
         "safe-stable-stringify": "^2.4.1",
         "sass": "^1.52.1",
         "sass-loader": "^13.0.2",
+        "search-insights": "^2.2.3",
         "sharp": "^0.31.0",
         "shell-quote": "^1.7.3",
         "shelljs": "^0.8.5",
