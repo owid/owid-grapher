@@ -36,6 +36,12 @@
     }
 }
 
+.hide-sm-up {
+    @include sm-up {
+        display: none !important;
+    }
+}
+
 .hide-md-down {
     @include md-down {
         display: none !important;

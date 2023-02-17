@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { faListUl } from "@fortawesome/free-solid-svg-icons/faListUl"
-import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown"
-import { faCaretUp } from "@fortawesome/free-solid-svg-icons/faCaretUp"
 import {
     NewsletterSubscription,
     NewsletterSubscriptionContext,
@@ -15,8 +13,11 @@ import { CategoryWithEntries } from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
 import { SiteAbout } from "./SiteAbout.js"
 import { SiteSearchInput } from "./SiteSearchInput.js"
+import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
+import { SiteMobileMenu } from "./SiteMobileMenu.js"
+import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 
-enum NavigationRoots {
+export enum NavigationRoots {
     Topics = "topics",
     // Latest = "latest",
     Resources = "resources",
@@ -69,74 +70,60 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
             <div className="site-navigation">
                 <div className="wrapper">
                     <div className="site-navigation-bar">
+                        <SiteNavigationToggle
+                            activeRoot={activeRoot}
+                            targetRoot={NavigationRoots.Topics}
+                            toggleActiveRoot={toggleActiveRoot}
+                            className="mobile-menu-toggle hide-sm-up"
+                            dropdown={
+                                <SiteMobileMenu
+                                    topics={categorizedTopics}
+                                    className="hide-sm-up"
+                                />
+                            }
+                        >
+                            <FontAwesomeIcon icon={faBars} />
+                        </SiteNavigationToggle>
                         <SiteLogos baseUrl={baseUrl} />
-
                         <nav className="site-primary-links hide-sm-only">
                             <ul>
                                 <li>
-                                    <button
-                                        onClick={() =>
-                                            toggleActiveRoot(
-                                                NavigationRoots.Topics
-                                            )
-                                        }
+                                    <SiteNavigationToggle
+                                        activeRoot={activeRoot}
+                                        targetRoot={NavigationRoots.Topics}
+                                        toggleActiveRoot={toggleActiveRoot}
                                     >
                                         <FontAwesomeIcon
                                             icon={faListUl}
                                             style={{ marginRight: "8px" }}
                                         />
                                         Browse by topic
-                                    </button>
+                                    </SiteNavigationToggle>
                                 </li>
                                 <li>
                                     <a href="/blog">Latest</a>
                                 </li>
-                                <li className="prompt">
-                                    <button
-                                        onClick={() =>
-                                            toggleActiveRoot(
-                                                NavigationRoots.Resources
-                                            )
-                                        }
+                                <li className="toggle-wrapper">
+                                    <SiteNavigationToggle
+                                        activeRoot={activeRoot}
+                                        toggleActiveRoot={toggleActiveRoot}
+                                        targetRoot={NavigationRoots.Resources}
+                                        dropdown={<SiteResources />}
+                                        withCaret={true}
                                     >
                                         Resources
-                                        <FontAwesomeIcon
-                                            icon={
-                                                activeRoot ===
-                                                NavigationRoots.Resources
-                                                    ? faCaretUp
-                                                    : faCaretDown
-                                            }
-                                            style={{ marginLeft: "8px" }}
-                                        />
-                                    </button>
-                                    {activeRoot ===
-                                        NavigationRoots.Resources && (
-                                        <SiteResources />
-                                    )}
+                                    </SiteNavigationToggle>
                                 </li>
-                                <li className="prompt">
-                                    <button
-                                        onClick={() =>
-                                            toggleActiveRoot(
-                                                NavigationRoots.About
-                                            )
-                                        }
+                                <li className="toggle-wrapper">
+                                    <SiteNavigationToggle
+                                        activeRoot={activeRoot}
+                                        toggleActiveRoot={toggleActiveRoot}
+                                        targetRoot={NavigationRoots.About}
+                                        dropdown={<SiteAbout />}
+                                        withCaret={true}
                                     >
                                         About
-                                        <FontAwesomeIcon
-                                            icon={
-                                                activeRoot ===
-                                                NavigationRoots.About
-                                                    ? faCaretUp
-                                                    : faCaretDown
-                                            }
-                                            style={{ marginLeft: "8px" }}
-                                        />
-                                    </button>
-                                    {activeRoot === NavigationRoots.About && (
-                                        <SiteAbout />
-                                    )}
+                                    </SiteNavigationToggle>
                                 </li>
                             </ul>
                         </nav>
@@ -144,6 +131,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             <SiteNavigationTopics
                                 onClose={closeOverlay}
                                 topics={categorizedTopics}
+                                className="hide-sm-only"
                             />
                         )}
                         <div className="site-search-cta">
