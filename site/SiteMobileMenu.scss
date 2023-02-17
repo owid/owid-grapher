@@ -1,0 +1,11 @@
+.SiteMobileMenu {
+    position: absolute;
+    width: 100%;
+    top: 100%;
+    z-index: 1;
+    background-color: $accent-pale-blue;
+
+    ul {
+        list-style-type: none;
+    }
+}

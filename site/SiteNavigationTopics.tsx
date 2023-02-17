@@ -3,6 +3,7 @@ import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import classnames from "classnames"
+import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
 
 // suppress useLayoutEffect (and its warnings) when not running in a browser
 // https://gist.github.com/gaearon/e7d97cdf38a2907924ea12e4ebdf3c85?permalink_comment_id=4150784#gistcomment-4150784
@@ -15,9 +16,11 @@ if (typeof window === "undefined") React.useLayoutEffect = () => {}
 export const SiteNavigationTopics = ({
     topics,
     onClose,
+    className,
 }: {
     topics: CategoryWithEntries[]
     onClose: () => void
+    className?: string
 }) => {
     const [activeCategory, setActiveCategory] =
         useState<CategoryWithEntries | null>(null)
@@ -35,7 +38,10 @@ export const SiteNavigationTopics = ({
     }, [activeCategory])
 
     return topics.length > 0 ? (
-        <div className="SiteNavigationTopics wrapper" onClick={onClose}>
+        <div
+            className={classnames("SiteNavigationTopics", "wrapper", className)}
+            onClick={onClose}
+        >
             <div className="categories">
                 <div className="heading">Browse by topic</div>
                 <ul>
@@ -70,7 +76,7 @@ export const SiteNavigationTopics = ({
                     })}
                 >
                     {allTopicsInCategory(activeCategory).map((topic) => (
-                        <Topic key={topic.slug} topic={topic} />
+                        <SiteNavigationTopic key={topic.slug} topic={topic} />
                     ))}
                 </ul>
             )}
@@ -78,23 +84,11 @@ export const SiteNavigationTopics = ({
     ) : null
 }
 
-const allTopicsInCategory = (category: CategoryWithEntries): EntryMeta[] => {
+export const allTopicsInCategory = (
+    category: CategoryWithEntries
+): EntryMeta[] => {
     return [
         ...category.entries,
         ...category.subcategories.flatMap((subcategory) => subcategory.entries),
     ]
-}
-
-const Topic = ({ topic }: { topic: EntryMeta }) => {
-    return (
-        <li>
-            <a
-                href={`/${topic.slug}`}
-                className="item"
-                data-track-note="header-navigation"
-            >
-                <span className="label">{topic.title}</span>
-            </a>
-        </li>
-    )
 }
