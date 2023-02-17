@@ -23,6 +23,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
         return this.url.queryStr
     }
     @observable private grapher?: Grapher
+    @observable private currentUrl?: string
 
     private async loadConfig() {
         const { configUrl } = this
@@ -41,6 +42,9 @@ export class EmbedChart extends React.Component<{ src: string }> {
                 isEmbeddedInAnOwidPage: true,
                 queryStr: this.queryStr,
             })
+            // We have now loaded this url with this query string.
+            // We use it as a React key, so if the url changes, we reload.
+            this.currentUrl = this.props.src
         })
     }
 
@@ -55,7 +59,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
 
     render() {
         return this.grapher ? (
-            <GrapherFigureView grapher={this.grapher} />
+            <GrapherFigureView key={this.currentUrl} grapher={this.grapher} />
         ) : (
             <figure data-grapher-src={this.props.src} />
         )
