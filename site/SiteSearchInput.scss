@@ -1,3 +1,13 @@
+.search-input-wrapper {
+    @include lg-only {
+        flex: 1;
+        width: 100%;
+    }
+    @include lg-up {
+        width: 300px;
+    }
+}
+
 .SiteSearchInput {
     position: relative;
     color: $white;

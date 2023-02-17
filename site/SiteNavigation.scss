@@ -18,6 +18,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    column-gap: 24px;
     padding-top: 12px;
     padding-bottom: 12px;
 
@@ -83,7 +84,13 @@
         flex-direction: row;
         align-items: center;
         height: $search-cta-height;
-        column-gap: $search-cta-column-gap;
+        column-gap: 0;
+        @include lg-only {
+            flex: 1;
+        }
+        @include lg-up {
+            column-gap: $search-cta-column-gap;
+        }
 
         button.mobile-search,
         button.prompt,
@@ -100,15 +107,17 @@
         }
 
         button.mobile-search {
-            padding: 0 16px;
-            margin-right: -$search-cta-column-gap;
+            padding: 0 8px;
+            font-size: 16px;
         }
 
         button.prompt {
             @include md-down {
-                padding: 0 16px;
+                margin-right: 8px;
+                padding: 0 8px;
+                font-size: 16px;
             }
-            @include md-up {
+            @include lg-up {
                 border: 1px solid $white;
                 &:hover {
                     background-color: $white;
@@ -117,6 +126,9 @@
             }
         }
         a.donate {
+            @include sm-only {
+                display: none;
+            }
             background-color: $vermillion;
             &:hover {
                 background-color: #b40000;

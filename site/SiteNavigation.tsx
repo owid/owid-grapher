@@ -147,16 +147,13 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             />
                         )}
                         <div className="site-search-cta">
-                            <div
-                                className="hide-lg-down"
-                                style={{ width: "300px" }}
-                            >
+                            <div className="search-input-wrapper hide-md-down">
                                 <SiteSearchInput />
                             </div>
                             <button
                                 onClick={onToggleMobileSearch}
                                 data-track-note="mobile-search-button"
-                                className="mobile-search hide-lg-up"
+                                className="mobile-search hide-md-up"
                             >
                                 <FontAwesomeIcon icon={faSearch} />
                             </button>
@@ -176,7 +173,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                 </div>
             </div>
             {showMobileSearch && (
-                <div className="hide-lg-up" style={{ width: "100%" }}>
+                <div className="hide-md-up" style={{ width: "100%" }}>
                     <SiteSearchInput />
                 </div>
             )}
