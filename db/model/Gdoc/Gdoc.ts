@@ -2,8 +2,8 @@ import {
     Entity,
     Column,
     BaseEntity,
-    PrimaryGeneratedColumn,
     UpdateDateColumn,
+    PrimaryColumn,
 } from "typeorm"
 import {
     OwidArticleContent,
@@ -32,7 +32,7 @@ import {
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
-    @PrimaryGeneratedColumn() id!: string
+    @PrimaryColumn() id!: string
     @Column() slug: string = ""
     @Column({ default: "{}", type: "json" }) content!: OwidArticleContent
     @Column() published: boolean = false
