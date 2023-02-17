@@ -56,9 +56,9 @@ export const NewsletterSubscription = ({
                     setIsOpen(!isOpen)
                 }}
             >
-                <span className="hide-md-down">{subscribeText}</span>
+                <span className="hide-lg-down">{subscribeText}</span>
                 <FontAwesomeIcon
-                    className="hide-md-up"
+                    className="hide-lg-up"
                     icon={faEnvelopeOpenText}
                 />
             </button>

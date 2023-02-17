@@ -74,6 +74,12 @@ $xxlg: 1536px;
     }
 }
 
+@mixin lg-only {
+    @media (min-width: $md) and (max-width: $lg) {
+        @content;
+    }
+}
+
 @mixin lg-down {
     @media (max-width: $lg) {
         @content;
@@ -82,12 +88,6 @@ $xxlg: 1536px;
 
 @mixin lg-up {
     @media (min-width: $lg) {
-        @content;
-    }
-}
-
-@mixin lg-only {
-    @media (min-width: $lg) and (max-width: $xlg) {
         @content;
     }
 }
