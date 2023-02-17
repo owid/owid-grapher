@@ -5,6 +5,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
 import { EmbedChart } from "../EmbedChart.js"
+import { logSiteSearchClick } from "./searchClient.js"
 import {
     PageHit,
     ChartHit,
@@ -16,6 +17,8 @@ import {
 class ChartResult extends React.Component<{
     hit: ChartHit
     queryCountries: Country[]
+    queryId: string | undefined
+    index: number
 }> {
     @computed get entities() {
         return pickEntitiesForChart(this.props.hit, this.props.queryCountries)
@@ -34,11 +37,20 @@ class ChartResult extends React.Component<{
             ).fullUrl
     }
 
-    @computed get title() {
+    @computed get title(): JSX.Element {
         const { hit } = this.props
         const { entities } = this
-        if (!entities.length) return hit.title
-        else return hit.title.trim() + `, ${entities.join(", ")}`
+        const highlightedTitle = hit._highlightResult?.title?.value ?? ""
+        const title = (
+            <span dangerouslySetInnerHTML={{ __html: highlightedTitle }} />
+        )
+        if (!entities.length) return title
+        else
+            return (
+                <>
+                    {title}, {entities.join(", ")}
+                </>
+            )
     }
 
     render() {
@@ -47,24 +59,40 @@ class ChartResult extends React.Component<{
 
         return (
             <li className="ChartResult">
-                {/* <a href={`${BAKED_GRAPHER_URL}/${hit.slug}`} dangerouslySetInnerHTML={{__html: hit._highlightResult.title.value}}/> */}
-                <a href={`${BAKED_GRAPHER_URL}/${slug}`}>{title}</a>
+                <a
+                    href={`${BAKED_GRAPHER_URL}/${slug}`}
+                    onClick={() => {
+                        if (this.props.queryId)
+                            logSiteSearchClick({
+                                index: "charts",
+                                objectIDs: [hit.objectID],
+                                positions: [this.props.index + 1], // Algolia index is 1-based
+                                queryID: this.props.queryId,
+                            })
+                    }}
+                >
+                    {title}
+                </a>
                 {hit.variantName ? (
                     <span className="variantName"> {hit.variantName}</span>
                 ) : undefined}
-                {hit._snippetResult ? (
+                {hit._snippetResult?.subtitle && (
                     <p
                         dangerouslySetInnerHTML={{
                             __html: hit._snippetResult.subtitle.value,
                         }}
                     />
-                ) : undefined}
+                )}
             </li>
         )
     }
 }
 
-class PageResult extends React.Component<{ hit: PageHit }> {
+class PageResult extends React.Component<{
+    hit: PageHit
+    queryId: string | undefined
+    index: number
+}> {
     /**
      * We want to decide whether to show the excerpt or the content, in addition to the title.
      * The excerpt is usually more useful, but there can be cases where the content is better:
@@ -114,6 +142,15 @@ class PageResult extends React.Component<{ hit: PageHit }> {
                     dangerouslySetInnerHTML={{
                         __html: hit._highlightResult.title.value,
                     }}
+                    onClick={() => {
+                        if (this.props.queryId)
+                            logSiteSearchClick({
+                                index: "pages",
+                                queryID: this.props.queryId,
+                                objectIDs: [hit.objectID],
+                                positions: [this.props.index + 1], // Algolia index is 1-based
+                            })
+                    }}
                 />
                 {/* <a href={`/${hit.slug}`}>{hit.title}</a> */}
                 {showType ? (
@@ -131,15 +168,14 @@ class PageResult extends React.Component<{ hit: PageHit }> {
 
 function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
     const entities = []
-    const availableEntities = hit._highlightResult
-        ? hit._highlightResult.availableEntities
-        : []
+    const availableEntities = hit._highlightResult?.availableEntities ?? []
     for (const res of availableEntities) {
-        const entity = res.value.replace(/<\/?em>/g, "")
-        if (
-            res.matchLevel !== "none" ||
-            queryCountries.some((c) => c.name === entity)
-        ) {
+        const entity = res.value.replace(/<\/?strong>/g, "")
+
+        // Only pick an entity if it's a full match or if it's a match of at least 4 characters.
+        const relevantMatch =
+            res.fullyHighlighted || res.matchedWords.some((w) => w.length >= 4)
+        if (relevantMatch || queryCountries.some((c) => c.name === entity)) {
             entities.push(entity)
         }
     }
@@ -152,9 +188,7 @@ export class SearchResults extends React.Component<{
     results: SiteSearchResults
 }> {
     @computed get bestChartHit(): ChartHit | undefined {
-        return this.props.results.charts.length
-            ? this.props.results.charts[0]
-            : undefined
+        return this.props.results.charts.hits[0] ?? undefined
     }
 
     @computed get bestChartEntities() {
@@ -186,31 +220,38 @@ export class SearchResults extends React.Component<{
                 <div className="container">
                     <div className="postResults">
                         <h2>Pages</h2>
-                        {!results.pages.length ? (
+                        {!results.pages.hits.length && (
                             <p>No matching pages.</p>
-                        ) : undefined}
+                        )}
                         <ul>
-                            {results.pages.map((hit) => (
-                                <PageResult key={hit.objectID} hit={hit} />
+                            {results.pages.hits.map((hit, i) => (
+                                <PageResult
+                                    key={hit.objectID}
+                                    hit={hit}
+                                    queryId={results.pages.queryID}
+                                    index={i}
+                                />
                             ))}
                         </ul>
                     </div>
                     <div className="chartResults">
                         <h2>Charts</h2>
-                        {!results.charts.length ? (
+                        {!results.charts.hits.length && (
                             <p>No matching charts.</p>
-                        ) : undefined}
+                        )}
                         {this.bestChartSlug && (
                             <EmbedChart
                                 src={`${BAKED_GRAPHER_URL}/${this.bestChartSlug}`}
                             />
                         )}
                         <ul>
-                            {results.charts.map((hit) => (
+                            {results.charts.hits.map((hit, i) => (
                                 <ChartResult
                                     key={hit.chartId}
                                     hit={hit}
                                     queryCountries={results.countries}
+                                    index={i}
+                                    queryId={results.charts.queryID}
                                 />
                             ))}
                         </ul>

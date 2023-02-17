@@ -7,6 +7,7 @@ import {
     EnrichedBlockText,
     OwidArticlePublicationContext,
     OwidArticleType,
+    sortBy,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -27,7 +28,10 @@ const migrate = async (): Promise<void> => {
         "title",
         "content",
         "published_at",
-        "updated_at"
+        "updated_at",
+        "authors",
+        "excerpt",
+        "created_at_in_wordpress"
     ).from(db.knexTable(Post.postsTable)) //.where("id", "=", "22821"))
 
     for (const post of posts) {
@@ -91,21 +95,39 @@ const migrate = async (): Promise<void> => {
                 }
             )
 
+            // request a weekday along with a long date
+            const options = {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            } as const
+            const dateline = post.published_at
+                ? post.published_at.toLocaleDateString("en-US", options)
+                : ""
+
+            const authors: { author: string; order: number }[] = JSON.parse(
+                post.authors
+            )
+
             const archieMlFieldContent: OwidArticleType = {
                 id: `wp-${post.id}`,
                 slug: post.slug,
                 content: {
                     body: archieMlBodyElements,
                     title: post.title,
-                    byline: "todo", // TOOD: fetch authors from WP and store them in posts table
-                    dateline: post.published_at?.toISOString() ?? "",
+                    subtitle: post.excerpt,
+                    excerpt: post.excerpt,
+                    byline: sortBy(authors, ["order"])
+                        .map((author) => author.author)
+                        .join(", "),
+                    dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: refParsingResults,
                 },
-                published: false, // post.published_at !== null,
-                createdAt: post.updated_at, // TODO: this is wrong but it doesn't seem we have a created date in the posts table
-                publishedAt: null, // post.published_at,
-                updatedAt: null, // post.updated_at,
+                published: false,
+                createdAt: post.created_at_in_wordpress ?? post.updated_at,
+                publishedAt: post.published_at,
+                updatedAt: post.updated_at,
                 publicationContext: OwidArticlePublicationContext.listed, // TODO: not all articles are listed, take this from the DB
                 revisionId: null,
             }

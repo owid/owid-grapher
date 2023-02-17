@@ -516,9 +516,6 @@ export const csvEscape = (value: unknown): string => {
         : valueStr
 }
 
-export const arrToCsvRow = (arr: unknown[]): string =>
-    arr.map((x) => csvEscape(x)).join(",") + "\n"
-
 export const urlToSlug = (url: string): string =>
     last(
         parseUrl(url)
