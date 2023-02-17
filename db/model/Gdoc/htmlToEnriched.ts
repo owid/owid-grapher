@@ -386,11 +386,11 @@ export function parseWpComponent(
     // tag that we want to ignore then don't try to find a closing tag
     if (componentDetails.isVoidElement)
         return {
-            remainingElements,
-            result: {
+            result: finishWpComponent(componentDetails, {
                 errors: [],
-                content: [componentDetails],
-            },
+                content: [],
+            }),
+            remainingElements: remainingElements,
         }
     if (wpComponentTagsToIgnore.includes(componentDetails.tagName))
         return {
