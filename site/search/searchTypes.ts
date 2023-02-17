@@ -75,6 +75,8 @@ export interface ChartHit extends ChartRecord {
         availableEntities?: {
             value: string
             matchLevel: AlgoliaMatchLevel
+            fullyHighlighted: boolean
+            matchedWords: string[]
         }[]
     }
 }

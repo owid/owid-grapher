@@ -171,10 +171,11 @@ function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
     const availableEntities = hit._highlightResult?.availableEntities ?? []
     for (const res of availableEntities) {
         const entity = res.value.replace(/<\/?strong>/g, "")
-        if (
-            res.matchLevel !== "none" ||
-            queryCountries.some((c) => c.name === entity)
-        ) {
+
+        // Only pick an entity if it's a full match or if it's a match of at least 4 characters.
+        const relevantMatch =
+            res.fullyHighlighted || res.matchedWords.some((w) => w.length >= 4)
+        if (relevantMatch || queryCountries.some((c) => c.name === entity)) {
             entities.push(entity)
         }
     }
