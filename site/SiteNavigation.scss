@@ -10,6 +10,13 @@
     z-index: $zindex-lightbox;
     border-bottom: $mobile-header-border-height solid $vermillion;
     background-color: $oxford-blue;
+
+    @include sm-only {
+        .wrapper {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+    }
 }
 
 .site-navigation-bar {
@@ -112,12 +119,22 @@
         }
 
         button.prompt {
-            @include md-down {
+            padding: 0 8px;
+            font-size: 16px;
+            @include lg-down {
                 margin-right: 8px;
-                padding: 0 8px;
-                font-size: 16px;
             }
+            @include sm-only {
+                margin-right: -8px;
+            }
+            @include lg-only {
+                margin-right: 0;
+                padding: 0 16px;
+            }
+
             @include lg-up {
+                padding: 0 24px;
+                font-size: 14px;
                 border: 1px solid $white;
                 &:hover {
                     background-color: $white;
