@@ -1089,35 +1089,21 @@ html:not(.js) {
             padding-bottom: 1rem;
             border-bottom: 1px solid #ccc;
         }
-    }
 
-    .postResults li {
-        list-style-type: none;
-
-        a {
-            font-size: 16px;
-        }
-
-        p {
-            font-size: 13px;
-            margin-top: 0;
+        > ul li {
+            list-style-type: none;
             margin-bottom: 1.75rem;
+
+            a {
+                @include owid-link-90;
+            }
+
+            p {
+                margin-top: 0;
+                margin-bottom: 0;
+                font-size: 13px;
+            }
         }
-    }
-
-    .chartResults > ul > li {
-        list-style-type: none;
-        line-height: 1.8em;
-
-        p {
-            font-size: 13px;
-        }
-    }
-
-    .postResults em,
-    .ChartResult em {
-        font-style: normal;
-        font-weight: bold;
     }
 
     .algoliaCredit {

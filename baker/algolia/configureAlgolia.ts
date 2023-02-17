@@ -47,6 +47,8 @@ export const configureAlgolia = async () => {
         exactOnSingleWordQuery: "none",
         removeStopWords: ["en"],
         snippetEllipsisText: "…",
+        highlightPreTag: "<strong>",
+        highlightPostTag: "</strong>",
         distinct: true,
         advancedSyntax: true,
         advancedSyntaxFeatures: ["exactPhrase"],
@@ -57,11 +59,18 @@ export const configureAlgolia = async () => {
     await chartsIndex.setSettings({
         ...baseSettings,
         searchableAttributes: [
+            /**
+             * It may seem unintuitive that we're ranking `keyChartForTags` higher than `title`.
+             * However, many of the search queries we get are for "topics", like `migration` or
+             * `tourism`. If for this topic we have a key chart, we want to show that first,
+             * since that's hand-picked to be super relevant for the topic.
+             */
+            "unordered(keyChartForTags)",
             "unordered(title)",
             "unordered(slug)",
             "unordered(variantName)",
             "unordered(subtitle)",
-            "unordered(_tags)",
+            "unordered(tags)",
             "unordered(availableEntities)",
         ],
         customRanking: [
@@ -71,7 +80,7 @@ export const configureAlgolia = async () => {
         ],
         attributesToSnippet: ["subtitle:24"],
         attributeForDistinct: "id",
-        disableExactOnAttributes: ["_tags"],
+        disableExactOnAttributes: ["tags"],
         optionalWords: ["vs"],
     })
 
@@ -133,6 +142,13 @@ export const configureAlgolia = async () => {
         ["vaccine hesitancy", "vaccine attitude", "vaccine willingness"],
         ["electric power", "power", "electricity"],
         ["artificial intelligence", "ai", "machine learning", "neural network"],
+        ["hdi", "human development index"],
+        ["drug", "drugs", "substance use"],
+        ["r&d", "r & d", "research"],
+        ["plane", "airplane", "aviation", "airline", "flying"],
+        ["ev", "electric vehicle", "electric car"],
+        ["train", "railway"],
+        ["dying", "death", "mortality"],
     ]
 
     // Send all our country variant names to algolia as synonyms

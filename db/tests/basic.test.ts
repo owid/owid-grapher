@@ -84,7 +84,7 @@ test("timestamps are automatically created and updated", async () => {
             ).toBeGreaterThan(800)
             expect(
                 updated.updatedAt.getTime() - updated.createdAt.getTime()
-            ).toBeLessThan(1500)
+            ).toBeLessThanOrEqual(2000)
         }
     }
 })

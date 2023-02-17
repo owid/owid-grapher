@@ -1,48 +1,53 @@
-import * as lodash from "lodash"
-
 import * as db from "../../db/db.js"
 import { getRelatedArticles } from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { isPathRedirectedToExplorer } from "../../explorerAdminServer/ExplorerRedirects.js"
+import { ChartRecord } from "../../site/search/searchTypes.js"
+import { MarkdownTextWrap } from "@ourworldindata/utils"
 
-const getChartsRecords = async () => {
-    const allCharts = await db.queryMysql(`
-        SELECT id, publishedAt, updatedAt, JSON_LENGTH(config->"$.dimensions") AS numDimensions, config->>"$.type" AS type, config->>"$.slug" AS slug, config->>"$.title" AS title, config->>"$.subtitle" AS subtitle, config->>"$.variantName" AS variantName, config->>"$.data.availableEntities" as availableEntitiesStr
-        FROM charts
-        WHERE publishedAt IS NOT NULL
+const getChartsRecords = async (): Promise<ChartRecord[]> => {
+    const chartsToIndex = await db.queryMysql(`
+    SELECT c.id,
+        config ->> "$.slug"                   AS slug,
+        config ->> "$.title"                  AS title,
+        config ->> "$.variantName"            AS variantName,
+        config ->> "$.subtitle"               AS subtitle,
+        config ->> "$.data.availableEntities" AS availableEntities,
+        JSON_LENGTH(config ->> "$.dimensions") AS numDimensions,
+        c.publishedAt,
+        c.updatedAt,
+        JSON_ARRAYAGG(t.name) AS tags,
+        JSON_ARRAYAGG(IF(ct.isKeyChart, t.name, NULL)) AS keyChartForTags -- this results in an array that contains null entries, will have to filter them out
+    FROM charts c
+        LEFT JOIN chart_tags ct ON c.id = ct.chartId
+        LEFT JOIN tags t on ct.tagId = t.id
+    WHERE config ->> "$.isPublished" = 'true'
         AND is_indexable IS TRUE
+    GROUP BY c.id
+    HAVING COUNT(t.id) >= 1
     `)
 
-    const chartTags = await db.queryMysql(`
-        SELECT ct.chartId, ct.tagId, t.name as tagName FROM chart_tags ct
-        JOIN charts c ON c.id=ct.chartId
-        JOIN tags t ON t.id=ct.tagId
-    `)
-
-    for (const c of allCharts) {
-        c.tags = []
-    }
-
-    const chartsById = lodash.keyBy(allCharts, (c) => c.id)
-
-    const chartsToIndex = []
-    for (const ct of chartTags) {
-        const c = chartsById[ct.chartId]
-        if (c) {
-            c.tags.push({ id: ct.tagId, name: ct.tagName })
-            chartsToIndex.push(c)
-        }
-    }
-
-    const records = []
     for (const c of chartsToIndex) {
-        if (!c.tags) continue
+        c.availableEntities = JSON.parse(c.availableEntities)
+        c.tags = JSON.parse(c.tags)
+        c.keyChartForTags = JSON.parse(c.keyChartForTags).filter(
+            (t: string | null) => t
+        )
+    }
+
+    const records: ChartRecord[] = []
+    for (const c of chartsToIndex) {
         // Our search currently cannot render explorers, so don't index them because
         // otherwise they will fail when rendered in the search results
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
         const relatedArticles = (await getRelatedArticles(c.id)) ?? []
+
+        const plaintextSubtitle = new MarkdownTextWrap({
+            text: c.subtitle,
+            fontSize: 10, // doesn't matter, but is a mandatory field
+        }).plaintext
 
         records.push({
             objectID: c.id,
@@ -50,12 +55,13 @@ const getChartsRecords = async () => {
             slug: c.slug,
             title: c.title,
             variantName: c.variantName,
-            subtitle: c.subtitle,
-            _tags: c.tags.map((t: any) => t.name),
-            availableEntities: JSON.parse(c.availableEntitiesStr),
+            subtitle: plaintextSubtitle,
+            availableEntities: c.availableEntities,
+            numDimensions: parseInt(c.numDimensions),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
-            numDimensions: parseInt(c.numDimensions),
+            tags: c.tags,
+            keyChartForTags: c.keyChartForTags,
             titleLength: c.title.length,
             // Number of references to this chart in all our posts and pages
             numRelatedArticles: relatedArticles.length,
