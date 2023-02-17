@@ -59,11 +59,7 @@ import {
     omitUndefinedValues,
     EnrichedBlockSimpleText,
 } from "@ourworldindata/utils"
-import {
-    extractPlaintextUrl,
-    extractUrl,
-    getTitleSupertitleFromHeadingText,
-} from "./gdocUtils.js"
+import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
