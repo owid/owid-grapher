@@ -34,6 +34,7 @@
             display: flex;
             flex-direction: row;
             column-gap: 24px;
+            align-items: center;
             > li {
                 list-style-type: none;
                 > a {
@@ -66,13 +67,11 @@
         }
 
         button.mobile-search,
-        button.prompt,
         a.donate {
             display: flex;
             align-items: center;
             height: $search-cta-height;
             padding: 0 24px;
-            @include body-3-medium;
             background: none;
             border: none;
             color: $white;
@@ -81,30 +80,36 @@
 
         button.mobile-search {
             padding: 0 8px;
-            font-size: 16px;
         }
 
-        button.prompt {
-            padding: 0 8px;
-            font-size: 16px;
-            @include lg-down {
-                margin-right: 8px;
-            }
-            @include sm-only {
-                margin-right: -8px;
-            }
-            @include lg-only {
-                margin-right: 0;
-                padding: 0 16px;
-            }
+        .SiteNavigationToggle.newsletter-subscription {
+            > button {
+                padding: 0 8px;
+                @include lg-down {
+                    margin-right: 8px;
+                }
+                @include sm-only {
+                    margin-right: -8px;
+                }
+                @include lg-only {
+                    margin-right: 0;
+                    padding: 0 16px;
+                }
 
-            @include lg-up {
-                padding: 0 24px;
-                font-size: 14px;
-                border: 1px solid $white;
-                &:hover {
-                    background-color: $white;
-                    color: $blue-90;
+                @include lg-up {
+                    height: $search-cta-height;
+                    padding: 0 24px;
+                    @include body-3-medium;
+                    border: 1px solid $white;
+                    &:hover {
+                        color: $blue-90;
+                        background-color: $white;
+                    }
+                    &.active {
+                        color: $blue-90;
+                        background-color: $blue-20;
+                        border-color: $blue-20;
+                    }
                 }
             }
         }
@@ -112,6 +117,7 @@
             @include sm-only {
                 display: none;
             }
+            @include body-3-medium;
             background-color: $vermillion;
             &:hover {
                 background-color: #b40000;
