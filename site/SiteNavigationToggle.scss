@@ -1,5 +1,5 @@
 .SiteNavigationToggle {
-    button {
+    > button {
         padding: 0;
         border: none;
         cursor: pointer;
@@ -8,52 +8,5 @@
         &:hover {
             color: $blue-40;
         }
-    }
-}
-
-.site-primary-links {
-    .SiteNavigationToggle {
-        @include sm-up {
-            @include body-3-medium;
-        }
-
-        .toggle-dropdown {
-            position: absolute;
-            top: 100%;
-            width: 330px;
-            margin-top: $vertical-spacing;
-            margin-left: -40px;
-            padding: 24px 40px;
-            background-color: $accent-pale-blue;
-
-            ul {
-                display: flex;
-                flex-direction: column;
-                row-gap: 8px;
-                li {
-                    list-style-type: none;
-                    > a {
-                        display: block;
-                        padding: 8px 0;
-                        @include body-3-medium;
-                        color: $blue-90;
-                        &:hover {
-                            color: $blue-50;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-.site-search-cta {
-    .toggle-dropdown {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        width: 411px;
-        padding: 32px 40px;
-        background-color: $white;
     }
 }
