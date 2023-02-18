@@ -6,35 +6,31 @@ import classnames from "classnames"
 
 export const SiteNavigationToggle = ({
     children,
-    activeRoot,
-    targetRoot,
-    toggleActiveRoot,
+    isActive,
+    toggle,
     withCaret = false,
     dropdown,
     className,
 }: {
     children: React.ReactNode
-    activeRoot: NavigationRoots | null
-    targetRoot: NavigationRoots
-    toggleActiveRoot: (root: NavigationRoots) => void
+    isActive: boolean
+    toggle: () => void
     withCaret?: boolean
     dropdown?: React.ReactNode
     className?: string
 }) => {
     return (
         <div className={classnames("SiteNavigationToggle", className)}>
-            <button onClick={() => toggleActiveRoot(targetRoot)}>
+            <button onClick={toggle}>
                 {children}
                 {withCaret && (
                     <FontAwesomeIcon
                         style={{ marginLeft: "8px" }}
-                        icon={
-                            activeRoot === targetRoot ? faCaretUp : faCaretDown
-                        }
+                        icon={isActive ? faCaretUp : faCaretDown}
                     />
                 )}
             </button>
-            {activeRoot === targetRoot && dropdown && (
+            {isActive && dropdown && (
                 <div className="toggle-dropdown">{dropdown}</div>
             )}
         </div>
