@@ -139,6 +139,14 @@
                     }
                 }
             }
+            .toggle-dropdown {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                width: 411px;
+                padding: 32px 40px;
+                background-color: $white;
+            }
         }
         a.donate {
             @include sm-only {
@@ -150,15 +158,6 @@
             &:hover {
                 background-color: #b40000;
             }
-        }
-
-        .toggle-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 411px;
-            padding: 32px 40px;
-            background-color: $white;
         }
     }
 }

@@ -1,20 +1,25 @@
-.search-input-wrapper {
-    @include lg-only {
-        flex: 1;
-        width: 100%;
-    }
+.SiteSearchInput {
+    position: relative;
+    flex: 1;
+    display: none;
+    width: 100%;
     @include lg-up {
         width: 300px;
     }
-}
-
-.SiteSearchInput {
-    position: relative;
+    @include md-down {
+        margin-right: 8px;
+    }
     color: $white;
-    width: inherit;
+
+    &.active {
+        display: block;
+    }
+
+    @include md-up {
+        display: block;
+    }
 
     > input {
-        display: block;
         height: $search-cta-height;
         width: inherit;
         padding: 0 40px 0 16px;
@@ -28,7 +33,8 @@
             border: 1px solid $blue-60;
         }
 
-        &:focus {
+        &:focus,
+        &.active {
             border: 1px solid $blue-40;
         }
 

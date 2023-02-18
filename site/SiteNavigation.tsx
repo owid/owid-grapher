@@ -25,10 +25,11 @@ export enum Menu {
     Resources = "resources",
     About = "about",
     Subscribe = "subscribe",
+    Search = "search",
 }
 
 export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
-    const [menu, setActiveMenu] = React.useState<Menu | null>(Menu.Subscribe)
+    const [menu, setActiveMenu] = React.useState<Menu | null>(Menu.Search)
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
     >([])
@@ -141,16 +142,19 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             </ul>
                         </nav>
                         <div className="site-search-cta">
-                            <div className="search-input-wrapper hide-md-down">
-                                <SiteSearchInput />
-                            </div>
-                            <button
-                                onClick={onToggleMobileSearch}
-                                data-track-note="mobile-search-button"
-                                className="mobile-search hide-md-up"
-                            >
-                                <FontAwesomeIcon icon={faSearch} />
-                            </button>
+                            <SiteSearchInput
+                                isActive={menu === Menu.Search}
+                                onClick={() => setActiveMenu(Menu.Search)}
+                            />
+                            {menu !== Menu.Search && (
+                                <button
+                                    onClick={() => toggleMenu(Menu.Search)}
+                                    data-track-note="mobile-search-button"
+                                    className="mobile-search hide-md-up"
+                                >
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </button>
+                            )}
 
                             <SiteNavigationToggle
                                 isActive={menu === Menu.Subscribe}
@@ -181,11 +185,6 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                     </div>
                 </div>
             </div>
-            {showMobileSearch && (
-                <div className="hide-md-up" style={{ width: "100%" }}>
-                    <SiteSearchInput />
-                </div>
-            )}
         </>
     )
 }
