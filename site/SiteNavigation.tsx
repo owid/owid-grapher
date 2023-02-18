@@ -65,6 +65,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         fetchCategorizedTopics()
     }, [])
 
+    const isActiveMobileMenu =
+        menu !== null &&
+        [Menu.Topics, Menu.Resources, Menu.About].includes(menu)
+
     return (
         <>
             {menu && <div className="overlay" onClick={closeOverlay} />}
@@ -72,7 +76,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                 <div className="wrapper">
                     <div className="site-navigation-bar">
                         <SiteNavigationToggle
-                            isActive={menu !== null}
+                            isActive={isActiveMobileMenu}
                             toggle={() => toggleMenu(Menu.Topics)}
                             className="mobile-menu-toggle hide-sm-up"
                             dropdown={
@@ -83,7 +87,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             }
                         >
                             <FontAwesomeIcon
-                                icon={menu !== null ? faXmark : faBars}
+                                icon={isActiveMobileMenu ? faXmark : faBars}
                             />
                         </SiteNavigationToggle>
                         <SiteLogos baseUrl={baseUrl} />
