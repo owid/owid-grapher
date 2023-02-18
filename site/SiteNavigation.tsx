@@ -16,6 +16,7 @@ import { SiteSearchInput } from "./SiteSearchInput.js"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
+import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
 
 export enum NavigationRoots {
     Topics = "topics",
@@ -83,7 +84,9 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 />
                             }
                         >
-                            <FontAwesomeIcon icon={faBars} />
+                            <FontAwesomeIcon
+                                icon={activeRoot !== null ? faXmark : faBars}
+                            />
                         </SiteNavigationToggle>
                         <SiteLogos baseUrl={baseUrl} />
                         <nav className="site-primary-links hide-sm-only">
