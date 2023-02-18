@@ -3,6 +3,7 @@ import { webpackUrl } from "../site/webpackUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { SiteFooterContext } from "@ourworldindata/utils"
+import { POLYFILL_URL } from "./SiteConstants.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -259,7 +260,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                 </div>
             </div>
             <div className="site-tools" />
-            <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry,ResizeObserver" />
+            <script src={POLYFILL_URL} />
             <script src={webpackUrl("commons.js", props.baseUrl)} />
             <script src={webpackUrl("vendors.js", props.baseUrl)} />
             <script src={webpackUrl("owid.js", props.baseUrl)} />
