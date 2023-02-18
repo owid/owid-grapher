@@ -12,7 +12,6 @@ import escapeRegExp from "lodash/escapeRegExp.js"
 import extend from "lodash/extend.js"
 import findIndex from "lodash/findIndex.js"
 import findLastIndex from "lodash/findLastIndex.js"
-import fromPairs from "lodash/fromPairs.js"
 import flatten from "lodash/flatten.js"
 import get from "lodash/get.js"
 import groupBy from "lodash/groupBy.js"
@@ -81,7 +80,6 @@ export {
     findIndex,
     findLastIndex,
     flatten,
-    fromPairs,
     get,
     groupBy,
     identity,

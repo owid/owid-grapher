@@ -277,7 +277,6 @@ export {
     findIndex,
     findLastIndex,
     flatten,
-    fromPairs,
     get,
     groupBy,
     identity,
