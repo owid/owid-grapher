@@ -71,9 +71,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                 <div className="wrapper">
                     <div className="site-navigation-bar">
                         <SiteNavigationToggle
-                            activeRoot={activeRoot}
-                            targetRoot={NavigationRoots.Topics}
-                            toggleActiveRoot={toggleActiveRoot}
+                            isActive={activeRoot !== null}
+                            toggle={() =>
+                                toggleActiveRoot(NavigationRoots.Topics)
+                            }
                             className="mobile-menu-toggle hide-sm-up"
                             dropdown={
                                 <SiteMobileMenu
@@ -89,9 +90,15 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             <ul>
                                 <li>
                                     <SiteNavigationToggle
-                                        activeRoot={activeRoot}
-                                        targetRoot={NavigationRoots.Topics}
-                                        toggleActiveRoot={toggleActiveRoot}
+                                        isActive={
+                                            activeRoot ===
+                                            NavigationRoots.Topics
+                                        }
+                                        toggle={() =>
+                                            toggleActiveRoot(
+                                                NavigationRoots.Topics
+                                            )
+                                        }
                                     >
                                         <FontAwesomeIcon
                                             icon={faListUl}
@@ -105,9 +112,15 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 </li>
                                 <li className="toggle-wrapper">
                                     <SiteNavigationToggle
-                                        activeRoot={activeRoot}
-                                        toggleActiveRoot={toggleActiveRoot}
-                                        targetRoot={NavigationRoots.Resources}
+                                        isActive={
+                                            activeRoot ===
+                                            NavigationRoots.Resources
+                                        }
+                                        toggle={() =>
+                                            toggleActiveRoot(
+                                                NavigationRoots.Resources
+                                            )
+                                        }
                                         dropdown={<SiteResources />}
                                         withCaret={true}
                                     >
@@ -116,9 +129,14 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 </li>
                                 <li className="toggle-wrapper">
                                     <SiteNavigationToggle
-                                        activeRoot={activeRoot}
-                                        toggleActiveRoot={toggleActiveRoot}
-                                        targetRoot={NavigationRoots.About}
+                                        isActive={
+                                            activeRoot === NavigationRoots.About
+                                        }
+                                        toggle={() =>
+                                            toggleActiveRoot(
+                                                NavigationRoots.About
+                                            )
+                                        }
                                         dropdown={<SiteAbout />}
                                         withCaret={true}
                                     >
