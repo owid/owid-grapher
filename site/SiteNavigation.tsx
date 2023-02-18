@@ -95,15 +95,14 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             <ul>
                                 <li>
                                     <SiteNavigationToggle
-                                        isActive={
-                                            activeRoot ===
-                                            NavigationRoots.Topics
+                                        dropdown={
+                                            <SiteNavigationTopics
+                                                onClose={closeOverlay}
+                                                topics={categorizedTopics}
+                                                className="hide-sm-only"
+                                            />
                                         }
-                                        toggle={() =>
-                                            toggleActiveRoot(
-                                                NavigationRoots.Topics
-                                            )
-                                        }
+                                        className="topics"
                                     >
                                         <FontAwesomeIcon
                                             icon={faListUl}

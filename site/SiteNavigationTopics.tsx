@@ -39,7 +39,7 @@ export const SiteNavigationTopics = ({
 
     return topics.length > 0 ? (
         <div
-            className={classnames("SiteNavigationTopics", "wrapper", className)}
+            className={classnames("SiteNavigationTopics", className)}
             onClick={onClose}
         >
             <div className="categories">
