@@ -1,11 +1,13 @@
-.SiteNavigationTopics {
-    @include grid(12);
+.SiteNavigationToggle.topics .toggle-dropdown {
     position: absolute;
     width: 100%;
     top: 100%;
-    padding: 0;
+    left: 0;
     z-index: 1;
+}
 
+.SiteNavigationTopics {
+    @include grid(12);
     .categories {
         grid-column: 1 / span 6;
         @include sm-up {
