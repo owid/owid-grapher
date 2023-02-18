@@ -1,9 +1,8 @@
-@mixin navigation-toggle-button {
+.SiteNavigationToggle {
     button {
         padding: 0;
         border: none;
         cursor: pointer;
-        @include body-3-medium;
         color: $blue-20;
         background-color: transparent;
         &:hover {
@@ -14,7 +13,9 @@
 
 .site-primary-links {
     .SiteNavigationToggle {
-        @include navigation-toggle-button;
+        @include sm-up {
+            @include body-3-medium;
+        }
 
         .toggle-dropdown {
             position: absolute;
@@ -44,8 +45,4 @@
             }
         }
     }
-}
-
-.mobile-menu-toggle {
-    @include navigation-toggle-button;
 }
