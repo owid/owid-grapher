@@ -1,7 +1,6 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
-import { NavigationRoots } from "./SiteNavigation.js"
 import classnames from "classnames"
 
 export const SiteNavigationToggle = ({
@@ -21,7 +20,10 @@ export const SiteNavigationToggle = ({
 }) => {
     return (
         <div className={classnames("SiteNavigationToggle", className)}>
-            <button onClick={toggle}>
+            <button
+                onClick={toggle}
+                className={classnames({ active: isActive })}
+            >
                 {children}
                 {withCaret && (
                     <FontAwesomeIcon

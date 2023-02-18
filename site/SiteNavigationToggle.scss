@@ -46,3 +46,14 @@
         }
     }
 }
+
+.site-search-cta {
+    .toggle-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 411px;
+        padding: 32px 40px;
+        background-color: $white;
+    }
+}

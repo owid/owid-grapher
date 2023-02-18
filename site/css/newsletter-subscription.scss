@@ -64,28 +64,7 @@
     }
 }
 
-.site-header .newsletter-subscription {
-    position: relative;
-
-    .overlay {
-        @include overlay;
-        z-index: $zindex-lightbox;
-    }
-
-    .box {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        top: 100%;
-        margin-top: $vertical-spacing;
-        right: 0;
-        @include popover-box-styles;
-        z-index: $zindex-lightbox;
-    }
-}
-
-.site-tools .newsletter-subscription,
-.site-header .newsletter-subscription {
+.site-tools .newsletter-subscription {
     .box {
         padding: 1rem;
     }

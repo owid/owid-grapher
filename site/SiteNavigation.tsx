@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
 import { faListUl } from "@fortawesome/free-solid-svg-icons/faListUl"
 import {
-    NewsletterSubscription,
     NewsletterSubscriptionContext,
+    NewsletterSubscriptionForm,
 } from "./NewsletterSubscription.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
@@ -17,17 +17,19 @@ import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 
 export enum NavigationRoots {
     Topics = "topics",
     // Latest = "latest",
     Resources = "resources",
     About = "about",
+    Subscribe = "subscribe",
 }
 
 export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     const [activeRoot, setActiveRoot] = React.useState<NavigationRoots | null>(
-        NavigationRoots.Topics
+        NavigationRoots.Subscribe
     )
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
@@ -167,9 +169,28 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 <FontAwesomeIcon icon={faSearch} />
                             </button>
 
-                            <NewsletterSubscription
-                                context={NewsletterSubscriptionContext.Floating}
-                            />
+                            <SiteNavigationToggle
+                                isActive={
+                                    activeRoot === NavigationRoots.Subscribe
+                                }
+                                toggle={() =>
+                                    toggleActiveRoot(NavigationRoots.Subscribe)
+                                }
+                                dropdown={
+                                    <NewsletterSubscriptionForm
+                                        context={
+                                            NewsletterSubscriptionContext.Floating
+                                        }
+                                    />
+                                }
+                                className="newsletter-subscription"
+                            >
+                                <span className="hide-lg-down">Subscribe</span>
+                                <FontAwesomeIcon
+                                    className="hide-lg-up"
+                                    icon={faEnvelopeOpenText}
+                                />
+                            </SiteNavigationToggle>
                             <a
                                 href="/donate"
                                 className="donate"
