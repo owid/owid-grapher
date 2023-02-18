@@ -37,7 +37,8 @@
             align-items: center;
             > li {
                 list-style-type: none;
-                > a {
+                > a,
+                .SiteNavigationToggle {
                     @include body-3-medium;
                     color: $blue-20;
                     &:hover {
@@ -47,8 +48,35 @@
             }
         }
 
-        li.toggle-wrapper {
+        .with-relative-dropdown {
             position: relative;
+            .toggle-dropdown {
+                position: absolute;
+                top: 100%;
+                width: 330px;
+                margin-top: $vertical-spacing;
+                margin-left: -40px;
+                padding: 24px 40px;
+                background-color: $accent-pale-blue;
+
+                ul {
+                    display: flex;
+                    flex-direction: column;
+                    row-gap: 8px;
+                    li {
+                        list-style-type: none;
+                        a {
+                            display: block;
+                            padding: 8px 0;
+                            @include body-3-medium;
+                            color: $blue-90;
+                            &:hover {
+                                color: $blue-50;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -71,7 +99,6 @@
             display: flex;
             align-items: center;
             height: $search-cta-height;
-            padding: 0 24px;
             background: none;
             border: none;
             color: $white;
@@ -118,10 +145,20 @@
                 display: none;
             }
             @include body-3-medium;
+            padding: 0 24px;
             background-color: $vermillion;
             &:hover {
                 background-color: #b40000;
             }
+        }
+
+        .toggle-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 411px;
+            padding: 32px 40px;
+            background-color: $white;
         }
     }
 }

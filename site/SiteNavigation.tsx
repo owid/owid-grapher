@@ -19,7 +19,7 @@ import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 
-export enum NavigationRoots {
+export enum Menu {
     Topics = "topics",
     // Latest = "latest",
     Resources = "resources",
@@ -28,23 +28,21 @@ export enum NavigationRoots {
 }
 
 export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
-    const [activeRoot, setActiveRoot] = React.useState<NavigationRoots | null>(
-        NavigationRoots.Subscribe
-    )
+    const [menu, setActiveMenu] = React.useState<Menu | null>(Menu.Subscribe)
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
     >([])
     const [showMobileSearch, setShowMobileSearch] = useState(false)
 
     const closeOverlay = () => {
-        setActiveRoot(null)
+        setActiveMenu(null)
     }
 
-    const toggleActiveRoot = (root: NavigationRoots) => {
-        if (activeRoot === root) {
+    const toggleMenu = (root: Menu) => {
+        if (menu === root) {
             closeOverlay()
         } else {
-            setActiveRoot(root)
+            setActiveMenu(root)
         }
     }
 
@@ -69,15 +67,13 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
 
     return (
         <>
-            {activeRoot && <div className="overlay" onClick={closeOverlay} />}
+            {menu && <div className="overlay" onClick={closeOverlay} />}
             <div className="site-navigation">
                 <div className="wrapper">
                     <div className="site-navigation-bar">
                         <SiteNavigationToggle
-                            isActive={activeRoot !== null}
-                            toggle={() =>
-                                toggleActiveRoot(NavigationRoots.Topics)
-                            }
+                            isActive={menu !== null}
+                            toggle={() => toggleMenu(Menu.Topics)}
                             className="mobile-menu-toggle hide-sm-up"
                             dropdown={
                                 <SiteMobileMenu
@@ -87,7 +83,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             }
                         >
                             <FontAwesomeIcon
-                                icon={activeRoot !== null ? faXmark : faBars}
+                                icon={menu !== null ? faXmark : faBars}
                             />
                         </SiteNavigationToggle>
                         <SiteLogos baseUrl={baseUrl} />
@@ -95,6 +91,8 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             <ul>
                                 <li>
                                     <SiteNavigationToggle
+                                        isActive={menu === Menu.Topics}
+                                        toggle={() => toggleMenu(Menu.Topics)}
                                         dropdown={
                                             <SiteNavigationTopics
                                                 onClose={closeOverlay}
@@ -114,16 +112,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 <li>
                                     <a href="/blog">Latest</a>
                                 </li>
-                                <li className="toggle-wrapper">
+                                <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
-                                        isActive={
-                                            activeRoot ===
-                                            NavigationRoots.Resources
-                                        }
+                                        isActive={menu === Menu.Resources}
                                         toggle={() =>
-                                            toggleActiveRoot(
-                                                NavigationRoots.Resources
-                                            )
+                                            toggleMenu(Menu.Resources)
                                         }
                                         dropdown={<SiteResources />}
                                         withCaret={true}
@@ -131,16 +124,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                         Resources
                                     </SiteNavigationToggle>
                                 </li>
-                                <li className="toggle-wrapper">
+                                <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
-                                        isActive={
-                                            activeRoot === NavigationRoots.About
-                                        }
-                                        toggle={() =>
-                                            toggleActiveRoot(
-                                                NavigationRoots.About
-                                            )
-                                        }
+                                        isActive={menu === Menu.About}
+                                        toggle={() => toggleMenu(Menu.About)}
                                         dropdown={<SiteAbout />}
                                         withCaret={true}
                                     >
@@ -149,13 +136,6 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 </li>
                             </ul>
                         </nav>
-                        {activeRoot === NavigationRoots.Topics && (
-                            <SiteNavigationTopics
-                                onClose={closeOverlay}
-                                topics={categorizedTopics}
-                                className="hide-sm-only"
-                            />
-                        )}
                         <div className="site-search-cta">
                             <div className="search-input-wrapper hide-md-down">
                                 <SiteSearchInput />
@@ -169,12 +149,8 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             </button>
 
                             <SiteNavigationToggle
-                                isActive={
-                                    activeRoot === NavigationRoots.Subscribe
-                                }
-                                toggle={() =>
-                                    toggleActiveRoot(NavigationRoots.Subscribe)
-                                }
+                                isActive={menu === Menu.Subscribe}
+                                toggle={() => toggleMenu(Menu.Subscribe)}
                                 dropdown={
                                     <NewsletterSubscriptionForm
                                         context={
