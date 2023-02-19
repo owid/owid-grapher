@@ -4,7 +4,7 @@ version: "3.7"
 # OWID internal developers as the setup of wordpress requires a copy of the wordpress database that is not
 # publicly available.
 
-# This setup assumes that work on the grapher happens outside any docker container - i.e. there is no Node 16
+# This setup assumes that work on the grapher happens outside any docker container - i.e. there is no Node 18
 # container included in this setup. The idea is that grapher development (as well as running vite and the
 # admin server) happens on the host, and that only the mysql, php and nginx dependencies run as containers.
 
@@ -108,7 +108,7 @@ services:
     # Init container for the owid wordpress plugin. The Javascript part of this plugin need to
     # be built in a node container once with the ./wordpress directory mounted into the container.
     wordpress-owid-plugin-build:
-        image: node:16
+        image: node:18
         command: "yarn build"
         working_dir: /app/web/app/plugins/owid
         volumes:
