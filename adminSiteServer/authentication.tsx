@@ -11,7 +11,6 @@ import {
     ENV,
 } from "../settings/serverSettings.js"
 import { BCryptHasher } from "../db/hashers.js"
-import fetch from "node-fetch"
 import { Secret, verify } from "jsonwebtoken"
 import { JsonError } from "@ourworldindata/utils"
 

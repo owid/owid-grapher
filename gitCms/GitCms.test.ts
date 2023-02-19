@@ -4,7 +4,6 @@ import { GitCmsClient } from "./GitCmsClient.js"
 import { GitCmsServer } from "./GitCmsServer.js"
 import fs from "fs-extra"
 import express from "express"
-import nodeFetch from "node-fetch"
 
 jest.setTimeout(10000) // wait for up to 10s for the server to respond
 
@@ -22,10 +21,6 @@ describe("client/server integration tests", () => {
     const expressServer = expressApp.listen(testPort)
 
     beforeAll(async () => {
-        // todo: whats a better pattern?
-        const glob = global as any
-        glob.fetch = nodeFetch
-
         await server.createDirAndInitIfNeeded()
     })
 

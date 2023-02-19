@@ -18,7 +18,6 @@ import {
     OwidSource,
     retryPromise,
 } from "@ourworldindata/utils"
-import fetch from "node-fetch"
 import pl from "nodejs-polars"
 
 export interface VariableRow {
