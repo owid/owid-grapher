@@ -1882,24 +1882,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@date-io/core@npm:^1.3.13":
-  version: 1.3.13
-  resolution: "@date-io/core@npm:1.3.13"
-  checksum: 5a9e9d1de20f0346a3c7d2d5946190caef4bfb0b64d82ba1f4c566657a9192667c94ebe7f438d11d4286d9c190974daad4fb2159294225cd8af4d9a140239879
-  languageName: node
-  linkType: hard
-
-"@date-io/moment@npm:^1.3.13":
-  version: 1.3.13
-  resolution: "@date-io/moment@npm:1.3.13"
-  dependencies:
-    "@date-io/core": ^1.3.13
-  peerDependencies:
-    moment: ^2.24.0
-  checksum: c4847f9d1bf09bb22c1acc5806fc50825c0bdb52408c9fec8cc5f9a65f16a8014870b5890a0eeb73b2c53a6487c35acbd2ab2a5c49068ff5a5dccbcb5c9e654b
-  languageName: node
-  linkType: hard
-
 "@discoveryjs/json-ext@npm:^0.5.0, @discoveryjs/json-ext@npm:^0.5.3":
   version: 0.5.7
   resolution: "@discoveryjs/json-ext@npm:0.5.7"
@@ -4842,6 +4824,54 @@ __metadata:
   peerDependencies:
     prettier: ^1.15.0 || ^2.0.0
   checksum: 2bb0f36b43d78328b4ab6b4b6487d884fcdec06ae209461a3f15c47894cb54145c80d86e00187e5c1b373c51cf1ffa75677af03afa800acd5c927b6c9de53d28
+  languageName: node
+  linkType: hard
+
+"@react-awesome-query-builder/antd@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "@react-awesome-query-builder/antd@npm:6.1.1"
+  dependencies:
+    "@react-awesome-query-builder/ui": ^6.1.1
+    lodash: ^4.17.21
+    prop-types: ^15.7.2
+    rc-picker: ^3.1.4
+  peerDependencies:
+    "@ant-design/icons": ^4.0.0
+    antd: ^4.0.0 || ^5.0.0
+    react: ^16.8.4 || ^17.0.1 || ^18.0.0
+    react-dom: ^16.8.4 || ^17.0.1 || ^18.0.0
+  checksum: 769e8c8421ca5d49126ad1708e5c252090d2fbb4d25fc1c189d78159c254b023d2f6a62bd0982c739cfd39f9e0936f8302b5ec43784816b348548de3e70365dd
+  languageName: node
+  linkType: hard
+
+"@react-awesome-query-builder/core@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "@react-awesome-query-builder/core@npm:6.1.1"
+  dependencies:
+    clone: ^2.1.2
+    immutable: ^3.8.2
+    lodash: ^4.17.21
+    moment: ^2.29.4
+    spel2js: ^0.2.8
+    sqlstring: ^2.3.3
+  checksum: bda6ecd788f7e7ce3c32551cd6a588d22f64d5efcf11a3ec5c3ccbaeba7f8725182e900ac6e3afe8e3776a2c82e99d8ffdee3af0235bb591a537d5cb5c21c40c
+  languageName: node
+  linkType: hard
+
+"@react-awesome-query-builder/ui@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "@react-awesome-query-builder/ui@npm:6.1.1"
+  dependencies:
+    "@react-awesome-query-builder/core": ^6.1.1
+    classnames: ^2.3.1
+    lodash: ^4.17.21
+    prop-types: ^15.7.2
+    react-redux: ^7.2.2
+    redux: ^4.2.0
+  peerDependencies:
+    react: ^16.8.4 || ^17.0.1 || ^18.0.0
+    react-dom: ^16.8.4 || ^17.0.1 || ^18.0.0
+  checksum: b115ff8a07372c42df57bb3419292c29c014da340b1b94fcd9cc0d225804d52b707662bee24924ab1d8d7438b229cc739c875be3079607610c2608cce623d4d0
   languageName: node
   linkType: hard
 
@@ -16194,6 +16224,7 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
     "@prettier/plugin-php": ^0.14.3
+    "@react-awesome-query-builder/antd": ^6.1.1
     "@storybook/addon-measure": ^6.5.10
     "@storybook/addon-outline": ^6.5.10
     "@storybook/addon-viewport": ^6.5.10
@@ -16339,7 +16370,6 @@ __metadata:
     randomstring: ^1.2.2
     react: ^16.14.0
     react-animate-height: ^3.0.4
-    react-awesome-query-builder: ^5.3.1
     react-beautiful-dnd: ^13.1.0
     react-codemirror2: ^7.2.1
     react-color: ^2.18.1
@@ -24915,6 +24945,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rc-picker@npm:^3.1.4":
+  version: 3.2.4
+  resolution: "rc-picker@npm:3.2.4"
+  dependencies:
+    "@babel/runtime": ^7.10.1
+    classnames: ^2.2.1
+    rc-trigger: ^5.0.4
+    rc-util: ^5.27.0
+  peerDependencies:
+    date-fns: ">= 2.x"
+    dayjs: ">= 1.x"
+    moment: ">= 2.x"
+    react: ">=16.9.0"
+    react-dom: ">=16.9.0"
+  peerDependenciesMeta:
+    date-fns:
+      optional: true
+    dayjs:
+      optional: true
+    moment:
+      optional: true
+  checksum: fa69f6ab19ca37aaed791ed40f8e5d0d9ad8436b64939c0730521db5a4a2fedf3f859f4f01e50f22fe9cef0bf1abfcdb6324d26832c15b011bc0dda6eca9a359
+  languageName: node
+  linkType: hard
+
 "rc-picker@npm:~2.6.10":
   version: 2.6.10
   resolution: "rc-picker@npm:2.6.10"
@@ -25179,17 +25234,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rc-util@npm:^5.0.1, rc-util@npm:^5.0.6, rc-util@npm:^5.12.0, rc-util@npm:^5.15.0, rc-util@npm:^5.16.1, rc-util@npm:^5.17.0, rc-util@npm:^5.18.1, rc-util@npm:^5.19.2, rc-util@npm:^5.2.0, rc-util@npm:^5.2.1, rc-util@npm:^5.20.1, rc-util@npm:^5.21.0, rc-util@npm:^5.21.2, rc-util@npm:^5.22.5, rc-util@npm:^5.23.0, rc-util@npm:^5.3.0, rc-util@npm:^5.4.0, rc-util@npm:^5.5.0, rc-util@npm:^5.6.1, rc-util@npm:^5.7.0, rc-util@npm:^5.8.0, rc-util@npm:^5.9.4":
-  version: 5.24.3
-  resolution: "rc-util@npm:5.24.3"
+"rc-util@npm:^5.0.1, rc-util@npm:^5.0.6, rc-util@npm:^5.12.0, rc-util@npm:^5.15.0, rc-util@npm:^5.16.1, rc-util@npm:^5.17.0, rc-util@npm:^5.18.1, rc-util@npm:^5.19.2, rc-util@npm:^5.2.0, rc-util@npm:^5.2.1, rc-util@npm:^5.20.1, rc-util@npm:^5.21.0, rc-util@npm:^5.21.2, rc-util@npm:^5.22.5, rc-util@npm:^5.23.0, rc-util@npm:^5.27.0, rc-util@npm:^5.3.0, rc-util@npm:^5.4.0, rc-util@npm:^5.5.0, rc-util@npm:^5.6.1, rc-util@npm:^5.7.0, rc-util@npm:^5.8.0, rc-util@npm:^5.9.4":
+  version: 5.27.2
+  resolution: "rc-util@npm:5.27.2"
   dependencies:
     "@babel/runtime": ^7.18.3
     react-is: ^16.12.0
-    shallowequal: ^1.1.0
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 1f141d114f42dbce9f51cc2e408da7c706bba453880efe85c02155aab4e790690cd2b97fdbe501a8524c7f95a35757973bf0bbf59619b455407e63b8d2ebee17
+  checksum: 2d19bac2670bf546225f12e9b7f5b578233ec53cfca0071eaca53d4b056c10fe92b36d4148f0592f0cdc65ab3067c81f9cd8456769ff0e00c1b03210d40c8f19
   languageName: node
   linkType: hard
 
@@ -25230,46 +25284,6 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 3efa212b41bb1c424c4b5390c1b0e34e85eec799f5ca76fab3223ccb0dff215febc5fd95a07188db85e5a06661ed9f6f3f9b8c68de744d8daad912f298d1bfc2
-  languageName: node
-  linkType: hard
-
-"react-awesome-query-builder@npm:^5.3.1":
-  version: 5.3.1
-  resolution: "react-awesome-query-builder@npm:5.3.1"
-  dependencies:
-    "@date-io/moment": ^1.3.13
-    classnames: ^2.3.1
-    clone: ^2.1.2
-    immutable: ^3.8.2
-    lodash: ^4.17.21
-    moment: ^2.29.4
-    prop-types: ^15.7.2
-    react-redux: ^7.2.2
-    redux: ^4.2.0
-    spel2js: ^0.2.8
-    sqlstring: ^2.3.3
-  peerDependencies:
-    "@ant-design/icons": ^4.0.0
-    "@emotion/react": ^11.7.1
-    "@emotion/styled": ^11.6.0
-    "@fortawesome/fontawesome-svg-core": ^1.2.0 || ^6.1.0
-    "@fortawesome/free-solid-svg-icons": ^5.15.4 || ^6.0.0
-    "@fortawesome/react-fontawesome": ^0.1.16 || ^0.2.0
-    "@material-ui/core": ^4.12.3
-    "@material-ui/icons": ^4.0.0
-    "@material-ui/lab": ^4.0.0-alpha.57
-    "@material-ui/pickers": ^3.2.10
-    "@mui/icons-material": ^5.2.4
-    "@mui/lab": ^5.0.0-alpha.60
-    "@mui/material": ^5.2.4
-    "@mui/x-date-pickers": ^5.0.0-beta.2
-    antd: ^4.0.0
-    bootstrap: ^5.1.3
-    material-ui-confirm: ^2.0.1 || ^3.0.0
-    react: ^16.8.4 || ^17.0.1 || ^18.0.0
-    react-dom: ^16.8.4 || ^17.0.1 || ^18.0.0
-    reactstrap: ^9.0.0
-  checksum: d9c27f5c0ce66ab9ad3f57f7c003471afd5465f732e2359ff916a6f62d0161ccf33a738bd67349d0b82384561242714c8d29f0216c8d5148fdb10c420f5fe914
   languageName: node
   linkType: hard
 
