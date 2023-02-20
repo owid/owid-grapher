@@ -11,7 +11,7 @@ class DetailsOnDemand {
         ObservableMap<string, Detail>
     >()
 
-    @observable getDetail(category: string, term: string): Detail | void {
+    @observable getDetail(category: string, term: string): Detail | undefined {
         const terms = this.details.get(category)
         if (terms) {
             const detail = terms.get(term)
@@ -53,7 +53,7 @@ export class DoDWrapper extends React.Component<DoDWrapperProps> {
     @computed get term(): string {
         return this.props.term
     }
-    @computed get detail(): Detail | void {
+    @computed get detail(): Detail | undefined {
         return globalDetailsOnDemand.getDetail(this.category, this.term)
     }
     @computed get content(): string {
