@@ -100,7 +100,7 @@ import {
     SimpleField,
     Config,
     ImmutableTree,
-} from "react-awesome-query-builder"
+} from "@react-awesome-query-builder/antd"
 import codemirror from "codemirror"
 import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"

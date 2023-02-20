@@ -1,4 +1,3 @@
-import * as lodash from "lodash"
 import _ from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
@@ -11,15 +10,13 @@ import {
     OwidVariableDimensionValuePartial,
     OwidVariableMixedData,
     OwidVariableWithSourceAndType,
-    arrToCsvRow,
     omitNullableValues,
     DataValueQueryArgs,
     DataValueResult,
     OwidVariableId,
     OwidSource,
 } from "@ourworldindata/utils"
-import { CATALOG_PATH } from "../../settings/serverSettings.js"
-import * as util from "util"
+import pl from "nodejs-polars"
 
 export interface VariableRow {
     id: number
@@ -41,12 +38,6 @@ export interface VariableRow {
     dimensions?: Dimensions
 }
 
-interface EntityRow {
-    entityId: number
-    entityName: string
-    entityCode: string
-}
-
 interface Dimensions {
     originalName: string
     originalShortName: string
@@ -56,8 +47,12 @@ interface Dimensions {
     }[]
 }
 
+export type UnparsedVariableRow = Omit<VariableRow, "display"> & {
+    display: string
+}
+
 export type VariableQueryRow = Readonly<
-    UnparsedVariableRow & {
+    Omit<UnparsedVariableRow, "dimensions"> & {
         display: string
         datasetName: string
         nonRedistributable: number
@@ -67,29 +62,17 @@ export type VariableQueryRow = Readonly<
     }
 >
 
-interface DataRow {
+interface S3DataRow {
     value: string
     year: number
     entityId: number
-    entityName: string
-    entityCode: string
 }
 
-export type UnparsedVariableRow = VariableRow & { display: string }
+type DataRow = S3DataRow & { entityName: string; entityCode: string }
 
 export type Field = keyof VariableRow
 
 export const variableTable = "variables"
-
-const initDuckDB = (): any => {
-    // require on top level could cause segfaults in combination with workerpool
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const duckdb = require("duckdb")
-    const ddb = new duckdb.Database(":memory:")
-    ddb.exec("INSTALL httpfs;")
-    ddb.exec("LOAD httpfs;")
-    return ddb
-}
 
 export function parseVariableRows(
     plainRows: UnparsedVariableRow[]
@@ -97,11 +80,7 @@ export function parseVariableRows(
     for (const row of plainRows) {
         row.display = row.display ? JSON.parse(row.display) : undefined
     }
-    return plainRows
-}
-
-export function normalizeEntityName(entityName: string): string {
-    return entityName.toLowerCase().trim()
+    return plainRows as VariableRow[]
 }
 
 // TODO: we'll want to split this into getVariableData and getVariableMetadata once
@@ -111,17 +90,6 @@ export function normalizeEntityName(entityName: string): string {
 export async function getVariableData(
     variableId: number
 ): Promise<OwidVariableDataMetadataDimensions> {
-    type VariableQueryRow = Readonly<
-        UnparsedVariableRow & {
-            display: string
-            datasetName: string
-            nonRedistributable: number
-            sourceName: string
-            sourceDescription: string
-            dimensions: string
-        }
-    >
-
     const variableQuery: Promise<VariableQueryRow | undefined> = db.mysqlFirst(
         `
         SELECT
@@ -141,12 +109,7 @@ export async function getVariableData(
     const row = await variableQuery
     if (row === undefined) throw new Error(`Variable ${variableId} not found`)
 
-    // use parquet only if CATALOG_PATH env var is set and we have path to catalog in MySQL
-    const parquetDataExists = row.catalogPath && row.shortName && CATALOG_PATH
-
-    const results = parquetDataExists
-        ? await readValuesFromParquet(variableId, row)
-        : await readValuesFromMysql(variableId)
+    const results = await dataAsRecords([variableId])
 
     const {
         sourceId,
@@ -248,87 +211,47 @@ export async function getDataForMultipleVariables(
     return allVariablesDataAndMetadataMap
 }
 
-// TODO use this in Dataset.writeCSV() maybe?
 export async function writeVariableCSV(
     variableIds: number[],
     stream: Writable
 ): Promise<void> {
-    const variableQuery: Promise<{ id: number; name: string }[]> =
-        db.queryMysql(
+    // get variables as dataframe
+    const variablesDF = (
+        await readSQLasDF(
             `
-            SELECT id, name
-            FROM variables
-            WHERE id IN (?)
-            `,
+        SELECT
+            id as variableId,
+            name as variableName,
+            columnOrder
+        FROM variables v
+        WHERE id IN (?)`,
             [variableIds]
         )
-
-    const dataQuery: Promise<
-        {
-            variableId: number
-            entity: string
-            year: number
-            value: string
-        }[]
-    > = db.queryMysql(
-        `
-        SELECT
-            data_values.variableId AS variableId,
-            entities.name AS entity,
-            data_values.year AS year,
-            data_values.value AS value
-        FROM
-            data_values
-            JOIN entities ON entities.id = data_values.entityId
-            JOIN variables ON variables.id = data_values.variableId
-        WHERE
-            data_values.variableId IN (?)
-        ORDER BY
-            data_values.entityId ASC,
-            data_values.year ASC
-        `,
-        [variableIds]
-    )
-
-    let variables = await variableQuery
-    const variablesById = lodash.keyBy(variables, "id")
+    ).withColumn(pl.col("variableId").cast(pl.Int32))
 
     // Throw an error if not all variables exist
-    if (variables.length !== variableIds.length) {
-        const fetchedVariableIds = variables.map((v) => v.id)
-        const missingVariables = lodash.difference(
-            variableIds,
-            fetchedVariableIds
-        )
+    if (variablesDF.shape.height !== variableIds.length) {
+        const fetchedVariableIds = variablesDF.getColumn("variableId").toArray()
+        const missingVariables = _.difference(variableIds, fetchedVariableIds)
         throw Error(`Variable IDs do not exist: ${missingVariables.join(", ")}`)
     }
 
-    variables = variableIds.map((variableId) => variablesById[variableId])
+    // get data values as dataframe
+    const dataValuesDF = await dataAsDF(
+        variablesDF.getColumn("variableId").toArray()
+    )
 
-    const columns = ["Entity", "Year"].concat(variables.map((v) => v.name))
-    stream.write(arrToCsvRow(columns))
-
-    const variableColumnIndex: { [id: number]: number } = {}
-    for (const variable of variables) {
-        variableColumnIndex[variable.id] = columns.indexOf(variable.name)
-    }
-
-    const data = await dataQuery
-
-    let row: unknown[] = []
-    for (const datum of data) {
-        if (datum.entity !== row[0] || datum.year !== row[1]) {
-            // New row
-            if (row.length) {
-                stream.write(arrToCsvRow(row))
-            }
-            row = [datum.entity, datum.year]
-            for (const _ of variables) {
-                row.push("")
-            }
-        }
-        row[variableColumnIndex[datum.variableId]] = datum.value
-    }
+    dataValuesDF
+        .join(variablesDF, { on: "variableId" })
+        .sort(["columnOrder", "variableId"])
+        // variables as columns
+        .pivot("value", {
+            index: ["entityName", "year"],
+            columns: "variableName",
+        })
+        .sort(["entityName", "year"])
+        .rename({ entityName: "Entity", year: "Year" })
+        .writeCSV(stream)
 }
 
 export const getDataValue = async ({
@@ -338,43 +261,34 @@ export const getDataValue = async ({
 }: DataValueQueryArgs): Promise<DataValueResult | undefined> => {
     if (!variableId || !entityId) return
 
-    const queryStart = `
-        SELECT
-            value,
-            year,
-            variables.unit AS unit,
-            entities.name AS entityName
-        FROM data_values
-        JOIN entities on entities.id = data_values.entityId
-        JOIN variables on variables.id = data_values.variableId
-        WHERE entities.id = ?
-        AND variables.id = ?`
+    let df = (await dataAsDF([variableId])).filter(
+        pl.col("entityId").eq(entityId)
+    )
 
-    const queryStartVariables = [entityId, variableId]
-
-    let row
+    const unit = (
+        await db.mysqlFirst(
+            `
+        SELECT unit FROM variables
+        WHERE id = ?
+        `,
+            [variableId]
+        )
+    ).unit
 
     if (year) {
-        row = await db.mysqlFirst(
-            `${queryStart}
-            AND data_values.year = ?`,
-            [...queryStartVariables, year]
-        )
+        df = df.filter(pl.col("year").eq(year))
     } else {
-        row = await db.mysqlFirst(
-            `${queryStart}
-            ORDER BY data_values.year DESC
-            LIMIT 1`,
-            queryStartVariables
-        )
+        df = df.sort(["year"], true).limit(1)
     }
 
-    if (!row) return
+    if (df.shape.height == 0) return
+
+    const row = df.toRecords()[0]
 
     return {
         value: Number(row.value),
         year: Number(row.year),
-        unit: row.unit,
+        unit: unit,
         entityName: row.entityName,
     }
 }
@@ -410,132 +324,86 @@ export const getOwidVariableDisplayConfig = async (
     return JSON.parse(row.display)
 }
 
-const readValuesFromMysql = async (
-    variableId: OwidVariableId
-): Promise<DataRow[]> => {
-    return db.queryMysql(
-        `
+export const entitiesAsDF = async (
+    entityIds: number[]
+): Promise<pl.DataFrame> => {
+    return (
+        await readSQLasDF(
+            `
         SELECT
-            value,
-            year,
-            entities.id AS entityId,
-            entities.name AS entityName,
-            entities.code AS entityCode
-        FROM data_values
-        LEFT JOIN entities ON data_values.entityId = entities.id
-        WHERE data_values.variableId = ?
-        ORDER BY
-            year ASC
+            id AS entityId,
+            name AS entityName,
+            code AS entityCode
+        FROM entities WHERE id in (?)
         `,
-        [variableId]
+            [_.uniq(entityIds)]
+        )
+    ).select(
+        pl.col("entityId").cast(pl.Int32),
+        pl.col("entityName").cast(pl.Utf8),
+        pl.col("entityCode").cast(pl.Utf8)
     )
 }
 
-export const constructParquetQuery = (row: VariableQueryRow): string => {
-    let shortName
-    let where
+export const dataAsDF = async (
+    variableIds: OwidVariableId[]
+): Promise<pl.DataFrame> => {
+    // return data values as a dataframe
+    let df = await readSQLasDF(
+        `
+    SELECT
+        data_values.variableId as variableId,
+        value,
+        year,
+        entities.id AS entityId,
+        entities.name AS entityName,
+        entities.code AS entityCode
+    FROM data_values
+    LEFT JOIN entities ON data_values.entityId = entities.id
+    WHERE data_values.variableId in (?)
+        `,
+        [variableIds]
+    )
 
-    if (row.dimensions) {
-        const dimensions: Dimensions = JSON.parse(row.dimensions)
-        shortName = dimensions.originalShortName
-        where = dimensions.filters
-            .map((filter) => `${filter.name} = '${filter.value}'`)
-            .join(" and ")
-    } else {
-        shortName = row.shortName
-        where = "1 = 1"
+    if (df.height == 0) {
+        df = pl.DataFrame({
+            variableId: [],
+            entityId: [],
+            entityName: [],
+            entityCode: [],
+            year: [],
+            value: [],
+        })
     }
 
-    const uri = `${_.trimEnd(CATALOG_PATH, "/")}/${row.catalogPath!}.parquet`
-
-    // backported variables use entity_id, entity_code and entity_name instead of country
-    // TODO: it might be easier to keep backported variables in the same format as grapher
-    // variables, i.e. with just country
-    if (row.catalogPath!.startsWith("backport/")) {
-        return `
-            select
-                ${shortName} as value,
-                year,
-                entity_name as entityName,
-                entity_code as entityCode,
-                entity_id as entityId
-            from read_parquet('${uri}')
-            where ${shortName} is not null and ${where}
-            order by year asc
-        `
-    } else {
-        return `
-            select
-                ${shortName} as value,
-                year,
-                country as entityName
-            from read_parquet('${uri}')
-            where ${shortName} is not null and ${where}
-            order by year asc
-        `
-    }
-}
-
-export const fetchEntities = async (
-    entityNames: string[]
-): Promise<EntityRow[]> => {
-    return db.queryMysql(
-        `
-            SELECT
-                entities.id AS entityId,
-                entities.name AS entityName,
-                entities.code AS entityCode
-            FROM entities WHERE LOWER(name) in (?)
-            `,
-        [_(entityNames).map(normalizeEntityName).uniq().value()]
+    return df.select(
+        pl.col("variableId").cast(pl.Int32),
+        pl.col("entityId").cast(pl.Int32),
+        pl.col("entityName").cast(pl.Utf8),
+        pl.col("entityCode").cast(pl.Utf8),
+        pl.col("year").cast(pl.Int32),
+        pl.col("value").cast(pl.Utf8)
     )
 }
 
-export const executeSQL = async (sql: string): Promise<any[]> => {
-    // DuckDB must be initialized in a process, copying DB object from the parent process
-    // gives random segfaults. It is not a problem though, as the initialization is fast (~few ms)
-    const ddb = initDuckDB()
-    const con = ddb.connect()
-    try {
-        return util.promisify(con.all).bind(con)(sql)
-    } catch (error: any) {
-        throw new Error(`${error.message}\n${sql}`)
-    }
-}
-
-export const readValuesFromParquet = async (
-    variableId: OwidVariableId,
-    row: VariableQueryRow
+export const dataAsRecords = async (
+    variableIds: OwidVariableId[]
 ): Promise<DataRow[]> => {
-    const sql = constructParquetQuery(row)
+    // return data values as a list of DataRows
+    return (await dataAsDF(variableIds)).toRecords() as DataRow[]
+}
 
-    const results = await executeSQL(sql)
+export const readSQLasDF = async (
+    sql: string,
+    params: any[]
+): Promise<pl.DataFrame> => {
+    const rows = await db.queryMysql(sql, params)
 
-    if (results.length == 0) {
-        console.warn(`No values found for variable ${variableId}`)
-        return results
-    }
+    // transpose list of objects into object of lists because polars raises
+    // an error when creating a dataframe with null values (see https://github.com/pola-rs/nodejs-polars/issues/20)
+    // otherwise we'd just use pl.DataFrame(rows)
+    const keys = _.keys(rows[0])
+    const values = _.map(keys, (key) => _.map(rows, key))
 
-    // backported variables already have entity info
-    if (results[0].entityId) {
-        return results
-    }
-
-    const entityInfo = await fetchEntities(_.map(results, "entityName"))
-
-    // merge results with entity info
-    const entityInfoDict = _.keyBy(entityInfo, (e) =>
-        normalizeEntityName(e.entityName)
-    )
-    return results.map((row: any) => {
-        const normEntityName = normalizeEntityName(row.entityName)
-        if (!entityInfoDict[normEntityName]) {
-            throw new Error(
-                `Missing entity ${row.entityName} for variable ${variableId}`
-            )
-        }
-        row.entityId = entityInfoDict[normEntityName].entityId
-        row.entityCode = entityInfoDict[normEntityName].entityCode
-        return row
-    })
+    return pl.DataFrame(_.zipObject(keys, values))
 }

@@ -57,6 +57,13 @@
             "type": "node"
         },
         {
+            "name": "Sync WP posts to grapher",
+            "program": "${workspaceFolder}/itsJustJavascript/db/syncPostsToGrapher.js",
+            "request": "launch",
+            "skipFiles": ["<node_internals>/**"],
+            "type": "node"
+        },
+        {
             "name": "Run SVGTester",
             "program": "${workspaceFolder}/itsJustJavascript/devTools/svgTester/verify-graphs.js",
             "request": "launch",

@@ -11,7 +11,6 @@ import {
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
-    OwidVariableWithSourceAndDimensionWithoutId,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -27,7 +26,6 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     MAX_NUM_BAKE_PROCESSES,
-    DATA_API_FOR_BAKING,
     DATA_FILES_CHECKSUMS_DIRECTORY,
 } from "../settings/serverSettings.js"
 import * as db from "../db/db.js"
@@ -44,7 +42,6 @@ import {
 } from "@ourworldindata/grapher"
 import workerpool from "workerpool"
 import ProgressBar from "progress"
-import fetch from "node-fetch"
 import { getVariableData } from "../db/model/Variable.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
@@ -83,166 +80,32 @@ interface BakeVariableDataArguments {
     variableId: number
 }
 
-interface FetchResultFetched<T> {
-    kind: "fetched"
-    data: T
-    checksum: string | null
-}
-
-interface FetchResultStillFresh {
-    kind: "stillFresh"
-}
-
-interface FetchError {
-    kind: "error"
-    error: Error
-}
-
-type FetchResult<T> = FetchResultFetched<T> | FetchError | FetchResultStillFresh
-
-async function getVariableDataFromDataAPI(
-    variableId: number,
-    existingChecksum: string
-): Promise<FetchResult<OwidVariableMixedData>> {
-    const headers: { "If-None-Match"?: string } = {}
-    if (existingChecksum) headers["If-None-Match"] = existingChecksum
-    const response = await fetch(
-        `${DATA_API_FOR_BAKING}/v1/variableById/data/${variableId}`,
-        { headers }
-    )
-    try {
-        if (response.status === 304) {
-            return { kind: "stillFresh" }
-        }
-        const json = (await response.json()) as OwidVariableMixedData
-        const responseChecksum = response.headers.get("etag")
-        return { kind: "fetched", data: json, checksum: responseChecksum }
-    } catch (err) {
-        console.error(err)
-        console.error(`code for ${variableId} was ${response.status}`)
-        return { kind: "error", error: err as Error }
-    }
-}
-
-async function getVariableMetadataFromDataAPI(
-    variableId: number,
-    existingChecksum: string
-): Promise<FetchResult<OwidVariableWithSourceAndDimension>> {
-    const headers: { "If-None-Match"?: string } = {}
-    if (existingChecksum) headers["If-None-Match"] = existingChecksum
-    const response = await fetch(
-        `${DATA_API_FOR_BAKING}/v1/variableById/metadata/${variableId}`,
-        { headers }
-    )
-    try {
-        if (response.status === 304) {
-            return { kind: "stillFresh" }
-        }
-        const json =
-            await (response.json() as Promise<OwidVariableWithSourceAndDimensionWithoutId>)
-        const withId = { ...json, id: variableId }
-        const responseChecksum = response.headers.get("etag")
-        return {
-            kind: "fetched",
-            data: withId,
-            checksum: responseChecksum,
-        }
-    } catch (err) {
-        console.error(err)
-        console.error(`code for ${variableId} was  ${response.status}`)
-        return { kind: "error", error: err as Error }
-    }
-}
-
-async function getDataMetadataFromDataAPI(
-    variableId: number,
-    dataChecksum: string,
-    metadataChecksum: string
-): Promise<
-    [
-        FetchResult<OwidVariableMixedData>,
-        FetchResult<OwidVariableWithSourceAndDimension>
-    ]
-> {
-    const variableDataPromise = getVariableDataFromDataAPI(
-        variableId,
-        dataChecksum
-    )
-    const variableMetadataPromise = getVariableMetadataFromDataAPI(
-        variableId,
-        metadataChecksum
-    )
-    const [data, metadata] = await Promise.all([
-        variableDataPromise,
-        variableMetadataPromise,
-    ])
-    return [data, metadata]
-}
-
 async function getDataMetadataFromMysql(
     variableId: number
-): Promise<
-    [
-        FetchResult<OwidVariableMixedData>,
-        FetchResult<OwidVariableWithSourceAndDimension>
-    ]
-> {
+): Promise<OwidVariableDataMetadataDimensions> {
     const variableData = await getVariableData(variableId)
-    return [
-        { kind: "fetched", data: variableData.data, checksum: null },
-        { kind: "fetched", data: variableData.metadata, checksum: null },
-    ]
+    return {
+        data: variableData.data,
+        metadata: variableData.metadata,
+    }
 }
 
 export const bakeVariableData = async (
     bakeArgs: BakeVariableDataArguments
 ): Promise<BakeVariableDataArguments> => {
-    const dataChecksumPath = `${bakeArgs.checksumsDir}/${bakeArgs.variableId}.data.checksum`
-    const metadataChecksumPath = `${bakeArgs.checksumsDir}/${bakeArgs.variableId}.metadata.checksum`
-
-    let dataChecksum = undefined
-    let metadataChecksum = undefined
-
-    try {
-        dataChecksum = await fs.readFile(dataChecksumPath, "utf8")
-    } catch (err) {
-        if ((err as any).code !== "ENOENT") throw err
-    }
-
-    try {
-        metadataChecksum = await fs.readFile(metadataChecksumPath, "utf8")
-    } catch (err) {
-        if ((err as any).code !== "ENOENT") throw err
-    }
-
-    const [data, metadata] = DATA_API_FOR_BAKING
-        ? await getDataMetadataFromDataAPI(
-              bakeArgs.variableId,
-              dataChecksum ?? "",
-              metadataChecksum ?? ""
-          )
-        : await getDataMetadataFromMysql(bakeArgs.variableId)
+    const { data, metadata } = await getDataMetadataFromMysql(
+        bakeArgs.variableId
+    )
 
     const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
         bakeArgs.variableId
     )}`
-    if (data.kind === "fetched") {
-        await fs.writeFile(path, JSON.stringify(data.data))
-        if (data.checksum) {
-            await fs.writeFile(dataChecksumPath, data.checksum)
-        }
-    }
+    await fs.writeFile(path, JSON.stringify(data))
 
     const metadataPath = `${bakeArgs.bakedSiteDir}${getVariableMetadataRoute(
         bakeArgs.variableId
     )}`
-    if (metadata.kind === "fetched") {
-        await fs.writeFile(metadataPath, JSON.stringify(metadata.data))
-
-        if (metadata.checksum) {
-            await fs.writeFile(metadataChecksumPath, metadata.checksum)
-        }
-    }
+    await fs.writeFile(metadataPath, JSON.stringify(metadata))
 
     return bakeArgs
 }

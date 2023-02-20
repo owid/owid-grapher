@@ -4,6 +4,7 @@ import { writeVariableCSV } from "../db/model/Variable.js"
 import { expectInt } from "../serverUtils/serverUtil.js"
 import * as db from "../db/db.js"
 import { stringifyUnkownError } from "@ourworldindata/utils"
+import { Writable } from "stream"
 
 export const publicApiRouter = new FunctionalRouter()
 
@@ -15,7 +16,13 @@ publicApiRouter.router.get(
     async (req: Request, res: Response) => {
         const variableIds = req.params.variableIds.split("+").map(expectInt)
         try {
-            await writeVariableCSV(variableIds, res)
+            const writeStream = new Writable({
+                write(chunk, encoding, callback) {
+                    res.write(chunk.toString())
+                    callback(null)
+                },
+            })
+            await writeVariableCSV(variableIds, writeStream)
             res.end()
         } catch (error) {
             res.send(`Error: ${stringifyUnkownError(error)}`)

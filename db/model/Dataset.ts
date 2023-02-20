@@ -13,9 +13,10 @@ import { User } from "./User.js"
 import { Source } from "./Source.js"
 
 import * as db from "../db.js"
-import { arrToCsvRow, slugify } from "@ourworldindata/utils"
+import { slugify } from "@ourworldindata/utils"
 import filenamify from "filenamify"
-import { VariableRow, variableTable } from "./Variable.js"
+import { VariableRow, variableTable, writeVariableCSV } from "./Variable.js"
+import _ from "lodash"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
@@ -38,55 +39,19 @@ export class Dataset extends BaseEntity {
 
     // Export dataset variables to CSV (not including metadata)
     static async writeCSV(datasetId: number, stream: Writable): Promise<void> {
-        const csvHeader = ["Entity", "Year"]
-        const variables = await db.queryMysql(
-            `SELECT name, id FROM variables v WHERE v.datasetId=? ORDER BY v.columnOrder ASC, v.id ASC`,
-            [datasetId]
-        )
-        for (const variable of variables) {
-            csvHeader.push(variable.name)
-        }
-
-        const columnIndexByVariableId: { [key: number]: number } = {}
-        for (const variable of variables) {
-            columnIndexByVariableId[variable.id] = csvHeader.indexOf(
-                variable.name
+        // get variables of a dataset
+        const variableIds = (
+            await db.queryMysql(
+                `
+            SELECT
+                id as variableId
+            FROM variables v
+            WHERE datasetId=?`,
+                [datasetId]
             )
-        }
+        ).map((row: any) => row.variableId)
 
-        stream.write(arrToCsvRow(csvHeader))
-
-        const data = await db.queryMysql(
-            `
-            SELECT e.name AS entity, dv.year, dv.value, dv.variableId FROM data_values dv
-            JOIN variables v ON v.id=dv.variableId
-            JOIN datasets d ON v.datasetId=d.id
-            JOIN entities e ON dv.entityId=e.id
-            WHERE d.id=?
-            ORDER BY e.name ASC, dv.year ASC, v.columnOrder ASC, dv.variableId ASC`,
-            [datasetId]
-        )
-
-        let row: string[] = []
-        for (const datum of data) {
-            if (datum.entity !== row[0] || datum.year !== row[1]) {
-                // New row
-                if (row.length) {
-                    stream.write(arrToCsvRow(row))
-                }
-                row = [datum.entity, datum.year]
-                for (const _ of variables) {
-                    row.push("")
-                }
-            }
-
-            row[columnIndexByVariableId[datum.variableId]] = datum.value
-        }
-
-        // Final row
-        stream.write(arrToCsvRow(row))
-
-        stream.end()
+        await writeVariableCSV(variableIds, stream)
     }
 
     static async setTags(datasetId: number, tagIds: number[]): Promise<void> {

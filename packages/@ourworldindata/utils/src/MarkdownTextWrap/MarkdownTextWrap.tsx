@@ -208,7 +208,9 @@ export class IRSuperscript implements IRToken {
                     so we use dy translations but they apply to all subsequent elements
                     so we need a "reset" element to counteract each time
                  */}
-                <tspan dy={this.height / 3}> </tspan>
+                <tspan dy={this.height / 3} style={{ fontSize: 0 }}>
+                    {" "}
+                </tspan>
             </React.Fragment>
         )
     }
@@ -537,6 +539,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             return result.value.children
         }
         return []
+    }
+
+    @computed get plaintext(): string {
+        return this.htmlLines.map(lineToPlaintext).join("\n")
     }
 
     @computed get htmlLines(): IRToken[][] {

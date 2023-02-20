@@ -4,6 +4,7 @@ import * as express from "express"
 import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
 import React from "react"
+import { Writable } from "stream"
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
@@ -19,7 +20,8 @@ import {
 import { GitCmsServer } from "../gitCms/GitCmsServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
-    OwidArticleType,
+    getArticleFromJSON,
+    OwidArticleTypeJSON,
     parseIntOrUndefined,
     slugify,
     stringifyUnkownError,
@@ -130,7 +132,14 @@ adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
     ).name
     res.attachment(filenamify(datasetName) + ".csv")
 
-    return Dataset.writeCSV(datasetId, res)
+    const writeStream = new Writable({
+        write(chunk, encoding, callback) {
+            res.write(chunk.toString())
+            callback(null)
+        },
+    })
+    await Dataset.writeCSV(datasetId, writeStream)
+    res.end()
 })
 
 adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
@@ -158,8 +167,10 @@ adminRouter.get("/posts/compare/:postId", async (req, res) => {
     const archieMlText = await Post.select("archieml").from(
         db.knexTable(Post.postsTable).where({ id: postId })
     )
-    const archieMl = JSON.parse(archieMlText[0].archieml) as OwidArticleType
-    console.log("", archieMl.publishedAt)
+    const archieMlJson = JSON.parse(
+        archieMlText[0].archieml
+    ) as OwidArticleTypeJSON
+    const archieMl = getArticleFromJSON(archieMlJson)
     const archieMlPage = renderGdocsArticle(archieMl)
 
     res.send(`<!doctype html>

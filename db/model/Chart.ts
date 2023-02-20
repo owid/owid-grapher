@@ -16,6 +16,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     Tag,
 } from "@ourworldindata/utils"
+import { GrapherInterface } from "@ourworldindata/grapher"
 
 // XXX hardcoded filtering to public parent tags
 const PUBLIC_TAG_PARENT_IDS = [
@@ -26,7 +27,7 @@ const PUBLIC_TAG_PARENT_IDS = [
 @Entity("charts")
 export class Chart extends BaseEntity {
     @PrimaryGeneratedColumn() id!: number
-    @Column({ type: "json" }) config: any
+    @Column({ type: "json" }) config!: GrapherInterface
     @Column() lastEditedAt!: Date
     @Column() lastEditedByUserId!: number
     @Column({ nullable: true }) publishedAt!: Date
