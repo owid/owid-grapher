@@ -18,7 +18,7 @@ As of **2023-02-18**, we support the following browsers:
 -   [Object rest destructuring](https://caniuse.com/mdn-javascript_operators_destructuring_rest_in_objects), which introduces expressions like `const {a, ...rest} = obj`.
 -   [Passing a record to the URLSearchParams constructor](https://caniuse.com/mdn-api_urlsearchparams_urlsearchparams_record), which we use in URL manipulation.
 
-Things will look a bit odd at times in browser that don't support the [CSS grid `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context), but things still work just fine.
+Things will look a bit odd at times in browsers that don't support the [CSS grid `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context), but things still work just fine.
 
 ### Polyfills
 
