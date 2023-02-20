@@ -151,6 +151,9 @@ export const configureAlgolia = async () => {
         ["ev", "electric vehicle", "electric car"],
         ["train", "railway"],
         ["dying", "death", "mortality"],
+        ["disease", "illness"],
+        ["poverty", "poor"],
+        ["homicide", "murder"],
     ]
 
     // Send all our country variant names to algolia as synonyms
