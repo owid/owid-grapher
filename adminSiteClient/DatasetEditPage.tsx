@@ -441,6 +441,13 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             If there are any charts using this data, you must
                             delete them individually first.
                         </p>
+                        <p>
+                            Before you archive or delete a dataset, please
+                            ensure that this dataset is not used in ETL via
+                            backporting. At some point this check will be done
+                            automatically, but currently the ETL is not visible
+                            inside the Grapher admin.
+                        </p>
                         <div className="card-footer">
                             <button
                                 className="btn btn-danger mr-3"
