@@ -7,6 +7,7 @@ import { formatPost } from "../../baker/formatWordpressPost.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import { PageRecord, PageType } from "../../site/search/searchTypes.js"
+import { Pageview } from "../../db/model/Pageview.js"
 
 interface Tag {
     id: number
@@ -40,8 +41,14 @@ const getPostTypeAndImportance = (
     return { type: "other", importance: 0 }
 }
 
+const computeScore = (record: Omit<PageRecord, "score">): number => {
+    const { importance, views_7d } = record
+    return importance * 1000 + views_7d
+}
+
 const getPagesRecords = async () => {
     const postsApi = await wpdb.getPosts()
+    const pageviews = await Pageview.getViewsByUrlObj()
 
     const records: PageRecord[] = []
     for (const country of countries) {
@@ -49,13 +56,16 @@ const getPagesRecords = async () => {
             type: "country",
             importance: -1,
         }
-        records.push({
+        const record = {
             objectID: country.slug,
             ...postTypeAndImportance,
             slug: `country/${country.slug}`,
             title: country.name,
             content: `All available indicators for ${country.name}.`,
-        })
+            views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
+        }
+        const score = computeScore(record)
+        records.push({ ...record, score })
     }
 
     for (const postApi of postsApi) {
@@ -83,7 +93,7 @@ const getPagesRecords = async () => {
 
         let i = 0
         for (const c of chunks) {
-            records.push({
+            const record = {
                 objectID: `${rawPost.id}-c${i}`,
                 postId: post.id,
                 ...postTypeAndImportance,
@@ -95,7 +105,10 @@ const getPagesRecords = async () => {
                 modifiedDate: post.modifiedDate.toISOString(),
                 content: c,
                 tags: tags.map((t) => t.name),
-            })
+                views_7d: pageviews[`/${post.path}`]?.views_7d ?? 0,
+            }
+            const score = computeScore(record)
+            records.push({ ...record, score })
             i += 1
         }
     }
@@ -113,6 +126,7 @@ const indexToAlgolia = async () => {
     }
     const index = client.initIndex("pages")
 
+    await db.getConnection()
     const records = await getPagesRecords()
     index.replaceAllObjects(records)
 
