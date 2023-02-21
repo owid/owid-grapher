@@ -21,7 +21,6 @@ import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelope
 
 export enum Menu {
     Topics = "topics",
-    // Latest = "latest",
     Resources = "resources",
     About = "about",
     Subscribe = "subscribe",
@@ -33,7 +32,6 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
     >([])
-    const [showMobileSearch, setShowMobileSearch] = useState(false)
 
     const closeOverlay = () => {
         setActiveMenu(null)
@@ -45,10 +43,6 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         } else {
             setActiveMenu(root)
         }
-    }
-
-    const onToggleMobileSearch = () => {
-        setShowMobileSearch(!showMobileSearch)
     }
 
     useEffect(() => {
