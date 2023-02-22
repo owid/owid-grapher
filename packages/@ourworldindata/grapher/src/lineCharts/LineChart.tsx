@@ -339,8 +339,10 @@ export class LineChart
 
         let hoverX
         if (boundedBox.contains(mouse)) {
+            const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
+
             const closestValue = minBy(this.allValues, (point) =>
-                Math.abs(this.dualAxis.horizontalAxis.place(point.x) - mouse.x)
+                Math.abs(invertedX - point.x)
             )
             hoverX = closestValue?.x
         }
