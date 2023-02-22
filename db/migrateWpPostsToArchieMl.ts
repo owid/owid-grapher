@@ -51,11 +51,11 @@ const migrate = async (): Promise<void> => {
                     return val.replace(/\{\/?ref\}/g, "")
                 }
             )
-            //TODO: we don't seem to get the first node if it is a comment.
-            // Maybe this is benign but if not this works as a workaround:
-            //`<div>${post.content}</div>`)
-            const $: CheerioStatic = cheerio.load(text)
-            const bodyContents = $("body").contents().toArray()
+            // We don't get the first and last nodes if they are comments.
+            // This can cause issues with the wp:components so here we wrap
+            // everything in a div
+            const $: CheerioStatic = cheerio.load(`<div>${text}</div>`)
+            const bodyContents = $("body>div").contents().toArray()
             const parsingContext = {
                 $,
                 shouldParseWpComponents: true,
