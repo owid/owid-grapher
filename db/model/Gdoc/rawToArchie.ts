@@ -26,9 +26,11 @@ import {
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
-export function appendDotEndIfMultiline(line: string): string {
-    if (line.includes("\n")) return line + "\n:end"
-    return line
+export function appendDotEndIfMultiline(
+    line: string | null | undefined
+): string {
+    if (line && line.includes("\n")) return line + "\n:end"
+    return line ?? ""
 }
 
 export function* encloseLinesAsPropertyPossiblyMultiline(
@@ -51,7 +53,7 @@ export function* encloseLinesAsPropertyPossiblyMultiline(
 
 export function keyValueToArchieMlString(
     key: string,
-    val: string | undefined
+    val: string | undefined | null
 ): string {
     if (val !== undefined) return `${key}: ${appendDotEndIfMultiline(val)}`
     return ""
