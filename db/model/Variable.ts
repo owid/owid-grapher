@@ -500,9 +500,9 @@ export const fetchS3Values = async (
 export const fetchS3ValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
-    return (await (
+    return (
         await fetch(dataPath, { agent: httpsAgent })
-    ).json()) as OwidVariableMixedData
+    ).json() as Promise<OwidVariableMixedData>
 }
 
 export const dataAsRecords = async (
