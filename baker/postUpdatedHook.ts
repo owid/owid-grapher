@@ -81,7 +81,7 @@ const syncPostToGrapher = async (
                   wpPost.post_date_gmt === zeroDateString
                       ? null
                       : wpPost.post_date_gmt,
-              updated_at:
+              updated_at_in_wordpress:
                   wpPost.post_modified_gmt === zeroDateString
                       ? "1970-01-01 00:00:00"
                       : wpPost.post_modified_gmt,

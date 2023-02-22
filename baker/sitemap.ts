@@ -60,7 +60,10 @@ export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
     const posts = (await db
         .knexTable(postsTable)
         .where({ status: "publish" })
-        .select("slug", "updated_at")) as { slug: string; updated_at: Date }[]
+        .select("slug", "updated_at_in_wordpress")) as {
+        slug: string
+        updated_at_in_wordpress: Date
+    }[]
     const charts = (await db
         .knexTable(Chart.table)
         .select(db.knexRaw(`updatedAt, config->>"$.slug" AS slug`))
@@ -86,7 +89,7 @@ export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
         .concat(
             posts.map((p) => ({
                 loc: urljoin(BAKED_BASE_URL, p.slug),
-                lastmod: dayjs(p.updated_at).format("YYYY-MM-DD"),
+                lastmod: dayjs(p.updated_at_in_wordpress).format("YYYY-MM-DD"),
             }))
         )
         .concat(
