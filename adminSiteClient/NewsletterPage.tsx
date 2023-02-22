@@ -96,7 +96,7 @@ export class NewsletterPage extends React.Component {
     }
 
     @computed get postsToShow(): PostIndexMeta[] {
-        const { searchInput, searchIndex, maxVisibleRows } = this
+        const { searchInput, searchIndex, maxVisibleRows, posts } = this
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
@@ -104,7 +104,7 @@ export class NewsletterPage extends React.Component {
             })
             return lodash.uniq(results.map((result) => result.obj.post))
         } else {
-            return this.posts.slice(0, maxVisibleRows)
+            return posts.slice(0, maxVisibleRows)
         }
     }
 
