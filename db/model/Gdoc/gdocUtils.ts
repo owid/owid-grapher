@@ -5,7 +5,7 @@ import * as cheerio from "cheerio"
 export function spanToSimpleString(s: Span): string {
     return match(s)
         .with({ spanType: "span-simple-text" }, (span) => span.text)
-        .with({ spanType: "span-newline" }, () => "</br>")
+        .with({ spanType: "span-newline" }, () => "\n")
         .with(
             {
                 spanType: P.union(
