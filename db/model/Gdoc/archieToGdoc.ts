@@ -10,7 +10,7 @@ import {
 } from "./rawToArchie.js"
 import { GDOCS_BACKPORTING_TARGET_FOLDER } from "../../../settings/serverSettings.js"
 import { enrichedBlockToRawBlock } from "./enrichtedToRaw.js"
-import { google, docs_v1 } from "googleapis"
+import { google, docs_v1, drive_v3 } from "googleapis"
 import { Gdoc } from "./Gdoc.js"
 import * as cheerio from "cheerio"
 
@@ -194,12 +194,67 @@ function articleToBatchUpdates(
     return batchUpdates
 }
 
+async function deleteGdocContent(
+    client: docs_v1.Docs,
+    existingGdocId: string
+): Promise<void> {
+    // Retrieve raw data from Google
+    const { data } = await client.documents.get({
+        documentId: existingGdocId,
+        suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
+    })
+    const content = data.body?.content
+    if (content) {
+        const endIndex = content[content.length - 1].endIndex!
+        const deleteUpdate = [
+            {
+                deleteContentRange: {
+                    range: {
+                        startIndex: 1,
+                        endIndex: endIndex - 1,
+                    },
+                },
+            },
+        ]
+        await client.documents.batchUpdate({
+            // The ID of the document to update.
+            documentId: existingGdocId,
+
+            // Request body metadata
+            requestBody: {
+                requests: deleteUpdate,
+            },
+        })
+    }
+}
+
+async function createGdoc(
+    driveClient: drive_v3.Drive,
+    title: string | undefined,
+    targetFolder: string
+): Promise<string> {
+    const docsMimeType = "application/vnd.google-apps.document"
+    const createResp = await driveClient.files.create({
+        supportsAllDrives: true,
+        requestBody: {
+            parents: [targetFolder],
+            mimeType: docsMimeType,
+            name: title,
+        },
+        media: {
+            mimeType: docsMimeType,
+            body: "",
+        },
+    })
+    return createResp.data.id!
+}
+
 export async function createGdocAndInsertOwidArticleContent(
-    content: OwidArticleContent
+    content: OwidArticleContent,
+    existingGdocId: string | undefined
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)
 
-    const docsMimeType = "application/vnd.google-apps.document"
     const targetFolder = GDOCS_BACKPORTING_TARGET_FOLDER
     if (targetFolder === undefined || targetFolder === "")
         throw new Error("GDOCS_BACKPORTING_TARGET_FOLDER is not set")
@@ -212,29 +267,22 @@ export async function createGdocAndInsertOwidArticleContent(
         version: "v3",
         auth,
     })
-    const createResp = await driveClient.files.create({
-        supportsAllDrives: true,
-        requestBody: {
-            parents: [targetFolder],
-            mimeType: docsMimeType,
-            name: content.title,
-        },
-        media: {
-            mimeType: docsMimeType,
-            body: "",
-        },
-    })
-    const documentId = createResp.data.id!
+    let documentId = existingGdocId
 
+    if (existingGdocId) {
+        await deleteGdocContent(client, existingGdocId)
+    } else {
+        documentId = await createGdoc(driveClient, content.title, targetFolder)
+    }
+
+    // Now that we have either created a new document or deleted the content of an existing one,
+    // we can insert the new content.
     await client.documents.batchUpdate({
-        // The ID of the document to update.
         documentId,
-
-        // Request body metadata
         requestBody: {
             requests: batchUpdates,
         },
     })
 
-    return documentId
+    return documentId!
 }

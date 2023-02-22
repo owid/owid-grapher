@@ -192,7 +192,7 @@ const syncPostsToGrapher = async (): Promise<void> => {
                 post.post_date_gmt === zeroDateString
                     ? null
                     : post.post_date_gmt,
-            updated_at:
+            updated_at_in_wordpress:
                 post.post_modified_gmt === zeroDateString
                     ? "1970-01-01 00:00:00"
                     : post.post_modified_gmt,

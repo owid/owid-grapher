@@ -10,9 +10,7 @@ import difference from "lodash/difference.js"
 import drop from "lodash/drop.js"
 import escapeRegExp from "lodash/escapeRegExp.js"
 import extend from "lodash/extend.js"
-import findIndex from "lodash/findIndex.js"
 import findLastIndex from "lodash/findLastIndex.js"
-import fromPairs from "lodash/fromPairs.js"
 import flatten from "lodash/flatten.js"
 import get from "lodash/get.js"
 import groupBy from "lodash/groupBy.js"
@@ -30,7 +28,6 @@ import isPlainObject from "lodash/isPlainObject.js"
 import isString from "lodash/isString.js"
 import isUndefined from "lodash/isUndefined.js"
 import keyBy from "lodash/keyBy.js"
-import keys from "lodash/keys.js"
 import mapValues from "lodash/mapValues.js"
 import max from "lodash/max.js"
 import maxBy from "lodash/maxBy.js"
@@ -78,10 +75,8 @@ export {
     drop,
     escapeRegExp,
     extend,
-    findIndex,
     findLastIndex,
     flatten,
-    fromPairs,
     get,
     groupBy,
     identity,
@@ -96,7 +91,6 @@ export {
     isString,
     isUndefined,
     keyBy,
-    keys,
     mapValues,
     max,
     maxBy,

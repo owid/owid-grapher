@@ -2210,9 +2210,14 @@ apiRouter.get("/posts.json", async (req) => {
         "title",
         "type",
         "status",
-        "updated_at",
+        "updated_at_in_wordpress",
         "gdocSuccessorId"
-    ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
+    ).from(
+        db
+            .knexInstance()
+            .from(postsTable)
+            .orderBy("updated_at_in_wordpress", "desc")
+    )
 
     const tagsByPostId = await getTagsByPostId()
 
@@ -2250,7 +2255,7 @@ apiRouter.get("/newsletterPosts.json", async (req) => {
         return {
             id: row.id,
             title: row.title,
-            updatedAt: row.updatedAt,
+            updatedAtInWordpress: row.updatedAt,
             publishedAt: row.publishedAt,
             type: row.type,
             status: row.status,
@@ -2287,24 +2292,43 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
 
 apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     const postId = expectInt(req.params.postId)
+    const allowRecreate = !!req.body.allowRecreate
     const post = (await db
         .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
         .first()) as PostRow | undefined
+
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
-    if (post.gdocSuccessorId)
+    const existingGdocId = post.gdocSuccessorId
+    if (!allowRecreate && existingGdocId)
         throw new JsonError("A gdoc already exists for this post", 400)
     const archieMl = JSON.parse(post.archieml) as OwidArticleType
-    const gdocId = await createGdocAndInsertOwidArticleContent(archieMl.content)
-    post.gdocSuccessorId = gdocId
-    await db
-        .knexTable(postsTable)
-        .where({ id: postId })
-        .update("gdocSuccessorId", gdocId)
-    // TODO: fill the rest of content required for an entry in the gdoc table,
-    // mark the post in the posts table as no-longer editable/publish-able,
-    // publish through gdocs?
+    const gdocId = await createGdocAndInsertOwidArticleContent(
+        archieMl.content,
+        post.gdocSuccessorId
+    )
+    // If we did not yet have a gdoc associated with this post, we need to register
+    // the gdocSuccessorId and create an entry in the posts_gdocs table. Otherwise
+    // we don't need to make changes to the DB (only the gdoc regeneration was required)
+    if (!existingGdocId) {
+        post.gdocSuccessorId = gdocId
+        // This is not ideal - we are using knex for on thing and typeorm for another
+        // which means that we can't wrap this in a transaction. We should probably
+        // move posts to use typeorm as well or at least have a typeorm alternative for it
+        await db
+            .knexTable(postsTable)
+            .where({ id: postId })
+            .update("gdocSuccessorId", gdocId)
+
+        const gdoc = new Gdoc(gdocId)
+        gdoc.slug = post.slug
+        gdoc.published = false
+        gdoc.createdAt = new Date()
+        gdoc.publishedAt = post.published_at
+        await dataSource.getRepository(Gdoc).insert(gdoc)
+    }
+
     return { googleDocsId: gdocId }
 })
 

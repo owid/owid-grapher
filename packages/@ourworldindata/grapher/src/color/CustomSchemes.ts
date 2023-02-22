@@ -1,4 +1,4 @@
-import { keys, omit, invert } from "@ourworldindata/utils"
+import { omit, invert } from "@ourworldindata/utils"
 import { ColorSchemeInterface, ColorSchemeName } from "./ColorConstants.js"
 
 export const CustomColorSchemes: ColorSchemeInterface[] = []
@@ -55,7 +55,7 @@ const darkerColorReplacementsHexToReplacementColorName = {
 } as Record<string, string>
 
 export const OwidDistinctLinesColors = {
-    ...omit(OwidDistinctColors, keys(DarkerOwidDistinctColors)),
+    ...omit(OwidDistinctColors, Object.keys(DarkerOwidDistinctColors)),
     ...DarkerOwidDistinctColors,
 }
 
