@@ -143,7 +143,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         <div className="site-search-cta">
                             <SiteSearchInput
                                 isActive={menu === Menu.Search}
-                                onClick={() => setActiveMenu(Menu.Search)}
+                                toggle={() => toggleMenu(Menu.Search)}
                             />
                             {menu !== Menu.Search && (
                                 <button
