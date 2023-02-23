@@ -75,7 +75,7 @@ $xxlg: 1536px;
 }
 
 @mixin lg-only {
-    @media (min-width: $md) and (max-width: $lg) {
+    @media (min-width: #{$md + 1}) and (max-width: $lg) {
         @content;
     }
 }
