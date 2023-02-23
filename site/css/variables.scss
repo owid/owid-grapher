@@ -57,7 +57,7 @@ $xxlg: 1536px;
 }
 
 @mixin sm-up {
-    @media (min-width: $sm) {
+    @media (min-width: #{$sm + 1}) {
         @content;
     }
 }
@@ -69,7 +69,7 @@ $xxlg: 1536px;
 }
 
 @mixin md-up {
-    @media (min-width: $md) {
+    @media (min-width: #{$md + 1}) {
         @content;
     }
 }
@@ -81,13 +81,13 @@ $xxlg: 1536px;
 }
 
 @mixin lg-up {
-    @media (min-width: $lg) {
+    @media (min-width: #{$lg + 1}) {
         @content;
     }
 }
 
 @mixin lg-only {
-    @media (min-width: $lg) and (max-width: $xlg) {
+    @media (min-width: #{$lg + 1}) and (max-width: $xlg) {
         @content;
     }
 }
@@ -95,11 +95,12 @@ $xxlg: 1536px;
 // Blocks are shown side-by-side from that breakpoint up (when applicable)
 
 @mixin xlg-up {
-    @media only screen and (min-width: $xlg) {
+    @media only screen and (min-width: #{$xlg + 1}) {
         @content;
     }
 }
 
+// mixin duplicated in packages/@ourworldindata/grapher/src/core/grapher.scss
 @mixin xxlg-down {
     @media only screen and (max-width: $xxlg) {
         @content;
@@ -107,9 +108,8 @@ $xxlg: 1536px;
 }
 
 // The sidebar is shown from that breakpoint up
-// mixin duplicated in packages/@ourworldindata/grapher/src/core/grapher.scss
 @mixin xxlg-up {
-    @media only screen and (min-width: $xxlg) {
+    @media only screen and (min-width: #{$xxlg + 1}) {
         @content;
     }
 }
