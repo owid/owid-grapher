@@ -81,6 +81,7 @@ export {
     OwidArticleTypePublished,
     OwidEnrichedArticleBlock,
     OwidRawArticleBlock,
+    OwidArticleBackportingStatistics,
     OwidVariableId,
     ParseError,
     Position,

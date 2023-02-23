@@ -913,6 +913,14 @@ export interface OwidArticleTypePublished extends OwidArticleType {
     content: OwidArticleContentPublished
 }
 
+export interface OwidArticleBackportingStatistics {
+    errors: { name: string; details: string }[]
+    numErrors: number
+    numBlocks: number
+    htmlTagCounts: Record<string, number>
+    wpTagCounts: Record<string, number>
+}
+
 export interface OwidArticleContent {
     body?: OwidEnrichedArticleBlock[]
     title?: string

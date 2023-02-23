@@ -553,7 +553,7 @@ function finishWpComponent(
                     ...content.errors,
                     {
                         name: "unexpected wp component tag",
-                        details: `Found unexpected tag ${details.tagName}`,
+                        details: `Found unhandled wp:comment tag ${details.tagName}`,
                     },
                 ],
                 content: content.content,

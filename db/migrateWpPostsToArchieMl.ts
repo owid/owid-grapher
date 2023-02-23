@@ -8,6 +8,7 @@ import {
     OwidArticlePublicationContext,
     OwidArticleType,
     sortBy,
+    OwidArticleBackportingStatistics,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -106,7 +107,7 @@ const migrate = async (): Promise<void> => {
                 numBlocks: archieMlBodyElements.length,
                 htmlTagCounts: parsingContext.htmlTagCounts,
                 wpTagCounts: parsingContext.wpTagCounts,
-            }
+            } as OwidArticleBackportingStatistics
 
             const insertQuery = `
         UPDATE posts SET archieml = ?, archieml_update_statistics = ? WHERE id = ?

@@ -21,6 +21,7 @@ import { GitCmsServer } from "../gitCms/GitCmsServer.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     getArticleFromJSON,
+    OwidArticleBackportingStatistics,
     OwidArticleTypeJSON,
     parseIntOrUndefined,
     slugify,
@@ -164,12 +165,22 @@ adminRouter.get("/posts/compare/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
     const wpPage = await renderPreview(postId)
-    const archieMlText = await Post.select("archieml").from(
-        db.knexTable(Post.postsTable).where({ id: postId })
-    )
+    const archieMlText = await Post.select(
+        "archieml",
+        "archieml_update_statistics"
+    ).from(db.knexTable(Post.postsTable).where({ id: postId }))
     const archieMlJson = JSON.parse(
         archieMlText[0].archieml
     ) as OwidArticleTypeJSON
+    const updateStatsJson = JSON.parse(
+        archieMlText[0].archieml_update_statistics
+    ) as OwidArticleBackportingStatistics
+
+    const errorItems = updateStatsJson.errors.map(
+        (error) => `<li>${error.details}</li>`
+    )
+    const errorList = `<ul>${errorItems.join("")}</ul>`
+
     const archieMl = getArticleFromJSON(archieMlJson)
     const archieMlPage = renderGdocsArticle(archieMl)
 
@@ -178,19 +189,31 @@ adminRouter.get("/posts/compare/:postId", async (req, res) => {
         <head>
         </head>
         <body>
-            <div style="width: 50%; float: left;">
-                <h1>WP</h1>
-                <iframe srcdoc="${wpPage.replaceAll(
-                    '"',
-                    "&quot;"
-                )}" style="width: 100%; height: 100vh;"></iframe>
-            </div>
-            <div style="width: 50%; float: left;">
-                <h1>ArchieML</h1>
-                <iframe srcdoc="${archieMlPage.replaceAll(
-                    '"',
-                    "&quot;"
-                )}" style="width: 100%; height: 100vh;"></iframe>
+            <dialog id="error-dialog">
+                <h3>Migration errors</h3>
+                <p>${errorList}</p>
+                <button onclick="document.getElementById('error-dialog').close()">Close</button>
+            </dialog>
+
+            <!-- Add the button that triggers the dialog -->
+            <button onclick="document.getElementById('error-dialog').showModal()" title="${
+                updateStatsJson.numErrors
+            } errors">Show migrations errors</button>
+            <div>
+                <div style="width: 50%; float: left;">
+                    <h1>WP</h1>
+                    <iframe srcdoc="${wpPage.replaceAll(
+                        '"',
+                        "&quot;"
+                    )}" style="width: 100%; height: 100vh;"></iframe>
+                </div>
+                <div style="width: 50%; float: left;">
+                    <h1>ArchieML</h1>
+                    <iframe srcdoc="${archieMlPage.replaceAll(
+                        '"',
+                        "&quot;"
+                    )}" style="width: 100%; height: 100vh;"></iframe>
+                </div>
             </div>
         </body>
     </html>`)
