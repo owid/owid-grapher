@@ -86,7 +86,7 @@ $xxlg: 1536px;
     }
 }
 
-@mixin lg-only {
+@mixin xlg-only {
     @media (min-width: #{$lg + 1}) and (max-width: $xlg) {
         @content;
     }
