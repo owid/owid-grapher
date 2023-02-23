@@ -18,6 +18,7 @@ import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
+import classnames from "classnames"
 
 export enum Menu {
     Topics = "topics",
@@ -69,7 +70,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
             {menu && <div className="overlay" onClick={closeOverlay} />}
             <div className="site-navigation">
                 <div className="wrapper">
-                    <div className="site-navigation-bar">
+                    <div
+                        className={classnames("site-navigation-bar", {
+                            "search-active": menu === Menu.Search,
+                        })}
+                    >
                         <SiteNavigationToggle
                             isActive={isActiveMobileMenu}
                             toggle={() => toggleMenu(Menu.Topics)}
@@ -144,7 +149,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 <button
                                     onClick={() => toggleMenu(Menu.Search)}
                                     data-track-note="mobile-search-button"
-                                    className="mobile-search hide-md-up"
+                                    className="mobile-search hide-lg-up"
                                 >
                                     <FontAwesomeIcon icon={faSearch} />
                                 </button>

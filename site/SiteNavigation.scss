@@ -87,9 +87,6 @@
         align-items: center;
         height: $search-cta-height;
         column-gap: 0;
-        @include lg-only {
-            flex: 1;
-        }
         @include lg-up {
             column-gap: $search-cta-column-gap;
         }
@@ -157,6 +154,22 @@
             background-color: $vermillion;
             &:hover {
                 background-color: #b40000;
+            }
+        }
+    }
+
+    &.search-active {
+        @include sm-only {
+            .site-logos {
+                display: none;
+            }
+        }
+        @include lg-down {
+            .site-search-cta {
+                flex: 1;
+            }
+            .site-primary-links {
+                display: none;
             }
         }
     }

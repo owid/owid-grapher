@@ -1,21 +1,18 @@
 .SiteSearchInput {
     position: relative;
-    flex: 1;
     display: none;
     width: 100%;
-    @include lg-up {
-        width: 300px;
-    }
+    color: $white;
+
     @include md-down {
         margin-right: 8px;
     }
-    color: $white;
-
-    &.active {
+    @include lg-up {
         display: block;
+        width: 300px;
     }
 
-    @include md-up {
+    &.active {
         display: block;
     }
 
