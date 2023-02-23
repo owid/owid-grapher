@@ -501,3 +501,5 @@ export {
     DoDWrapper,
     globalDetailsOnDemand,
 } from "./DetailsOnDemand/detailsOnDemand.js"
+
+export { gdocUrlRegex, getLinkType, getUrlTarget } from "./GdocsUtils.js"

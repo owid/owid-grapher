@@ -11,7 +11,8 @@ import {
     spansToUnformattedPlainText,
     OwidEnrichedArticleBlock,
     Span,
-    keyBy,
+    getUrlTarget,
+    getLinkType,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -21,8 +22,7 @@ import {
 import { google, Auth, docs_v1 } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
-import { getUrlTarget, getUrlType, Link } from "../Link.js"
-import { Dictionary } from "lodash"
+import { Link } from "../Link.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -36,7 +36,6 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
-    links: Link[] = []
 
     constructor(id?: string) {
         super()
@@ -100,35 +99,27 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text)
 
-        this.content = await this.processContent(this.content)
-
         this.revisionId = data.revisionId ?? null
     }
 
-    // a combination of pure and impure functions where the order of operations is important
-    async processContent(
-        content: OwidArticleContent
-    ): Promise<OwidArticleContent> {
+    static extractLinksFromContent(content: OwidArticleContent): Link[] {
         const links: Link[] = []
-        const allGdocs = await Gdoc.find()
-        const gdocsDictionary = keyBy(allGdocs, "id")
         if (content.body) {
             content.body = content.body.map((node) =>
                 recursivelyMapArticleContent(node, (node) => {
-                    // We have to track the gdoc links in use before replacing them with our slugs
-                    this.extractLink(node, links)
-                    this.replaceLink(node, gdocsDictionary)
+                    const link = Gdoc.extractLinkFromNode(node)
+                    if (link) links.push(link)
                     return node
                 })
             )
         }
-        this.links = links
-        return content
+        return links
     }
 
     // If the node has a URL in it, create a Link object
-    // then push it into the link array from the parent closure
-    extractLink(node: OwidEnrichedArticleBlock | Span, links: Link[]): void {
+    static extractLinkFromNode(
+        node: OwidEnrichedArticleBlock | Span
+    ): Link | void {
         function getText(node: OwidEnrichedArticleBlock | Span): string {
             // Can add component-specific text accessors here
             if (checkNodeIsSpan(node)) {
@@ -141,31 +132,14 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         if ("url" in node) {
             const link: Link = Link.create({
-                type: getUrlType(node.url),
-                source: this,
+                linkType: getLinkType(node.url),
+                source: undefined,
                 target: getUrlTarget(node.url),
-                context: checkNodeIsSpan(node) ? "inline" : node.type,
+                componentType: checkNodeIsSpan(node) ? "span-link" : node.type,
                 text: getText(node),
             })
-            links.push(link)
+            return link
         }
-    }
-
-    // Replace a gdoc link (if present) with its corresponding slug
-    // IMPURE
-    replaceLink<Node extends OwidEnrichedArticleBlock | Span>(
-        node: Node,
-        gdocsDictionary: Dictionary<Gdoc>
-    ): Node {
-        if ("url" in node && getUrlType(node.url) === "gdoc") {
-            const targetGdocId = getUrlTarget(node.url)
-            const targetGdoc = gdocsDictionary[targetGdocId]
-            if (!targetGdoc) return node
-            // TODO: handle this flow once images branch is merged
-            // throw new Error(`Document with ID ${targetGdocId} not found`)
-            node.url = "/" + targetGdoc.slug
-        }
-        return node
     }
 
     static async getGdocFromContentSource(
@@ -177,6 +151,10 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
         if (contentSource === GdocsContentSource.Gdocs) {
+            // TODO: this means there's always a diff between OG and current in the admin
+            // due to this.processContent being called in getEnrichedArticle which
+            // sets gdoc.links.
+            // Either we ignore them in the diff calculation or set them another way
             await gdoc.getEnrichedArticle()
         }
         return gdoc

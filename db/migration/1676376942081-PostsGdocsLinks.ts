@@ -1,14 +1,14 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class links1676376942081 implements MigrationInterface {
+export class PostsGdocsLinks1676376942081 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         queryRunner.query(`
-        CREATE TABLE links (
+        CREATE TABLE posts_gdocs_links (
             id INT NOT NULL AUTO_INCREMENT,
             sourceId VARCHAR(255),
             target VARCHAR(2047) NOT NULL,
-            type ENUM("gdoc", "url") NOT NULL,
-            context VARCHAR(255) NOT NULL,
+            linkType ENUM("gdoc", "url") NOT NULL,
+            componentType VARCHAR(255) NOT NULL,
             text VARCHAR(255) NOT NULL,
             PRIMARY KEY(id),
             CONSTRAINT FOREIGN KEY (sourceId) REFERENCES posts_gdocs (id)
@@ -16,6 +16,6 @@ export class links1676376942081 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query(`DROP TABLE IF EXISTS links;`)
+        queryRunner.query(`DROP TABLE IF EXISTS posts_gdocs_links;`)
     }
 }

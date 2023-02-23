@@ -906,9 +906,9 @@ export interface OwidArticleTypeJSON
 
 export interface OwidArticleLinkJSON {
     source: OwidArticleType
-    type: "gdoc" | "url"
+    linkType: "gdoc" | "url"
     target: string
-    context: string
+    componentType: string
     text: string
 }
 
