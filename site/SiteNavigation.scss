@@ -25,9 +25,18 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    column-gap: 24px;
+    column-gap: 8px;
     padding-top: 12px;
     padding-bottom: 12px;
+    @include sm-up {
+        column-gap: 24px;
+    }
+
+    .mobile-menu-toggle {
+        padding: 8px;
+        line-height: 1;
+        margin-left: -8px;
+    }
 
     .site-primary-links {
         > ul {
