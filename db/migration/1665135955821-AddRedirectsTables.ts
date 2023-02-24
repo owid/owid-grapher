@@ -2,6 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class AddRedirectsTables1665135955821 implements MigrationInterface {
     public async up(db: QueryRunner): Promise<void> {
+        // #region #### Table definitions ####
         await db.query(
             `-- sql
             -- ----------------------------------------------
@@ -202,11 +203,26 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             []
         )
 
+        // #endregion
+
+        // #region #### Helper functions ####
+
+        // The following regex is used to parse the URL into its components.
+        //
+        // It has the following capturing groups:
+        // - protocol: The protocol of the URL (http, https, etc.)
+        // - domain: The domain of the URL (e.g. www.example.com)
+        // - path: The path of the URL (e.g. /path/to/resource)
+        // - query: The query string of the URL (e.g. ?query=string)
+        // - target: The target of the URL (e.g. #target)
+        const urlRegex =
+            "^((?<protocol>http|https)(:\\/\\/)(?<domain>[^\\/]+))?(?<path>\\/[^?#]*)?(?<query>\\\\?[^#]+)?(?<target>#.*)?"
+
         // This query just tests if regex escaping works as expected
         await db.query(`-- sql
         select regexp_replace(
                 'http://ourworldindata.org/test',
-                '^((?<protocol>http|https)(:\\/\\/)(?<domain>[^\\/]+))?(?<path>\\/[^?#]*)?(?<query>\\\\?[^#]+)?(?<target>#.*)?',
+                urlRegex,
                 '$2$3$4'
             );
         `)
@@ -235,7 +251,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             RETURN
             regexp_replace(
                 url,
-                '^((?<protocol>http|https)(:\\/\\/)(?<domain>[^\\/]+))?(?<path>\\/[^?#]*)?(?<query>\\\\?[^#]+)?(?<target>#.*)?',
+                urlRegex,
                 '$2$3$4'
             );
 `,
@@ -249,7 +265,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             RETURN
             regexp_replace(
                 url,
-                '^((?<protocol>http|https)(:\\/\\/)(?<domain>[^\\/]+))?(?<path>\\/[^?#]*)?(?<query>\\\\?[^#]+)?(?<target>#.*)?',
+                urlRegex,
                 '$5'
             );
             `,
@@ -263,7 +279,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             RETURN
             regexp_replace(
                 url,
-                '^((?<protocol>http|https)(:\\/\\/)(?<domain>[^\\/]+))?(?<path>\\/[^?#]*)?(?<query>\\\\?[^#]+)?(?<target>#.*)?',
+                urlRegex,
                 '$6'
             );
             `,
@@ -277,13 +293,18 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             RETURN
             regexp_replace(
                 url,
-                '^((?<protocol>http|https)(:\\/\\/)(?<domain>[^\\/]+))?(?<path>\\/[^?#]*)?(?<query>\\\\?[^#]+)?(?<target>#.*)?',
+                urlRegex,
                 '$7'
             );
             `,
             []
         )
 
+        // #endregion
+
+        // #region #### Sanitize triggers ####
+
+        // define a function that creates the trigger to sanitize trailing slashes
         const sanitizeTrailingSlashTrigger = (
             table: string,
             triggerPrefix: string,
@@ -304,6 +325,8 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 END IF;
             END;`
 
+        // set up the table names and trigger prefixes - trigger prefixes are shortened because
+        // mysql has a limit of 64 characters for trigger names
         const redirectsCandidates = {
             tableName: "wordpress_redirects_candidates",
             triggerPrefix: "wp_redirects_candidates",
@@ -322,6 +345,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             manualBulkRedirects,
         ]
 
+        // create the triggers for the cartesian product of tables, columns and operations
         for (const {
             tableName,
             triggerPrefix,
@@ -338,6 +362,8 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                         []
                     )
 
+        // define a function that creates the trigger to sanitize the domain - i.e. remove the protocol + domain part
+        // if it is ourworldindata.org
         const sanitizeDomain = (
             table: string,
             triggerPrefix: string,
@@ -353,6 +379,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 END IF;
             END;`
 
+        // create the triggers for insert and update of the redirect candidates and redirects tables
         for (const { tableName, triggerPrefix } of [
             redirectsCandidates,
             redirects,
@@ -360,6 +387,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             for (const op of ["insert", "update"] as const)
                 await db.query(sanitizeDomain(tableName, triggerPrefix, op), [])
 
+        // define a function that creates the trigger to ensure that no redirect chains are created
         const ensureNoRedirectChainsTrigger = (
             table: string,
             triggerPrefix: string,
@@ -421,6 +449,10 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                     ensureNoRedirectChainsTrigger(tableName, triggerPrefix, op),
                     []
                 )
+
+        // #endregion
+
+        // #region #### Related tables update triggers ####
 
         await db.query(
             `-- sql
@@ -930,6 +962,10 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             []
         )
 
+        // #endregion
+
+        // #region #### Bulk redirects ####
+
         const insertIntoManualBulkRedirects = (
             source: string,
             target: string,
@@ -1010,6 +1046,10 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 )
             )
         }
+
+        // #endregion
+
+        // #region #### Wordpress redirects ####
 
         await db.query(
             `-- sql
@@ -1217,6 +1257,8 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             `,
             []
         )
+
+        // #endregion
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
