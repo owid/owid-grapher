@@ -33,9 +33,10 @@
     }
 
     .mobile-menu-toggle {
-        padding: 8px;
-        line-height: 1;
-        margin-left: -8px;
+        button {
+            padding: 8px;
+            margin-left: -8px;
+        }
     }
 
     .site-primary-links {
