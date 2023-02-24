@@ -8,6 +8,7 @@ import { LoadingIndicator } from "@ourworldindata/grapher"
 import React, { useEffect, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch"
+import { useTriggerOnEscape } from "./hooks.js"
 
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
 
@@ -29,17 +30,7 @@ const Lightbox = ({
         }
     }
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                close()
-            }
-        }
-        document.addEventListener("keydown", handleKeyDown)
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown)
-        }
-    })
+    useTriggerOnEscape(close)
 
     return (
         <div className="container">
