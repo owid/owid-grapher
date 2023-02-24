@@ -262,6 +262,7 @@ export {
     isNegativeInfinity,
     isPositiveInfinity,
     imemo,
+    findDuplicates,
 } from "./Util.js"
 
 export {

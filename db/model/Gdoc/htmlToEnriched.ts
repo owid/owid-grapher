@@ -701,6 +701,7 @@ function cheerioToArchieML(
                                 alt: "",
                                 parseErrors: [],
                                 dataErrors: [],
+                                originalWidth: undefined,
                             },
                         ],
                     }
@@ -786,6 +787,7 @@ function cheerioToArchieML(
                                 alt: "",
                                 parseErrors: [],
                                 dataErrors: [],
+                                originalWidth: undefined,
                             },
                         ],
                     }

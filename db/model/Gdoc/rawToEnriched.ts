@@ -363,6 +363,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         type: "image",
         filename,
         alt,
+        originalWidth: undefined,
         parseErrors: [error],
         dataErrors: [],
     })
@@ -378,6 +379,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         type: "image",
         filename,
         alt: image.value.alt,
+        originalWidth: undefined,
         parseErrors: [],
         dataErrors: [],
     }

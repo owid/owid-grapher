@@ -106,6 +106,7 @@ export const enrichedBlockExamples: Record<
         alt: "",
         parseErrors: [],
         dataErrors: [],
+        originalWidth: 100,
     },
     list: {
         type: "list",

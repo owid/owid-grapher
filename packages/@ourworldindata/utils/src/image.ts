@@ -20,12 +20,13 @@ export interface ImageMetadata {
     // MySQL Date objects round to the nearest second, whereas Google includes milliseconds
     // so we store as an epoch to avoid any conversion issues
     updatedAt: number
-    originalWidth: number
+    originalWidth?: number
 }
 
 export function getSizes(
     originalWidth: ImageMetadata["originalWidth"]
-): number[] | undefined {
+): number[] {
+    if (!originalWidth) return []
     // ensure a thumbnail is generated
     const widths = [100]
     // start at 350 and go up by 500 to a max of 1350 before we just show the original image
@@ -45,7 +46,7 @@ export function generateSrcSet(
     return sizes
         .map(
             (size) =>
-                `/images/${getFilenameWithoutExtension(
+                `/images/published/${getFilenameWithoutExtension(
                     filename
                 )}_${size}.webp ${size}w`
         )

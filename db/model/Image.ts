@@ -18,6 +18,7 @@ import {
     keyBy,
     GDriveImageMetadata,
     ImageMetadata,
+    findDuplicates,
 } from "@ourworldindata/utils"
 import { Gdoc } from "./Gdoc/Gdoc.js"
 import {
@@ -28,7 +29,6 @@ import {
     GDOCS_CLIENT_EMAIL,
     GDOCS_SHARED_DRIVE_ID,
 } from "../../settings/serverSettings.js"
-import { findDuplicates } from "@ourworldindata/utils/dist/Util.js"
 
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
@@ -67,7 +67,7 @@ class ImageStore {
                 filename: google.name,
                 defaultAlt: google.description ?? "",
                 updatedAt: new Date(google.modifiedTime).getTime(),
-                originalWidth: google.imageMediaMetadata?.width || 100,
+                originalWidth: google.imageMediaMetadata?.width,
             }))
 
         const duplicateFilenames = findDuplicates(
@@ -134,7 +134,7 @@ export class Image extends BaseEntity implements ImageMetadata {
         transformer: new ColumnNumericTransformer(),
         nullable: true,
     })
-    originalWidth!: number
+    originalWidth?: number
 
     get isSvg(): boolean {
         return this.fileExtension === "svg"
