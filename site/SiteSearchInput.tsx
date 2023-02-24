@@ -11,9 +11,11 @@ import { SiteSearchResults } from "./search/searchTypes.js"
 export const SiteSearchInput = ({
     query,
     setQuery,
+    isActive,
 }: {
     query: string
     setQuery: (query: string) => void
+    isActive: boolean
 }) => {
     const [results, setResults] = React.useState<SiteSearchResults | null>(null)
 
@@ -32,7 +34,7 @@ export const SiteSearchInput = ({
     return (
         <>
             <form
-                className={classnames("SiteSearchInput", { active: query })}
+                className={classnames("SiteSearchInput", { active: isActive })}
                 action="/search"
                 method="GET"
             >
@@ -40,11 +42,11 @@ export const SiteSearchInput = ({
                     name="search"
                     placeholder="Search for a topic or chart..."
                     onChange={(e) => setQuery(e.currentTarget.value)}
-                    className={classnames({ active: query })}
+                    className={classnames({ active: isActive })}
                     value={query}
                 />
                 <div className="icon">
-                    {query ? (
+                    {isActive ? (
                         <SiteNavigationToggle
                             toggle={() => setQuery("")}
                             isActive={true}

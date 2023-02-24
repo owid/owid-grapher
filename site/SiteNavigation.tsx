@@ -154,6 +154,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         <div className="site-search-cta">
                             <SiteSearchInput
                                 query={query}
+                                isActive={menu === Menu.Search || !!query}
                                 setQuery={setQuery}
                             />
                             {menu !== Menu.Search && (
