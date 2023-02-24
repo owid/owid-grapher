@@ -17,7 +17,7 @@ interface PostIndexMeta {
     type: string
     status: string
     publishedAt: string
-    updatedAt: string
+    updatedAtInWordpress: string
     excerpt: string
     slug: string
     url: string
@@ -55,7 +55,7 @@ class PostRow extends React.Component<{
                 <td>{post.type}</td>
                 <td>{post.status}</td>
                 <td>
-                    <Timeago time={post.updatedAt} />
+                    <Timeago time={post.updatedAtInWordpress} />
                 </td>
                 <td>
                     <a
@@ -96,7 +96,7 @@ export class NewsletterPage extends React.Component {
     }
 
     @computed get postsToShow(): PostIndexMeta[] {
-        const { searchInput, searchIndex, maxVisibleRows } = this
+        const { searchInput, searchIndex, maxVisibleRows, posts } = this
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
@@ -104,7 +104,7 @@ export class NewsletterPage extends React.Component {
             })
             return lodash.uniq(results.map((result) => result.obj.post))
         } else {
-            return this.posts.slice(0, maxVisibleRows)
+            return posts.slice(0, maxVisibleRows)
         }
     }
 

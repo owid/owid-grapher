@@ -25,15 +25,17 @@ import {
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
-export function appendDotEndIfMultiline(line: string): string {
-    if (line.includes("\n")) return line + "\n:end"
-    return line
+export function appendDotEndIfMultiline(
+    line: string | null | undefined
+): string {
+    if (line && line.includes("\n")) return line + "\n:end"
+    return line ?? ""
 }
 
 export function* encloseLinesAsPropertyPossiblyMultiline(
     key: string,
     lines: Iterable<string>
-) {
+): Generator<string, void, unknown> {
     let first = true
     let multiLine = false
     for (const line of lines) {
@@ -50,7 +52,7 @@ export function* encloseLinesAsPropertyPossiblyMultiline(
 
 export function keyValueToArchieMlString(
     key: string,
-    val: string | undefined
+    val: string | undefined | null
 ): string {
     if (val !== undefined) return `${key}: ${appendDotEndIfMultiline(val)}`
     return ""
@@ -198,7 +200,7 @@ function* rawBlockRecircToArchieMLString(
 function escapeRawText(text: string): string {
     // In ArchieML, single words followed by a colon are interpreted as a key-value pair. Since here
     // we are trying to output raw text, we need to escape colons.
-    return text.replace(/^\s*(\w+)\s*:/, "$1\\:")
+    return text.replace(/^\s*(\w+)\s*:/m, "$1\\:")
 }
 
 function* rawBlockTextToArchieMLString(
@@ -210,7 +212,15 @@ function* rawBlockTextToArchieMLString(
 function* rawBlockHtmlToArchieMLString(
     block: RawBlockHtml
 ): Generator<string, void, undefined> {
-    yield keyValueToArchieMlString("html", block.value)
+    if (block.value !== undefined) {
+        // When creating Gdocs we need a straightforward way to detect if we
+        // are inside an html block so we *don't* parse Html tags in there (as
+        // this would remove the tags). We make this easier by writing html
+        // tags as properties that are always serialized as multiline properites
+        // with an ":end" marker, even if the content is a single line.
+        yield `html: ${escapeRawText(block.value)}`
+        yield `:end`
+    }
 }
 
 function* rawBlockUrlToArchieMLString(

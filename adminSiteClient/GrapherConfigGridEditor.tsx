@@ -28,7 +28,6 @@ import { match, P } from "ts-pattern"
 import {
     cloneDeep,
     findLastIndex,
-    fromPairs,
     isArray,
     isEmpty,
     isEqual,
@@ -100,7 +99,7 @@ import {
     SimpleField,
     Config,
     ImmutableTree,
-} from "react-awesome-query-builder"
+} from "@react-awesome-query-builder/antd"
 import codemirror from "codemirror"
 import { UnControlled as CodeMirror } from "react-codemirror2"
 import jsonpointer from "json8-pointer"
@@ -620,7 +619,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             const fields = fieldDescriptions
                 .filter((field) => field.default !== undefined)
                 .map((field) => [field.pointer, field.default!] as const)
-            const asObject = fromPairs(fields as any)
+            const asObject = Object.fromEntries(fields)
             return asObject
         }
     }
@@ -667,7 +666,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         ] as const
                 )
                 .filter(([, val]) => !isNil(val))
-            const fields = fromPairs(fieldsArray as any)
+            const fields = Object.fromEntries(fieldsArray)
             const readOnlyColumnValues = [...readOnlyColumns.values()].map(
                 (field) => [field.key, (row as any)[field.key]]
             )

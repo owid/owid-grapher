@@ -18,7 +18,7 @@ const syncPostToGrapher = async (
     postId: number
 ): Promise<string | undefined> => {
     const rows = await wpdb.singleton.query(
-        `--sql
+        `-- sql
         -- This query extracts all the fields from the wp_posts table and then
         -- adds a json array of authors, and a created_at field which is
         -- constructed by finding the revisions related to this post/page and
@@ -81,7 +81,7 @@ const syncPostToGrapher = async (
                   wpPost.post_date_gmt === zeroDateString
                       ? null
                       : wpPost.post_date_gmt,
-              updated_at:
+              updated_at_in_wordpress:
                   wpPost.post_modified_gmt === zeroDateString
                       ? "1970-01-01 00:00:00"
                       : wpPost.post_modified_gmt,

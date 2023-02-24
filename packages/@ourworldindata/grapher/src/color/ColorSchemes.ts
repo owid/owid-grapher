@@ -4,7 +4,7 @@ import { ColorBrewerSchemes } from "./ColorBrewerSchemes"
 import { ColorScheme } from "./ColorScheme"
 import { ChartTypeName } from "../core/GrapherConstants"
 import { match } from "ts-pattern"
-import { partition, fromPairs } from "@ourworldindata/utils"
+import { partition } from "@ourworldindata/utils"
 
 function getPreferredSchemesByType(type: ChartTypeName): ColorSchemeName[] {
     // This function could also be a Map<ChartTypeName, ColorName[]> but
@@ -122,7 +122,7 @@ export function getColorSchemeForChartType(type: ChartTypeName): {
         Object.entries(ColorSchemes) as [ColorSchemeName, ColorScheme][],
         (schemeKeyValue) => preferred.has(schemeKeyValue[0])
     )
-    return fromPairs([...preferredSchemes, ...otherSchemes]) as {
+    return Object.fromEntries([...preferredSchemes, ...otherSchemes]) as {
         [key in ColorSchemeName]: ColorScheme
     }
 }

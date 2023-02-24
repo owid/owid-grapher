@@ -15,6 +15,8 @@ import {
     JsonError,
     OwidEnrichedArticleBlock,
     recursivelyMapArticleBlock,
+    ImageNotFound,
+    NoDefaultAlt,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -25,10 +27,6 @@ import { google, Auth, docs_v1 } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { imageStore } from "../Image.js"
-import {
-    ImageNotFound,
-    NoDefaultAlt,
-} from "@ourworldindata/utils/dist/owidTypes.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {

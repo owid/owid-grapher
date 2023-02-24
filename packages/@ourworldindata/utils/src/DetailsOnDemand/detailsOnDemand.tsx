@@ -11,12 +11,13 @@ class DetailsOnDemand {
         ObservableMap<string, Detail>
     >()
 
-    @observable getDetail(category: string, term: string): Detail | void {
+    @observable getDetail(category: string, term: string): Detail | undefined {
         const terms = this.details.get(category)
         if (terms) {
             const detail = terms.get(term)
             return detail
         }
+        return
     }
 
     @observable addDetails(
@@ -47,29 +48,29 @@ export class DoDWrapper extends React.Component<DoDWrapperProps> {
     constructor(props: DoDWrapperProps) {
         super(props)
     }
-    @computed get category() {
+    @computed get category(): string {
         return this.props.category
     }
-    @computed get term() {
+    @computed get term(): string {
         return this.props.term
     }
-    @computed get detail() {
+    @computed get detail(): Detail | undefined {
         return globalDetailsOnDemand.getDetail(this.category, this.term)
     }
-    @computed get content() {
+    @computed get content(): string {
         if (this.detail) {
             return this.detail.content
         }
         return ""
     }
 
-    @computed get title() {
+    @computed get title(): string {
         if (this.detail) {
             return this.detail.title
         }
         return this.term
     }
-    render() {
+    render(): React.ReactNode {
         if (!this.content) return this.props.children
         return (
             <span className="interactive-tippy-wrapper">

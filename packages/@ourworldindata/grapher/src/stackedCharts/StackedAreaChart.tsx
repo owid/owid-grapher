@@ -243,7 +243,7 @@ export class StackedAreaChart
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ): void {
         if (!this.base.current) return
-        const { dualAxis, series } = this
+        const { series } = this
 
         const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
@@ -256,8 +256,9 @@ export class StackedAreaChart
         })
 
         if (boundedBox.contains(mouse)) {
+            const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
             const closestPoint = minBy(series[0].points, (d) =>
-                Math.abs(dualAxis.horizontalAxis.place(d.position) - mouse.x)
+                Math.abs(d.position - invertedX)
             )
             if (closestPoint) {
                 const index = series[0].points.indexOf(closestPoint)

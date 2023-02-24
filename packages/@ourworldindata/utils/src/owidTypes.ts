@@ -164,7 +164,8 @@ export interface PostRow {
     status: string
     content: string
     published_at: Date | null
-    updated_at: Date
+    updated_at: Date | null
+    updated_at_in_wordpress: Date | null
     archieml: string
     archieml_update_statistics: string
     gdocSuccessorId: string
