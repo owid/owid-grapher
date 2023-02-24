@@ -126,17 +126,17 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     static extractImagesFilenames(enriched: OwidArticleContent): string[] {
-        const filenames: string[] = []
+        const filenames: Set<string> = new Set()
         enriched.body?.forEach((node) =>
             recursivelyMapArticleBlock(node, (node) => {
                 if (node.type === "image") {
-                    filenames.push(node.filename)
+                    filenames.add(node.filename)
                 }
                 return node
             })
         )
 
-        return uniq(filenames)
+        return [...filenames]
     }
 
     setAdditionalImageMetadata(): void {
