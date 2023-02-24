@@ -15,7 +15,6 @@ import {
 import { google, Auth, docs_v1 } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
-import { createGdocAndInsertOwidArticleContent } from "./archieToGdoc.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {

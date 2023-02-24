@@ -36,7 +36,7 @@ export function appendDotEndIfMultiline(
 export function* encloseLinesAsPropertyPossiblyMultiline(
     key: string,
     lines: Iterable<string>
-) {
+): Generator<string, void, unknown> {
     let first = true
     let multiLine = false
     for (const line of lines) {
