@@ -13,6 +13,8 @@ import {
     Span,
     getUrlTarget,
     getLinkType,
+    keyBy,
+    excludeNull,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -36,6 +38,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+    linkedDocuments: Record<string, Gdoc> = {}
 
     constructor(id?: string) {
         super()
@@ -98,6 +101,21 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text)
+
+        const links = Gdoc.extractLinksFromContent(this.content)
+
+        const linkedDocuments = await Promise.all(
+            links
+                .filter((link) => link.linkType === "gdoc")
+                .map(async (link) => {
+                    const linkedDocument = await Gdoc.findOneBy({
+                        id: link.target,
+                    })
+                    return linkedDocument
+                })
+        ).then(excludeNull)
+
+        this.linkedDocuments = keyBy(linkedDocuments, "id")
 
         this.revisionId = data.revisionId ?? null
     }

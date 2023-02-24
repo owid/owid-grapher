@@ -176,6 +176,7 @@ export {
     roundSigFig,
     first,
     last,
+    excludeNull,
     excludeUndefined,
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,

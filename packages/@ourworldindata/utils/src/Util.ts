@@ -331,6 +331,9 @@ export const last = <T>(arr: readonly T[]): T | undefined => arr[arr.length - 1]
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
     arr.filter((x) => x !== undefined) as T[]
 
+export const excludeNull = <T>(arr: (T | null)[]): T[] =>
+    arr.filter((x) => x !== null) as T[]
+
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
     return first(arr) as T
