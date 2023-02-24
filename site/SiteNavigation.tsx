@@ -156,6 +156,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 query={query}
                                 isActive={menu === Menu.Search || !!query}
                                 setQuery={setQuery}
+                                onClose={closeOverlay}
                             />
                             {menu !== Menu.Search && (
                                 <button

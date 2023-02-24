@@ -11,10 +11,12 @@ export const SiteSearchInput = ({
     query,
     setQuery,
     isActive,
+    onClose,
 }: {
     query: string
     setQuery: (query: string) => void
     isActive: boolean
+    onClose: VoidFunction
 }) => {
     const [results, setResults] = React.useState<SiteSearchResults | null>(null)
 
@@ -49,7 +51,7 @@ export const SiteSearchInput = ({
                         <button
                             onClick={(e) => {
                                 e.preventDefault()
-                                setQuery("")
+                                onClose()
                             }}
                         >
                             <FontAwesomeIcon icon={faXmark} />
