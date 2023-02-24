@@ -114,6 +114,9 @@
 
         button.mobile-search {
             padding: 0 8px;
+            &:hover {
+                color: $blue-40;
+            }
         }
 
         .SiteNavigationToggle.newsletter-subscription {
