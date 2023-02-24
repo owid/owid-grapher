@@ -217,7 +217,7 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             -- helper functions
             -- in theory MySQL regexp_replace should be able to work with named capture groups in Regexes and
             -- for individual queries it does but for some reason when used inside a function they
-            -- don't work correcltly.
+            -- don't work correctly.
             -- i.e.
             -- regexp_replace(
             --     'https://test.com/blank,
@@ -284,242 +284,95 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             []
         )
 
-        await db.query(
-            `-- sql
-            -- ----------------------------------------------
-            -- TRIGGERS
-
-            -- wordpress_redirects_candidates
-
+        const sanitizeTrailingSlashTrigger = (
+            table: string,
+            triggerPrefix: string,
+            column: string,
+            op: "insert" | "update"
+        ): string => `-- sql
             CREATE TRIGGER
-                wp_redirects_candidates_remove_slash_on_slug_insert
-            BEFORE INSERT ON wordpress_redirects_candidates
+                ${triggerPrefix}_on_${column}_${op}
+            BEFORE ${op} ON ${table}
             FOR EACH ROW
             BEGIN
-                IF NEW.slug <> '/' THEN
-                    SET NEW.slug = TRIM(
+                IF NEW.${column} <> '/' THEN
+                    SET NEW.${column} = TRIM(
                         TRAILING '/'
                         FROM
-                        NEW.slug
+                        NEW.${column}
                     );
                 END IF;
-            END;
-            `,
-            []
-        )
+            END;`
 
-        await db.query(
-            `-- sql
+        const redirectsCandidates = {
+            tableName: "wordpress_redirects_candidates",
+            triggerPrefix: "wp_redirects_candidates",
+        }
+        const redirects = {
+            tableName: "wordpress_redirects",
+            triggerPrefix: "wp_redirects",
+        }
+        const manualBulkRedirects = {
+            tableName: "manual_bulk_redirects",
+            triggerPrefix: "bulk_redirects",
+        }
+        const tablesToUpdateSanitizeTrailingSlashFor = [
+            redirectsCandidates,
+            redirects,
+            manualBulkRedirects,
+        ]
+
+        for (const {
+            tableName,
+            triggerPrefix,
+        } of tablesToUpdateSanitizeTrailingSlashFor)
+            for (const field of ["slug", "targetPath"] as const)
+                for (const op of ["insert", "update"] as const)
+                    await db.query(
+                        sanitizeTrailingSlashTrigger(
+                            tableName,
+                            triggerPrefix,
+                            field,
+                            op
+                        ),
+                        []
+                    )
+
+        const sanitizeDomain = (
+            table: string,
+            triggerPrefix: string,
+            op: "insert" | "update"
+        ): string => `-- sql
             CREATE TRIGGER
-                wp_redirects_candidates_remove_slash_on_slug_update
-            BEFORE UPDATE ON wordpress_redirects_candidates
+                ${triggerPrefix}_normalize_domain_on_${op}
+            BEFORE ${op} ON ${table}
             FOR EACH ROW
             BEGIN
-                IF NEW.slug <> '/' THEN
-                    SET
-                    NEW.slug = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.slug
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_candidates_remove_slash_on_target_path_insert
-            BEFORE INSERT ON wordpress_redirects_candidates
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetPath <> '/' THEN
-                    SET
-                    NEW.targetPath = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.targetPath
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_candidates_remove_slash_on_target_path_update
-            BEFORE UPDATE ON wordpress_redirects_candidates
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetPath <> '/' THEN
-                    SET
-                    NEW.targetPath = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.targetPath
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_candidates_normalize_domain_on_insert
-            BEFORE INSERT ON wordpress_redirects_candidates
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetDomain = 'http://ourworldindata.org' or NEW.targetDomain = 'https://ourworldindata.org' THEN
+                IF LOWER(NEW.targetDomain) = 'http://ourworldindata.org' or LOWER(NEW.targetDomain) = 'https://ourworldindata.org' THEN
                     SET NEW.targetDomain = '';
                 END IF;
-            END;
-            `,
-            []
-        )
+            END;`
 
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_candidates_normalize_domain_on_update
-            BEFORE UPDATE ON wordpress_redirects_candidates
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetDomain = 'http://ourworldindata.org' or NEW.targetDomain = 'https://ourworldindata.org' THEN
-                    SET NEW.targetDomain = '';
-                END IF;
-            END;
-            `,
-            []
-        )
+        for (const { tableName, triggerPrefix } of [
+            redirectsCandidates,
+            redirects,
+        ])
+            for (const op of ["insert", "update"] as const)
+                await db.query(sanitizeDomain(tableName, triggerPrefix, op), [])
 
-        await db.query(
-            `-- sql
-            -- ----------------------------------------------
-            -- wordpress_redirects
-            CREATE TRIGGER
-                wp_redirects_remove_slash_on_slug_insert
-            BEFORE INSERT ON wordpress_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.slug <> '/' THEN
-                    SET
-                    NEW.slug = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.slug
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_remove_slash_on_slug_update
-            BEFORE UPDATE ON wordpress_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.slug <> '/' THEN
-                    SET
-                    NEW.slug = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.slug
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_remove_slash_on_target_path_insert
-            BEFORE INSERT ON wordpress_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetPath <> '/' THEN
-                SET
-                NEW.targetPath = TRIM(
-                    TRAILING '/'
-                    FROM
-                    NEW.targetPath
-                );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_remove_slash_on_target_path_update
-            BEFORE UPDATE ON wordpress_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetPath <> '/' THEN
-                    SET
-                    NEW.targetPath = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.targetPath
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_normalize_domain_on_insert
-            BEFORE INSERT ON wordpress_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetDomain = 'http://ourworldindata.org' or NEW.targetDomain = 'https://ourworldindata.org' THEN
-                    SET NEW.targetDomain = '';
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                wp_redirects_normalize_domain_on_update
-            BEFORE UPDATE ON wordpress_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetDomain = 'http://ourworldindata.org' or NEW.targetDomain = 'https://ourworldindata.org' THEN
-                    SET NEW.targetDomain = '';
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
+        const ensureNoRedirectChainsTrigger = (
+            table: string,
+            triggerPrefix: string,
+            op: "insert" | "update"
+        ): string => `-- sql
             -- this trigger checks that the row that is about to be inserted
             --  a) does not have a slug that is already used in the targetLocation column
             --  b) does not have a targetLocation that is already used in the slug column
             -- By doing both, redirect chains are forbidden. If either of those cases
             -- happens, the trigger bails with a signal which will make the transaction abort.
             CREATE TRIGGER
-                wp_redirects_ensure_no_redirect_chains_on_insert
-            BEFORE INSERT ON wordpress_redirects
+                ${triggerPrefix}_ensure_no_redirect_chains_on_${op}
+            BEFORE ${op} ON ${table}
             FOR EACH ROW
             BEGIN
                 declare msg varchar(4000);
@@ -527,9 +380,9 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 IF ((SELECT
                         count(*)
                     FROM
-                        wordpress_redirects wr
+                        ${table}
                     WHERE
-                        wr.targetLocationMd5 = md5(NEW.slug)
+                        targetLocationMd5 = md5(NEW.slug)
                 ) > 0) THEN
                     SET msg = concat(
                         'Redirect chain detected! Source slug to be inserted existed as a target:',
@@ -543,9 +396,9 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 if ((select
                         count(*)
                     from
-                        wordpress_redirects wr
+                        ${table}
                     where
-                        wr.slugMd5 = md5(
+                        slugMd5 = md5(
                             concat(NEW.targetDomain, NEW.targetPath))
                     ) > 0
                 ) THEN
@@ -557,57 +410,17 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                     signal sqlstate '45000' set message_text = msg;
                 end if;
             END;
-            `,
-            []
-        )
+            `
 
-        await db.query(
-            `-- sql
-            -- this trigger checks that the row that is about to be updated
-            --  a) does not have a slug that is already used in the targetLocation column
-            --  b) does not have a targetLocation that is already used in the slug column
-            -- By doing both, redirect chains are forbidden. If either of those cases
-            -- happens, the trigger bails with a signal which will make the transaction abort.
-            CREATE TRIGGER
-                wp_redirects_ensure_no_redirect_chains_on_update
-            BEFORE UPDATE ON wordpress_redirects
-            FOR EACH ROW
-            BEGIN
-                declare msg varchar(4000);
-                if ((select
-                        count(*)
-                    from
-                        wordpress_redirects
-                    where
-                        md5(NEW.slug) = targetLocationMd5)
-                > 0) THEN
-                    set msg = concat(
-                        'Redirect chain detected! Source slug to be inserted existed as a target:',
-                        NEW.slug
-                    );
-                    signal sqlstate '45000' set message_text = msg;
-                end if;
-
-                if ((select
-                        count(*)
-                    from
-                        wordpress_redirects
-                    where
-                        md5(
-                            concat(NEW.targetDomain, NEW.targetPath)
-                        ) = slugMd5)
-                > 0 ) THEN
-                    set msg = concat(
-                        'Redirect chain detected! Target path existed as a source slug:',
-                        concat(NEW.targetDomain, NEW.targetPath)
-                    );
-
-                    signal sqlstate '45000' set message_text = msg;
-                end if;
-            END;
-            `,
-            []
-        )
+        for (const { tableName, triggerPrefix } of [
+            redirects,
+            manualBulkRedirects,
+        ])
+            for (const op of ["insert", "update"] as const)
+                await db.query(
+                    ensureNoRedirectChainsTrigger(tableName, triggerPrefix, op),
+                    []
+                )
 
         await db.query(
             `-- sql
@@ -677,169 +490,6 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
                 wordpressRedirectId = OLD.id;
 
 `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            -- manual_bulk_redirects
-            CREATE TRIGGER
-                bulk_redirects_remove_slash_on_slug_insert
-            BEFORE INSERT ON manual_bulk_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.slug <> '/' THEN
-                    SET NEW.slug = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.slug
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                bulk_redirects_remove_slash_on_slug_update
-            BEFORE UPDATE
-                ON manual_bulk_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.slug <> '/' THEN
-                    SET NEW.slug = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.slug
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                bulk_redirects_remove_slash_on_target_path_insert
-            BEFORE INSERT
-                ON manual_bulk_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetPath <> '/' THEN
-                    SET NEW.targetPath = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.targetPath
-                    );
-                END IF;
-            END;
-
-`,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                bulk_redirects_remove_slash_on_target_path_update
-            BEFORE UPDATE ON manual_bulk_redirects
-            FOR EACH ROW
-            BEGIN
-                IF NEW.targetPath <> '/' THEN
-                    SET NEW.targetPath = TRIM(
-                        TRAILING '/'
-                        FROM
-                        NEW.targetPath
-                    );
-                END IF;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                bulk_redirects_ensure_no_redirect_chains_on_insert
-            BEFORE INSERT ON manual_bulk_redirects
-            FOR EACH ROW
-            BEGIN
-                declare msg varchar(4000);
-                if ((select
-                        count(*)
-                    from
-                        manual_bulk_redirects r
-                    where
-                        r.targetLocationMd5 = md5(NEW.slug)
-                ) > 0) THEN
-                    set msg = concat(
-                        'Redirect chain detected! Source slug to be inserted existed as a target:',
-                        NEW.slug
-                    );
-                    signal sqlstate '45000' set message_text = msg;
-                end if;
-
-                if ((select
-                        count(*)
-                    from
-                        manual_bulk_redirects r
-                    where
-                    r.slugMd5 = md5(
-                        concat(NEW.targetDomain, NEW.targetPath))
-                ) > 0) THEN
-                    set msg = concat(
-                        'Redirect chain detected! Target path existed as a source slug:',
-                        concat(NEW.targetDomain, NEW.targetPath)
-                    );
-                    signal sqlstate '45000' set message_text = msg;
-                end if;
-            END;
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            CREATE TRIGGER
-                bulk_redirects_ensure_no_redirect_chains_on_update
-            BEFORE UPDATE ON manual_bulk_redirects
-            FOR EACH ROW
-            BEGIN
-                declare msg varchar(4000);
-                if ((select
-                        count(*)
-                    from
-                        manual_bulk_redirects
-                    where
-                        md5(NEW.slug) = targetLocationMd5
-                ) > 0) THEN
-                    set msg = concat(
-                        'Redirect chain detected! Source slug to be inserted existed as a target:',
-                        NEW.slug
-                    );
-                    signal sqlstate '45000' set message_text = msg;
-                end if;
-
-                if ((select
-                        count(*)
-                    from
-                        manual_bulk_redirects
-                    where
-                        md5(
-                            concat(NEW.targetDomain, NEW.targetPath)
-                        ) = slugMd5
-                ) > 0) THEN
-                    set msg = concat(
-                        'Redirect chain detected! Target path existed as a source slug:',
-                        concat(NEW.targetDomain, NEW.targetPath)
-                    );
-                    signal sqlstate '45000' set message_text = msg;
-                end if;
-            END;
-            `,
             []
         )
 
@@ -1280,8 +930,11 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             []
         )
 
-        await db.query(
-            `-- sql
+        const insertIntoManualBulkRedirects = (
+            source: string,
+            target: string,
+            statusCode: number
+        ): string => `-- sql
             -- insert manual bulk redirects
             insert into
                 manual_bulk_redirects(
@@ -1294,529 +947,69 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             )
             values
             (
-                '/feed',
-                extract_url_domain('/atom.xml'),
-                extract_url_path('/atom.xml'),
-                extract_url_query('/atom.xml'),
-                extract_url_fragment('/atom.xml'),
-                302
+                '${source}',
+                extract_url_domain('${target}'),
+                extract_url_path('${target}'),
+                extract_url_query('${target}'),
+                extract_url_fragment('${target}'),
+                ${statusCode}
             );
-            `,
-            []
-        )
+            `
 
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
+        const oldBulKRedirects = [
+            "/feed /atom.xml 302!",
+
+            // Backwards compatibility-- admin urls
+            "/wp-admin/* https://owid.cloud/wp/wp-admin/:splat 301",
+            "/grapher/admin/* https://owid.cloud/grapher/admin/:splat 301",
+
+            // TODO: this should only get triggered by external hits (indexed .pdf files for instance)
+            // and should be removed when no evidence of these inbound links can be found.
+            "/wp-content/uploads/* /uploads/:splat 301",
+            // TODO: temporary fix for the /blog page thumbnails, which paths are not being
+            // transformed through the formatting step. Potentially applies to other
+            // pages as well.
+            "/app/uploads/* /uploads/:splat 301",
+
+            // Backwards compatibility-- old Max stuff that isn't static-friendly
+            "/roser/* https://www.maxroser.com/roser/:splat 301",
+            "/uploads/nvd3/* https://www.maxroser.com/owidUploads/nvd3/:splat 301",
+            "/uploads/datamaps/* https://www.maxroser.com/owidUploads/datamaps/:splat 301",
+            "/slides/Max_PPT_presentations/* https://www.maxroser.com/slides/Max_PPT_presentations/:splat 301",
+            "/slides/Max_Interactive_Presentations/* https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat 301",
+
+            // Backwards compatibility-- public urls
+            "/entries/* /:splat 301",
+            "/entries /#entries 302",
+            "/data/food-agriculture/* /:splat 301",
+            "/data/political-regimes/* /:splat 301",
+            "/data/population-growth-vital-statistics/* /:splat 301",
+            "/data/growth-and-distribution-of-prosperity/* /:splat 301",
+
+            // Backwards compatibility-- grapher url style
+            "/chart-builder/* /grapher/:splat 301",
+            "/grapher/public/* /grapher/:splat 301",
+            "/grapher/view/* /grapher/:splat 301",
+
+            "/slides/* https://slides.ourworldindata.org/:splat 301",
+            "/subscribe /#subscribe 301",
+        ]
+
+        // Split old bulk redirects into source, target and status code
+        const oldBulkRedirectsSplit = oldBulKRedirects.map((redirect) => {
+            const [source, target, statusCode] = redirect.split(" ")
+            return { source, target, statusCode }
+        })
+
+        for (const redirect of oldBulkRedirectsSplit) {
+            await db.query(
+                insertIntoManualBulkRedirects(
+                    redirect.source,
+                    redirect.target,
+                    parseInt(redirect.statusCode)
+                )
             )
-            values
-            (
-                '/wp-admin/*',
-                extract_url_domain('https://owid.cloud/wp/wp-admin/:splat'),
-                extract_url_path('https://owid.cloud/wp/wp-admin/:splat'),
-                extract_url_query('https://owid.cloud/wp/wp-admin/:splat'),
-                extract_url_fragment('https://owid.cloud/wp/wp-admin/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/grapher/admin/*',
-                extract_url_domain('https://owid.cloud/grapher/admin/:splat'),
-                extract_url_path('https://owid.cloud/grapher/admin/:splat'),
-                extract_url_query('https://owid.cloud/grapher/admin/:splat'),
-                extract_url_fragment('https://owid.cloud/grapher/admin/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/wp-content/uploads/*',
-                extract_url_domain('/uploads/:splat'),
-                extract_url_path('/uploads/:splat'),
-                extract_url_query('/uploads/:splat'),
-                extract_url_fragment('/uploads/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/app/uploads/*',
-                extract_url_domain('/uploads/:splat'),
-                extract_url_path('/uploads/:splat'),
-                extract_url_query('/uploads/:splat'),
-                extract_url_fragment('/uploads/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/roser/*',
-                extract_url_domain('https://www.maxroser.com/roser/:splat'),
-                extract_url_path('https://www.maxroser.com/roser/:splat'),
-                extract_url_query('https://www.maxroser.com/roser/:splat'),
-                extract_url_fragment('https://www.maxroser.com/roser/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/uploads/nvd3/*',
-                extract_url_domain(
-                'https://www.maxroser.com/owidUploads/nvd3/:splat'
-                ),
-                extract_url_path(
-                'https://www.maxroser.com/owidUploads/nvd3/:splat'
-                ),
-                extract_url_query(
-                'https://www.maxroser.com/owidUploads/nvd3/:splat'
-                ),
-                extract_url_fragment(
-                'https://www.maxroser.com/owidUploads/nvd3/:splat'
-                ),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/uploads/datamaps/*',
-                extract_url_domain(
-                'https://www.maxroser.com/owidUploads/datamaps/:splat'
-                ),
-                extract_url_path(
-                'https://www.maxroser.com/owidUploads/datamaps/:splat'
-                ),
-                extract_url_query(
-                'https://www.maxroser.com/owidUploads/datamaps/:splat'
-                ),
-                extract_url_fragment(
-                'https://www.maxroser.com/owidUploads/datamaps/:splat'
-                ),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/slides/Max_PPT_presentations/*',
-                extract_url_domain(
-                'https://www.maxroser.com/slides/Max_PPT_presentations/:splat'
-                ),
-                extract_url_path(
-                'https://www.maxroser.com/slides/Max_PPT_presentations/:splat'
-                ),
-                extract_url_query(
-                'https://www.maxroser.com/slides/Max_PPT_presentations/:splat'
-                ),
-                extract_url_fragment(
-                'https://www.maxroser.com/slides/Max_PPT_presentations/:splat'
-                ),
-                301
-            );
-
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/slides/Max_Interactive_Presentations/*',
-                extract_url_domain(
-                'https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat'
-                ),
-                extract_url_path(
-                'https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat'
-                ),
-                extract_url_query(
-                'https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat'
-                ),
-                extract_url_fragment(
-                'https://www.maxroser.com/slides/Max_Interactive_Presentations/:splat'
-                ),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/entries/*',
-                extract_url_domain('/:splat'),
-                extract_url_path('/:splat'),
-                extract_url_query('/:splat'),
-                extract_url_fragment('/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/entries',
-                extract_url_domain('/#entries'),
-                extract_url_path('/#entries'),
-                extract_url_query('/#entries'),
-                extract_url_fragment('/#entries'),
-                302
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/data/food-agriculture/*',
-                extract_url_domain('/:splat'),
-                extract_url_path('/:splat'),
-                extract_url_query('/:splat'),
-                extract_url_fragment('/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/data/political-regimes/*',
-                extract_url_domain('/:splat'),
-                extract_url_path('/:splat'),
-                extract_url_query('/:splat'),
-                extract_url_fragment('/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/data/population-growth-vital-statistics/*',
-                extract_url_domain('/:splat'),
-                extract_url_path('/:splat'),
-                extract_url_query('/:splat'),
-                extract_url_fragment('/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/data/growth-and-distribution-of-prosperity/*',
-                extract_url_domain('/:splat'),
-                extract_url_path('/:splat'),
-                extract_url_query('/:splat'),
-                extract_url_fragment('/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/chart-builder/*',
-                extract_url_domain('/grapher/:splat'),
-                extract_url_path('/grapher/:splat'),
-                extract_url_query('/grapher/:splat'),
-                extract_url_fragment('/grapher/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/grapher/public/*',
-                extract_url_domain('/grapher/:splat'),
-                extract_url_path('/grapher/:splat'),
-                extract_url_query('/grapher/:splat'),
-                extract_url_fragment('/grapher/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/grapher/view/*',
-                extract_url_domain('/grapher/:splat'),
-                extract_url_path('/grapher/:splat'),
-                extract_url_query('/grapher/:splat'),
-                extract_url_fragment('/grapher/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/slides/*',
-                extract_url_domain('https://slides.ourworldindata.org/:splat'),
-                extract_url_path('https://slides.ourworldindata.org/:splat'),
-                extract_url_query('https://slides.ourworldindata.org/:splat'),
-                extract_url_fragment('https://slides.ourworldindata.org/:splat'),
-                301
-            );
-            `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            insert into
-                manual_bulk_redirects(
-                slug,
-                targetDomain,
-                targetPath,
-                targetQuery,
-                targetFragment,
-                statusCode
-            )
-            values
-            (
-                '/subscribe',
-                extract_url_domain('/#subscribe'),
-                extract_url_path('/#subscribe'),
-                extract_url_query('/#subscribe'),
-                extract_url_fragment('/#subscribe'),
-                301
-            );
-            `,
-            []
-        )
+        }
 
         await db.query(
             `-- sql
@@ -1899,29 +1092,13 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             []
         )
 
-        await db.query(
-            `-- sql
-            -- there may be existing redirect chains (think A -> B, B -> C). We want to
-            -- flatten those so that we get A -> C and B -> C. If while doing this we get into
-            -- places where we have a redirect loop (A -> B, B -> A), we mark those as errors.
-            update
-                wordpress_redirects_candidates as first,
-                wordpress_redirects_candidates as second
-            set
-                first.targetPath = second.targetPath,
-                first.targetQuery = second.targetQuery,
-                first.targetFragment = second.targetFragment,
-                first.validationError = IF(second.slug = first.targetLocation, 'redirects-to-self', coalesce(first.validationError, second.validationError))
-            where
-                first.targetPath = second.slug
-            `,
-            []
-        )
+        // there may be existing redirect chains (think A -> B, B -> C). We want to
+        // flatten those so that we get A -> C and B -> C. If while doing this we get into
+        // places where we have a redirect loop (A -> B, B -> A), we mark those as errors.
+        for (let i = 0; i < 3; i++) {
+            await db.query(
+                `-- sql
 
-        await db.query(
-            `-- sql
-            -- because the above query only resolves a single level of redirect chains, we
-            -- run the same query two more times. This is the first repeat of the query above.
             update
                 wordpress_redirects_candidates as first,
                 wordpress_redirects_candidates as second
@@ -1933,26 +1110,9 @@ export class AddRedirectsTables1665135955821 implements MigrationInterface {
             where
                 first.targetPath = second.slug
             `,
-            []
-        )
-
-        await db.query(
-            `-- sql
-            -- because the above query only resolves a single level of redirect chains, we
-            -- run the same query two more times. This is the second repeat of the query above.
-            update
-                wordpress_redirects_candidates as first,
-                wordpress_redirects_candidates as second
-            set
-                first.targetPath = second.targetPath,
-                first.targetQuery = second.targetQuery,
-                first.targetFragment = second.targetFragment,
-                first.validationError = IF(second.slug = first.targetLocation, 'redirects-to-self', coalesce(first.validationError, second.validationError))
-            where
-                first.targetPath = second.slug
-            `,
-            []
-        )
+                []
+            )
+        }
 
         await db.query(
             `-- sql
