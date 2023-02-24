@@ -5,6 +5,7 @@ import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
 import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { LoadingIndicator } from "@ourworldindata/grapher"
+import cx from "classnames"
 import React, { useEffect, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch"
@@ -124,6 +125,9 @@ const Image = ({
                 onLoad={() => {
                     setIsLoaded(true)
                 }}
+                className={cx({
+                    "lightbox__img--is-svg": src.endsWith(".svg"),
+                })}
                 src={src}
                 alt={alt}
                 style={{ opacity: !isLoaded ? 0 : 1, transition: "opacity 1s" }}
