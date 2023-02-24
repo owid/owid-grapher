@@ -17,6 +17,7 @@ class DetailsOnDemand {
             const detail = terms.get(term)
             return detail
         }
+        return
     }
 
     @observable addDetails(
