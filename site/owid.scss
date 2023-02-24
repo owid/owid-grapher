@@ -1078,6 +1078,10 @@ html:not(.js) {
             display: flex;
             flex-direction: row;
             column-gap: $grid-gap;
+
+            > * {
+                flex: 1; // force width when no results
+            }
         }
     }
 
