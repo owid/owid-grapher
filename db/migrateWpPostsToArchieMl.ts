@@ -15,6 +15,7 @@ import {
     cheerioElementsToArchieML,
     withoutEmptyOrWhitespaceOnlyTextBlocks,
     convertAllWpComponentsToArchieMLBlocks,
+    adjustHeadingLevels,
 } from "./model/Gdoc/htmlToEnriched.js"
 
 const migrate = async (): Promise<void> => {
@@ -57,9 +58,13 @@ const migrate = async (): Promise<void> => {
                 withoutEmptyOrWhitespaceOnlyTextBlocks(parsedResult).content
             )
 
+            // Heading levels used to start at 2, in the new layout system they start at 1
+            // This function iterates all blocks recursively and adjusts the heading levels inline
+            adjustHeadingLevels(archieMlBodyElements)
+
             const errors = parsedResult.errors
 
-            // request a weekday along with a long date
+            // Format publishing date
             const options = {
                 year: "numeric",
                 month: "long",
