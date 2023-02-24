@@ -98,7 +98,11 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         if (currentGdoc) {
             fetchGdoc(GdocsContentSource.Gdocs)
                 .then((gdoc) => {
-                    setCurrentGdoc(gdoc)
+                    setCurrentGdoc({
+                        ...gdoc,
+                        slug: currentGdoc.slug,
+                        publicationContext: currentGdoc.publicationContext,
+                    })
                     setHasSyncingError(false)
                 })
                 .catch(handleError)
