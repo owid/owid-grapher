@@ -33,7 +33,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
     >([])
-    const [query, setQuery] = React.useState<string>("q")
+    const [query, setQuery] = React.useState<string>("")
 
     const isActiveMobileMenu =
         menu !== null &&

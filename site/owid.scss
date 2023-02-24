@@ -1009,8 +1009,8 @@ html:not(.js) {
 .SearchPage > main,
 .NotFoundPage > main {
     > form {
-        max-width: 1200px;
-        margin: 0 auto;
+        @include content-wrapper;
+        max-width: $wrapper-max-width;
         margin-top: 20px;
         display: flex;
         margin-bottom: 30px;
