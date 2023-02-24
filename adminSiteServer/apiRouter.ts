@@ -2688,7 +2688,7 @@ apiRouter.get("/gdocs/:id", async (req) => {
         const gdoc = await Gdoc.getGdocFromContentSource(id, contentSource)
         return gdoc
     } catch (error) {
-        throw new JsonError(`Error fetching document ${error}`)
+        throw new JsonError(`Error fetching document ${error}`, 500)
     }
 })
 
