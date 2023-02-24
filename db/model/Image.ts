@@ -145,11 +145,6 @@ export class Image extends BaseEntity implements ImageMetadata {
         return getSizes(this.originalWidth)
     }
 
-    get srcSets(): string | undefined {
-        if (this.isSvg) return
-        return generateSrcSet(this.sizes!, this.filename)
-    }
-
     get filenameWithoutExtension(): string {
         return getFilenameWithoutExtension(this.filename)
     }
