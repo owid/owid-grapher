@@ -19,6 +19,7 @@ import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import classnames from "classnames"
+import { useTriggerOnEscape } from "./hooks.js"
 
 export enum Menu {
     Topics = "topics",
@@ -75,6 +76,8 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         }
         fetchCategorizedTopics()
     }, [])
+
+    useTriggerOnEscape(closeOverlay)
 
     return (
         <>
