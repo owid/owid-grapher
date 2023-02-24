@@ -104,12 +104,6 @@ export const GrapherGrammar: Grammar = {
         keyword: "sourceDesc",
         description: "Short comma-separated list of source names",
     },
-    facet: {
-        ...EnumCellDef,
-        description: "Facet by column or entities",
-        keyword: "facet",
-        terminalOptions: toTerminalOptions(Object.values(FacetStrategy)),
-    },
     hideTitleAnnotation: {
         ...BooleanCellDef,
         description: "Hide automatic time/entity",
