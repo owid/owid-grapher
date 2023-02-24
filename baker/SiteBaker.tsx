@@ -76,7 +76,7 @@ export class SiteBaker {
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                total: 16,
+                total: 18,
             }
         )
     }
@@ -459,11 +459,11 @@ export class SiteBaker {
         await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
             this.bakedSiteDir
         )
-        await this.bakeGDocPosts()
-        await this.bakeDriveImages()
         this.progressBar.tick({
             name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
         })
+        await this.bakeGDocPosts()
+        await this.bakeDriveImages()
     }
 
     async bakeNonWordpressPages() {
@@ -482,7 +482,6 @@ export class SiteBaker {
         await this.removeDeletedPosts()
         await this.bakeWordpressPages()
         await this._bakeNonWordpressPages()
-        await this.bakeGDocPosts()
         this.flushCache()
     }
 

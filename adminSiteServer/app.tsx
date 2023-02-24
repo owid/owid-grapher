@@ -131,7 +131,7 @@ export class OwidAdminApp {
                         baseUrl={BAKED_BASE_URL}
                         article={gdoc}
                         debug
-                        isPreviewing={true}
+                        isPreviewing
                     />
                 )
             )
