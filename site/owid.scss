@@ -1073,19 +1073,16 @@ html:not(.js) {
 }
 
 .SearchResults {
-    > .container {
-        display: flex;
-        flex-direction: row;
-    }
-
-    > .container > :first-child {
-        margin-right: 5rem;
+    @include lg-up {
+        > .container {
+            display: flex;
+            flex-direction: row;
+            column-gap: $grid-gap;
+        }
     }
 
     .postResults,
     .chartResults {
-        width: 50%;
-
         > h2 {
             color: #666;
             font-weight: normal;
@@ -1119,24 +1116,6 @@ html:not(.js) {
         a {
             display: flex;
             flex-direction: column;
-        }
-    }
-}
-
-@media (max-width: 768px) {
-    .SearchPage {
-        > main {
-            margin-left: 15px;
-            margin-right: 15px;
-        }
-
-        .SearchResults > .container {
-            display: block;
-        }
-
-        .postResults,
-        .chartResults {
-            width: 100%;
         }
     }
 }

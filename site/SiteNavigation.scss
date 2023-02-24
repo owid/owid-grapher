@@ -190,6 +190,7 @@
         left: 0;
         margin: 0 #{-$padding-x-md};
         padding: 0 $padding-x-md 40px;
+        width: calc(100% + #{2 * $padding-x-md});
         /* Needs to go over the charts */
         z-index: $zindex-search-overlay;
         overflow-y: scroll;
