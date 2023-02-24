@@ -62,7 +62,7 @@ export default function Image({
     if (d.filename.endsWith(".svg")) {
         return (
             <img
-                src={`/images/${d.filename}`}
+                src={`/images/published/${d.filename}`}
                 alt={d.alt}
                 className={cx(LIGHTBOX_IMAGE_CLASS, className)}
             />
@@ -80,7 +80,7 @@ export default function Image({
                 sizes={containerSizes[containerType] ?? containerSizes.default}
             />
             <img
-                src={`/images/${d.filename}`}
+                src={`/images/published/${d.filename}`}
                 alt={d.alt}
                 className={LIGHTBOX_IMAGE_CLASS}
             />

@@ -366,8 +366,12 @@ export class SiteBaker {
                 results.map((result) => Image.create<Image>(result))
             )
 
-        this.ensureDir("images")
-        const imagesDirectory = path.join(this.bakedSiteDir, "images")
+        this.ensureDir("images/published")
+        const imagesDirectory = path.join(
+            this.bakedSiteDir,
+            "images",
+            "published"
+        )
 
         await Promise.all(
             images.map(async (image) => {
