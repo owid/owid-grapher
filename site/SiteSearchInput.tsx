@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
 import classnames from "classnames"
-import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { siteSearch } from "./search/searchClient.js"
 import { SearchResults } from "./search/SearchResults.js"
 import { SiteSearchResults } from "./search/searchTypes.js"
@@ -47,12 +46,14 @@ export const SiteSearchInput = ({
                 />
                 <div className="icon">
                     {isActive ? (
-                        <SiteNavigationToggle
-                            toggle={() => setQuery("")}
-                            isActive={true}
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault()
+                                setQuery("")
+                            }}
                         >
                             <FontAwesomeIcon icon={faXmark} />
-                        </SiteNavigationToggle>
+                        </button>
                     ) : (
                         <FontAwesomeIcon icon={faSearch} />
                     )}

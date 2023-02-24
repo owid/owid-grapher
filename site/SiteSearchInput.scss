@@ -43,7 +43,7 @@
     > .icon {
         position: absolute;
         top: 0;
-        right: 8px;
+        right: 16px;
         bottom: 0;
         display: flex;
         align-items: center;
@@ -51,6 +51,14 @@
 
         button {
             padding: 8px;
+            margin-right: -8px;
+            border: none;
+            cursor: pointer;
+            color: $white;
+            background-color: transparent;
+            &:hover {
+                color: $blue-40;
+            }
         }
     }
 }
