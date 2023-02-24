@@ -68,7 +68,6 @@ import {
 } from "./htmlToEnriched.js"
 import { match } from "ts-pattern"
 import { parseInt } from "lodash"
-import { imageStore } from "../Image.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawArticleBlock

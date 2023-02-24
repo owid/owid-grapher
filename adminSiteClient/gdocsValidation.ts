@@ -1,8 +1,4 @@
-import {
-    EnrichedBlockImage,
-    OwidArticleContent,
-    OwidArticleType,
-} from "@ourworldindata/utils"
+import { OwidArticleContent, OwidArticleType } from "@ourworldindata/utils"
 import { recursivelyMapArticleBlock } from "@ourworldindata/utils/dist/Util.js"
 
 export enum ErrorMessageType {

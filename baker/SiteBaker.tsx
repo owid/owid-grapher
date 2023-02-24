@@ -63,7 +63,6 @@ import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
-import { dataSource } from "../db/dataSource.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports

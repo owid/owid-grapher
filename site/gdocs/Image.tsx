@@ -3,7 +3,6 @@ import {
     EnrichedBlockImage,
     getSizes,
     generateSrcSet,
-    getFilenameWithoutExtension,
 } from "@ourworldindata/utils"
 import { LIGHTBOX_IMAGE_CLASS } from "../Lightbox.js"
 import cx from "classnames"
