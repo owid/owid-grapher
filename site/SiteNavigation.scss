@@ -190,7 +190,10 @@
     .SearchResults {
         position: absolute;
         top: 100%;
-        height: 90vh;
+        height: calc(100vh - 64px);
+        @include md-up {
+            height: calc(100vh - 72px);
+        }
         left: 0;
         margin: 0 #{-$padding-x-md};
         padding: 0 $padding-x-md 40px;
