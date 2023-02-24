@@ -1072,6 +1072,10 @@ html:not(.js) {
     }
 }
 
+.SearchPage .searchResults {
+    padding-bottom: 40px;
+}
+
 .SearchResults {
     @include lg-up {
         > .container {
