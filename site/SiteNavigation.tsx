@@ -29,13 +29,19 @@ export enum Menu {
 }
 
 export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
-    const [menu, setActiveMenu] = React.useState<Menu | null>(Menu.Search)
+    const [menu, setActiveMenu] = React.useState<Menu | null>(null)
     const [categorizedTopics, setCategorizedTopics] = useState<
         CategoryWithEntries[]
     >([])
+    const [query, setQuery] = React.useState<string>("q")
+
+    const isActiveMobileMenu =
+        menu !== null &&
+        [Menu.Topics, Menu.Resources, Menu.About].includes(menu)
 
     const closeOverlay = () => {
         setActiveMenu(null)
+        setQuery("")
     }
 
     const toggleMenu = (root: Menu) => {
@@ -45,6 +51,15 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
             setActiveMenu(root)
         }
     }
+
+    // Open / close overlay when query changes
+    useEffect(() => {
+        if (query) {
+            setActiveMenu(Menu.Search)
+        } else {
+            closeOverlay()
+        }
+    }, [query])
 
     useEffect(() => {
         const fetchCategorizedTopics = async () => {
@@ -60,10 +75,6 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         }
         fetchCategorizedTopics()
     }, [])
-
-    const isActiveMobileMenu =
-        menu !== null &&
-        [Menu.Topics, Menu.Resources, Menu.About].includes(menu)
 
     return (
         <>
@@ -142,8 +153,8 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         </nav>
                         <div className="site-search-cta">
                             <SiteSearchInput
-                                isActive={menu === Menu.Search}
-                                toggle={() => toggleMenu(Menu.Search)}
+                                query={query}
+                                setQuery={setQuery}
                             />
                             {menu !== Menu.Search && (
                                 <button

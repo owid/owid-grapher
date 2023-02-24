@@ -1073,11 +1073,7 @@ html:not(.js) {
 }
 
 .SearchResults {
-    padding-bottom: 200px;
-
     > .container {
-        max-width: 80rem;
-        margin: auto;
         display: flex;
         flex-direction: row;
     }

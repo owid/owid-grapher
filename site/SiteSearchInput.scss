@@ -2,7 +2,6 @@
     position: relative;
     display: none;
     width: 100%;
-    color: $white;
 
     @include md-down {
         margin-right: 8px;
@@ -22,7 +21,7 @@
         padding: 0 40px 0 16px;
         background-color: $blue-90;
         border: 1px solid $blue-90;
-        color: inherit;
+        color: $white;
         outline: none;
         @include body-3-medium;
 

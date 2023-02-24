@@ -1,19 +1,4 @@
 .site-header {
-    .HeaderSearch .SearchResults {
-        position: fixed;
-        top: 93px;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        color: black;
-        background: white;
-        /* Needs to go over the charts */
-        z-index: $zindex-search-overlay;
-        padding-left: 1rem;
-        padding-right: 1rem;
-        overflow-y: scroll;
-    }
-
     /* Topics dropdown menu */
 
     .topics-dropdown {
