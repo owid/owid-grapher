@@ -98,6 +98,7 @@ export interface GrapherInterface extends SortConfig {
     xSlug?: ColumnSlug
     sizeSlug?: ColumnSlug
     colorSlug?: ColumnSlug
+    shownTabs?: GrapherTabOption[]
 }
 
 export interface LegacyGrapherInterface extends GrapherInterface {
@@ -189,4 +190,5 @@ export const grapherKeysToSerialize = [
     "details",
     "adminBaseUrl",
     "bakedGrapherURL",
+    "shownTabs",
 ]

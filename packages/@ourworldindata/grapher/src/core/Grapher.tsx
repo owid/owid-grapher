@@ -319,6 +319,7 @@ export class Grapher
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
+    @observable.ref shownTabs: GrapherTabOption[] = []
     @observable.ref tab = GrapherTabOption.chart
     @observable.ref overlay?: GrapherTabOption = undefined
     @observable.ref internalNotes = ""
@@ -1198,6 +1199,9 @@ export class Grapher
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
+        const { shownTabs } = this
+        if (shownTabs && shownTabs.length > 0) return shownTabs
+
         return [
             this.hasChartTab && GrapherTabOption.chart,
             this.hasMapTab && GrapherTabOption.map,
@@ -1268,6 +1272,10 @@ export class Grapher
             default:
                 return false
         }
+    }
+
+    @computed get hasOnlySingleTab(): boolean {
+        return this.availableTabs.length === 1
     }
 
     @computed get showTimeline(): boolean {
@@ -2261,7 +2269,9 @@ export class Grapher
     }
 
     @computed private get footerControlsLines(): number {
-        return this.hasTimeline ? 2 : 1
+        const numTimelineRows = this.hasTimeline ? 1 : 0
+        const numTabRows = this.hasOnlySingleTab ? 0 : 1
+        return numTimelineRows + numTabRows
     }
 
     @computed get footerControlsHeight(): number {

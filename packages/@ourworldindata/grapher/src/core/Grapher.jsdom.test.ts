@@ -60,6 +60,24 @@ const TestGrapherConfig = (): {
     }
 }
 
+it("Can hide the tab bar by setting only one tab in shownTabs", () => {
+    const grapher = new Grapher({ shownTabs: [GrapherTabOption.map] })
+
+    expect(grapher.availableTabs.length).toBe(1)
+    expect(grapher.hasOnlySingleTab).toBe(true)
+    expect(grapher.footerControlsHeight).toBe(0) // If we have neither a timeline nor tabs in the footer the height should be 0
+})
+
+it("The tab bar is visible if there are more than one tabs shown", () => {
+    const grapher = new Grapher({
+        shownTabs: [GrapherTabOption.map, GrapherTabOption.table],
+    })
+
+    expect(grapher.availableTabs.length).toBe(2)
+    expect(grapher.hasOnlySingleTab).toBe(false)
+    expect(grapher.footerControlsHeight).toBe(32) // If we have no timeline but tabs in the footer the height should be 32
+})
+
 it("regression fix: container options are not serialized", () => {
     const grapher = new Grapher({ xAxis: { min: 1 } })
     const obj = grapher.toObject().xAxis!

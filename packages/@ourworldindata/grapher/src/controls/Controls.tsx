@@ -387,9 +387,13 @@ export class FooterControls extends React.Component<{
             isRelatedQuestionTargetDifferentFromCurrentPage,
             relatedQuestions,
         } = manager
-        const tabsElement = (
-            <div className="footerRowSingle">{this._getTabsElement()}</div>
-        )
+        const tabsElement =
+            this.manager.availableTabs === undefined ||
+            this.manager.availableTabs.length > 1 ? (
+                <div className="footerRowSingle">{this._getTabsElement()}</div>
+            ) : (
+                <></>
+            )
 
         const shareMenuElement = isShareMenuActive && (
             <ShareMenu manager={manager} onDismiss={this.onShareMenu} />
