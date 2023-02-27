@@ -1,12 +1,6 @@
-.SiteNavigationToggle {
-    > button {
-        padding: 0;
-        border: none;
-        cursor: pointer;
-        color: $blue-20;
-        background-color: transparent;
-        &:hover {
-            color: $blue-40;
-        }
-    }
+.SiteNavigationToggle__button {
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    background-color: transparent;
 }

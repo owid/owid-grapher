@@ -5,12 +5,19 @@ import { CategoryWithEntries } from "@ourworldindata/utils"
 import { allTopicsInCategory } from "./SiteNavigationTopics.js"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
 import classnames from "classnames"
+import { SiteAbout } from "./SiteAbout.js"
+import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
+import { Menu } from "./SiteNavigation.js"
 
 export const SiteMobileMenu = ({
     topics,
+    menu,
+    toggleMenu,
     className,
 }: {
     topics: CategoryWithEntries[]
+    menu: Menu | null
+    toggleMenu: (menu: Menu) => void
     className?: string
 }) => {
     const [activeCategory, setActiveCategory] =
@@ -73,10 +80,21 @@ export const SiteMobileMenu = ({
                         ))}
                     </ul>
                 </li>
-                <li className="end-link">
-                    <a href="/about">About</a>
+                <li>
+                    <SiteNavigationToggle
+                        isActive={menu === Menu.About}
+                        onToggle={() =>
+                            toggleMenu(
+                                menu === Menu.About ? Menu.Topics : Menu.About
+                            )
+                        }
+                        dropdown={<SiteAbout />}
+                        withCaret={true}
+                    >
+                        About
+                    </SiteNavigationToggle>
                 </li>
-                <li className="end-link">
+                <li>
                     <a href="/donate" data-track-note="header-navigation">
                         Donate
                     </a>

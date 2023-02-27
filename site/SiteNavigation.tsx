@@ -91,9 +91,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         <SiteNavigationToggle
                             isActive={isActiveMobileMenu}
                             onToggle={() => toggleMenu(Menu.Topics)}
-                            className="mobile-menu__toggle hide-sm-up"
+                            className="SiteNavigationToggle--mobile-menu hide-sm-up"
                             dropdown={
                                 <SiteMobileMenu
+                                    menu={menu}
+                                    toggleMenu={toggleMenu}
                                     topics={categorizedTopics}
                                     className="hide-sm-up"
                                 />

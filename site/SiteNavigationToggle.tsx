@@ -22,12 +22,14 @@ export const SiteNavigationToggle = ({
         <div className={classnames("SiteNavigationToggle", className)}>
             <button
                 onClick={onToggle}
-                className={classnames({ active: isActive })}
+                className={classnames("SiteNavigationToggle__button", {
+                    active: isActive,
+                })}
             >
                 {children}
                 {withCaret && (
                     <FontAwesomeIcon
-                        style={{ marginLeft: "8px" }}
+                        className="SiteNavigationToggle__caret"
                         icon={isActive ? faCaretUp : faCaretDown}
                     />
                 )}

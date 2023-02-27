@@ -32,9 +32,13 @@
         column-gap: 24px;
     }
 
-    .mobile-menu__toggle > button {
+    .SiteNavigationToggle--mobile-menu > button {
         padding: 8px;
         margin-left: -8px;
+        color: $white;
+        &:hover {
+            color: $blue-40;
+        }
     }
 
     .site-primary-links {
@@ -46,7 +50,7 @@
             > li {
                 list-style-type: none;
                 > a,
-                .SiteNavigationToggle {
+                .SiteNavigationToggle__button {
                     @include body-3-medium;
                     color: $blue-20;
                     &:hover {
@@ -58,6 +62,9 @@
 
         .with-relative-dropdown {
             position: relative;
+            .SiteNavigationToggle__caret {
+                margin-left: 8px;
+            }
             .SiteNavigationToggle__dropdown {
                 position: absolute;
                 top: 100%;
@@ -118,8 +125,12 @@
         }
 
         .SiteNavigationToggle.newsletter-subscription {
-            > button {
+            .SiteNavigationToggle__button {
                 padding: 0 8px;
+                color: $white;
+                &:hover {
+                    color: $blue-40;
+                }
                 @include lg-down {
                     margin-right: 8px;
                 }
