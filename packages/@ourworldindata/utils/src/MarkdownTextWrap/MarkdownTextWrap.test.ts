@@ -6,6 +6,11 @@ import {
     MarkdownTextWrap,
     getLineWidth,
     lineToPlaintext,
+    recursiveMergeTextTokens,
+    IRWhitespace,
+    IRBold,
+    IRLink,
+    IRLineBreak,
 } from "./MarkdownTextWrap"
 
 describe("MarkdownTextWrap", () => {
@@ -96,5 +101,68 @@ describe("MarkdownTextWrap", () => {
         expect(element.htmlLines.map(lineToPlaintext)).toEqual([
             "I am some bold text with a really really really long detail on demand and because I am so long you would think that I span multiple lines but when you transform me into plaintext I actually just stay as one line",
         ])
+    })
+
+    describe(recursiveMergeTextTokens, () => {
+        it("should merge adjacent text tokens", () => {
+            const tokens = [
+                new IRText("one"),
+                new IRWhitespace(),
+                new IRText("two"),
+            ]
+
+            const merged = recursiveMergeTextTokens(tokens)
+
+            expect(merged).toEqual([new IRText("one two")])
+        })
+
+        it("should merge inside complicated tokens", () => {
+            const tokens = [
+                new IRBold([
+                    new IRText("one"),
+                    new IRWhitespace(),
+                    new IRText("two"),
+                ]),
+                new IRText("three"),
+                new IRText("four"),
+            ]
+
+            const merged = recursiveMergeTextTokens(tokens)
+
+            expect(merged).toEqual([
+                new IRBold([new IRText("one two")]),
+                new IRText("threefour"),
+            ])
+        })
+
+        it("should merge multi-level tokens", () => {
+            const tokens = [
+                new IRBold([
+                    new IRText("one"),
+                    new IRLink("https://example.com", [
+                        new IRText("two"),
+                        new IRWhitespace(),
+                        new IRLineBreak(),
+                    ]),
+                    new IRText("three"),
+                ]),
+                new IRText("four"),
+                new IRText("five"),
+            ]
+
+            const merged = recursiveMergeTextTokens(tokens)
+
+            expect(merged).toEqual([
+                new IRBold([
+                    new IRText("one"),
+                    new IRLink("https://example.com", [
+                        new IRText("two "),
+                        new IRLineBreak(),
+                    ]),
+                    new IRText("three"),
+                ]),
+                new IRText("fourfive"),
+            ])
+        })
     })
 })

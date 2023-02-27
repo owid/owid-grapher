@@ -28,14 +28,6 @@ it("parses a Wordpress paragraph within the content", () => {
     const parsedResult = cheerioElementsToArchieML(bodyContents, context)
 
     expect(parsedResult.content).toEqual([
-        // The first element will be removed by the subsequent call to
-        // convertAllWpComponentsToArchieMLBlocks(withoutEmptyOrWhitespaceOnlyTextBlocks())
-        {
-            tagName: "paragraph",
-            attributes: undefined,
-            isVoidElement: false,
-            childrenResults: [],
-        },
         {
             type: "text",
             value: [

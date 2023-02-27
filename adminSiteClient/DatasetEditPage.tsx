@@ -240,7 +240,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         if (this.isDeleted) return <Redirect to="/datasets" />
 
         const { dataset } = this.props
-        const { newDataset, timesUpdated } = this
+        const { newDataset } = this
         const isBulkImport = dataset.namespace !== "owid"
 
         return (

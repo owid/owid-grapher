@@ -18,7 +18,7 @@ const syncPostToGrapher = async (
     postId: number
 ): Promise<string | undefined> => {
     const rows = await wpdb.singleton.query(
-        `--sql
+        `-- sql
         -- This query extracts all the fields from the wp_posts table and then
         -- adds a json array of authors, and a created_at field which is
         -- constructed by finding the revisions related to this post/page and

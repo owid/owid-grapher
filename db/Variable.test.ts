@@ -22,7 +22,7 @@ describe("writeVariableCSV", () => {
 
         let out = ""
         const writeStream = new Writable({
-            write(chunk, encoding, callback) {
+            write(chunk, encoding, callback): void {
                 out += chunk.toString()
                 callback(null)
             },
