@@ -1,7 +1,48 @@
 import React from "react"
 
-import { Span } from "@ourworldindata/utils"
+import {
+    getLinkType,
+    getUrlTarget,
+    Span,
+    SpanLink,
+} from "@ourworldindata/utils"
 import { match } from "ts-pattern"
+import { LinkedDocumentsContext } from "./OwidArticle.js"
+
+const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
+    const linkType = getLinkType(span.url)
+    if (linkType === "url") {
+        return (
+            <a href={span.url} className="span-link">
+                {renderSpans(span.children)}
+            </a>
+        )
+    }
+    return (
+        <LinkedDocumentsContext.Consumer>
+            {(linkedDocuments) => {
+                const urlTarget = getUrlTarget(span.url)
+                const targetDocument = linkedDocuments[urlTarget]
+                if (
+                    targetDocument &&
+                    targetDocument.published &&
+                    targetDocument.slug
+                ) {
+                    return (
+                        <a
+                            href={`/${targetDocument.slug}`}
+                            className="span-link"
+                        >
+                            {renderSpans(span.children)}
+                        </a>
+                    )
+                }
+                // TODO: log error to slack if baking
+                return renderSpans(span.children)
+            }}
+        </LinkedDocumentsContext.Consumer>
+    )
+}
 
 export function renderSpan(
     span: Span,
@@ -12,9 +53,7 @@ export function renderSpan(
             <React.Fragment key={key}>{span.text}</React.Fragment>
         ))
         .with({ spanType: "span-link" }, (span) => (
-            <a key={key} href={span.url} className="span-link">
-                {renderSpans(span.children)}
-            </a>
+            <LinkedA span={span} key={key} />
         ))
         .with({ spanType: "span-ref" }, (span) => (
             <a key={key} href={span.url} className="ref">

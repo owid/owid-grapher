@@ -103,6 +103,10 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text)
 
+        this.revisionId = data.revisionId ?? null
+    }
+
+    async loadLinkedDocuments(): Promise<void> {
         const links = Gdoc.extractLinksFromContent(this.content)
 
         const linkedDocuments = await Promise.all(
@@ -120,8 +124,6 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         ).then(excludeNull)
 
         this.linkedDocuments = keyBy(linkedDocuments, "id")
-
-        this.revisionId = data.revisionId ?? null
     }
 
     static extractLinksFromContent(content: OwidArticleContent): Link[] {
@@ -172,11 +174,9 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
+        await gdoc.loadLinkedDocuments()
+
         if (contentSource === GdocsContentSource.Gdocs) {
-            // TODO: this means there's always a diff between OG and current in the admin
-            // due to this.processContent being called in getEnrichedArticle which
-            // sets gdoc.links.
-            // Either we ignore them in the diff calculation or set them another way
             await gdoc.getEnrichedArticle()
         }
         return gdoc

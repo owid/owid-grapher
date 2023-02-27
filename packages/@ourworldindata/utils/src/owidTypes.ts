@@ -901,7 +901,7 @@ export interface OwidArticleTypeJSON
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
-    links: OwidArticleLinkJSON[]
+    linkedDocuments: Record<string, OwidArticleType>
 }
 
 export interface OwidArticleLinkJSON {
