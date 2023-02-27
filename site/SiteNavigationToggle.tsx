@@ -1,7 +1,7 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCaretDown, faCaretUp } from "@fortawesome/free-solid-svg-icons"
-import classnames from "classnames"
+import cx from "classnames"
 
 export const SiteNavigationToggle = ({
     children,
@@ -19,10 +19,14 @@ export const SiteNavigationToggle = ({
     className?: string
 }) => {
     return (
-        <div className={classnames("SiteNavigationToggle", className)}>
+        <div
+            className={cx("SiteNavigationToggle", className, {
+                active: isActive,
+            })}
+        >
             <button
                 onClick={onToggle}
-                className={classnames("SiteNavigationToggle__button", {
+                className={cx("SiteNavigationToggle__button", {
                     active: isActive,
                 })}
             >

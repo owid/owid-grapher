@@ -1,6 +1,4 @@
 import React, { useState } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faAngleDown, faAngleUp } from "@fortawesome/free-solid-svg-icons"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import { allTopicsInCategory } from "./SiteNavigationTopics.js"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
@@ -35,47 +33,30 @@ export const SiteMobileMenu = ({
         <div className={classnames("SiteMobileMenu", className)}>
             <ul>
                 <li>
-                    <span>Browse by topic</span>
-                    <ul>
+                    <span className="topics__header">Browse by topic</span>
+                    <ul className="topics__dropdown">
                         {topics.map((category) => (
-                            <li
-                                key={category.slug}
-                                className={`category ${
-                                    activeCategory === category
-                                        ? "expanded"
-                                        : ""
-                                }`}
-                            >
-                                <a onClick={() => toggleCategory(category)}>
-                                    <span className="label-wrapper">
-                                        <span className="label">
-                                            {category.name}
-                                        </span>
-                                    </span>
-                                    <span className="icon">
-                                        <FontAwesomeIcon
-                                            icon={
-                                                activeCategory === category
-                                                    ? faAngleUp
-                                                    : faAngleDown
-                                            }
-                                        />
-                                    </span>
-                                </a>
-                                {activeCategory === category && (
-                                    <div className="subcategory-menu">
+                            <li key={category.slug}>
+                                <SiteNavigationToggle
+                                    isActive={activeCategory === category}
+                                    onToggle={() => toggleCategory(category)}
+                                    dropdown={
                                         <ul>
-                                            {allTopicsInCategory(
-                                                activeCategory
-                                            ).map((topic) => (
-                                                <SiteNavigationTopic
-                                                    key={topic.slug}
-                                                    topic={topic}
-                                                />
-                                            ))}
+                                            {allTopicsInCategory(category).map(
+                                                (topic) => (
+                                                    <SiteNavigationTopic
+                                                        key={topic.slug}
+                                                        topic={topic}
+                                                    />
+                                                )
+                                            )}
                                         </ul>
-                                    </div>
-                                )}
+                                    }
+                                    withCaret={true}
+                                    className="SiteNavigationToggle--lvl2"
+                                >
+                                    {category.name}
+                                </SiteNavigationToggle>
                             </li>
                         ))}
                     </ul>
@@ -90,6 +71,7 @@ export const SiteMobileMenu = ({
                         }
                         dropdown={<SiteAbout />}
                         withCaret={true}
+                        className="SiteNavigationToggle--lvl1"
                     >
                         About
                     </SiteNavigationToggle>
