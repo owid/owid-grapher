@@ -1,11 +1,28 @@
 .SiteMobileMenu {
     position: absolute;
-    width: 100%;
+    width: 100vw;
     top: 100%;
     z-index: 1;
     background-color: $accent-pale-blue;
+    margin: 0 -16px;
 
     ul {
         list-style-type: none;
+    }
+
+    > ul {
+        > li {
+            border-bottom: rgba(152, 169, 189, 0.3) 1px solid;
+            > span,
+            > a {
+                @include h3-bold;
+                color: $blue-60;
+                margin: 0;
+                padding: 16px;
+            }
+            > ul {
+                padding-bottom: 16px;
+            }
+        }
     }
 }

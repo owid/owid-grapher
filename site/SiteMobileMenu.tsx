@@ -28,7 +28,7 @@ export const SiteMobileMenu = ({
         <div className={classnames("SiteMobileMenu", className)}>
             <ul>
                 <li>
-                    Browse by topic
+                    <span>Browse by topic</span>
                     <ul>
                         {topics.map((category) => (
                             <li
