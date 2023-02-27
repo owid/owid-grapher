@@ -6,7 +6,6 @@ import {
     NewsletterSubscriptionForm,
 } from "./NewsletterSubscription.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
 import { CategoryWithEntries } from "@ourworldindata/utils"
@@ -160,17 +159,8 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 isActive={menu === Menu.Search || !!query}
                                 setQuery={setQuery}
                                 onClose={closeOverlay}
+                                onToggle={() => toggleMenu(Menu.Search)}
                             />
-                            {menu !== Menu.Search && (
-                                <button
-                                    onClick={() => toggleMenu(Menu.Search)}
-                                    data-track-note="mobile-search-button"
-                                    className="mobile-search hide-lg-up"
-                                >
-                                    <FontAwesomeIcon icon={faSearch} />
-                                </button>
-                            )}
-
                             <SiteNavigationToggle
                                 isActive={menu === Menu.Subscribe}
                                 toggle={() => toggleMenu(Menu.Subscribe)}

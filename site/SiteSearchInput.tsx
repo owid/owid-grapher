@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
@@ -12,13 +12,16 @@ export const SiteSearchInput = ({
     setQuery,
     isActive,
     onClose,
+    onToggle,
 }: {
     query: string
     setQuery: (query: string) => void
     isActive: boolean
     onClose: VoidFunction
+    onToggle: VoidFunction
 }) => {
     const [results, setResults] = React.useState<SiteSearchResults | null>(null)
+    const inputRef = React.useRef<HTMLInputElement>(null)
 
     // Run search
     React.useEffect(() => {
@@ -31,6 +34,13 @@ export const SiteSearchInput = ({
         }
         runSearch()
     }, [query])
+
+    // Focus input when active (needs to happen after render, hence useEffect)
+    useEffect(() => {
+        if (isActive && inputRef.current) {
+            inputRef.current.focus()
+        }
+    }, [isActive])
 
     return (
         <>
@@ -45,6 +55,7 @@ export const SiteSearchInput = ({
                     onChange={(e) => setQuery(e.currentTarget.value)}
                     className={classnames({ active: isActive })}
                     value={query}
+                    ref={inputRef}
                 />
                 <div className="icon">
                     {isActive ? (
@@ -61,6 +72,15 @@ export const SiteSearchInput = ({
                     )}
                 </div>
             </form>
+            {!isActive && (
+                <button
+                    onClick={onToggle}
+                    data-track-note="mobile-search-button"
+                    className="mobile-search hide-lg-up"
+                >
+                    <FontAwesomeIcon icon={faSearch} />
+                </button>
+            )}
             {results && <SearchResults results={results} />}
         </>
     )
