@@ -16,7 +16,7 @@
         }
     }
 
-    .topics__header,
+    .section__header,
     .SiteNavigationToggle--lvl1 .SiteNavigationToggle__button {
         @include h3-bold;
         color: $blue-60;
@@ -34,7 +34,7 @@
         }
     }
 
-    .topics__dropdown {
+    .section__dropdown--topics {
         padding-bottom: 12px;
     }
 

@@ -34,8 +34,8 @@ export const SiteMobileMenu = ({
         <div className={classnames("SiteMobileMenu", className)}>
             <ul>
                 <li>
-                    <span className="topics__header">Browse by topic</span>
-                    <ul className="topics__dropdown">
+                    <span className="section__header">Browse by topic</span>
+                    <ul className="section__dropdown--topics">
                         {topics.map((category) => (
                             <li key={category.slug}>
                                 <SiteNavigationToggle
@@ -61,6 +61,11 @@ export const SiteMobileMenu = ({
                             </li>
                         ))}
                     </ul>
+                </li>
+                <li>
+                    <a href="/blog" className="section__header">
+                        Latest
+                    </a>
                 </li>
                 <li>
                     <SiteNavigationToggle
