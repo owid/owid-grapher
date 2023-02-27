@@ -15,6 +15,7 @@ import {
     getLinkType,
     keyBy,
     excludeNull,
+    uniq,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -107,9 +108,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         const linkedDocuments = await Promise.all(
             links
                 .filter((link) => link.linkType === "gdoc")
-                .map(async (link) => {
+                .map((link) => link.target)
+                // filter duplicates
+                .filter((target, i, links) => links.indexOf(target) === i)
+                .map(async (target) => {
                     const linkedDocument = await Gdoc.findOneBy({
-                        id: link.target,
+                        id: target,
                     })
                     return linkedDocument
                 })
