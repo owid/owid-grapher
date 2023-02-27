@@ -39,7 +39,7 @@ export class IRText implements IRToken {
         return undefined
     }
     toHTML(key?: React.Key): JSX.Element {
-        return <React.Fragment key={key}>{this.text}</React.Fragment>
+        return <span key={key}>{this.text}</span>
     }
     toSVG(key?: React.Key): JSX.Element {
         return <React.Fragment key={key}>{this.text}</React.Fragment>
@@ -60,7 +60,7 @@ export class IRWhitespace implements IRToken {
         return { tokenIndex: 0, tokenStartOffset: 0, breakOffset: 0.0001 }
     }
     toHTML(key?: React.Key): JSX.Element {
-        return <React.Fragment key={key}> </React.Fragment>
+        return <span key={key}> </span>
     }
     toSVG(key?: React.Key): JSX.Element {
         return <React.Fragment key={key}> </React.Fragment>
@@ -405,6 +405,45 @@ export function lineToPlaintext(tokens: IRToken[]): string {
     return tokens.map((t) => t.toPlaintext()).join("")
 }
 
+export const isTextToken = (token: IRToken): token is IRText | IRWhitespace =>
+    token instanceof IRText || token instanceof IRWhitespace
+
+/**
+ * Merges adjacent text tokens, because the way we render text in React is otherwise
+ * not very compatible with Google Translate, breaking our site in weird ways when
+ * translated.
+ * This is to be run _just before_ rendering to HTML, because it loses some
+ * information and is not easily reversible.
+ * See also https://github.com/owid/owid-grapher/issues/1785
+ */
+export const recursiveMergeTextTokens = (tokens: IRToken[]): IRToken[] => {
+    if (tokens.length === 0) return []
+
+    // merge adjacent text tokens into one
+    const mergedTextTokens: IRToken[] = tokens.reduce((acc, token) => {
+        if (isTextToken(token)) {
+            const l = last(acc)
+            if (l && isTextToken(l)) {
+                // replace last value in acc with merged text token
+                acc.pop()
+                return [
+                    ...acc,
+                    new IRText(l.toPlaintext() + token.toPlaintext()),
+                ]
+            }
+        }
+        return [...acc, token]
+    }, [] as IRToken[])
+
+    // recursively enter non-text tokens, and merge their children
+    return mergedTextTokens.map((token) => {
+        if (token instanceof IRElement) {
+            return token.getClone(recursiveMergeTextTokens(token.children))
+        }
+        return token
+    })
+}
+
 export function splitIntoLines(
     tokens: IRToken[],
     maxWidth: number
@@ -547,7 +586,8 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
 
     @computed get htmlLines(): IRToken[][] {
         const tokens = parsimmonToTextTokens(this.ast, this.fontParams)
-        return splitIntoLines(tokens, this.maxWidth)
+        const lines = splitIntoLines(tokens, this.maxWidth)
+        return lines.map(recursiveMergeTextTokens)
     }
 
     // We render DoDs differently for SVG (superscript reference  numbers) so we need to calculate
@@ -619,16 +659,10 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
                         .map((token) => token.toPlaintext())
                         .join("")
                     return (
-                        <span
-                            className="markdown-text-wrap__line"
-                            key={`${i}-${plaintextLine}`}
-                        >
-                            {line.length ? (
-                                line.map((token, i) => token.toHTML(i))
-                            ) : (
-                                <br />
-                            )}
-                        </span>
+                        <MarkdownTextWrapLine
+                            key={`${plaintextLine}-${i}`}
+                            line={line}
+                        />
                     )
                 })}
             </span>
@@ -679,4 +713,12 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     render(): JSX.Element | null {
         return this.renderHTML()
     }
+}
+
+function MarkdownTextWrapLine({ line }: { line: IRToken[] }): JSX.Element {
+    return (
+        <span className="markdown-text-wrap__line">
+            {line.length ? line.map((token, i) => token.toHTML(i)) : <br />}
+        </span>
+    )
 }
