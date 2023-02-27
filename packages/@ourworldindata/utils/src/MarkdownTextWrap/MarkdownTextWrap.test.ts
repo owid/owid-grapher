@@ -9,6 +9,8 @@ import {
     recursiveMergeTextTokens,
     IRWhitespace,
     IRBold,
+    IRLink,
+    IRLineBreak,
 } from "./MarkdownTextWrap"
 
 describe("MarkdownTextWrap", () => {
@@ -110,8 +112,8 @@ describe("MarkdownTextWrap", () => {
             ]
 
             const merged = recursiveMergeTextTokens(tokens)
-            expect(merged.length).toEqual(1)
-            expect(merged[0].toPlaintext()).toEqual("one two")
+
+            expect(merged).toEqual([new IRText("one two")])
         })
 
         it("should merge inside complicated tokens", () => {
@@ -126,16 +128,41 @@ describe("MarkdownTextWrap", () => {
             ]
 
             const merged = recursiveMergeTextTokens(tokens)
-            expect(merged.length).toEqual(2)
 
-            const [boldNode, textNode] = merged as [IRBold, IRText]
-            expect(boldNode).toBeInstanceOf(IRBold)
-            expect(textNode).toBeInstanceOf(IRText)
+            expect(merged).toEqual([
+                new IRBold([new IRText("one two")]),
+                new IRText("threefour"),
+            ])
+        })
 
-            expect(boldNode.toPlaintext()).toEqual("one two")
-            expect(textNode.toPlaintext()).toEqual("threefour")
+        it("should merge multi-level tokens", () => {
+            const tokens = [
+                new IRBold([
+                    new IRText("one"),
+                    new IRLink("https://example.com", [
+                        new IRText("two"),
+                        new IRWhitespace(),
+                        new IRLineBreak(),
+                    ]),
+                    new IRText("three"),
+                ]),
+                new IRText("four"),
+                new IRText("five"),
+            ]
 
-            expect(boldNode.children.length).toEqual(1)
+            const merged = recursiveMergeTextTokens(tokens)
+
+            expect(merged).toEqual([
+                new IRBold([
+                    new IRText("one"),
+                    new IRLink("https://example.com", [
+                        new IRText("two "),
+                        new IRLineBreak(),
+                    ]),
+                    new IRText("three"),
+                ]),
+                new IRText("fourfive"),
+            ])
         })
     })
 })

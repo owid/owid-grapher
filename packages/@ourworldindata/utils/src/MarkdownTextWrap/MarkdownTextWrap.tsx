@@ -408,28 +408,40 @@ export function lineToPlaintext(tokens: IRToken[]): string {
 export const isTextToken = (token: IRToken): token is IRText | IRWhitespace =>
     token instanceof IRText || token instanceof IRWhitespace
 
+/**
+ * Merges adjacent text tokens, because the way we render text in React is otherwise
+ * not very compatible with Google Translate, breaking our site in weird ways when
+ * translated.
+ * This is to be run _just before_ rendering to HTML, because it loses some
+ * information and is not easily reversible.
+ * See also https://github.com/owid/owid-grapher/issues/1785
+ */
 export const recursiveMergeTextTokens = (tokens: IRToken[]): IRToken[] => {
     if (tokens.length === 0) return []
-    const [first, ...tail] = tokens
 
-    if (first instanceof IRElement) {
-        // go into children of first
-        return [
-            first.getClone(recursiveMergeTextTokens(first.children)),
-            ...recursiveMergeTextTokens(tail),
-        ]
-    } else if (tail.length > 0) {
-        const [second, ...rest] = tail
-        if (isTextToken(first) && isTextToken(second)) {
-            // merge first and second into single IRText node
-            return recursiveMergeTextTokens([
-                new IRText(first.toPlaintext() + second.toPlaintext()),
-                ...rest,
-            ])
-        } else return [first, ...recursiveMergeTextTokens(tail)]
-    }
+    // merge adjacent text tokens into one
+    const mergedTextTokens: IRToken[] = tokens.reduce((acc, token) => {
+        if (isTextToken(token)) {
+            const l = last(acc)
+            if (l && isTextToken(l)) {
+                // replace last value in acc with merged text token
+                acc.pop()
+                return [
+                    ...acc,
+                    new IRText(l.toPlaintext() + token.toPlaintext()),
+                ]
+            }
+        }
+        return [...acc, token]
+    }, [] as IRToken[])
 
-    return [first]
+    // recursively enter non-text tokens, and merge their children
+    return mergedTextTokens.map((token) => {
+        if (token instanceof IRElement) {
+            return token.getClone(recursiveMergeTextTokens(token.children))
+        }
+        return token
+    })
 }
 
 export function splitIntoLines(
