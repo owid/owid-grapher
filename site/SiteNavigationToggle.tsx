@@ -33,7 +33,7 @@ export const SiteNavigationToggle = ({
                 )}
             </button>
             {isActive && dropdown && (
-                <div className="toggle-dropdown">{dropdown}</div>
+                <div className="SiteNavigationToggle__dropdown">{dropdown}</div>
             )}
         </div>
     )

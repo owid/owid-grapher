@@ -32,11 +32,9 @@
         column-gap: 24px;
     }
 
-    .mobile-menu-toggle {
-        button {
-            padding: 8px;
-            margin-left: -8px;
-        }
+    .mobile-menu__toggle > button {
+        padding: 8px;
+        margin-left: -8px;
     }
 
     .site-primary-links {
@@ -60,7 +58,7 @@
 
         .with-relative-dropdown {
             position: relative;
-            .toggle-dropdown {
+            .SiteNavigationToggle__dropdown {
                 position: absolute;
                 top: 100%;
                 width: 330px;
@@ -149,7 +147,7 @@
                     }
                 }
             }
-            .toggle-dropdown {
+            .SiteNavigationToggle__dropdown {
                 position: absolute;
                 top: 100%;
                 right: 0;
