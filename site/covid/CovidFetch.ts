@@ -8,10 +8,12 @@ import {
 } from "@ourworldindata/utils"
 
 import { CovidSeries } from "./CovidTypes.js"
-import { JHU_DATA_URL, TESTS_DATA_URL } from "./CovidConstants.js"
+import { CASES_DEATHS_DATA_URL, TESTS_DATA_URL } from "./CovidConstants.js"
 
-async function _fetchJHUData(): Promise<CovidSeries> {
-    const responseText = await retryPromise(() => fetchText(JHU_DATA_URL))
+async function _fetchCaseDeathData(): Promise<CovidSeries> {
+    const responseText = await retryPromise(() =>
+        fetchText(CASES_DEATHS_DATA_URL)
+    )
     const rows: CovidSeries = csvParse(responseText).map((row) => {
         return {
             date: new Date(row.date as string),
@@ -27,7 +29,7 @@ async function _fetchJHUData(): Promise<CovidSeries> {
 
 // We want to memoize (cache) the return value of that fetch, so we don't need to load
 // the file multiple times if we request the data more than once
-export const fetchJHUData = memoize(_fetchJHUData)
+export const fetchCaseDeathData = memoize(_fetchCaseDeathData)
 
 //      'Entity string'
 //      'OWID country'

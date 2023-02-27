@@ -6,7 +6,7 @@ import { oneOf, Tippy } from "@ourworldindata/utils"
 import classnames from "classnames"
 import React from "react"
 import ReactDOM from "react-dom"
-import { fetchJHUData, fetchTestsData } from "./CovidFetch.js"
+import { fetchCaseDeathData, fetchTestsData } from "./CovidFetch.js"
 import { CovidTable, CovidTableProps } from "./CovidTable.js"
 import { CovidTableColumnKey } from "./CovidTableColumns.js"
 import { CovidSortKey } from "./CovidTypes.js"
@@ -19,7 +19,7 @@ const DEATH_THRESHOLD = 5
 
 const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
     cases: {
-        loadData: fetchJHUData,
+        loadData: fetchCaseDeathData,
         columns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleCases,
@@ -50,8 +50,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                 </p>
                 <p>
                     Data source:{" "}
-                    <a href="https://github.com/CSSEGISandData/COVID-19">
-                        Johns Hopkins University CSSE
+                    <a href="https://covid19.who.int/">
+                        WHO COVID-19 Dashboard
                     </a>
                     . Download the{" "}
                     <a href="https://ourworldindata.org/coronavirus-source-data">
@@ -63,7 +63,7 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         ),
     },
     deaths: {
-        loadData: fetchJHUData,
+        loadData: fetchCaseDeathData,
         columns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleDeaths,
@@ -94,8 +94,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                 </p>
                 <p>
                     Data source:{" "}
-                    <a href="https://github.com/CSSEGISandData/COVID-19">
-                        Johns Hopkins University CSSE
+                    <a href="https://covid19.who.int/">
+                        WHO COVID-19 Dashboard
                     </a>
                     . Download the{" "}
                     <a href="https://ourworldindata.org/coronavirus-source-data">
@@ -171,7 +171,7 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
         },
     },
     deathsAndCases: {
-        loadData: fetchJHUData,
+        loadData: fetchCaseDeathData,
         columns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleDeaths,
@@ -206,8 +206,8 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                 </p>
                 <p>
                     Data source:{" "}
-                    <a href="https://github.com/CSSEGISandData/COVID-19">
-                        Johns Hopkins University CSSE
+                    <a href="https://covid19.who.int/">
+                        WHO COVID-19 Dashboard
                     </a>
                     . Download the{" "}
                     <a href="https://ourworldindata.org/coronavirus-source-data">

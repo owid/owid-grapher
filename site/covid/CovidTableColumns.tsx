@@ -370,7 +370,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </strong>{" "}
                 <br />
                 <span className="note">
-                    JHU data.{" "}
+                    WHO data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -395,7 +395,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </strong>{" "}
                 <br />
                 <span className="note">
-                    JHU data.{" "}
+                    WHO data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -420,7 +420,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </strong>{" "}
                 <br />
                 <span className="note">
-                    JHU data.{" "}
+                    WHO data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}
@@ -445,7 +445,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                 </strong>{" "}
                 <br />
                 <span className="note">
-                    JHU data.{" "}
+                    WHO data.{" "}
                     {props.lastUpdated !== undefined ? (
                         <>
                             Up to date for 10&nbsp;AM (CET) on{" "}

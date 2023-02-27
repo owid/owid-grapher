@@ -40,7 +40,7 @@ import {
     columns,
     CovidTableCellSpec,
 } from "./CovidTableColumns.js"
-import { fetchJHUData } from "./CovidFetch.js"
+import { fetchCaseDeathData } from "./CovidFetch.js"
 
 export class CovidTableState {
     @observable.ref sortKey: CovidSortKey = CovidSortKey.totalCases
@@ -71,7 +71,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
         columns: [],
         mobileColumns: [],
         filter: (d) => d,
-        loadData: fetchJHUData,
+        loadData: fetchCaseDeathData,
         defaultState: {},
     }
 
