@@ -13,6 +13,7 @@ import {
     serializeJSONForHTML,
     uniq,
     SiteFooterContext,
+    MarkdownTextWrap,
 } from "@ourworldindata/utils"
 import React from "react"
 import urljoin from "url-join"
@@ -38,10 +39,15 @@ export const GrapherPage = (props: {
     const { grapher, relatedCharts, relatedArticles, baseGrapherUrl, baseUrl } =
         props
     const pageTitle = grapher.title
-    const pageDesc =
-        grapher.subtitle ||
-        "An interactive visualization from Our World in Data."
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
+    let pageDesc: string
+    if (grapher.subtitle?.length) {
+        // convert subtitle from markdown to plaintext
+        pageDesc = new MarkdownTextWrap({
+            text: grapher.subtitle,
+            fontSize: 10,
+        }).plaintext
+    } else pageDesc = "An interactive visualization from Our World in Data."
 
     // Due to thumbnails not taking into account URL parameters, they are often inaccurate on
     // social media. We decided to remove them and use a single thumbnail for all charts.
