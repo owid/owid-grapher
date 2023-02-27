@@ -95,7 +95,7 @@ export const SiteMobileMenu = ({
                     </SiteNavigationToggle>
                 </li>
                 <li>
-                    <a href="/donate" data-track-note="header-navigation">
+                    <a href="/donate" className="donate">
                         Donate
                     </a>
                 </li>

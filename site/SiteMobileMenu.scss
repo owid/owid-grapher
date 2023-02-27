@@ -74,4 +74,14 @@
             }
         }
     }
+
+    .donate {
+        @include body-3-medium;
+        display: flex;
+        justify-content: center;
+        margin: 16px;
+        padding: 8px;
+        color: $white;
+        background-color: $vermillion;
+    }
 }
