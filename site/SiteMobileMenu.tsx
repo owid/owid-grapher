@@ -6,6 +6,7 @@ import classnames from "classnames"
 import { SiteAbout } from "./SiteAbout.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { Menu } from "./SiteNavigation.js"
+import { SiteResources } from "./SiteResources.js"
 
 export const SiteMobileMenu = ({
     topics,
@@ -60,6 +61,23 @@ export const SiteMobileMenu = ({
                             </li>
                         ))}
                     </ul>
+                </li>
+                <li>
+                    <SiteNavigationToggle
+                        isActive={menu === Menu.Resources}
+                        onToggle={() =>
+                            toggleMenu(
+                                menu === Menu.Resources
+                                    ? Menu.Topics
+                                    : Menu.Resources
+                            )
+                        }
+                        dropdown={<SiteResources />}
+                        withCaret={true}
+                        className="SiteNavigationToggle--lvl1"
+                    >
+                        Resources
+                    </SiteNavigationToggle>
                 </li>
                 <li>
                     <SiteNavigationToggle
