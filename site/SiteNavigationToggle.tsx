@@ -6,14 +6,14 @@ import classnames from "classnames"
 export const SiteNavigationToggle = ({
     children,
     isActive,
-    toggle,
+    onToggle,
     withCaret = false,
     dropdown,
     className,
 }: {
     children: React.ReactNode
     isActive: boolean
-    toggle: () => void
+    onToggle: () => void
     withCaret?: boolean
     dropdown?: React.ReactNode
     className?: string
@@ -21,7 +21,7 @@ export const SiteNavigationToggle = ({
     return (
         <div className={classnames("SiteNavigationToggle", className)}>
             <button
-                onClick={toggle}
+                onClick={onToggle}
                 className={classnames({ active: isActive })}
             >
                 {children}

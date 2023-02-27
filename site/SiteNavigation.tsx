@@ -90,7 +90,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                     >
                         <SiteNavigationToggle
                             isActive={isActiveMobileMenu}
-                            toggle={() => toggleMenu(Menu.Topics)}
+                            onToggle={() => toggleMenu(Menu.Topics)}
                             className="mobile-menu-toggle hide-sm-up"
                             dropdown={
                                 <SiteMobileMenu
@@ -109,7 +109,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 <li>
                                     <SiteNavigationToggle
                                         isActive={menu === Menu.Topics}
-                                        toggle={() => toggleMenu(Menu.Topics)}
+                                        onToggle={() => toggleMenu(Menu.Topics)}
                                         dropdown={
                                             <SiteNavigationTopics
                                                 onClose={closeOverlay}
@@ -132,7 +132,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
                                         isActive={menu === Menu.Resources}
-                                        toggle={() =>
+                                        onToggle={() =>
                                             toggleMenu(Menu.Resources)
                                         }
                                         dropdown={<SiteResources />}
@@ -144,7 +144,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 <li className="with-relative-dropdown">
                                     <SiteNavigationToggle
                                         isActive={menu === Menu.About}
-                                        toggle={() => toggleMenu(Menu.About)}
+                                        onToggle={() => toggleMenu(Menu.About)}
                                         dropdown={<SiteAbout />}
                                         withCaret={true}
                                     >
@@ -163,7 +163,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             />
                             <SiteNavigationToggle
                                 isActive={menu === Menu.Subscribe}
-                                toggle={() => toggleMenu(Menu.Subscribe)}
+                                onToggle={() => toggleMenu(Menu.Subscribe)}
                                 dropdown={
                                     <NewsletterSubscriptionForm
                                         context={
