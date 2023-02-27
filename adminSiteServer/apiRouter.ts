@@ -2678,15 +2678,16 @@ apiRouter.put("/details/:id", async (req, res) => {
 
 apiRouter.get("/gdocs", async () => Gdoc.find())
 
-apiRouter.get("/gdocs/:id", async (req) => {
-    const { id } = req.params
+apiRouter.get("/gdocs/:id", async (req, res) => {
+    const id = req.params.id
     const contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
 
     try {
         const gdoc = await Gdoc.getGdocFromContentSource(id, contentSource)
-        return gdoc
+        res.set("Cache-Control", "no-store")
+        res.send(gdoc)
     } catch (error) {
         throw new JsonError(`Error fetching document ${error}`, 500)
     }
