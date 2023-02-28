@@ -5,7 +5,6 @@ import {
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
-    RawBlockFixedGraphic,
     RawBlockGraySection,
     RawBlockHeading,
     RawBlockHtml,
@@ -20,7 +19,6 @@ import {
     RawBlockText,
     Span,
     RawRecircItem,
-    excludeUndefined,
     RawBlockHorizontalRule,
     RawSDGGridItem,
     RawBlockSDGToc,
@@ -101,25 +99,12 @@ export function enrichedBlockToRawBlock(
             })
         )
         .with(
-            { type: "fixed-graphic" },
-            (b): RawBlockFixedGraphic => ({
-                type: b.type,
-                value: excludeUndefined([
-                    enrichedBlockToRawBlock(b.graphic),
-                    ...b.text.map(enrichedBlockToRawBlock),
-                    b.position
-                        ? { type: "position", value: b.position }
-                        : undefined,
-                ]),
-            })
-        )
-        .with(
             { type: "image" },
             (b): RawBlockImage => ({
                 type: b.type,
                 value: {
-                    src: b.src,
-                    caption: spansToHtmlText(b.caption),
+                    filename: b.filename,
+                    alt: b.alt,
                 },
             })
         )

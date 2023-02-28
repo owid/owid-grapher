@@ -4,6 +4,8 @@ import * as lodash from "lodash"
 import { transaction } from "../db/db.js"
 import express from "express"
 import * as db from "../db/db.js"
+import { imageStore } from "../db/model/Image.js"
+import { GdocXImage } from "../db/model/GdocXImage.js"
 import * as wpdb from "../db/wpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -2676,13 +2678,19 @@ apiRouter.put("/details/:id", async (req, res) => {
 
 apiRouter.get("/gdocs", async () => Gdoc.find())
 
-apiRouter.get("/gdocs/:id", async (req) => {
-    const { id } = req.params
+apiRouter.get("/gdocs/:id", async (req, res) => {
+    const id = req.params.id
     const contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
 
-    return Gdoc.getGdocFromContentSource(id, contentSource)
+    try {
+        const gdoc = await Gdoc.getGdocFromContentSource(id, contentSource)
+        res.set("Cache-Control", "no-store")
+        res.send(gdoc)
+    } catch (error) {
+        throw new JsonError(`Error fetching document ${error}`, 500)
+    }
 })
 
 apiRouter.get("/gdocs/:id/validate", async (req) => {
@@ -2715,7 +2723,31 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const prevGdoc = await Gdoc.findOneBy({ id })
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = getArticleFromJSON(nextGdocJSON)
+    const nextGdoc = dataSource
+        .getRepository(Gdoc)
+        .create(getArticleFromJSON(nextGdocJSON))
+    // Deleting and recreating these is simpler than tracking orphans over the next code block
+    await GdocXImage.delete({ gdocId: id })
+    const filenames = nextGdoc.filenames
+
+    if (filenames.length && nextGdoc.published) {
+        const images = await imageStore.syncImagesToS3(filenames)
+        for (const image of images) {
+            if (image) {
+                try {
+                    await GdocXImage.save({
+                        gdocId: nextGdoc.id,
+                        imageId: image.id,
+                    })
+                } catch (e) {
+                    console.error(
+                        `Error tracking image reference ${image.filename} with Google ID ${nextGdoc.id}`,
+                        e
+                    )
+                }
+            }
+        }
+    }
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
@@ -2734,7 +2766,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     // enqueue), so I opted for the version that matches the closest the current
     // baking model, which is "bake what is persisted in the DB". Ultimately, a
     // full sucessful deploy would resolve the state discrepancy either way.
-    await dataSource.getRepository(Gdoc).save(nextGdoc)
+    await nextGdoc.save()
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
@@ -2762,7 +2794,8 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     const gdoc = await Gdoc.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    await Gdoc.delete(id)
+    await GdocXImage.delete({ gdocId: id })
+    await Gdoc.delete({ id })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })

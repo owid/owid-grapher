@@ -1,6 +1,10 @@
 import React, { useContext, createContext, useState } from "react"
 import { observable } from "mobx"
-import { OwidArticleType } from "@ourworldindata/utils"
+import {
+    getArticleFromJSON,
+    OwidArticleType,
+    OwidArticleTypeJSON,
+} from "@ourworldindata/utils"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { Admin } from "./Admin.js"
 
@@ -23,30 +27,32 @@ export class GdocsStore {
         await this.admin.requestJSON(`/api/gdocs/${id}`, {}, "PUT")
     }
 
-    async update(gdoc: OwidArticleType) {
-        await this.admin.requestJSON(`/api/gdocs/${gdoc.id}`, gdoc, "PUT")
+    async update(gdoc: OwidArticleType): Promise<OwidArticleType> {
+        return this.admin
+            .requestJSON<OwidArticleTypeJSON>(
+                `/api/gdocs/${gdoc.id}`,
+                gdoc,
+                "PUT"
+            )
+            .then(getArticleFromJSON)
     }
 
-    async publish(gdoc: OwidArticleType) {
-        const publishedGdoc = {
+    async publish(gdoc: OwidArticleType): Promise<OwidArticleType> {
+        const publishedGdoc = await this.update({
             ...gdoc,
             published: true,
             // Add today's date if the publication date is missing
             publishedAt: gdoc.publishedAt ?? new Date(),
-        }
-
-        await this.update(publishedGdoc)
+        })
 
         return publishedGdoc
     }
 
-    async unpublish(gdoc: OwidArticleType) {
-        const unpublishedGdoc = {
+    async unpublish(gdoc: OwidArticleType): Promise<OwidArticleType> {
+        const unpublishedGdoc = await this.update({
             ...gdoc,
             published: false,
-        }
-
-        await this.update(unpublishedGdoc)
+        })
 
         return unpublishedGdoc
     }
