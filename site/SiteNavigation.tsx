@@ -178,7 +178,11 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                 <span className="hide-lg-down">Subscribe</span>
                                 <FontAwesomeIcon
                                     className="hide-lg-up"
-                                    icon={faEnvelopeOpenText}
+                                    icon={
+                                        menu === Menu.Subscribe
+                                            ? faXmark
+                                            : faEnvelopeOpenText
+                                    }
                                 />
                             </SiteNavigationToggle>
                             <a
