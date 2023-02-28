@@ -893,6 +893,7 @@ export interface OwidArticleType {
     updatedAt: Date | null
     publicationContext: OwidArticlePublicationContext
     revisionId: string | null
+    linkedDocuments?: Record<string, OwidArticleType>
 }
 
 // see also: getArticleFromJSON()
@@ -901,7 +902,6 @@ export interface OwidArticleTypeJSON
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
-    linkedDocuments: Record<string, OwidArticleType>
 }
 
 export interface OwidArticleLinkJSON {

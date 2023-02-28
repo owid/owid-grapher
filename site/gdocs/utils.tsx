@@ -20,7 +20,7 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
     }
     return (
         <LinkedDocumentsContext.Consumer>
-            {(linkedDocuments) => {
+            {(linkedDocuments = {}) => {
                 const urlTarget = getUrlTarget(span.url)
                 const targetDocument = linkedDocuments[urlTarget]
                 if (

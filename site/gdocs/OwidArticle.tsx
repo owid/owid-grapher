@@ -16,8 +16,8 @@ import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
 
 export const LinkedDocumentsContext = React.createContext<
-    Record<string, OwidArticleType>
->({})
+    Record<string, OwidArticleType> | undefined
+>(undefined)
 
 export function OwidArticle(props: OwidArticleType) {
     const { content, publishedAt, slug, linkedDocuments } = props
