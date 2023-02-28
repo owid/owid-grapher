@@ -17,7 +17,6 @@ interface ClientSettings {
     ENV: "development" | "production"
     GITHUB_USERNAME: string
     DATA_API_FOR_ADMIN_UI?: string
-    siteStylesheetUrls: string[]
 }
 
 interface ErrorMessage {

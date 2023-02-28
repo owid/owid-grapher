@@ -261,7 +261,8 @@
         "tsc-watch": "^4.2.9"
     },
     "resolutions": {
-        "webpack": "^5.0.0"
+        "webpack": "^5.0.0",
+        "react-codemirror2@^7.2.1": "patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch"
     },
     "prettier": {
         "semi": false
