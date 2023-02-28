@@ -163,6 +163,10 @@
                 top: 100%;
                 right: 0;
                 width: 411px;
+                @include sm-only {
+                    margin-right: -16px;
+                    width: 100vw;
+                }
                 padding: 32px 40px;
                 background-color: $white;
             }
