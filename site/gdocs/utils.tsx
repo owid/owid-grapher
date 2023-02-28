@@ -6,13 +6,14 @@ import {
     Span,
     SpanLink,
     OwidArticleType,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { LinkedDocumentsContext, SiteBakerContext } from "./OwidArticle.js"
+import { AttachmentsContext, SiteBakerContext } from "./OwidArticle.js"
 
 const useLinkedDocument = (url: string): OwidArticleType | undefined => {
-    const linkedDocuments = useContext(LinkedDocumentsContext)
-    const isBaking = useContext(SiteBakerContext)
+    const { linkedDocuments } = useContext(AttachmentsContext)
+    const { isBaking } = useContext(SiteBakerContext)
     const linkType = getLinkType(url)
     const urlTarget = getUrlTarget(url)
 
@@ -24,6 +25,21 @@ const useLinkedDocument = (url: string): OwidArticleType | undefined => {
         throw new Error(
             "Error attempting to bake article linking to unpublished or non-existing article"
         )
+    }
+    return
+}
+
+export const useImage = (filename: string): ImageMetadata | undefined => {
+    const { imageMetadata } = useContext(AttachmentsContext)
+    const { isBaking } = useContext(SiteBakerContext)
+
+    const metadata = imageMetadata[filename]
+    if (metadata) {
+        // TODO: handle defaultAlt errors etc
+        return metadata
+    } else if (isBaking) {
+        // TODO: make this a slack error
+        throw new Error("Error baking an article with a missing image")
     }
     return
 }

@@ -14,27 +14,33 @@ import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
+import { ImageMetadata } from "@ourworldindata/utils/dist/image.js"
 
-export const LinkedDocumentsContext = React.createContext<
-    Record<string, OwidArticleType> | undefined
->(undefined)
+export const AttachmentsContext = createContext<{
+    linkedDocuments: Record<string, OwidArticleType>
+    imageMetadata: Record<string, ImageMetadata>
+}>({ linkedDocuments: {}, imageMetadata: {} })
 
-export const SiteBakerContext = React.createContext<boolean>(false)
+export const SiteBakerContext = createContext<{ isBaking: boolean }>({
+    isBaking: false,
+})
 
-export const ArticleContext = createContext<{
-    isPreviewing: boolean
-}>({ isPreviewing: false })
+// TODO: Can this and SiteBaker be merged?
+export const ArticleContext = createContext<{ isPreviewing: boolean }>({
+    isPreviewing: false,
+})
 
 type OwidArticleProps = OwidArticleType & {
-    isPreviewing?: boolean
     isBaking?: boolean
+    isPreviewing?: boolean
 }
 
 export function OwidArticle({
     content,
     publishedAt,
     slug,
-    linkedDocuments,
+    linkedDocuments = {},
+    imageMetadata = {},
     isPreviewing = false,
     isBaking = false,
 }: OwidArticleProps) {
@@ -70,9 +76,9 @@ export function OwidArticle({
 }`
 
     return (
-        <ArticleContext.Provider value={{ isPreviewing: isPreviewing }}>
-            <LinkedDocumentsContext.Provider value={linkedDocuments}>
-                <SiteBakerContext.Provider value={isBaking}>
+        <AttachmentsContext.Provider value={{ linkedDocuments, imageMetadata }}>
+            <SiteBakerContext.Provider value={{ isBaking }}>
+                <ArticleContext.Provider value={{ isPreviewing }}>
                     <article className="centered-article-container grid grid-cols-12-full-width">
                         <div
                             className="article-banner"
@@ -218,9 +224,9 @@ export function OwidArticle({
                             </p>
                         </section>
                     </article>
-                </SiteBakerContext.Provider>
-            </LinkedDocumentsContext.Provider>
-        </ArticleContext.Provider>
+                </ArticleContext.Provider>
+            </SiteBakerContext.Provider>
+        </AttachmentsContext.Provider>
     )
 }
 

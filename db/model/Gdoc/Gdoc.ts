@@ -24,6 +24,8 @@ import {
     recursivelyMapArticleBlock,
     ImageNotFound,
     NoDefaultAlt,
+    ImageMetadata,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -49,6 +51,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
     linkedDocuments: Record<string, Gdoc> = {}
+    imageMetadata: Record<string, ImageMetadata> = {}
 
     constructor(id?: string) {
         super()
@@ -100,7 +103,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         return Gdoc.cachedGoogleReadonlyAuth
     }
 
-    async getEnrichedArticle(): Promise<void> {
+    async fetchAndEnrichArticle(): Promise<void> {
         const docsClient = google.docs({
             version: "v1",
             auth: Gdoc.getGoogleReadonlyAuth(),
@@ -119,24 +122,11 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text)
-
-        // Get the filenames of the images referenced in the article
-        const filenames = this.filenames
-
-        if (filenames.length) {
-            await imageStore.syncImagesToS3(filenames)
-            this.setAdditionalImageMetadata()
-        }
-        return
     }
 
     get filenames(): string[] {
-        return Gdoc.extractImagesFilenames(this.content)
-    }
-
-    static extractImagesFilenames(enriched: OwidArticleContent): string[] {
         const filenames: Set<string> = new Set()
-        enriched.body?.forEach((node) =>
+        this.content.body?.forEach((node) =>
             recursivelyMapArticleBlock(node, (node) => {
                 if (node.type === "image") {
                     filenames.add(node.filename)
@@ -148,40 +138,50 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         return [...filenames]
     }
 
-    setAdditionalImageMetadata(): void {
-        this.content.body = this.content.body?.map((block) =>
-            recursivelyMapArticleBlock(
-                block,
-                (block: OwidEnrichedArticleBlock) => {
-                    if (block.type === "image") {
-                        const metadata = imageStore.images?.[block.filename]
-                        if (!metadata) {
-                            block.dataErrors.push({ message: ImageNotFound })
-                        } else {
-                            block.originalWidth = metadata.originalWidth
-
-                            // Error if default alt doesn't exist
-                            // Use default alt if override isn't set
-                            if (!metadata.defaultAlt) {
-                                block.dataErrors.push({
-                                    message: NoDefaultAlt,
-                                })
-                            } else if (!block.alt) {
-                                block.alt = metadata.defaultAlt
-                            }
-                        }
-                    }
-                    return block
-                }
-            )
-        )
+    async loadImageMetadata(): Promise<void> {
+        if (this.filenames.length) {
+            // TODO: make sure we don't call this every single time we bake an article
+            await imageStore.fetchImageMetadata()
+            const images = await imageStore
+                .syncImagesToS3(this.filenames)
+                .then(excludeUndefined)
+            this.imageMetadata = keyBy(images, "filename")
+            // this.setAdditionalImageMetadata()
+        }
     }
 
-    async loadLinkedDocuments(): Promise<void> {
-        const links = Gdoc.extractLinksFromContent(this.content)
+    // setAdditionalImageMetadata(): void {
+    //     this.content.body = this.content.body?.map((block) =>
+    //         recursivelyMapArticleBlock(
+    //             block,
+    //             (block: OwidEnrichedArticleBlock) => {
+    //                 if (block.type === "image") {
+    //                     const metadata = imageStore.images?.[block.filename]
+    //                     if (!metadata) {
+    //                         block.dataErrors.push({ message: ImageNotFound })
+    //                     } else {
+    //                         block.originalWidth = metadata.originalWidth
 
+    //                         // Error if default alt doesn't exist
+    //                         // Use default alt if override isn't set
+    //                         if (!metadata.defaultAlt) {
+    //                             block.dataErrors.push({
+    //                                 message: NoDefaultAlt,
+    //                             })
+    //                         } else if (!block.alt) {
+    //                             block.alt = metadata.defaultAlt
+    //                         }
+    //                     }
+    //                 }
+    //                 return block
+    //             }
+    //         )
+    //     )
+    // }
+
+    async loadLinkedDocuments(): Promise<void> {
         const linkedDocuments = await Promise.all(
-            links
+            this.links
                 .filter((link) => link.linkType === "gdoc")
                 .map((link) => link.target)
                 // filter duplicates
@@ -197,12 +197,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
 
-    static extractLinksFromContent(content: OwidArticleContent): Link[] {
+    get links(): Link[] {
         const links: Link[] = []
-        if (content.body) {
-            content.body = content.body.map((node) =>
+        if (this.content.body) {
+            this.content.body.map((node) =>
                 recursivelyMapArticleContent(node, (node) => {
-                    const link = Gdoc.extractLinkFromNode(node)
+                    const link = this.extractLinkFromNode(node)
                     if (link) links.push(link)
                     return node
                 })
@@ -212,9 +212,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     // If the node has a URL in it, create a Link object
-    static extractLinkFromNode(
-        node: OwidEnrichedArticleBlock | Span
-    ): Link | void {
+    extractLinkFromNode(node: OwidEnrichedArticleBlock | Span): Link | void {
         function getText(node: OwidEnrichedArticleBlock | Span): string {
             // Can add component-specific text accessors here
             if (checkNodeIsSpan(node)) {
@@ -228,7 +226,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         if ("url" in node) {
             const link: Link = Link.create({
                 linkType: getLinkType(node.url),
-                source: undefined,
+                source: this,
                 target: getUrlTarget(node.url),
                 componentType: checkNodeIsSpan(node) ? "span-link" : node.type,
                 text: getText(node),
@@ -245,11 +243,13 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-        await gdoc.loadLinkedDocuments()
-
         if (contentSource === GdocsContentSource.Gdocs) {
-            await gdoc.getEnrichedArticle()
+            await gdoc.fetchAndEnrichArticle()
         }
+
+        await gdoc.loadLinkedDocuments()
+        await gdoc.loadImageMetadata()
+
         return gdoc
     }
 

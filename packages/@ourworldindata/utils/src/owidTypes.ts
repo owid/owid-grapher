@@ -1,4 +1,5 @@
 import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
+import { ImageMetadata } from "./image.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -885,6 +886,7 @@ export interface OwidArticleType {
     publicationContext: OwidArticlePublicationContext
     revisionId: string | null
     linkedDocuments?: Record<string, OwidArticleType>
+    imageMetadata?: Record<string, ImageMetadata>
 }
 
 // see also: getArticleFromJSON()

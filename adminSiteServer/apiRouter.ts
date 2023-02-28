@@ -2755,13 +2755,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             id: id,
         },
     })
-    const links = Gdoc.extractLinksFromContent(nextGdoc.content).map(
-        (link) => ({
-            ...link,
-            source: nextGdoc,
-        })
-    )
-    await dataSource.getRepository(Link).save(links)
+    await dataSource.getRepository(Link).save(nextGdoc.links)
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see

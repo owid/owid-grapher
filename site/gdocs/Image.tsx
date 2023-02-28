@@ -10,8 +10,10 @@ import {
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
     IMAGE_HOSTING_CDN_URL,
 } from "../../settings/clientSettings.js"
-import { ArticleContext } from "./OwidArticle.js"
+import { ArticleContext, SiteBakerContext } from "./OwidArticle.js"
 import { Container } from "./ArticleBlock.js"
+import { useImage } from "./utils.js"
+import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -48,29 +50,45 @@ export default function Image({
     className?: string
     containerType?: ImageParentContainer
 }) {
-    const articleContext = useContext(ArticleContext)
-    if (articleContext.isPreviewing) {
+    const { filename } = d
+    const { isPreviewing } = useContext(ArticleContext)
+    const image = useImage(filename)
+
+    // TODO: handle other errors e.g. no default alt text
+    if (!image) {
+        return (
+            <BlockErrorFallback
+                error={{
+                    message: "No image!",
+                    name: "Error in image block",
+                }}
+                className={className}
+            />
+        )
+    }
+
+    if (isPreviewing) {
         return (
             <img
-                src={`${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${d.filename}`}
+                src={`${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${filename}`}
                 alt={d.alt}
                 className={cx(LIGHTBOX_IMAGE_CLASS, className, "lazyload")}
             />
         )
     }
 
-    if (d.filename.endsWith(".svg")) {
+    if (filename.endsWith(".svg")) {
         return (
             <img
-                src={`/images/published/${d.filename}`}
+                src={`/images/published/${filename}`}
                 alt={d.alt}
                 className={cx(LIGHTBOX_IMAGE_CLASS, className)}
             />
         )
     }
 
-    const sizes = getSizes(d.originalWidth!) as number[]
-    const srcSet = generateSrcSet(sizes!, d.filename)
+    const sizes = getSizes(image.originalWidth)
+    const srcSet = generateSrcSet(sizes, filename)
 
     return (
         <picture className={className}>
@@ -80,7 +98,7 @@ export default function Image({
                 sizes={containerSizes[containerType] ?? containerSizes.default}
             />
             <img
-                src={`/images/published/${d.filename}`}
+                src={`/images/published/${filename}`}
                 alt={d.alt}
                 className={LIGHTBOX_IMAGE_CLASS}
             />
