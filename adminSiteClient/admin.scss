@@ -1,14 +1,14 @@
 /* Chart editor styling */
 
-@import "node_modules/bootstrap/scss/bootstrap";
+@import "bootstrap/scss/bootstrap";
 @import "styles/react-tag-autocomplete";
 
-@import "~tippy.js/dist/tippy.css";
-@import "~tippy.js/themes/light.css";
+@import "tippy.js/dist/tippy.css";
+@import "tippy.js/themes/light.css";
 
-@import "node_modules/antd/dist/antd.css";
+@import "antd/dist/antd.css";
 @import "@react-awesome-query-builder/antd/css/styles.css";
-@import "node_modules/codemirror/lib/codemirror.css";
+@import "codemirror/lib/codemirror.css";
 
 html {
     font-size: 14px;
