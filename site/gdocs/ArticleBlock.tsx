@@ -5,7 +5,6 @@ import ChartStory from "./ChartStory.js"
 import Scroller from "./Scroller.js"
 import Chart from "./Chart.js"
 import PullQuote from "./PullQuote.js"
-import FixedGraphic from "./FixedGraphic.js"
 import Recirc from "./Recirc.js"
 import List from "./List.js"
 import NumberedList from "./NumberedList.js"
@@ -50,7 +49,6 @@ const layouts: { [key in Container]: Layouts} = {
         ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
-        ["fixed-graphic"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
         ["heading"]: "align-center col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
@@ -159,6 +157,17 @@ export default function ArticleBlock({
             />
         )
     }
+    if (block.type === "image" && block.dataErrors.length > 0) {
+        return (
+            <BlockErrorFallback
+                className={getLayout("default", containerType)}
+                error={{
+                    name: `Error in ${block.type} with filename ${block.filename}`,
+                    message: block.dataErrors[0].message,
+                }}
+            />
+        )
+    }
     const content: any | null = match(block)
         .with({ type: "aside" }, ({ caption, position = "right" }) => (
             <figure
@@ -187,14 +196,12 @@ export default function ArticleBlock({
                 className={getLayout("chart-story", containerType)}
             />
         ))
-        .with({ type: "fixed-graphic" }, (block) => (
-            <FixedGraphic
-                className={getLayout("fixed-graphic", containerType)}
-                d={block}
-            />
-        ))
         .with({ type: "image" }, (block) => (
-            <Image className={getLayout("image", containerType)} d={block} />
+            <Image
+                className={getLayout("image", containerType)}
+                d={block}
+                containerType={containerType}
+            />
         ))
         .with({ type: "pull-quote" }, (block) => (
             <PullQuote

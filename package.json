@@ -42,6 +42,7 @@
         "testJest": "lerna run buildTests && jest"
     },
     "dependencies": {
+        "@aws-sdk/client-s3": "^3.245.0",
         "@bugsnag/core": "^7.17.0",
         "@bugsnag/js": "^7.17.0",
         "@bugsnag/plugin-react": "^7.17.0",
@@ -202,7 +203,7 @@
         "sass": "^1.52.1",
         "sass-loader": "^13.0.2",
         "search-insights": "^2.2.3",
-        "sharp": "^0.31.0",
+        "sharp": "^0.31.3",
         "shell-quote": "^1.7.3",
         "shelljs": "^0.8.5",
         "simple-git": "^3.16.1",
@@ -260,7 +261,8 @@
         "tsc-watch": "^4.2.9"
     },
     "resolutions": {
-        "webpack": "^5.0.0"
+        "webpack": "^5.0.0",
+        "react-codemirror2@^7.2.1": "patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch"
     },
     "prettier": {
         "semi": false

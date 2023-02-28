@@ -50,6 +50,17 @@ export const GDOCS_CLIENT_EMAIL: string = process.env.GDOCS_CLIENT_EMAIL ?? ""
 export const GDOCS_BASIC_ARTICLE_TEMPLATE_URL: string =
     process.env.GDOCS_BASIC_ARTICLE_TEMPLATE_URL ?? ""
 
+export const IMAGE_HOSTING_SPACE_URL: string =
+    process.env.IMAGE_HOSTING_SPACE_URL || ""
+export const IMAGE_HOSTING_CDN_URL: string =
+    process.env.IMAGE_HOSTING_CDN_URL || ""
+// e.g. owid-image-hosting/development
+export const IMAGE_HOSTING_BUCKET_PATH: string =
+    process.env.IMAGE_HOSTING_BUCKET_PATH || ""
+// e.g. development
+export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
+    IMAGE_HOSTING_BUCKET_PATH.slice(IMAGE_HOSTING_BUCKET_PATH.indexOf("/") + 1)
+
 // Fast-track settings, by default points to staging version. You need Tailscale to access it.
 export const FASTTRACK_URL: string =
     process.env.FASTTRACK_URL ?? "http://owid-analytics:8083/"

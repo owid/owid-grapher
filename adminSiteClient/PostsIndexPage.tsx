@@ -11,7 +11,6 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { WORDPRESS_URL } from "../settings/clientSettings.js"
 import { Tag } from "./TagBadge.js"
 import { match } from "ts-pattern"
-import { GdocsEditLink } from "./GdocsEditLink.js"
 import { Link } from "./Link.js"
 
 interface PostIndexMeta {

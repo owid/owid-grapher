@@ -4,7 +4,6 @@ import * as db from "./db.js"
 import * as cheerio from "cheerio"
 
 import {
-    EnrichedBlockText,
     OwidArticlePublicationContext,
     OwidArticleType,
     sortBy,
@@ -15,7 +14,6 @@ import {
     cheerioElementsToArchieML,
     withoutEmptyOrWhitespaceOnlyTextBlocks,
     convertAllWpComponentsToArchieMLBlocks,
-    getEnrichedBlockTextFromBlockParseResult,
 } from "./model/Gdoc/htmlToEnriched.js"
 
 const migrate = async (): Promise<void> => {

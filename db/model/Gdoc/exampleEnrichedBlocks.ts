@@ -100,18 +100,12 @@ export const enrichedBlockExamples: Record<
         items: [boldLinkExampleText],
         parseErrors: [],
     },
-    "fixed-graphic": {
-        type: "fixed-graphic",
-        graphic: enrichedChart,
-        text: [enrichedBlockText],
-        position: "right",
-        parseErrors: [],
-    },
     image: {
         type: "image",
-        src: "https://ourworldindata.org/uploads/2022/03/Future-as-triangles-of-an-hour-glass-01.png",
-        caption: boldLinkExampleText,
+        filename: "example.png",
+        alt: "",
         parseErrors: [],
+        dataErrors: [],
     },
     list: {
         type: "list",

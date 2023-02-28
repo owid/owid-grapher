@@ -1291,6 +1291,25 @@ export const getArticleFromJSON = (
     }
 }
 
+export function recursivelyMapArticleBlock(
+    block: OwidEnrichedArticleBlock,
+    callback: (block: OwidEnrichedArticleBlock) => OwidEnrichedArticleBlock
+): OwidEnrichedArticleBlock {
+    if (block.type === "gray-section") {
+        block.items.map((block) => recursivelyMapArticleBlock(block, callback))
+    }
+    if (
+        block.type === "sticky-left" ||
+        block.type === "sticky-right" ||
+        block.type === "side-by-side"
+    ) {
+        block.left.map((node) => recursivelyMapArticleBlock(node, callback))
+        block.right.map((node) => recursivelyMapArticleBlock(node, callback))
+    }
+
+    return callback(block)
+}
+
 // Checking whether we have clipboard write access is surprisingly complicated.
 // For example, if a chart is embedded in an iframe, then Chrome will prevent the
 // use of clipboard.writeText() unless the iframe has allow="clipboard-write".
@@ -1315,6 +1334,21 @@ export const canWriteToClipboard = async (): Promise<boolean> => {
     }
     // navigator.clipboard is available, but we couldn't check for permissions -- assume we can use it.
     return true
+}
+
+export function findDuplicates<T>(arr: T[]): T[] {
+    const set = new Set()
+    const duplicates: Set<T> = new Set()
+    arr.forEach((item) => {
+        if (set.has(item)) {
+            if (!duplicates.has(item)) {
+                duplicates.add(item)
+            }
+        } else {
+            set.add(item)
+        }
+    })
+    return [...duplicates]
 }
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.

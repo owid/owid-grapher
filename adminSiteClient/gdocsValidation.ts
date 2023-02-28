@@ -1,4 +1,5 @@
 import { OwidArticleContent, OwidArticleType } from "@ourworldindata/utils"
+import { recursivelyMapArticleBlock } from "@ourworldindata/utils/dist/Util.js"
 
 export enum ErrorMessageType {
     Error = "error",
@@ -106,6 +107,36 @@ export class ExcerptHandler extends AbstractHandler {
     }
 }
 
+export class ContentHandler extends AbstractHandler {
+    handle(gdoc: OwidArticleType, messages: ErrorMessage[]) {
+        gdoc.content.body?.map((block) => {
+            recursivelyMapArticleBlock(block, (block) => {
+                block.parseErrors.forEach((parseError) => {
+                    messages.push({
+                        property: "body",
+                        type: parseError.isWarning
+                            ? ErrorMessageType.Warning
+                            : ErrorMessageType.Error,
+                        message: parseError.message,
+                    })
+                })
+                // For now, only images can have data errors
+                if (block.type === "image") {
+                    block.dataErrors.forEach((dataError) => {
+                        messages.push({
+                            property: "body",
+                            type: ErrorMessageType.Error,
+                            message: dataError.message,
+                        })
+                    })
+                }
+                return block
+            })
+        })
+        return super.handle(gdoc, messages)
+    }
+}
+
 // #gdocsvalidation Errors prevent saving published articles. Errors are only
 // raised in front-end admin code at the moment (search for
 // #gdocsvalidationclient in codebase), but should ultimately be performed in
@@ -122,6 +153,7 @@ export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
         .setNext(new SlugHandler())
         .setNext(new PublishedAtHandler())
         .setNext(new ExcerptHandler())
+        .setNext(new ContentHandler())
 
     bodyHandler.handle(gdoc, errors)
 

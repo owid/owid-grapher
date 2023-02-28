@@ -7,7 +7,7 @@ import {
     SpanLink,
     OwidArticleType,
 } from "@ourworldindata/utils"
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import { LinkedDocumentsContext, SiteBakerContext } from "./OwidArticle.js"
 
 const useLinkedDocument = (url: string): OwidArticleType | undefined => {
@@ -26,6 +26,33 @@ const useLinkedDocument = (url: string): OwidArticleType | undefined => {
         )
     }
     return
+}
+
+export function spansToUnformattedPlainText(spans: Span[] = []): string {
+    return spans
+        .map((span) =>
+            match(span)
+                .with({ spanType: "span-simple-text" }, (span) => span.text)
+                .with(
+                    {
+                        spanType: P.union(
+                            "span-link",
+                            "span-italic",
+                            "span-bold",
+                            "span-fallback",
+                            "span-quote",
+                            "span-superscript",
+                            "span-subscript",
+                            "span-underline",
+                            "span-ref"
+                        ),
+                    },
+                    (span) => spansToUnformattedPlainText(span.children)
+                )
+                .with({ spanType: "span-newline" }, () => "")
+                .exhaustive()
+        )
+        .join("")
 }
 
 const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {

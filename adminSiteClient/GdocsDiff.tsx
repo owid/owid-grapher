@@ -5,14 +5,14 @@ import { OwidArticleType } from "@ourworldindata/utils"
 
 export const GdocsDiff = ({
     originalGdoc,
-    gdoc,
+    currentGdoc,
 }: {
     originalGdoc: OwidArticleType | undefined
-    gdoc: OwidArticleType
+    currentGdoc: OwidArticleType
 }) => (
     <ReactDiffViewer
         oldValue={stringify(originalGdoc, null, 2)}
-        newValue={stringify(gdoc, null, 2)}
+        newValue={stringify(currentGdoc, null, 2)}
         compareMethod={DiffMethod.WORDS}
         styles={{
             contentText: {

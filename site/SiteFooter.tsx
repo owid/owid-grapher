@@ -10,6 +10,7 @@ interface SiteFooterProps {
     baseUrl: string
     context?: SiteFooterContext
     debug?: boolean
+    isPreviewing?: boolean
 }
 
 export const SiteFooter = (props: SiteFooterProps) => (
@@ -269,6 +270,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                     __html: `window.runSiteFooterScripts(${JSON.stringify({
                         context: props.context,
                         debug: props.debug,
+                        isPreviewing: props.isPreviewing,
                     })})`, // todo: gotta be a better way.
                 }}
             />

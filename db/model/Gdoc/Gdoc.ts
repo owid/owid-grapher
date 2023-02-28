@@ -1,4 +1,10 @@
-import { Entity, PrimaryColumn, Column, BaseEntity } from "typeorm"
+import {
+    Entity,
+    Column,
+    BaseEntity,
+    UpdateDateColumn,
+    PrimaryColumn,
+} from "typeorm"
 import {
     OwidArticleContent,
     OwidArticleType,
@@ -9,13 +15,15 @@ import {
     recursivelyMapArticleContent,
     checkNodeIsSpan,
     spansToUnformattedPlainText,
-    OwidEnrichedArticleBlock,
     Span,
     getUrlTarget,
     getLinkType,
     keyBy,
     excludeNull,
-    uniq,
+    OwidEnrichedArticleBlock,
+    recursivelyMapArticleBlock,
+    ImageNotFound,
+    NoDefaultAlt,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -26,6 +34,7 @@ import { google, Auth, docs_v1 } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
+import { imageStore } from "../Image.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -37,12 +46,14 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         OwidArticlePublicationContext.unlisted
     @Column() createdAt: Date = new Date()
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
-    @Column({ type: Date, nullable: true }) updatedAt: Date | null = null
+    @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
     linkedDocuments: Record<string, Gdoc> = {}
 
     constructor(id?: string) {
         super()
+        // TODO: the class is re-initializing every single auto-reload
+        // Implement Page Visibility API ?
         if (id) {
             this.id = id
         }
@@ -79,23 +90,29 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                     client_email: GDOCS_CLIENT_EMAIL,
                     client_id: GDOCS_CLIENT_ID,
                 },
-                scopes: ["https://www.googleapis.com/auth/documents.readonly"],
+                // Scopes can be specified either as an array or as a single, space-delimited string.
+                scopes: [
+                    "https://www.googleapis.com/auth/documents.readonly",
+                    "https://www.googleapis.com/auth/drive.readonly",
+                ],
             })
         }
         return Gdoc.cachedGoogleReadonlyAuth
     }
 
     async getEnrichedArticle(): Promise<void> {
-        const client = google.docs({
+        const docsClient = google.docs({
             version: "v1",
             auth: Gdoc.getGoogleReadonlyAuth(),
         })
 
         // Retrieve raw data from Google
-        const { data } = await client.documents.get({
+        const { data } = await docsClient.documents.get({
             documentId: this.id,
             suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
         })
+
+        this.revisionId = data.revisionId ?? null
 
         // Convert the doc to ArchieML syntax
         const { text } = await gdocToArchie(data)
@@ -103,7 +120,61 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text)
 
-        this.revisionId = data.revisionId ?? null
+        // Get the filenames of the images referenced in the article
+        const filenames = this.filenames
+
+        if (filenames.length) {
+            await imageStore.syncImagesToS3(filenames)
+            this.setAdditionalImageMetadata()
+        }
+        return
+    }
+
+    get filenames(): string[] {
+        return Gdoc.extractImagesFilenames(this.content)
+    }
+
+    static extractImagesFilenames(enriched: OwidArticleContent): string[] {
+        const filenames: Set<string> = new Set()
+        enriched.body?.forEach((node) =>
+            recursivelyMapArticleBlock(node, (node) => {
+                if (node.type === "image") {
+                    filenames.add(node.filename)
+                }
+                return node
+            })
+        )
+
+        return [...filenames]
+    }
+
+    setAdditionalImageMetadata(): void {
+        this.content.body = this.content.body?.map((block) =>
+            recursivelyMapArticleBlock(
+                block,
+                (block: OwidEnrichedArticleBlock) => {
+                    if (block.type === "image") {
+                        const metadata = imageStore.images?.[block.filename]
+                        if (!metadata) {
+                            block.dataErrors.push({ message: ImageNotFound })
+                        } else {
+                            block.originalWidth = metadata.originalWidth
+
+                            // Error if default alt doesn't exist
+                            // Use default alt if override isn't set
+                            if (!metadata.defaultAlt) {
+                                block.dataErrors.push({
+                                    message: NoDefaultAlt,
+                                })
+                            } else if (!block.alt) {
+                                block.alt = metadata.defaultAlt
+                            }
+                        }
+                    }
+                    return block
+                }
+            )
+        )
     }
 
     async loadLinkedDocuments(): Promise<void> {

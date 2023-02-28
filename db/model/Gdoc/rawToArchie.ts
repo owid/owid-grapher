@@ -5,7 +5,6 @@ import {
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
-    RawBlockFixedGraphic,
     RawBlockGraySection,
     RawBlockHorizontalRule,
     RawBlockHtml,
@@ -128,24 +127,13 @@ function* rawBlockChartStoryToArchieMLString(
     yield "[]"
 }
 
-function* rawBlockFixedGraphicToArchieMLString(
-    block: RawBlockFixedGraphic
-): Generator<string, void, undefined> {
-    yield "[.+fixed-graphic]"
-    if (typeof block.value !== "string") {
-        for (const b of block.value)
-            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
-    }
-    yield "[]"
-}
-
 function* rawBlockImageToArchieMLString(
     block: RawBlockImage
 ): Generator<string, void, undefined> {
     yield "{.image}"
     if (typeof block.value !== "string") {
-        yield* propertyToArchieMLString("src", block.value)
-        yield* propertyToArchieMLString("caption", block.value)
+        yield* propertyToArchieMLString("filename", block.value)
+        yield* propertyToArchieMLString("alt", block.value)
     }
     yield "{}"
 }
@@ -381,7 +369,6 @@ export function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
         .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)
-        .with({ type: "fixed-graphic" }, rawBlockFixedGraphicToArchieMLString)
         .with({ type: "image" }, rawBlockImageToArchieMLString)
         .with({ type: "list" }, rawBlockListToArchieMLString)
         .with({ type: "numbered-list" }, rawBlockNumberedListToArchieMLString)
