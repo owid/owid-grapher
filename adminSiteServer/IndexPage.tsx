@@ -11,12 +11,6 @@ export const IndexPage = (props: {
     isSuperuser: boolean
     gitCmsBranchName: string
 }) => {
-    const siteStylesheetUrls = [
-        "https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap",
-        webpackUrl("owid.css", "/admin"),
-        webpackUrl("commons.css", "/admin"),
-    ]
-
     const adminStylesheetUrls = [
         "https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap",
         webpackUrl("admin.css", "/admin"),
@@ -28,7 +22,7 @@ export const IndexPage = (props: {
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-        { ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI, siteStylesheetUrls }
+        { ENV, GITHUB_USERNAME, DATA_API_FOR_ADMIN_UI }
     )}})
         admin.start(document.querySelector("#app"), '${props.gitCmsBranchName}')
 `
