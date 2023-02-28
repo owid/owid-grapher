@@ -1,16 +1,37 @@
-import React from "react"
+import React, { useContext } from "react"
 
 import {
     getLinkType,
     getUrlTarget,
     Span,
     SpanLink,
+    OwidArticleType,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { LinkedDocumentsContext } from "./OwidArticle.js"
+import { LinkedDocumentsContext, SiteBakerContext } from "./OwidArticle.js"
+
+const useLinkedDocument = (url: string): OwidArticleType | undefined => {
+    const linkedDocuments = useContext(LinkedDocumentsContext)
+    const isBaking = useContext(SiteBakerContext)
+    const linkType = getLinkType(url)
+    const urlTarget = getUrlTarget(url)
+
+    if (linkType !== "gdoc") return
+    const linkedDocument = linkedDocuments?.[urlTarget]
+    if (linkedDocument && linkedDocument.published) {
+        return linkedDocument
+    } else if (isBaking) {
+        throw new Error(
+            "Error attempting to bake article linking to unpublished or non-existing article"
+        )
+    }
+    return
+}
 
 const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
     const linkType = getLinkType(span.url)
+    const linkedDocument = useLinkedDocument(span.url)
+
     if (linkType === "url") {
         return (
             <a href={span.url} className="span-link">
@@ -18,30 +39,14 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
             </a>
         )
     }
-    return (
-        <LinkedDocumentsContext.Consumer>
-            {(linkedDocuments = {}) => {
-                const urlTarget = getUrlTarget(span.url)
-                const targetDocument = linkedDocuments[urlTarget]
-                if (
-                    targetDocument &&
-                    targetDocument.published &&
-                    targetDocument.slug
-                ) {
-                    return (
-                        <a
-                            href={`/${targetDocument.slug}`}
-                            className="span-link"
-                        >
-                            {renderSpans(span.children)}
-                        </a>
-                    )
-                }
-                // TODO: log error to slack if baking
-                return renderSpans(span.children)
-            }}
-        </LinkedDocumentsContext.Consumer>
-    )
+    if (linkedDocument && linkedDocument.published && linkedDocument.slug) {
+        return (
+            <a href={`/${linkedDocument.slug}`} className="span-link">
+                {renderSpans(span.children)}
+            </a>
+        )
+    }
+    return <>{renderSpans(span.children)}</>
 }
 
 export function renderSpan(
