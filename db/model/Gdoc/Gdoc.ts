@@ -10,7 +10,6 @@ import {
     OwidArticleType,
     OwidArticleTypePublished,
     OwidArticlePublicationContext,
-    uniq,
     GdocsContentSource,
     JsonError,
     OwidEnrichedArticleBlock,

@@ -12,7 +12,6 @@ import {
     S3Client,
 } from "@aws-sdk/client-s3"
 import {
-    generateSrcSet,
     getFilenameWithoutExtension,
     getSizes,
     keyBy,
