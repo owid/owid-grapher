@@ -31,7 +31,7 @@
                 align-items: center;
                 justify-content: space-between;
                 width: calc(100% + 16px);
-                padding: 8px 24px;
+                padding: 8px 16px;
                 margin: 8px 0;
                 margin-left: -16px;
                 text-align: left;
@@ -41,6 +41,8 @@
                 border: none;
                 svg {
                     margin-left: 24px;
+                    margin-right: 8px;
+                    font-size: 0.875rem;
                     color: $blue-40;
                 }
                 &:hover,
