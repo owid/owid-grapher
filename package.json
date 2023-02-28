@@ -31,7 +31,7 @@
         "startTscServer": "tsc -b -verbose -watch",
         "startWebpackServer": "webpack server --mode development --no-live-reload --config ./itsJustJavascript/webpack.config.js",
         "startWordpressPlugin": "cd ./wordpress/web/app/plugins/owid && yarn && yarn start",
-        "startSiteFront": "webpack server --mode development --config ./itsJustJavascript/webpack.config.js",
+        "startSiteFront": "vite",
         "startLocalBakeServer": "http-server ./localBake -p 3000",
         "testBundlewatch": "ENV=production webpack --mode production --config ./itsJustJavascript/webpack.config.js && bundlewatch --config .bundlewatch.config.json",
         "testBundlewatchJson": "ENV=production webpack --mode production --config ./itsJustJavascript/webpack.config.js --json > itsJustJavascript/webpack/webpack-bundle-stats.json && bundlewatch --config .bundlewatch.config.json",
