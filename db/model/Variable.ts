@@ -1,6 +1,7 @@
 import _ from "lodash"
 import { Writable } from "stream"
 import * as db from "../db.js"
+import https from "https"
 import {
     OwidChartDimensionInterface,
     OwidVariableDisplayConfigInterface,
@@ -16,6 +17,7 @@ import {
     OwidVariableId,
     OwidSource,
 } from "@ourworldindata/utils"
+import fetch from "node-fetch"
 import pl from "nodejs-polars"
 
 export interface VariableRow {
@@ -35,6 +37,7 @@ export interface VariableRow {
     timespan?: string
     columnOrder?: number
     catalogPath?: string
+    dataPath?: string
     dimensions?: Dimensions
 }
 
@@ -109,6 +112,7 @@ export async function getVariableData(
     const row = await variableQuery
     if (row === undefined) throw new Error(`Variable ${variableId} not found`)
 
+    // load data from data_values or S3 if `dataPath` exists
     const results = await dataAsRecords([variableId])
 
     const {
@@ -345,11 +349,75 @@ export const entitiesAsDF = async (
     )
 }
 
-export const dataAsDF = async (
+const _castDataDF = (df: pl.DataFrame): pl.DataFrame => {
+    return df.select(
+        pl.col("variableId").cast(pl.Int32),
+        pl.col("entityId").cast(pl.Int32),
+        pl.col("entityName").cast(pl.Utf8),
+        pl.col("entityCode").cast(pl.Utf8),
+        pl.col("year").cast(pl.Int32),
+        pl.col("value").cast(pl.Utf8)
+    )
+}
+
+const emptyDataDF = (): pl.DataFrame => {
+    return _castDataDF(
+        pl.DataFrame({
+            variableId: [],
+            entityId: [],
+            entityName: [],
+            entityCode: [],
+            year: [],
+            value: [],
+        })
+    )
+}
+
+export const _dataAsDFfromS3 = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
-    // return data values as a dataframe
-    let df = await readSQLasDF(
+    if (variableIds.length == 0) {
+        return emptyDataDF()
+    }
+
+    const dfs = await Promise.all(
+        variableIds.map(async (variableId) => {
+            const s3values = await fetchS3Values(variableId)
+            return createDataFrame(s3values)
+                .rename({
+                    values: "value",
+                    entities: "entityId",
+                    years: "year",
+                })
+                .select(
+                    pl.col("entityId").cast(pl.Int32),
+                    pl.col("year").cast(pl.Int32),
+                    pl.col("value").cast(pl.Utf8),
+                    pl.lit(variableId).cast(pl.Int32).alias("variableId")
+                )
+        })
+    )
+
+    const df = pl.concat(dfs)
+
+    if (df.height == 0) {
+        return emptyDataDF()
+    }
+
+    const entityDF = await entitiesAsDF(df.getColumn("entityId").toArray())
+
+    return _castDataDF(df.join(entityDF, { on: "entityId" }))
+}
+
+const _dataAsDFfromMySQL = async (
+    variableIds: OwidVariableId[]
+): Promise<pl.DataFrame> => {
+    if (variableIds.length == 0) {
+        return emptyDataDF()
+    }
+
+    // this function will be eventually deprecated by _dataAsDFfromS3
+    const df = await readSQLasDF(
         `
     SELECT
         data_values.variableId as variableId,
@@ -366,24 +434,75 @@ export const dataAsDF = async (
     )
 
     if (df.height == 0) {
-        df = pl.DataFrame({
-            variableId: [],
-            entityId: [],
-            entityName: [],
-            entityCode: [],
-            year: [],
-            value: [],
-        })
+        return emptyDataDF()
     }
 
-    return df.select(
-        pl.col("variableId").cast(pl.Int32),
-        pl.col("entityId").cast(pl.Int32),
-        pl.col("entityName").cast(pl.Utf8),
-        pl.col("entityCode").cast(pl.Utf8),
-        pl.col("year").cast(pl.Int32),
-        pl.col("value").cast(pl.Utf8)
+    return _castDataDF(df)
+}
+
+export const dataAsDF = async (
+    variableIds: OwidVariableId[]
+): Promise<pl.DataFrame> => {
+    // return variables values as a DataFrame from either S3 or data_values table
+    const rows = await db.queryMysql(
+        `
+    SELECT
+        id,
+        dataPath
+    FROM variables
+    WHERE id in (?)
+    `,
+        [variableIds]
     )
+
+    // variables with dataPath are stored in S3 and variables without it
+    // are stored in data_values table
+    const variableIdsWithDataPath = rows
+        .filter((row: any) => row.dataPath)
+        .map((row: any) => row.id)
+
+    const variableIdsWithoutDataPath = rows
+        .filter((row: any) => !row.dataPath)
+        .map((row: any) => row.id)
+
+    return pl.concat([
+        await _dataAsDFfromMySQL(variableIdsWithoutDataPath),
+        await _dataAsDFfromS3(variableIdsWithDataPath),
+    ])
+}
+
+export const getOwidVariableDataPath = async (
+    variableId: OwidVariableId
+): Promise<string | undefined> => {
+    const row = await db.mysqlFirst(
+        `SELECT dataPath FROM variables WHERE id = ?`,
+        [variableId]
+    )
+    return row.dataPath
+}
+
+// limit number of concurrent requests to 50 when fetching values from S3
+const httpsAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 50,
+})
+
+export const fetchS3Values = async (
+    variableId: OwidVariableId
+): Promise<OwidVariableMixedData> => {
+    const dataPath = await getOwidVariableDataPath(variableId)
+    if (!dataPath) {
+        throw new Error(`Missing dataPath for variable ${variableId}`)
+    }
+    return fetchS3ValuesByPath(dataPath)
+}
+
+export const fetchS3ValuesByPath = async (
+    dataPath: string
+): Promise<OwidVariableMixedData> => {
+    return (
+        await fetch(dataPath, { agent: httpsAgent })
+    ).json() as Promise<OwidVariableMixedData>
 }
 
 export const dataAsRecords = async (
@@ -393,17 +512,23 @@ export const dataAsRecords = async (
     return (await dataAsDF(variableIds)).toRecords() as DataRow[]
 }
 
+export const createDataFrame = (data: any): pl.DataFrame => {
+    if (Array.isArray(data)) {
+        // transpose list of objects into object of lists because polars raises
+        // an error when creating a dataframe with null values (see https://github.com/pola-rs/nodejs-polars/issues/20)
+        // otherwise we'd just use pl.DataFrame(rows)
+        const keys = _.keys(data[0])
+        const values = _.map(keys, (key) => _.map(data, key))
+
+        return pl.DataFrame(_.zipObject(keys, values))
+    } else {
+        return pl.DataFrame(data)
+    }
+}
+
 export const readSQLasDF = async (
     sql: string,
     params: any[]
 ): Promise<pl.DataFrame> => {
-    const rows = await db.queryMysql(sql, params)
-
-    // transpose list of objects into object of lists because polars raises
-    // an error when creating a dataframe with null values (see https://github.com/pola-rs/nodejs-polars/issues/20)
-    // otherwise we'd just use pl.DataFrame(rows)
-    const keys = _.keys(rows[0])
-    const values = _.map(keys, (key) => _.map(rows, key))
-
-    return pl.DataFrame(_.zipObject(keys, values))
+    return createDataFrame(await db.queryMysql(sql, params))
 }

@@ -80,23 +80,14 @@ interface BakeVariableDataArguments {
     variableId: number
 }
 
-async function getDataMetadataFromMysql(
-    variableId: number
-): Promise<OwidVariableDataMetadataDimensions> {
-    const variableData = await getVariableData(variableId)
-    return {
-        data: variableData.data,
-        metadata: variableData.metadata,
-    }
-}
-
 export const bakeVariableData = async (
     bakeArgs: BakeVariableDataArguments
 ): Promise<BakeVariableDataArguments> => {
-    const { data, metadata } = await getDataMetadataFromMysql(
-        bakeArgs.variableId
-    )
+    const { data, metadata } = await getVariableData(bakeArgs.variableId)
 
+    // NOTE: if variable has dataPath (its data exists in S3), we still write the data to disk
+    // in the future when all our data lives in S3 we should just pass the link to grapher and
+    // let it load the data from S3
     const path = `${bakeArgs.bakedSiteDir}${getVariableDataRoute(
         bakeArgs.variableId
     )}`
@@ -156,6 +147,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
                     const metadataJson = JSON.parse(
                         metadataString
                     ) as OwidVariableWithSourceAndDimension
+
                     const dataPath = `${bakedSiteDir}${getVariableDataRoute(
                         variableId
                     )}`
@@ -163,6 +155,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
                     const dataJson = JSON.parse(
                         dataString
                     ) as OwidVariableMixedData
+
                     return {
                         data: dataJson,
                         metadata: metadataJson,
