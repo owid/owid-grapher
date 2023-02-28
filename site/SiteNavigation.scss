@@ -158,6 +158,11 @@
                     }
                 }
             }
+            .NewsletterSubscriptionForm__header {
+                @include h3-bold;
+                color: $blue-60;
+                margin: 0;
+            }
             .SiteNavigationToggle__dropdown {
                 position: absolute;
                 top: 100%;
@@ -166,9 +171,10 @@
                 @include sm-only {
                     margin-right: -16px;
                     width: 100vw;
+                    padding: 16px;
                 }
                 padding: 32px 40px;
-                background-color: $white;
+                background-color: $accent-pale-blue;
             }
         }
         a.donate {

@@ -76,8 +76,8 @@ $radio-bullet-size: 8px;
 /* Checkboxes
    ========================================================================== */
 
-$checkbox-icon-size: 18px;
-$checkbox-check-width: 11px;
+$checkbox-icon-size: 16px;
+$checkbox-check-width: 8px;
 $checkbox-check-height: 4px;
 
 .owid-checkboxes {
@@ -114,6 +114,7 @@ $checkbox-check-height: 4px;
         margin-top: -$checkbox-icon-size * 0.5;
         border: 2px solid currentColor;
         background: transparent;
+        border-radius: 3px;
     }
 
     input[type="checkbox"]:focus + label::before {
@@ -244,12 +245,6 @@ $checkbox-check-height: 4px;
     cursor: default;
 }
 
-%inline-spacing {
-    font-family: $sans-serif-font-stack;
-    font-size: 1.125rem;
-    padding: 0.75rem 1rem;
-}
-
 .owid-block-field {
     display: block;
 
@@ -268,24 +263,4 @@ $checkbox-check-height: 4px;
     @include sm-only {
         flex-direction: column;
     }
-}
-
-.owid-inline-input {
-    @extend %owid-input;
-    @extend %inline-spacing;
-
-    flex: 1;
-    outline: none;
-    display: inline-block;
-}
-
-.owid-inline-button {
-    @extend %owid-button-visual;
-    @extend %inline-spacing;
-
-    flex: 0;
-    flex-basis: auto;
-    background-color: $oxford-blue;
-    border-color: $oxford-blue;
-    display: inline-block;
 }

@@ -99,65 +99,55 @@ export const NewsletterSubscriptionForm = ({
             name="mc-embedded-subscribe-form"
             target="_blank"
         >
-            <p>Receive our latest work by email.</p>
-            <fieldset>
-                <div className="owid-checkboxes">
-                    <div className="owid-checkbox-block">
-                        <input
-                            type="checkbox"
-                            value={IMMEDIATE}
-                            name={`group[85302][${IMMEDIATE}]`}
-                            id={idImmediate}
-                            checked={frequencies.includes(IMMEDIATE)}
-                            onChange={updateFrequencies}
-                        />
-                        <label htmlFor={idImmediate}>
-                            <div className="label-title">Immediate updates</div>
-                            <div className="label-text">
-                                Receive an email from us whenever we publish new
-                                work (maximum 1 per day).
-                            </div>
-                        </label>
+            <span className="NewsletterSubscriptionForm__header">
+                Receive our latest work by email.
+            </span>
+            <div className="owid-checkbox-block">
+                <input
+                    type="checkbox"
+                    value={IMMEDIATE}
+                    name={`group[85302][${IMMEDIATE}]`}
+                    id={idImmediate}
+                    checked={frequencies.includes(IMMEDIATE)}
+                    onChange={updateFrequencies}
+                />
+                <label htmlFor={idImmediate}>
+                    <div className="label-title">Immediate updates</div>
+                    <div className="label-text">
+                        Receive an email from us whenever we publish new work
+                        (maximum 1 per day).
                     </div>
-                    <div className="owid-checkbox-block">
-                        <input
-                            type="checkbox"
-                            value={BIWEEKLY}
-                            name={`group[85302][${BIWEEKLY}]`}
-                            id={idBiweekly}
-                            checked={frequencies.includes(BIWEEKLY)}
-                            onChange={updateFrequencies}
-                        />
-                        <label htmlFor={idBiweekly}>
-                            <div className="label-title">Biweekly digest</div>
-                            <div className="label-text">
-                                Receive an overview of our recent work and
-                                highlights of our other work every two weeks.
-                            </div>
-                        </label>
+                </label>
+            </div>
+            <div className="owid-checkbox-block">
+                <input
+                    type="checkbox"
+                    value={BIWEEKLY}
+                    name={`group[85302][${BIWEEKLY}]`}
+                    id={idBiweekly}
+                    checked={frequencies.includes(BIWEEKLY)}
+                    onChange={updateFrequencies}
+                />
+                <label htmlFor={idBiweekly}>
+                    <div className="label-title">Biweekly digest</div>
+                    <div className="label-text">
+                        Receive an overview of our recent work and highlights of
+                        our other work every two weeks.
                     </div>
-                    {frequencies.length === 0 && (
-                        <div className="alert">
-                            Please select at least one option.
-                        </div>
-                    )}
-                </div>
-            </fieldset>
-            <input
-                placeholder="Your email address"
-                type="email"
-                className="owid-inline-input"
-                name="EMAIL"
-            />
-            <div className="privacy-submit">
-                <div className="privacy-notice">
-                    By subscribing you are agreeing to <br />
-                    the terms of our{" "}
-                    <a href="/privacy-policy">privacy policy</a>.
-                </div>
+                </label>
+            </div>
+            {frequencies.length === 0 && (
+                <div className="alert">Please select at least one option.</div>
+            )}
+            <div className="NewsletterSubscription__email-submit">
+                <input
+                    placeholder="Your email address"
+                    type="email"
+                    className="NewsletterSubscription__email"
+                    name="EMAIL"
+                />
                 <button
                     type="submit"
-                    className="owid-inline-button"
                     disabled={!isSubmittable}
                     onClick={() =>
                         analytics.logSiteClick(
@@ -165,9 +155,14 @@ export const NewsletterSubscriptionForm = ({
                             `Subscribe [${context ?? "other-contexts"}]`
                         )
                     }
+                    className="NewsletterSubscription__submit"
                 >
                     Subscribe
                 </button>
+            </div>
+            <div className="NewsletterSubscription__privacy">
+                By subscribing you are agreeing to the terms of our{" "}
+                <a href="/privacy-policy">privacy policy</a>.
             </div>
             <input
                 type="hidden"
