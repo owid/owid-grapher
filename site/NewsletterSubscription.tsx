@@ -8,7 +8,6 @@ const analytics = new SiteAnalytics()
 
 export enum NewsletterSubscriptionContext {
     Homepage = "homepage",
-    MobileMenu = "mobile-menu",
     Floating = "floating",
 }
 
