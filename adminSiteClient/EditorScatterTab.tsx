@@ -28,6 +28,10 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
         this.props.grapher.hideLinesOutsideTolerance = value || undefined
     }
 
+    @action.bound onToggleHideScatterLabels(value: boolean) {
+        this.props.grapher.hideScatterLabels = value || undefined
+    }
+
     @action.bound onXOverrideYear(value: number | undefined) {
         this.props.grapher.xOverrideTime = value
     }
@@ -108,6 +112,13 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         value={grapher.xOverrideTime}
                         onValue={debounce(this.onXOverrideYear, 300)}
                         allowNegative
+                    />
+                </Section>
+                <Section name="Entity labels">
+                    <Toggle
+                        label="Hide entity labels"
+                        value={!!grapher.hideScatterLabels}
+                        onValue={this.onToggleHideScatterLabels}
                     />
                 </Section>
                 <Section name="Point Labels">

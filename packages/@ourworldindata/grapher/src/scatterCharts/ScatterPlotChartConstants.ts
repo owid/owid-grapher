@@ -32,6 +32,7 @@ export interface ScatterPlotManager extends ChartManager {
     startTime?: Time
     endTime?: Time
     hasTimeline?: boolean
+    hideScatterLabels?: boolean
 }
 
 export interface ScatterTooltipProps {
@@ -133,4 +134,5 @@ export interface ScatterPointsWithLabelsProps {
     hideConnectedScatterLines: boolean
     noDataModalManager: NoDataModalManager
     disableIntroAnimation?: boolean
+    hideScatterLabels?: boolean
 }
