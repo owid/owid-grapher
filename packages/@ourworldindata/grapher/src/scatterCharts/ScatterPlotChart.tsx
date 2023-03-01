@@ -822,6 +822,14 @@ export class ScatterPlotChart
         )
     }
 
+    private validValuesForAxisDomain(property: "x" | "y"): number[] {
+        const scaleType = property === "x" ? this.xScaleType : this.yScaleType
+        const values = this.pointsForAxisDomains.map((point) => point[property])
+        return scaleType === ScaleType.log
+            ? values.filter((v) => v > 0)
+            : values
+    }
+
     @computed private get xDomainDefault(): [number, number] {
         return this.domainDefault("x")
     }
@@ -878,7 +886,10 @@ export class ScatterPlotChart
                 )}`
             }
         } else {
-            axis.updateDomainPreservingUserSettings(yDomainDefault)
+            // only overwrite user's min/max if there is more than one unique value along the y-axis
+            if (new Set(this.validValuesForAxisDomain("y")).size > 1) {
+                axis.updateDomainPreservingUserSettings(yDomainDefault)
+            }
             axis.label = label
         }
 
@@ -913,7 +924,10 @@ export class ScatterPlotChart
                 )}`
             }
         } else {
-            axis.updateDomainPreservingUserSettings(xDomainDefault)
+            // only overwrite user's min/max if there is more than one unique value along the x-axis
+            if (new Set(this.validValuesForAxisDomain("x")).size > 1) {
+                axis.updateDomainPreservingUserSettings(xDomainDefault)
+            }
             const label = xAxisConfig.label || xAxisLabelBase
             if (label) axis.label = label
         }
