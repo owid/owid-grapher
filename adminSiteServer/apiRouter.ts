@@ -2694,16 +2694,6 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
     }
 })
 
-apiRouter.get("/gdocs/:id/validate", async (req) => {
-    const { id } = req.params
-
-    const gdoc = await Gdoc.findOneBy({ id })
-
-    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
-
-    return getErrors(gdoc)
-})
-
 /**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
