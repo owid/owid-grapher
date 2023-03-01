@@ -32,7 +32,6 @@ const splitOnLastWord = (str: string) => {
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
-    posts: IndexPost[]
     totalCharts: number
     baseUrl: string
     featuredWork: IndexPost[]
