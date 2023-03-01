@@ -94,18 +94,16 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }, [originalGdoc, fetchGdoc, handleError, admin])
 
     // synchronise content every 5 seconds
-    useInterval(() => {
+    useInterval(async () => {
         if (currentGdoc) {
-            fetchGdoc(GdocsContentSource.Gdocs)
-                .then((gdoc) => {
-                    setCurrentGdoc({
-                        ...gdoc,
-                        slug: currentGdoc.slug,
-                        publicationContext: currentGdoc.publicationContext,
-                    })
-                    setHasSyncingError(false)
-                })
-                .catch(handleError)
+            const latestGdoc = await fetchGdoc(GdocsContentSource.Gdocs)
+            setCurrentGdoc({
+                ...latestGdoc,
+                slug: currentGdoc.slug,
+                published: currentGdoc.published,
+                publishedAt: currentGdoc.publishedAt,
+                publicationContext: currentGdoc.publicationContext,
+            })
         }
     }, 5000)
 

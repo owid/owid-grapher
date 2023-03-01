@@ -39,6 +39,7 @@ export const useImage = (filename: string): ImageMetadata | undefined => {
         return metadata
     } else if (isBaking) {
         // TODO: make this a slack error
+        // But then it will log every time the component renders?
         throw new Error("Error baking an article with a missing image")
     }
     return
