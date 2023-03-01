@@ -219,7 +219,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                 if (node.spanType == "span-link") {
                     return spansToUnformattedPlainText(node.children)
                 }
-            } else if (node.type === "prominent-link") return node.title
+            } else if (node.type === "prominent-link") return node.title || ""
             return ""
         }
 

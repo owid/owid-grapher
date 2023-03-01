@@ -785,7 +785,7 @@ export type RawBlockProminentLink = {
 export type EnrichedBlockProminentLink = {
     type: "prominent-link"
     url: string
-    title: string
+    title?: string
     description?: string
 } & EnrichedBlockWithParseErrors
 

@@ -18,7 +18,7 @@ import {
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
-import { renderSpans } from "./utils"
+import { renderSpans, useLinkedDocument } from "./utils"
 import Paragraph from "./Paragraph.js"
 import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"
@@ -112,29 +112,32 @@ export function getLayout(
     return cx(`article-block__${blockType}`, layout)
 }
 
-const ProminentLink = ({
-    title,
-    href,
-    className = "",
-    description,
-}: {
-    title: string
-    href: string
+const ProminentLink = (props: {
+    url: string
     className: string
+    title?: string
     description?: string
-}) => (
-    <div className={cx(className, "prominent-link")}>
-        {/* TODO: where do we get the image from? */}
-        <div className="prominent-link__image span-cols-1 span-md-cols-2"></div>
-        <div className="col-start-2 col-md-start-3 col-end-limit">
-            <a href={href}>
-                <h3 className="h3-bold">{title}</h3>
-                <FontAwesomeIcon icon={faArrowRight} />
-            </a>
-            <p className="body-3-medium">{description}</p>
+}) => {
+    const { url, className = "" } = props
+    const linkedDocument = useLinkedDocument(url)
+    const title = props.title || linkedDocument?.content.title
+    const description = props.description || linkedDocument?.content.excerpt
+    // const thumbnail = props.thumbnail || linkedDocument?.content.headerImage
+
+    return (
+        <div className={cx(className, "prominent-link")}>
+            {/* TODO: where do we get the image from? */}
+            <div className="prominent-link__image span-cols-1 span-md-cols-2"></div>
+            <div className="col-start-2 col-md-start-3 col-end-limit">
+                <a href={url}>
+                    <h3 className="h3-bold">{title}</h3>
+                    <FontAwesomeIcon icon={faArrowRight} />
+                </a>
+                <p className="body-3-medium">{description}</p>
+            </div>
         </div>
-    </div>
-)
+    )
+}
 
 export default function ArticleBlock({
     b: block,
@@ -461,7 +464,7 @@ export default function ArticleBlock({
             <ProminentLink
                 className={getLayout("prominent-link", containerType)}
                 title={block.title}
-                href={block.url}
+                url={block.url}
                 description={block.description}
             />
         ))

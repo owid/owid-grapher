@@ -56,6 +56,7 @@ import {
     SpanSimpleText,
     omitUndefinedValues,
     EnrichedBlockSimpleText,
+    checkIsInternalLink,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -880,15 +881,18 @@ function parseProminentLink(
         description: "",
     })
 
-    if (!raw.value.url) {
+    const url = extractUrl(raw.value.url)
+
+    if (!url) {
         return createError({ message: "No url given for the prominent link" })
     }
 
-    if (!raw.value.title) {
-        return createError({ message: "No title given for the prominent link" })
+    if (!checkIsInternalLink(url) && !raw.value.title) {
+        return createError({
+            message:
+                "No title given for the prominent link. If the link points to an external source, it must have a title.",
+        })
     }
-
-    const url = extractUrl(raw.value.url)
 
     return {
         type: "prominent-link",

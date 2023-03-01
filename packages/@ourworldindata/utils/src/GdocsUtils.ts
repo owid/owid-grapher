@@ -14,6 +14,12 @@ export function getLinkType(url: string): OwidArticleLinkJSON["linkType"] {
     return "url"
 }
 
+export function checkIsInternalLink(url: string): boolean {
+    if (getLinkType(url) === "gdoc") return true
+    // TODO: if (getLinkType(url) === 'grapher') return true etc..
+    return false
+}
+
 export function getUrlTarget(url: string): string {
     const gdocsMatch = url.match(gdocUrlRegex)
     if (gdocsMatch) {

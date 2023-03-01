@@ -513,4 +513,9 @@ export {
     globalDetailsOnDemand,
 } from "./DetailsOnDemand/detailsOnDemand.js"
 
-export { gdocUrlRegex, getLinkType, getUrlTarget } from "./GdocsUtils.js"
+export {
+    gdocUrlRegex,
+    getLinkType,
+    getUrlTarget,
+    checkIsInternalLink,
+} from "./GdocsUtils.js"

@@ -11,7 +11,7 @@ import {
 import { match, P } from "ts-pattern"
 import { AttachmentsContext, SiteBakerContext } from "./OwidArticle.js"
 
-const useLinkedDocument = (url: string): OwidArticleType | undefined => {
+export const useLinkedDocument = (url: string): OwidArticleType | undefined => {
     const { linkedDocuments } = useContext(AttachmentsContext)
     const { isBaking } = useContext(SiteBakerContext)
     const linkType = getLinkType(url)
