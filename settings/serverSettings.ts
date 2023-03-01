@@ -40,6 +40,9 @@ export const GIT_DEFAULT_USERNAME: string =
 export const GIT_DEFAULT_EMAIL: string =
     serverSettings.GIT_DEFAULT_EMAIL ?? "info@ourworldindata.org"
 
+export const BUGSNAG_API_KEY: string | undefined =
+    serverSettings.BUGSNAG_API_KEY
+
 export const BLOG_POSTS_PER_PAGE: number =
     parseIntOrUndefined(serverSettings.BLOG_POSTS_PER_PAGE) ?? 21
 export const BLOG_SLUG: string = serverSettings.BLOG_SLUG ?? "blog"
@@ -139,3 +142,19 @@ export const GDOCS_CLIENT_EMAIL: string = clientSettings.GDOCS_CLIENT_EMAIL
 export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
 export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
     serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
+export const GDOCS_SHARED_DRIVE_ID = serverSettings.GDOCS_SHARED_DRIVE_ID ?? ""
+
+export const IMAGE_HOSTING_SPACE_URL: string =
+    serverSettings.IMAGE_HOSTING_SPACE_URL || ""
+export const IMAGE_HOSTING_CDN_URL: string =
+    serverSettings.IMAGE_HOSTING_CDN_URL || ""
+// e.g. owid-image-hosting/development
+export const IMAGE_HOSTING_BUCKET_PATH: string =
+    serverSettings.IMAGE_HOSTING_BUCKET_PATH || ""
+// e.g. development
+export const IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH: string =
+    IMAGE_HOSTING_BUCKET_PATH.slice(IMAGE_HOSTING_BUCKET_PATH.indexOf("/") + 1)
+export const IMAGE_HOSTING_SPACE_ACCESS_KEY_ID: string =
+    serverSettings.IMAGE_HOSTING_SPACE_ACCESS_KEY_ID || ""
+export const IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY: string =
+    serverSettings.IMAGE_HOSTING_SPACE_SECRET_ACCESS_KEY || ""

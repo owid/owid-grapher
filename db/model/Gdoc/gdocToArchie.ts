@@ -4,7 +4,6 @@ import { docs_v1 } from "googleapis"
 import {
     Span,
     RawBlockHorizontalRule,
-    RawBlockImage,
     RawBlockHeading,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils"
@@ -74,7 +73,7 @@ export async function gdocToArchie(
                     const parsedParagraph = await parseParagraph(value)
                     const fragmentText = match(parsedParagraph)
                         .with(
-                            { type: P.union("image", "horizontal-rule") },
+                            { type: P.union("horizontal-rule") },
                             owidRawArticleBlockToArchieMLString
                         )
                         .with({ spanType: P.any }, (s) => spanToHtmlString(s))
@@ -93,7 +92,7 @@ export async function gdocToArchie(
 
 async function parseParagraph(
     element: docs_v1.Schema$ParagraphElement
-): Promise<Span | RawBlockHorizontalRule | RawBlockImage | null> {
+): Promise<Span | RawBlockHorizontalRule | null> {
     // pull out the text
 
     const textRun = element.textRun

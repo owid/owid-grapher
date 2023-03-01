@@ -1,9 +1,11 @@
 import * as fs from "fs-extra"
+import { writeFile } from "node:fs/promises"
 import * as path from "path"
 import * as glob from "glob"
 import { without } from "lodash"
 import * as lodash from "lodash"
 import * as cheerio from "cheerio"
+import fetch from "node-fetch"
 import ProgressBar from "progress"
 import * as wpdb from "../db/wpdb.js"
 import * as db from "../db/db.js"
@@ -11,6 +13,8 @@ import {
     BLOG_POSTS_PER_PAGE,
     BASE_DIR,
     WORDPRESS_DIR,
+    IMAGE_HOSTING_CDN_URL,
+    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
 } from "../settings/serverSettings.js"
 
 import {
@@ -40,6 +44,7 @@ import {
     countries,
     FullPost,
     OwidArticleTypePublished,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -56,6 +61,8 @@ import {
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { Image } from "../db/model/Image.js"
+import sharp from "sharp"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -69,7 +76,7 @@ export class SiteBaker {
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                total: 16,
+                total: 18,
             }
         )
     }
@@ -350,11 +357,70 @@ export class SiteBaker {
         this.progressBar.tick({ name: "✅ baked rss" })
     }
 
+    private async bakeDriveImages() {
+        const images: Image[] = await db
+            .queryMysql(
+                `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
+            )
+            .then((results: ImageMetadata[]) =>
+                results.map((result) => Image.create<Image>(result))
+            )
+
+        this.ensureDir("images/published")
+        const imagesDirectory = path.join(
+            this.bakedSiteDir,
+            "images",
+            "published"
+        )
+
+        await Promise.all(
+            images.map(async (image) => {
+                const remoteFilePath = path.join(
+                    IMAGE_HOSTING_CDN_URL,
+                    IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
+                    image.filename
+                )
+                return fetch(remoteFilePath)
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(response.statusText)
+                        }
+                        return response.buffer()
+                    })
+                    .then(async (buffer) => {
+                        if (!image.isSvg) {
+                            await Promise.all(
+                                image.sizes!.map((width) => {
+                                    const localResizedFilepath = path.join(
+                                        imagesDirectory,
+                                        `${image.filenameWithoutExtension}_${width}.webp`
+                                    )
+                                    return sharp(buffer)
+                                        .resize(width)
+                                        .webp({
+                                            lossless: true,
+                                        })
+                                        .toFile(localResizedFilepath)
+                                })
+                            )
+                        }
+                        // For SVG, and a non-webp fallback copy of the image
+                        await writeFile(
+                            path.join(imagesDirectory, image.filename),
+                            buffer
+                        )
+                    })
+            })
+        )
+        this.progressBar.tick({ name: "✅ baked google drive images" })
+    }
+
     // Bake the static assets
     private async bakeAssets() {
         await execWrapper(
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
+
         await execWrapper(
             `rm -rf ${this.bakedSiteDir}/assets && cp -r ${BASE_DIR}/itsJustJavascript/webpack ${this.bakedSiteDir}/assets`
         )
@@ -400,6 +466,8 @@ export class SiteBaker {
         this.progressBar.tick({
             name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
         })
+        await this.bakeGDocPosts()
+        await this.bakeDriveImages()
     }
 
     async bakeNonWordpressPages() {
@@ -418,7 +486,6 @@ export class SiteBaker {
         await this.removeDeletedPosts()
         await this.bakeWordpressPages()
         await this._bakeNonWordpressPages()
-        await this.bakeGDocPosts()
         this.flushCache()
     }
 

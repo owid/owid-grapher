@@ -558,30 +558,24 @@ export type EnrichedBlockChartStory = {
     items: EnrichedChartStoryItem[]
 } & EnrichedBlockWithParseErrors
 
-export type RawBlockFixedGraphic = {
-    type: "fixed-graphic"
-    value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
-}
-
-export type EnrichedBlockFixedGraphic = {
-    type: "fixed-graphic"
-    graphic: EnrichedBlockChart | EnrichedBlockImage
-    position?: BlockPositionChoice
-    text: EnrichedBlockText[]
-} & EnrichedBlockWithParseErrors
-export type RawBlockImageValue = {
-    src?: string
-    caption?: string
-}
 export type RawBlockImage = {
     type: "image"
-    value: RawBlockImageValue | string
+    value: {
+        filename?: string
+        alt?: string
+    }
 }
+
+export const NoDefaultAlt = "No default alt text has been set for this image"
+
+export const ImageNotFound = "No image with this filename found in Drive"
 
 export type EnrichedBlockImage = {
     type: "image"
-    src: string
-    caption: Span[]
+    filename: string
+    alt?: string // optional as we can use the default alt from the file
+    originalWidth?: number
+    dataErrors: { message: typeof NoDefaultAlt | typeof ImageNotFound }[] // for errors that aren't to do with parsing
 } & EnrichedBlockWithParseErrors
 
 // TODO: This is what lists staring with * are converted to in gdocToArhcieml
@@ -687,8 +681,7 @@ export type RawBlockPosition = {
     type: "position"
     value: string
 }
-// There is no EnrichedBlockUrl because Position blocks only exist inside FixedGraphics;
-// they are subsumed into FixedGraphic blocks during enrichment
+
 export type RawBlockHeadingValue = {
     text?: string
     level?: string
@@ -830,7 +823,6 @@ export type OwidRawArticleBlock =
     | RawBlockChart
     | RawBlockScroller
     | RawBlockChartStory
-    | RawBlockFixedGraphic
     | RawBlockImage
     | RawBlockList
     | RawBlockPullQuote
@@ -858,7 +850,6 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockChart
     | EnrichedBlockScroller
     | EnrichedBlockChartStory
-    | EnrichedBlockFixedGraphic
     | EnrichedBlockImage
     | EnrichedBlockList
     | EnrichedBlockPullQuote
@@ -963,7 +954,6 @@ export enum GdocsContentSource {
 }
 
 export enum SiteFooterContext {
-    gdocsPreview = "gdocsPreview", // the previewed version (in the admin)
     gdocsArticle = "gdocsArticle", // the rendered version (on the site)
     grapherPage = "grapherPage",
     explorerPage = "explorerPage",

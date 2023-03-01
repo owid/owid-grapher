@@ -1,0 +1,13 @@
+diff --git a/index.js b/index.js
+index d109de477e2b4afa44836ac8da63e75542743919..40e87aa1cfee4d1a006d870650389e38b8e06727 100644
+--- a/index.js
++++ b/index.js
+@@ -63,7 +63,7 @@ exports.UnControlled = exports.Controlled = void 0;
+ 
+ var React = require('react');
+ 
+-var SERVER_RENDERED = typeof navigator === 'undefined' || global['PREVENT_CODEMIRROR_RENDER'] === true;
++var SERVER_RENDERED = typeof navigator === 'undefined' || (typeof global !== 'undefined' && global['PREVENT_CODEMIRROR_RENDER'] === true);
+ var cm;
+ 
+ if (!SERVER_RENDERED) {

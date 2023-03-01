@@ -7,5 +7,5 @@ export class DeleteObsoleteTables1675942735841 implements MigrationInterface {
         queryRunner.query(`DROP TABLE knex_migrations_lock;`)
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    public async down(): Promise<void> {} // eslint-disable-line
 }

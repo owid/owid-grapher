@@ -8,6 +8,7 @@ export {
     AlgoliaRecord,
     Annotation,
     AxisAlign,
+    BasicChartInformation,
     BLOCK_WRAPPER_DATATYPE,
     BlockPositionChoice,
     Box,
@@ -31,7 +32,6 @@ export {
     EnrichedBlockAside,
     EnrichedBlockChart,
     EnrichedBlockChartStory,
-    EnrichedBlockFixedGraphic,
     EnrichedBlockGraySection,
     EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
@@ -69,11 +69,13 @@ export {
     GridParameters,
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
+    ImageNotFound,
     IndexPost,
     Integer,
     JsonError,
     KeyInsight,
     KeyValueProps,
+    NoDefaultAlt,
     OwidArticleContent,
     OwidArticlePublicationContext,
     OwidArticleType,
@@ -94,7 +96,6 @@ export {
     RawBlockChart,
     RawBlockChartStory,
     RawBlockChartValue,
-    RawBlockFixedGraphic,
     RawBlockGraySection,
     RawBlockHeading,
     RawBlockHorizontalRule,
@@ -119,7 +120,6 @@ export {
     RawChartStoryValue,
     RawRecircItem,
     RawSDGGridItem,
-    BasicChartInformation,
     RelatedChart,
     ScaleType,
     SerializedGridProgram,
@@ -258,9 +258,11 @@ export {
     getArticleFromJSON,
     formatDate,
     canWriteToClipboard,
+    recursivelyMapArticleBlock,
     isNegativeInfinity,
     isPositiveInfinity,
     imemo,
+    findDuplicates,
 } from "./Util.js"
 
 export {
@@ -481,6 +483,14 @@ export { serializeJSONForHTML, deserializeJSONFromHTML } from "./serializers.js"
 export { PromiseCache } from "./PromiseCache.js"
 
 export { PromiseSwitcher } from "./PromiseSwitcher.js"
+
+export {
+    getSizes,
+    generateSrcSet,
+    getFilenameWithoutExtension,
+    GDriveImageMetadata,
+    ImageMetadata,
+} from "./image.js"
 
 export { Tippy, TippyIfInteractive } from "./Tippy.js"
 
