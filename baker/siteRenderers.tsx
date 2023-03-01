@@ -6,7 +6,6 @@ import {
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { FrontPage } from "../site/FrontPage.js"
 import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
-import { CovidPage } from "../site/CovidPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
@@ -140,10 +139,6 @@ export const renderChartsPage = async (
         />
     )
 }
-
-// Only used in the dev server
-export const renderCovidPage = () =>
-    renderToHtmlPage(<CovidPage baseUrl={BAKED_BASE_URL} />)
 
 export const renderGdocsPageBySlug = async (
     slug: string
