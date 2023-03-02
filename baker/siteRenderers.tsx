@@ -28,7 +28,7 @@ import * as cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
-    GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID
+    GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
 } from "../settings/serverSettings.js"
 import {
     ADMIN_BASE_URL,
@@ -229,21 +229,21 @@ export const renderFrontPage = async () => {
      * may not be filled in.
      *
      */
-    
-    let featuredWork: IndexPost[];
+
+    let featuredWork: IndexPost[]
     try {
         const frontPageConfigGdoc = new Gdoc(GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID)
         await frontPageConfigGdoc.getEnrichedArticle()
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
             frontPageConfig.featuredPosts
-    
+
         // Generate the candidate posts to fill in any missing slots
         const slugs = featuredPosts.map((d) => d.slug)
         const filteredPosts = posts.filter((post) => {
             return !slugs.includes(post.slug)
         })
-    
+
         /**
          * Create the final list of featured work by merging the
          * manually curated list of posts and filling in any empty
@@ -267,9 +267,8 @@ export const renderFrontPage = async () => {
                 }
                 return filteredPosts[missingPosts++]
             })
-
-    } catch(e) {
-        featuredWork = posts.slice(0, 6);
+    } catch (e) {
+        featuredWork = posts.slice(0, 6)
     }
 
     const totalCharts = (

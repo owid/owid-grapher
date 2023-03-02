@@ -143,7 +143,9 @@ export const GDOCS_CLIENT_ID: string = serverSettings.GDOCS_CLIENT_ID ?? ""
 export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
     serverSettings.GDOCS_BACKPORTING_TARGET_FOLDER ?? ""
 
-export const GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID: string = serverSettings.GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID ?? "1LpZ5LFDTA6buEb_uL-IOWQC1YLAEbpj7odup-zgg1II"
+export const GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID: string =
+    serverSettings.GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID ??
+    "1LpZ5LFDTA6buEb_uL-IOWQC1YLAEbpj7odup-zgg1II"
 
 export const GDOCS_SHARED_DRIVE_ID = serverSettings.GDOCS_SHARED_DRIVE_ID ?? ""
 
