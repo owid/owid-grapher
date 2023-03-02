@@ -1,4 +1,5 @@
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "@ourworldindata/core-table"
 import {
@@ -32,6 +33,15 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
         this.props.grapher.xOverrideTime = value
     }
 
+    @computed private get includedEntityNames(): EntityName[] {
+        const { includedEntities, inputTable } = this.props.grapher
+        const { entityIdToNameMap } = inputTable
+        const includedEntityIds = includedEntities ?? []
+        return excludeUndefined(
+            includedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
+        )
+    }
+
     @computed private get excludedEntityNames(): EntityName[] {
         const { excludedEntities, inputTable } = this.props.grapher
         const { entityIdToNameMap } = inputTable
@@ -39,6 +49,15 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
         return excludeUndefined(
             excludedEntityIds.map((entityId) => entityIdToNameMap.get(entityId))
         )
+    }
+
+    @computed private get includedEntityChoices() {
+        const { inputTable } = this.props.grapher
+        return inputTable.availableEntityNames
+            .filter(
+                (entityName) => !this.includedEntityNames.includes(entityName)
+            )
+            .sort()
     }
 
     @computed private get excludedEntityChoices() {
@@ -71,6 +90,37 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
         )
     }
 
+    @action.bound onIncludeEntity(entity: string) {
+        const { grapher } = this.props
+        if (grapher.includedEntities === undefined) {
+            grapher.includedEntities = []
+        }
+
+        const entityId = grapher.table.entityNameToIdMap.get(entity)!
+        if (grapher.includedEntities.indexOf(entityId) === -1)
+            grapher.includedEntities.push(entityId)
+    }
+
+    @action.bound onUnincludeEntity(entity: string) {
+        const { grapher } = this.props
+        if (!grapher.includedEntities) return
+
+        const entityId = grapher.table.entityNameToIdMap.get(entity)
+        grapher.includedEntities = grapher.includedEntities.filter(
+            (e) => e !== entityId
+        )
+    }
+
+    @action.bound onClearExcludedEntities() {
+        const { grapher } = this.props
+        grapher.excludedEntities = []
+    }
+
+    @action.bound onClearIncludedEntities() {
+        const { grapher } = this.props
+        grapher.includedEntities = []
+    }
+
     @action.bound onToggleConnection(value: boolean) {
         const { grapher } = this.props
         grapher.hideConnectedScatterLines = value
@@ -82,7 +132,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
     }
 
     render() {
-        const { excludedEntityChoices } = this
+        const { includedEntityChoices, excludedEntityChoices } = this
         const { grapher } = this.props
 
         return (
@@ -129,6 +179,45 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                                     value || undefined)
                         )}
                     />
+                </Section>
+                <Section name="Manual entity selection">
+                    <SelectField
+                        label={
+                            "Explicit start selection (leave empty to show all entities)"
+                        }
+                        placeholder={"Select an entity to include"}
+                        value={undefined}
+                        onValue={(v) => v && this.onIncludeEntity(v)}
+                        options={includedEntityChoices.map((entry) => ({
+                            value: entry,
+                        }))}
+                    />
+                    {this.includedEntityNames && (
+                        <ul className="includedEntities">
+                            {this.includedEntityNames.map((entity) => (
+                                <li key={entity}>
+                                    <div
+                                        className="clickable"
+                                        onClick={() =>
+                                            this.onUnincludeEntity(entity)
+                                        }
+                                    >
+                                        <FontAwesomeIcon icon={faMinus} />
+                                    </div>
+                                    {entity}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {this.includedEntityNames && (
+                        <button
+                            className="btn btn-light btn-clear-selection"
+                            onClick={this.onClearIncludedEntities}
+                        >
+                            <FontAwesomeIcon icon={faTrash} /> Clear start
+                            selection
+                        </button>
+                    )}
                     <SelectField
                         label="Exclude individual entities"
                         placeholder="Select an entity to exclude"
@@ -154,6 +243,15 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                                 </li>
                             ))}
                         </ul>
+                    )}
+                    {this.excludedEntityNames && (
+                        <button
+                            className="btn btn-light btn-clear-selection"
+                            onClick={this.onClearExcludedEntities}
+                        >
+                            <FontAwesomeIcon icon={faTrash} /> Clear exclude
+                            list
+                        </button>
                     )}
                 </Section>
             </div>
