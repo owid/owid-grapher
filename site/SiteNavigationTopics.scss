@@ -107,6 +107,7 @@
             break-inside: avoid-column;
             padding: 8px 0;
             margin: 8px 0;
+            @include body-3-medium;
             &:first-child {
                 margin-top: 0;
             }
