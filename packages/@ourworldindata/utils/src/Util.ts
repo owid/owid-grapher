@@ -10,9 +10,7 @@ import difference from "lodash/difference.js"
 import drop from "lodash/drop.js"
 import escapeRegExp from "lodash/escapeRegExp.js"
 import extend from "lodash/extend.js"
-import findIndex from "lodash/findIndex.js"
 import findLastIndex from "lodash/findLastIndex.js"
-import fromPairs from "lodash/fromPairs.js"
 import flatten from "lodash/flatten.js"
 import get from "lodash/get.js"
 import groupBy from "lodash/groupBy.js"
@@ -30,7 +28,6 @@ import isPlainObject from "lodash/isPlainObject.js"
 import isString from "lodash/isString.js"
 import isUndefined from "lodash/isUndefined.js"
 import keyBy from "lodash/keyBy.js"
-import keys from "lodash/keys.js"
 import mapValues from "lodash/mapValues.js"
 import max from "lodash/max.js"
 import maxBy from "lodash/maxBy.js"
@@ -78,10 +75,8 @@ export {
     drop,
     escapeRegExp,
     extend,
-    findIndex,
     findLastIndex,
     flatten,
-    fromPairs,
     get,
     groupBy,
     identity,
@@ -96,7 +91,6 @@ export {
     isString,
     isUndefined,
     keyBy,
-    keys,
     mapValues,
     max,
     maxBy,
@@ -152,6 +146,7 @@ import {
     GridParameters,
     OwidArticleType,
     OwidArticleTypeJSON,
+    OwidEnrichedArticleBlock,
     TimeBound,
     TimeBoundValue,
 } from "./owidTypes.js"
@@ -1291,6 +1286,25 @@ export const getArticleFromJSON = (
     }
 }
 
+export function recursivelyMapArticleBlock(
+    block: OwidEnrichedArticleBlock,
+    callback: (block: OwidEnrichedArticleBlock) => OwidEnrichedArticleBlock
+): OwidEnrichedArticleBlock {
+    if (block.type === "gray-section") {
+        block.items.map((block) => recursivelyMapArticleBlock(block, callback))
+    }
+    if (
+        block.type === "sticky-left" ||
+        block.type === "sticky-right" ||
+        block.type === "side-by-side"
+    ) {
+        block.left.map((node) => recursivelyMapArticleBlock(node, callback))
+        block.right.map((node) => recursivelyMapArticleBlock(node, callback))
+    }
+
+    return callback(block)
+}
+
 // Checking whether we have clipboard write access is surprisingly complicated.
 // For example, if a chart is embedded in an iframe, then Chrome will prevent the
 // use of clipboard.writeText() unless the iframe has allow="clipboard-write".
@@ -1315,6 +1329,21 @@ export const canWriteToClipboard = async (): Promise<boolean> => {
     }
     // navigator.clipboard is available, but we couldn't check for permissions -- assume we can use it.
     return true
+}
+
+export function findDuplicates<T>(arr: T[]): T[] {
+    const set = new Set()
+    const duplicates: Set<T> = new Set()
+    arr.forEach((item) => {
+        if (set.has(item)) {
+            if (!duplicates.has(item)) {
+                duplicates.add(item)
+            }
+        } else {
+            set.add(item)
+        }
+    })
+    return [...duplicates]
 }
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.

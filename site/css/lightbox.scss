@@ -24,6 +24,13 @@
         }
     }
 
+    .lightbox__img--is-svg {
+        width: 90vw;
+        @include md-up {
+            width: 50vw;
+        }
+    }
+
     .react-transform-component {
         display: block; // prevent stretching large images on Safari
         & > * {

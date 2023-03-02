@@ -10,19 +10,45 @@ import * as Variable from "./model/Variable.js"
 import pl from "nodejs-polars"
 import { Writable } from "stream"
 
+afterEach(() => {
+    jest.restoreAllMocks()
+})
+
 describe("writeVariableCSV", () => {
     const getCSVOutput = async (
         variablesDf: pl.DataFrame | undefined,
         dataDf: pl.DataFrame | undefined,
-        variableIds: number[] = [1, 2]
+        s3data: any,
+        variableIds: number[]
     ): Promise<string> => {
         const spy = jest.spyOn(Variable, "readSQLasDF")
         if (variablesDf) spy.mockResolvedValueOnce(variablesDf)
         if (dataDf) spy.mockResolvedValueOnce(dataDf)
 
+        jest.spyOn(db, "queryMysql").mockResolvedValueOnce(
+            [
+                { id: 1, dataPath: undefined },
+                { id: 2, dataPath: undefined },
+                { id: 3, dataPath: "testpath" },
+            ].filter((row) => variableIds.includes(row.id))
+        )
+
+        if (s3data) {
+            jest.spyOn(Variable, "fetchS3Values").mockResolvedValueOnce(s3data)
+
+            const entities = pl
+                .DataFrame({
+                    entityId: [1],
+                    entityName: ["UK"],
+                    entityCode: ["code"],
+                })
+                .withColumn(pl.col("entityId").cast(pl.Int32))
+            jest.spyOn(Variable, "entitiesAsDF").mockResolvedValueOnce(entities)
+        }
+
         let out = ""
         const writeStream = new Writable({
-            write(chunk, encoding, callback) {
+            write(chunk, encoding, callback): void {
                 out += chunk.toString()
                 callback(null)
             },
@@ -33,9 +59,9 @@ describe("writeVariableCSV", () => {
 
     it("writes to a stream", async () => {
         const variablesDf = pl.DataFrame({
-            variableId: [1, 2],
-            variableName: ["a", "b"],
-            columnOrder: [0, 1],
+            variableId: [1, 2, 3],
+            variableName: ["a", "b", "c"],
+            columnOrder: [0, 1, 2],
         })
 
         const dataDf = pl.DataFrame({
@@ -47,18 +73,24 @@ describe("writeVariableCSV", () => {
             entityCode: ["code", "code", "code", "code"],
         })
 
-        const out = await getCSVOutput(variablesDf, dataDf)
-        expect(out).toEqual(`Entity,Year,a,b
-UK,2000,1.0,3.0
-UK,2001,2.0,4.0
+        const s3data = {
+            values: [5, 6],
+            years: [2000, 2001],
+            entities: [1, 1],
+        }
+
+        const out = await getCSVOutput(variablesDf, dataDf, s3data, [1, 2, 3])
+        expect(out).toEqual(`Entity,Year,a,b,c
+UK,2000,1.0,3.0,5.0
+UK,2001,2.0,4.0,6.0
 `)
     })
 
     it("handles null and NaN values", async () => {
         const variablesDf = pl.DataFrame({
-            variableId: [1, 2],
-            variableName: ["a", "b"],
-            columnOrder: [0, 1],
+            variableId: [1, 2, 3],
+            variableName: ["a", "b", "c"],
+            columnOrder: [0, 1, 2],
         })
 
         const dataDf = pl.DataFrame({
@@ -70,10 +102,16 @@ UK,2001,2.0,4.0
             entityCode: ["code", "code", "code", "code"],
         })
 
-        const out = await getCSVOutput(variablesDf, dataDf)
-        expect(out).toEqual(`Entity,Year,a,b
-UK,2000,,1.0
-UK,2001,2.0,NaN
+        const s3data = {
+            values: [3, null],
+            years: [2000, 2001],
+            entities: [1, 1],
+        }
+
+        const out = await getCSVOutput(variablesDf, dataDf, s3data, [1, 2, 3])
+        expect(out).toEqual(`Entity,Year,a,b,c
+UK,2000,,1.0,3.0
+UK,2001,2.0,NaN,
 `)
     })
 
@@ -86,7 +124,7 @@ UK,2001,2.0,NaN
 
         const dataDf = pl.DataFrame()
 
-        const out = await getCSVOutput(variablesDf, dataDf)
+        const out = await getCSVOutput(variablesDf, dataDf, undefined, [1, 2])
         expect(out).toEqual(`Entity,Year
 `)
     })
@@ -100,7 +138,7 @@ UK,2001,2.0,NaN
 
         expect.assertions(1)
         try {
-            await getCSVOutput(variablesDf, undefined, [1, 2, 3])
+            await getCSVOutput(variablesDf, undefined, undefined, [1, 2, 3])
         } catch (e: any) {
             expect(e.message).toEqual("Variable IDs do not exist: 3")
         }
@@ -138,6 +176,9 @@ describe("getVariableData", () => {
             entityCode: ["code", "code"],
         })
 
+        jest.spyOn(db, "queryMysql").mockResolvedValueOnce([
+            { id: 1, dataPath: undefined },
+        ])
         jest.spyOn(db, "mysqlFirst").mockResolvedValueOnce(variableResult)
         jest.spyOn(Variable, "readSQLasDF").mockResolvedValueOnce(dataDf)
 

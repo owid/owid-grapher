@@ -5,7 +5,6 @@ import {
     EnrichedBlockAside,
     EnrichedBlockChart,
     EnrichedBlockChartStory,
-    EnrichedBlockFixedGraphic,
     EnrichedBlockGraySection,
     EnrichedBlockHeading,
     EnrichedBlockHorizontalRule,
@@ -38,7 +37,6 @@ import {
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
-    RawBlockFixedGraphic,
     RawBlockGraySection,
     RawBlockHeading,
     RawBlockHtml,
@@ -80,7 +78,6 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "chart" }, parseChart)
         .with({ type: "scroller" }, parseScroller)
         .with({ type: "chart-story" }, parseChartStory)
-        .with({ type: "fixed-graphic" }, parseFixedGraphic)
         .with({ type: "image" }, parseImage)
         .with({ type: "list" }, parseList)
         .with({ type: "numbered-list" }, parseNumberedList)
@@ -357,114 +354,34 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
     }
 }
 
-const parseFixedGraphic = (
-    raw: RawBlockFixedGraphic
-): EnrichedBlockFixedGraphic => {
-    const createError = (
-        error: ParseError,
-        graphic: EnrichedBlockChart | EnrichedBlockImage = {
-            type: "image",
-            src: "",
-            caption: [],
-            parseErrors: [],
-        },
-        text: EnrichedBlockText[] = []
-    ): EnrichedBlockFixedGraphic => ({
-        type: "fixed-graphic",
-        graphic,
-        text,
-        position: position,
-        parseErrors: [error],
-    })
-
-    if (typeof raw.value === "string")
-        return createError({
-            message: "Value is a string, not an object with properties",
-        })
-
-    let position: BlockPositionChoice | undefined = undefined
-    let graphic: EnrichedBlockChart | EnrichedBlockImage | undefined = undefined
-    const texts: EnrichedBlockText[] = []
-    const warnings: ParseError[] = []
-    for (const block of raw.value) {
-        match(block)
-            .with({ type: "chart" }, (chart) => {
-                graphic = parseChart(chart)
-            })
-            .with({ type: "image" }, (chart) => {
-                graphic = parseImage(chart)
-            })
-            .with({ type: "text" }, (text) => {
-                texts.push(htmlToEnrichedTextBlock(text.value))
-            })
-            .with({ type: "position" }, (chart) => {
-                if (chart.value === "left" || chart.value === "right")
-                    position = chart.value
-                else {
-                    warnings.push({
-                        message: "position must be 'left' or 'right' or unset",
-                    })
-                }
-            })
-            .otherwise(() =>
-                warnings.push({
-                    message:
-                        "fixed-graphic items must be of type 'chart', 'image', 'text' or 'position'",
-                    isWarning: true,
-                })
-            )
-    }
-    if (texts.length === 0 || !graphic)
-        return createError({
-            message: "fixed-graphic must have a text and a graphic",
-        })
-
-    return {
-        type: "fixed-graphic",
-        graphic,
-        position,
-        text: texts,
-        parseErrors: warnings,
-    }
-}
-
 const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     const createError = (
         error: ParseError,
-        src: string = "",
-        caption: Span[] = []
+        filename: string = "",
+        alt: string = ""
     ): EnrichedBlockImage => ({
         type: "image",
-        src,
-        caption,
+        filename,
+        alt,
+        originalWidth: undefined,
         parseErrors: [error],
+        dataErrors: [],
     })
 
-    if (typeof image.value === "string") {
-        return {
-            type: "image",
-            src: image.value,
-            caption: [],
-            parseErrors: [],
-        }
-    } else {
-        const src = image.value.src
-        if (!src)
-            return createError({
-                message: "Src property is missing or empty",
-            })
+    const filename = image.value.filename
+    if (!filename) {
+        return createError({
+            message: "filename property is missing or empty",
+        })
+    }
 
-        const caption =
-            image.value?.caption !== undefined
-                ? htmlToSpans(image.value.caption)
-                : []
-
-        return {
-            type: "image",
-            caption,
-            src,
-            parseErrors: [],
-        }
+    return {
+        type: "image",
+        filename,
+        alt: image.value.alt,
+        originalWidth: undefined,
+        parseErrors: [],
+        dataErrors: [],
     }
 }
 

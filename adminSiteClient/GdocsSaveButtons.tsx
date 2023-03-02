@@ -10,7 +10,7 @@ import { OwidArticleType } from "@ourworldindata/utils"
 export const GdocsSaveButtons = ({
     published,
     originalGdoc,
-    gdoc,
+    currentGdoc,
     errors,
     hasErrors,
     hasWarnings,
@@ -20,7 +20,7 @@ export const GdocsSaveButtons = ({
 }: {
     published: boolean
     originalGdoc: OwidArticleType | undefined
-    gdoc: OwidArticleType
+    currentGdoc: OwidArticleType
     errors: ErrorMessage[] | undefined
     hasErrors: boolean
     hasWarnings: boolean
@@ -46,7 +46,7 @@ export const GdocsSaveButtons = ({
                         <div {...styleDiff}>
                             <GdocsDiff
                                 originalGdoc={originalGdoc}
-                                gdoc={gdoc}
+                                currentGdoc={currentGdoc}
                             />
                         </div>
                     )}

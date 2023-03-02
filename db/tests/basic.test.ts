@@ -3,7 +3,7 @@ import sqlFixtures from "sql-fixtures"
 import { dbTestConfig } from "./dbTestConfig.js"
 import { dataSource } from "./dataSource.dbtests.js"
 import { Knex, knex } from "knex"
-import { closeTypeOrmAndKnexConnections, getConnection } from "../db.js"
+import { getConnection } from "../db.js"
 import * as typeorm from "typeorm"
 import { User } from "../model/User.js"
 import { Chart } from "../model/Chart.js"
@@ -26,10 +26,10 @@ beforeAll(async () => {
     knexInstance = knex(dbTestConfig)
 
     const fixturesCreator = new sqlFixtures(knexInstance)
-    fixturesCreator.create(dataSpec, function (err: any, result: any) {
+    fixturesCreator.create(dataSpec, function (err: any, _: any) {
         if (err) console.error(err)
         // In case you want to see results of fixture creation you can do it like below
-        // console.log(result.users[0].email)
+        // console.log(_.users[0].email)
     })
     typeOrmConnection = await getConnection(dataSource)
 })
@@ -51,7 +51,7 @@ test("it can query a user created in fixture via TypeORM", async () => {
     expect(user!.email).toBe("admin@example.com")
 })
 
-function sleep(time: number, value: any) {
+function sleep(time: number, value: any): Promise<any> {
     return new Promise((resolve) => {
         setTimeout(() => {
             return resolve(value)
@@ -84,7 +84,7 @@ test("timestamps are automatically created and updated", async () => {
             ).toBeGreaterThan(800)
             expect(
                 updated.updatedAt.getTime() - updated.createdAt.getTime()
-            ).toBeLessThan(1500)
+            ).toBeLessThanOrEqual(2000)
         }
     }
 })

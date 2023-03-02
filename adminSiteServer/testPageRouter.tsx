@@ -257,7 +257,7 @@ async function propsFromQueryParams(
 
     const charts: ChartItem[] = (await query.getMany()).map((c) => ({
         id: c.id,
-        slug: c.config.slug,
+        slug: c.config.slug ?? "",
     }))
 
     if (tab) {

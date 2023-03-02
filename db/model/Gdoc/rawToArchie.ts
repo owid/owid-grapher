@@ -5,7 +5,6 @@ import {
     RawBlockAside,
     RawBlockChart,
     RawBlockChartStory,
-    RawBlockFixedGraphic,
     RawBlockGraySection,
     RawBlockHorizontalRule,
     RawBlockHtml,
@@ -26,15 +25,17 @@ import {
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
-export function appendDotEndIfMultiline(line: string): string {
-    if (line.includes("\n")) return line + "\n:end"
-    return line
+export function appendDotEndIfMultiline(
+    line: string | null | undefined
+): string {
+    if (line && line.includes("\n")) return line + "\n:end"
+    return line ?? ""
 }
 
 export function* encloseLinesAsPropertyPossiblyMultiline(
     key: string,
     lines: Iterable<string>
-) {
+): Generator<string, void, unknown> {
     let first = true
     let multiLine = false
     for (const line of lines) {
@@ -51,7 +52,7 @@ export function* encloseLinesAsPropertyPossiblyMultiline(
 
 export function keyValueToArchieMlString(
     key: string,
-    val: string | undefined
+    val: string | undefined | null
 ): string {
     if (val !== undefined) return `${key}: ${appendDotEndIfMultiline(val)}`
     return ""
@@ -126,24 +127,13 @@ function* rawBlockChartStoryToArchieMLString(
     yield "[]"
 }
 
-function* rawBlockFixedGraphicToArchieMLString(
-    block: RawBlockFixedGraphic
-): Generator<string, void, undefined> {
-    yield "[.+fixed-graphic]"
-    if (typeof block.value !== "string") {
-        for (const b of block.value)
-            yield* owidRawArticleBlockToArchieMLStringGenerator(b)
-    }
-    yield "[]"
-}
-
 function* rawBlockImageToArchieMLString(
     block: RawBlockImage
 ): Generator<string, void, undefined> {
     yield "{.image}"
     if (typeof block.value !== "string") {
-        yield* propertyToArchieMLString("src", block.value)
-        yield* propertyToArchieMLString("caption", block.value)
+        yield* propertyToArchieMLString("filename", block.value)
+        yield* propertyToArchieMLString("alt", block.value)
     }
     yield "{}"
 }
@@ -210,7 +200,7 @@ function* rawBlockRecircToArchieMLString(
 function escapeRawText(text: string): string {
     // In ArchieML, single words followed by a colon are interpreted as a key-value pair. Since here
     // we are trying to output raw text, we need to escape colons.
-    return text.replace(/^\s*(\w+)\s*:/, "$1\\:")
+    return text.replace(/^\s*(\w+)\s*:/m, "$1\\:")
 }
 
 function* rawBlockTextToArchieMLString(
@@ -222,7 +212,15 @@ function* rawBlockTextToArchieMLString(
 function* rawBlockHtmlToArchieMLString(
     block: RawBlockHtml
 ): Generator<string, void, undefined> {
-    yield keyValueToArchieMlString("html", block.value)
+    if (block.value !== undefined) {
+        // When creating Gdocs we need a straightforward way to detect if we
+        // are inside an html block so we *don't* parse Html tags in there (as
+        // this would remove the tags). We make this easier by writing html
+        // tags as properties that are always serialized as multiline properites
+        // with an ":end" marker, even if the content is a single line.
+        yield `html: ${escapeRawText(block.value)}`
+        yield `:end`
+    }
 }
 
 function* rawBlockUrlToArchieMLString(
@@ -371,7 +369,6 @@ export function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
         .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)
-        .with({ type: "fixed-graphic" }, rawBlockFixedGraphicToArchieMLString)
         .with({ type: "image" }, rawBlockImageToArchieMLString)
         .with({ type: "list" }, rawBlockListToArchieMLString)
         .with({ type: "numbered-list" }, rawBlockNumberedListToArchieMLString)

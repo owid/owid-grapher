@@ -21,10 +21,12 @@ import {
     EnrichedBlockList,
     EnrichedBlockStickyRightContainer,
     EnrichedBlockNumberedList,
+    EnrichedBlockProminentLink,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { compact, flatten, isPlainObject, partition } from "lodash"
 import * as cheerio from "cheerio"
+import { spansToSimpleString } from "./gdocUtils.js"
 
 //#region Spans
 function spanFallback(element: CheerioElement): SpanFallback {
@@ -211,6 +213,8 @@ type ErrorNames =
     | "columns block expects children to be column components"
     | "ol without children"
     | "unhandled html tag found"
+    | "prominent link missing title"
+    | "prominent link missing url"
 
 interface BlockParseError {
     name: ErrorNames
@@ -380,15 +384,20 @@ export function parseWpComponent(
     const collectedContent: BlockParseResult<ArchieBlockOrWpComponent>[] = []
     // If the wp component tag was closing (ended with /--> ) or if this is a component
     // tag that we want to ignore then don't try to find a closing tag
-    if (
-        componentDetails.isVoidElement ||
-        wpComponentTagsToIgnore.includes(componentDetails.tagName)
-    )
+    if (componentDetails.isVoidElement)
+        return {
+            result: finishWpComponent(componentDetails, {
+                errors: [],
+                content: [],
+            }),
+            remainingElements: remainingElements,
+        }
+    if (wpComponentTagsToIgnore.includes(componentDetails.tagName))
         return {
             remainingElements,
             result: {
                 errors: [],
-                content: [componentDetails],
+                content: [],
             },
         }
     // Now iterate until we find the matching closing tag. If we find an opening wp:component
@@ -500,6 +509,43 @@ function finishWpComponent(
                     } as EnrichedBlockStickyRightContainer,
                 ],
             }
+        })
+        .with("owid/prominent-link", () => {
+            const errors = content.errors
+            const title = details.attributes?.title as string | undefined
+            const url = details.attributes?.linkUrl as string | undefined
+            if (title === undefined) {
+                errors.push({
+                    name: "prominent link missing title",
+                    details: `Prominent link is missing a title attribute`,
+                })
+            }
+            if (url === undefined) {
+                errors.push({
+                    name: "prominent link missing url",
+                    details: `Prominent link is missing a linkUrl attribute`,
+                })
+            }
+            if (title !== undefined && url !== undefined) {
+                const descriptionBlock =
+                    content.content.length > 0 ? content.content[0] : undefined
+                let description = ""
+                if (descriptionBlock && isEnrichedTextBlock(descriptionBlock)) {
+                    description = spansToSimpleString(descriptionBlock.value)
+                }
+                return {
+                    errors,
+                    content: [
+                        {
+                            type: "prominent-link",
+                            title,
+                            url,
+                            description,
+                            parseErrors: [],
+                        } as EnrichedBlockProminentLink,
+                    ],
+                }
+            } else return { ...content, errors }
         })
         .otherwise(() => {
             return {
@@ -650,9 +696,12 @@ function cheerioToArchieML(
                         content: [
                             {
                                 type: "image",
-                                src: image?.attribs.src ?? "",
-                                caption: figcaptionElement?.value ?? [],
+                                // TODO ike
+                                filename: "",
+                                alt: "",
                                 parseErrors: [],
+                                dataErrors: [],
+                                originalWidth: undefined,
                             },
                         ],
                     }
@@ -733,9 +782,12 @@ function cheerioToArchieML(
                         content: [
                             {
                                 type: "image",
-                                src: src,
-                                caption: [],
+                                // TODO: ike
+                                filename: src,
+                                alt: "",
                                 parseErrors: [],
+                                dataErrors: [],
+                                originalWidth: undefined,
                             },
                         ],
                     }

@@ -64,7 +64,7 @@
     padding-left: 24px;
     display: none;
 
-    @media (min-width: 960px) {
+    @include md-up {
         display: block;
     }
 

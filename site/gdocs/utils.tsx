@@ -3,7 +3,7 @@ import React from "react"
 import { Span } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 
-export function spansToUnformattedPlainText(spans: Span[]): string {
+export function spansToUnformattedPlainText(spans: Span[] = []): string {
     return spans
         .map((span) =>
             match(span)

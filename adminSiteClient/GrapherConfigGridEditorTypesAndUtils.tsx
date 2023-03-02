@@ -35,8 +35,8 @@ import { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { GrapherInterface } from "@ourworldindata/grapher"
-import AntdConfig from "react-awesome-query-builder/lib/config/antd"
 import {
+    AntdConfig,
     BasicConfig,
     Builder,
     BuilderProps,
@@ -47,7 +47,7 @@ import {
     JsonItem,
     Config,
     ImmutableTree,
-} from "react-awesome-query-builder"
+} from "@react-awesome-query-builder/antd"
 import { match } from "ts-pattern"
 import { isNil } from "lodash"
 
@@ -252,7 +252,7 @@ export function isConfigColumn(columnName: string): boolean {
     return columnName.startsWith("/")
 }
 
-export const filterPanelInitialConfig: BasicConfig = AntdConfig as BasicConfig
+export const filterPanelInitialConfig: BasicConfig = AntdConfig
 
 export const initialFilterQueryValue: JsonGroup = {
     id: QbUtils.uuid(),

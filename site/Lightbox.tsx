@@ -5,6 +5,7 @@ import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
 import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { LoadingIndicator } from "@ourworldindata/grapher"
+import cx from "classnames"
 import React, { useEffect, useRef, useState } from "react"
 import ReactDOM from "react-dom"
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch"
@@ -109,10 +110,12 @@ const Lightbox = ({
 
 const Image = ({
     src,
+    alt,
     isLoaded,
     setIsLoaded,
 }: {
     src: string
+    alt: string
     isLoaded: boolean
     setIsLoaded: any
 }) => {
@@ -122,7 +125,11 @@ const Image = ({
                 onLoad={() => {
                     setIsLoaded(true)
                 }}
+                className={cx({
+                    "lightbox__img--is-svg": src.endsWith(".svg"),
+                })}
                 src={src}
+                alt={alt}
                 style={{ opacity: !isLoaded ? 0 : 1, transition: "opacity 1s" }}
             />
         </>
@@ -146,12 +153,14 @@ export const runLightbox = () => {
         img.classList.add("lightbox-enabled")
         img.addEventListener("click", () => {
             const imgSrc = img.getAttribute("data-high-res-src") ?? img.src
+            const imgAlt = img.alt
             if (imgSrc) {
                 ReactDOM.render(
                     <Lightbox imgSrc={imgSrc} containerNode={lightboxContainer}>
                         {(isLoaded: boolean, setIsLoaded: any) => (
                             <Image
                                 src={imgSrc}
+                                alt={imgAlt}
                                 isLoaded={isLoaded}
                                 setIsLoaded={setIsLoaded}
                             />

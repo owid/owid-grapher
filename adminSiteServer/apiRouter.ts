@@ -4,6 +4,8 @@ import * as lodash from "lodash"
 import { transaction } from "../db/db.js"
 import express from "express"
 import * as db from "../db/db.js"
+import { imageStore } from "../db/model/Image.js"
+import { GdocXImage } from "../db/model/GdocXImage.js"
 import * as wpdb from "../db/wpdb.js"
 import {
     UNCATEGORIZED_TAG_ID,
@@ -2209,9 +2211,14 @@ apiRouter.get("/posts.json", async (req) => {
         "title",
         "type",
         "status",
-        "updated_at",
+        "updated_at_in_wordpress",
         "gdocSuccessorId"
-    ).from(db.knexInstance().from(postsTable).orderBy("updated_at", "desc"))
+    ).from(
+        db
+            .knexInstance()
+            .from(postsTable)
+            .orderBy("updated_at_in_wordpress", "desc")
+    )
 
     const tagsByPostId = await getTagsByPostId()
 
@@ -2249,7 +2256,7 @@ apiRouter.get("/newsletterPosts.json", async (req) => {
         return {
             id: row.id,
             title: row.title,
-            updatedAt: row.updatedAt,
+            updatedAtInWordpress: row.updatedAt,
             publishedAt: row.publishedAt,
             type: row.type,
             status: row.status,
@@ -2286,24 +2293,43 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
 
 apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     const postId = expectInt(req.params.postId)
+    const allowRecreate = !!req.body.allowRecreate
     const post = (await db
         .knexTable(postsTable)
         .where({ id: postId })
         .select("*")
         .first()) as PostRow | undefined
+
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
-    if (post.gdocSuccessorId)
+    const existingGdocId = post.gdocSuccessorId
+    if (!allowRecreate && existingGdocId)
         throw new JsonError("A gdoc already exists for this post", 400)
     const archieMl = JSON.parse(post.archieml) as OwidArticleType
-    const gdocId = await createGdocAndInsertOwidArticleContent(archieMl.content)
-    post.gdocSuccessorId = gdocId
-    await db
-        .knexTable(postsTable)
-        .where({ id: postId })
-        .update("gdocSuccessorId", gdocId)
-    // TODO: fill the rest of content required for an entry in the gdoc table,
-    // mark the post in the posts table as no-longer editable/publish-able,
-    // publish through gdocs?
+    const gdocId = await createGdocAndInsertOwidArticleContent(
+        archieMl.content,
+        post.gdocSuccessorId
+    )
+    // If we did not yet have a gdoc associated with this post, we need to register
+    // the gdocSuccessorId and create an entry in the posts_gdocs table. Otherwise
+    // we don't need to make changes to the DB (only the gdoc regeneration was required)
+    if (!existingGdocId) {
+        post.gdocSuccessorId = gdocId
+        // This is not ideal - we are using knex for on thing and typeorm for another
+        // which means that we can't wrap this in a transaction. We should probably
+        // move posts to use typeorm as well or at least have a typeorm alternative for it
+        await db
+            .knexTable(postsTable)
+            .where({ id: postId })
+            .update("gdocSuccessorId", gdocId)
+
+        const gdoc = new Gdoc(gdocId)
+        gdoc.slug = post.slug
+        gdoc.published = false
+        gdoc.createdAt = new Date()
+        gdoc.publishedAt = post.published_at
+        await dataSource.getRepository(Gdoc).insert(gdoc)
+    }
+
     return { googleDocsId: gdocId }
 })
 
@@ -2652,13 +2678,19 @@ apiRouter.put("/details/:id", async (req, res) => {
 
 apiRouter.get("/gdocs", async () => Gdoc.find())
 
-apiRouter.get("/gdocs/:id", async (req) => {
-    const { id } = req.params
+apiRouter.get("/gdocs/:id", async (req, res) => {
+    const id = req.params.id
     const contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
 
-    return Gdoc.getGdocFromContentSource(id, contentSource)
+    try {
+        const gdoc = await Gdoc.getGdocFromContentSource(id, contentSource)
+        res.set("Cache-Control", "no-store")
+        res.send(gdoc)
+    } catch (error) {
+        throw new JsonError(`Error fetching document ${error}`, 500)
+    }
 })
 
 apiRouter.get("/gdocs/:id/validate", async (req) => {
@@ -2691,7 +2723,31 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const prevGdoc = await Gdoc.findOneBy({ id })
     if (!prevGdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    const nextGdoc = getArticleFromJSON(nextGdocJSON)
+    const nextGdoc = dataSource
+        .getRepository(Gdoc)
+        .create(getArticleFromJSON(nextGdocJSON))
+    // Deleting and recreating these is simpler than tracking orphans over the next code block
+    await GdocXImage.delete({ gdocId: id })
+    const filenames = nextGdoc.filenames
+
+    if (filenames.length && nextGdoc.published) {
+        const images = await imageStore.syncImagesToS3(filenames)
+        for (const image of images) {
+            if (image) {
+                try {
+                    await GdocXImage.save({
+                        gdocId: nextGdoc.id,
+                        imageId: image.id,
+                    })
+                } catch (e) {
+                    console.error(
+                        `Error tracking image reference ${image.filename} with Google ID ${nextGdoc.id}`,
+                        e
+                    )
+                }
+            }
+        }
+    }
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
@@ -2710,7 +2766,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     // enqueue), so I opted for the version that matches the closest the current
     // baking model, which is "bake what is persisted in the DB". Ultimately, a
     // full sucessful deploy would resolve the state discrepancy either way.
-    await dataSource.getRepository(Gdoc).save(nextGdoc)
+    await nextGdoc.save()
 
     const hasChanges = checkHasChanges(prevGdoc, nextGdoc)
     if (checkIsLightningUpdate(prevGdoc, nextGdoc, hasChanges)) {
@@ -2738,7 +2794,8 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     const gdoc = await Gdoc.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
-    await Gdoc.delete(id)
+    await GdocXImage.delete({ gdocId: id })
+    await Gdoc.delete({ id })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })

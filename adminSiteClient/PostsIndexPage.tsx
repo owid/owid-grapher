@@ -11,7 +11,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { WORDPRESS_URL } from "../settings/clientSettings.js"
 import { Tag } from "./TagBadge.js"
 import { match } from "ts-pattern"
-import { GdocsEditLink } from "./GdocsEditLink.js"
+import { Link } from "./Link.js"
 
 interface PostIndexMeta {
     id: number
@@ -19,7 +19,7 @@ interface PostIndexMeta {
     type: string
     status: string
     authors: string[]
-    updatedAt: string
+    updatedAtInWordpress: string
     tags: Tag[]
     gdocSuccessorId: string | undefined
 }
@@ -71,16 +71,26 @@ class PostRow extends React.Component<PostRowProps> {
         this.saveTags(tags)
     }
 
-    @action.bound async onConvertGdoc() {
+    @action.bound async onConvertGdoc(allowRecreate: boolean = false) {
         this.postGdocStatus = GdocStatus.CONVERTING
         const { admin } = this.context
         const json = await admin.requestJSON(
             `/api/posts/${this.props.post.id}/createGdoc`,
-            {},
+            { allowRecreate },
             "POST"
         )
         this.postGdocStatus = GdocStatus.CONVERTED
         this.props.post.gdocSuccessorId = json.googleDocsId
+    }
+
+    @action.bound async onRecreateGdoc() {
+        if (
+            window.confirm(
+                "This will overwrite the existing GDoc. Are you sure?"
+            )
+        ) {
+            this.onConvertGdoc(true)
+        }
     }
 
     render() {
@@ -88,11 +98,29 @@ class PostRow extends React.Component<PostRowProps> {
         const { postGdocStatus } = this
         const gdocElement = match(postGdocStatus)
             .with(GdocStatus.MISSING, () => (
-                <button onClick={this.onConvertGdoc}>Create GDoc</button>
+                <button
+                    onClick={async () => await this.onConvertGdoc()}
+                    className="btn btn-primary"
+                >
+                    Create GDoc
+                </button>
             ))
             .with(GdocStatus.CONVERTING, () => <span>Converting...</span>)
             .with(GdocStatus.CONVERTED, () => (
-                <GdocsEditLink gdocId={post.gdocSuccessorId!} />
+                <>
+                    <Link
+                        to={`gdocs/${post.gdocSuccessorId}/preview`}
+                        className="btn btn-primary"
+                    >
+                        Preview
+                    </Link>
+                    <button
+                        onClick={async () => await this.onRecreateGdoc()}
+                        className="btn btn-primary alert-danger"
+                    >
+                        Recreate
+                    </button>
+                </>
             ))
             .exhaustive()
 
@@ -110,7 +138,7 @@ class PostRow extends React.Component<PostRowProps> {
                     />
                 </td>
                 <td>
-                    <Timeago time={post.updatedAt} />
+                    <Timeago time={post.updatedAtInWordpress} />
                 </td>
                 <td>
                     <a

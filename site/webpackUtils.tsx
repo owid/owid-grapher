@@ -2,6 +2,7 @@ import * as fs from "fs-extra" // todo: this should not be here.
 import urljoin from "url-join"
 import * as path from "path"
 import { ENV } from "../settings/serverSettings.js"
+import { POLYFILL_URL } from "./SiteConstants.js"
 
 const WEBPACK_DEV_URL = process.env.WEBPACK_DEV_URL ?? "http://localhost:8090"
 const WEBPACK_OUTPUT_PATH =
@@ -51,7 +52,7 @@ const checkReady = () => {
 }
 
 const coreScripts = [
-    'https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,URL,IntersectionObserver,IntersectionObserverEntry,ResizeObserver',
+    '${POLYFILL_URL}',
     '${webpackUrl("commons.js", baseUrl)}',
     '${webpackUrl("vendors.js", baseUrl)}',
     '${webpackUrl("owid.js", baseUrl)}'

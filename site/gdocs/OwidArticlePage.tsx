@@ -20,10 +20,12 @@ export default function OwidArticlePage({
     baseUrl,
     article,
     debug,
+    isPreviewing = false,
 }: {
     baseUrl: string
     article: OwidArticleType
     debug?: boolean
+    isPreviewing?: boolean
 }) {
     const { content, slug, createdAt, updatedAt } = article
 
@@ -71,13 +73,14 @@ export default function OwidArticlePage({
                 <SiteHeader baseUrl={baseUrl} />
                 <div id="owid-article-root">
                     <DebugProvider debug={debug}>
-                        <OwidArticle {...article} />
+                        <OwidArticle {...article} isPreviewing={isPreviewing} />
                     </DebugProvider>
                 </div>
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.gdocsArticle}
                     debug={debug}
+                    isPreviewing={isPreviewing}
                 />
             </body>
         </html>

@@ -1,12 +1,6 @@
-import { useCallback, useEffect, useState } from "react"
-import {
-    GdocsContentSource,
-    OwidArticleType,
-    OwidArticleTypeJSON,
-    getArticleFromJSON,
-} from "@ourworldindata/utils"
-import { useDebounceCallback, useInterval } from "../site/hooks.js"
-import { Admin } from "./Admin.js"
+import { useEffect, useState } from "react"
+import { OwidArticleType } from "@ourworldindata/utils"
+import { useDebounceCallback } from "../site/hooks.js"
 import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
@@ -42,72 +36,17 @@ export const useLightningUpdate = (
 }
 
 export const useAutoSaveDraft = (
-    gdoc: OwidArticleType | undefined,
-    setOriginalGdoc: React.Dispatch<
-        React.SetStateAction<OwidArticleType | undefined>
-    >,
+    currentGdoc: OwidArticleType | undefined,
     hasChanges: boolean
 ) => {
     const store = useGdocsStore()
 
-    const saveDraft = useDebounceCallback((gdoc: OwidArticleType) => {
-        store.update(gdoc)
-        setOriginalGdoc(gdoc)
+    const saveDraft = useDebounceCallback((currentGdoc: OwidArticleType) => {
+        store.update(currentGdoc)
     }, 2000)
 
     useEffect(() => {
-        if (!gdoc || !hasChanges || gdoc.published) return
-        saveDraft(gdoc)
-    }, [saveDraft, gdoc, hasChanges])
-}
-
-export const useUpdatePreviewContent = (
-    id: string,
-    gdoc: OwidArticleType | undefined,
-    setGdoc: React.Dispatch<React.SetStateAction<OwidArticleType | undefined>>,
-    admin: Admin
-) => {
-    const [syncingError, setSyncingError] = useState(false)
-    const initialLoad = !gdoc
-
-    const updatePreviewContent = useCallback(async () => {
-        try {
-            const draftGdocJson = (await admin.requestJSON(
-                `/api/gdocs/${id}?contentSource=${GdocsContentSource.Gdocs}`,
-                {},
-                "GET",
-                { onFailure: "continue" }
-            )) as OwidArticleTypeJSON
-
-            const draftGdoc = getArticleFromJSON(draftGdocJson)
-
-            setGdoc((currGdoc: OwidArticleType | undefined) =>
-                currGdoc
-                    ? {
-                          ...currGdoc,
-                          content: draftGdoc.content,
-                          revisionId: draftGdoc.revisionId,
-                      }
-                    : draftGdoc
-            )
-            setSyncingError(false)
-        } catch (e) {
-            console.log(e)
-            setSyncingError(true)
-        }
-    }, [admin, id, setGdoc])
-
-    // Initial load behaviours
-    useEffect(() => {
-        if (initialLoad) {
-            updatePreviewContent()
-        } else {
-            admin.loadingIndicatorSetting = "off"
-        }
-    }, [admin, updatePreviewContent, initialLoad])
-
-    // Sync content every 5 seconds
-    useInterval(updatePreviewContent, 5000)
-
-    return syncingError
+        if (!currentGdoc || !hasChanges || currentGdoc.published) return
+        saveDraft(currentGdoc)
+    }, [saveDraft, currentGdoc, hasChanges])
 }
