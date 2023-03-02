@@ -1,12 +1,11 @@
 import React, { useState } from "react"
 import { CategoryWithEntries } from "@ourworldindata/utils"
-import { allTopicsInCategory } from "./SiteNavigationTopics.js"
-import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
 import classnames from "classnames"
 import { SiteAbout } from "./SiteAbout.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import { Menu } from "./SiteNavigation.js"
 import { SiteResources } from "./SiteResources.js"
+import { SiteMobileCategory } from "./SiteMobileCategory.js"
 
 export const SiteMobileMenu = ({
     topics,
@@ -37,28 +36,12 @@ export const SiteMobileMenu = ({
                     <span className="section__header">Browse by topic</span>
                     <ul className="section__dropdown--topics">
                         {topics.map((category) => (
-                            <li key={category.slug}>
-                                <SiteNavigationToggle
-                                    isActive={activeCategory === category}
-                                    onToggle={() => toggleCategory(category)}
-                                    dropdown={
-                                        <ul>
-                                            {allTopicsInCategory(category).map(
-                                                (topic) => (
-                                                    <SiteNavigationTopic
-                                                        key={topic.slug}
-                                                        topic={topic}
-                                                    />
-                                                )
-                                            )}
-                                        </ul>
-                                    }
-                                    withCaret={true}
-                                    className="SiteNavigationToggle--lvl2"
-                                >
-                                    {category.name}
-                                </SiteNavigationToggle>
-                            </li>
+                            <SiteMobileCategory
+                                key={category.slug}
+                                category={category}
+                                isActive={activeCategory === category}
+                                toggleCategory={toggleCategory}
+                            />
                         ))}
                     </ul>
                 </li>
