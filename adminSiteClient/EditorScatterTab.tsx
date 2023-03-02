@@ -114,13 +114,6 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         allowNegative
                     />
                 </Section>
-                <Section name="Entity labels">
-                    <Toggle
-                        label="Hide entity labels"
-                        value={!!grapher.hideScatterLabels}
-                        onValue={this.onToggleHideScatterLabels}
-                    />
-                </Section>
                 <Section name="Point Labels">
                     <SelectField
                         value={grapher.scatterPointLabelStrategy}
@@ -128,6 +121,11 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         options={Object.keys(ScatterPointLabelStrategy).map(
                             (entry) => ({ value: entry })
                         )}
+                    />
+                    <Toggle
+                        label="Hide point labels (except when hovering)"
+                        value={!!grapher.hideScatterLabels}
+                        onValue={this.onToggleHideScatterLabels}
                     />
                 </Section>
                 <Section name="Filtering">
