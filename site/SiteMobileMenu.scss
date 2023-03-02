@@ -35,6 +35,9 @@
 
     .section__dropdown--topics {
         padding-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        row-gap: 4px;
     }
 
     .SiteNavigationToggle--lvl2 {
@@ -47,9 +50,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 8px 16px;
-            font-size: 12px;
+            font-size: 13px;
             color: $blue-60;
-            line-height: 1.75;
+            line-height: 21px;
             &.active {
                 color: $blue-90;
             }
@@ -62,13 +65,16 @@
     .SiteNavigationToggle__dropdown {
         ul {
             padding-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            row-gap: 4px;
             li {
                 a {
                     display: block;
                     padding: 4px 16px 4px 32px;
-                    font-size: 12px;
+                    font-size: 13px;
                     color: $blue-60;
-                    line-height: 1.75;
+                    line-height: 21px;
                 }
             }
         }
