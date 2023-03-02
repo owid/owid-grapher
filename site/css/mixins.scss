@@ -279,3 +279,13 @@
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.4);
 }
+
+@mixin mobile-toggle-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 1.125rem;
+}

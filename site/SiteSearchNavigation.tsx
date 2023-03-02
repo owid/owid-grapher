@@ -78,7 +78,7 @@ export const SiteSearchNavigation = ({
                 <button
                     onClick={onToggle}
                     data-track-note="mobile-search-button"
-                    className="mobile-search hide-lg-up"
+                    className="SiteSearchNavigation__mobile-toggle hide-lg-up"
                 >
                     <FontAwesomeIcon icon={faSearch} />
                 </button>

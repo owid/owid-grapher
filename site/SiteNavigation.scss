@@ -35,8 +35,7 @@
     .SiteNavigationToggle--mobile-menu {
         flex: 1; // center owid logo
         > button {
-            padding: 8px;
-            margin-left: -8px;
+            @include mobile-toggle-icon;
             color: $white;
             &:hover {
                 color: $blue-40;
@@ -99,21 +98,20 @@
     }
 
     .site-search-cta {
-        $search-cta-column-gap: 16px;
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: end;
         height: $search-cta-height;
-        column-gap: 0;
+        column-gap: 8px;
         @include sm-only {
             flex: 1; // center owid logo
         }
         @include lg-up {
-            column-gap: $search-cta-column-gap;
+            column-gap: 16px;
         }
 
-        button.mobile-search,
+        .SiteSearchNavigation__mobile-toggle,
         a.donate {
             display: flex;
             align-items: center;
@@ -124,8 +122,8 @@
             cursor: pointer;
         }
 
-        button.mobile-search {
-            padding: 0 8px;
+        .SiteSearchNavigation__mobile-toggle {
+            @include mobile-toggle-icon;
             &:hover {
                 color: $blue-40;
             }
@@ -133,20 +131,12 @@
 
         .SiteNavigationToggle.newsletter-subscription {
             .SiteNavigationToggle__button {
-                padding: 0 8px;
                 color: $white;
                 &:hover {
                     color: $blue-40;
                 }
                 @include lg-down {
-                    margin-right: 8px;
-                }
-                @include sm-only {
-                    margin-right: -8px;
-                }
-                @include lg-only {
-                    margin-right: 0;
-                    padding: 0 16px;
+                    @include mobile-toggle-icon;
                 }
 
                 @include lg-up {
@@ -187,6 +177,9 @@
         a.donate {
             @include sm-only {
                 display: none;
+            }
+            @include lg-down {
+                margin-left: 8px;
             }
             @include body-3-medium;
             padding: 0 24px;
