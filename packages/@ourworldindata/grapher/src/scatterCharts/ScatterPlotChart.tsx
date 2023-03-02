@@ -886,10 +886,17 @@ export class ScatterPlotChart
                 )}`
             }
         } else {
+            const validValues = this.validValuesForAxisDomain("y")
+            const isAnyValueOutsideUserDomain = validValues.some(
+                (value) => value < axis.domain[0] || value > axis.domain[1]
+            )
+
             // only overwrite user's min/max if there is more than one unique value along the y-axis
-            if (new Set(this.validValuesForAxisDomain("y")).size > 1) {
+            // or if respecting the user's setting would hide data points
+            if (new Set(validValues).size > 1 || isAnyValueOutsideUserDomain) {
                 axis.updateDomainPreservingUserSettings(yDomainDefault)
             }
+
             axis.label = label
         }
 
@@ -924,10 +931,17 @@ export class ScatterPlotChart
                 )}`
             }
         } else {
+            const validValues = this.validValuesForAxisDomain("x")
+            const isAnyValueOutsideUserDomain = validValues.some(
+                (value) => value < axis.domain[0] || value > axis.domain[1]
+            )
+
             // only overwrite user's min/max if there is more than one unique value along the x-axis
-            if (new Set(this.validValuesForAxisDomain("x")).size > 1) {
+            // or if respecting the user's setting would hide data points
+            if (new Set(validValues).size > 1 || isAnyValueOutsideUserDomain) {
                 axis.updateDomainPreservingUserSettings(xDomainDefault)
             }
+
             const label = xAxisConfig.label || xAxisLabelBase
             if (label) axis.label = label
         }
