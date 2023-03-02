@@ -44,12 +44,10 @@ export const SiteSearchNavigation = ({
 
     return (
         <>
-            <form
+            <div
                 className={classnames("SiteSearchNavigation", {
                     active: isActive,
                 })}
-                action="/search"
-                method="GET"
             >
                 <input
                     name="search"
@@ -73,7 +71,7 @@ export const SiteSearchNavigation = ({
                         <FontAwesomeIcon icon={faSearch} />
                     )}
                 </div>
-            </form>
+            </div>
             {!isActive && (
                 <button
                     onClick={onToggle}
