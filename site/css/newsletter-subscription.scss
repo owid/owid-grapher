@@ -45,6 +45,7 @@
 
     .NewsletterSubscription__email {
         border: 1px solid $blue-20;
+        border-radius: 0;
         height: inherit;
         @include sm-only {
             font-size: 0.75rem;
