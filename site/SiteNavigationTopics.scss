@@ -1,7 +1,7 @@
 .SiteNavigationToggle.topics .SiteNavigationToggle__dropdown {
     position: absolute;
     width: 100%;
-    top: 100%;
+    top: calc(100% + $header-border-height);
     left: 0;
     z-index: 1;
 }

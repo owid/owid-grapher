@@ -8,7 +8,7 @@
 .site-navigation {
     position: relative;
     z-index: $zindex-lightbox;
-    border-bottom: $mobile-header-border-height solid $vermillion;
+    border-bottom: $header-border-height solid $vermillion;
     background-color: $oxford-blue;
 
     @include sm-only {
@@ -208,10 +208,10 @@
 
     .SearchResults {
         position: absolute;
-        top: 100%;
-        height: calc(100vh - 64px);
+        top: calc(100% + $header-border-height);
+        height: calc(100vh - $header-height-sm);
         @include md-up {
-            height: calc(100vh - 72px);
+            height: calc(100vh - $header-height-md);
         }
         left: 0;
         margin: 0 #{-$padding-x-md};

@@ -1,7 +1,7 @@
 .SiteMobileMenu {
     position: absolute;
     width: 100vw;
-    top: 100%;
+    top: calc(100% + $header-border-height);
     background-color: $accent-pale-blue;
     margin: 0 -16px;
 

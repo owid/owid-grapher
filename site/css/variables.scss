@@ -11,10 +11,11 @@ $grid-gap: 24px;
 * Sizes
 */
 
-$mobile-header-wrapper-height: 56px;
-$mobile-header-border-height: 4px;
-$mobile-header-height: $mobile-header-wrapper-height +
-    $mobile-header-border-height;
+$header-border-height: 4px;
+$header-bar-height-sm: 64px;
+$header-bar-height-md: 72px;
+$header-height-sm: $header-bar-height-sm + $header-border-height;
+$header-height-md: $header-bar-height-md + $header-border-height;
 
 $content-max-width: 800px;
 $sidebar-content-width: 224px;
