@@ -7,7 +7,7 @@ import { siteSearch } from "./search/searchClient.js"
 import { SearchResults } from "./search/SearchResults.js"
 import { SiteSearchResults } from "./search/searchTypes.js"
 
-export const SiteSearchInput = ({
+export const SiteSearchNavigation = ({
     query,
     setQuery,
     isActive,
@@ -45,7 +45,9 @@ export const SiteSearchInput = ({
     return (
         <>
             <form
-                className={classnames("SiteSearchInput", { active: isActive })}
+                className={classnames("SiteSearchNavigation", {
+                    active: isActive,
+                })}
                 action="/search"
                 method="GET"
             >

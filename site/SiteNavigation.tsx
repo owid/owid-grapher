@@ -11,7 +11,7 @@ import { SiteLogos } from "./SiteLogos.js"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
 import { SiteAbout } from "./SiteAbout.js"
-import { SiteSearchInput } from "./SiteSearchInput.js"
+import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
@@ -156,7 +156,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                             </ul>
                         </nav>
                         <div className="site-search-cta">
-                            <SiteSearchInput
+                            <SiteSearchNavigation
                                 query={query}
                                 isActive={menu === Menu.Search || !!query}
                                 setQuery={setQuery}
