@@ -525,6 +525,10 @@ export class ScatterPlotChart
         return !!this.manager.hideConnectedScatterLines
     }
 
+    @computed private get hideScatterLabels(): boolean {
+        return !!this.manager.hideScatterLabels
+    }
+
     @computed private get points(): JSX.Element {
         return (
             <ScatterPointsWithLabels
@@ -541,6 +545,7 @@ export class ScatterPlotChart
                 focusedSeriesNames={this.focusedEntityNames}
                 hoveredSeriesNames={this.hoveredSeriesNames}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
+                hideScatterLabels={this.hideScatterLabels}
                 onMouseOver={this.onScatterMouseOver}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}

@@ -584,6 +584,10 @@ properties:
         type: boolean
         default: false
         description: Whether to hide the total value label (used on stacked discrete bar charts)
+    hideScatterLabels:
+        type: boolean
+        default: false
+        description: Hide entity names in Scatter plots
     sortBy:
         type: string
         description: Sort criterium (used by stacked bar charts and marimekko)
