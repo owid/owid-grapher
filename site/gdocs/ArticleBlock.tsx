@@ -122,14 +122,18 @@ const ProminentLink = (props: {
     const linkedDocument = useLinkedDocument(url)
     const title = props.title || linkedDocument?.content.title
     const description = props.description || linkedDocument?.content.excerpt
-    // const thumbnail = props.thumbnail || linkedDocument?.content.headerImage
+    const href = linkedDocument ? `/${linkedDocument.slug}` : url
+    const anchorTagProps = linkedDocument
+        ? {}
+        : { target: "_blank", rel: "noopener noreferrer" }
+    // TODO: const thumbnail = props.thumbnail || linkedDocument?.content.featuredImage
 
     return (
         <div className={cx(className, "prominent-link")}>
-            {/* TODO: where do we get the image from? */}
+            {/* TODO: implement thumbnail */}
             <div className="prominent-link__image span-cols-1 span-md-cols-2"></div>
             <div className="col-start-2 col-md-start-3 col-end-limit">
-                <a href={url}>
+                <a href={href} {...anchorTagProps}>
                     <h3 className="h3-bold">{title}</h3>
                     <FontAwesomeIcon icon={faArrowRight} />
                 </a>

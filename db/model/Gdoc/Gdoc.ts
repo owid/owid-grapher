@@ -235,6 +235,19 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         }
     }
 
+    validate() {
+        /*
+            go through this.content and make sure that all the required 
+            information exists in this.imageMetadata and this.linkedDocuments
+            
+            what do we do with the errors?
+            - if it's in the preview, we can stop authors from publishing
+            - if it's during baking we can log to slack
+
+            this.errors could contain some info about these things
+        */
+    }
+
     static async getGdocFromContentSource(
         id: string,
         contentSource?: GdocsContentSource
@@ -249,6 +262,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
+        gdoc.validate()
 
         return gdoc
     }
