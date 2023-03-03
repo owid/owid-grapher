@@ -3,6 +3,7 @@
     align-items: center;
     justify-content: space-between;
     column-gap: 24px;
+    flex-shrink: 0;
 
     .logo-owid a {
         @include md-up {

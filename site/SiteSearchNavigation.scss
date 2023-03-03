@@ -3,9 +3,6 @@
     display: none;
     width: 100%;
 
-    @include md-down {
-        margin-right: 8px;
-    }
     @include lg-up {
         display: block;
         width: 300px;
@@ -60,5 +57,23 @@
                 color: $blue-40;
             }
         }
+    }
+}
+
+.SiteSearchNavigation__mobile-toggle {
+    display: flex;
+    align-items: center;
+    height: $search-cta-height;
+    margin-right: -8px;
+    background: none;
+    border: none;
+    color: $white;
+    cursor: pointer;
+}
+
+.SiteSearchNavigation__mobile-toggle {
+    @include mobile-toggle-icon;
+    &:hover {
+        color: $blue-40;
     }
 }

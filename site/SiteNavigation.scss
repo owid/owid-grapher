@@ -25,7 +25,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    column-gap: 8px;
+    column-gap: 16px;
     padding-top: 12px;
     padding-bottom: 12px;
     @include sm-up {
@@ -103,30 +103,12 @@
         align-items: center;
         justify-content: end;
         height: $search-cta-height;
-        column-gap: 8px;
+        column-gap: 16px;
         @include sm-only {
             flex: 1; // center owid logo
         }
         @include lg-up {
             column-gap: 16px;
-        }
-
-        .SiteSearchNavigation__mobile-toggle,
-        a.donate {
-            display: flex;
-            align-items: center;
-            height: $search-cta-height;
-            background: none;
-            border: none;
-            color: $white;
-            cursor: pointer;
-        }
-
-        .SiteSearchNavigation__mobile-toggle {
-            @include mobile-toggle-icon;
-            &:hover {
-                color: $blue-40;
-            }
         }
 
         .SiteNavigationToggle.newsletter-subscription {
@@ -175,12 +157,13 @@
             }
         }
         a.donate {
+            display: flex;
             @include sm-only {
                 display: none;
             }
-            @include lg-down {
-                margin-left: 8px;
-            }
+            align-items: center;
+            height: $search-cta-height;
+            color: $white;
             @include body-3-medium;
             padding: 0 24px;
             background-color: $vermillion;
@@ -198,7 +181,7 @@
         }
         @include lg-down {
             .site-search-cta {
-                flex: 1;
+                flex: 1 1 100%;
             }
             .site-primary-links {
                 display: none;
