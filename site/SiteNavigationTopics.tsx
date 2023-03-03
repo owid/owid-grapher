@@ -37,12 +37,23 @@ export const SiteNavigationTopics = ({
         }
     }, [activeCategory])
 
+    const stopPropagation = (e: React.MouseEvent) => {
+        e.stopPropagation()
+    }
+
     return topics.length > 0 ? (
         <div
             className={classnames("SiteNavigationTopics", className)}
+            // hack: this is to make sure the overlay is closed when clicking
+            // the - visually - empty space to the right of the topics menu. A
+            // click on the overlay in this area looks like a click on the
+            // overlay but is actually a click on the remaining grid columns of
+            // the menu. We then need to use stopPropagation to prevent clicks
+            // within the visible portion of the menu to bubble up and close the
+            // menu (and the overlay).
             onClick={onClose}
         >
-            <div className="categories">
+            <div className="categories" onClick={stopPropagation}>
                 <div className="heading">Browse by topic</div>
                 <ul>
                     {topics.map((category) => (
@@ -50,12 +61,6 @@ export const SiteNavigationTopics = ({
                             <button
                                 onClick={(e) => {
                                     setActiveCategory(category)
-                                    // prevent the click from bubbling up and
-                                    // closing the overlay. This is a
-                                    // side-effect of the way ul.topics is laid
-                                    // out, with its grid capturing what
-                                    // visually seems to be overlay clicks.
-                                    e.stopPropagation()
                                 }}
                                 className={classnames({
                                     active: category === activeCategory,
@@ -74,6 +79,7 @@ export const SiteNavigationTopics = ({
                         "columns-medium": numTopicColumns === 2,
                         "columns-large": numTopicColumns === 3,
                     })}
+                    onClick={stopPropagation}
                 >
                     {allTopicsInCategory(activeCategory).map((topic) => (
                         <SiteNavigationTopic key={topic.slug} topic={topic} />
