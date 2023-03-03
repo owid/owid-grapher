@@ -2,33 +2,22 @@
     display: flex;
     flex-direction: column;
     row-gap: 16px;
+    @include body-3-medium;
 
     button[type="submit"] {
         border-width: 1px;
-
         @include button-disabled;
     }
 
     .label-title {
-        @include body-3-medium;
-        @include sm-up {
-            @include body-2-semibold;
-        }
+        @include body-2-semibold;
     }
 
     .label-text {
         color: $blue-60;
-        @include sm-only {
-            font-size: 0.75rem;
-            line-height: 1.5;
-        }
-        @include sm-up {
-            @include body-3-medium;
-        }
     }
 
     .alert {
-        @include body-3-medium;
         color: $error-text-color;
     }
 
@@ -47,15 +36,9 @@
         border: 1px solid $blue-20;
         border-radius: 0;
         height: inherit;
-        @include sm-only {
-            font-size: 0.75rem;
-            line-height: 1.5;
-        }
-        @include sm-up {
-            @include body-3-medium;
-        }
         padding: 0 16px;
         flex: 1;
+        @include body-3-medium;
         &::placeholder {
             color: $blue-40;
         }
@@ -63,7 +46,6 @@
 
     .NewsletterSubscription__submit {
         padding: 0 24px;
-        @include body-3-medium;
         color: $white;
         border: none;
         background-color: $vermillion;
@@ -74,13 +56,6 @@
     }
 
     .NewsletterSubscription__privacy {
-        @include sm-only {
-            font-size: 0.75rem;
-            line-height: 1.5;
-        }
-        @include sm-up {
-            @include body-3-medium;
-        }
         a {
             @include owid-link-60;
         }
