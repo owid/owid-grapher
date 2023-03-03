@@ -822,10 +822,20 @@ export class ScatterPlotChart
         )
     }
 
-    private validValuesForAxisDomain(property: "x" | "y"): number[] {
-        const scaleType = property === "x" ? this.xScaleType : this.yScaleType
-        const values = this.pointsForAxisDomains.map((point) => point[property])
-        return scaleType === ScaleType.log
+    @computed private get validValuesForAxisDomainX(): number[] {
+        const { xScaleType, pointsForAxisDomains } = this
+
+        const values = pointsForAxisDomains.map((point) => point.x)
+        return xScaleType === ScaleType.log
+            ? values.filter((v) => v > 0)
+            : values
+    }
+
+    @computed private get validValuesForAxisDomainY(): number[] {
+        const { yScaleType, pointsForAxisDomains } = this
+
+        const values = pointsForAxisDomains.map((point) => point.y)
+        return yScaleType === ScaleType.log
             ? values.filter((v) => v > 0)
             : values
     }
@@ -870,7 +880,7 @@ export class ScatterPlotChart
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const { manager, yDomainDefault } = this
+        const { manager, yDomainDefault, validValuesForAxisDomainY } = this
         const axisConfig = this.yAxisConfig
 
         const axis = axisConfig.toVerticalAxis()
@@ -879,21 +889,23 @@ export class ScatterPlotChart
         axis.scaleType = this.yScaleType
 
         if (manager.isRelativeMode) {
-            axis.domain = yDomainDefault // Overwrite user's min/max
+            axis.domain = yDomainDefault // Overwrite author's min/max
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
                     label
                 )}`
             }
         } else {
-            const validValues = this.validValuesForAxisDomain("y")
-            const isAnyValueOutsideUserDomain = validValues.some(
+            const isAnyValueOutsideUserDomain = validValuesForAxisDomainY.some(
                 (value) => value < axis.domain[0] || value > axis.domain[1]
             )
 
-            // only overwrite user's min/max if there is more than one unique value along the y-axis
-            // or if respecting the user's setting would hide data points
-            if (new Set(validValues).size > 1 || isAnyValueOutsideUserDomain) {
+            // only overwrite the authors's min/max if there is more than one unique value along the y-axis
+            // or if respecting the author's setting would hide data points
+            if (
+                new Set(validValuesForAxisDomainY).size > 1 ||
+                isAnyValueOutsideUserDomain
+            ) {
                 axis.updateDomainPreservingUserSettings(yDomainDefault)
             }
 
@@ -918,12 +930,12 @@ export class ScatterPlotChart
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const { xDomainDefault, manager, xAxisLabelBase } = this
-        const { xAxisConfig } = this
+        const { xAxisConfig, validValuesForAxisDomainX } = this
         const axis = xAxisConfig.toHorizontalAxis()
         axis.formatColumn = this.xColumn
         axis.scaleType = this.xScaleType
         if (manager.isRelativeMode) {
-            axis.domain = xDomainDefault // Overwrite user's min/max
+            axis.domain = xDomainDefault // Overwrite author's min/max
             const label = xAxisConfig.label || xAxisLabelBase
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
@@ -931,14 +943,16 @@ export class ScatterPlotChart
                 )}`
             }
         } else {
-            const validValues = this.validValuesForAxisDomain("x")
-            const isAnyValueOutsideUserDomain = validValues.some(
+            const isAnyValueOutsideUserDomain = validValuesForAxisDomainX.some(
                 (value) => value < axis.domain[0] || value > axis.domain[1]
             )
 
-            // only overwrite user's min/max if there is more than one unique value along the x-axis
-            // or if respecting the user's setting would hide data points
-            if (new Set(validValues).size > 1 || isAnyValueOutsideUserDomain) {
+            // only overwrite the authors's min/max if there is more than one unique value along the x-axis
+            // or if respecting the author's setting would hide data points
+            if (
+                new Set(validValuesForAxisDomainX).size > 1 ||
+                isAnyValueOutsideUserDomain
+            ) {
                 axis.updateDomainPreservingUserSettings(xDomainDefault)
             }
 
