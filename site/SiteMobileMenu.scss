@@ -4,6 +4,7 @@
     top: calc(100% + $header-border-height);
     background-color: $accent-pale-blue;
     margin: 0 -16px;
+    @include body-3-medium;
 
     ul {
         list-style-type: none;
@@ -53,7 +54,6 @@
                 a {
                     display: block;
                     padding: 4px 16px 4px 32px;
-                    font-size: 13px;
                     color: $blue-60;
                     line-height: 21px;
                 }
@@ -62,7 +62,6 @@
     }
 
     .donate {
-        @include body-3-medium;
         display: flex;
         justify-content: center;
         margin: 16px;
