@@ -3,6 +3,7 @@ import { CoreValueType, Time } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
 
 export interface DiscreteBarSeries extends ChartSeries {
+    yColumnSlug: string
     value: number
     time: Time
     colorValue?: CoreValueType

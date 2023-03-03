@@ -78,6 +78,7 @@ export interface Label {
 }
 
 interface DiscreteBarItem {
+    yColumnSlug: string
     seriesName: string
     value: number
     time: number
@@ -405,11 +406,15 @@ export class DiscreteBarChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                <HorizontalAxisComponent
-                    bounds={boundsWithoutColorLegend}
-                    axis={yAxis}
-                    preferredAxisPosition={innerBounds.bottom}
-                />
+                {/* only show the axis if all columns share a unit */}
+                {new Set(this.yColumns.map((column) => column.unit)).size ===
+                    1 && (
+                    <HorizontalAxisComponent
+                        bounds={boundsWithoutColorLegend}
+                        axis={yAxis}
+                        preferredAxisPosition={innerBounds.bottom}
+                    />
+                )}
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
@@ -508,7 +513,11 @@ export class DiscreteBarChart
     }
 
     formatValue(series: DiscreteBarSeries): Label {
-        const column = this.yColumns[0] // todo: do we need to use the right column here?
+        let column = this.yColumns.find(
+            (yCol) => yCol.slug === series.yColumnSlug
+        )
+        if (column == undefined) column = this.yColumns[0]
+
         const { transformedTable } = this
 
         const showYearLabels =
@@ -578,6 +587,7 @@ export class DiscreteBarChart
                       entityNames[index] as string
                   )
             return {
+                yColumnSlug: col.slug,
                 seriesName,
                 value: values[index] as number,
                 time: originalTimes[index] as number,
@@ -750,8 +760,10 @@ export class DiscreteBarChart
 
     @computed get series(): DiscreteBarSeries[] {
         const series = this.sortedRawSeries.map((rawSeries) => {
-            const { value, time, colorValue, seriesName, color } = rawSeries
+            const { value, time, colorValue, seriesName, color, yColumnSlug } =
+                rawSeries
             const series: DiscreteBarSeries = {
+                yColumnSlug,
                 value,
                 time,
                 colorValue,
