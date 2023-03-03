@@ -345,7 +345,7 @@ export function adjustHeadingLevels(blocks: OwidEnrichedArticleBlock[]): void {
             block.level = Math.max(block.level - 1, 1)
         }
         if ("children" in block) {
-            adjustHeadingLevels(block.children)
+            adjustHeadingLevels(block.children as OwidEnrichedArticleBlock[])
         }
     }
 }
