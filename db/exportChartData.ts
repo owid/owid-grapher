@@ -19,10 +19,8 @@ const filePath = argv._[0] || "/tmp/owid_chartdata.sql"
 const dataExport = async (): Promise<void> => {
     await db.getConnection()
 
-    const variablesToExportQuery = `
-        SELECT DISTINCT cd.variableId FROM chart_dimensions cd
-        WHERE NOT EXISTS (select * from tags t join chart_tags ct on ct.tagId = t.id where ct.chartId=cd.chartId and t.name='Private')
-    `
+    // Export all variables which are used in at least one chart
+    const variablesToExportQuery = `SELECT DISTINCT cd.variableId FROM chart_dimensions cd`
 
     const variableIds = (await db.queryMysql(variablesToExportQuery)).map(
         (row: any) => row.variableId
