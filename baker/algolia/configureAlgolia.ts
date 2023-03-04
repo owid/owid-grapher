@@ -154,7 +154,7 @@ export const configureAlgolia = async () => {
         ["disease", "illness"],
         ["poverty", "poor"],
         ["homicide", "murder"],
-        ["inflation", "price change", "change in price"],
+        ["inflation", "price change", "price changes", "change in price"],
     ]
 
     // Send all our country variant names to algolia as synonyms
