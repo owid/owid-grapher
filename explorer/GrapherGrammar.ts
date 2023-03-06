@@ -59,7 +59,8 @@ export const GrapherGrammar: Grammar = {
     },
     tableSlug: {
         ...SlugDeclarationCellDef,
-        description: "Slug of the table to use.",
+        description:
+            "Slug of the explorer table (i.e. csv file) to use for this row. All variables used in this row must be present in the table/file.",
         keyword: "tableSlug",
     },
     hasMapTab: {
@@ -96,7 +97,7 @@ export const GrapherGrammar: Grammar = {
     tableSlugs: {
         ...SlugsDeclarationCellDef,
         description:
-            "ColumnSlug(s) for the Table tab. If not specified all active slugs will be used.",
+            "Columns to show in the Table tab of the chart. If not specified all active slugs will be used.",
         keyword: "tableSlugs",
     },
     sourceDesc: {
