@@ -10,7 +10,7 @@ import {
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
     IMAGE_HOSTING_CDN_URL,
 } from "../../settings/clientSettings.js"
-import { ArticleContext, SiteBakerContext } from "./OwidArticle.js"
+import { ArticleContext } from "./OwidArticle.js"
 import { Container } from "./ArticleBlock.js"
 import { useImage } from "./utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
@@ -41,16 +41,13 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["thumbnail"]: "350px",
 }
 
-export default function Image({
-    d,
-    className = "",
-    containerType = "default",
-}: {
-    d: EnrichedBlockImage
+export default function Image(props: {
+    filename: string
+    alt?: string
     className?: string
     containerType?: ImageParentContainer
 }) {
-    const { filename } = d
+    const { filename, className = "", containerType = "default" } = props
     const { isPreviewing } = useContext(ArticleContext)
     const image = useImage(filename)
 
@@ -66,12 +63,13 @@ export default function Image({
             />
         )
     }
+    const alt = props.alt ?? image.defaultAlt
 
     if (isPreviewing) {
         return (
             <img
                 src={`${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${filename}`}
-                alt={d.alt}
+                alt={alt}
                 className={cx(LIGHTBOX_IMAGE_CLASS, className, "lazyload")}
             />
         )
@@ -81,7 +79,7 @@ export default function Image({
         return (
             <img
                 src={`/images/published/${filename}`}
-                alt={d.alt}
+                alt={alt}
                 className={cx(LIGHTBOX_IMAGE_CLASS, className)}
             />
         )
@@ -99,7 +97,7 @@ export default function Image({
             />
             <img
                 src={`/images/published/${filename}`}
-                alt={d.alt}
+                alt={alt}
                 className={LIGHTBOX_IMAGE_CLASS}
             />
         </picture>

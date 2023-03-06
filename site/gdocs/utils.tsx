@@ -29,9 +29,13 @@ export const useLinkedDocument = (url: string): OwidArticleType | undefined => {
     return
 }
 
-export const useImage = (filename: string): ImageMetadata | undefined => {
+export const useImage = (
+    filename: string | undefined
+): ImageMetadata | undefined => {
     const { imageMetadata } = useContext(AttachmentsContext)
     const { isBaking } = useContext(SiteBakerContext)
+
+    if (!filename) return
 
     const metadata = imageMetadata[filename]
     if (metadata) {

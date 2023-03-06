@@ -123,6 +123,11 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
     get filenames(): string[] {
         const filenames: Set<string> = new Set()
+
+        if (this.content.cover) {
+            filenames.add(this.content.cover)
+        }
+
         this.content.body?.forEach((node) =>
             recursivelyMapArticleContent(node, (item) => {
                 if ("type" in item && item.type === "image") {

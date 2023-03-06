@@ -924,6 +924,7 @@ export interface OwidArticleContent {
     byline?: string
     dateline?: string
     excerpt?: string
+    cover?: string
     refs?: EnrichedBlockText[]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]

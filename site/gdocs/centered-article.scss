@@ -408,6 +408,11 @@ h3.article-block__heading.has-supertitle {
         background-color: $gray-10;
         height: 100%;
         width: 100%;
+
+        img {
+            height: 100%;
+            object-fit: cover;
+        }
     }
 
     h3 {

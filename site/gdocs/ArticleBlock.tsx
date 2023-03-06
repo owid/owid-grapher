@@ -10,7 +10,9 @@ import List from "./List.js"
 import NumberedList from "./NumberedList.js"
 import Image from "./Image.js"
 import {
+    generateSrcSet,
     get,
+    getFilenameWithoutExtension,
     OwidEnrichedArticleBlock,
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
@@ -117,8 +119,12 @@ const ProminentLink = (props: {
     className: string
     title?: string
     description?: string
+    thumbnail?: string
 }) => {
     const { url, className = "" } = props
+    // Currently using one component for both internal and external links
+    // If the logic gets too convoluted, we could split this component into
+    // ExternalProminentLink and InternalProminentLink
     const linkedDocument = useLinkedDocument(url)
     const title = props.title || linkedDocument?.content.title
     const description = props.description || linkedDocument?.content.excerpt
@@ -126,13 +132,19 @@ const ProminentLink = (props: {
     const anchorTagProps = linkedDocument
         ? {}
         : { target: "_blank", rel: "noopener noreferrer" }
-    // TODO: const thumbnail = props.thumbnail || linkedDocument?.content.featuredImage
+    const thumbnail = props.thumbnail || linkedDocument?.content.cover
+    const textContainerClassName = thumbnail
+        ? "col-start-2 col-md-start-3 col-end-limit"
+        : "col-md-start-1 col-end-limit"
 
     return (
         <div className={cx(className, "prominent-link")}>
-            {/* TODO: implement thumbnail */}
-            <div className="prominent-link__image span-cols-1 span-md-cols-2"></div>
-            <div className="col-start-2 col-md-start-3 col-end-limit">
+            {thumbnail ? (
+                <div className="prominent-link__image span-cols-1 span-md-cols-2">
+                    <Image filename={thumbnail} />
+                </div>
+            ) : null}
+            <div className={textContainerClassName}>
                 <a href={href} {...anchorTagProps}>
                     <h3 className="h3-bold">{title}</h3>
                     <FontAwesomeIcon icon={faArrowRight} />
@@ -206,7 +218,8 @@ export default function ArticleBlock({
         .with({ type: "image" }, (block) => (
             <Image
                 className={getLayout("image", containerType)}
-                d={block}
+                filename={block.filename}
+                alt={block.alt}
                 containerType={containerType}
             />
         ))
