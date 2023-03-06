@@ -500,8 +500,9 @@ export const fetchS3Values = async (
 export const fetchS3ValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
+    // avoid cache as Cloudflare worker caches up to 1 hour
     return (
-        await fetch(dataPath, { agent: httpsAgent })
+        await fetch(`${dataPath}?nocache`, { agent: httpsAgent })
     ).json() as Promise<OwidVariableMixedData>
 }
 
