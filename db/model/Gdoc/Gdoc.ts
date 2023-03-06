@@ -12,7 +12,6 @@ import {
     OwidArticlePublicationContext,
     GdocsContentSource,
     JsonError,
-    recursivelyMapArticleContent,
     checkNodeIsSpan,
     spansToUnformattedPlainText,
     Span,
@@ -21,9 +20,7 @@ import {
     keyBy,
     excludeNull,
     OwidEnrichedArticleBlock,
-    recursivelyMapArticleBlock,
-    ImageNotFound,
-    NoDefaultAlt,
+    recursivelyMapArticleContent,
     ImageMetadata,
     excludeUndefined,
 } from "@ourworldindata/utils"
@@ -127,11 +124,11 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     get filenames(): string[] {
         const filenames: Set<string> = new Set()
         this.content.body?.forEach((node) =>
-            recursivelyMapArticleBlock(node, (node) => {
-                if (node.type === "image") {
-                    filenames.add(node.filename)
+            recursivelyMapArticleContent(node, (item) => {
+                if ("type" in item && item.type === "image") {
+                    filenames.add(item.filename)
                 }
-                return node
+                return item
             })
         )
 
@@ -152,7 +149,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
     // setAdditionalImageMetadata(): void {
     //     this.content.body = this.content.body?.map((block) =>
-    //         recursivelyMapArticleBlock(
+    //         recursivelyMapArticleContent(
     //             block,
     //             (block: OwidEnrichedArticleBlock) => {
     //                 if (block.type === "image") {
@@ -246,6 +243,8 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
             this.errors could contain some info about these things
         */
+
+        recursivelyMapArticleContent
     }
 
     static async getGdocFromContentSource(

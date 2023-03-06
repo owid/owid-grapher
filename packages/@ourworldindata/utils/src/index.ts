@@ -260,7 +260,6 @@ export {
     getArticleFromJSON,
     formatDate,
     canWriteToClipboard,
-    recursivelyMapArticleBlock,
     isNegativeInfinity,
     isPositiveInfinity,
     imemo,

@@ -1291,25 +1291,6 @@ export const getArticleFromJSON = (
     }
 }
 
-export function recursivelyMapArticleBlock(
-    block: OwidEnrichedArticleBlock,
-    callback: (block: OwidEnrichedArticleBlock) => OwidEnrichedArticleBlock
-): OwidEnrichedArticleBlock {
-    if (block.type === "gray-section") {
-        block.items.map((block) => recursivelyMapArticleBlock(block, callback))
-    }
-    if (
-        block.type === "sticky-left" ||
-        block.type === "sticky-right" ||
-        block.type === "side-by-side"
-    ) {
-        block.left.map((node) => recursivelyMapArticleBlock(node, callback))
-        block.right.map((node) => recursivelyMapArticleBlock(node, callback))
-    }
-
-    return callback(block)
-}
-
 // Checking whether we have clipboard write access is surprisingly complicated.
 // For example, if a chart is embedded in an iframe, then Chrome will prevent the
 // use of clipboard.writeText() unless the iframe has allow="clipboard-write".
@@ -1377,7 +1358,9 @@ export function recursivelyMapArticleContent<
     Node extends OwidEnrichedArticleBlock | Span
 >(
     node: Node,
-    callback: <Node extends OwidEnrichedArticleBlock | Span>(node: Node) => Node
+    callback: <Child extends OwidEnrichedArticleBlock | Span>(
+        node: Child
+    ) => Child
 ): Node {
     if (checkNodeIsSpan(node)) {
         if ("children" in node) {
