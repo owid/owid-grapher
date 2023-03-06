@@ -314,6 +314,7 @@ export class Grapher
     @observable.ref entityType = "country"
     @observable.ref entityTypePlural = "countries"
     @observable.ref hideTimeline?: boolean = undefined
+    @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasChartTab: boolean = true

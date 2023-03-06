@@ -36,13 +36,12 @@ const syncPostToGrapher = async (
             order by post_date
             limit 1
         ),
-        -- now we select all the fields from wp_posts and then we also
-        -- json array aggregate the authors. The authors come as strings like
+        -- now we select collect json array aggregate the authors. The authors come as strings like
         -- Charlie Giattino Charlie Giattino Charlie Giattino 44 charlie@ourworldindata.org
         -- so we use regexp_replace to cut out the first two words
-        posts_with_authors as (
+        post_ids_with_authors as (
         SELECT
-            p.*,
+            p.ID,
             JSON_ARRAYAGG(
                 JSON_OBJECT('author',
                     regexp_replace(t.description, '^([[:alnum:]-]+) ([[:alnum:]-]+) .+$' , '$1 $2'),
@@ -52,16 +51,20 @@ const syncPostToGrapher = async (
             FROM wp_posts p
             left join wp_term_relationships r on p.id = r.object_id
             left join wp_term_taxonomy t on t.term_taxonomy_id = r.term_taxonomy_id
-            WHERE p.ID = ? AND p.post_status != 'trash' AND t.taxonomy = 'author'
+            WHERE t.taxonomy = 'author' and p.ID = ?
+            group by p.ID
         )
         -- finally here we select all the fields from posts_with_authors and
         -- then we join in the first_revision to get the created_at field
         select
-            pwa.*,
+            p.*,
+            pwa.authors,
             fr.created_at as created_at
-        from posts_with_authors pwa
-        left join first_revision fr on fr.post_id = pwa.id`,
-        [postId, postId]
+        from wp_posts p
+        left join post_ids_with_authors pwa on pwa.id = p.id
+        left join first_revision fr on fr.post_id = pwa.id
+        where p.id = ?`,
+        [postId, postId, postId]
     )
     const dereferenceReusableBlocksFn = await buildReusableBlocksResolver()
 
@@ -129,16 +132,20 @@ const main = async (
     postSlug: string
 ) => {
     console.log(email, name, postId)
-    const slug = await syncPostToGrapher(postId)
+    try {
+        const slug = await syncPostToGrapher(postId)
 
-    if (BAKE_ON_CHANGE)
-        await new DeployQueueServer().enqueueChange({
-            timeISOString: new Date().toISOString(),
-            authorName: name,
-            authorEmail: email,
-            message: slug ? `Updating ${slug}` : `Deleting ${postSlug}`,
-        })
-
+        if (BAKE_ON_CHANGE)
+            await new DeployQueueServer().enqueueChange({
+                timeISOString: new Date().toISOString(),
+                authorName: name,
+                authorEmail: email,
+                message: slug ? `Updating ${slug}` : `Deleting ${postSlug}`,
+            })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
     exit()
 }
 

@@ -101,8 +101,12 @@ export class ScatterPlotChart
     @observable private hoverColor?: Color
 
     transformTable(table: OwidTable): OwidTable {
-        const { backgroundSeriesLimit, excludedEntities, addCountryMode } =
-            this.manager
+        const {
+            backgroundSeriesLimit,
+            includedEntities,
+            excludedEntities,
+            addCountryMode,
+        } = this.manager
 
         if (
             addCountryMode === EntitySelectionMode.Disabled ||
@@ -113,14 +117,28 @@ export class ScatterPlotChart
             )
         }
 
-        if (excludedEntities) {
+        if (excludedEntities || includedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
+            const includedEntityIdsSet = new Set(includedEntities)
+            const excludeEntitiesFilter = (entityId: any): boolean =>
+                !excludedEntityIdsSet.has(entityId as number)
+            const includedEntitiesFilter = (entityId: any): boolean =>
+                includedEntityIdsSet.size > 0
+                    ? includedEntityIdsSet.has(entityId as number)
+                    : true
+            const filterFn = (entityId: any): boolean =>
+                excludeEntitiesFilter(entityId) &&
+                includedEntitiesFilter(entityId)
+            const excludedList = excludedEntities
+                ? excludedEntities.join(", ")
+                : ""
+            const includedList = includedEntities
+                ? includedEntities.join(", ")
+                : ""
             table = table.columnFilter(
                 OwidTableSlugs.entityId,
-                (entityId) => !excludedEntityIdsSet.has(entityId as number),
-                `Excluded entity ids specified by author: ${excludedEntities.join(
-                    ", "
-                )}`
+                filterFn,
+                `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
             )
         }
 
@@ -507,6 +525,10 @@ export class ScatterPlotChart
         return !!this.manager.hideConnectedScatterLines
     }
 
+    @computed private get hideScatterLabels(): boolean {
+        return !!this.manager.hideScatterLabels
+    }
+
     @computed private get points(): JSX.Element {
         return (
             <ScatterPointsWithLabels
@@ -523,6 +545,7 @@ export class ScatterPlotChart
                 focusedSeriesNames={this.focusedEntityNames}
                 hoveredSeriesNames={this.hoveredSeriesNames}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
+                hideScatterLabels={this.hideScatterLabels}
                 onMouseOver={this.onScatterMouseOver}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}

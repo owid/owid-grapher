@@ -150,21 +150,24 @@ const syncPostsToGrapher = async (): Promise<void> => {
         -- unfortunately JSON_ARRAYAGG does not obey the order, nor does it have its own order by clause
         -- (like some proper databases do). This makes it necessary to build up an object for each
         -- author with the term_order.
-        posts_with_authors as (
+        post_ids_with_authors as (
             select
-                p.*,
+                p.ID,
                 JSON_ARRAYAGG(JSON_OBJECT('author', pa.author, 'order', pa.term_order)) as authors
-            from posts_authors pa
-            left join wp_posts p on p.ID  = pa.id
+            from wp_posts p
+			left join posts_authors pa on p.ID = pa.id
             group by p.ID
         )
         -- Finally collect all the fields we want to keep - this is everything from wp_posts, the authors from the
         -- posts_with_authors CTE and the created_at from the first_revision CTE
         select
-            pwa.*,
+            p.*,
+            pwa.authors as authors,
             fr.created_at as created_at
-        from posts_with_authors pwa
+        from wp_posts p
+		left join post_ids_with_authors pwa   on p.ID = pwa.ID
         left join first_revision fr on fr.post_id = pwa.ID
+        where p.post_type in ('post', 'page') AND post_status != 'trash'
         `
     )
 

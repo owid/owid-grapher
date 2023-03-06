@@ -494,6 +494,37 @@ function finishWpComponent(
                 })
                 return { ...content, errors }
             }
+
+            // If both children are empty then we don't want to create a columns block
+            if (
+                firstChild.childrenResults.length === 0 &&
+                secondChild.childrenResults.length === 0
+            ) {
+                return {
+                    errors,
+                    content: [],
+                }
+            }
+            // If one of the children is empty then don't create a two column layout but
+            // just return the non-empty child
+            if (firstChild.childrenResults.length == 0) {
+                return {
+                    errors,
+                    content: convertAllWpComponentsToArchieMLBlocks(
+                        secondChild.childrenResults
+                    ),
+                }
+            }
+            if (secondChild.childrenResults.length == 0) {
+                return {
+                    errors,
+                    content: convertAllWpComponentsToArchieMLBlocks(
+                        firstChild.childrenResults
+                    ),
+                }
+            }
+
+            // if both columns have content, create a sticky-right layout
             return {
                 errors,
                 content: [
@@ -553,7 +584,7 @@ function finishWpComponent(
                     ...content.errors,
                     {
                         name: "unexpected wp component tag",
-                        details: `Found unexpected tag ${details.tagName}`,
+                        details: `Found unhandled wp:comment tag ${details.tagName}`,
                     },
                 ],
                 content: content.content,
