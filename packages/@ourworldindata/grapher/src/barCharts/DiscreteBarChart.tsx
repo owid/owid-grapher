@@ -356,7 +356,7 @@ export class DiscreteBarChart
             // if we have more than one unit, then faceting by entity is not allowed
             // as comparing multiple units in a single chart isn't meaningful
             const uniqueUnits = new Set(
-                this.yColumns.map((column) => column.unit)
+                this.yColumns.map((column) => column.shortUnit)
             )
             if (uniqueUnits.size > 1) {
                 return [FacetStrategy.metric]

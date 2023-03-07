@@ -310,7 +310,9 @@ export class AbstractStackedChart
         const hasMultipleEntities =
             this.selectionArray.selectedEntityNames.length > 1
         const hasMultipleYColumns = this.yColumns.length > 1
-        const uniqueUnits = new Set(this.yColumns.map((column) => column.unit))
+        const uniqueUnits = new Set(
+            this.yColumns.map((column) => column.shortUnit)
+        )
         const hasMultipleUnits = uniqueUnits.size > 1
 
         // Normally StackedArea/StackedBar charts are always single-entity or single-column, but if we are ever in a mode where we
