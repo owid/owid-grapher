@@ -62,4 +62,8 @@ export const checkIsLightningUpdate = (
 export const checkHasChanges = (
     prevGdoc: OwidArticleType,
     nextGdoc: OwidArticleType
-) => !isEqual(prevGdoc, nextGdoc)
+) =>
+    !isEqual(
+        omit(prevGdoc, ["linkedDocuments", "imageMetadata", "errors"]),
+        omit(nextGdoc, ["linkedDocuments", "imageMetadata", "errors"])
+    )
