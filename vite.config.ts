@@ -27,19 +27,16 @@ export default defineConfig({
         emptyOutDir: true,
         outDir: "dist",
         sourcemap: true,
-        lib: {
-            entry: {
-                owid: "./site/owid.entry.ts",
-                admin: "./adminSiteClient/admin.entry.ts",
-            },
-            formats: ["es"],
-        },
         commonjsOptions: {
             include: [/@ourworldindata\/.*/, /node_modules/],
         },
         cssCodeSplit: true,
         rollupOptions: {
             cache: false, // https://github.com/vitejs/vite/issues/2433#issuecomment-1361094727
+            input: {
+                owid: "./site/owid.entry.ts",
+                admin: "./adminSiteClient/admin.entry.ts",
+            },
             output: {
                 assetFileNames: (assetInfo) => {
                     if (assetInfo.name?.endsWith(".css")) {
