@@ -49,6 +49,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: String, nullable: true }) revisionId: string | null = null
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
+    errors: string[] = []
 
     constructor(id?: string) {
         super()
@@ -148,38 +149,8 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                 .syncImagesToS3(this.filenames)
                 .then(excludeUndefined)
             this.imageMetadata = keyBy(images, "filename")
-            // this.setAdditionalImageMetadata()
         }
     }
-
-    // setAdditionalImageMetadata(): void {
-    //     this.content.body = this.content.body?.map((block) =>
-    //         recursivelyMapArticleContent(
-    //             block,
-    //             (block: OwidEnrichedArticleBlock) => {
-    //                 if (block.type === "image") {
-    //                     const metadata = imageStore.images?.[block.filename]
-    //                     if (!metadata) {
-    //                         block.dataErrors.push({ message: ImageNotFound })
-    //                     } else {
-    //                         block.originalWidth = metadata.originalWidth
-
-    //                         // Error if default alt doesn't exist
-    //                         // Use default alt if override isn't set
-    //                         if (!metadata.defaultAlt) {
-    //                             block.dataErrors.push({
-    //                                 message: NoDefaultAlt,
-    //                             })
-    //                         } else if (!block.alt) {
-    //                             block.alt = metadata.defaultAlt
-    //                         }
-    //                     }
-    //                 }
-    //                 return block
-    //             }
-    //         )
-    //     )
-    // }
 
     async loadLinkedDocuments(): Promise<void> {
         const linkedDocuments = await Promise.all(
@@ -237,19 +208,39 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         }
     }
 
-    validate() {
-        /*
-            go through this.content and make sure that all the required 
-            information exists in this.imageMetadata and this.linkedDocuments
-            
-            what do we do with the errors?
-            - if it's in the preview, we can stop authors from publishing
-            - if it's during baking we can log to slack
+    async validate(): Promise<void> {
+        const filenameErrors = this.filenames.reduce(
+            (acc: string[], filename): string[] => {
+                if (!this.imageMetadata[filename]) {
+                    acc.push(`Missing ${filename}`)
+                }
+                if (!this.imageMetadata[filename].defaultAlt) {
+                    acc.push(`${filename} is missing a default alt text`)
+                }
+                return acc
+            },
+            []
+        )
 
-            this.errors could contain some info about these things
-        */
+        const publishedGdocs = await Gdoc.getPublishedGdocs().then((results) =>
+            keyBy(results, "id")
+        )
 
-        recursivelyMapArticleContent
+        const linkErrors = this.links.reduce(
+            (acc: string[], link): string[] => {
+                if (link.linkType == "gdoc") {
+                    const id = getUrlTarget(link.target)
+                    if (!publishedGdocs[id]) {
+                        acc.push(`Linking to an unpublished document: ${id}`)
+                    }
+                }
+                return acc
+            },
+            []
+        )
+
+        this.errors = this.errors.concat(filenameErrors)
+        this.errors = this.errors.concat(linkErrors)
     }
 
     static async getGdocFromContentSource(
@@ -266,7 +257,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
-        gdoc.validate()
+        await gdoc.validate()
 
         return gdoc
     }
