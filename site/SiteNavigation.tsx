@@ -10,7 +10,6 @@ import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
-import { SiteAbout } from "./SiteAbout.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
@@ -143,15 +142,8 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                                         Resources
                                     </SiteNavigationToggle>
                                 </li>
-                                <li className="with-relative-dropdown">
-                                    <SiteNavigationToggle
-                                        isActive={menu === Menu.About}
-                                        onToggle={() => toggleMenu(Menu.About)}
-                                        dropdown={<SiteAbout />}
-                                        withCaret={true}
-                                    >
-                                        About
-                                    </SiteNavigationToggle>
+                                <li>
+                                    <a href="/about">About</a>
                                 </li>
                             </ul>
                         </nav>
