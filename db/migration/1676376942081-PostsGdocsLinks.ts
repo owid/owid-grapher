@@ -12,7 +12,7 @@ export class PostsGdocsLinks1676376942081 implements MigrationInterface {
             text VARCHAR(255) NOT NULL,
             PRIMARY KEY(id),
             CONSTRAINT FOREIGN KEY (sourceId) REFERENCES posts_gdocs (id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_as_cs`)
+        )`)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
