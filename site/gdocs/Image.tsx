@@ -37,7 +37,6 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["sticky-left-right-column"]: gridSpan5,
     ["side-by-side"]: gridSpan6,
     ["summary"]: gridSpan6,
-    // not used, just an example of how you can add additional rules when the image size is fixed
     ["thumbnail"]: "350px",
 }
 

@@ -143,7 +143,7 @@ const ProminentLink = (props: {
         <div className={cx(className, "prominent-link")}>
             {thumbnail ? (
                 <div className="prominent-link__image span-cols-1 span-md-cols-2">
-                    <Image filename={thumbnail} />
+                    <Image filename={thumbnail} containerType="thumbnail" />
                 </div>
             ) : null}
             <div className={textContainerClassName}>
