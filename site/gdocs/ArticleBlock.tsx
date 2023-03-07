@@ -122,9 +122,8 @@ const ProminentLink = (props: {
     thumbnail?: string
 }) => {
     const { url, className = "" } = props
-    // Currently using one component for both internal and external links
-    // If the logic gets too convoluted, we could split this component into
-    // ExternalProminentLink and InternalProminentLink
+    // If the link points to a gdoc_post, we can use its metadata
+    // But we still allow for overrides written in archie
     const linkedDocument = useLinkedDocument(url)
     if (linkedDocument && !linkedDocument.published) return null
 

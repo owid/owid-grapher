@@ -262,7 +262,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         return gdoc
     }
 
-    static async getPublishedGdocs(): Promise<OwidArticleTypePublished[]> {
+    static async getPublishedGdocs(): Promise<Gdoc[]> {
         // #gdocsvalidation this cast means that we trust the admin code and
         // workflow to provide published articles that have all the required content
         // fields (see #gdocsvalidationclient and pending #gdocsvalidationserver).
@@ -275,9 +275,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
-        return Gdoc.findBy({ published: true }) as Promise<
-            OwidArticleTypePublished[]
-        >
+        return Gdoc.findBy({ published: true })
     }
 
     static async getListedGdocs(): Promise<OwidArticleTypePublished[]> {

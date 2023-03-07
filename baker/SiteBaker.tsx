@@ -45,6 +45,7 @@ import {
     FullPost,
     OwidArticleTypePublished,
     ImageMetadata,
+    clone,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -249,16 +250,23 @@ export class SiteBaker {
     // Bake all GDoc posts
     async bakeGDocPosts() {
         const posts = await Gdoc.getPublishedGdocs()
-        const imageMetadata = await Image.find().then((images) =>
+
+        // Supply all images during bake instead of repeatedly calling loadImageMetadata
+        const allImages = await Image.find().then((images) =>
             keyBy(images, "filename")
-        )
-        const linkedDocuments = keyBy(
-            posts.filter((post) => post.published),
-            "id"
         )
 
         for (const post of posts) {
-            await this.bakeGDocPost({ ...post, linkedDocuments, imageMetadata })
+            post.imageMetadata = allImages
+            await post.validate()
+            if (post.errors.length) {
+                await logErrorAndMaybeSendToSlack(
+                    `Error(s) baking "${post.slug}" :\n  ${post.errors.join(
+                        "\n  "
+                    )}`
+                )
+            }
+            await this.bakeGDocPost(post as OwidArticleTypePublished)
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
@@ -462,15 +470,16 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages() {
-        await bakeCountries(this)
-        await this.bakeSpecialPages()
-        await this.bakeCountryProfiles()
-        await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-            this.bakedSiteDir
-        )
-        this.progressBar.tick({
-            name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
-        })
+        await db.getConnection()
+        // await bakeCountries(this)
+        // await this.bakeSpecialPages()
+        // await this.bakeCountryProfiles()
+        // await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+        //     this.bakedSiteDir
+        // )
+        // this.progressBar.tick({
+        //     name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+        // })
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
     }

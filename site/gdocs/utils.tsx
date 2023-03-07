@@ -9,31 +9,19 @@ import {
     ImageMetadata,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { AttachmentsContext, SiteBakerContext } from "./OwidArticle.js"
+import { AttachmentsContext } from "./OwidArticle.js"
 
 export const useLinkedDocument = (url: string): OwidArticleType | undefined => {
     const { linkedDocuments } = useContext(AttachmentsContext)
-    const { isBaking } = useContext(SiteBakerContext)
-    const linkType = getLinkType(url)
     const urlTarget = getUrlTarget(url)
-
-    if (linkType !== "gdoc") return
     const linkedDocument = linkedDocuments?.[urlTarget]
-    if (linkedDocument && linkedDocument.published) {
-        return linkedDocument
-    } else if (isBaking) {
-        throw new Error(
-            "Error attempting to bake article linking to unpublished or non-existing article"
-        )
-    }
-    return
+    return linkedDocument
 }
 
 export const useImage = (
     filename: string | undefined
 ): ImageMetadata | undefined => {
     const { imageMetadata } = useContext(AttachmentsContext)
-    const { isBaking } = useContext(SiteBakerContext)
 
     if (!filename) return
 
@@ -41,10 +29,6 @@ export const useImage = (
     if (metadata) {
         // TODO: handle defaultAlt errors etc
         return metadata
-    } else if (isBaking) {
-        // TODO: make this a slack error
-        // But then it will log every time the component renders?
-        throw new Error("Error baking an article with a missing image")
     }
     return
 }
