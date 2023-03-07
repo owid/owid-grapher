@@ -310,6 +310,8 @@ export class AbstractStackedChart
         const hasMultipleEntities =
             this.selectionArray.selectedEntityNames.length > 1
         const hasMultipleYColumns = this.yColumns.length > 1
+        const uniqueUnits = new Set(this.yColumns.map((column) => column.unit))
+        const hasMultipleUnits = uniqueUnits.size > 1
 
         // Normally StackedArea/StackedBar charts are always single-entity or single-column, but if we are ever in a mode where we
         // have multiple entities selected (e.g. through GlobalEntitySelector) and multiple columns, it only makes sense when faceted.
@@ -318,7 +320,8 @@ export class AbstractStackedChart
         else if (this.isEntitySeries && !hasMultipleYColumns)
             strategies.push(FacetStrategy.none)
 
-        if (hasMultipleEntities) strategies.push(FacetStrategy.entity)
+        if (hasMultipleEntities && !hasMultipleUnits)
+            strategies.push(FacetStrategy.entity)
 
         if (hasMultipleYColumns) strategies.push(FacetStrategy.metric)
 
