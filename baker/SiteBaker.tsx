@@ -257,9 +257,7 @@ export class SiteBaker {
             "id"
         )
 
-        const postSlugs = []
         for (const post of posts) {
-            postSlugs.push(post.slug)
             await this.bakeGDocPost({ ...post, linkedDocuments, imageMetadata })
         }
 
