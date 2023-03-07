@@ -126,6 +126,8 @@ const ProminentLink = (props: {
     // If the logic gets too convoluted, we could split this component into
     // ExternalProminentLink and InternalProminentLink
     const linkedDocument = useLinkedDocument(url)
+    if (linkedDocument && !linkedDocument.published) return null
+
     const title = props.title || linkedDocument?.content.title
     const description = props.description || linkedDocument?.content.excerpt
     const href = linkedDocument ? `/${linkedDocument.slug}` : url
