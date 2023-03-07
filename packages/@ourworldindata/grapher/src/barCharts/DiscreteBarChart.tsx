@@ -78,7 +78,7 @@ export interface Label {
 }
 
 interface DiscreteBarItem {
-    yColumnSlug: string
+    yColumn: CoreColumn
     seriesName: string
     value: number
     time: number
@@ -417,15 +417,11 @@ export class DiscreteBarChart
                 {this.hasColorLegend && (
                     <HorizontalNumericColorLegend manager={this} />
                 )}
-                {/* only show the axis if all columns share a unit */}
-                {new Set(this.yColumns.map((column) => column.unit)).size ===
-                    1 && (
-                    <HorizontalAxisComponent
-                        bounds={boundsWithoutColorLegend}
-                        axis={yAxis}
-                        preferredAxisPosition={innerBounds.bottom}
-                    />
-                )}
+                <HorizontalAxisComponent
+                    bounds={boundsWithoutColorLegend}
+                    axis={yAxis}
+                    preferredAxisPosition={innerBounds.bottom}
+                />
                 <HorizontalAxisGridLines
                     horizontalAxis={yAxis}
                     bounds={innerBounds}
@@ -524,23 +520,19 @@ export class DiscreteBarChart
     }
 
     formatValue(series: DiscreteBarSeries): Label {
-        let column = this.yColumns.find(
-            (yCol) => yCol.slug === series.yColumnSlug
-        )
-        if (column == undefined) column = this.yColumns[0]
-
         const { transformedTable } = this
+        const { yColumn } = series
 
         const showYearLabels =
             this.manager.showYearLabels || series.time !== this.targetTime
-        const displayValue = column.formatValueShort(series.value)
+        const displayValue = yColumn.formatValueShort(series.value)
         const { timeColumn } = transformedTable
         const preposition = OwidTable.getPreposition(timeColumn)
 
         return {
             valueString: displayValue,
             timeString: showYearLabels
-                ? ` ${preposition} ${column.formatTime(series.time)}`
+                ? ` ${preposition} ${yColumn.formatTime(series.time)}`
                 : "",
         }
     }
@@ -598,7 +590,7 @@ export class DiscreteBarChart
                       entityNames[index] as string
                   )
             return {
-                yColumnSlug: col.slug,
+                yColumn: col,
                 seriesName,
                 value: values[index] as number,
                 time: originalTimes[index] as number,
@@ -771,10 +763,10 @@ export class DiscreteBarChart
 
     @computed get series(): DiscreteBarSeries[] {
         const series = this.sortedRawSeries.map((rawSeries) => {
-            const { value, time, colorValue, seriesName, color, yColumnSlug } =
+            const { value, time, colorValue, seriesName, color, yColumn } =
                 rawSeries
             const series: DiscreteBarSeries = {
-                yColumnSlug,
+                yColumn,
                 value,
                 time,
                 colorValue,
