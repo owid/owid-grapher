@@ -34,7 +34,7 @@ tasks:
           yarn startTscServer
     # wait for initial-setup (above) to finish and then start webpack server
     - init: gp sync-await initial-setup
-      command: yarn startWebpackServer
+      command: yarn startViteServer
     # wait for initial-setup (above) to finish and then start admin server
     - init: gp sync-await initial-setup
       command: yarn startAdminServer
