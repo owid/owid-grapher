@@ -4,7 +4,7 @@ export const SiteResources = () => {
     return (
         <ul>
             <li>
-                <a href="/charts">Charts</a>
+                <a href="/charts">Charts and Explorers</a>
             </li>
             <li>
                 <a href="/teaching">Teaching Hub</a>
