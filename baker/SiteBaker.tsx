@@ -2,7 +2,7 @@ import * as fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import * as path from "path"
 import * as glob from "glob"
-import { without } from "lodash"
+import { keyBy, without } from "lodash"
 import * as lodash from "lodash"
 import * as cheerio from "cheerio"
 import fetch from "node-fetch"
@@ -249,11 +249,18 @@ export class SiteBaker {
     // Bake all GDoc posts
     async bakeGDocPosts() {
         const posts = await Gdoc.getPublishedGdocs()
+        const imageMetadata = await Image.find().then((images) =>
+            keyBy(images, "filename")
+        )
+        const linkedDocuments = keyBy(
+            posts.filter((post) => post.published),
+            "id"
+        )
 
         const postSlugs = []
         for (const post of posts) {
             postSlugs.push(post.slug)
-            await this.bakeGDocPost(post)
+            await this.bakeGDocPost({ ...post, linkedDocuments, imageMetadata })
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
