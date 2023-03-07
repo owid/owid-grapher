@@ -193,17 +193,24 @@
         position: absolute;
         top: calc(100% + $header-border-height);
         height: calc(100vh - $header-height-sm);
-        @include md-up {
-            height: calc(100vh - $header-height-md);
-        }
         left: 0;
-        margin: 0 #{-$padding-x-md};
-        padding: 0 $padding-x-md 40px;
-        width: calc(100% + #{2 * $padding-x-md});
+        margin: 0 -16px;
+        padding: 0 16px 24px;
         /* Needs to go over the charts */
         z-index: $zindex-search-overlay;
         overflow-y: scroll;
         overscroll-behavior: contain;
         background: white;
+        @include sm-up {
+            margin: 0 #{-$padding-x-sm};
+            padding-left: $padding-x-sm;
+            padding-right: $padding-x-sm;
+        }
+        @include md-up {
+            height: calc(100vh - $header-height-md);
+            width: calc(100% + #{2 * $padding-x-md});
+            margin: 0 #{-$padding-x-md};
+            padding: 0 $padding-x-md 40px;
+        }
     }
 }
