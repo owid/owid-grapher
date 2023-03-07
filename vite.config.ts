@@ -9,7 +9,7 @@ export default defineConfig({
         // they are commonJS, so we need to include them here
         // https://vitejs.dev/guide/dep-pre-bundling.html#monorepos-and-linked-dependencies
         include: [
-            "@ourworldindata/grapher",
+            // "@ourworldindata/grapher",
             "@ourworldindata/utils",
             "@ourworldindata/core-table",
         ],
