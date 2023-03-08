@@ -24,3 +24,4 @@ coverage
 tmp-downloads
 .yarn/cache
 .yarn/install-state.gz
+dist/

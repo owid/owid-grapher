@@ -15,3 +15,4 @@ wordpress/web/wp/wp-content/**
 !wordpress/web/app/plugins/owid/**/*.js
 wordpress/vendor/**
 packages/@ourworldindata/*/dist/
+dist/
