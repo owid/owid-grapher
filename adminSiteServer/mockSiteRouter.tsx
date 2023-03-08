@@ -36,7 +36,6 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
-import { bakeEmbedSnippet } from "../site/webpackUtils.js"
 import { JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { isWordpressAPIEnabled } from "../db/wpdb.js"
@@ -87,9 +86,9 @@ mockSiteRouter.get(
     }
 )
 
-mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) =>
-    res.send(bakeEmbedSnippet(BAKED_BASE_URL))
-)
+mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
+    // TODO need to implement this for vite
+})
 
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 

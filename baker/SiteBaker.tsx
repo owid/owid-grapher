@@ -54,7 +54,6 @@ import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
-import { bakeEmbedSnippet } from "../site/webpackUtils.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import {
     bakeAllExplorerRedirects,
@@ -459,7 +458,7 @@ export class SiteBaker {
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            bakeEmbedSnippet(this.baseUrl)
+            undefined // TODO need to implement this for vite
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
         this.progressBar.tick({ name: "✅ baked assets" })
