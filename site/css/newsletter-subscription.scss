@@ -38,6 +38,7 @@
         height: inherit;
         padding: 0 16px;
         flex: 1;
+        width: 100%;
         @include body-3-medium;
         &::placeholder {
             color: $blue-40;
@@ -64,9 +65,4 @@
 
 .homepage-subscribe .newsletter-subscription {
     flex: 1;
-    .box {
-        padding: 2rem;
-        border: 3px solid $text-color;
-        color: $text-color;
-    }
 }
