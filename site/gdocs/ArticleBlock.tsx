@@ -17,7 +17,7 @@ import {
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
-import { renderSpans, spansToUnformattedPlainText } from "./utils"
+import { renderSpans, spansToUnformattedPlainText } from "./utils.js"
 import Paragraph from "./Paragraph.js"
 import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"

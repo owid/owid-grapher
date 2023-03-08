@@ -19,6 +19,11 @@ module.exports = {
         },
     ],
     rules: {
+        // use `export type` whenever applicable
+        "@typescript-eslint/consistent-type-exports": [
+            "warn",
+            { fixMixedExportsWithInlineTypeSpecifier: true },
+        ],
         // These rules are only preliminary to ease the migration from tslint, many of them might make sense to have enabled!
         "@typescript-eslint/explicit-function-return-type": "off", // This rule is enabled on a folder by folder basis and should be enabled project wide soon
         "@typescript-eslint/explicit-module-boundary-types": "off", // This rule is enabled on a folder by folder basis and should be enabled project wide soon
