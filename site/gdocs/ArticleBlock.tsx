@@ -10,9 +10,7 @@ import List from "./List.js"
 import NumberedList from "./NumberedList.js"
 import Image from "./Image.js"
 import {
-    generateSrcSet,
     get,
-    getFilenameWithoutExtension,
     OwidEnrichedArticleBlock,
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
@@ -173,17 +171,6 @@ export default function ArticleBlock({
                 error={{
                     name: `Error in ${block.type}`,
                     message: block.parseErrors[0].message,
-                }}
-            />
-        )
-    }
-    if (block.type === "image" && block.dataErrors.length > 0) {
-        return (
-            <BlockErrorFallback
-                className={getLayout("default", containerType)}
-                error={{
-                    name: `Error in ${block.type} with filename ${block.filename}`,
-                    message: block.dataErrors[0].message,
                 }}
             />
         )

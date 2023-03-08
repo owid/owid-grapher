@@ -567,16 +567,11 @@ export type RawBlockImage = {
     }
 }
 
-export const NoDefaultAlt = "No default alt text has been set for this image"
-
-export const ImageNotFound = "No image with this filename found in Drive"
-
 export type EnrichedBlockImage = {
     type: "image"
     filename: string
     alt?: string // optional as we can use the default alt from the file
     originalWidth?: number
-    dataErrors: { message: typeof NoDefaultAlt | typeof ImageNotFound }[] // for errors that aren't to do with parsing
 } & EnrichedBlockWithParseErrors
 
 // TODO: This is what lists staring with * are converted to in gdocToArhcieml
@@ -887,6 +882,7 @@ export interface OwidArticleType {
     revisionId: string | null
     linkedDocuments?: Record<string, OwidArticleType>
     imageMetadata?: Record<string, ImageMetadata>
+    errors?: string[]
 }
 
 // see also: getArticleFromJSON()
