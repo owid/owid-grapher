@@ -266,6 +266,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
             <script src={webpackUrl("vendors.js", props.baseUrl)} />
             <script src={webpackUrl("owid.js", props.baseUrl)} />
             <script
+                type="module"
                 dangerouslySetInnerHTML={{
                     __html: `window.runSiteFooterScripts(${JSON.stringify({
                         context: props.context,

@@ -46,7 +46,7 @@ export const IndexPage = (props: {
                 <script src={webpackUrl("vendors.js", "/admin")}></script>
                 <script src={webpackUrl("admin.js", "/admin")}></script>
                 <script
-                    type="text/javascript"
+                    type="module"
                     dangerouslySetInnerHTML={{ __html: script }}
                 />
                 {/* This lets the public frontend know to show edit links and such */}

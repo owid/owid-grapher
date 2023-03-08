@@ -39,6 +39,7 @@ export const NotFoundPage = (props: { baseUrl: string }) => {
                 </main>
                 <SiteFooter hideDonate={true} baseUrl={props.baseUrl} />
                 <script
+                    type="module"
                     dangerouslySetInnerHTML={{
                         __html: `
                 window.runNotFoundPage()
