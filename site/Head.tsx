@@ -1,5 +1,5 @@
 import React from "react"
-import { webpackUrl } from "../site/webpackUtils.js"
+import { viteAssets } from "./viteUtils.js"
 
 export const Head = (props: {
     canonicalUrl: string
@@ -19,6 +19,8 @@ export const Head = (props: {
         props.pageDesc ||
         "Research and data to make progress against the world’s largest problems"
     const imageUrl = props.imageUrl || `${baseUrl}/default-thumbnail.jpg`
+
+    const stylesheets = viteAssets("site/owid.entry.ts").styles
 
     return (
         <head>
@@ -51,12 +53,7 @@ export const Head = (props: {
             <meta name="twitter:title" content={pageTitle} />
             <meta name="twitter:description" content={pageDesc} />
             <meta name="twitter:image" content={imageUrl} />
-            <link
-                href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap"
-                rel="stylesheet"
-            />
-            <link rel="stylesheet" href={webpackUrl("owid.css", baseUrl)} />
-            <link rel="stylesheet" href={webpackUrl("commons.css", baseUrl)} />
+            {stylesheets}
             {props.children}
         </head>
     )

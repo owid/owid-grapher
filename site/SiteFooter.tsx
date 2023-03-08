@@ -1,9 +1,8 @@
 import React from "react"
-import { webpackUrl } from "../site/webpackUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { SiteFooterContext } from "@ourworldindata/utils"
-import { POLYFILL_URL } from "./SiteConstants.js"
+import { viteAssets } from "./viteUtils.js"
 
 interface SiteFooterProps {
     hideDonate?: boolean
@@ -261,10 +260,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                 </div>
             </div>
             <div className="site-tools" />
-            <script src={POLYFILL_URL} />
-            <script src={webpackUrl("commons.js", props.baseUrl)} />
-            <script src={webpackUrl("vendors.js", props.baseUrl)} />
-            <script src={webpackUrl("owid.js", props.baseUrl)} />
+            {viteAssets("site/owid.entry.ts").scripts}
             <script
                 type="module"
                 dangerouslySetInnerHTML={{
