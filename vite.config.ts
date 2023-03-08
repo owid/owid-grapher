@@ -5,14 +5,25 @@ import * as clientSettings from "./settings/clientSettings.js"
 // https://vitejs.dev/config/
 export default defineConfig({
     publicDir: false,
-    optimizeDeps: {
-        // they are commonJS, so we need to include them here
-        // https://vitejs.dev/guide/dep-pre-bundling.html#monorepos-and-linked-dependencies
-        include: [
-            "@ourworldindata/grapher",
-            "@ourworldindata/utils",
-            "@ourworldindata/core-table",
-        ],
+    resolve: {
+        alias: {
+            // we alias to the lib's source files in dev
+            // so we don't need to rebuild the lib over and over again
+            // Idea from https://github.com/LinusBorg/vue-lib-template/blob/3775e49b20a7c3349dd49321cad2ed7f9d575057/packages/playground/vite.config.ts
+            "@ourworldindata/grapher/src": "@ourworldindata/grapher/src",
+            "@ourworldindata/grapher":
+                process.env.NODE_ENV === "production"
+                    ? "@ourworldindata/grapher"
+                    : "@ourworldindata/grapher/src/index.ts",
+            "@ourworldindata/utils":
+                process.env.NODE_ENV === "production"
+                    ? "@ourworldindata/utils"
+                    : "@ourworldindata/utils/src/index.ts",
+            "@ourworldindata/core-table":
+                process.env.NODE_ENV === "production"
+                    ? "@ourworldindata/core-table"
+                    : "@ourworldindata/core-table/src/index.ts",
+        },
     },
     define: {
         ...Object.fromEntries(
