@@ -28,6 +28,7 @@ import {
     EntityName,
 } from "@ourworldindata/core-table"
 import { ColorSchemeName } from "../color/ColorConstants"
+import { merge } from "lodash"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -192,3 +193,9 @@ export const grapherKeysToSerialize = [
     "bakedGrapherURL",
     "shownTabs",
 ]
+
+export function mergeGrapherConfigs(
+    configs: GrapherInterface[]
+): GrapherInterface {
+    return merge({}, ...configs)
+}

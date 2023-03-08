@@ -56,6 +56,8 @@ import {
     SpanSimpleText,
     omitUndefinedValues,
     EnrichedBlockSimpleText,
+    EnrichedBlockVariableChart,
+    RawBlockVariableChart,
 } from "@ourworldindata/utils"
 import {
     extractPlaintextUrl,
@@ -76,6 +78,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
         .with({ type: "chart" }, parseChart)
+        .with({ type: "variable-chart" }, parseVariableChart)
         .with({ type: "scroller" }, parseScroller)
         .with({ type: "chart-story" }, parseChartStory)
         .with({ type: "image" }, parseImage)
@@ -182,6 +185,28 @@ const parseAside = (raw: RawBlockAside): EnrichedBlockAside => {
         caption,
         position,
         parseErrors: [],
+    }
+}
+
+const parseChart = (raw: RawBlockVariableChart): EnrichedBlockVariableChart => {
+    const createError = (
+        error: ParseError,
+        variable: number
+    ): EnrichedBlockVariableChart => ({
+        type: "variable-chart",
+        variable,
+        parseErrors: [error],
+    })
+
+    const val = raw.value
+
+    if (typeof raw.value === "string")
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+    } else {
+        if (!val.variable)
+
     }
 }
 

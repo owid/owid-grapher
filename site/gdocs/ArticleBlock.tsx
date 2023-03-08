@@ -25,6 +25,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
+import VariableChart from "./VariableChart.js"
 
 export type Container =
     | "default"
@@ -182,6 +183,12 @@ export default function ArticleBlock({
         ))
         .with({ type: "chart" }, (block) => (
             <Chart className={getLayout("chart", containerType)} d={block} />
+        ))
+        .with({ type: "variable-chart" }, (block) => (
+            <VariableChart
+                className={getLayout("chart", containerType)}
+                d={block}
+            />
         ))
         .with({ type: "scroller" }, (block) => (
             <Scroller

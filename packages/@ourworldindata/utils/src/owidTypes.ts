@@ -525,6 +525,35 @@ export type EnrichedBlockChart = {
     caption?: Span[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockVariableChartValue = {
+    variable?: string
+    chartType?: string
+    hideTabs?: string
+}
+
+export type RawBlockVariableChart = {
+    type: "variable-chart"
+    value: RawBlockVariableChartValue | string
+}
+
+export type EnrichedBlockVariableChart = {
+    type: "variable-chart"
+    variable: number
+    chartType:
+        | "LineChart"
+        | "ScatterPlot"
+        | "TimeScatter"
+        | "StackedArea"
+        | "DiscreteBar"
+        | "StackedDiscreteBar"
+        | "SlopeChart"
+        | "StackedBar"
+        | "WorldMap"
+        | "Marimekko"
+        | undefined
+    hideTabs: boolean
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockScroller = {
     type: "scroller"
     value: OwidRawArticleBlock[] | ArchieMLUnexpectedNonObjectValue
@@ -847,6 +876,7 @@ export type OwidRawArticleBlock =
     | RawBlockMissingData
     | RawBlockAdditionalCharts
     | RawBlockNumberedList
+    | RawBlockVariableChart
 
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
@@ -872,6 +902,7 @@ export type OwidEnrichedArticleBlock =
     | EnrichedBlockAdditionalCharts
     | EnrichedBlockNumberedList
     | EnrichedBlockSimpleText
+    | EnrichedBlockVariableChart
 
 export enum OwidArticlePublicationContext {
     unlisted = "unlisted",

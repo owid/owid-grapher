@@ -85,6 +85,16 @@ function* rawBlockAsideToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockVariableChartToArchieMLString(
+    block: RawBlockVariableChart
+): Generator<string, void, undefined> {
+    yield "{.variable-chart}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("variable", block.value)
+    }
+    yield "{}"
+}
+
 function* rawBlockChartToArchieMLString(
     block: RawBlockChart
 ): Generator<string, void, undefined> {
@@ -367,6 +377,7 @@ export function* owidRawArticleBlockToArchieMLStringGenerator(
         )
         .with({ type: "aside" }, rawBlockAsideToArchieMLString)
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
+        .with({ type: "variable-chart" }, rawBlockVariableChartToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
         .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)
         .with({ type: "image" }, rawBlockImageToArchieMLString)
