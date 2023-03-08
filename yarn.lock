@@ -11169,6 +11169,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^8.0.0":
+  version: 8.3.0
+  resolution: "commander@npm:8.3.0"
+  checksum: 0f82321821fc27b83bd409510bb9deeebcfa799ff0bf5d102128b500b7af22872c0c92cb6a0ebc5a4cf19c6b550fba9cedfa7329d18c6442a625f851377bacf0
+  languageName: node
+  linkType: hard
+
 "commander@npm:^9.0.0, commander@npm:^9.1.0, commander@npm:^9.3.0":
   version: 9.4.0
   resolution: "commander@npm:9.4.0"
@@ -14813,6 +14820,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-glob@npm:^3.2.7":
+  version: 3.2.12
+  resolution: "fast-glob@npm:3.2.12"
+  dependencies:
+    "@nodelib/fs.stat": ^2.0.2
+    "@nodelib/fs.walk": ^1.2.3
+    glob-parent: ^5.1.2
+    merge2: ^1.3.0
+    micromatch: ^4.0.4
+  checksum: 0b1990f6ce831c7e28c4d505edcdaad8e27e88ab9fa65eedadb730438cfc7cde4910d6c975d6b7b8dc8a73da4773702ebcfcd6e3518e73938bb1383badfe01c2
+  languageName: node
+  linkType: hard
+
 "fast-json-stable-stringify@npm:^2.0.0, fast-json-stable-stringify@npm:^2.1.0":
   version: 2.1.0
   resolution: "fast-json-stable-stringify@npm:2.1.0"
@@ -15570,6 +15590,17 @@ __metadata:
     jsonfile: ^6.0.1
     universalify: ^2.0.0
   checksum: dc94ab37096f813cc3ca12f0f1b5ad6744dfed9ed21e953d72530d103cea193c2f81584a39e9dee1bea36de5ee66805678c0dddc048e8af1427ac19c00fffc50
+  languageName: node
+  linkType: hard
+
+"fs-extra@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "fs-extra@npm:11.1.0"
+  dependencies:
+    graceful-fs: ^4.2.0
+    jsonfile: ^6.0.1
+    universalify: ^2.0.0
+  checksum: 5ca476103fa1f5ff4a9b3c4f331548f8a3c1881edaae323a4415d3153b5dc11dc6a981c8d1dd93eec8367ceee27b53f8bd27eecbbf66ffcdd04927510c171e7f
   languageName: node
   linkType: hard
 
@@ -16614,6 +16645,7 @@ __metadata:
     url-parse: ^1.5.10
     url-slug: ^3.0.2
     vite: ^4.1.4
+    vite-plugin-checker: ^0.5.6
     webfontloader: ^1.6.28
     workerpool: ^6.2.0
   languageName: unknown
@@ -20123,6 +20155,13 @@ __metadata:
   version: 4.1.1
   resolution: "lodash.once@npm:4.1.1"
   checksum: d768fa9f9b4e1dc6453be99b753906f58990e0c45e7b2ca5a3b40a33111e5d17f6edf2f768786e2716af90a8e78f8f91431ab8435f761fef00f9b0c256f6d245
+  languageName: node
+  linkType: hard
+
+"lodash.pick@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "lodash.pick@npm:4.4.0"
+  checksum: 2c36cab7da6b999a20bd3373b40e31a3ef81fa264f34a6979c852c5bc8ac039379686b27380f0cb8e3781610844fafec6949c6fbbebc059c98f8fa8570e3675f
   languageName: node
   linkType: hard
 
@@ -27974,6 +28013,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tiny-invariant@npm:^1.1.0":
+  version: 1.3.1
+  resolution: "tiny-invariant@npm:1.3.1"
+  checksum: 872dbd1ff20a21303a2fd20ce3a15602cfa7fcf9b228bd694a52e2938224313b5385a1078cb667ed7375d1612194feaca81c4ecbe93121ca1baebe344de4f84c
+  languageName: node
+  linkType: hard
+
 "tiny-lru@npm:^10.0.0":
   version: 10.0.1
   resolution: "tiny-lru@npm:10.0.1"
@@ -29359,6 +29405,57 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vite-plugin-checker@npm:^0.5.6":
+  version: 0.5.6
+  resolution: "vite-plugin-checker@npm:0.5.6"
+  dependencies:
+    "@babel/code-frame": ^7.12.13
+    ansi-escapes: ^4.3.0
+    chalk: ^4.1.1
+    chokidar: ^3.5.1
+    commander: ^8.0.0
+    fast-glob: ^3.2.7
+    fs-extra: ^11.1.0
+    lodash.debounce: ^4.0.8
+    lodash.pick: ^4.4.0
+    npm-run-path: ^4.0.1
+    strip-ansi: ^6.0.0
+    tiny-invariant: ^1.1.0
+    vscode-languageclient: ^7.0.0
+    vscode-languageserver: ^7.0.0
+    vscode-languageserver-textdocument: ^1.0.1
+    vscode-uri: ^3.0.2
+  peerDependencies:
+    eslint: ">=7"
+    meow: ^9.0.0
+    optionator: ^0.9.1
+    stylelint: ">=13"
+    typescript: "*"
+    vite: ">=2.0.0"
+    vls: "*"
+    vti: "*"
+    vue-tsc: "*"
+  peerDependenciesMeta:
+    eslint:
+      optional: true
+    meow:
+      optional: true
+    optionator:
+      optional: true
+    stylelint:
+      optional: true
+    typescript:
+      optional: true
+    vls:
+      optional: true
+    vti:
+      optional: true
+    vue-tsc:
+      optional: true
+  checksum: 9590f7efb968a294bf575be0c106a4d9d4000d86a6a5870debb52a5a38ef25334f7e2fb65d21a522a6bca59e7767709ba752746c72aa28ff53d0f1f32fe17d50
+  languageName: node
+  linkType: hard
+
 "vite@npm:^4.1.4":
   version: 4.1.4
   resolution: "vite@npm:4.1.4"
@@ -29401,6 +29498,66 @@ __metadata:
   version: 1.1.2
   resolution: "vm-browserify@npm:1.1.2"
   checksum: 10a1c50aab54ff8b4c9042c15fc64aefccce8d2fb90c0640403242db0ee7fb269f9b102bdb69cfb435d7ef3180d61fd4fb004a043a12709abaf9056cfd7e039d
+  languageName: node
+  linkType: hard
+
+"vscode-jsonrpc@npm:6.0.0":
+  version: 6.0.0
+  resolution: "vscode-jsonrpc@npm:6.0.0"
+  checksum: 3a67a56f287e8c449f2d9752eedf91e704dc7b9a326f47fb56ac07667631deb45ca52192e9bccb2ab108764e48409d70fa64b930d46fc3822f75270b111c5f53
+  languageName: node
+  linkType: hard
+
+"vscode-languageclient@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "vscode-languageclient@npm:7.0.0"
+  dependencies:
+    minimatch: ^3.0.4
+    semver: ^7.3.4
+    vscode-languageserver-protocol: 3.16.0
+  checksum: fde7122e96838f0de1940dba80fc4b6bb80717695dbfaff005b9d44eeea371b7f09daedefaebcbf0ff278f67446e37837ec0730ddbc7dbd82aca5d8567065594
+  languageName: node
+  linkType: hard
+
+"vscode-languageserver-protocol@npm:3.16.0":
+  version: 3.16.0
+  resolution: "vscode-languageserver-protocol@npm:3.16.0"
+  dependencies:
+    vscode-jsonrpc: 6.0.0
+    vscode-languageserver-types: 3.16.0
+  checksum: ac30cbe4b778344f7b93defbaa1332dcb5a5a3a0afda6b88618a9ed44093c1ae1d2f11548bdcff42a73bb46943df025d4fe721559144dd7bf25ae60663aabe06
+  languageName: node
+  linkType: hard
+
+"vscode-languageserver-textdocument@npm:^1.0.1":
+  version: 1.0.9
+  resolution: "vscode-languageserver-textdocument@npm:1.0.9"
+  checksum: 36b76f725098d3e0d97885c05c51fca47388d9b62e936f6c8824c44a4fac7a96e1406538538a0f46ef1fdb9f1053ddc1cacb5e7b168cecb36d3c018942ec6f52
+  languageName: node
+  linkType: hard
+
+"vscode-languageserver-types@npm:3.16.0":
+  version: 3.16.0
+  resolution: "vscode-languageserver-types@npm:3.16.0"
+  checksum: 7a44fb10b9fbeb9529f832337b7f0430fc6275d62945b86851d425a950e22da3917ef5f6c552688191769dd1eae047c6ee9ec3d9f2280498353007c2dfe0725c
+  languageName: node
+  linkType: hard
+
+"vscode-languageserver@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "vscode-languageserver@npm:7.0.0"
+  dependencies:
+    vscode-languageserver-protocol: 3.16.0
+  bin:
+    installServerIntoExtension: bin/installServerIntoExtension
+  checksum: 80cfbd5f8f0869c5369d1a61fe86b3210ee941cb646eb31b672045670ef3ce213dc1fd3bcd4cef6ef8bc7c5025f98e4a70dad645d97a0bd4708962bbd921683a
+  languageName: node
+  linkType: hard
+
+"vscode-uri@npm:^3.0.2":
+  version: 3.0.7
+  resolution: "vscode-uri@npm:3.0.7"
+  checksum: c899a0334f9f6ba53021328e083f6307978c09b94407d7e5fe86fcd8fcb8f1da0cb344123a335e55769055007a46d51aff83f9ee1dfc0296ee54b78f34ef0e4f
   languageName: node
   linkType: hard
 

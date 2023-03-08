@@ -1,0 +1,9 @@
+{
+    "extends": "./tsconfig.json",
+    "include": ["packages/**/*.ts", "packages/**/*.tsx"],
+    "exclude": ["**/*.stories.tsx"],
+    "compilerOptions": {
+        // ensure that nobody can accidentally use this config for a build
+        "noEmit": true
+    }
+}

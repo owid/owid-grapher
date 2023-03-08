@@ -1,5 +1,6 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
+import checker from "vite-plugin-checker"
 import * as clientSettings from "./settings/clientSettings.js"
 
 // https://vitejs.dev/config/
@@ -82,6 +83,12 @@ export default defineConfig({
                 parserOpts: {
                     plugins: ["decorators-legacy"],
                 },
+            },
+        }),
+        checker({
+            typescript: {
+                buildMode: true,
+                tsconfigPath: "tsconfig.vite-checker.json",
             },
         }),
     ],

@@ -48,6 +48,11 @@ const devAssets = (entry: string): Assets => {
                 type="module"
                 src={`${VITE_DEV_URL}/${entry}`}
             />,
+            <script
+                key="vite-plugin-checker"
+                type="module"
+                src={`${VITE_DEV_URL}/@vite-plugin-checker-runtime-entry`}
+            />,
         ],
     }
 }

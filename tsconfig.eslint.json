@@ -1,6 +1,12 @@
 {
     "extends": "./tsconfig.json",
     "include": ["**/*.ts", "**/*.tsx"],
+    "exclude": [
+        "**/*.stories.tsx",
+        "./devTools/graphersToGit/**",
+        "webpack.config.ts",
+        "knexfile.ts"
+    ],
     "compilerOptions": {
         // ensure that nobody can accidentally use this config for a build
         "noEmit": true
