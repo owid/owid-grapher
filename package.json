@@ -236,6 +236,7 @@
         "@types/opener": "^1.4.0",
         "@typescript-eslint/eslint-plugin": "^5.48.2",
         "@typescript-eslint/parser": "^5.48.2",
+        "@vitejs/plugin-react": "^3.1.0",
         "chokidar": "^3.5.3",
         "cypress": "9.3.1",
         "eslint-config-prettier": "^8.6.0",
@@ -248,7 +249,8 @@
         "source-map-support": "^0.5.12",
         "sql-fixtures": "^1.0.4",
         "tmex": "^1.0.8",
-        "tsc-watch": "^4.2.9"
+        "tsc-watch": "^4.2.9",
+        "vite": "^4.1.4"
     },
     "resolutions": {
         "webpack": "^5.0.0",
