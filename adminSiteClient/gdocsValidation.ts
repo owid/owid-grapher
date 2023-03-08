@@ -115,7 +115,6 @@ export class ExcerptHandler extends AbstractHandler {
 // honor the type cast (and subsequent assumptions) in getPublishedGdocs()
 export const getErrors = (gdoc: OwidArticleType): ErrorMessage[] => {
     const errors: ErrorMessage[] = []
-    // Not able to show these in the preview in any way currently. How to go about this?
     const attachmentErrors: ErrorMessage[] =
         gdoc.errors?.map((error) => ({
             property: "content",

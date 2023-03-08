@@ -21,7 +21,6 @@ export const AttachmentsContext = createContext<{
     imageMetadata: Record<string, ImageMetadata>
 }>({ linkedDocuments: {}, imageMetadata: {} })
 
-// TODO: Can this and SiteBaker be merged?
 export const ArticleContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
 })
@@ -38,8 +37,6 @@ export function OwidArticle({
     imageMetadata = {},
     isPreviewing = false,
 }: OwidArticleProps) {
-    console.log("linkedDocuments", linkedDocuments)
-    console.log("imageMetadata", imageMetadata)
     const coverStyle = content["cover-image"]
         ? {
               background: `url(${content["cover-image"][0].value.src})`,

@@ -143,7 +143,6 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
     async loadImageMetadata(): Promise<void> {
         if (this.filenames.length) {
-            // TODO: make sure we don't call this every single time we bake an article
             await imageStore.fetchImageMetadata()
             const images = await imageStore
                 .syncImagesToS3(this.filenames)
@@ -212,7 +211,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         const filenameErrors = this.filenames.reduce(
             (acc: string[], filename): string[] => {
                 if (!this.imageMetadata[filename]) {
-                    acc.push(`Missing ${filename}`)
+                    acc.push(`No image named ${filename} found in Drive`)
                 }
                 if (!this.imageMetadata[filename].defaultAlt) {
                     acc.push(`${filename} is missing a default alt text`)
@@ -239,8 +238,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             []
         )
 
-        this.errors = this.errors.concat(filenameErrors)
-        this.errors = this.errors.concat(linkErrors)
+        this.errors = this.errors.concat([...filenameErrors, ...linkErrors])
     }
 
     static async getGdocFromContentSource(

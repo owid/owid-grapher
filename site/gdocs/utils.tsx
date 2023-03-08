@@ -22,15 +22,9 @@ export const useImage = (
     filename: string | undefined
 ): ImageMetadata | undefined => {
     const { imageMetadata } = useContext(AttachmentsContext)
-
     if (!filename) return
-
     const metadata = imageMetadata[filename]
-    if (metadata) {
-        // TODO: handle defaultAlt errors etc
-        return metadata
-    }
-    return
+    return metadata
 }
 
 export function spansToUnformattedPlainText(spans: Span[] = []): string {

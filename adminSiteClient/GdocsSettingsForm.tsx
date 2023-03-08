@@ -54,6 +54,14 @@ export const GdocsSettingsForm = ({
                     />
                 )}
             />
+            <div className="form-group">
+                <p>All errors</p>
+                <ul>
+                    {errors?.map((error) => (
+                        <li key={error.message}>{error.message}</li>
+                    ))}
+                </ul>
+            </div>
         </form>
     ) : null
 }

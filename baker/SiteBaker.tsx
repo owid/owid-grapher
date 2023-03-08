@@ -249,26 +249,24 @@ export class SiteBaker {
 
     // Bake all GDoc posts
     async bakeGDocPosts() {
-        const publishedGdocs = await Gdoc.getPublishedGdocs()
+        const posts = await Gdoc.getPublishedGdocs()
 
-        // Supply all images during bake instead of repeatedly calling loadImageMetadata
+        // Supply all images before validating instead of repeatedly calling loadImageMetadata
         const allImages = await Image.find().then((images) =>
             keyBy(images, "filename")
         )
 
-        for (const gdoc of publishedGdocs) {
-            gdoc.imageMetadata = allImages
-            // This makes a DB query to get all published documents
-            // Should we pass publishedDocuments in instead?
-            await gdoc.validate()
-            if (gdoc.errors.length) {
+        for (const post of posts) {
+            post.imageMetadata = allImages
+            await post.validate()
+            if (post.errors.length) {
                 await logErrorAndMaybeSendToSlack(
-                    `Error(s) baking "${gdoc.slug}" :\n  ${gdoc.errors.join(
+                    `Error(s) baking "${post.slug}" :\n  ${post.errors.join(
                         "\n  "
                     )}`
                 )
             }
-            await this.bakeGDocPost(gdoc as OwidArticleTypePublished)
+            await this.bakeGDocPost(post as OwidArticleTypePublished)
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
@@ -472,16 +470,15 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages() {
-        await db.getConnection()
-        // await bakeCountries(this)
-        // await this.bakeSpecialPages()
-        // await this.bakeCountryProfiles()
-        // await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-        //     this.bakedSiteDir
-        // )
-        // this.progressBar.tick({
-        //     name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
-        // })
+        await bakeCountries(this)
+        await this.bakeSpecialPages()
+        await this.bakeCountryProfiles()
+        await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+            this.bakedSiteDir
+        )
+        this.progressBar.tick({
+            name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+        })
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
     }

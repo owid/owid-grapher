@@ -49,19 +49,8 @@ export default function Image(props: {
     const { filename, className = "", containerType = "default" } = props
     const { isPreviewing } = useContext(ArticleContext)
     const image = useImage(filename)
+    if (!image) return null
 
-    // TODO: handle other errors e.g. no default alt text
-    if (!image) {
-        return (
-            <BlockErrorFallback
-                error={{
-                    message: "No image!",
-                    name: "Error in image block",
-                }}
-                className={className}
-            />
-        )
-    }
     const alt = props.alt ?? image.defaultAlt
 
     if (isPreviewing) {
