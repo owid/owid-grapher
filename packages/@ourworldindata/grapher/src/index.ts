@@ -5,7 +5,7 @@ export { binningStrategyLabels } from "./color/BinningStrategies"
 export {
     NumericBin,
     CategoricalBin,
-    ColorScaleBin,
+    type ColorScaleBin,
 } from "./color/ColorScaleBin"
 export { ChartDimension } from "./chart/ChartDimension"
 export {
@@ -24,14 +24,14 @@ export {
     FacetAxisDomain,
     SeriesStrategy,
     ThereWasAProblemLoadingThisChart,
-    SeriesColorMap,
+    type SeriesColorMap,
     GrapherTabOption,
     ScaleType,
-    RelatedQuestionsConfig,
-    Topic,
+    type RelatedQuestionsConfig,
+    type Topic,
     WorldEntityName,
     ScatterPointLabelStrategy,
-    SeriesName,
+    type SeriesName,
     GRAPHER_VARIABLES_ROUTE,
     GRAPHER_VARIABLE_DATA_ROUTE,
     GRAPHER_VARIABLE_METADATA_ROUTE,
@@ -48,10 +48,10 @@ export {
     getColorNameOwidDistinctLinesAndSemanticPalettes,
 } from "./color/CustomSchemes"
 export { ColorSchemes } from "./color/ColorSchemes"
-export { ComparisonLineConfig } from "./scatterCharts/ComparisonLine"
+export type { ComparisonLineConfig } from "./scatterCharts/ComparisonLine"
 export { DimensionSlot } from "./chart/DimensionSlot"
 export { EntityPicker } from "./controls/entityPicker/EntityPicker"
-export { EntityPickerManager } from "./controls/entityPicker/EntityPickerConstants"
+export type { EntityPickerManager } from "./controls/entityPicker/EntityPickerConstants"
 export { getColorSchemeForChartType } from "./color/ColorSchemes"
 export {
     GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
@@ -61,16 +61,16 @@ export {
 export { GlobalEntitySelector } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export {
     Grapher,
-    GrapherProgrammaticInterface,
-    GrapherManager,
+    type GrapherProgrammaticInterface,
+    type GrapherManager,
     getErrorMessageRelatedQuestionUrl,
 } from "./core/Grapher"
 export { GrapherAnalytics } from "./core/GrapherAnalytics"
 export {
-    GrapherInterface,
-    GrapherQueryParams,
-    LegacyGrapherInterface,
-    LegacyGrapherQueryParams,
+    type GrapherInterface,
+    type GrapherQueryParams,
+    type LegacyGrapherInterface,
+    type LegacyGrapherQueryParams,
     grapherKeysToSerialize,
 } from "./core/GrapherInterface"
 import fuzzysort from "fuzzysort"
@@ -94,9 +94,9 @@ export {
     migrateSelectedEntityNamesParam,
     getSelectedEntityNamesParam,
 } from "./core/EntityUrlBuilder"
-export { SparkBars, SparkBarsProps } from "./sparkBars/SparkBars"
+export { SparkBars, type SparkBarsProps } from "./sparkBars/SparkBars"
 export { SparkBarTimeSeriesValue } from "./sparkBars/SparkBarTimeSeriesValue"
 export {
-    SlideShowManager,
+    type SlideShowManager,
     SlideShowController,
 } from "./slideshowController/SlideShowController"
