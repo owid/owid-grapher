@@ -5,7 +5,7 @@
         "composite": false,
         "baseUrl": "./"
     },
-    "files": ["webpack.config.ts"],
+    "files": [],
     "references": [
         { "path": "./gridLang" },
         { "path": "./gitCms" },
