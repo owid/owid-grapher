@@ -9,7 +9,6 @@
         "buildAndDeploySite": "node ./itsJustJavascript/baker/buildAndDeploySite.js",
         "buildCoverage": "jest --coverage=true --coverageProvider=v8",
         "buildLocalBake": "node ./itsJustJavascript/baker/buildLocalBake.js",
-        "buildStorybook": "build-storybook -c ./itsJustJavascript/.storybook -o .storybook/build",
         "buildTsc": "tsc -b -verbose",
         "buildLerna": "lerna run build",
         "buildWebpack": "rm -rf itsJustJavascript/webpack && ENV=production webpack --mode production --config ./itsJustJavascript/webpack.config.js --progress",
@@ -26,7 +25,6 @@
         "startAdminServer": "node ./itsJustJavascript/adminSiteServer/app.js",
         "startDeployQueueServer": "node ./itsJustJavascript/baker/startDeployQueueServer.js",
         "startLernaWatcher": "node ./devTools/lernaWatcher/lerna-watcher.js",
-        "startStorybookServer": "start-storybook -c ./itsJustJavascript/.storybook -p 6006",
         "startTmuxServer": "node_modules/tmex/tmex dev \"yarn startTscServer\" \"yarn startLernaWatcher\" \"yarn startAdminServer\" \"yarn startWebpackServer\"",
         "startTscServer": "tsc -b -verbose -watch",
         "startWebpackServer": "webpack server --mode development --no-live-reload --config ./itsJustJavascript/webpack.config.js",
@@ -232,12 +230,6 @@
         "workerpool": "^6.2.0"
     },
     "devDependencies": {
-        "@storybook/addon-measure": "^6.5.10",
-        "@storybook/addon-outline": "^6.5.10",
-        "@storybook/addon-viewport": "^6.5.10",
-        "@storybook/builder-webpack5": "^6.5.10",
-        "@storybook/manager-webpack5": "^6.5.10",
-        "@storybook/react": "^6.5.10",
         "@testing-library/jest-dom": "^5.16.5",
         "@testing-library/react": "^12",
         "@types/jest": "^29.0.3",
@@ -255,7 +247,6 @@
         "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
         "sql-fixtures": "^1.0.4",
-        "storybook": "^6.5.10",
         "tmex": "^1.0.8",
         "tsc-watch": "^4.2.9"
     },
