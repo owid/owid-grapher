@@ -140,7 +140,7 @@ class PostRow extends React.Component<PostRowProps> {
                         </>
                     </Link>
                     <button
-                        onClick={async () => await this.onRecreateGdoc()}
+                        onClick={this.onRecreateGdoc}
                         className="btn btn-primary alert-danger"
                     >
                         <FontAwesomeIcon
@@ -151,7 +151,7 @@ class PostRow extends React.Component<PostRowProps> {
                         />
                     </button>
                     <button
-                        onClick={async () => await this.onUnlinkGdoc()}
+                        onClick={this.onUnlinkGdoc}
                         className="btn btn-primary alert-danger"
                     >
                         <FontAwesomeIcon
