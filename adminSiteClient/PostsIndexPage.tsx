@@ -13,6 +13,11 @@ import { Tag } from "./TagBadge.js"
 import { match } from "ts-pattern"
 import { Link } from "./Link.js"
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
+import { faChainBroken } from "@fortawesome/free-solid-svg-icons/faChainBroken"
+import { faRecycle } from "@fortawesome/free-solid-svg-icons/faRecycle"
+
 interface PostIndexMeta {
     id: number
     title: string
@@ -93,6 +98,24 @@ class PostRow extends React.Component<PostRowProps> {
         }
     }
 
+    @action.bound async onUnlinkGdoc() {
+        if (
+            window.confirm(
+                "This will unlink the GDoc that was created. The GDoc will NOT be deleted but it will no longer show up here. Are you sure?"
+            )
+        ) {
+            this.postGdocStatus = GdocStatus.CONVERTING
+            const { admin } = this.context
+            const json = await admin.requestJSON(
+                `/api/posts/${this.props.post.id}/unlinkGdoc`,
+                {},
+                "POST"
+            )
+            this.postGdocStatus = GdocStatus.MISSING
+            this.props.post.gdocSuccessorId = undefined
+        }
+    }
+
     render() {
         const { post, highlight, availableTags } = this.props
         const { postGdocStatus } = this
@@ -112,13 +135,29 @@ class PostRow extends React.Component<PostRowProps> {
                         to={`gdocs/${post.gdocSuccessorId}/preview`}
                         className="btn btn-primary"
                     >
-                        Preview
+                        <>
+                            <FontAwesomeIcon icon={faEye} /> Preview
+                        </>
                     </Link>
                     <button
-                        onClick={async () => await this.onRecreateGdoc()}
+                        onClick={this.onRecreateGdoc}
                         className="btn btn-primary alert-danger"
                     >
-                        Recreate
+                        <FontAwesomeIcon
+                            icon={faRecycle}
+                            title={
+                                "Recreate the Gdoc, replacing existing content"
+                            }
+                        />
+                    </button>
+                    <button
+                        onClick={this.onUnlinkGdoc}
+                        className="btn btn-primary alert-danger"
+                    >
+                        <FontAwesomeIcon
+                            icon={faChainBroken}
+                            title={"Unlink the GDoc"}
+                        />
                     </button>
                 </>
             ))

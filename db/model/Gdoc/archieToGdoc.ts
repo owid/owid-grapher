@@ -265,7 +265,7 @@ async function createGdoc(
 
 export async function createGdocAndInsertOwidArticleContent(
     content: OwidArticleContent,
-    existingGdocId: string | undefined
+    existingGdocId: string | null
 ): Promise<string> {
     const batchUpdates = articleToBatchUpdates(content)
 
@@ -292,7 +292,7 @@ export async function createGdocAndInsertOwidArticleContent(
     // Now that we have either created a new document or deleted the content of an existing one,
     // we can insert the new content.
     await client.documents.batchUpdate({
-        documentId,
+        documentId: documentId ?? undefined,
         requestBody: {
             requests: batchUpdates,
         },

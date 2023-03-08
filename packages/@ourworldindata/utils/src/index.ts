@@ -159,6 +159,7 @@ export {
     WP_ColumnStyle,
     WP_PostType,
     type Year,
+    type PostRowWithGdocPublishStatus,
 } from "./owidTypes.js"
 
 export {

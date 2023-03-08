@@ -35,6 +35,7 @@ import {
     parseIntOrUndefined,
     parseToOperation,
     PostRow,
+    PostRowWithGdocPublishStatus,
     set,
     SuggestedChartRevisionStatus,
     trimObject,
@@ -2295,15 +2296,21 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     const postId = expectInt(req.params.postId)
     const allowRecreate = !!req.body.allowRecreate
     const post = (await db
-        .knexTable(postsTable)
+        .knexTable("posts_with_gdoc_publish_status")
         .where({ id: postId })
         .select("*")
-        .first()) as PostRow | undefined
+        .first()) as PostRowWithGdocPublishStatus | undefined
 
     if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
     const existingGdocId = post.gdocSuccessorId
     if (!allowRecreate && existingGdocId)
         throw new JsonError("A gdoc already exists for this post", 400)
+    if (allowRecreate && existingGdocId && post.isGdocPublished) {
+        throw new JsonError(
+            "A gdoc already exists for this post and it is already published",
+            400
+        )
+    }
     const archieMl = JSON.parse(post.archieml) as OwidArticleType
     const gdocId = await createGdocAndInsertOwidArticleContent(
         archieMl.content,
@@ -2331,6 +2338,37 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
     }
 
     return { googleDocsId: gdocId }
+})
+
+apiRouter.post("/posts/:postId/unlinkGdoc", async (req: Request) => {
+    const postId = expectInt(req.params.postId)
+    const post = (await db
+        .knexTable("posts_with_gdoc_publish_status")
+        .where({ id: postId })
+        .select("*")
+        .first()) as PostRowWithGdocPublishStatus | undefined
+
+    if (!post) throw new JsonError(`No post found for id ${postId}`, 404)
+    const existingGdocId = post.gdocSuccessorId
+    if (!existingGdocId)
+        throw new JsonError("No gdoc exists for this post", 400)
+    if (existingGdocId && post.isGdocPublished) {
+        throw new JsonError(
+            "The GDoc is already published - you can't unlink it",
+            400
+        )
+    }
+    // This is not ideal - we are using knex for on thing and typeorm for another
+    // which means that we can't wrap this in a transaction. We should probably
+    // move posts to use typeorm as well or at least have a typeorm alternative for it
+    await db
+        .knexTable(postsTable)
+        .where({ id: postId })
+        .update("gdocSuccessorId", null)
+
+    await dataSource.getRepository(Gdoc).delete(existingGdocId)
+
+    return { success: true }
 })
 
 apiRouter.get("/importData.json", async (req) => {
