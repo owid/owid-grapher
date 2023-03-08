@@ -217,12 +217,11 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             ): OwidArticleErrorMessage[] => {
                 if (!this.imageMetadata[filename]) {
                     acc.push({
-                        property: "body",
+                        property: "imageMetadata",
                         message: `No image named ${filename} found in Drive`,
                         type: OwidArticleErrorMessageType.Error,
                     })
-                }
-                if (!this.imageMetadata[filename].defaultAlt) {
+                } else if (!this.imageMetadata[filename].defaultAlt) {
                     acc.push({
                         property: "imageMetadata",
                         message: `${filename} is missing a default alt text`,

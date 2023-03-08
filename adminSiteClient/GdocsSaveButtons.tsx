@@ -95,6 +95,11 @@ export const GdocsSaveButtons = ({
                         disabled={hasErrors || (published && !hasChanges)}
                         type="primary"
                         onClick={confirmPublish}
+                        title={
+                            hasErrors
+                                ? "This document has errors and can't be published until they're fixed"
+                                : undefined
+                        }
                     >
                         {!published ? (
                             "Publish"

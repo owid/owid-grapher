@@ -49,7 +49,20 @@ export default function Image(props: {
     const { filename, className = "", containerType = "default" } = props
     const { isPreviewing } = useContext(ArticleContext)
     const image = useImage(filename)
-    if (!image) return null
+    if (!image) {
+        if (isPreviewing) {
+            return (
+                <BlockErrorFallback
+                    className={className}
+                    error={{
+                        name: "Image error",
+                        message: `Image with filename "${filename}" not found. This block will not render when the page is baked.`,
+                    }}
+                />
+            )
+        }
+        return null
+    }
 
     const alt = props.alt ?? image.defaultAlt
 
