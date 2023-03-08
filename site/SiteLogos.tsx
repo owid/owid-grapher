@@ -15,7 +15,7 @@ export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
                     className="oxford-logo"
                 >
                     <img
-                        src={`${baseUrl}/oms-logo.svg`}
+                        src={`${baseUrl}/oms-logo.png`}
                         alt="Oxford Martin School logo"
                     />
                 </a>
@@ -24,7 +24,7 @@ export const SiteLogos = ({ baseUrl }: { baseUrl: string }) => {
                     className="gcdl-logo"
                 >
                     <img
-                        src={`${baseUrl}/gcdl-logo.svg`}
+                        src={`${baseUrl}/gcdl-logo.png`}
                         alt="Global Change Data Lab logo"
                     />
                 </a>
