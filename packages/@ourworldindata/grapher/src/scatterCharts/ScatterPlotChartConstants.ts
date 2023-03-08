@@ -26,12 +26,14 @@ export interface ScatterPlotManager extends ChartManager {
     addCountryMode?: EntitySelectionMode
     xOverrideTime?: Time | undefined
     tableAfterAuthorTimelineAndActiveChartTransform?: OwidTable
+    includedEntities?: EntityId[]
     excludedEntities?: EntityId[]
     backgroundSeriesLimit?: number
     hideLinesOutsideTolerance?: boolean
     startTime?: Time
     endTime?: Time
     hasTimeline?: boolean
+    hideScatterLabels?: boolean
 }
 
 export interface ScatterTooltipProps {
@@ -133,4 +135,5 @@ export interface ScatterPointsWithLabelsProps {
     hideConnectedScatterLines: boolean
     noDataModalManager: NoDataModalManager
     disableIntroAnimation?: boolean
+    hideScatterLabels?: boolean
 }

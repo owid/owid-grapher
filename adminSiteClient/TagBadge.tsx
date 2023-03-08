@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar"
 import Tippy from "@tippyjs/react"
 
-export { Tag }
+export type { Tag }
 
 @observer
 export class TagBadge extends React.Component<{

@@ -314,6 +314,7 @@ export class Grapher
     @observable.ref entityType = "country"
     @observable.ref entityTypePlural = "countries"
     @observable.ref hideTimeline?: boolean = undefined
+    @observable.ref hideScatterLabels?: boolean = undefined
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasChartTab: boolean = true
@@ -1617,10 +1618,11 @@ export class Grapher
     ): Grapher | null {
         const grapherInstanceRef = React.createRef<Grapher>()
 
-        let ErrorBoundary = React.Fragment // use React.Fragment as a sort of default error boundary if Bugsnag is not available
+        let ErrorBoundary = React.Fragment as React.ComponentType // use React.Fragment as a sort of default error boundary if Bugsnag is not available
         if (Bugsnag && (Bugsnag as any)._client) {
             ErrorBoundary =
-                Bugsnag.getPlugin("react").createErrorBoundary(React)
+                Bugsnag.getPlugin("react")?.createErrorBoundary(React) ??
+                React.Fragment
         }
 
         const setBoundsFromContainerAndRender = (): void => {

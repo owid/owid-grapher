@@ -101,8 +101,12 @@ export class ScatterPlotChart
     @observable private hoverColor?: Color
 
     transformTable(table: OwidTable): OwidTable {
-        const { backgroundSeriesLimit, excludedEntities, addCountryMode } =
-            this.manager
+        const {
+            backgroundSeriesLimit,
+            includedEntities,
+            excludedEntities,
+            addCountryMode,
+        } = this.manager
 
         if (
             addCountryMode === EntitySelectionMode.Disabled ||
@@ -113,14 +117,28 @@ export class ScatterPlotChart
             )
         }
 
-        if (excludedEntities) {
+        if (excludedEntities || includedEntities) {
             const excludedEntityIdsSet = new Set(excludedEntities)
+            const includedEntityIdsSet = new Set(includedEntities)
+            const excludeEntitiesFilter = (entityId: any): boolean =>
+                !excludedEntityIdsSet.has(entityId as number)
+            const includedEntitiesFilter = (entityId: any): boolean =>
+                includedEntityIdsSet.size > 0
+                    ? includedEntityIdsSet.has(entityId as number)
+                    : true
+            const filterFn = (entityId: any): boolean =>
+                excludeEntitiesFilter(entityId) &&
+                includedEntitiesFilter(entityId)
+            const excludedList = excludedEntities
+                ? excludedEntities.join(", ")
+                : ""
+            const includedList = includedEntities
+                ? includedEntities.join(", ")
+                : ""
             table = table.columnFilter(
                 OwidTableSlugs.entityId,
-                (entityId) => !excludedEntityIdsSet.has(entityId as number),
-                `Excluded entity ids specified by author: ${excludedEntities.join(
-                    ", "
-                )}`
+                filterFn,
+                `Excluded entity ids specified by author: ${excludedList} - Included entity ids specified by author: ${includedList}`
             )
         }
 
@@ -507,6 +525,10 @@ export class ScatterPlotChart
         return !!this.manager.hideConnectedScatterLines
     }
 
+    @computed private get hideScatterLabels(): boolean {
+        return !!this.manager.hideScatterLabels
+    }
+
     @computed private get points(): JSX.Element {
         return (
             <ScatterPointsWithLabels
@@ -523,6 +545,7 @@ export class ScatterPlotChart
                 focusedSeriesNames={this.focusedEntityNames}
                 hoveredSeriesNames={this.hoveredSeriesNames}
                 disableIntroAnimation={this.manager.disableIntroAnimation}
+                hideScatterLabels={this.hideScatterLabels}
                 onMouseOver={this.onScatterMouseOver}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
@@ -822,6 +845,24 @@ export class ScatterPlotChart
         )
     }
 
+    @computed private get validValuesForAxisDomainX(): number[] {
+        const { xScaleType, pointsForAxisDomains } = this
+
+        const values = pointsForAxisDomains.map((point) => point.x)
+        return xScaleType === ScaleType.log
+            ? values.filter((v) => v > 0)
+            : values
+    }
+
+    @computed private get validValuesForAxisDomainY(): number[] {
+        const { yScaleType, pointsForAxisDomains } = this
+
+        const values = pointsForAxisDomains.map((point) => point.y)
+        return yScaleType === ScaleType.log
+            ? values.filter((v) => v > 0)
+            : values
+    }
+
     @computed private get xDomainDefault(): [number, number] {
         return this.domainDefault("x")
     }
@@ -862,7 +903,7 @@ export class ScatterPlotChart
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const { manager, yDomainDefault } = this
+        const { manager, yDomainDefault, validValuesForAxisDomainY } = this
         const axisConfig = this.yAxisConfig
 
         const axis = axisConfig.toVerticalAxis()
@@ -871,14 +912,26 @@ export class ScatterPlotChart
         axis.scaleType = this.yScaleType
 
         if (manager.isRelativeMode) {
-            axis.domain = yDomainDefault // Overwrite user's min/max
+            axis.domain = yDomainDefault // Overwrite author's min/max
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
                     label
                 )}`
             }
         } else {
-            axis.updateDomainPreservingUserSettings(yDomainDefault)
+            const isAnyValueOutsideUserDomain = validValuesForAxisDomainY.some(
+                (value) => value < axis.domain[0] || value > axis.domain[1]
+            )
+
+            // only overwrite the authors's min/max if there is more than one unique value along the y-axis
+            // or if respecting the author's setting would hide data points
+            if (
+                new Set(validValuesForAxisDomainY).size > 1 ||
+                isAnyValueOutsideUserDomain
+            ) {
+                axis.updateDomainPreservingUserSettings(yDomainDefault)
+            }
+
             axis.label = label
         }
 
@@ -900,12 +953,12 @@ export class ScatterPlotChart
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
         const { xDomainDefault, manager, xAxisLabelBase } = this
-        const { xAxisConfig } = this
+        const { xAxisConfig, validValuesForAxisDomainX } = this
         const axis = xAxisConfig.toHorizontalAxis()
         axis.formatColumn = this.xColumn
         axis.scaleType = this.xScaleType
         if (manager.isRelativeMode) {
-            axis.domain = xDomainDefault // Overwrite user's min/max
+            axis.domain = xDomainDefault // Overwrite author's min/max
             const label = xAxisConfig.label || xAxisLabelBase
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
@@ -913,7 +966,19 @@ export class ScatterPlotChart
                 )}`
             }
         } else {
-            axis.updateDomainPreservingUserSettings(xDomainDefault)
+            const isAnyValueOutsideUserDomain = validValuesForAxisDomainX.some(
+                (value) => value < axis.domain[0] || value > axis.domain[1]
+            )
+
+            // only overwrite the authors's min/max if there is more than one unique value along the x-axis
+            // or if respecting the author's setting would hide data points
+            if (
+                new Set(validValuesForAxisDomainX).size > 1 ||
+                isAnyValueOutsideUserDomain
+            ) {
+                axis.updateDomainPreservingUserSettings(xDomainDefault)
+            }
+
             const label = xAxisConfig.label || xAxisLabelBase
             if (label) axis.label = label
         }

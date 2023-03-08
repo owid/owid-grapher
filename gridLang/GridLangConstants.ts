@@ -100,7 +100,7 @@ export const IntegerCellDef: CellDef = {
     keyword: "",
     cssClass: "IntegerCellDef",
     description: "",
-    regex: /^[0-9]+$/,
+    regex: /^-?[0-9]+$/,
     requirementsDescription: `Must be an integer`,
     valuePlaceholder: "12345",
     parse: (value: any) => parseInt(value),

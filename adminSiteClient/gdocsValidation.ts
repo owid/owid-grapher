@@ -1,5 +1,5 @@
 import { OwidArticleContent, OwidArticleType } from "@ourworldindata/utils"
-import { recursivelyMapArticleBlock } from "@ourworldindata/utils/dist/Util.js"
+import { recursivelyMapArticleBlock } from "@ourworldindata/utils"
 
 export enum ErrorMessageType {
     Error = "error",

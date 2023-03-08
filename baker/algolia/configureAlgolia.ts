@@ -138,7 +138,15 @@ export const configureAlgolia = async () => {
             "in hospital",
         ],
         ["incidence", "daily new confirmed cases"],
-        ["homosexual", "gay", "lesbian"],
+        [
+            "homosexual",
+            "homosexuality",
+            "gay",
+            "lesbian",
+            "LGBT",
+            "LGBTQ",
+            "LGBTQIA",
+        ],
         ["clean water", "safe water", "drinking water"],
         ["water demand", "water withdrawal"],
         ["vaccine hesitancy", "vaccine attitude", "vaccine willingness"],
@@ -154,6 +162,7 @@ export const configureAlgolia = async () => {
         ["disease", "illness"],
         ["poverty", "poor"],
         ["homicide", "murder"],
+        ["inflation", "price change", "price changes", "change in price"],
     ]
 
     // Send all our country variant names to algolia as synonyms

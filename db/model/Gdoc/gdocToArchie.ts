@@ -6,7 +6,7 @@ import {
     RawBlockHorizontalRule,
     RawBlockHeading,
 } from "@ourworldindata/utils"
-import { spanToHtmlString } from "./gdocUtils"
+import { spanToHtmlString } from "./gdocUtils.js"
 import { owidRawArticleBlockToArchieMLString } from "./rawToArchie.js"
 import { match, P } from "ts-pattern"
 

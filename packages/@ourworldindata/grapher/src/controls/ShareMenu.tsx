@@ -8,7 +8,7 @@ import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
-import { canWriteToClipboard } from "@ourworldindata/utils/dist/Util.js"
+import { canWriteToClipboard } from "@ourworldindata/utils"
 
 export interface ShareMenuManager {
     slug?: string
