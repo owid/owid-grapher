@@ -458,7 +458,7 @@ export class SiteBaker {
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            undefined // TODO need to implement this for vite
+            "" // TODO need to implement this for vite
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
         this.progressBar.tick({ name: "✅ baked assets" })
