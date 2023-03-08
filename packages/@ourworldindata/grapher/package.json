@@ -8,13 +8,6 @@
     "dist/index.js",
     "dist/index.css"
   ],
-  "exports": {
-    ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
-    },
-    "./src/*": "./src/*"
-  },
   "directories": {
     "lib": "src"
   },
