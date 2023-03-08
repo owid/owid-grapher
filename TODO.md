@@ -7,3 +7,5 @@ Vite
 -   [x] Chunk naming: `faBook`
 -   [ ] `embedCharts` snippet
 -   [x] Get rid of webpack & maybe Storybook
+-   [ ] Optional: Make use of some of the Vite SSR features (https://vitejs.dev/guide/ssr.html), which would simplify the generation of the plugin-include scripts needed
+-   [ ] Integrate VITE_PREVIEW mode
