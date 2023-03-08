@@ -14,7 +14,7 @@ import {
 import { parseRawBlocksToEnrichedBlocks } from "./rawToEnriched.js"
 import urlSlug from "url-slug"
 import { isObject } from "lodash"
-import { getTitleSupertitleFromHeadingText } from "./gdocUtils"
+import { getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
     htmlToEnrichedTextBlock,
     htmlToSimpleTextBlock,
