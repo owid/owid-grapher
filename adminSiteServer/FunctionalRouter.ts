@@ -15,7 +15,13 @@ export class FunctionalRouter {
 
     wrap(callback: (req: Request, res: Response) => Promise<any>) {
         return async (req: Request, res: Response) => {
-            res.send(await callback(req, res))
+            try {
+                res.send(await callback(req, res))
+            } catch (e) {
+                // log errors to stderr and rethrow
+                console.error(e)
+                throw e
+            }
         }
     }
 

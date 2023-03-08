@@ -16,6 +16,7 @@ import {
     DataValueResult,
     OwidVariableId,
     OwidSource,
+    retryPromise,
 } from "@ourworldindata/utils"
 import fetch from "node-fetch"
 import pl from "nodejs-polars"
@@ -481,10 +482,10 @@ export const getOwidVariableDataPath = async (
     return row.dataPath
 }
 
-// limit number of concurrent requests to 50 when fetching values from S3
+// limit number of concurrent requests to 20 when fetching values from S3
 const httpsAgent = new https.Agent({
     keepAlive: true,
-    maxSockets: 50,
+    maxSockets: 20,
 })
 
 export const fetchS3Values = async (
@@ -501,9 +502,15 @@ export const fetchS3ValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
     // avoid cache as Cloudflare worker caches up to 1 hour
-    return (
-        await fetch(`${dataPath}?nocache`, { agent: httpsAgent })
-    ).json() as Promise<OwidVariableMixedData>
+    const resp = await retryPromise(() =>
+        fetch(`${dataPath}?nocache`, { agent: httpsAgent })
+    )
+    if (!resp.ok) {
+        throw new Error(
+            `Error fetching data from S3 for ${dataPath}: ${resp.status} ${resp.statusText}`
+        )
+    }
+    return resp.json()
 }
 
 export const dataAsRecords = async (
