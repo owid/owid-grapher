@@ -1,5 +1,6 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
+import pluginChecker from "vite-plugin-checker"
 import * as clientSettings from "./settings/clientSettings.js"
 
 // https://vitejs.dev/config/
@@ -84,6 +85,12 @@ export default defineConfig({
                 parserOpts: {
                     plugins: ["decorators-legacy"], // needed so mobx decorators work correctly
                 },
+            },
+        }),
+        pluginChecker({
+            typescript: {
+                buildMode: true,
+                tsconfigPath: "tsconfig.vite-checker.json",
             },
         }),
     ],

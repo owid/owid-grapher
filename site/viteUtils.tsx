@@ -42,6 +42,11 @@ const devAssets = (entry: string): Assets => {
                 }}
             />,
             <script
+                key="vite-plugin-checker"
+                type="module"
+                src={`${VITE_DEV_URL}/@vite-plugin-checker-runtime-entry`}
+            />,
+            <script
                 key="vite-client"
                 type="module"
                 src={`${VITE_DEV_URL}/@vite/client`}

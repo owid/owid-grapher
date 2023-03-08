@@ -238,7 +238,8 @@
         "sql-fixtures": "^1.0.4",
         "tmex": "^1.0.8",
         "tsc-watch": "^4.2.9",
-        "vite": "^4.1.4"
+        "vite": "^4.1.4",
+        "vite-plugin-checker": "^0.5.6"
     },
     "resolutions": {
         "react-codemirror2@^7.2.1": "patch:react-codemirror2@npm%3A7.2.1#./.yarn/patches/react-codemirror2-npm-7.2.1-dcadbb9383.patch"
