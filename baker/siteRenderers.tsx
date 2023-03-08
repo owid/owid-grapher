@@ -67,7 +67,10 @@ import {
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
-import { logContentErrorAndMaybeSendToSlack, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import {
+    logContentErrorAndMaybeSendToSlack,
+    logErrorAndMaybeSendToSlack,
+} from "../serverUtils/slackLog.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
     KeyInsightsThumbs,
@@ -268,7 +271,7 @@ export const renderFrontPage = async () => {
                 return filteredPosts[missingPosts++]
             })
     } catch (e) {
-        logErrorAndMaybeSendToSlack(e);
+        logErrorAndMaybeSendToSlack(e)
         featuredWork = posts.slice(0, 6)
     }
 
