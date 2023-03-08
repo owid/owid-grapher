@@ -5,7 +5,7 @@
 # This docker-compose file creates a local dev environment for working with grapher. It is meant for
 # the general public.
 #
-# In this setup, you run the node server and webpack locally on your machine, and only MySQL is spun up
+# In this setup, you run the node server and vite locally on your machine, and only MySQL is spun up
 # and initialized as a dependency.
 #
 # The mysql database server is exposed on the host at the default mysql port of 3306 so you can use DB admin
