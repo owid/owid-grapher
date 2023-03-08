@@ -261,9 +261,9 @@ export class SiteBaker {
             await post.validate()
             if (post.errors.length) {
                 await logErrorAndMaybeSendToSlack(
-                    `Error(s) baking "${post.slug}" :\n  ${post.errors.join(
-                        "\n  "
-                    )}`
+                    `Error(s) baking "${post.slug}" :\n  ${post.errors
+                        .map((error) => error.message)
+                        .join("\n  ")}`
                 )
             }
             await this.bakeGDocPost(post as OwidArticleTypePublished)

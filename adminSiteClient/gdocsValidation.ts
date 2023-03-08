@@ -100,6 +100,15 @@ export class ExcerptHandler extends AbstractHandler {
     }
 }
 
+export class AttachmentsHandler extends AbstractHandler {
+    handle(gdoc: OwidArticleType, messages: OwidArticleErrorMessage[]) {
+        // These errors come from the server and we can't currently easily match them to their origin
+        // So instead we just render them all on the settings drawer
+        gdoc.errors?.forEach((error) => messages.push(error))
+        return super.handle(gdoc, messages)
+    }
+}
+
 // #gdocsvalidation Errors prevent saving published articles. Errors are only
 // raised in front-end admin code at the moment (search for
 // #gdocsvalidationclient in codebase), but should ultimately be performed in
@@ -109,7 +118,6 @@ export class ExcerptHandler extends AbstractHandler {
 // honor the type cast (and subsequent assumptions) in getPublishedGdocs()
 export const getErrors = (gdoc: OwidArticleType): OwidArticleErrorMessage[] => {
     const errors: OwidArticleErrorMessage[] = []
-    const attachmentErrors = gdoc.errors ?? []
 
     const bodyHandler = new BodyHandler()
 
@@ -118,10 +126,11 @@ export const getErrors = (gdoc: OwidArticleType): OwidArticleErrorMessage[] => {
         .setNext(new SlugHandler())
         .setNext(new PublishedAtHandler())
         .setNext(new ExcerptHandler())
+        .setNext(new AttachmentsHandler())
 
     bodyHandler.handle(gdoc, errors)
 
-    return [...errors, ...attachmentErrors]
+    return errors
 }
 
 export const getPropertyFirstErrorOfType = (

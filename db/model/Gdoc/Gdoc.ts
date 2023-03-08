@@ -224,7 +224,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                 }
                 if (!this.imageMetadata[filename].defaultAlt) {
                     acc.push({
-                        property: "body",
+                        property: "imageMetadata",
                         message: `${filename} is missing a default alt text`,
                         type: OwidArticleErrorMessageType.Error,
                     })
@@ -247,8 +247,8 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                     const id = getUrlTarget(link.target)
                     if (!publishedGdocs[id]) {
                         acc.push({
-                            property: "body",
-                            message: `Linking to an unpublished document: ${id}`,
+                            property: "linkedDocuments",
+                            message: `${link.componentType} with text "${link.text}" is linking to an unpublished document: ${link.target}`,
                             type: OwidArticleErrorMessageType.Warning,
                         })
                     }
