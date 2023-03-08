@@ -9,12 +9,14 @@ import {
     getArticleFromJSON,
     OwidArticleType,
     OwidArticleTypeJSON,
+    OwidArticleErrorMessage,
+    OwidArticleErrorMessageType,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 
-import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
+import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { IconBadge } from "./IconBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
@@ -51,7 +53,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         undefined | string
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
-    const [errors, setErrors] = React.useState<ErrorMessage[]>()
+    const [errors, setErrors] = React.useState<OwidArticleErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
 
@@ -117,11 +119,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     )
 
     const hasWarnings =
-        errors?.some((error) => error.type === ErrorMessageType.Warning) ??
-        false
+        errors?.some(
+            (error) => error.type === OwidArticleErrorMessageType.Warning
+        ) ?? false
 
     const hasErrors =
-        errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
+        errors?.some(
+            (error) => error.type === OwidArticleErrorMessageType.Error
+        ) ?? false
 
     const doPublish = async () => {
         if (!currentGdoc) return
@@ -251,9 +256,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <IconBadge
                                 status={
                                     hasErrors
-                                        ? ErrorMessageType.Error
+                                        ? OwidArticleErrorMessageType.Error
                                         : hasWarnings
-                                        ? ErrorMessageType.Warning
+                                        ? OwidArticleErrorMessageType.Warning
                                         : null
                                 }
                             >

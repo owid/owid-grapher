@@ -3,9 +3,8 @@ import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { faBolt } from "@fortawesome/free-solid-svg-icons/faBolt"
-import { ErrorMessage } from "./gdocsValidation.js"
 import { GdocsDiff } from "./GdocsDiff.js"
-import { OwidArticleType } from "@ourworldindata/utils"
+import { OwidArticleType, OwidArticleErrorMessage } from "@ourworldindata/utils"
 
 export const GdocsSaveButtons = ({
     published,
@@ -21,7 +20,7 @@ export const GdocsSaveButtons = ({
     published: boolean
     originalGdoc: OwidArticleType | undefined
     currentGdoc: OwidArticleType
-    errors: ErrorMessage[] | undefined
+    errors: OwidArticleErrorMessage[] | undefined
     hasErrors: boolean
     hasWarnings: boolean
     hasChanges: boolean

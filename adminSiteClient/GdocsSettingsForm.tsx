@@ -1,6 +1,6 @@
 import React from "react"
-import { OwidArticleType } from "@ourworldindata/utils"
-import { ErrorMessage, ExcerptHandler } from "./gdocsValidation.js"
+import { OwidArticleType, OwidArticleErrorMessage } from "@ourworldindata/utils"
+import { ExcerptHandler } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
 import {
     GdocsSettingsContentField,
@@ -16,7 +16,7 @@ export const GdocsSettingsForm = ({
 }: {
     gdoc: OwidArticleType
     setGdoc: (gdoc: OwidArticleType) => void
-    errors?: ErrorMessage[]
+    errors?: OwidArticleErrorMessage[]
 }) => {
     return gdoc ? (
         <form className="GdocsSettingsForm">
@@ -55,7 +55,7 @@ export const GdocsSettingsForm = ({
                 )}
             />
             <div className="form-group">
-                <p>All errors</p>
+                <p>Document errors</p>
                 <ul>
                     {errors?.map((error) => (
                         <li key={error.message}>{error.message}</li>

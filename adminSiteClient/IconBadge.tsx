@@ -2,24 +2,24 @@ import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
-import { ErrorMessageType } from "./gdocsValidation.js"
+import { OwidArticleErrorMessageType } from "@ourworldindata/utils"
 import { Badge } from "antd"
 
 export const IconBadge = ({
     status,
     children,
 }: {
-    status: ErrorMessageType | null
+    status: OwidArticleErrorMessageType | null
     children: React.ReactNode
 }) => {
     if (!status) return <>{children}</>
 
     let icon
     switch (status) {
-        case ErrorMessageType.Warning:
+        case OwidArticleErrorMessageType.Warning:
             icon = faExclamationTriangle
             break
-        case ErrorMessageType.Error:
+        case OwidArticleErrorMessageType.Error:
             icon = faExclamationCircle
             break
     }

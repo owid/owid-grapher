@@ -882,7 +882,18 @@ export interface OwidArticleType {
     revisionId: string | null
     linkedDocuments?: Record<string, OwidArticleType>
     imageMetadata?: Record<string, ImageMetadata>
-    errors?: string[]
+    errors?: OwidArticleErrorMessage[]
+}
+
+export enum OwidArticleErrorMessageType {
+    Error = "error",
+    Warning = "warning",
+}
+
+export interface OwidArticleErrorMessage {
+    property: keyof OwidArticleType | keyof OwidArticleContent
+    type: OwidArticleErrorMessageType
+    message: string
 }
 
 // see also: getArticleFromJSON()

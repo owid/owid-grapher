@@ -23,6 +23,8 @@ import {
     recursivelyMapArticleContent,
     ImageMetadata,
     excludeUndefined,
+    OwidArticleErrorMessage,
+    OwidArticleErrorMessageType,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -49,7 +51,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: String, nullable: true }) revisionId: string | null = null
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
-    errors: string[] = []
+    errors: OwidArticleErrorMessage[] = []
 
     constructor(id?: string) {
         super()
@@ -208,13 +210,24 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     async validate(): Promise<void> {
-        const filenameErrors = this.filenames.reduce(
-            (acc: string[], filename): string[] => {
+        const filenameErrors: OwidArticleErrorMessage[] = this.filenames.reduce(
+            (
+                acc: OwidArticleErrorMessage[],
+                filename
+            ): OwidArticleErrorMessage[] => {
                 if (!this.imageMetadata[filename]) {
-                    acc.push(`No image named ${filename} found in Drive`)
+                    acc.push({
+                        property: "body",
+                        message: `No image named ${filename} found in Drive`,
+                        type: OwidArticleErrorMessageType.Error,
+                    })
                 }
                 if (!this.imageMetadata[filename].defaultAlt) {
-                    acc.push(`${filename} is missing a default alt text`)
+                    acc.push({
+                        property: "body",
+                        message: `${filename} is missing a default alt text`,
+                        type: OwidArticleErrorMessageType.Error,
+                    })
                 }
                 return acc
             },
@@ -225,12 +238,19 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             keyBy(results, "id")
         )
 
-        const linkErrors = this.links.reduce(
-            (acc: string[], link): string[] => {
+        const linkErrors: OwidArticleErrorMessage[] = this.links.reduce(
+            (
+                acc: OwidArticleErrorMessage[],
+                link
+            ): OwidArticleErrorMessage[] => {
                 if (link.linkType == "gdoc") {
                     const id = getUrlTarget(link.target)
                     if (!publishedGdocs[id]) {
-                        acc.push(`Linking to an unpublished document: ${id}`)
+                        acc.push({
+                            property: "body",
+                            message: `Linking to an unpublished document: ${id}`,
+                            type: OwidArticleErrorMessageType.Warning,
+                        })
                     }
                 }
                 return acc
