@@ -25,7 +25,12 @@ export const checkIsLightningUpdate = (
     nextGdoc: OwidArticleType,
     hasChanges: boolean
 ) => {
-    const lightningArticleProps: Array<keyof OwidArticleType> = ["updatedAt"]
+    const lightningArticleProps: Array<keyof OwidArticleType> = [
+        "updatedAt",
+        "linkedDocuments",
+        "imageMetadata",
+        "errors",
+    ]
 
     const lightningContentProps: Array<keyof OwidArticleContent> = [
         "body",
