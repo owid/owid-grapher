@@ -4,6 +4,7 @@ import {
     writeVariableCSV,
     getVariableData,
     VariableQueryRow,
+    detectValuesType,
 } from "./model/Variable.js"
 import * as db from "./db.js"
 import * as Variable from "./model/Variable.js"
@@ -229,5 +230,35 @@ describe("getVariableData", () => {
                 updatedAt: date,
             },
         })
+    })
+})
+
+describe("detectValuesType", () => {
+    test("returns 'int' when all values are integers", () => {
+        expect(detectValuesType([1, 2, 3])).toEqual("int")
+    })
+
+    test("returns 'float' when all values are floats", () => {
+        expect(detectValuesType([1.1, 2.2, 3.3])).toEqual("float")
+    })
+
+    test("returns 'string' when all values are strings", () => {
+        expect(detectValuesType(["a", "b", "c"])).toEqual("string")
+    })
+
+    test("returns 'mixed' when values are a mix of integers and strings", () => {
+        expect(detectValuesType([1, "a", 2, "b"])).toEqual("mixed")
+    })
+
+    test("returns 'float' when values are a mix of integers and floats", () => {
+        expect(detectValuesType([1, 1.1, 2, 2.2])).toEqual("float")
+    })
+
+    test("returns 'mixed' when values are a mix of floats and strings", () => {
+        expect(detectValuesType([1.1, "a", 2.2, "b"])).toEqual("mixed")
+    })
+
+    test("returns 'mixed' when values are empty", () => {
+        expect(detectValuesType([])).toEqual("mixed")
     })
 })

@@ -154,7 +154,7 @@ export async function getVariableMetadataFromMySQL(
         id,
         name,
         code
-    FROM entities WHERE id in (?)
+    FROM entities WHERE id in (?) ORDER BY name ASC
     `,
         [_.uniq(variableData.entities)]
     )
@@ -170,7 +170,7 @@ export async function getVariableMetadataFromMySQL(
     }
 }
 
-function detectValuesType(
+export function detectValuesType(
     values: (string | number)[]
 ): OwidVariableTypeOptions {
     let encounteredFloatDataValues = false
@@ -187,7 +187,10 @@ function detectValuesType(
         }
     }
 
-    if (encounteredFloatDataValues && encounteredStringDataValues) {
+    if (
+        (encounteredFloatDataValues || encounteredIntDataValues) &&
+        encounteredStringDataValues
+    ) {
         return "mixed"
     } else if (encounteredFloatDataValues) {
         return "float"
@@ -284,8 +287,13 @@ export const getDataValue = async ({
     }
 
     if (df.shape.height == 0) return
+    if (df.shape.height > 1) {
+        throw new Error(
+            `More than one data value found for variable ${variableId}, entity ${entityId}, year ${year}`
+        )
+    }
 
-    const row = df.slice(0, 1).toRecords()[0]
+    const row = df.toRecords()[0]
 
     return {
         value: Number(row.value),
