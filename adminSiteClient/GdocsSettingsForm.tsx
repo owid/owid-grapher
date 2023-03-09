@@ -29,7 +29,6 @@ export const GdocsSettingsForm = ({
         attachmentMessages?.filter(
             ({ type }) => type === OwidArticleErrorMessageType.Error
         ) ?? []
-    console.log("attachmentErrors", attachmentErrors)
     const attachmentWarnings =
         attachmentMessages?.filter(
             ({ type }) => type === OwidArticleErrorMessageType.Warning

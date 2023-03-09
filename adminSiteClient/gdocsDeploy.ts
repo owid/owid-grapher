@@ -64,6 +64,7 @@ export const checkHasChanges = (
     nextGdoc: OwidArticleType
 ) =>
     !isEqual(
+        // Ignore non-deterministic attachments
         omit(prevGdoc, ["linkedDocuments", "imageMetadata", "errors"]),
         omit(nextGdoc, ["linkedDocuments", "imageMetadata", "errors"])
     )

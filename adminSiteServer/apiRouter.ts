@@ -2717,6 +2717,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const nextGdoc = dataSource
         .getRepository(Gdoc)
         .create(getArticleFromJSON(nextGdocJSON))
+
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })
     const filenames = nextGdoc.filenames

@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
@@ -56,6 +62,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const [errors, setErrors] = React.useState<OwidArticleErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
+    // Cancel all other requests in progress (most likely just the automatic fetch)
+    const cancelAllRequests = useMemo(
+        () => () =>
+            admin.currentRequestAbortControllers.forEach((abortController) => {
+                abortController.abort()
+            }),
+        [admin]
+    )
 
     const fetchGdoc = useCallback(
         (contentSource: GdocsContentSource) =>
@@ -130,13 +144,20 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const doPublish = async () => {
         if (!currentGdoc) return
-        const publishedGdoc = await store.publish(currentGdoc)
+        cancelAllRequests()
+        // set to today if not specified
+        const publishedAt = currentGdoc.publishedAt ?? new Date()
+        const publishedGdoc = await store.publish({
+            ...currentGdoc,
+            publishedAt,
+        })
         setGdoc({ original: publishedGdoc, current: publishedGdoc })
         openSuccessNotification()
     }
 
     const doUnpublish = async () => {
         if (!currentGdoc) return
+        cancelAllRequests()
         const unpublishedGdoc = await store.unpublish(currentGdoc)
         setGdoc({ original: unpublishedGdoc, current: unpublishedGdoc })
         openSuccessNotification()
