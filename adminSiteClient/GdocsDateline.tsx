@@ -46,7 +46,7 @@ export const GdocsDateline = ({
                     <DatePicker
                         onChange={onChangePublishedAt}
                         value={
-                            publishedAt ? dayjs(publishedAt).utc() : undefined
+                            publishedAt ? dayjs(publishedAt).local() : undefined
                         }
                         format="ddd, MMM D, YYYY"
                         id="publishedAt"
