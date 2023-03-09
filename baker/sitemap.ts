@@ -59,8 +59,8 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
 
 export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
     const posts = (await db
-        .knexTable(postsTable)
-        .where({ status: "publish" })
+        .knexTable("posts_with_gdoc_publish_status")
+        .where({ status: "publish", isGdocPublished: false })
         .select("slug", "updated_at_in_wordpress")) as {
         slug: string
         updated_at_in_wordpress: Date
