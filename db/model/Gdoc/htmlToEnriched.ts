@@ -728,8 +728,8 @@ function cheerioToArchieML(
                             {
                                 type: "image",
                                 // TODO ike
-                                filename: "",
-                                alt: "",
+                                filename: image?.attribs["src"] ?? "",
+                                alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 dataErrors: [],
                                 originalWidth: undefined,
