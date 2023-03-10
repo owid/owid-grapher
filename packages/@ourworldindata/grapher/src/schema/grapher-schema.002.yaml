@@ -524,6 +524,19 @@ properties:
         type: boolean
         default: false
         description: Indicates if the map tab should be shown
+    shownTabs:
+        type: array
+        description: |
+            Enumeration of the tabs that should be visible. If only one is visible, the tab bar is hidden.
+            This enumeration takes precedence over the hasMapTab and hasChartTab options.
+        items:
+            type: string
+            enum:
+                - chart
+                - map
+                - sources
+                - download
+                - table
     stackMode:
         type:
             - string
