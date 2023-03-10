@@ -522,7 +522,7 @@ export const fetchS3MetadataByPath = async (
     return resp.json()
 }
 
-export const createDataFrame = (data: any): pl.DataFrame => {
+export const createDataFrame = (data: unknown): pl.DataFrame => {
     if (Array.isArray(data)) {
         // transpose list of objects into object of lists because polars raises
         // an error when creating a dataframe with null values (see https://github.com/pola-rs/nodejs-polars/issues/20)

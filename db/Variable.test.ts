@@ -15,7 +15,7 @@ afterEach(() => {
     jest.restoreAllMocks()
 })
 
-export const mockS3data = (s3data: any) => {
+export const mockS3data = (s3data: Record<string, any>): void => {
     jest.spyOn(Variable, "fetchS3Values").mockImplementation(
         jest.fn((key) => s3data[key])
     )

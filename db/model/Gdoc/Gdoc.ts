@@ -49,6 +49,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         }
         this.content = {}
     }
+    static table = "posts_gdocs"
     static cachedGoogleReadonlyAuth?: Auth.GoogleAuth
     static cachedGoogleReadWriteAuth?: Auth.GoogleAuth
     static cachedGoogleClient?: docs_v1.Docs

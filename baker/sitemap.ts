@@ -8,10 +8,10 @@ import { dayjs, countries, queryParamsToStr } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import urljoin from "url-join"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
-import { postsTable } from "../db/model/Post.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 interface SitemapUrl {
     loc: string
@@ -58,11 +58,18 @@ const explorerToSitemapUrl = (program: ExplorerProgram): SitemapUrl[] => {
 
 export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
     const posts = (await db
-        .knexTable(postsTable)
-        .where({ status: "publish" })
+        .knexTable("posts_with_gdoc_publish_status")
+        .where({ status: "publish", isGdocPublished: false })
         .select("slug", "updated_at_in_wordpress")) as {
         slug: string
         updated_at_in_wordpress: Date
+    }[]
+    const gdocPosts = (await db
+        .knexTable(Gdoc.table)
+        .where({ published: true })
+        .select("slug", "updatedAt")) as {
+        slug: string
+        updatedAt: Date
     }[]
     const charts = (await db
         .knexTable(Chart.table)
@@ -90,6 +97,12 @@ export const makeSitemap = async (explorerAdminServer: ExplorerAdminServer) => {
             posts.map((p) => ({
                 loc: urljoin(BAKED_BASE_URL, p.slug),
                 lastmod: dayjs(p.updated_at_in_wordpress).format("YYYY-MM-DD"),
+            }))
+        )
+        .concat(
+            gdocPosts.map((p) => ({
+                loc: urljoin(BAKED_BASE_URL, p.slug),
+                lastmod: dayjs(p.updatedAt).format("YYYY-MM-DD"),
             }))
         )
         .concat(
