@@ -233,10 +233,6 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             []
         )
 
-        const publishedGdocs = await Gdoc.getPublishedGdocs().then((results) =>
-            keyBy(results, "id")
-        )
-
         const linkErrors: OwidArticleErrorMessage[] = this.links.reduce(
             (
                 acc: OwidArticleErrorMessage[],
@@ -244,10 +240,16 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             ): OwidArticleErrorMessage[] => {
                 if (link.linkType == "gdoc") {
                     const id = getUrlTarget(link.target)
-                    if (!publishedGdocs[id]) {
+                    const doesGdocExist = Boolean(this.linkedDocuments[id])
+                    const isGdocPublished = this.linkedDocuments[id]?.published
+                    if (!doesGdocExist || !isGdocPublished) {
                         acc.push({
                             property: "linkedDocuments",
-                            message: `${link.componentType} with text "${link.text}" is linking to an unpublished document: ${link.target}`,
+                            message: `${link.componentType} with text "${
+                                link.text
+                            }" is linking to an ${
+                                doesGdocExist ? "unpublished" : "unknown"
+                            } gdoc with ID "${link.target}"`,
                             type: OwidArticleErrorMessageType.Warning,
                         })
                     }

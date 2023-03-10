@@ -249,25 +249,28 @@ export class SiteBaker {
 
     // Bake all GDoc posts
     async bakeGDocPosts() {
-        const posts = await Gdoc.getPublishedGdocs()
+        const publishedGdocs = await Gdoc.getPublishedGdocs()
 
-        // Supply all images before validating instead of repeatedly calling loadImageMetadata
-        const allImages = await Image.find().then((images) =>
+        // Prefetch publishedGdocs and imageMetadata instead of each instance fetching
+        const publishedGdocsDictionary = keyBy(publishedGdocs.map(clone), "id")
+        const imageMetadataDictionary = await Image.find().then((images) =>
             keyBy(images, "filename")
         )
 
-        for (const post of posts) {
-            post.imageMetadata = allImages
-            await post.loadLinkedDocuments()
-            await post.validate()
-            if (post.errors.length) {
+        for (const publishedGdoc of publishedGdocs) {
+            publishedGdoc.imageMetadata = imageMetadataDictionary
+            publishedGdoc.linkedDocuments = publishedGdocsDictionary
+            await publishedGdoc.validate()
+            if (publishedGdoc.errors.length) {
                 await logErrorAndMaybeSendToSlack(
-                    `Error(s) baking "${post.slug}" :\n  ${post.errors
+                    `Error(s) baking "${
+                        publishedGdoc.slug
+                    }" :\n  ${publishedGdoc.errors
                         .map((error) => error.message)
                         .join("\n  ")}`
                 )
             }
-            await this.bakeGDocPost(post as OwidArticleTypePublished)
+            await this.bakeGDocPost(publishedGdoc as OwidArticleTypePublished)
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
