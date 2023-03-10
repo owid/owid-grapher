@@ -49,13 +49,17 @@ export const GdocsSettingsForm = ({
                 gdoc={gdoc}
                 errors={errors}
             />
+            <GdocsSettingsContentField
+                property="cover"
+                gdoc={gdoc}
+                errors={errors}
+            />
             <div className="form-group">
                 <GdocsDateline gdoc={gdoc} setGdoc={setGdoc} errors={errors} />
             </div>
             <div className="form-group">
                 <GdocsPublicationContext gdoc={gdoc} setGdoc={setGdoc} />
             </div>
-
             <GdocsSettingsContentField
                 property="excerpt"
                 gdoc={gdoc}
