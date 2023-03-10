@@ -4,7 +4,6 @@ import {
     writeVariableCSV,
     getVariableData,
     VariableQueryRow,
-    detectValuesType,
 } from "./model/Variable.js"
 import * as db from "./db.js"
 import * as Variable from "./model/Variable.js"
@@ -33,21 +32,34 @@ export const mockS3data = (s3data: Record<string, any>): void => {
 describe("writeVariableCSV", () => {
     const getCSVOutput = async (
         variablesDf: pl.DataFrame | undefined,
+        dataDf: pl.DataFrame | undefined,
         s3data: any,
         variableIds: number[]
     ): Promise<string> => {
         const spy = jest.spyOn(Variable, "readSQLasDF")
         if (variablesDf) spy.mockResolvedValueOnce(variablesDf)
+        if (dataDf) spy.mockResolvedValueOnce(dataDf)
 
         jest.spyOn(db, "queryMysql").mockResolvedValueOnce(
             [
-                { id: 1, dataPath: "datapath1", metadataPath: "datapath1" },
-                { id: 2, dataPath: "datapath2", metadataPath: "datapath2" },
-                { id: 3, dataPath: "datapath3", metadataPath: "datapath3" },
+                { id: 1, dataPath: undefined },
+                { id: 2, dataPath: undefined },
+                { id: 3, dataPath: "testpath" },
             ].filter((row) => variableIds.includes(row.id))
         )
 
-        if (s3data) mockS3data(s3data)
+        if (s3data) {
+            jest.spyOn(Variable, "fetchS3Values").mockResolvedValueOnce(s3data)
+
+            const entities = pl
+                .DataFrame({
+                    entityId: [1],
+                    entityName: ["UK"],
+                    entityCode: ["code"],
+                })
+                .withColumn(pl.col("entityId").cast(pl.Int32))
+            jest.spyOn(Variable, "entitiesAsDF").mockResolvedValueOnce(entities)
+        }
 
         let out = ""
         const writeStream = new Writable({
@@ -67,25 +79,22 @@ describe("writeVariableCSV", () => {
             columnOrder: [0, 1, 2],
         })
 
+        const dataDf = pl.DataFrame({
+            variableId: [1, 1, 2, 2],
+            value: [1, 2, 3, 4],
+            year: [2000, 2001, 2000, 2001],
+            entityId: [1, 1, 1, 1],
+            entityName: ["UK", "UK", "UK", "UK"],
+            entityCode: ["code", "code", "code", "code"],
+        })
+
         const s3data = {
-            1: {
-                values: [1, 2],
-                years: [2000, 2001],
-                entities: [1, 1],
-            },
-            2: {
-                values: [3, 4],
-                years: [2000, 2001],
-                entities: [1, 1],
-            },
-            3: {
-                values: [5, 6],
-                years: [2000, 2001],
-                entities: [1, 1],
-            },
+            values: [5, 6],
+            years: [2000, 2001],
+            entities: [1, 1],
         }
 
-        const out = await getCSVOutput(variablesDf, s3data, [1, 2, 3])
+        const out = await getCSVOutput(variablesDf, dataDf, s3data, [1, 2, 3])
         expect(out).toEqual(`Entity,Year,a,b,c
 UK,2000,1.0,3.0,5.0
 UK,2001,2.0,4.0,6.0
@@ -99,25 +108,22 @@ UK,2001,2.0,4.0,6.0
             columnOrder: [0, 1, 2],
         })
 
+        const dataDf = pl.DataFrame({
+            variableId: [1, 1, 2, 2],
+            value: [null, 2, 1, NaN],
+            year: [2000, 2001, 2000, 2001],
+            entityId: [1, 1, 1, 1],
+            entityName: ["UK", "UK", "UK", "UK"],
+            entityCode: ["code", "code", "code", "code"],
+        })
+
         const s3data = {
-            1: {
-                values: [null, 2],
-                years: [2000, 2001],
-                entities: [1, 1],
-            },
-            2: {
-                values: [1, NaN],
-                years: [2000, 2001],
-                entities: [1, 1],
-            },
-            3: {
-                values: [3, null],
-                years: [2000, 2001],
-                entities: [1, 1],
-            },
+            values: [3, null],
+            years: [2000, 2001],
+            entities: [1, 1],
         }
 
-        const out = await getCSVOutput(variablesDf, s3data, [1, 2, 3])
+        const out = await getCSVOutput(variablesDf, dataDf, s3data, [1, 2, 3])
         expect(out).toEqual(`Entity,Year,a,b,c
 UK,2000,,1.0,3.0
 UK,2001,2.0,NaN,
@@ -131,20 +137,9 @@ UK,2001,2.0,NaN,
             columnOrder: [0, 1],
         })
 
-        const s3data = {
-            1: {
-                values: [],
-                years: [],
-                entities: [],
-            },
-            2: {
-                values: [],
-                years: [],
-                entities: [],
-            },
-        }
+        const dataDf = pl.DataFrame()
 
-        const out = await getCSVOutput(variablesDf, s3data, [1, 2])
+        const out = await getCSVOutput(variablesDf, dataDf, undefined, [1, 2])
         expect(out).toEqual(`Entity,Year
 `)
     })
@@ -158,7 +153,7 @@ UK,2001,2.0,NaN,
 
         expect.assertions(1)
         try {
-            await getCSVOutput(variablesDf, undefined, [1, 2, 3])
+            await getCSVOutput(variablesDf, undefined, undefined, [1, 2, 3])
         } catch (e: any) {
             expect(e.message).toEqual("Variable IDs do not exist: 3")
         }
@@ -187,18 +182,20 @@ describe("getVariableData", () => {
             dimensions: "",
         }
 
-        const s3data = {
-            1: {
-                values: [1, 2],
-                years: [2000, 2001],
-                entities: [1, 1],
-            },
-        }
-        mockS3data(s3data)
-        jest.spyOn(db, "mysqlFirst").mockResolvedValueOnce(variableResult)
+        const dataDf = pl.DataFrame({
+            variableId: [1, 1],
+            value: [1, 2],
+            year: [2000, 2001],
+            entityId: [1, 1],
+            entityName: ["UK", "UK"],
+            entityCode: ["code", "code"],
+        })
+
         jest.spyOn(db, "queryMysql").mockResolvedValueOnce([
-            { id: 1, name: "UK", code: "code" },
+            { id: 1, dataPath: undefined },
         ])
+        jest.spyOn(db, "mysqlFirst").mockResolvedValueOnce(variableResult)
+        jest.spyOn(Variable, "readSQLasDF").mockResolvedValueOnce(dataDf)
 
         const dataMetadata = await getVariableData(1)
 
@@ -230,35 +227,5 @@ describe("getVariableData", () => {
                 updatedAt: date,
             },
         })
-    })
-})
-
-describe("detectValuesType", () => {
-    test("returns 'int' when all values are integers", () => {
-        expect(detectValuesType([1, 2, 3])).toEqual("int")
-    })
-
-    test("returns 'float' when all values are floats", () => {
-        expect(detectValuesType([1.1, 2.2, 3.3])).toEqual("float")
-    })
-
-    test("returns 'string' when all values are strings", () => {
-        expect(detectValuesType(["a", "b", "c"])).toEqual("string")
-    })
-
-    test("returns 'mixed' when values are a mix of integers and strings", () => {
-        expect(detectValuesType([1, "a", 2, "b"])).toEqual("mixed")
-    })
-
-    test("returns 'float' when values are a mix of integers and floats", () => {
-        expect(detectValuesType([1, 1.1, 2, 2.2])).toEqual("float")
-    })
-
-    test("returns 'mixed' when values are a mix of floats and strings", () => {
-        expect(detectValuesType([1.1, "a", 2.2, "b"])).toEqual("mixed")
-    })
-
-    test("returns 'mixed' when values are empty", () => {
-        expect(detectValuesType([])).toEqual("mixed")
     })
 })

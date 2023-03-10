@@ -7,14 +7,14 @@ import {
     OwidVariableDisplayConfigInterface,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
+    OwidVariableDimensionValueFull,
+    OwidVariableDimensionValuePartial,
     OwidVariableMixedData,
+    OwidVariableWithSourceAndType,
+    omitNullableValues,
     DataValueQueryArgs,
     DataValueResult,
-    OwidVariableWithSourceAndDimension,
     OwidVariableId,
-    OwidVariableWithSourceAndType,
-    OwidVariableTypeOptions,
-    omitNullableValues,
     OwidSource,
     retryPromise,
 } from "@ourworldindata/utils"
@@ -66,6 +66,14 @@ export type VariableQueryRow = Readonly<
     }
 >
 
+interface S3DataRow {
+    value: string
+    year: number
+    entityId: number
+}
+
+type DataRow = S3DataRow & { entityName: string; entityCode: string }
+
 export type Field = keyof VariableRow
 
 export const variableTable = "variables"
@@ -79,30 +87,13 @@ export function parseVariableRows(
     return plainRows as VariableRow[]
 }
 
+// TODO: we'll want to split this into getVariableData and getVariableMetadata once
+// the data API can provide us with the type and distinct dimension values for a
+// variable. Before that we need to fetch and iterate the data before we can return
+// the metadata so it doesn't make much sense to split this into two functions yet.
 export async function getVariableData(
     variableId: number
 ): Promise<OwidVariableDataMetadataDimensions> {
-    const data = await fetchS3Values(variableId)
-
-    // NOTE: we could be fetching metadata from S3, but there's a latency that could
-    // cause problems with admin. It's safer to fetch it directly from the database.
-    // In the future when we isolate ETL from admin and use variable fallbacks (i.e.
-    // metadataPath would be only editable by ETL), it should be safe to fetch from S3.
-    // The only thing preventing us from doing so is that we allow editing non-ETL variables
-    // (in owid namespace). These are pretty rarely edited anyway.
-    // const metadata = await fetchS3MetadataByPath(metadataPath)
-    const metadata = await getVariableMetadataFromMySQL(variableId, data)
-
-    return {
-        data: data,
-        metadata: metadata,
-    }
-}
-
-export async function getVariableMetadataFromMySQL(
-    variableId: number,
-    variableData: OwidVariableMixedData
-): Promise<OwidVariableWithSourceAndDimension> {
     const variableQuery: Promise<VariableQueryRow | undefined> = db.mysqlFirst(
         `
         SELECT
@@ -122,6 +113,9 @@ export async function getVariableMetadataFromMySQL(
     const row = await variableQuery
     if (row === undefined) throw new Error(`Variable ${variableId} not found`)
 
+    // load data from data_values or S3 if `dataPath` exists
+    const results = await dataAsRecords([variableId])
+
     const {
         sourceId,
         sourceName,
@@ -134,7 +128,7 @@ export async function getVariableMetadataFromMySQL(
     const partialSource: OwidSource = JSON.parse(sourceDescription)
     const variableMetadata: OwidVariableWithSourceAndType = {
         ...omitNullableValues(variable),
-        type: detectValuesType(variableData.values),
+        type: "mixed", // precise type will be updated further down
         nonRedistributable: Boolean(nonRedistributable),
         display,
         source: {
@@ -147,63 +141,65 @@ export async function getVariableMetadataFromMySQL(
             additionalInfo: partialSource.additionalInfo || "",
         },
     }
-
-    const entities = await loadEntitiesInfo(variableData.entities)
-    const years = _.uniq(variableData.years).map((year) => ({ id: year }))
-
-    return {
-        ...variableMetadata,
-        dimensions: {
-            years: { values: years },
-            entities: { values: entities },
-        },
+    const variableData: OwidVariableMixedData = {
+        years: [],
+        entities: [],
+        values: [],
     }
-}
 
-async function loadEntitiesInfo(entityIds: number[]): Promise<any> {
-    if (entityIds.length === 0) return []
-    return db.queryMysql(
-        `
-        SELECT
-            id,
-            name,
-            code
-        FROM entities WHERE id in (?) ORDER BY name ASC
-        `,
-        [_.uniq(entityIds)]
-    )
-}
+    const entityMap = new Map<number, OwidVariableDimensionValueFull>()
+    const yearMap = new Map<number, OwidVariableDimensionValuePartial>()
 
-export function detectValuesType(
-    values: (string | number)[]
-): OwidVariableTypeOptions {
     let encounteredFloatDataValues = false
     let encounteredIntDataValues = false
     let encounteredStringDataValues = false
 
-    for (const value of values) {
-        if (Number.isInteger(value)) {
-            encounteredIntDataValues = true
-        } else if (typeof value === "number") {
-            encounteredFloatDataValues = true
+    for (const row of results) {
+        variableData.years.push(row.year)
+        variableData.entities.push(row.entityId)
+        const asNumber = parseFloat(row.value)
+        const asInt = parseInt(row.value)
+        if (!isNaN(asNumber)) {
+            if (!isNaN(asInt)) encounteredIntDataValues = true
+            else encounteredFloatDataValues = true
+            variableData.values.push(asNumber)
         } else {
             encounteredStringDataValues = true
+            variableData.values.push(row.value)
+        }
+
+        if (!entityMap.has(row.entityId)) {
+            entityMap.set(row.entityId, {
+                id: row.entityId,
+                name: row.entityName,
+                code: row.entityCode,
+            })
+        }
+
+        if (!yearMap.has(row.year)) {
+            yearMap.set(row.year, { id: row.year })
         }
     }
 
-    if (
-        (encounteredFloatDataValues || encounteredIntDataValues) &&
-        encounteredStringDataValues
-    ) {
-        return "mixed"
+    if (encounteredFloatDataValues && encounteredStringDataValues) {
+        variableMetadata.type = "mixed"
     } else if (encounteredFloatDataValues) {
-        return "float"
+        variableMetadata.type = "float"
     } else if (encounteredIntDataValues) {
-        return "int"
+        variableMetadata.type = "int"
     } else if (encounteredStringDataValues) {
-        return "string"
-    } else {
-        return "mixed"
+        variableMetadata.type = "string"
+    }
+
+    return {
+        data: variableData,
+        metadata: {
+            ...variableMetadata,
+            dimensions: {
+                years: { values: Array.from(yearMap.values()) },
+                entities: { values: Array.from(entityMap.values()) },
+            },
+        },
     }
 }
 
@@ -291,11 +287,6 @@ export const getDataValue = async ({
     }
 
     if (df.shape.height == 0) return
-    if (df.shape.height > 1) {
-        throw new Error(
-            `More than one data value found for variable ${variableId}, entity ${entityId}, year ${year}`
-        )
-    }
 
     const row = df.toRecords()[0]
 
@@ -370,13 +361,6 @@ const _castDataDF = (df: pl.DataFrame): pl.DataFrame => {
     )
 }
 
-export const assertFileExistsInS3 = async (dataPath: string): Promise<void> => {
-    const resp = await fetch(dataPath, { method: "HEAD", agent: httpsAgent })
-    if (resp.status !== 200) {
-        throw new Error("URL not found on S3: " + dataPath)
-    }
-}
-
 const emptyDataDF = (): pl.DataFrame => {
     return _castDataDF(
         pl.DataFrame({
@@ -426,10 +410,41 @@ export const _dataAsDFfromS3 = async (
     return _castDataDF(df.join(entityDF, { on: "entityId" }))
 }
 
+const _dataAsDFfromMySQL = async (
+    variableIds: OwidVariableId[]
+): Promise<pl.DataFrame> => {
+    if (variableIds.length == 0) {
+        return emptyDataDF()
+    }
+
+    // this function will be eventually deprecated by _dataAsDFfromS3
+    const df = await readSQLasDF(
+        `
+    SELECT
+        data_values.variableId as variableId,
+        value,
+        year,
+        entities.id AS entityId,
+        entities.name AS entityName,
+        entities.code AS entityCode
+    FROM data_values
+    LEFT JOIN entities ON data_values.entityId = entities.id
+    WHERE data_values.variableId in (?)
+        `,
+        [variableIds]
+    )
+
+    if (df.height == 0) {
+        return emptyDataDF()
+    }
+
+    return _castDataDF(df)
+}
+
 export const dataAsDF = async (
     variableIds: OwidVariableId[]
 ): Promise<pl.DataFrame> => {
-    // return variables values as a DataFrame from S3
+    // return variables values as a DataFrame from either S3 or data_values table
     const rows = await db.queryMysql(
         `
     SELECT
@@ -441,7 +456,8 @@ export const dataAsDF = async (
         [variableIds]
     )
 
-    // variables with dataPath are stored in S3
+    // variables with dataPath are stored in S3 and variables without it
+    // are stored in data_values table
     const variableIdsWithDataPath = rows
         .filter((row: any) => row.dataPath)
         .map((row: any) => row.id)
@@ -450,28 +466,23 @@ export const dataAsDF = async (
         .filter((row: any) => !row.dataPath)
         .map((row: any) => row.id)
 
-    // variables without dataPath shouldn't exist!
-    if (variableIdsWithoutDataPath.length > 0)
-        throw new Error(
-            `Variables ${variableIdsWithoutDataPath} are missing dataPath`
-        )
-
-    return _dataAsDFfromS3(variableIdsWithDataPath)
+    return pl.concat([
+        await _dataAsDFfromMySQL(variableIdsWithoutDataPath),
+        await _dataAsDFfromS3(variableIdsWithDataPath),
+    ])
 }
 
-export const getOwidVariableDataAndMetadataPath = async (
+export const getOwidVariableDataPath = async (
     variableId: OwidVariableId
-): Promise<{ dataPath: string; metadataPath: string }> => {
-    // NOTE: refactor this with Variable object in TypeORM
+): Promise<string | undefined> => {
     const row = await db.mysqlFirst(
-        `SELECT dataPath, metadataPath FROM variables WHERE id = ?`,
+        `SELECT dataPath FROM variables WHERE id = ?`,
         [variableId]
     )
-    return { dataPath: row.dataPath, metadataPath: row.metadataPath }
+    return row.dataPath
 }
 
-// limit number of concurrent requests to 20 when fetching values from S3, otherwise
-// we might get ECONNRESET errors
+// limit number of concurrent requests to 20 when fetching values from S3
 const httpsAgent = new https.Agent({
     keepAlive: true,
     maxSockets: 20,
@@ -480,14 +491,9 @@ const httpsAgent = new https.Agent({
 export const fetchS3Values = async (
     variableId: OwidVariableId
 ): Promise<OwidVariableMixedData> => {
-    const { dataPath, metadataPath } = await getOwidVariableDataAndMetadataPath(
-        variableId
-    )
+    const dataPath = await getOwidVariableDataPath(variableId)
     if (!dataPath) {
         throw new Error(`Missing dataPath for variable ${variableId}`)
-    }
-    if (!metadataPath) {
-        throw new Error(`Missing metadataPath for variable ${variableId}`)
     }
     return fetchS3ValuesByPath(dataPath)
 }
@@ -507,19 +513,11 @@ export const fetchS3ValuesByPath = async (
     return resp.json()
 }
 
-export const fetchS3MetadataByPath = async (
-    metadataPath: string
-): Promise<OwidVariableWithSourceAndDimension> => {
-    // avoid cache as Cloudflare worker caches up to 1 hour
-    const resp = await retryPromise(() =>
-        fetch(`${metadataPath}?nocache`, { agent: httpsAgent })
-    )
-    if (!resp.ok) {
-        throw new Error(
-            `Error fetching data from S3 for ${metadataPath}: ${resp.status} ${resp.statusText}`
-        )
-    }
-    return resp.json()
+export const dataAsRecords = async (
+    variableIds: OwidVariableId[]
+): Promise<DataRow[]> => {
+    // return data values as a list of DataRows
+    return (await dataAsDF(variableIds)).toRecords() as DataRow[]
 }
 
 export const createDataFrame = (data: unknown): pl.DataFrame => {

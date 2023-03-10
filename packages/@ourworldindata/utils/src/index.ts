@@ -397,7 +397,6 @@ export {
     type MultipleOwidVariableDataDimensionsMap,
     type OwidVariableDimensionValuePartial,
     type OwidVariableDimensionValueFull,
-    type OwidVariableTypeOptions,
     type OwidEntityKey,
 } from "./OwidVariable.js"
 
