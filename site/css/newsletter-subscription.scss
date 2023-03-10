@@ -39,8 +39,8 @@
         padding: 0 16px;
         flex: 1;
         width: 100%;
-        @include body-3-medium;
         &::placeholder {
+            @include body-3-medium;
             color: $blue-40;
         }
     }

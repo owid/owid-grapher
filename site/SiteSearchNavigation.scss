@@ -20,7 +20,6 @@
         border: 1px solid $blue-90;
         color: $white;
         outline: none;
-        @include body-3-medium;
 
         &:hover {
             border: 1px solid $blue-60;
@@ -32,6 +31,7 @@
         }
 
         &::placeholder {
+            @include body-3-medium;
             color: $blue-30;
             transition: color 150ms ease;
         }
