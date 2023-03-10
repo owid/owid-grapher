@@ -289,3 +289,24 @@
     padding: 0;
     font-size: 1.125rem;
 }
+
+// Polyfills for flexbox gap (https://caniuse.com/flexbox-gap)
+// In the (near) future, this can be removed and replaced with (column-)gap: $gap
+@mixin column-gap($gap) {
+    > * {
+        margin-right: $gap;
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+}
+
+@mixin row-gap($gap) {
+    > * {
+        display: block;
+        margin-bottom: $gap !important; // for subscribe popup in navbar
+        &:last-child {
+            margin-bottom: 0 !important;
+        }
+    }
+}

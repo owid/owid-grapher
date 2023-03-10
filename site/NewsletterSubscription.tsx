@@ -159,15 +159,19 @@ export const NewsletterSubscriptionForm = ({
                     Subscribe
                 </button>
             </div>
-            <div className="NewsletterSubscription__privacy">
-                By subscribing you are agreeing to the terms of our{" "}
-                <a href="/privacy-policy">privacy policy</a>.
-            </div>
+            {/* This hidden field should not be the last element in the form as long as we use the row-gap mixin 
+            to space elements vertically. When placed as the last element of the form, this hidden element becomes 
+            the target of the :last-child selector of the row-gap mixin, when it should be applied to the last visible
+            element instead */}
             <input
                 type="hidden"
                 name="b_18058af086319ba6afad752ec_2e166c1fc1"
                 tabIndex={-1}
             />
+            <div className="NewsletterSubscription__privacy">
+                By subscribing you are agreeing to the terms of our{" "}
+                <a href="/privacy-policy">privacy policy</a>.
+            </div>
         </form>
     )
 }

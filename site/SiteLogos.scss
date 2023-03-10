@@ -2,7 +2,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    column-gap: 24px;
+    @include column-gap(24px);
     flex-shrink: 0;
 
     .logo-owid a {
@@ -20,7 +20,7 @@
         @include xlg-up {
             display: flex;
         }
-        column-gap: 6px;
+        @include column-gap(6px);
         align-items: flex-start;
         margin-top: 5px;
 

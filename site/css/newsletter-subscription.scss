@@ -1,7 +1,7 @@
 .newsletter-subscription form {
     display: flex;
     flex-direction: column;
-    row-gap: 16px;
+    @include row-gap(16px);
     @include body-3-medium;
 
     button[type="submit"] {
@@ -29,7 +29,7 @@
         height: 40px;
         display: flex;
         justify-content: space-between;
-        column-gap: 8px;
+        @include column-gap(8px);
     }
 
     .NewsletterSubscription__email {

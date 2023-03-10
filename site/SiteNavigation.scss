@@ -25,11 +25,11 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    column-gap: 16px;
+    @include column-gap(16px);
     padding-top: 12px;
     padding-bottom: 12px;
     @include sm-up {
-        column-gap: 24px;
+        @include column-gap(24px);
     }
 
     .SiteNavigationToggle--mobile-menu {
@@ -47,7 +47,7 @@
         > ul {
             display: flex;
             flex-direction: row;
-            column-gap: 24px;
+            @include column-gap(24px);
             align-items: center;
             > li {
                 list-style-type: none;
@@ -103,15 +103,19 @@
         align-items: center;
         justify-content: end;
         height: $search-cta-height;
-        column-gap: 16px;
+        @include column-gap(16px);
         @include sm-only {
             flex: 1; // center owid logo
         }
-        @include lg-up {
-            column-gap: 16px;
-        }
 
         .SiteNavigationToggle.newsletter-subscription {
+            @include sm-only {
+                // when the donate button is hidden, it still captures the
+                // :last-child selector of the column-gap mixin of the parent
+                // container so the margin-right: 0 is not applied and needs to
+                // be applied manually here
+                margin-right: 0;
+            }
             .SiteNavigationToggle__button {
                 color: $white;
                 &:hover {
