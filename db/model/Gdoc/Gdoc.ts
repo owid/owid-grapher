@@ -144,10 +144,16 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     async loadImageMetadata(): Promise<void> {
-        if (this.filenames.length) {
+        const covers: string[] = Object.values(this.linkedDocuments)
+            .map((gdoc: Gdoc) => gdoc.content.cover)
+            .filter((cover?: string): cover is string => !!cover)
+
+        const filenamesToLoad: string[] = [...this.filenames, ...covers]
+
+        if (filenamesToLoad.length) {
             await imageStore.fetchImageMetadata()
             const images = await imageStore
-                .syncImagesToS3(this.filenames)
+                .syncImagesToS3(filenamesToLoad)
                 .then(excludeUndefined)
             this.imageMetadata = keyBy(images, "filename")
         }
