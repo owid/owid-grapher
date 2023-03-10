@@ -77,7 +77,6 @@ interface EmbedTestPageQueryParams {
     readonly categoricalLegend?: string
     readonly mixedTimeTypes?: string
     readonly addCountryMode?: EntitySelectionMode
-    readonly includePrivate?: string
     readonly ids?: string
     readonly datasetIds?: string
     readonly namespace?: string
@@ -206,21 +205,6 @@ async function propsFromQueryParams(
         query = query.andWhere(
             `COALESCE(config->>"$.hasChartTab", "true") = "true"`
         )
-    }
-
-    // Exclude charts that have the "Private" tag assigned, unless `includePrivate` is passed.
-    // The data for these charts is not included in the public database dump used to populate
-    // staging and local, so they are not comparable.
-    if (params.includePrivate === undefined) {
-        query.andWhere(`
-            NOT EXISTS(
-                SELECT *
-                FROM tags
-                JOIN chart_tags ON chart_tags.tagId = tags.id
-                WHERE chart_tags.chartId = charts.id
-                AND tags.name = 'Private'
-            )
-        `)
     }
 
     if (datasetIds.length > 0) {
