@@ -148,7 +148,17 @@ export async function getVariableMetadataFromMySQL(
         },
     }
 
-    const entities = await loadEntitiesInfo(variableData.entities)
+    const entities = await db.queryMysql(
+        `
+    SELECT
+        id,
+        name,
+        code
+    FROM entities WHERE id in (?) ORDER BY name ASC
+    `,
+        [_.uniq(variableData.entities)]
+    )
+
     const years = _.uniq(variableData.years).map((year) => ({ id: year }))
 
     return {
@@ -158,20 +168,6 @@ export async function getVariableMetadataFromMySQL(
             entities: { values: entities },
         },
     }
-}
-
-async function loadEntitiesInfo(entityIds: number[]): Promise<any> {
-    if (entityIds.length === 0) return []
-    return db.queryMysql(
-        `
-        SELECT
-            id,
-            name,
-            code
-        FROM entities WHERE id in (?) ORDER BY name ASC
-        `,
-        [_.uniq(entityIds)]
-    )
 }
 
 export function detectValuesType(
