@@ -47,6 +47,11 @@ const basics: GrapherProgrammaticInterface = {
 
 export const Line = (): JSX.Element => <Grapher {...basics} />
 
+export const LineWithoutTabs = (): JSX.Element => {
+    const model = { ...basics, shownTabs: [GrapherTabOption.chart] }
+    return <Grapher {...model} />
+}
+
 export const SlopeChart = (): JSX.Element => {
     const model = {
         type: ChartTypeName.SlopeChart,
