@@ -65,13 +65,15 @@ export default function Image(props: {
     }
 
     const alt = props.alt ?? image.defaultAlt
+    const maybeLightboxClassName =
+        containerType === "thumbnail" ? "" : LIGHTBOX_IMAGE_CLASS
 
     if (isPreviewing) {
         return (
             <img
                 src={`${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${filename}`}
                 alt={alt}
-                className={cx(LIGHTBOX_IMAGE_CLASS, className, "lazyload")}
+                className={cx(maybeLightboxClassName, className, "lazyload")}
             />
         )
     }
@@ -81,7 +83,7 @@ export default function Image(props: {
             <img
                 src={`/images/published/${filename}`}
                 alt={alt}
-                className={cx(LIGHTBOX_IMAGE_CLASS, className)}
+                className={cx(maybeLightboxClassName, className)}
             />
         )
     }
@@ -99,7 +101,7 @@ export default function Image(props: {
             <img
                 src={`/images/published/${filename}`}
                 alt={alt}
-                className={LIGHTBOX_IMAGE_CLASS}
+                className={maybeLightboxClassName}
             />
         </picture>
     )
