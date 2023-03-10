@@ -106,7 +106,7 @@ class PostRow extends React.Component<PostRowProps> {
         ) {
             this.postGdocStatus = GdocStatus.CONVERTING
             const { admin } = this.context
-            const json = await admin.requestJSON(
+            await admin.requestJSON(
                 `/api/posts/${this.props.post.id}/unlinkGdoc`,
                 {},
                 "POST"
