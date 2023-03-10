@@ -8,7 +8,7 @@ export class RecreatePostsWithGdocPublishStatusView1678398619296
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`-- sql
-        drop view posts_with_gdoc_publish_status;
+        drop view if exists posts_with_gdoc_publish_status;
         `)
         await queryRunner.query(`-- sql
         create view posts_with_gdoc_publish_status as
