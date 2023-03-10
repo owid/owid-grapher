@@ -8,7 +8,6 @@ import * as fs from "fs-extra"
 
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
-import * as path from "path"
 import pMap from "p-map"
 
 async function main(parsedArgs: parseArgs.ParsedArgs) {
@@ -16,7 +15,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const outDir = parsedArgs["o"] ?? "grapherData"
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 
-        const { graphersBySlug } = await getPublishedGraphersBySlug(false)
+        const { graphersBySlug } = await getPublishedGraphersBySlug()
         const allGraphers = [...graphersBySlug.values()]
         const saveJobs: utils.SaveGrapherSchemaAndDataJob[] = allGraphers.map(
             (grapher) => ({ config: grapher, outDir })

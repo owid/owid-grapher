@@ -698,9 +698,23 @@ function cheerioToArchieML(
                             name: "too many elements in figure",
                             details: `Found ${otherChildren.length} elements`,
                         })
+                    // The content of figure HTML elements is a bit funky. It can be images, svg, iframes,
+                    // tables etc. In addition to this, an image can also be wrapped in an a tag, which for
+                    // us is a text-span tag and we don't really capture this properly yet at the block level (
+                    // also because this is not a very common case other than linking to a big version of the image again).
+                    // So here we just try to find in the figure tag one of these relevant subtags and then try to
+                    // translate them to a reasonable equivalent.
                     const image = findCheerioElementRecursive(
                         otherChildren,
                         "img"
+                    )
+                    const svg = findCheerioElementRecursive(
+                        otherChildren,
+                        "svg"
+                    )
+                    const iframe = findCheerioElementRecursive(
+                        otherChildren,
+                        "iframe"
                     )
                     if (!image) {
                         if (otherChildren[0].tagName === "table") {
@@ -713,13 +727,31 @@ function cheerioToArchieML(
                                 errors: [...errors, ...childResult.errors],
                                 content: childResult.content,
                             }
+                        } else if (svg) {
+                            // SVGs are translated to HTML blocks with the svg content unchanged
+                            const svgResult = cheerioToArchieML(svg, context)
+                            return {
+                                errors: [...errors, ...svgResult.errors],
+                                content: svgResult.content,
+                            }
+                        } else if (iframe) {
+                            // iframes are checked for their URL and usually result in a grapher chart being returned
+                            const iframeResult = cheerioToArchieML(
+                                iframe,
+                                context
+                            )
+                            return {
+                                errors: [...errors, ...iframeResult.errors],
+                                content: iframeResult.content,
+                            }
+                        } else {
+                            // TODO: this is a legitimate case, there may be other content in a figure
+                            // but for now we treat it as an error and see how often this error happens
+                            errors.push({
+                                name: "no img element in figure",
+                                details: `Found ${otherChildren.length} elements`,
+                            })
                         }
-                        // TODO: this is a legitimate case, there may be other content in a figure
-                        // but for now we treat it as an error and see how often this error happens
-                        errors.push({
-                            name: "no img element in figure",
-                            details: `Found ${otherChildren.length} elements`,
-                        })
                     }
 
                     return {
@@ -728,8 +760,8 @@ function cheerioToArchieML(
                             {
                                 type: "image",
                                 // TODO ike
-                                filename: "",
-                                alt: "",
+                                filename: image?.attribs["src"] ?? "",
+                                alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,
                             },

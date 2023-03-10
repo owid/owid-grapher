@@ -169,10 +169,14 @@ export interface PostRow {
     updated_at_in_wordpress: Date | null
     archieml: string
     archieml_update_statistics: string
-    gdocSuccessorId: string
+    gdocSuccessorId: string | null
     authors: string
     excerpt: string
     created_at_in_wordpress: Date | null
+}
+
+export interface PostRowWithGdocPublishStatus extends PostRow {
+    isGdocPublished: boolean
 }
 
 export interface Tag extends TagReactTagAutocomplete {

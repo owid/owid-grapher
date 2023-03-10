@@ -28,6 +28,7 @@ import * as cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
     BLOG_POSTS_PER_PAGE,
+    GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
 } from "../settings/serverSettings.js"
 import {
     ADMIN_BASE_URL,
@@ -52,6 +53,7 @@ import {
     OwidArticleType,
     PostRow,
     Url,
+    IndexPost,
 } from "@ourworldindata/utils"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -65,7 +67,10 @@ import {
 } from "../db/wpdb.js"
 import { queryMysql, knexTable } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
-import { logContentErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
+import {
+    logContentErrorAndMaybeSendToSlack,
+    logErrorAndMaybeSendToSlack,
+} from "../serverUtils/slackLog.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
 import {
     KeyInsightsThumbs,
@@ -215,6 +220,62 @@ export const renderPost = async (
 export const renderFrontPage = async () => {
     const entries = await getEntriesByCategory()
     const posts = await getBlogIndex()
+
+    const NUM_FEATURED_POSTS = 6
+
+    /**
+     * A frontPageConfig should specify a list of
+     * articles to feature in the featured work block,
+     * and which position they should be placed in.
+     *
+     * Note that this can be underspecified, so some positions
+     * may not be filled in.
+     *
+     */
+
+    let featuredWork: IndexPost[]
+    try {
+        const frontPageConfigGdoc = await Gdoc.getGdocFromContentSource(
+            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID
+        )
+        const frontPageConfig: any = frontPageConfigGdoc.content
+        const featuredPosts: { slug: string; position: number }[] =
+            frontPageConfig.featuredPosts
+
+        // Generate the candidate posts to fill in any missing slots
+        const slugs = featuredPosts.map((d) => d.slug)
+        const filteredPosts = posts.filter((post) => {
+            return !slugs.includes(post.slug)
+        })
+
+        /**
+         * Create the final list of featured work by merging the
+         * manually curated list of posts and filling in any empty
+         * positions with the latest available posts, while avoiding
+         * adding any duplicates.
+         */
+        let missingPosts = 0
+        featuredWork = [...new Array(NUM_FEATURED_POSTS)]
+            .map((_, i) => i)
+            .map((idx) => {
+                const manuallySetPost = featuredPosts.find(
+                    (d) => +d.position === idx + 1
+                )
+                if (manuallySetPost) {
+                    const post = posts.find(
+                        (post) => post.slug === manuallySetPost.slug
+                    )
+                    if (post) {
+                        return post
+                    }
+                }
+                return filteredPosts[missingPosts++]
+            })
+    } catch (e) {
+        logErrorAndMaybeSendToSlack(e)
+        featuredWork = posts.slice(0, 6)
+    }
+
     const totalCharts = (
         await queryMysql(
             `SELECT COUNT(*) AS count
@@ -228,7 +289,7 @@ export const renderFrontPage = async () => {
     return renderToHtmlPage(
         <FrontPage
             entries={entries}
-            posts={posts}
+            featuredWork={featuredWork}
             totalCharts={totalCharts}
             baseUrl={BAKED_BASE_URL}
         />

@@ -8,7 +8,7 @@ import {
     OwidArticleType,
     ImageMetadata,
 } from "@ourworldindata/utils"
-import { match, P } from "ts-pattern"
+import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidArticle.js"
 
 export const useLinkedDocument = (url: string): OwidArticleType | undefined => {
@@ -25,33 +25,6 @@ export const useImage = (
     if (!filename) return
     const metadata = imageMetadata[filename]
     return metadata
-}
-
-export function spansToUnformattedPlainText(spans: Span[] = []): string {
-    return spans
-        .map((span) =>
-            match(span)
-                .with({ spanType: "span-simple-text" }, (span) => span.text)
-                .with(
-                    {
-                        spanType: P.union(
-                            "span-link",
-                            "span-italic",
-                            "span-bold",
-                            "span-fallback",
-                            "span-quote",
-                            "span-superscript",
-                            "span-subscript",
-                            "span-underline",
-                            "span-ref"
-                        ),
-                    },
-                    (span) => spansToUnformattedPlainText(span.children)
-                )
-                .with({ spanType: "span-newline" }, () => "")
-                .exhaustive()
-        )
-        .join("")
 }
 
 const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {

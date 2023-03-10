@@ -59,20 +59,12 @@ export async function getGraphersAndRedirectsBySlug() {
     return graphersBySlug
 }
 
-export async function getPublishedGraphersBySlug(
-    includePrivate: boolean = false
-) {
+export async function getPublishedGraphersBySlug() {
     const graphersBySlug: Map<string, GrapherInterface> = new Map()
     const graphersById: Map<number, GrapherInterface> = new Map()
 
-    // Select all graphers that are published and that do not have the tag Private
-    const sql = includePrivate
-        ? `SELECT * FROM charts WHERE config->>"$.isPublished" = "true"`
-        : `SELECT charts.id as id, charts.config as config FROM charts
-LEFT JOIN chart_tags on chart_tags.chartId = charts.id
-LEFT JOIN tags on tags.id = chart_tags.tagid
-WHERE config->>"$.isPublished" = "true"
-AND (tags.name IS NULL OR tags.name != 'Private')`
+    // Select all graphers that are published
+    const sql = `SELECT * FROM charts WHERE config->>"$.isPublished" = "true"`
 
     const query = db.queryMysql(sql)
     for (const row of await query) {
