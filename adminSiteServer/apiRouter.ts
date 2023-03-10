@@ -1336,7 +1336,8 @@ apiRouter.put("/users/:userId", async (req: Request, res: Response) => {
         throw new JsonError("Permission denied", 403)
 
     const userId = parseIntOrUndefined(req.params.userId)
-    const user = await User.findOneBy({ id: userId })
+    const user =
+        userId !== undefined ? await User.findOneBy({ id: userId }) : null
     if (!user) throw new JsonError("No such user", 404)
 
     user.fullName = req.body.fullName
