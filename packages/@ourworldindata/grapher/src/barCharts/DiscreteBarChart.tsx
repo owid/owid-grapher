@@ -78,6 +78,7 @@ export interface Label {
 }
 
 interface DiscreteBarItem {
+    yColumn: CoreColumn
     seriesName: string
     value: number
     time: number
@@ -351,9 +352,20 @@ export class DiscreteBarChart
         if (
             this.yColumns.length > 1 &&
             this.selectionArray.numSelectedEntities > 1
-        )
+        ) {
+            // if we have more than one unit, then faceting by entity is not allowed
+            // as comparing multiple units in a single chart isn't meaningful
+            const uniqueUnits = new Set(
+                this.yColumns.map((column) => column.shortUnit)
+            )
+            if (uniqueUnits.size > 1) {
+                return [FacetStrategy.metric]
+            }
+
             return [FacetStrategy.entity, FacetStrategy.metric]
-        else return [FacetStrategy.none]
+        }
+
+        return [FacetStrategy.none]
     }
 
     componentDidMount(): void {
@@ -508,19 +520,19 @@ export class DiscreteBarChart
     }
 
     formatValue(series: DiscreteBarSeries): Label {
-        const column = this.yColumns[0] // todo: do we need to use the right column here?
         const { transformedTable } = this
+        const { yColumn } = series
 
         const showYearLabels =
             this.manager.showYearLabels || series.time !== this.targetTime
-        const displayValue = column.formatValueShort(series.value)
+        const displayValue = yColumn.formatValueShort(series.value)
         const { timeColumn } = transformedTable
         const preposition = OwidTable.getPreposition(timeColumn)
 
         return {
             valueString: displayValue,
             timeString: showYearLabels
-                ? ` ${preposition} ${column.formatTime(series.time)}`
+                ? ` ${preposition} ${yColumn.formatTime(series.time)}`
                 : "",
         }
     }
@@ -578,6 +590,7 @@ export class DiscreteBarChart
                       entityNames[index] as string
                   )
             return {
+                yColumn: col,
                 seriesName,
                 value: values[index] as number,
                 time: originalTimes[index] as number,
@@ -750,8 +763,10 @@ export class DiscreteBarChart
 
     @computed get series(): DiscreteBarSeries[] {
         const series = this.sortedRawSeries.map((rawSeries) => {
-            const { value, time, colorValue, seriesName, color } = rawSeries
+            const { value, time, colorValue, seriesName, color, yColumn } =
+                rawSeries
             const series: DiscreteBarSeries = {
+                yColumn,
                 value,
                 time,
                 colorValue,
