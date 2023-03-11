@@ -412,6 +412,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 textRendering: "geometricPrecision",
                 WebkitFontSmoothing: "antialiased",
             },
+            fill: "white",
         }
     }
 }
