@@ -119,8 +119,10 @@ $xxlg: 1536px;
  * Fonts
  */
 
-$sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
-$serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
+$sans-serif-font-stack: Lato, "Helvetica Neue", Helvetica, Arial,
+    "Liberation Sans", sans-serif;
+$serif-font-stack: "Playfair Display", Georgia, "Times New Roman",
+    "Liberation Serif", serif;
 
 /*******************************************************************************
  * Z-index

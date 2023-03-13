@@ -119,7 +119,7 @@ export class Header extends React.Component<{
                     href={manager.canonicalUrl}
                     style={{
                         fontFamily:
-                            '"Playfair Display", Georgia, "Times New Roman", serif',
+                            "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
                     }}
                     target="_blank"
                     rel="noopener"
