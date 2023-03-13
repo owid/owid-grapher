@@ -46,6 +46,7 @@ import {
     OwidArticleTypePublished,
     ImageMetadata,
     clone,
+    getFilenameWithoutExtension,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -420,6 +421,15 @@ export class SiteBaker {
                                         .toFile(localResizedFilepath)
                                 })
                             )
+                        } else {
+                            // A PNG alternative to the SVG for the "Download image" link
+                            const pngFilename = `${getFilenameWithoutExtension(
+                                image.filename
+                            )}.png`
+                            await sharp(buffer)
+                                .resize(2000)
+                                .png()
+                                .toFile(path.join(imagesDirectory, pngFilename))
                         }
                         // For SVG, and a non-webp fallback copy of the image
                         await writeFile(

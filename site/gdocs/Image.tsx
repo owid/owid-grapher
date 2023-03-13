@@ -3,6 +3,7 @@ import {
     EnrichedBlockImage,
     getSizes,
     generateSrcSet,
+    getFilenameWithoutExtension,
 } from "@ourworldindata/utils"
 import { LIGHTBOX_IMAGE_CLASS } from "../Lightbox.js"
 import cx from "classnames"
@@ -79,12 +80,24 @@ export default function Image(props: {
     }
 
     if (filename.endsWith(".svg")) {
+        const pngFilename = `${getFilenameWithoutExtension(filename)}.png`
         return (
-            <img
-                src={`/images/published/${filename}`}
-                alt={alt}
-                className={cx(maybeLightboxClassName, className)}
-            />
+            <div className={className}>
+                <img
+                    src={`/images/published/${filename}`}
+                    alt={alt}
+                    className={maybeLightboxClassName}
+                />
+                {containerType !== "thumbnail" ? (
+                    <a
+                        className="download-png-link"
+                        href={`/images/published/${pngFilename}`}
+                        download
+                    >
+                        Download image
+                    </a>
+                ) : null}
+            </div>
         )
     }
 
