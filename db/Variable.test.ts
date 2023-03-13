@@ -4,6 +4,7 @@ import {
     writeVariableCSV,
     getVariableData,
     VariableQueryRow,
+    _dataAsDFfromS3,
 } from "./model/Variable.js"
 import * as db from "./db.js"
 import * as Variable from "./model/Variable.js"
@@ -226,6 +227,28 @@ describe("getVariableData", () => {
                 unit: "",
                 updatedAt: date,
             },
+        })
+    })
+})
+
+describe("_dataAsDFfromS3", () => {
+    it("works correctly for mixed data", async () => {
+        const s3data = {
+            1: {
+                values: [1, "NA"],
+                years: [2000, 2001],
+                entities: [1, 1],
+            },
+        }
+        mockS3data(s3data)
+        const df = await _dataAsDFfromS3([1])
+        expect(df.toObject()).toEqual({
+            entityCode: ["code", "code"],
+            entityId: [1, 1],
+            entityName: ["UK", "UK"],
+            value: ["1", "NA"],
+            variableId: [1, 1],
+            year: [2000, 2001],
         })
     })
 })

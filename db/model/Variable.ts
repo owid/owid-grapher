@@ -384,6 +384,10 @@ export const _dataAsDFfromS3 = async (
     const dfs = await Promise.all(
         variableIds.map(async (variableId) => {
             const s3values = await fetchS3Values(variableId)
+            // convert values to strings before creating dataframe
+            s3values.values = s3values.values.map((value) => {
+                return value.toString()
+            })
             return createDataFrame(s3values)
                 .rename({
                     values: "value",
