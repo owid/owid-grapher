@@ -36,8 +36,9 @@ import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
 } from "../explorer/ExplorerProgram.js"
-import { existsSync } from "fs-extra"
+import { existsSync, readFile } from "fs-extra"
 import * as Post from "../db/model/Post.js"
+import { DataPage } from "../site/DataPage.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -247,6 +248,17 @@ adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
         return res.send(`File not found`)
     const explorer = await explorerAdminServer.getExplorerFromFile(filename)
     return res.send(await renderExplorerPage(explorer))
+})
+
+adminRouter.get(`/datapages/:id`, async (req, res) => {
+    const id = parseIntOrUndefined(req.params.id)
+    if (!id) return res.send(`Invalid id`)
+
+    const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
+    const datapage = await readFile(fullPath, "utf8")
+    if (!datapage) return res.send(`Datapage not found`)
+
+    return res.send(renderToHtmlPage(<DataPage json={JSON.parse(datapage)} />))
 })
 
 const gitCmsServer = new GitCmsServer({
