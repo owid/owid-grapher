@@ -253,6 +253,9 @@ describe("_dataAsDFfromS3", () => {
             variableId: [1, 1],
             year: [2000, 2001],
         })
+    })
+})
+
 describe("detectValuesType", () => {
     test("returns 'int' when all values are integers", () => {
         expect(detectValuesType([1, 2, 3])).toEqual("int")
