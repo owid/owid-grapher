@@ -10,7 +10,7 @@ import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
 import { Dataset } from "../db/model/Dataset.js"
-import { ENV } from "../settings/serverSettings.js"
+import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
@@ -38,7 +38,7 @@ import {
 } from "../explorer/ExplorerProgram.js"
 import { existsSync, readFile } from "fs-extra"
 import * as Post from "../db/model/Post.js"
-import { DataPage } from "../site/DataPage.js"
+import { DataPagePage } from "../site/DataPagePage.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -258,7 +258,14 @@ adminRouter.get(`/datapages/:id`, async (req, res) => {
     const datapage = await readFile(fullPath, "utf8")
     if (!datapage) return res.send(`Datapage not found`)
 
-    return res.send(renderToHtmlPage(<DataPage json={JSON.parse(datapage)} />))
+    return res.send(
+        renderToHtmlPage(
+            <DataPagePage
+                baseUrl={BAKED_BASE_URL}
+                datapage={JSON.parse(datapage)}
+            />
+        )
+    )
 })
 
 const gitCmsServer = new GitCmsServer({
