@@ -88,7 +88,9 @@ mockSiteRouter.get(
 )
 
 mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
-    res.send(generateEmbedSnippet(BAKED_BASE_URL))
+    res.contentType("text/javascript").send(
+        generateEmbedSnippet(BAKED_BASE_URL)
+    )
 })
 
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)

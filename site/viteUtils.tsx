@@ -4,6 +4,7 @@ import fs from "fs-extra"
 import { ENV, BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { GOOGLE_FONTS_URL, POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest } from "vite"
+import { sortBy } from "@ourworldindata/utils"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
@@ -103,11 +104,12 @@ const createTagsForManifestEntry = (
         }
 
         // we need to recurse into both the module imports and imported css files, and add tags for them as well
+        // also, we need to take care of the order here, so the imported file is loaded before the importing file
         if (manifestEntry.css) {
-            assets = [...assets, ...manifestEntry.css.flatMap(createTags)]
+            assets = [...manifestEntry.css.flatMap(createTags), ...assets]
         }
         if (manifestEntry.imports) {
-            assets = [...assets, ...manifestEntry.imports.flatMap(createTags)]
+            assets = [...manifestEntry.imports.flatMap(createTags), ...assets]
         }
         return assets
     }
@@ -138,7 +140,11 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
     const assets = createTagsForManifestEntry(manifest, entry, assetBaseUrl)
 
     return {
-        forHeader: [googleFontsStyles, polyfillPreload, ...assets.forHeader],
+        // sort for some kind of consistency: first modulepreload, then preload, then stylesheet
+        forHeader: sortBy(
+            [googleFontsStyles, polyfillPreload, ...assets.forHeader],
+            "props.rel"
+        ),
         forFooter: [polyfillScript, ...assets.forFooter],
     }
 }
