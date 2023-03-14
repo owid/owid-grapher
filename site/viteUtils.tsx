@@ -2,7 +2,7 @@ import React from "react"
 import findBaseDir from "../settings/findBaseDir.js"
 import fs from "fs-extra"
 import { ENV, BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { POLYFILL_URL } from "./SiteConstants.js"
+import { GOOGLE_FONTS_URL, POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest } from "vite"
 
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
@@ -10,14 +10,18 @@ const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 // We ALWAYS load Google Fonts and polyfills.
 
 const googleFontsStyles = (
-    <link
-        key="google-fonts"
-        href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap"
-        rel="stylesheet"
-    />
+    <link key="google-fonts" href={GOOGLE_FONTS_URL} rel="stylesheet" />
 )
 
 const polyfillScript = <script key="polyfill" src={POLYFILL_URL} />
+const polyfillPreload = (
+    <link
+        key="polyfill-preload"
+        rel="preload"
+        href={POLYFILL_URL}
+        as="script"
+    />
+)
 
 interface Assets {
     forHeader: JSX.Element[]
@@ -27,7 +31,7 @@ interface Assets {
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
 const devAssets = (entry: string): Assets => {
     return {
-        forHeader: [googleFontsStyles],
+        forHeader: [googleFontsStyles, polyfillPreload],
         forFooter: [
             polyfillScript,
             <script
@@ -138,7 +142,7 @@ const prodAssets = (entry: string): Assets => {
     const assets = createTagsForManifestEntry(manifest, entry, assetBaseUrl)
 
     return {
-        forHeader: [googleFontsStyles, ...assets.forHeader],
+        forHeader: [googleFontsStyles, polyfillPreload, ...assets.forHeader],
         forFooter: [polyfillScript, ...assets.forFooter],
     }
 }
