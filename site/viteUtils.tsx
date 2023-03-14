@@ -76,22 +76,28 @@ const createTagsForManifestEntry = (
         if (!manifestEntry)
             throw new Error(`Could not find manifest entry for ${entry}`)
 
+        const assetUrl = `${assetBaseUrl}${manifestEntry.file}`
+
         if (entry.endsWith(".css")) {
             assets = [
                 ...assets,
-                <link
-                    key={entry}
-                    rel="stylesheet"
-                    href={`${assetBaseUrl}${manifestEntry.file}`}
-                />,
+                <link key={entry} rel="stylesheet" href={assetUrl} />,
             ]
         } else if (entry.match(/\.[cm]?(js|jsx|ts|tsx)$/)) {
+            // explicitly reference the entry; preload it and its dependencies
+            if (manifestEntry.isEntry) {
+                assets = [
+                    ...assets,
+                    <script key={entry} type="module" src={assetUrl} />,
+                ]
+            }
+
             assets = [
                 ...assets,
-                <script
-                    key={entry}
-                    type="module"
-                    src={`${assetBaseUrl}${manifestEntry.file}`}
+                <link
+                    key={`${entry}-preload`}
+                    rel="modulepreload" // see https://developer.chrome.com/blog/modulepreload/
+                    href={assetUrl}
                 />,
             ]
         }
