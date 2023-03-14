@@ -186,7 +186,7 @@ export default function ArticleBlock({
         ))
         .with({ type: "variable-chart" }, (block) => (
             <VariableChart
-                className={getLayout("chart", containerType)}
+                className={getLayout("variable-chart", containerType)}
                 d={block}
             />
         ))

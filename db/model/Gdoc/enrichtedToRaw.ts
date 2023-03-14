@@ -23,6 +23,7 @@ import {
     RawSDGGridItem,
     RawBlockSDGToc,
     RawBlockMissingData,
+    RawBlockVariableChart,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -66,6 +67,17 @@ export function enrichedBlockToRawBlock(
                     column: b.column,
                     position: b.position,
                     caption: b.caption ? spansToHtmlText(b.caption) : undefined,
+                },
+            })
+        )
+        .with(
+            { type: "variable-chart" },
+            (b): RawBlockVariableChart => ({
+                type: b.type,
+                value: {
+                    variable: b.variable.toString(),
+                    hideTabs: b.hideTabs.toString(),
+                    chartType: b.chartType,
                 },
             })
         )

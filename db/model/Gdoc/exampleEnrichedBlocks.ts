@@ -74,6 +74,13 @@ export const enrichedBlockExamples: Record<
         caption: boldLinkExampleText,
         parseErrors: [],
     },
+    "variable-chart": {
+        type: "variable-chart",
+        variable: 1,
+        hideTabs: false,
+        chartType: undefined,
+        parseErrors: [],
+    },
     scroller: {
         type: "scroller",
         blocks: [

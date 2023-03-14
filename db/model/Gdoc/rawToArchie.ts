@@ -22,6 +22,7 @@ import {
     RawBlockText,
     RawBlockUrl,
     RawBlockAdditionalCharts,
+    RawBlockVariableChart,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -91,6 +92,8 @@ function* rawBlockVariableChartToArchieMLString(
     yield "{.variable-chart}"
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("variable", block.value)
+        yield* propertyToArchieMLString("chartType", block.value)
+        yield* propertyToArchieMLString("hideTabs", block.value)
     }
     yield "{}"
 }

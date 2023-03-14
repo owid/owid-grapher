@@ -68,7 +68,7 @@ import {
     htmlToSimpleTextBlock,
     htmlToSpans,
 } from "./htmlToEnriched.js"
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import { parseInt } from "lodash"
 
 export function parseRawBlocksToEnrichedBlocks(
@@ -188,25 +188,72 @@ const parseAside = (raw: RawBlockAside): EnrichedBlockAside => {
     }
 }
 
-const parseChart = (raw: RawBlockVariableChart): EnrichedBlockVariableChart => {
+const parseVariableChart = (
+    raw: RawBlockVariableChart
+): EnrichedBlockVariableChart => {
     const createError = (
         error: ParseError,
         variable: number
     ): EnrichedBlockVariableChart => ({
         type: "variable-chart",
         variable,
+        hideTabs: false,
+        chartType: undefined,
         parseErrors: [error],
     })
 
     const val = raw.value
 
-    if (typeof raw.value === "string")
-        return createError({
-            message: "Value is a string, not an object with properties",
-        })
+    if (typeof val === "string") {
+        return createError(
+            {
+                message: "Value is a string, not an object with properties",
+            },
+            -1
+        )
     } else {
         if (!val.variable)
-
+            return createError(
+                {
+                    message: "Missing the required variable key",
+                },
+                -1
+            )
+        const hideTabs: boolean = val.hideTabs
+            ? val.hideTabs.toLowerCase() === "true"
+            : false
+        const variable = parseInt(val.variable)
+        if (isNaN(variable))
+            return createError(
+                {
+                    message: "Variable is not a number",
+                },
+                variable
+            )
+        const chartType = match(val.chartType)
+            .with(
+                P.union(
+                    "LineChart" as const,
+                    "ScatterPlot" as const,
+                    "TimeScatter" as const,
+                    "StackedArea" as const,
+                    "DiscreteBar" as const,
+                    "StackedDiscreteBar" as const,
+                    "SlopeChart" as const,
+                    "StackedBar" as const,
+                    "WorldMap" as const,
+                    "Marimekko" as const
+                ),
+                (t) => t
+            )
+            .otherwise(() => undefined)
+        return {
+            type: "variable-chart",
+            variable,
+            hideTabs,
+            chartType,
+            parseErrors: [],
+        }
     }
 }
 
