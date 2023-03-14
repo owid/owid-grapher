@@ -216,7 +216,7 @@ export const FrontPage = (props: {
                 <section className="homepage-subscribe" id="subscribe">
                     <div className="wrapper">
                         <div className="owid-row">
-                            <div className="owid-col owid-col--lg-2 flex-row owid-padding-bottom--sm-3">
+                            <div className="owid-col owid-col--lg-2 flex-row">
                                 <div className="newsletter-subscription">
                                     <div className="box">
                                         <h2>Subscribe to our newsletter</h2>

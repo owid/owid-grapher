@@ -30,7 +30,7 @@ export const SearchPage = (props: { baseUrl: string }) => {
                         </div>
                         <button type="submit">Search</button>
                     </form>
-                    <div className="searchResults"></div>
+                    <div className="searchResults wrapper"></div>
                 </main>
                 <SiteFooter hideDonate={true} baseUrl={baseUrl} />
                 <script>{`window.runSearchPage()`}</script>

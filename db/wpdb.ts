@@ -340,12 +340,14 @@ export const getEntriesByCategory = async (): Promise<
     // returned per subcategories but rather their maximum number of entries.
     const orderby = "TERM_ORDER"
 
+    // hack: using the description field ("01", "02", etc.) to order the top
+    // categories as TERM_ORDER doesn't seem to work as expected anymore.
     const query = `
     query getEntriesByCategory($first: Int, $orderby: TermObjectsConnectionOrderbyEnum!) {
         categories(first: $first, where: {termTaxonomId: ${ENTRIES_CATEGORY_ID}, orderby: $orderby}) {
           nodes {
             name
-            children(first: $first, where: {orderby: $orderby}) {
+            children(first: $first, where: {orderby: DESCRIPTION}) {
               nodes {
                 ...categoryWithEntries
                 children(first: $first, where: {orderby: $orderby}) {

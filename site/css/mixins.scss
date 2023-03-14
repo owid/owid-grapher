@@ -181,6 +181,16 @@
     button {
         @include popover-box-button;
     }
+
+    button.close {
+        align-self: flex-end;
+        color: $oxford-blue;
+        background-color: $white;
+        &:hover {
+            color: $white;
+            background-color: $oxford-blue;
+        }
+    }
 }
 
 @mixin expandable-block-button {
@@ -259,4 +269,44 @@
 @mixin image-hover {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     opacity: 0.9;
+}
+
+@mixin overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+@mixin mobile-toggle-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 1.125rem;
+}
+
+// Polyfills for flexbox gap (https://caniuse.com/flexbox-gap)
+// In the (near) future, this can be removed and replaced with (column-)gap: $gap
+@mixin column-gap($gap) {
+    > * {
+        margin-right: $gap;
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+}
+
+@mixin row-gap($gap) {
+    > * {
+        display: block;
+        margin-bottom: $gap !important; // for subscribe popup in navbar
+        &:last-child {
+            margin-bottom: 0 !important;
+        }
+    }
 }

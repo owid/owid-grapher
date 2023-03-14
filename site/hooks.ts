@@ -93,3 +93,17 @@ export const useInterval = (callback: VoidFunction, delay: number | null) => {
 export const useDebounceCallback = (callback: any, delay: number) => {
     return useRef(debounce(callback, delay)).current
 }
+
+export const useTriggerOnEscape = (trigger: VoidFunction) => {
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                trigger()
+            }
+        }
+        document.addEventListener("keydown", handleEscape)
+        return () => {
+            document.removeEventListener("keydown", handleEscape)
+        }
+    }, [trigger])
+}
