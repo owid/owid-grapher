@@ -64,6 +64,8 @@ import { postsTable } from "../db/model/Post.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
+import { generateEmbedSnippet } from "../site/viteUtils.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -458,7 +460,7 @@ export class SiteBaker {
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            "" // TODO need to implement this for vite
+            generateEmbedSnippet(BAKED_BASE_URL)
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
         this.progressBar.tick({ name: "✅ baked assets" })

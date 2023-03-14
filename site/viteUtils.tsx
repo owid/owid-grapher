@@ -29,7 +29,7 @@ interface Assets {
 }
 
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
-const devAssets = (entry: string): Assets => {
+const devAssets = (entry: string, baseUrl: string): Assets => {
     return {
         forHeader: [googleFontsStyles, polyfillPreload],
         forFooter: [
@@ -38,7 +38,7 @@ const devAssets = (entry: string): Assets => {
                 key="vite-react-preamble" // https://vitejs.dev/guide/backend-integration.html
                 type="module"
                 dangerouslySetInnerHTML={{
-                    __html: `import RefreshRuntime from '${VITE_DEV_URL}/@react-refresh'
+                    __html: `import RefreshRuntime from '${baseUrl}/@react-refresh'
   RefreshRuntime.injectIntoGlobalHook(window)
   window.$RefreshReg$ = () => {}
   window.$RefreshSig$ = () => (type) => type
@@ -48,18 +48,14 @@ const devAssets = (entry: string): Assets => {
             <script
                 key="vite-plugin-checker"
                 type="module"
-                src={`${VITE_DEV_URL}/@vite-plugin-checker-runtime-entry`}
+                src={`${baseUrl}/@vite-plugin-checker-runtime-entry`}
             />,
             <script
                 key="vite-client"
                 type="module"
-                src={`${VITE_DEV_URL}/@vite/client`}
+                src={`${baseUrl}/@vite/client`}
             />,
-            <script
-                key={entry}
-                type="module"
-                src={`${VITE_DEV_URL}/${entry}`}
-            />,
+            <script key={entry} type="module" src={`${baseUrl}/${entry}`} />,
         ],
     }
 }
@@ -125,7 +121,7 @@ const createTagsForManifestEntry = (
 
 // in prod: we need to make sure that we include <script> and <link> tags that are required for the entry point.
 // this could be, for example: owid.mjs, common.mjs, owid.css, common.css. (plus Google Fonts and polyfills)
-const prodAssets = (entry: string): Assets => {
+const prodAssets = (entry: string, baseUrl: string): Assets => {
     const baseDir = findBaseDir(__dirname)
     const manifestPath = `${baseDir}/dist/manifest.json`
     let manifest
@@ -138,7 +134,7 @@ const prodAssets = (entry: string): Assets => {
         )
     }
 
-    const assetBaseUrl = `${BAKED_BASE_URL}/`
+    const assetBaseUrl = `${baseUrl}/`
     const assets = createTagsForManifestEntry(manifest, entry, assetBaseUrl)
 
     return {
@@ -148,4 +144,41 @@ const prodAssets = (entry: string): Assets => {
 }
 
 export const viteAssets = (entry: string) =>
-    ENV === "production" ? prodAssets(entry) : devAssets(entry)
+    ENV === "production"
+        ? prodAssets(entry, BAKED_BASE_URL)
+        : devAssets(entry, VITE_DEV_URL)
+
+export const generateEmbedSnippet = (baseUrl: string) => {
+    const assets = prodAssets("site/owid.entry.ts", baseUrl)
+    const serializedAssets = [...assets.forHeader, ...assets.forFooter].map(
+        (el) => ({
+            tag: el.type,
+            props: el.props,
+        })
+    )
+
+    const scriptCount = serializedAssets.filter(
+        (asset) => asset.tag === "script"
+    ).length
+
+    return `
+const assets = ${JSON.stringify(serializedAssets, undefined, 2)};
+let loadedScripts = 0;
+
+const onLoad = () => {
+    loadedScripts++;
+    if (loadedScripts === ${scriptCount}) {
+        window.MultiEmbedderSingleton.embedAll();
+    }
+}
+
+for (const asset of assets) {
+    const el = document.createElement(asset.tag);
+    for (const [key, value] of Object.entries(asset.props)) {
+        el.setAttribute(key, value);
+    }
+    if (asset.tag === "script")
+        el.onload = onLoad;
+    document.head.appendChild(el);
+}`
+}

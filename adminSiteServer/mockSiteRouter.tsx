@@ -42,6 +42,7 @@ import { isWordpressAPIEnabled } from "../db/wpdb.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
+import { generateEmbedSnippet } from "../site/viteUtils.js"
 
 require("express-async-errors")
 
@@ -87,7 +88,7 @@ mockSiteRouter.get(
 )
 
 mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
-    // TODO need to implement this for vite
+    res.send(generateEmbedSnippet(BAKED_BASE_URL))
 })
 
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
