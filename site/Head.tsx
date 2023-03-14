@@ -20,7 +20,7 @@ export const Head = (props: {
         "Research and data to make progress against the world’s largest problems"
     const imageUrl = props.imageUrl || `${baseUrl}/default-thumbnail.jpg`
 
-    const stylesheets = viteAssets("site/owid.entry.ts").styles
+    const stylesheets = viteAssets("site/owid.entry.ts").forHeader
 
     return (
         <head>

@@ -20,15 +20,15 @@ const googleFontsStyles = (
 const polyfillScript = <script key="polyfill" src={POLYFILL_URL} />
 
 interface Assets {
-    styles: JSX.Element[]
-    scripts: JSX.Element[]
+    forHeader: JSX.Element[]
+    forFooter: JSX.Element[]
 }
 
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
 const devAssets = (entry: string): Assets => {
     return {
-        styles: [googleFontsStyles],
-        scripts: [
+        forHeader: [googleFontsStyles],
+        forFooter: [
             polyfillScript,
             <script
                 key="vite-react-preamble" // https://vitejs.dev/guide/backend-integration.html
@@ -108,8 +108,8 @@ const createTagsForManifestEntry = (
 
     const assets = createTags(entry)
     return {
-        styles: assets.filter((el) => el.type === "link"),
-        scripts: assets.filter((el) => el.type === "script"),
+        forHeader: assets.filter((el) => el.type === "link"),
+        forFooter: assets.filter((el) => el.type === "script"),
     }
 }
 
@@ -132,8 +132,8 @@ const prodAssets = (entry: string): Assets => {
     const assets = createTagsForManifestEntry(manifest, entry, assetBaseUrl)
 
     return {
-        styles: [googleFontsStyles, ...assets.styles],
-        scripts: [polyfillScript, ...assets.scripts],
+        forHeader: [googleFontsStyles, ...assets.forHeader],
+        forFooter: [polyfillScript, ...assets.forFooter],
     }
 }
 

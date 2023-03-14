@@ -31,11 +31,11 @@ export const IndexPage = (props: {
                     name="viewport"
                     content="width=device-width, initial-scale=1"
                 />
-                {assets.styles}
+                {assets.forHeader}
             </head>
             <body>
                 <div id="app"></div>
-                {assets.scripts}
+                {assets.forFooter}
                 <script
                     type="module"
                     dangerouslySetInnerHTML={{ __html: script }}
