@@ -12,6 +12,17 @@ export default function VariableChart({
     className?: string
 }) {
     const ref = useRef<HTMLElement>(null)
+    const height = "575px"
     useEmbedVariableChart(d.variable, d.chartType, d.hideTabs, ref)
-    return <figure className={className} ref={ref}></figure>
+    return (
+        <figure
+            className={className}
+            style={{
+                width: "100%",
+                border: "0px none",
+                height: height,
+            }}
+            ref={ref}
+        ></figure>
+    )
 }
