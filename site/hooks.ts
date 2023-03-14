@@ -97,6 +97,10 @@ export const useEmbedVariableChart = (
 ) => {
     useEffect(() => {
         if (refChartContainer.current) {
+            // TODO: this does not use the InteractionObserver yet but just directly
+            // creates a chart. This doesn't scale terrible well when you have many graphers
+            // on a page, but the current implemenation of the MultiEmbedder assumes that the
+            // thing being shown is a normal chart with a /grapher/ url.
             const common: GrapherProgrammaticInterface = {
                 isEmbeddedInAnOwidPage: true,
                 queryStr: "", // TODO: use query string?
