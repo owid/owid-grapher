@@ -63,7 +63,7 @@ const devAssets = (entry: string, baseUrl: string): Assets => {
 
 // Goes through the manifest.json file that vite creates, finds all the assets that are required for the entry point,
 // and creates the appropriate <link> and <script> tags for them.
-const createTagsForManifestEntry = (
+export const createTagsForManifestEntry = (
     manifest: Manifest,
     entry: string,
     assetBaseUrl: string
