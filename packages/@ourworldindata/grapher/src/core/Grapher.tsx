@@ -299,7 +299,11 @@ export class Grapher
     @observable.ref subtitle = ""
     @observable.ref sourceDesc?: string = undefined
     @observable.ref note = ""
-    @observable.ref hideTitleAnnotation?: boolean = undefined
+    @observable hideTitleAnnotations?: {
+        entity?: boolean
+        time?: boolean
+        change?: boolean
+    } = undefined
     @observable.ref minTime?: TimeBound = undefined
     @observable.ref maxTime?: TimeBound = undefined
     @observable.ref timelineMinTime?: Time = undefined
@@ -1210,13 +1214,15 @@ export class Grapher
     @computed get currentTitle(): string {
         let text = this.displayTitle
         const selectedEntityNames = this.selection.selectedEntityNames
-        const showTitleAnnotation = !this.hideTitleAnnotation
+        const showEntityAnnotation = !this.hideTitleAnnotations?.entity
+        const showTimeAnnotation = !this.hideTitleAnnotations?.time
+        const showChangeAnnotation = !this.hideTitleAnnotations?.change
 
         if (
             this.tab === GrapherTabOption.chart &&
             this.addCountryMode !== EntitySelectionMode.MultipleEntities &&
             selectedEntityNames.length === 1 &&
-            (showTitleAnnotation || this.canChangeEntity)
+            (showEntityAnnotation || this.canChangeEntity)
         ) {
             const entityStr = selectedEntityNames[0]
             if (entityStr?.length) text = `${text}, ${entityStr}`
@@ -1225,13 +1231,13 @@ export class Grapher
         if (
             this.isLineChart &&
             this.isRelativeMode &&
-            (showTitleAnnotation || this.canToggleRelativeMode)
+            (showChangeAnnotation || this.canToggleRelativeMode)
         )
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
         if (
             this.isReady &&
-            (showTitleAnnotation ||
+            (showTimeAnnotation ||
                 (this.hasTimeline &&
                     (this.isLineChartThatTurnedIntoDiscreteBar ||
                         this.isOnMapTab)))
@@ -2318,7 +2324,7 @@ export class Grapher
         this.dimensions = grapher.dimensions
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
-        this.hideTitleAnnotation = grapher.hideTitleAnnotation
+        this.hideTitleAnnotations = grapher.hideTitleAnnotations
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions

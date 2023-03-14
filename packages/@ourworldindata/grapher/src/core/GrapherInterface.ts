@@ -41,7 +41,11 @@ export interface GrapherInterface extends SortConfig {
     subtitle?: string
     sourceDesc?: string
     note?: string
-    hideTitleAnnotation?: boolean
+    hideTitleAnnotations?: {
+        entity?: boolean
+        time?: boolean
+        change?: boolean
+    }
     minTime?: TimeBound
     maxTime?: TimeBound
     timelineMinTime?: Time
@@ -135,7 +139,7 @@ export const grapherKeysToSerialize = [
     "subtitle",
     "sourceDesc",
     "note",
-    "hideTitleAnnotation",
+    "hideTitleAnnotations",
     "minTime",
     "maxTime",
     "timelineMinTime",
