@@ -88,8 +88,8 @@ describe("writeVariableCSV", () => {
 
         const out = await getCSVOutput(variablesDf, s3data, [1, 2, 3])
         expect(out).toEqual(`Entity,Year,a,b,c
-UK,2000,1.0,3.0,5
-UK,2001,2.0,4.0,6
+UK,2000,1,3,5
+UK,2001,2,4,6
 `)
     })
 
@@ -107,7 +107,7 @@ UK,2001,2.0,4.0,6
                 entities: [1, 1],
             },
             2: {
-                values: [1, NaN],
+                values: [1, null],
                 years: [2000, 2001],
                 entities: [1, 1],
             },
@@ -120,8 +120,8 @@ UK,2001,2.0,4.0,6
 
         const out = await getCSVOutput(variablesDf, s3data, [1, 2, 3])
         expect(out).toEqual(`Entity,Year,a,b,c
-UK,2000,,1.0,3
-UK,2001,2.0,NaN,
+UK,2000,,1,3
+UK,2001,2,,
 `)
     })
 
