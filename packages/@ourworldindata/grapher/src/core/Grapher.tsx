@@ -458,8 +458,6 @@ export class Grapher
         }
 
         if (getGrapherInstance) getGrapherInstance(this) // todo: possibly replace with more idiomatic ref
-
-        this.checkVisibility = throttle(this.checkVisibility, 400)
     }
 
     toObject(): GrapherInterface {
@@ -984,7 +982,7 @@ export class Grapher
         )
     }
 
-    disposers: IReactionDisposer[] = []
+    disposers: (() => void)[] = []
 
     @bind dispose(): void {
         this.disposers.forEach((dispose) => dispose())
@@ -2156,9 +2154,22 @@ export class Grapher
     }
 
     // Chart should only render SVG when it's on the screen
-    @action.bound private checkVisibility(): void {
-        if (!this.hasBeenVisible && isVisible(this.base.current))
+    @action.bound private setUpIntersectionObserver(): void {
+        if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        this.hasBeenVisible = true
+                        observer.disconnect()
+                    }
+                })
+            })
+            observer.observe(this.base.current!)
+            this.disposers.push(() => observer.disconnect())
+        } else {
+            // IntersectionObserver not available; we may be in a Node environment, just render
             this.hasBeenVisible = true
+        }
     }
 
     @action.bound private setBaseFontSize(): void {
@@ -2186,9 +2197,8 @@ export class Grapher
     }
 
     componentDidMount(): void {
-        window.addEventListener("scroll", this.checkVisibility)
         this.setBaseFontSize()
-        this.checkVisibility()
+        this.setUpIntersectionObserver()
         exposeInstanceOnWindow(this, "grapher")
         if (this.props.bindUrlToWindow) this.bindToWindow()
         if (this.props.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
@@ -2222,13 +2232,11 @@ export class Grapher
 
     componentWillUnmount(): void {
         this.unbindKeyboardShortcuts()
-        window.removeEventListener("scroll", this.checkVisibility)
         this.dispose()
     }
 
     componentDidUpdate(): void {
         this.setBaseFontSize()
-        this.checkVisibility()
     }
 
     componentDidCatch(error: Error, info: unknown): void {
