@@ -1,14 +1,12 @@
 /*
-    Cache-Control: public, max-age=0, s-maxage=31556926, must-revalidate
-
-/
+    Cache-Control: public, max-age=0, must-revalidate
     Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 
 /grapher/*
-  Access-Control-Allow-Origin: *
+    Access-Control-Allow-Origin: *
 
 /explorers/*
-  Access-Control-Allow-Origin: *
+    Access-Control-Allow-Origin: *
 
 /headerMenu.json
-  Access-Control-Allow-Origin: *
+    Access-Control-Allow-Origin: *
