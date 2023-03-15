@@ -2,16 +2,24 @@ import * as db from "../../db/db.js"
 import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { chunkParagraphs } from "../chunk.js"
-import { countries, FormattedPost, isEmpty, keyBy } from "@ourworldindata/utils"
+import {
+    countries,
+    Country,
+    FormattedPost,
+    isEmpty,
+    keyBy,
+    OwidArticleTypePublished,
+} from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import { PageRecord, PageType } from "../../site/search/searchTypes.js"
-import { Pageview } from "../../db/model/Pageview.js"
+import { Pageview, RawPageview } from "../../db/model/Pageview.js"
 import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
 import ArticleBlock from "../../site/gdocs/ArticleBlock.js"
 import React from "react"
+import { logErrorAndMaybeSendToSlack } from "../../serverUtils/slackLog.js"
 
 interface Tag {
     id: number
@@ -50,16 +58,11 @@ const computeScore = (record: Omit<PageRecord, "score">): number => {
     return importance * 1000 + views_7d
 }
 
-const getPagesRecords = async () => {
-    // Get WP posts, filter out ones that have Gdoc successors
-    // And render Gdocs posts also
-    const postsApi = await wpdb.getPosts()
-    const pageviews = await Pageview.getViewsByUrlObj()
-    const gdocs = await Gdoc.getPublishedGdocs()
-    const publishedGdocsBySlug = keyBy(gdocs, "slug")
-
-    const records: PageRecord[] = []
-    for (const country of countries) {
+function generateCountryRecords(
+    countries: Country[],
+    pageviews: Record<string, RawPageview>
+): PageRecord[] {
+    return countries.map((country) => {
         const postTypeAndImportance: TypeAndImportance = {
             type: "country",
             importance: -1,
@@ -73,8 +76,15 @@ const getPagesRecords = async () => {
             views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
         }
         const score = computeScore(record)
-        records.push({ ...record, score })
-    }
+        return { ...record, score }
+    })
+}
+
+async function generateWordpressRecords(
+    postsApi: wpdb.PostAPI[],
+    pageviews: Record<string, RawPageview>
+): Promise<PageRecord[]> {
+    const records: PageRecord[] = []
 
     for (const postApi of postsApi) {
         const rawPost = await wpdb.getFullPost(postApi)
@@ -84,11 +94,6 @@ const getPagesRecords = async () => {
                 `skipping post ${rawPost.slug} in search indexing because it's empty`
             )
             continue
-        }
-        if (publishedGdocsBySlug[rawPost.slug]) {
-            console.log(
-                `skipping post ${rawPost.slug} because it has been succeeded as a Gdoc`
-            )
         }
 
         const post = await formatPost(rawPost, { footnotes: false })
@@ -125,10 +130,17 @@ const getPagesRecords = async () => {
             i += 1
         }
     }
+    return records
+}
 
+function generateGdocRecords(
+    gdocs: OwidArticleTypePublished[],
+    pageviews: Record<string, RawPageview>
+): PageRecord[] {
+    const records: PageRecord[] = []
     for (const gdoc of gdocs) {
         // Only rendering the blocks - not the page nav, title, byline, etc
-        const renderedPostContent = ReactDOMServer.renderToString(
+        const renderedPostContent = ReactDOMServer.renderToStaticMarkup(
             React.createElement(
                 "div",
                 {},
@@ -154,7 +166,7 @@ const getPagesRecords = async () => {
                 title: gdoc.content.title,
                 content: chunk,
                 views_7d: pageviews[`/${gdoc.slug}`]?.views_7d ?? 0,
-                // postId: gdoc.id, // different format
+                postId: gdoc.id,
                 excerpt: gdoc.content.excerpt,
                 // authors: gdoc.content.byline, // different format
                 date: gdoc.publishedAt.toISOString(),
@@ -167,6 +179,45 @@ const getPagesRecords = async () => {
         }
     }
     return records
+}
+
+// Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
+const getPagesRecords = async () => {
+    const pageviews = await Pageview.getViewsByUrlObj()
+    const gdocs = await Gdoc.getPublishedGdocs()
+    const publishedGdocsBySlug = keyBy(gdocs, "slug")
+    const postsApi = await wpdb
+        .getPosts()
+        .then((posts) =>
+            posts.filter((post) => !publishedGdocsBySlug[`/${post.slug}`])
+        )
+
+    let countryRecords: PageRecord[] = []
+    let wordpressRecords: PageRecord[] = []
+    let gdocsRecords: PageRecord[] = []
+    try {
+        countryRecords = generateCountryRecords(countries, pageviews)
+    } catch (e) {
+        logErrorAndMaybeSendToSlack(
+            `Error generating country records for Algolia sync: ${e}`
+        )
+    }
+    try {
+        wordpressRecords = await generateWordpressRecords(postsApi, pageviews)
+    } catch (e) {
+        logErrorAndMaybeSendToSlack(
+            `Error generating wordpress records for Algolia sync: ${e}`
+        )
+    }
+    try {
+        gdocsRecords = generateGdocRecords(gdocs, pageviews)
+    } catch (e) {
+        logErrorAndMaybeSendToSlack(
+            `Error generating gdocs records for Algolia sync: ${e}`
+        )
+    }
+
+    return [...countryRecords, ...wordpressRecords, ...gdocsRecords]
 }
 
 const indexToAlgolia = async () => {
