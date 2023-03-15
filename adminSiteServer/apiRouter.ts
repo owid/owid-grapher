@@ -2235,43 +2235,6 @@ apiRouter.get("/posts.json", async (req) => {
     return { posts: rows.map((r) => camelCaseProperties(r)) }
 })
 
-apiRouter.get("/newsletterPosts.json", async (req) => {
-    const rows = await wpdb.singleton.query(`
-        SELECT
-            ID AS id,
-            post_name AS name,
-            post_title AS title,
-            post_modified_gmt AS updatedAt,
-            post_date_gmt AS publishedAt,
-            post_type AS type,
-            post_status AS status,
-            post_excerpt AS excerpt
-        FROM wp_posts
-        WHERE (post_type='post' OR post_type='page') AND post_status='publish'
-        ORDER BY post_date_gmt DESC`)
-
-    const permalinks = await wpdb.getPermalinks()
-    const featuresImages = await wpdb.getFeaturedImages()
-
-    const posts = rows.map((row) => {
-        const slug = permalinks.get(row.id, row.name)
-        return {
-            id: row.id,
-            title: row.title,
-            updatedAtInWordpress: row.updatedAt,
-            publishedAt: row.publishedAt,
-            type: row.type,
-            status: row.status,
-            excerpt: row.excerpt,
-            slug: slug,
-            imageUrl: featuresImages.get(row.id),
-            url: `${BAKED_BASE_URL}/${slug}`,
-        }
-    })
-
-    return { posts }
-})
-
 apiRouter.post(
     "/posts/:postId/setTags",
     async (req: Request, res: Response) => {

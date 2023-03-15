@@ -139,9 +139,6 @@ export const AdminSidebar = (): JSX.Element => (
                 <Link to="/deploys">
                     <FontAwesomeIcon icon={faSatelliteDish} /> Deploy status
                 </Link>
-                <Link to="/newsletter">
-                    <FontAwesomeIcon icon={faNewspaper} /> Newsletter
-                </Link>
             </li>
         </ul>
     </aside>

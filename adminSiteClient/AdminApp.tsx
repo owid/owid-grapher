@@ -21,7 +21,6 @@ import { TestIndexPage } from "./TestIndexPage.js"
 import { ImportPage } from "./ImportPage.js"
 import { NotFoundPage } from "./NotFoundPage.js"
 import { PostEditorPage } from "./PostEditorPage.js"
-import { NewsletterPage } from "./NewsletterPage.js"
 import { DeployStatusPage } from "./DeployStatusPage.js"
 import { SuggestedChartRevisionApproverPage } from "./SuggestedChartRevisionApproverPage.js"
 import { SuggestedChartRevisionListPage } from "./SuggestedChartRevisionListPage.js"
@@ -321,11 +320,6 @@ export class AdminApp extends React.Component<{
                                 exact
                                 path="/deploys"
                                 component={DeployStatusPage}
-                            />
-                            <Route
-                                exact
-                                path="/newsletter"
-                                component={NewsletterPage}
                             />
                             <Route
                                 exact
