@@ -2,12 +2,16 @@ import * as db from "../../db/db.js"
 import * as wpdb from "../../db/wpdb.js"
 import { ALGOLIA_INDEXING } from "../../settings/serverSettings.js"
 import { chunkParagraphs } from "../chunk.js"
-import { countries, FormattedPost, isEmpty } from "@ourworldindata/utils"
+import { countries, FormattedPost, isEmpty, keyBy } from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
+import ReactDOMServer from "react-dom/server.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import { PageRecord, PageType } from "../../site/search/searchTypes.js"
 import { Pageview } from "../../db/model/Pageview.js"
+import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
+import ArticleBlock from "../../site/gdocs/ArticleBlock.js"
+import React from "react"
 
 interface Tag {
     id: number
@@ -47,8 +51,12 @@ const computeScore = (record: Omit<PageRecord, "score">): number => {
 }
 
 const getPagesRecords = async () => {
+    // Get WP posts, filter out ones that have Gdoc successors
+    // And render Gdocs posts also
     const postsApi = await wpdb.getPosts()
     const pageviews = await Pageview.getViewsByUrlObj()
+    const gdocs = await Gdoc.getPublishedGdocs()
+    const publishedGdocsBySlug = keyBy(gdocs, "slug")
 
     const records: PageRecord[] = []
     for (const country of countries) {
@@ -76,6 +84,11 @@ const getPagesRecords = async () => {
                 `skipping post ${rawPost.slug} in search indexing because it's empty`
             )
             continue
+        }
+        if (publishedGdocsBySlug[rawPost.slug]) {
+            console.log(
+                `skipping post ${rawPost.slug} because it has been succeeded as a Gdoc`
+            )
         }
 
         const post = await formatPost(rawPost, { footnotes: false })
@@ -113,6 +126,46 @@ const getPagesRecords = async () => {
         }
     }
 
+    for (const gdoc of gdocs) {
+        // Only rendering the blocks - not the page nav, title, byline, etc
+        const renderedPostContent = ReactDOMServer.renderToString(
+            React.createElement(
+                "div",
+                {},
+                gdoc.content.body.map((block) => ArticleBlock({ b: block }))
+            )
+        )
+        const renderedPostText = htmlToText(renderedPostContent, {
+            tables: true,
+            ignoreHref: true,
+            wordwrap: false,
+            uppercaseHeadings: false,
+            ignoreImage: true,
+        })
+        const chunks = chunkParagraphs(renderedPostText, 1000)
+        let i = 0
+
+        for (const chunk of chunks) {
+            const record = {
+                objectID: `${gdoc.id}-c${i}`,
+                type: "article" as const, // Gdocs can only be articles for now
+                importance: 0, // Gdocs can only be articles for now
+                slug: gdoc.slug,
+                title: gdoc.content.title,
+                content: chunk,
+                views_7d: pageviews[`/${gdoc.slug}`]?.views_7d ?? 0,
+                // postId: gdoc.id, // different format
+                excerpt: gdoc.content.excerpt,
+                // authors: gdoc.content.byline, // different format
+                date: gdoc.publishedAt.toISOString(),
+                modifiedDate: gdoc.updatedAt.toISOString(),
+                // tags: string[] // not supported
+            }
+            const score = computeScore(record)
+            records.push({ ...record, score })
+            i += 1
+        }
+    }
     return records
 }
 

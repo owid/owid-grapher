@@ -156,7 +156,7 @@ export default function ArticleBlock({
             />
         )
     }
-    if (block.type === "image" && block.dataErrors.length > 0) {
+    if (block.type === "image" && block?.dataErrors?.length > 0) {
         return (
             <BlockErrorFallback
                 className={getLayout("default", containerType)}
