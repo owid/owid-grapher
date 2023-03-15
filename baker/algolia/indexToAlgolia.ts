@@ -113,7 +113,6 @@ async function generateWordpressRecords(
         for (const c of chunks) {
             const record = {
                 objectID: `${rawPost.id}-c${i}`,
-                postId: post.id,
                 ...postTypeAndImportance,
                 slug: post.path,
                 title: post.title,
@@ -166,11 +165,10 @@ function generateGdocRecords(
                 title: gdoc.content.title,
                 content: chunk,
                 views_7d: pageviews[`/${gdoc.slug}`]?.views_7d ?? 0,
-                postId: gdoc.id,
                 excerpt: gdoc.content.excerpt,
-                // authors: gdoc.content.byline, // different format
                 date: gdoc.publishedAt.toISOString(),
                 modifiedDate: gdoc.updatedAt.toISOString(),
+                // authors: gdoc.content.byline, // different format
                 // tags: string[] // not supported
             }
             const score = computeScore(record)
