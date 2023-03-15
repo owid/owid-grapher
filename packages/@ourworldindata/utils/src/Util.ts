@@ -408,16 +408,6 @@ export const cagr = (
 export const makeAnnotationsSlug = (columnSlug: string): string =>
     `${columnSlug}-annotations`
 
-export const isVisible = (elm: HTMLElement | null): boolean => {
-    if (!elm || !elm.getBoundingClientRect) return false
-    const rect = elm.getBoundingClientRect()
-    const viewHeight = Math.max(
-        document.documentElement.clientHeight,
-        window.innerHeight
-    )
-    return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
-}
-
 // Take an arbitrary string and turn it into a nice url slug
 export const slugify = (str: string): string =>
     slugifySameCase(str.toLowerCase())

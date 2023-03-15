@@ -7,7 +7,6 @@ import {
     autorun,
     runInAction,
     reaction,
-    IReactionDisposer,
 } from "mobx"
 import { bind } from "decko"
 import {
@@ -18,8 +17,6 @@ import {
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
     isMobile,
-    isVisible,
-    throttle,
     next,
     sampleFrom,
     range,
@@ -2164,7 +2161,7 @@ export class Grapher
                     }
                 })
             })
-            observer.observe(this.base.current!)
+            observer.observe(this.containerElement!)
             this.disposers.push(() => observer.disconnect())
         } else {
             // IntersectionObserver not available; we may be in a Node environment, just render
