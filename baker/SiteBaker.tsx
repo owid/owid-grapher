@@ -383,7 +383,9 @@ export class SiteBaker {
                 return fetch(remoteFilePath)
                     .then((response) => {
                         if (!response.ok) {
-                            throw new Error(response.statusText)
+                            throw new Error(
+                                `Fetching image failed: ${response.status} ${response.statusText} ${response.url}`
+                            )
                         }
                         return response.buffer()
                     })
