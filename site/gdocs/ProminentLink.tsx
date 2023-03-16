@@ -1,6 +1,6 @@
 import React, { useContext } from "react"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
 import Image from "./Image.js"
