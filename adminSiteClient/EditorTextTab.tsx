@@ -57,20 +57,20 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onToggleTitleAnnotationEntity(value: boolean) {
         const { grapher } = this.props.editor
-        grapher.hideTitleAnnotations = grapher.hideTitleAnnotations || {}
-        grapher.hideTitleAnnotations.entity = value || undefined
+        grapher.hideTitleAnnotation = grapher.hideTitleAnnotation || {}
+        grapher.hideTitleAnnotation.entity = value || undefined
     }
 
     @action.bound onToggleTitleAnnotationTime(value: boolean) {
         const { grapher } = this.props.editor
-        grapher.hideTitleAnnotations = grapher.hideTitleAnnotations || {}
-        grapher.hideTitleAnnotations.time = value || undefined
+        grapher.hideTitleAnnotation = grapher.hideTitleAnnotation || {}
+        grapher.hideTitleAnnotation.time = value || undefined
     }
 
     @action.bound onToggleTitleAnnotationChange(value: boolean) {
         const { grapher } = this.props.editor
-        grapher.hideTitleAnnotations = grapher.hideTitleAnnotations || {}
-        grapher.hideTitleAnnotations.change = value || undefined
+        grapher.hideTitleAnnotation = grapher.hideTitleAnnotation || {}
+        grapher.hideTitleAnnotation.change = value || undefined
     }
 
     @computed get errorMessages() {
@@ -107,17 +107,17 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                     <Toggle
                         label="Hide automatic entity (where possible)"
-                        value={!!grapher.hideTitleAnnotations?.entity}
+                        value={!!grapher.hideTitleAnnotation?.entity}
                         onValue={this.onToggleTitleAnnotationEntity}
                     />
                     <Toggle
                         label="Hide automatic time (where possible)"
-                        value={!!grapher.hideTitleAnnotations?.time}
+                        value={!!grapher.hideTitleAnnotation?.time}
                         onValue={this.onToggleTitleAnnotationTime}
                     />
                     <Toggle
                         label="Don't prepend 'Change in' automatically (where possible)"
-                        value={!!grapher.hideTitleAnnotations?.change}
+                        value={!!grapher.hideTitleAnnotation?.change}
                         onValue={this.onToggleTitleAnnotationChange}
                     />
                     <AutoTextField

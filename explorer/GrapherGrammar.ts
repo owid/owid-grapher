@@ -8,6 +8,7 @@ import {
 } from "@ourworldindata/grapher"
 import { SortBy, SortOrder } from "@ourworldindata/utils"
 import {
+    GridBoolean,
     BooleanCellDef,
     CellDef,
     EnumCellDef,
@@ -109,6 +110,14 @@ export const GrapherGrammar: Grammar = {
         ...BooleanCellDef,
         description: "Hide automatic time/entity",
         keyword: "hideTitleAnnotation",
+        parse: (value: any) => {
+            const parsedValue = value === GridBoolean.true
+            return {
+                entity: parsedValue,
+                time: parsedValue,
+                change: parsedValue,
+            }
+        },
     },
     backgroundSeriesLimit: {
         ...IntegerCellDef,

@@ -299,7 +299,7 @@ export class Grapher
     @observable.ref subtitle = ""
     @observable.ref sourceDesc?: string = undefined
     @observable.ref note = ""
-    @observable hideTitleAnnotations?: {
+    @observable hideTitleAnnotation?: {
         entity?: boolean
         time?: boolean
         change?: boolean
@@ -1212,11 +1212,13 @@ export class Grapher
     }
 
     @computed get currentTitle(): string {
+        console.log("IN CURR TITLE", this.hideTitleAnnotation)
+
         let text = this.displayTitle
         const selectedEntityNames = this.selection.selectedEntityNames
-        const showEntityAnnotation = !this.hideTitleAnnotations?.entity
-        const showTimeAnnotation = !this.hideTitleAnnotations?.time
-        const showChangeAnnotation = !this.hideTitleAnnotations?.change
+        const showEntityAnnotation = !this.hideTitleAnnotation?.entity
+        const showTimeAnnotation = !this.hideTitleAnnotation?.time
+        const showChangeAnnotation = !this.hideTitleAnnotation?.change
 
         if (
             this.tab === GrapherTabOption.chart &&
@@ -2324,7 +2326,7 @@ export class Grapher
         this.dimensions = grapher.dimensions
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
-        this.hideTitleAnnotations = grapher.hideTitleAnnotations
+        this.hideTitleAnnotation = grapher.hideTitleAnnotation
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions

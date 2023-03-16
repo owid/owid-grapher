@@ -612,7 +612,7 @@
             ],
             "description": "Start point of the initially selected time span."
         },
-        "hideTitleAnnotations": {
+        "hideTitleAnnotation": {
             "type": "object",
             "description": "Whether to hide any automatically added title annotations like the selected year",
             "properties": {
