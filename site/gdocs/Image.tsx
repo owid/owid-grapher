@@ -83,6 +83,7 @@ export default function Image({
                 src={`/images/published/${d.filename}`}
                 alt={d.alt}
                 className={LIGHTBOX_IMAGE_CLASS}
+                loading="lazy"
             />
         </picture>
     )
