@@ -774,6 +774,7 @@ export type ProminentLinkValue = {
     url?: string
     title?: string
     description?: string
+    thumbnail?: string
 }
 
 export type RawBlockProminentLink = {
@@ -786,6 +787,7 @@ export type EnrichedBlockProminentLink = {
     url: string
     title?: string
     description?: string
+    thumbnail?: string
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockSDGToc = {
