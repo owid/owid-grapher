@@ -27,7 +27,14 @@
 @import "css/util.scss";
 @import "css/layout.scss";
 @import "css/general.scss";
-@import "css/header.scss";
+@import "./SiteSearchNavigation.scss";
+@import "./SiteLogos.scss";
+@import "./SiteNavigation.scss";
+@import "./SiteNavigationToggle.scss";
+@import "./SiteNavigationTopics.scss";
+@import "./SiteSubnavigation.scss";
+@import "./SiteMobileMenu.scss";
+@import "./SiteMobileCategory.scss";
 @import "css/footer.scss";
 @import "css/content.scss";
 @import "css/forms.scss";
@@ -1002,8 +1009,8 @@ html:not(.js) {
 .SearchPage > main,
 .NotFoundPage > main {
     > form {
-        max-width: 1200px;
-        margin: 0 auto;
+        @include content-wrapper;
+        max-width: $wrapper-max-width;
         margin-top: 20px;
         display: flex;
         margin-bottom: 30px;
@@ -1065,24 +1072,25 @@ html:not(.js) {
     }
 }
 
+.SearchPage .searchResults {
+    padding-bottom: 40px;
+}
+
 .SearchResults {
-    padding-bottom: 200px;
+    @include lg-up {
+        > .container {
+            display: flex;
+            flex-direction: row;
+            column-gap: $grid-gap;
 
-    > .container {
-        max-width: 80rem;
-        margin: auto;
-        display: flex;
-        flex-direction: row;
-    }
-
-    > .container > :first-child {
-        margin-right: 5rem;
+            > * {
+                flex: 1; // force width when no results
+            }
+        }
     }
 
     .postResults,
     .chartResults {
-        width: 50%;
-
         > h2 {
             color: #666;
             font-weight: normal;
@@ -1116,24 +1124,6 @@ html:not(.js) {
         a {
             display: flex;
             flex-direction: column;
-        }
-    }
-}
-
-@media (max-width: 768px) {
-    .SearchPage {
-        > main {
-            margin-left: 15px;
-            margin-right: 15px;
-        }
-
-        .SearchResults > .container {
-            display: block;
-        }
-
-        .postResults,
-        .chartResults {
-            width: 100%;
         }
     }
 }

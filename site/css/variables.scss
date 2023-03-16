@@ -11,10 +11,11 @@ $grid-gap: 24px;
 * Sizes
 */
 
-$mobile-header-wrapper-height: 56px;
-$mobile-header-border-height: 4px;
-$mobile-header-height: $mobile-header-wrapper-height +
-    $mobile-header-border-height;
+$header-border-height: 4px;
+$header-bar-height-sm: 64px;
+$header-bar-height-md: 72px;
+$header-height-sm: $header-bar-height-sm + $header-border-height;
+$header-height-md: $header-bar-height-md + $header-border-height;
 
 $content-max-width: 800px;
 $sidebar-content-width: 224px;
@@ -38,9 +39,9 @@ $grapher-height: 575px;
 
 $article-cover-height: 224px;
 $article-page-top-offset: 88px;
-/***************************
 
-****************************************************
+$search-cta-height: 40px;
+/*******************************************************************************
 * Breakpoints
 */
 
@@ -63,6 +64,12 @@ $xxlg: 1536px;
     }
 }
 
+@mixin md-only {
+    @media (min-width: #{$sm + 1}) and (max-width: $md) {
+        @content;
+    }
+}
+
 @mixin md-down {
     @media (max-width: $md) {
         @content;
@@ -71,6 +78,12 @@ $xxlg: 1536px;
 
 @mixin md-up {
     @media (min-width: #{$md + 1}) {
+        @content;
+    }
+}
+
+@mixin lg-only {
+    @media (min-width: #{$md + 1}) and (max-width: $lg) {
         @content;
     }
 }
@@ -119,8 +132,10 @@ $xxlg: 1536px;
  * Fonts
  */
 
-$sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
-$serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
+$sans-serif-font-stack: Lato, "Helvetica Neue", Helvetica, Arial,
+    "Liberation Sans", sans-serif;
+$serif-font-stack: "Playfair Display", Georgia, "Times New Roman",
+    "Liberation Serif", serif;
 
 /*******************************************************************************
  * Z-index

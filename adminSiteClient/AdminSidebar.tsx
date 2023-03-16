@@ -16,7 +16,6 @@ import { faUser } from "@fortawesome/free-solid-svg-icons/faUser"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faCoffee } from "@fortawesome/free-solid-svg-icons/faCoffee"
-import { faNewspaper } from "@fortawesome/free-solid-svg-icons/faNewspaper"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons/faSatelliteDish"
 import { faCodeBranch } from "@fortawesome/free-solid-svg-icons/faCodeBranch"
@@ -138,9 +137,6 @@ export const AdminSidebar = (): JSX.Element => (
             <li>
                 <Link to="/deploys">
                     <FontAwesomeIcon icon={faSatelliteDish} /> Deploy status
-                </Link>
-                <Link to="/newsletter">
-                    <FontAwesomeIcon icon={faNewspaper} /> Newsletter
                 </Link>
             </li>
         </ul>

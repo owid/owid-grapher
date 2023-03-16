@@ -1,0 +1,17 @@
+.SiteMobileCategory {
+    .SiteNavigationToggle.active {
+        background-color: #d5e7fe;
+    }
+    .SiteNavigationToggle__button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px;
+        color: $blue-60;
+        line-height: 21px;
+        &.active {
+            color: $blue-90;
+        }
+    }
+}

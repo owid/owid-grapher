@@ -69,8 +69,10 @@ export class Chart extends BaseEntity {
     }
 
     static async getBySlug(slug: string): Promise<Chart | null> {
-        const slugsById = await this.mapSlugsToIds()
-        return await Chart.findOneBy({ id: slugsById[slug] })
+        const slugToIdMap = await this.mapSlugsToIds()
+        const chartId = slugToIdMap[slug]
+        if (chartId === undefined) return null
+        return await Chart.findOneBy({ id: chartId })
     }
 
     static async getById(id: number): Promise<Chart | null> {

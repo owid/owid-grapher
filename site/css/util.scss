@@ -29,3 +29,39 @@
 .display-block {
     display: block;
 }
+
+.hide-sm-only {
+    @include sm-only {
+        display: none !important;
+    }
+}
+
+.hide-sm-up {
+    @include sm-up {
+        display: none !important;
+    }
+}
+
+.hide-md-down {
+    @include md-down {
+        display: none !important;
+    }
+}
+
+.hide-md-up {
+    @include md-up {
+        display: none !important;
+    }
+}
+
+.hide-lg-down {
+    @include lg-down {
+        display: none !important;
+    }
+}
+
+.hide-lg-up {
+    @include lg-up {
+        display: none !important;
+    }
+}

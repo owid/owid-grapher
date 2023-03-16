@@ -4,6 +4,7 @@ import {
     writeVariableCSV,
     getVariableData,
     VariableQueryRow,
+    _dataAsDFfromS3,
     detectValuesType,
 } from "./model/Variable.js"
 import * as db from "./db.js"
@@ -15,7 +16,7 @@ afterEach(() => {
     jest.restoreAllMocks()
 })
 
-export const mockS3data = (s3data: any) => {
+export const mockS3data = (s3data: Record<string, any>): void => {
     jest.spyOn(Variable, "fetchS3Values").mockImplementation(
         jest.fn((key) => s3data[key])
     )
@@ -87,8 +88,8 @@ describe("writeVariableCSV", () => {
 
         const out = await getCSVOutput(variablesDf, s3data, [1, 2, 3])
         expect(out).toEqual(`Entity,Year,a,b,c
-UK,2000,1.0,3.0,5.0
-UK,2001,2.0,4.0,6.0
+UK,2000,1,3,5
+UK,2001,2,4,6
 `)
     })
 
@@ -106,7 +107,7 @@ UK,2001,2.0,4.0,6.0
                 entities: [1, 1],
             },
             2: {
-                values: [1, NaN],
+                values: [1, null],
                 years: [2000, 2001],
                 entities: [1, 1],
             },
@@ -119,8 +120,8 @@ UK,2001,2.0,4.0,6.0
 
         const out = await getCSVOutput(variablesDf, s3data, [1, 2, 3])
         expect(out).toEqual(`Entity,Year,a,b,c
-UK,2000,,1.0,3.0
-UK,2001,2.0,NaN,
+UK,2000,,1,3
+UK,2001,2,,
 `)
     })
 
@@ -229,6 +230,28 @@ describe("getVariableData", () => {
                 unit: "",
                 updatedAt: date,
             },
+        })
+    })
+})
+
+describe("_dataAsDFfromS3", () => {
+    it("works correctly for mixed data", async () => {
+        const s3data = {
+            1: {
+                values: [1, "NA"],
+                years: [2000, 2001],
+                entities: [1, 1],
+            },
+        }
+        mockS3data(s3data)
+        const df = await _dataAsDFfromS3([1])
+        expect(df.toObject()).toEqual({
+            entityCode: ["code", "code"],
+            entityId: [1, 1],
+            entityName: ["UK", "UK"],
+            value: ["1", "NA"],
+            variableId: [1, 1],
+            year: [2000, 2001],
         })
     })
 })

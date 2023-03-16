@@ -406,7 +406,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             version: "1.1",
             style: {
                 fontFamily:
-                    "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
                 fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
                 backgroundColor: "white",
                 textRendering: "geometricPrecision",
@@ -453,6 +453,12 @@ export class StaticCaptionedChart extends CaptionedChart {
                 viewBox={`0 0 ${width} ${height}`}
             >
                 {this.patterns}
+                <rect
+                    className="background-fill"
+                    fill="white"
+                    width={width}
+                    height={height}
+                />
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
                 {this.footer.renderStatic(

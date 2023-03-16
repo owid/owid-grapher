@@ -1,0 +1,221 @@
+.site-navigation-root {
+    .overlay {
+        @include overlay;
+        z-index: $zindex-lightbox - 1;
+    }
+}
+
+.site-navigation {
+    position: relative;
+    z-index: $zindex-lightbox;
+    border-bottom: $header-border-height solid $vermillion;
+    background-color: $oxford-blue;
+
+    @include sm-only {
+        .wrapper {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+    }
+}
+
+.site-navigation-bar {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    @include column-gap(16px);
+    padding-top: 12px;
+    padding-bottom: 12px;
+    @include sm-up {
+        @include column-gap(24px);
+    }
+
+    .SiteNavigationToggle--mobile-menu {
+        flex: 1; // center owid logo
+        > button {
+            @include mobile-toggle-icon;
+            color: $white;
+            &:hover {
+                color: $blue-40;
+            }
+        }
+    }
+
+    .site-primary-links {
+        > ul {
+            display: flex;
+            flex-direction: row;
+            @include column-gap(24px);
+            align-items: center;
+            > li {
+                list-style-type: none;
+                > a,
+                .SiteNavigationToggle__button {
+                    @include body-3-medium;
+                    color: $blue-20;
+                    &:hover {
+                        color: $blue-40;
+                    }
+                }
+            }
+        }
+
+        .with-relative-dropdown {
+            position: relative;
+            .SiteNavigationToggle__caret {
+                margin-left: 8px;
+            }
+            .SiteNavigationToggle__dropdown {
+                position: absolute;
+                top: 100%;
+                width: 330px;
+                margin-top: $vertical-spacing;
+                margin-left: -40px;
+                padding: 24px 40px;
+                background-color: $accent-pale-blue;
+
+                ul {
+                    display: flex;
+                    flex-direction: column;
+                    row-gap: 8px;
+                    li {
+                        list-style-type: none;
+                        a {
+                            display: block;
+                            padding: 8px 0;
+                            @include body-3-medium;
+                            color: $blue-90;
+                            &:hover {
+                                color: $blue-50;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .site-search-cta {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: end;
+        height: $search-cta-height;
+        @include column-gap(16px);
+        @include sm-only {
+            flex: 1; // center owid logo
+        }
+
+        .SiteNavigationToggle.newsletter-subscription {
+            @include sm-only {
+                // when the donate button is hidden, it still captures the
+                // :last-child selector of the column-gap mixin of the parent
+                // container so the margin-right: 0 is not applied and needs to
+                // be applied manually here
+                margin-right: 0;
+            }
+            .SiteNavigationToggle__button {
+                color: $white;
+                &:hover {
+                    color: $blue-40;
+                }
+                @include lg-down {
+                    @include mobile-toggle-icon;
+                }
+
+                @include lg-up {
+                    height: $search-cta-height;
+                    padding: 0 24px;
+                    @include body-3-medium;
+                    border: 1px solid $white;
+                    &:hover {
+                        color: $blue-90;
+                        background-color: $white;
+                    }
+                    &.active {
+                        color: $blue-90;
+                        background-color: $blue-20;
+                        border-color: $blue-20;
+                    }
+                }
+            }
+            .NewsletterSubscriptionForm__header {
+                @include h3-bold;
+                color: $blue-60;
+                margin: 0;
+            }
+            .SiteNavigationToggle__dropdown {
+                position: absolute;
+                top: calc(100% + $header-border-height);
+                right: 0;
+                width: 411px;
+                @include sm-only {
+                    margin-right: -16px;
+                    width: 100vw;
+                    padding: 16px;
+                }
+                padding: 32px 40px;
+                background-color: $accent-pale-blue;
+            }
+        }
+        a.donate {
+            display: flex;
+            @include sm-only {
+                display: none;
+            }
+            align-items: center;
+            height: $search-cta-height;
+            color: $white;
+            @include body-3-medium;
+            padding: 0 24px;
+            background-color: $vermillion;
+            &:hover {
+                background-color: #b40000;
+            }
+        }
+    }
+
+    &.search-active {
+        @include sm-only {
+            .site-logos {
+                display: none;
+            }
+        }
+        @include lg-down {
+            .site-search-cta {
+                flex: 1 1 100%;
+            }
+            .site-primary-links {
+                display: none;
+            }
+        }
+    }
+
+    .SearchResults {
+        position: absolute;
+        top: calc(100% + $header-border-height);
+        height: calc(100vh - $header-height-sm);
+        left: 0;
+        margin: 0 -16px;
+        padding: 0 16px 24px;
+        max-width: 100vw; // force chart to resize and not overflow when rotating
+        /* Needs to go over the charts */
+        z-index: $zindex-search-overlay;
+        overflow-y: scroll;
+        overscroll-behavior: contain;
+        background: white;
+        @include sm-up {
+            margin: 0 #{-$padding-x-sm};
+            padding-left: $padding-x-sm;
+            padding-right: $padding-x-sm;
+        }
+        @include md-up {
+            height: calc(100vh - $header-height-md);
+            width: calc(100% + #{2 * $padding-x-md});
+            margin: 0 #{-$padding-x-md};
+            padding: 0 $padding-x-md 40px;
+        }
+    }
+}

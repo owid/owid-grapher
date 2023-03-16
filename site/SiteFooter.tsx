@@ -183,7 +183,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                 data-track-note="footer-navigation"
                             >
                                 <img
-                                    src={`${props.baseUrl}/oms-logo.svg`}
+                                    src={`${props.baseUrl}/oms-logo.png`}
                                     alt="Oxford Martin School logo"
                                     loading="lazy"
                                 />
@@ -243,7 +243,7 @@ export const SiteFooter = (props: SiteFooterProps) => (
                                     data-track-note="footer-navigation"
                                 >
                                     <img
-                                        src={`${props.baseUrl}/gcdl-logo.svg`}
+                                        src={`${props.baseUrl}/gcdl-logo.png`}
                                         alt="Global Change Data Lab logo"
                                         loading="lazy"
                                     />

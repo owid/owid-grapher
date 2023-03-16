@@ -212,7 +212,7 @@
 }
 
 @mixin body-2-semibold {
-    @include body-1-regular;
+    @include body-2-regular;
     font-weight: 600;
 }
 

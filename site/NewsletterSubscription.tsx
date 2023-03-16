@@ -1,14 +1,13 @@
 import React, { useState } from "react"
-import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 
 const analytics = new SiteAnalytics()
 
 export enum NewsletterSubscriptionContext {
     Homepage = "homepage",
-    MobileMenu = "mobile-menu",
     Floating = "floating",
 }
 
@@ -33,24 +32,34 @@ export const NewsletterSubscription = ({
                         }}
                     />
                     <div className="box">
+                        <button
+                            aria-label={closeText}
+                            className="close"
+                            data-track-note="dialog-close-newsletter"
+                            onClick={() => {
+                                setIsOpen(false)
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faTimes} />
+                            {closeText}
+                        </button>
                         <NewsletterSubscriptionForm context={context} />
                     </div>
                 </>
             )}
             <button
-                aria-label={isOpen ? closeText : subscribeText}
+                aria-label={subscribeText}
                 className="prompt"
-                data-track-note={
-                    isOpen
-                        ? "dialog-close-newsletter"
-                        : "dialog-open-newsletter"
-                }
+                data-track-note="dialog-open-newsletter"
                 onClick={() => {
                     setIsOpen(!isOpen)
                 }}
             >
-                <FontAwesomeIcon icon={isOpen ? faTimes : faEnvelopeOpenText} />{" "}
-                {isOpen ? closeText : subscribeText}
+                <span className="hide-lg-down">{subscribeText}</span>
+                <FontAwesomeIcon
+                    className="hide-lg-up"
+                    icon={faEnvelopeOpenText}
+                />
             </button>
         </div>
     )
@@ -89,65 +98,55 @@ export const NewsletterSubscriptionForm = ({
             name="mc-embedded-subscribe-form"
             target="_blank"
         >
-            <p>Receive our latest work by email.</p>
-            <fieldset>
-                <div className="owid-checkboxes">
-                    <div className="owid-checkbox-block">
-                        <input
-                            type="checkbox"
-                            value={IMMEDIATE}
-                            name={`group[85302][${IMMEDIATE}]`}
-                            id={idImmediate}
-                            checked={frequencies.includes(IMMEDIATE)}
-                            onChange={updateFrequencies}
-                        />
-                        <label htmlFor={idImmediate}>
-                            <div className="label-title">Immediate updates</div>
-                            <div className="label-text">
-                                Receive an email from us whenever we publish new
-                                work (maximum 1 per day).
-                            </div>
-                        </label>
+            <span className="NewsletterSubscriptionForm__header">
+                Receive our latest work by email.
+            </span>
+            <div className="owid-checkbox-block">
+                <input
+                    type="checkbox"
+                    value={IMMEDIATE}
+                    name={`group[85302][${IMMEDIATE}]`}
+                    id={idImmediate}
+                    checked={frequencies.includes(IMMEDIATE)}
+                    onChange={updateFrequencies}
+                />
+                <label htmlFor={idImmediate}>
+                    <div className="label-title">Immediate updates</div>
+                    <div className="label-text">
+                        Receive an email from us whenever we publish new work
+                        (maximum 1 per day).
                     </div>
-                    <div className="owid-checkbox-block">
-                        <input
-                            type="checkbox"
-                            value={BIWEEKLY}
-                            name={`group[85302][${BIWEEKLY}]`}
-                            id={idBiweekly}
-                            checked={frequencies.includes(BIWEEKLY)}
-                            onChange={updateFrequencies}
-                        />
-                        <label htmlFor={idBiweekly}>
-                            <div className="label-title">Biweekly digest</div>
-                            <div className="label-text">
-                                Receive an overview of our recent work and
-                                highlights of our other work every two weeks.
-                            </div>
-                        </label>
+                </label>
+            </div>
+            <div className="owid-checkbox-block">
+                <input
+                    type="checkbox"
+                    value={BIWEEKLY}
+                    name={`group[85302][${BIWEEKLY}]`}
+                    id={idBiweekly}
+                    checked={frequencies.includes(BIWEEKLY)}
+                    onChange={updateFrequencies}
+                />
+                <label htmlFor={idBiweekly}>
+                    <div className="label-title">Biweekly digest</div>
+                    <div className="label-text">
+                        Receive an overview of our recent work and highlights of
+                        our other work every two weeks.
                     </div>
-                    {frequencies.length === 0 && (
-                        <div className="alert">
-                            Please select at least one option.
-                        </div>
-                    )}
-                </div>
-            </fieldset>
-            <input
-                placeholder="Your email address"
-                type="email"
-                className="owid-inline-input"
-                name="EMAIL"
-            />
-            <div className="privacy-submit">
-                <div className="privacy-notice">
-                    By subscribing you are agreeing to <br />
-                    the terms of our{" "}
-                    <a href="/privacy-policy">privacy policy</a>.
-                </div>
+                </label>
+            </div>
+            {frequencies.length === 0 && (
+                <div className="alert">Please select at least one option.</div>
+            )}
+            <div className="NewsletterSubscription__email-submit">
+                <input
+                    placeholder="Your email address"
+                    type="email"
+                    className="NewsletterSubscription__email"
+                    name="EMAIL"
+                />
                 <button
                     type="submit"
-                    className="owid-inline-button"
                     disabled={!isSubmittable}
                     onClick={() =>
                         analytics.logSiteClick(
@@ -155,15 +154,24 @@ export const NewsletterSubscriptionForm = ({
                             `Subscribe [${context ?? "other-contexts"}]`
                         )
                     }
+                    className="NewsletterSubscription__submit"
                 >
                     Subscribe
                 </button>
             </div>
+            {/* This hidden field should not be the last element in the form as long as we use the row-gap mixin 
+            to space elements vertically. When placed as the last element of the form, this hidden element becomes 
+            the target of the :last-child selector of the row-gap mixin, when it should be applied to the last visible
+            element instead */}
             <input
                 type="hidden"
                 name="b_18058af086319ba6afad752ec_2e166c1fc1"
                 tabIndex={-1}
             />
+            <div className="NewsletterSubscription__privacy">
+                By subscribing you are agreeing to the terms of our{" "}
+                <a href="/privacy-policy">privacy policy</a>.
+            </div>
         </form>
     )
 }

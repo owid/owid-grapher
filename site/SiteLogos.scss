@@ -1,0 +1,43 @@
+.site-logos {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    @include column-gap(24px);
+    flex-shrink: 0;
+
+    .logo-owid a {
+        @include md-up {
+            font-size: 20px;
+        }
+        line-height: 1.2;
+        color: $white;
+        display: block;
+        text-align: center;
+    }
+
+    .logos-wrapper {
+        display: none;
+        @include xlg-up {
+            display: flex;
+        }
+        @include column-gap(6px);
+        align-items: flex-start;
+        margin-top: 5px;
+
+        a {
+            color: white;
+            opacity: 0.6;
+            transition: color 150ms ease;
+            line-height: 1;
+            &:hover {
+                opacity: initial;
+            }
+        }
+        .oxford-logo img {
+            height: 46px;
+        }
+        .gcdl-logo img {
+            height: 42px;
+        }
+    }
+}

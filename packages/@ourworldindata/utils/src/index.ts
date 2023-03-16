@@ -188,7 +188,6 @@ export {
     domainExtent,
     cagr,
     makeAnnotationsSlug,
-    isVisible,
     slugify,
     slugifySameCase,
     guid,

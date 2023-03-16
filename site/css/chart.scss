@@ -23,7 +23,7 @@
 
     // On small viewports always use the full available height.
     // We only leave space for the mobile header and fill the rest.
-    height: calc(100vh - #{$mobile-header-height});
+    height: calc(100vh - $header-height-sm);
 
     @include md-up {
         // On larger viewports, we want to leave more space at the bottom to make the entry link
