@@ -22,9 +22,7 @@
             "label": "startTscServer",
             "type": "shell",
             "command": "yarn startTscServer",
-            "problemMatcher": [
-                "$tsc-watch"
-            ],
+            "problemMatcher": ["$tsc-watch"],
             "isBackground": true,
             "presentation": {
                 "group": "watch"
@@ -41,11 +39,7 @@
         },
         {
             "label": "start (remote)",
-            "dependsOn": [
-                "buildLerna",
-                "startTscServer",
-                "startSiteFront"
-            ],
+            "dependsOn": ["buildLerna", "startTscServer", "startSiteFront"],
             "dependsOrder": "sequence",
             "problemMatcher": []
         },
