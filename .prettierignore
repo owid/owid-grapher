@@ -4,7 +4,6 @@
 datasetsExport
 itsJustJavascript
 package.json
-covidChartAndVariableMeta.json
 /.storybook/build
 coverage
 /wordpress/vendor
