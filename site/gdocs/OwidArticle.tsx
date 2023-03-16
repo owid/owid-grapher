@@ -14,7 +14,7 @@ import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
-import { ImageMetadata } from "@ourworldindata/utils/dist/image.js"
+import { ImageMetadata } from "@ourworldindata/utils"
 
 export const AttachmentsContext = createContext<{
     linkedDocuments: Record<string, OwidArticleType>
