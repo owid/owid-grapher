@@ -14,7 +14,7 @@ This content is only updated in an environment's database when someone presses "
 
 ## Images in Google Docs
 
-To match Google Docs' "one document, many environments" paradigm, the source of images for all environments a Shared Drive. An image is referenced, in Archie, via filename, which we use to find the entity via Google Drive's API.
+To match Google Docs' "one document, many environments" paradigm, the source of images for all environments is a Shared Drive. An image is referenced, in Archie, via filename, which we use to find the entity via Google Drive's API.
 
 e.g.
 
