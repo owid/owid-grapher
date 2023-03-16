@@ -2,7 +2,7 @@ import * as fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import * as path from "path"
 import * as glob from "glob"
-import { without } from "lodash"
+import { keyBy, without } from "lodash"
 import * as lodash from "lodash"
 import * as cheerio from "cheerio"
 import fetch from "node-fetch"
@@ -45,6 +45,8 @@ import {
     FullPost,
     OwidArticleTypePublished,
     ImageMetadata,
+    clone,
+    getFilenameWithoutExtension,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
@@ -248,12 +250,28 @@ export class SiteBaker {
 
     // Bake all GDoc posts
     async bakeGDocPosts() {
-        const posts = await Gdoc.getPublishedGdocs()
+        const publishedGdocs = await Gdoc.getPublishedGdocs()
 
-        const postSlugs = []
-        for (const post of posts) {
-            postSlugs.push(post.slug)
-            await this.bakeGDocPost(post)
+        // Prefetch publishedGdocs and imageMetadata instead of each instance fetching
+        const publishedGdocsDictionary = keyBy(publishedGdocs.map(clone), "id")
+        const imageMetadataDictionary = await Image.find().then((images) =>
+            keyBy(images, "filename")
+        )
+
+        for (const publishedGdoc of publishedGdocs) {
+            publishedGdoc.imageMetadata = imageMetadataDictionary
+            publishedGdoc.linkedDocuments = publishedGdocsDictionary
+            await publishedGdoc.validate()
+            if (publishedGdoc.errors.length) {
+                await logErrorAndMaybeSendToSlack(
+                    `Error(s) baking "${
+                        publishedGdoc.slug
+                    }" :\n  ${publishedGdoc.errors
+                        .map((error) => error.message)
+                        .join("\n  ")}`
+                )
+            }
+            await this.bakeGDocPost(publishedGdoc as OwidArticleTypePublished)
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })
@@ -405,6 +423,15 @@ export class SiteBaker {
                                         .toFile(localResizedFilepath)
                                 })
                             )
+                        } else {
+                            // A PNG alternative to the SVG for the "Download image" link
+                            const pngFilename = `${getFilenameWithoutExtension(
+                                image.filename
+                            )}.png`
+                            await sharp(buffer)
+                                .resize(2000)
+                                .png()
+                                .toFile(path.join(imagesDirectory, pngFilename))
                         }
                         // For SVG, and a non-webp fallback copy of the image
                         await writeFile(

@@ -12,10 +12,19 @@ import {
     OwidArticlePublicationContext,
     GdocsContentSource,
     JsonError,
+    checkNodeIsSpan,
+    spansToUnformattedPlainText,
+    Span,
+    getUrlTarget,
+    getLinkType,
+    keyBy,
+    excludeNull,
     OwidEnrichedArticleBlock,
-    recursivelyMapArticleBlock,
-    ImageNotFound,
-    NoDefaultAlt,
+    recursivelyMapArticleContent,
+    ImageMetadata,
+    excludeUndefined,
+    OwidArticleErrorMessage,
+    OwidArticleErrorMessageType,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -25,6 +34,7 @@ import {
 import { google, Auth, docs_v1 } from "googleapis"
 import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
+import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 
 @Entity("posts_gdocs")
@@ -39,6 +49,9 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+    linkedDocuments: Record<string, Gdoc> = {}
+    imageMetadata: Record<string, ImageMetadata> = {}
+    errors: OwidArticleErrorMessage[] = []
 
     constructor(id?: string) {
         super()
@@ -91,7 +104,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         return Gdoc.cachedGoogleReadonlyAuth
     }
 
-    async getEnrichedArticle(): Promise<void> {
+    async fetchAndEnrichArticle(): Promise<void> {
         const docsClient = google.docs({
             version: "v1",
             auth: Gdoc.getGoogleReadonlyAuth(),
@@ -110,62 +123,150 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         // Convert the ArchieML to our enriched JSON structure
         this.content = archieToEnriched(text)
-
-        // Get the filenames of the images referenced in the article
-        const filenames = this.filenames
-
-        if (filenames.length) {
-            await imageStore.syncImagesToS3(filenames)
-            this.setAdditionalImageMetadata()
-        }
-        return
     }
 
     get filenames(): string[] {
-        return Gdoc.extractImagesFilenames(this.content)
-    }
-
-    static extractImagesFilenames(enriched: OwidArticleContent): string[] {
         const filenames: Set<string> = new Set()
-        enriched.body?.forEach((node) =>
-            recursivelyMapArticleBlock(node, (node) => {
-                if (node.type === "image") {
-                    filenames.add(node.filename)
+
+        if (this.content.cover) {
+            filenames.add(this.content.cover)
+        }
+
+        this.content.body?.forEach((node) =>
+            recursivelyMapArticleContent(node, (item) => {
+                if ("type" in item && item.type === "image") {
+                    filenames.add(item.filename)
                 }
-                return node
+                return item
             })
         )
 
         return [...filenames]
     }
 
-    setAdditionalImageMetadata(): void {
-        this.content.body = this.content.body?.map((block) =>
-            recursivelyMapArticleBlock(
-                block,
-                (block: OwidEnrichedArticleBlock) => {
-                    if (block.type === "image") {
-                        const metadata = imageStore.images?.[block.filename]
-                        if (!metadata) {
-                            block.dataErrors.push({ message: ImageNotFound })
-                        } else {
-                            block.originalWidth = metadata.originalWidth
+    async loadImageMetadata(): Promise<void> {
+        const covers: string[] = Object.values(this.linkedDocuments)
+            .map((gdoc: Gdoc) => gdoc.content.cover)
+            .filter((cover?: string): cover is string => !!cover)
 
-                            // Error if default alt doesn't exist
-                            // Use default alt if override isn't set
-                            if (!metadata.defaultAlt) {
-                                block.dataErrors.push({
-                                    message: NoDefaultAlt,
-                                })
-                            } else if (!block.alt) {
-                                block.alt = metadata.defaultAlt
-                            }
-                        }
-                    }
-                    return block
-                }
+        const filenamesToLoad: string[] = [...this.filenames, ...covers]
+
+        if (filenamesToLoad.length) {
+            await imageStore.fetchImageMetadata()
+            const images = await imageStore
+                .syncImagesToS3(filenamesToLoad)
+                .then(excludeUndefined)
+            this.imageMetadata = keyBy(images, "filename")
+        }
+    }
+
+    async loadLinkedDocuments(): Promise<void> {
+        const linkedDocuments = await Promise.all(
+            this.links
+                .filter((link) => link.linkType === "gdoc")
+                .map((link) => link.target)
+                // filter duplicates
+                .filter((target, i, links) => links.indexOf(target) === i)
+                .map(async (target) => {
+                    const linkedDocument = await Gdoc.findOneBy({
+                        id: target,
+                    })
+                    return linkedDocument
+                })
+        ).then(excludeNull)
+
+        this.linkedDocuments = keyBy(linkedDocuments, "id")
+    }
+
+    get links(): Link[] {
+        const links: Link[] = []
+        if (this.content.body) {
+            this.content.body.map((node) =>
+                recursivelyMapArticleContent(node, (node) => {
+                    const link = this.extractLinkFromNode(node)
+                    if (link) links.push(link)
+                    return node
+                })
             )
+        }
+        return links
+    }
+
+    // If the node has a URL in it, create a Link object
+    extractLinkFromNode(node: OwidEnrichedArticleBlock | Span): Link | void {
+        function getText(node: OwidEnrichedArticleBlock | Span): string {
+            // Can add component-specific text accessors here
+            if (checkNodeIsSpan(node)) {
+                if (node.spanType == "span-link") {
+                    return spansToUnformattedPlainText(node.children)
+                }
+            } else if (node.type === "prominent-link") return node.title || ""
+            return ""
+        }
+
+        if ("url" in node) {
+            const link: Link = Link.create({
+                linkType: getLinkType(node.url),
+                source: this,
+                target: getUrlTarget(node.url),
+                componentType: checkNodeIsSpan(node) ? "span-link" : node.type,
+                text: getText(node),
+            })
+            return link
+        }
+    }
+
+    async validate(): Promise<void> {
+        const filenameErrors: OwidArticleErrorMessage[] = this.filenames.reduce(
+            (
+                acc: OwidArticleErrorMessage[],
+                filename
+            ): OwidArticleErrorMessage[] => {
+                if (!this.imageMetadata[filename]) {
+                    acc.push({
+                        property: "imageMetadata",
+                        message: `No image named ${filename} found in Drive`,
+                        type: OwidArticleErrorMessageType.Error,
+                    })
+                } else if (!this.imageMetadata[filename].defaultAlt) {
+                    acc.push({
+                        property: "imageMetadata",
+                        message: `${filename} is missing a default alt text`,
+                        type: OwidArticleErrorMessageType.Error,
+                    })
+                }
+                return acc
+            },
+            []
         )
+
+        const linkErrors: OwidArticleErrorMessage[] = this.links.reduce(
+            (
+                acc: OwidArticleErrorMessage[],
+                link
+            ): OwidArticleErrorMessage[] => {
+                if (link.linkType == "gdoc") {
+                    const id = getUrlTarget(link.target)
+                    const doesGdocExist = Boolean(this.linkedDocuments[id])
+                    const isGdocPublished = this.linkedDocuments[id]?.published
+                    if (!doesGdocExist || !isGdocPublished) {
+                        acc.push({
+                            property: "linkedDocuments",
+                            message: `${link.componentType} with text "${
+                                link.text
+                            }" is linking to an ${
+                                doesGdocExist ? "unpublished" : "unknown"
+                            } gdoc with ID "${link.target}"`,
+                            type: OwidArticleErrorMessageType.Warning,
+                        })
+                    }
+                }
+                return acc
+            },
+            []
+        )
+
+        this.errors = this.errors.concat([...filenameErrors, ...linkErrors])
     }
 
     static async getGdocFromContentSource(
@@ -177,12 +278,17 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
         if (contentSource === GdocsContentSource.Gdocs) {
-            await gdoc.getEnrichedArticle()
+            await gdoc.fetchAndEnrichArticle()
         }
+
+        await gdoc.loadLinkedDocuments()
+        await gdoc.loadImageMetadata()
+        await gdoc.validate()
+
         return gdoc
     }
 
-    static async getPublishedGdocs(): Promise<OwidArticleTypePublished[]> {
+    static async getPublishedGdocs(): Promise<Gdoc[]> {
         // #gdocsvalidation this cast means that we trust the admin code and
         // workflow to provide published articles that have all the required content
         // fields (see #gdocsvalidationclient and pending #gdocsvalidationserver).
@@ -195,9 +301,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         // mapGdocsToWordpressPosts(). This would make the Gdoc entity coming from
         // the database dependent on the mapping function, which is more practical
         // but also makes it less of a source of truth when considered in isolation.
-        return Gdoc.findBy({ published: true }) as Promise<
-            OwidArticleTypePublished[]
-        >
+        return Gdoc.findBy({ published: true })
     }
 
     static async getListedGdocs(): Promise<OwidArticleTypePublished[]> {

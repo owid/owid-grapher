@@ -146,12 +146,14 @@ import {
     GridParameters,
     OwidArticleType,
     OwidArticleTypeJSON,
-    OwidEnrichedArticleBlock,
     TimeBound,
     TimeBoundValue,
+    OwidEnrichedArticleBlock,
+    Span,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
+import { match, P } from "ts-pattern"
 
 export type NoUndefinedValues<T> = {
     [P in keyof T]: Required<NonNullable<T[P]>>
@@ -328,6 +330,9 @@ export const last = <T>(arr: readonly T[]): T | undefined => arr[arr.length - 1]
 
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
     arr.filter((x) => x !== undefined) as T[]
+
+export const excludeNull = <T>(arr: (T | null)[]): T[] =>
+    arr.filter((x) => x !== null) as T[]
 
 export const firstOfNonEmptyArray = <T>(arr: T[]): T => {
     if (arr.length < 1) throw new Error("array is empty")
@@ -1276,25 +1281,6 @@ export const getArticleFromJSON = (
     }
 }
 
-export function recursivelyMapArticleBlock(
-    block: OwidEnrichedArticleBlock,
-    callback: (block: OwidEnrichedArticleBlock) => OwidEnrichedArticleBlock
-): OwidEnrichedArticleBlock {
-    if (block.type === "gray-section") {
-        block.items.map((block) => recursivelyMapArticleBlock(block, callback))
-    }
-    if (
-        block.type === "sticky-left" ||
-        block.type === "sticky-right" ||
-        block.type === "side-by-side"
-    ) {
-        block.left.map((node) => recursivelyMapArticleBlock(node, callback))
-        block.right.map((node) => recursivelyMapArticleBlock(node, callback))
-    }
-
-    return callback(block)
-}
-
 // Checking whether we have clipboard write access is surprisingly complicated.
 // For example, if a chart is embedded in an iframe, then Chrome will prevent the
 // use of clipboard.writeText() unless the iframe has allow="clipboard-write".
@@ -1356,4 +1342,69 @@ export const imemo = <Type>(
         }
         return this[propName]
     }
+}
+
+export function recursivelyMapArticleContent<
+    Node extends OwidEnrichedArticleBlock | Span
+>(
+    node: Node,
+    callback: <Child extends OwidEnrichedArticleBlock | Span>(
+        node: Child
+    ) => Child
+): Node {
+    if (checkNodeIsSpan(node)) {
+        if ("children" in node) {
+            node.children.map((node) =>
+                recursivelyMapArticleContent(node, callback)
+            )
+        }
+    } else if (node.type === "gray-section") {
+        node.items.map((block) => recursivelyMapArticleContent(block, callback))
+    } else if (
+        node.type === "sticky-left" ||
+        node.type === "sticky-right" ||
+        node.type === "side-by-side"
+    ) {
+        node.left.map((node) => recursivelyMapArticleContent(node, callback))
+        node.right.map((node) => recursivelyMapArticleContent(node, callback))
+    } else if (node.type === "text") {
+        node.value.map((node) =>
+            recursivelyMapArticleContent(node as any, callback)
+        )
+    }
+
+    return callback(node)
+}
+
+export function checkNodeIsSpan(
+    node: OwidEnrichedArticleBlock | Span
+): node is Span {
+    return "spanType" in node
+}
+
+export function spansToUnformattedPlainText(spans: Span[]): string {
+    return spans
+        .map((span) =>
+            match(span)
+                .with({ spanType: "span-simple-text" }, (span) => span.text)
+                .with(
+                    {
+                        spanType: P.union(
+                            "span-link",
+                            "span-italic",
+                            "span-bold",
+                            "span-fallback",
+                            "span-quote",
+                            "span-superscript",
+                            "span-subscript",
+                            "span-underline",
+                            "span-ref"
+                        ),
+                    },
+                    (span) => spansToUnformattedPlainText(span.children)
+                )
+                .with({ spanType: "span-newline" }, () => "")
+                .exhaustive()
+        )
+        .join("")
 }

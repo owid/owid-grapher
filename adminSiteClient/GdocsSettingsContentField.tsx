@@ -1,13 +1,14 @@
 import React from "react"
 import { Input, InputProps } from "antd"
-import { OwidArticleType, OwidArticleContent } from "@ourworldindata/utils"
+import {
+    OwidArticleType,
+    OwidArticleContent,
+    OwidArticleErrorMessage,
+    OwidArticleErrorMessageType,
+} from "@ourworldindata/utils"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
-import {
-    ErrorMessage,
-    ErrorMessageType,
-    getPropertyMostCriticalError,
-} from "./gdocsValidation.js"
+import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { TextAreaProps } from "antd/lib/input/TextArea.js"
 
 export const GdocsSettingsContentField = ({
@@ -25,9 +26,9 @@ export const GdocsSettingsContentField = ({
     }: {
         name: string
         value: string
-        errorType?: ErrorMessageType
+        errorType?: OwidArticleErrorMessageType
     }) => JSX.Element
-    errors?: ErrorMessage[]
+    errors?: OwidArticleErrorMessage[]
 }) => {
     const error = getPropertyMostCriticalError(property, errors)
 
@@ -58,7 +59,7 @@ export const GdocsSettingsTextField = ({
 }: {
     name: string
     value: string
-    errorType?: ErrorMessageType
+    errorType?: OwidArticleErrorMessageType
     inputProps?: InputProps
 }) => (
     <Input
@@ -79,7 +80,7 @@ export const GdocsSettingsTextArea = ({
 }: {
     name: string
     value: string
-    errorType?: ErrorMessageType
+    errorType?: OwidArticleErrorMessageType
     inputProps?: TextAreaProps
 }) => (
     <Input.TextArea

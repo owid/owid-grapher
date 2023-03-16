@@ -25,7 +25,12 @@ export const checkIsLightningUpdate = (
     nextGdoc: OwidArticleType,
     hasChanges: boolean
 ) => {
-    const lightningArticleProps: Array<keyof OwidArticleType> = ["updatedAt"]
+    const lightningArticleProps: Array<keyof OwidArticleType> = [
+        "updatedAt",
+        "linkedDocuments",
+        "imageMetadata",
+        "errors",
+    ]
 
     const lightningContentProps: Array<keyof OwidArticleContent> = [
         "body",
@@ -62,4 +67,9 @@ export const checkIsLightningUpdate = (
 export const checkHasChanges = (
     prevGdoc: OwidArticleType,
     nextGdoc: OwidArticleType
-) => !isEqual(prevGdoc, nextGdoc)
+) =>
+    !isEqual(
+        // Ignore non-deterministic attachments
+        omit(prevGdoc, ["linkedDocuments", "imageMetadata", "errors"]),
+        omit(nextGdoc, ["linkedDocuments", "imageMetadata", "errors"])
+    )

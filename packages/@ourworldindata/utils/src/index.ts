@@ -69,15 +69,16 @@ export {
     type GridParameters,
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
-    ImageNotFound,
     type IndexPost,
     type Integer,
     JsonError,
     type KeyInsight,
     type KeyValueProps,
-    NoDefaultAlt,
     type OwidArticleContent,
     OwidArticlePublicationContext,
+    type OwidArticleErrorMessage,
+    OwidArticleErrorMessageType,
+    type OwidArticleLinkJSON,
     type OwidArticleType,
     type OwidArticleTypeJSON,
     type OwidArticleTypePublished,
@@ -177,6 +178,7 @@ export {
     roundSigFig,
     first,
     last,
+    excludeNull,
     excludeUndefined,
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
@@ -259,10 +261,12 @@ export {
     getArticleFromJSON,
     formatDate,
     canWriteToClipboard,
-    recursivelyMapArticleBlock,
     isNegativeInfinity,
     isPositiveInfinity,
     imemo,
+    recursivelyMapArticleContent,
+    checkNodeIsSpan,
+    spansToUnformattedPlainText,
     findDuplicates,
 } from "./Util.js"
 
@@ -514,3 +518,10 @@ export {
     DoDWrapper,
     globalDetailsOnDemand,
 } from "./DetailsOnDemand/detailsOnDemand.js"
+
+export {
+    gdocUrlRegex,
+    getLinkType,
+    getUrlTarget,
+    checkIsInternalLink,
+} from "./GdocsUtils.js"

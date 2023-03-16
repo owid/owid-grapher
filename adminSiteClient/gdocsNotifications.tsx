@@ -1,8 +1,8 @@
 import React from "react"
 import { notification } from "antd"
-import { ErrorMessageType } from "./gdocsValidation.js"
+import { OwidArticleErrorMessageType } from "@ourworldindata/utils"
 
-type NotificationType = "success" | "info" | ErrorMessageType
+type NotificationType = "success" | "info" | OwidArticleErrorMessageType
 const openNotification = (
     type: NotificationType,
     title: string,

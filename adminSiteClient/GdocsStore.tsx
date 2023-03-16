@@ -38,19 +38,14 @@ export class GdocsStore {
     }
 
     async publish(gdoc: OwidArticleType): Promise<OwidArticleType> {
-        const publishedGdoc = await this.update({
-            ...gdoc,
-            published: true,
-            // Add today's date if the publication date is missing
-            publishedAt: gdoc.publishedAt ?? new Date(),
-        })
-
+        const publishedGdoc = await this.update({ ...gdoc, published: true })
         return publishedGdoc
     }
 
     async unpublish(gdoc: OwidArticleType): Promise<OwidArticleType> {
         const unpublishedGdoc = await this.update({
             ...gdoc,
+            publishedAt: null,
             published: false,
         })
 

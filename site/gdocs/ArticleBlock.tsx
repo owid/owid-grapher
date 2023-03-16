@@ -12,19 +12,19 @@ import Image from "./Image.js"
 import {
     get,
     OwidEnrichedArticleBlock,
+    spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
 } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { match } from "ts-pattern"
-import { renderSpans, spansToUnformattedPlainText } from "./utils.js"
+import { renderSpans } from "./utils.js"
 import Paragraph from "./Paragraph.js"
 import SDGTableOfContents from "./SDGTableOfContents.js"
 import urlSlug from "url-slug"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { MissingData } from "./MissingData.js"
 import { AdditionalCharts } from "./AdditionalCharts.js"
+import { ProminentLink } from "./ProminentLink.js"
 
 export type Container =
     | "default"
@@ -111,30 +111,6 @@ export function getLayout(
     return cx(`article-block__${blockType}`, layout)
 }
 
-const ProminentLink = ({
-    title,
-    href,
-    className = "",
-    description,
-}: {
-    title: string
-    href: string
-    className: string
-    description?: string
-}) => (
-    <div className={cx(className, "prominent-link")}>
-        {/* TODO: where do we get the image from? */}
-        <div className="prominent-link__image span-cols-1 span-md-cols-2"></div>
-        <div className="col-start-2 col-md-start-3 col-end-limit">
-            <a href={href}>
-                <h3 className="h3-bold">{title}</h3>
-                <FontAwesomeIcon icon={faArrowRight} />
-            </a>
-            <p className="body-3-medium">{description}</p>
-        </div>
-    </div>
-)
-
 export default function ArticleBlock({
     b: block,
     containerType = "default",
@@ -152,17 +128,6 @@ export default function ArticleBlock({
                 error={{
                     name: `Error in ${block.type}`,
                     message: block.parseErrors[0].message,
-                }}
-            />
-        )
-    }
-    if (block.type === "image" && block.dataErrors.length > 0) {
-        return (
-            <BlockErrorFallback
-                className={getLayout("default", containerType)}
-                error={{
-                    name: `Error in ${block.type} with filename ${block.filename}`,
-                    message: block.dataErrors[0].message,
                 }}
             />
         )
@@ -198,7 +163,8 @@ export default function ArticleBlock({
         .with({ type: "image" }, (block) => (
             <Image
                 className={getLayout("image", containerType)}
-                d={block}
+                filename={block.filename}
+                alt={block.alt}
                 containerType={containerType}
             />
         ))
@@ -460,7 +426,7 @@ export default function ArticleBlock({
             <ProminentLink
                 className={getLayout("prominent-link", containerType)}
                 title={block.title}
-                href={block.url}
+                url={block.url}
                 description={block.description}
             />
         ))

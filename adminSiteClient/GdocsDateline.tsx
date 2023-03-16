@@ -1,13 +1,14 @@
 import { Col, Row } from "antd"
 import { Dayjs } from "dayjs"
-import { dayjs, OwidArticleType } from "@ourworldindata/utils"
+import {
+    dayjs,
+    OwidArticleType,
+    OwidArticleErrorMessage,
+} from "@ourworldindata/utils"
 import React from "react"
 import DatePicker from "./DatePicker.js"
 import { GdocsSettingsContentField } from "./GdocsSettingsContentField.js"
-import {
-    ErrorMessage,
-    getPropertyMostCriticalError,
-} from "./gdocsValidation.js"
+import { getPropertyMostCriticalError } from "./gdocsValidation.js"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
 export const GdocsDateline = ({
@@ -17,7 +18,7 @@ export const GdocsDateline = ({
 }: {
     gdoc: OwidArticleType
     setGdoc: (gdoc: OwidArticleType) => void
-    errors?: ErrorMessage[]
+    errors?: OwidArticleErrorMessage[]
 }) => {
     const { publishedAt } = gdoc
 
@@ -45,7 +46,7 @@ export const GdocsDateline = ({
                     <DatePicker
                         onChange={onChangePublishedAt}
                         value={
-                            publishedAt ? dayjs(publishedAt).utc() : undefined
+                            publishedAt ? dayjs(publishedAt).local() : undefined
                         }
                         format="ddd, MMM D, YYYY"
                         id="publishedAt"

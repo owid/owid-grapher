@@ -46,6 +46,12 @@ export class Admin {
     }
 
     @observable currentRequests: Promise<Response>[] = []
+    // A way to cancel fetch requests
+    // e.g. currentRequestAbortControllers.get(request).abort()
+    @observable currentRequestAbortControllers: Map<
+        Promise<Response>,
+        AbortController
+    > = new Map()
 
     @computed get showLoadingIndicator(): boolean {
         return this.loadingIndicatorSetting === "default"
@@ -75,7 +81,8 @@ export class Admin {
     async rawRequest(
         path: string,
         data: string | File | undefined,
-        method: HTTPMethod
+        method: HTTPMethod,
+        abortController?: AbortController
     ): Promise<Response> {
         const headers: HeadersInit = {}
         const isFile = data instanceof File
@@ -91,6 +98,7 @@ export class Admin {
             credentials: "same-origin",
             headers: headers,
             body: method !== "GET" ? data : undefined,
+            signal: abortController?.signal,
         })
     }
 
@@ -113,15 +121,18 @@ export class Admin {
         let response: Response | undefined
         let text: string | undefined
         let json: T
+        const abortController = new AbortController()
 
         let request: Promise<Response> | undefined
         try {
             request = this.rawRequest(
                 targetPath,
                 data instanceof File ? data : JSON.stringify(data),
-                method
+                method,
+                abortController
             )
             this.addRequest(request)
+            this.currentRequestAbortControllers.set(request, abortController)
 
             response = await request
             text = await response.text()
@@ -141,7 +152,10 @@ export class Admin {
                 })
             throw err
         } finally {
-            if (request) this.removeRequest(request)
+            if (request) {
+                this.removeRequest(request)
+                this.currentRequestAbortControllers.delete(request)
+            }
         }
 
         return json

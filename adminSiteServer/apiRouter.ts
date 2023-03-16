@@ -82,6 +82,7 @@ import {
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidArticleContent } from "../db/model/Gdoc/archieToGdoc.js"
+import { Link } from "../db/model/Link.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2695,16 +2696,6 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
     }
 })
 
-apiRouter.get("/gdocs/:id/validate", async (req) => {
-    const { id } = req.params
-
-    const gdoc = await Gdoc.findOneBy({ id })
-
-    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
-
-    return getErrors(gdoc)
-})
-
 /**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
@@ -2728,6 +2719,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const nextGdoc = dataSource
         .getRepository(Gdoc)
         .create(getArticleFromJSON(nextGdocJSON))
+
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })
     const filenames = nextGdoc.filenames
@@ -2750,6 +2742,13 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             }
         }
     }
+
+    await Link.delete({
+        source: {
+            id: id,
+        },
+    })
+    await dataSource.getRepository(Link).save(nextGdoc.links)
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
@@ -2796,6 +2795,11 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     const gdoc = await Gdoc.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
+    await Link.delete({
+        source: {
+            id,
+        },
+    })
     await GdocXImage.delete({ gdocId: id })
     await Gdoc.delete({ id })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)

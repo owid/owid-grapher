@@ -23,11 +23,11 @@ export const BlockErrorBoundary = ({
 export const BlockErrorFallback = ({
     error,
     resetErrorBoundary,
-    className,
+    className = "",
 }: {
     error: Error
     resetErrorBoundary?: VoidFunction
-    className: string
+    className?: string
 }): JSX.Element => {
     const debug = useDebug()
     return (
