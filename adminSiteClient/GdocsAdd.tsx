@@ -1,4 +1,4 @@
-import { gdocUrlRegex } from "@ourworldindata/utils/dist/GdocsUtils.js"
+import { gdocUrlRegex } from "@ourworldindata/utils"
 import React from "react"
 import {
     GDOCS_BASIC_ARTICLE_TEMPLATE_URL,

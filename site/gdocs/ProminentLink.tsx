@@ -7,7 +7,7 @@ import Image from "./Image.js"
 import { useLinkedDocument } from "./utils.js"
 import { ArticleContext } from "./OwidArticle.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { getLinkType } from "@ourworldindata/utils/dist/GdocsUtils.js"
+import { getLinkType } from "@ourworldindata/utils"
 
 export const ProminentLink = (props: {
     url: string
