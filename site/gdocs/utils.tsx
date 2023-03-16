@@ -33,7 +33,12 @@ const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
 
     if (linkType === "url") {
         return (
-            <a href={span.url} className="span-link">
+            <a
+                href={span.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="span-link"
+            >
                 {renderSpans(span.children)}
             </a>
         )
