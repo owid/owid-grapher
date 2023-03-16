@@ -30,6 +30,8 @@ We chose to do it this way instead of via Google Drive File ID because it's easi
 
 We mirror these images to a Digital Ocean space (henceforth S3) to allow environments to have some amount of independence from one another. For OWID developers, the env variables needed for this functionality are stored in our password manager.
 
+It is recommended to use a unique folder in S3 for each environment. By convention, `dev-name` for your local development server, and one for your staging server too (e.g. `neurath`).
+
 ### Baking images
 
 During the baking process (`bakeDriveImages`) we:
