@@ -484,16 +484,15 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages() {
-        // await bakeCountries(this)
-        // await this.bakeSpecialPages()
-        // await this.bakeCountryProfiles()
-        // await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-        //     this.bakedSiteDir
-        // )
-        // this.progressBar.tick({
-        //     name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
-        // })
-        await db.getConnection()
+        await bakeCountries(this)
+        await this.bakeSpecialPages()
+        await this.bakeCountryProfiles()
+        await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+            this.bakedSiteDir
+        )
+        this.progressBar.tick({
+            name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+        })
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
     }
@@ -511,8 +510,8 @@ export class SiteBaker {
     async bakeAll() {
         // Ensure caches are correctly initialized
         this.flushCache()
-        // await this.removeDeletedPosts()
-        // await this.bakeWordpressPages()
+        await this.removeDeletedPosts()
+        await this.bakeWordpressPages()
         await this._bakeNonWordpressPages()
         this.flushCache()
     }
