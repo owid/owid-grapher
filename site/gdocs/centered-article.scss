@@ -406,7 +406,6 @@ h3.article-block__heading.has-supertitle {
 }
 
 .article-block__prominent-link {
-    color: $blue-90;
     margin-bottom: 24px;
 
     > .prominent-link__image {
@@ -419,9 +418,14 @@ h3.article-block__heading.has-supertitle {
             object-fit: cover;
         }
     }
+    p {
+        margin: 2px 0;
+    }
 
     h3 {
+        margin: 2px 0;
         display: inline-block;
+        color: $blue-90;
         &:hover {
             text-decoration: underline;
         }

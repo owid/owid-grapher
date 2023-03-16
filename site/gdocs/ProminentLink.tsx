@@ -58,7 +58,7 @@ export const ProminentLink = (props: {
     const thumbnail = props.thumbnail || linkedDocument?.content.cover
     const textContainerClassName = thumbnail
         ? "col-start-2 col-md-start-3 col-end-limit"
-        : "col-md-start-1 col-end-limit"
+        : "col-start-1 col-end-limit"
 
     return (
         <div className={cx(className, "prominent-link")}>
