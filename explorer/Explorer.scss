@@ -49,7 +49,7 @@ html.IsInIframe #ExplorerContainer {
     }
 
     @media (min-width: 850px) {
-        max-width: $max-width-covid-data-explorer;
+        max-width: $max-width-data-explorer;
         margin: 0 auto;
         display: grid;
         grid-template-columns: 1fr 4fr;
@@ -82,7 +82,7 @@ html.IsInIframe .ExplorerFigure,
     margin: 0 auto;
     padding-top: $explorer-grid-gap;
     width: 100%;
-    max-width: $max-width-covid-data-explorer;
+    max-width: $max-width-data-explorer;
     height: 90vh;
     max-height: 900px;
     min-height: 480px;

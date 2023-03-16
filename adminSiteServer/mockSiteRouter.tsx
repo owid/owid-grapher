@@ -13,7 +13,6 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderBlogByPageNum,
-    renderCovidPage,
     countryProfileCountryPage,
     renderExplorerPage,
 } from "../baker/siteRenderers.js"
@@ -146,11 +145,6 @@ countryProfileSpecs.forEach((spec) =>
     mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) =>
         res.send(await countryProfileCountryPage(spec, req.params.countrySlug))
     )
-)
-
-// Route only available on the dev server
-mockSiteRouter.get("/covid", async (req, res) =>
-    res.send(await renderCovidPage())
 )
 
 mockSiteRouter.get("/search", async (req, res) =>

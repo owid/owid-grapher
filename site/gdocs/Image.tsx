@@ -115,6 +115,7 @@ export default function Image(props: {
                 src={`/images/published/${filename}`}
                 alt={alt}
                 className={maybeLightboxClassName}
+                loading="lazy"
             />
         </picture>
     )
