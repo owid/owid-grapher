@@ -69,8 +69,10 @@ export const ProminentLink = (props: {
             ) : null}
             <div className={textContainerClassName}>
                 <a href={href} {...anchorTagProps}>
-                    <h3 className="h3-bold">{title}</h3>
-                    <FontAwesomeIcon icon={faArrowRight} />
+                    <h3 className="h3-bold">
+                        {title}
+                        <FontAwesomeIcon icon={faArrowRight} />
+                    </h3>
                 </a>
                 <p className="body-3-medium">{description}</p>
             </div>
