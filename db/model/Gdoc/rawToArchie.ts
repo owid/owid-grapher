@@ -71,7 +71,7 @@ export function* propertyToArchieMLString<T extends Record<string, any>>(
             // We assume that this was an error here. Not handling this here would make
             // the serialization code below more complex.
         } else if (key in value && value[key] !== undefined)
-            yield `${key}: ${appendDotEndIfMultiline(value[key])}`
+            yield `${String(key)}: ${appendDotEndIfMultiline(value[key])}`
 }
 
 function* rawBlockAsideToArchieMLString(

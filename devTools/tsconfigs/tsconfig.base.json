@@ -27,7 +27,6 @@
 
         "experimentalDecorators": true,
         "emitDecoratorMetadata": false,
-        "keyofStringsOnly": true,
 
         "isolatedModules": true
     }
