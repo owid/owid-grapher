@@ -14,19 +14,27 @@ import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
+import { ImageMetadata } from "@ourworldindata/utils"
+
+export const AttachmentsContext = createContext<{
+    linkedDocuments: Record<string, OwidArticleType>
+    imageMetadata: Record<string, ImageMetadata>
+}>({ linkedDocuments: {}, imageMetadata: {} })
+
+export const ArticleContext = createContext<{ isPreviewing: boolean }>({
+    isPreviewing: false,
+})
 
 type OwidArticleProps = OwidArticleType & {
     isPreviewing?: boolean
 }
 
-export const ArticleContext = createContext<{
-    isPreviewing: boolean
-}>({ isPreviewing: false })
-
 export function OwidArticle({
     content,
     publishedAt,
     slug,
+    linkedDocuments = {},
+    imageMetadata = {},
     isPreviewing = false,
 }: OwidArticleProps) {
     const coverStyle = content["cover-image"]
@@ -61,141 +69,149 @@ export function OwidArticle({
 }`
 
     return (
-        <ArticleContext.Provider value={{ isPreviewing: isPreviewing }}>
-            <article className="centered-article-container grid grid-cols-12-full-width">
-                <div className="article-banner" style={coverStyle}></div>
-                <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-                    <div className="centered-article-header__title-container col-start-2 span-cols-6">
-                        <h3 className="centered-article-header__supertitle span-cols-8">
-                            {content.supertitle}
-                        </h3>
-                        <h1 className="centered-article-header__title">
-                            {content.title}
-                        </h1>
-                    </div>
-                    {content.subtitle ? (
-                        <h2 className="centered-article-header__subtitle col-start-2 span-cols-6">
-                            {content.subtitle}
-                        </h2>
-                    ) : null}
-                    <div className="centered-article-header__meta-container col-start-2 span-cols-6 grid grid-cols-2">
-                        <div className="span-cols-1 span-sm-cols-2">
-                            <div className="centered-article-header__byline">
-                                {"By: "}
-                                <a href="/team">
-                                    {formatAuthors({
-                                        authors,
-                                    })}
+        <AttachmentsContext.Provider value={{ linkedDocuments, imageMetadata }}>
+            <ArticleContext.Provider value={{ isPreviewing }}>
+                <article className="centered-article-container grid grid-cols-12-full-width">
+                    <div className="article-banner" style={coverStyle}></div>
+                    <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                        <div className="centered-article-header__title-container col-start-2 span-cols-6">
+                            <h3 className="centered-article-header__supertitle span-cols-8">
+                                {content.supertitle}
+                            </h3>
+                            <h1 className="centered-article-header__title">
+                                {content.title}
+                            </h1>
+                        </div>
+                        {content.subtitle ? (
+                            <h2 className="centered-article-header__subtitle col-start-2 span-cols-6">
+                                {content.subtitle}
+                            </h2>
+                        ) : null}
+                        <div className="centered-article-header__meta-container col-start-2 span-cols-6 grid grid-cols-2">
+                            <div className="span-cols-1 span-sm-cols-2">
+                                <div className="centered-article-header__byline">
+                                    {"By: "}
+                                    <a href="/team">
+                                        {formatAuthors({
+                                            authors,
+                                        })}
+                                    </a>
+                                </div>
+                                <div className="centered-article-header__dateline body-3-medium-italic">
+                                    {content.dateline ||
+                                        (publishedAt &&
+                                            formatDate(publishedAt))}
+                                </div>
+                            </div>
+                            <div className="span-cols-1 span-sm-cols-2">
+                                <a
+                                    href="#article-citation"
+                                    className="body-1-regular display-block"
+                                >
+                                    <FontAwesomeIcon icon={faBook} />
+                                    Cite this article
+                                </a>
+
+                                <a
+                                    href="#article-licence"
+                                    className="body-3-medium display-block"
+                                >
+                                    <FontAwesomeIcon icon={faCreativeCommons} />
+                                    Reuse our work freely
                                 </a>
                             </div>
-                            <div className="centered-article-header__dateline body-3-medium-italic">
-                                {content.dateline ||
-                                    (publishedAt && formatDate(publishedAt))}
-                            </div>
                         </div>
-                        <div className="span-cols-1 span-sm-cols-2">
-                            <a
-                                href="#article-citation"
-                                className="body-1-regular display-block"
-                            >
-                                <FontAwesomeIcon icon={faBook} />
-                                Cite this article
-                            </a>
+                    </header>
 
-                            <a
-                                href="#article-licence"
-                                className="body-3-medium display-block"
-                            >
-                                <FontAwesomeIcon icon={faCreativeCommons} />
-                                Reuse our work freely
-                            </a>
-                        </div>
-                    </div>
-                </header>
-
-                {content.summary ? (
-                    <details
-                        className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
-                        open={true}
-                    >
-                        <summary>Summary</summary>
-                        <ArticleBlocks
-                            blocks={content.summary}
-                            containerType="summary"
-                        />
-                    </details>
-                ) : null}
-
-                {content.body ? (
-                    <ArticleBlocks toc={content.toc} blocks={content.body} />
-                ) : null}
-
-                {content.refs ? <Footnotes d={content.refs} /> : null}
-
-                <section
-                    id="article-citation"
-                    className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
-                >
-                    <h3>Cite this work</h3>
-                    <p>
-                        Our articles and data visualizations rely on work from
-                        many different people and organizations. When citing
-                        this topic page, please also cite the underlying data
-                        sources. This topic page can be cited as:
-                    </p>
-                    {/* TODO? renderSpans(content.citation.map((block) => block.value)) */}
-                    <div>
-                        <CodeSnippet code={citationText} />
-                    </div>
-                    <p>BibTeX citation</p>
-                    <div>
-                        <CodeSnippet code={bibtex} />
-                    </div>
-                </section>
-
-                <section
-                    id="article-licence"
-                    className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
-                >
-                    <img
-                        src={`${BAKED_BASE_URL}/owid-logo.svg`}
-                        className="img-raw"
-                        alt="Our World in Data logo"
-                    />
-                    <h3>Reuse this work freely</h3>
-
-                    <p>
-                        All visualizations, data, and code produced by Our World
-                        in Data are completely open access under the{" "}
-                        <a
-                            href="https://creativecommons.org/licenses/by/4.0/"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                    {content.summary ? (
+                        <details
+                            className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                            open={true}
                         >
-                            Creative Commons BY license
-                        </a>
-                        . You have the permission to use, distribute, and
-                        reproduce these in any medium, provided the source and
-                        authors are credited.
-                    </p>
-                    <p>
-                        The data produced by third parties and made available by
-                        Our World in Data is subject to the license terms from
-                        the original third-party authors. We will always
-                        indicate the original source of the data in our
-                        documentation, so you should always check the license of
-                        any such third-party data before use and redistribution.
-                    </p>
-                    <p>
-                        All of{" "}
-                        <a href="/how-to-use-our-world-in-data#how-to-embed-interactive-charts-in-your-article">
-                            our charts can be embedded
-                        </a>{" "}
-                        in any site.
-                    </p>
-                </section>
-            </article>
-        </ArticleContext.Provider>
+                            <summary>Summary</summary>
+                            <ArticleBlocks
+                                blocks={content.summary}
+                                containerType="summary"
+                            />
+                        </details>
+                    ) : null}
+
+                    {content.body ? (
+                        <ArticleBlocks
+                            toc={content.toc}
+                            blocks={content.body}
+                        />
+                    ) : null}
+
+                    {content.refs ? <Footnotes d={content.refs} /> : null}
+
+                    <section
+                        id="article-citation"
+                        className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                    >
+                        <h3>Cite this work</h3>
+                        <p>
+                            Our articles and data visualizations rely on work
+                            from many different people and organizations. When
+                            citing this topic page, please also cite the
+                            underlying data sources. This topic page can be
+                            cited as:
+                        </p>
+                        {/* TODO? renderSpans(content.citation.map((block) => block.value)) */}
+                        <div>
+                            <CodeSnippet code={citationText} />
+                        </div>
+                        <p>BibTeX citation</p>
+                        <div>
+                            <CodeSnippet code={bibtex} />
+                        </div>
+                    </section>
+
+                    <section
+                        id="article-licence"
+                        className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                    >
+                        <img
+                            src={`${BAKED_BASE_URL}/owid-logo.svg`}
+                            className="img-raw"
+                            alt="Our World in Data logo"
+                        />
+                        <h3>Reuse this work freely</h3>
+
+                        <p>
+                            All visualizations, data, and code produced by Our
+                            World in Data are completely open access under the{" "}
+                            <a
+                                href="https://creativecommons.org/licenses/by/4.0/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Creative Commons BY license
+                            </a>
+                            . You have the permission to use, distribute, and
+                            reproduce these in any medium, provided the source
+                            and authors are credited.
+                        </p>
+                        <p>
+                            The data produced by third parties and made
+                            available by Our World in Data is subject to the
+                            license terms from the original third-party authors.
+                            We will always indicate the original source of the
+                            data in our documentation, so you should always
+                            check the license of any such third-party data
+                            before use and redistribution.
+                        </p>
+                        <p>
+                            All of{" "}
+                            <a href="/how-to-use-our-world-in-data#how-to-embed-interactive-charts-in-your-article">
+                                our charts can be embedded
+                            </a>{" "}
+                            in any site.
+                        </p>
+                    </section>
+                </article>
+            </ArticleContext.Provider>
+        </AttachmentsContext.Provider>
     )
 }
 

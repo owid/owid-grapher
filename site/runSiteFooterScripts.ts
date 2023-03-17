@@ -3,7 +3,6 @@ import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { runBlocks } from "./blocks/index.js"
 import { hydrateProminentLink } from "./blocks/ProminentLink.js"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager.js"
-import { runCovid } from "./covid/index.js"
 import { runFootnotes } from "./Footnote.js"
 import { hydrateOwidArticle } from "./gdocs/OwidArticle.js"
 import { runLightbox } from "./Lightbox.js"
@@ -46,7 +45,6 @@ export const runSiteFooterScripts = (
             runFootnotes()
             runSiteTools()
             runCookiePreferencesManager()
-            runCovid()
             break
     }
 }

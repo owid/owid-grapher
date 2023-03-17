@@ -3,6 +3,7 @@ import {
     EnrichedBlockImage,
     getSizes,
     generateSrcSet,
+    getFilenameWithoutExtension,
 } from "@ourworldindata/utils"
 import { LIGHTBOX_IMAGE_CLASS } from "../Lightbox.js"
 import cx from "classnames"
@@ -12,6 +13,8 @@ import {
 } from "../../settings/clientSettings.js"
 import { ArticleContext } from "./OwidArticle.js"
 import { Container } from "./ArticleBlock.js"
+import { useImage } from "./utils.js"
+import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -35,42 +38,71 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["sticky-left-right-column"]: gridSpan5,
     ["side-by-side"]: gridSpan6,
     ["summary"]: gridSpan6,
-    // not used, just an example of how you can add additional rules when the image size is fixed
     ["thumbnail"]: "350px",
 }
 
-export default function Image({
-    d,
-    className = "",
-    containerType = "default",
-}: {
-    d: EnrichedBlockImage
+export default function Image(props: {
+    filename: string
+    alt?: string
     className?: string
     containerType?: ImageParentContainer
 }) {
-    const articleContext = useContext(ArticleContext)
-    if (articleContext.isPreviewing) {
+    const { filename, className = "", containerType = "default" } = props
+    const { isPreviewing } = useContext(ArticleContext)
+    const image = useImage(filename)
+    if (!image) {
+        if (isPreviewing) {
+            return (
+                <BlockErrorFallback
+                    className={className}
+                    error={{
+                        name: "Image error",
+                        message: `Image with filename "${filename}" not found. This block will not render when the page is baked.`,
+                    }}
+                />
+            )
+        }
+        return null
+    }
+
+    const alt = props.alt ?? image.defaultAlt
+    const maybeLightboxClassName =
+        containerType === "thumbnail" ? "" : LIGHTBOX_IMAGE_CLASS
+
+    if (isPreviewing) {
         return (
             <img
-                src={`${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${d.filename}`}
-                alt={d.alt}
-                className={cx(LIGHTBOX_IMAGE_CLASS, className, "lazyload")}
+                src={`${IMAGE_HOSTING_CDN_URL}/${IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH}/${filename}`}
+                alt={alt}
+                className={cx(maybeLightboxClassName, className, "lazyload")}
             />
         )
     }
 
-    if (d.filename.endsWith(".svg")) {
+    if (filename.endsWith(".svg")) {
+        const pngFilename = `${getFilenameWithoutExtension(filename)}.png`
         return (
-            <img
-                src={`/images/published/${d.filename}`}
-                alt={d.alt}
-                className={cx(LIGHTBOX_IMAGE_CLASS, className)}
-            />
+            <div className={className}>
+                <img
+                    src={`/images/published/${filename}`}
+                    alt={alt}
+                    className={maybeLightboxClassName}
+                />
+                {containerType !== "thumbnail" ? (
+                    <a
+                        className="download-png-link"
+                        href={`/images/published/${pngFilename}`}
+                        download
+                    >
+                        Download image
+                    </a>
+                ) : null}
+            </div>
         )
     }
 
-    const sizes = getSizes(d.originalWidth!) as number[]
-    const srcSet = generateSrcSet(sizes!, d.filename)
+    const sizes = getSizes(image.originalWidth)
+    const srcSet = generateSrcSet(sizes, filename)
 
     return (
         <picture className={className}>
@@ -80,9 +112,10 @@ export default function Image({
                 sizes={containerSizes[containerType] ?? containerSizes.default}
             />
             <img
-                src={`/images/published/${d.filename}`}
-                alt={d.alt}
-                className={LIGHTBOX_IMAGE_CLASS}
+                src={`/images/published/${filename}`}
+                alt={alt}
+                className={maybeLightboxClassName}
+                loading="lazy"
             />
         </picture>
     )

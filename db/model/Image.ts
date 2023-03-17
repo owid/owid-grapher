@@ -83,7 +83,6 @@ class ImageStore {
     }
 
     async syncImagesToS3(filenames: string[]): Promise<(Image | undefined)[]> {
-        await this.fetchImageMetadata()
         return Promise.all(
             filenames.map((filename) => {
                 const imageMetadata = this.images?.[filename]

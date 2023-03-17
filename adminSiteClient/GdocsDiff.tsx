@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 import { stringify } from "safe-stable-stringify"
-import { OwidArticleType } from "@ourworldindata/utils"
+import { omit, OwidArticleType } from "@ourworldindata/utils"
 
 export const GdocsDiff = ({
     originalGdoc,
@@ -11,8 +11,16 @@ export const GdocsDiff = ({
     currentGdoc: OwidArticleType
 }) => (
     <ReactDiffViewer
-        oldValue={stringify(originalGdoc, null, 2)}
-        newValue={stringify(currentGdoc, null, 2)}
+        oldValue={stringify(
+            omit(originalGdoc, ["linkedDocuments", "imageMetadata", "errors"]),
+            null,
+            2
+        )}
+        newValue={stringify(
+            omit(currentGdoc, ["linkedDocuments", "imageMetadata", "errors"]),
+            null,
+            2
+        )}
         compareMethod={DiffMethod.WORDS}
         styles={{
             contentText: {

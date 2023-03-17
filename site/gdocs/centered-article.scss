@@ -40,6 +40,11 @@ $banner-height: 200px;
     img {
         width: 100%;
     }
+
+    .download-png-link {
+        @include owid-link-60;
+        font-size: 14px;
+    }
 }
 
 h2.article-block__heading.has-supertitle {
@@ -408,6 +413,11 @@ h3.article-block__heading.has-supertitle {
         background-color: $gray-10;
         height: 100%;
         width: 100%;
+
+        img {
+            height: 100%;
+            object-fit: cover;
+        }
     }
 
     h3 {

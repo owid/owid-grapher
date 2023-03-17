@@ -105,7 +105,6 @@ export const enrichedBlockExamples: Record<
         filename: "example.png",
         alt: "",
         parseErrors: [],
-        dataErrors: [],
     },
     list: {
         type: "list",

@@ -95,7 +95,6 @@ export {
     getSelectedEntityNamesParam,
 } from "./core/EntityUrlBuilder"
 export { SparkBars, type SparkBarsProps } from "./sparkBars/SparkBars"
-export { SparkBarTimeSeriesValue } from "./sparkBars/SparkBarTimeSeriesValue"
 export {
     type SlideShowManager,
     SlideShowController,

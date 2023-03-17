@@ -1,33 +1,56 @@
-import React from "react"
+import React, { useContext } from "react"
 
-import { Span } from "@ourworldindata/utils"
-import { match, P } from "ts-pattern"
+import {
+    getLinkType,
+    getUrlTarget,
+    Span,
+    SpanLink,
+    OwidArticleType,
+    ImageMetadata,
+} from "@ourworldindata/utils"
+import { match } from "ts-pattern"
+import { AttachmentsContext } from "./OwidArticle.js"
 
-export function spansToUnformattedPlainText(spans: Span[] = []): string {
-    return spans
-        .map((span) =>
-            match(span)
-                .with({ spanType: "span-simple-text" }, (span) => span.text)
-                .with(
-                    {
-                        spanType: P.union(
-                            "span-link",
-                            "span-italic",
-                            "span-bold",
-                            "span-fallback",
-                            "span-quote",
-                            "span-superscript",
-                            "span-subscript",
-                            "span-underline",
-                            "span-ref"
-                        ),
-                    },
-                    (span) => spansToUnformattedPlainText(span.children)
-                )
-                .with({ spanType: "span-newline" }, () => "")
-                .exhaustive()
+export const useLinkedDocument = (url: string): OwidArticleType | undefined => {
+    const { linkedDocuments } = useContext(AttachmentsContext)
+    const urlTarget = getUrlTarget(url)
+    const linkedDocument = linkedDocuments?.[urlTarget]
+    return linkedDocument
+}
+
+export const useImage = (
+    filename: string | undefined
+): ImageMetadata | undefined => {
+    const { imageMetadata } = useContext(AttachmentsContext)
+    if (!filename) return
+    const metadata = imageMetadata[filename]
+    return metadata
+}
+
+const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
+    const linkType = getLinkType(span.url)
+    const linkedDocument = useLinkedDocument(span.url)
+
+    if (linkType === "url") {
+        return (
+            <a
+                href={span.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="span-link"
+            >
+                {renderSpans(span.children)}
+            </a>
         )
-        .join("")
+    }
+    if (linkedDocument && linkedDocument.published && linkedDocument.slug) {
+        return (
+            <a href={`/${linkedDocument.slug}`} className="span-link">
+                {renderSpans(span.children)}
+            </a>
+        )
+    }
+    return <>{renderSpans(span.children)}</>
 }
 
 export function renderSpan(
@@ -39,9 +62,7 @@ export function renderSpan(
             <React.Fragment key={key}>{span.text}</React.Fragment>
         ))
         .with({ spanType: "span-link" }, (span) => (
-            <a key={key} href={span.url} className="span-link">
-                {renderSpans(span.children)}
-            </a>
+            <LinkedA span={span} key={key} />
         ))
         .with({ spanType: "span-ref" }, (span) => (
             <a key={key} href={span.url} className="ref">

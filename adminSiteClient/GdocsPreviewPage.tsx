@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { GdocsMatchProps } from "./GdocsIndexPage.js"
 import { GdocsSettingsForm } from "./GdocsSettingsForm.js"
@@ -9,12 +15,14 @@ import {
     getArticleFromJSON,
     OwidArticleType,
     OwidArticleTypeJSON,
+    OwidArticleErrorMessage,
+    OwidArticleErrorMessageType,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
 
-import { ErrorMessage, ErrorMessageType, getErrors } from "./gdocsValidation.js"
+import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { IconBadge } from "./IconBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
@@ -51,9 +59,17 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         undefined | string
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
-    const [errors, setErrors] = React.useState<ErrorMessage[]>()
+    const [errors, setErrors] = React.useState<OwidArticleErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
+    // Cancel all other requests in progress (most likely just the automatic fetch)
+    const cancelAllRequests = useMemo(
+        () => () =>
+            admin.currentRequestAbortControllers.forEach((abortController) => {
+                abortController.abort()
+            }),
+        [admin]
+    )
 
     const fetchGdoc = useCallback(
         (contentSource: GdocsContentSource) =>
@@ -94,18 +110,16 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     }, [originalGdoc, fetchGdoc, handleError, admin])
 
     // synchronise content every 5 seconds
-    useInterval(() => {
+    useInterval(async () => {
         if (currentGdoc) {
-            fetchGdoc(GdocsContentSource.Gdocs)
-                .then((gdoc) => {
-                    setCurrentGdoc({
-                        ...gdoc,
-                        slug: currentGdoc.slug,
-                        publicationContext: currentGdoc.publicationContext,
-                    })
-                    setHasSyncingError(false)
-                })
-                .catch(handleError)
+            const latestGdoc = await fetchGdoc(GdocsContentSource.Gdocs)
+            setCurrentGdoc({
+                ...latestGdoc,
+                slug: currentGdoc.slug,
+                published: currentGdoc.published,
+                publishedAt: currentGdoc.publishedAt,
+                publicationContext: currentGdoc.publicationContext,
+            })
         }
     }, 5000)
 
@@ -119,21 +133,31 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     )
 
     const hasWarnings =
-        errors?.some((error) => error.type === ErrorMessageType.Warning) ??
-        false
+        errors?.some(
+            (error) => error.type === OwidArticleErrorMessageType.Warning
+        ) ?? false
 
     const hasErrors =
-        errors?.some((error) => error.type === ErrorMessageType.Error) ?? false
+        errors?.some(
+            (error) => error.type === OwidArticleErrorMessageType.Error
+        ) ?? false
 
     const doPublish = async () => {
         if (!currentGdoc) return
-        const publishedGdoc = await store.publish(currentGdoc)
+        cancelAllRequests()
+        // set to today if not specified
+        const publishedAt = currentGdoc.publishedAt ?? new Date()
+        const publishedGdoc = await store.publish({
+            ...currentGdoc,
+            publishedAt,
+        })
         setGdoc({ original: publishedGdoc, current: publishedGdoc })
         openSuccessNotification()
     }
 
     const doUnpublish = async () => {
         if (!currentGdoc) return
+        cancelAllRequests()
         const unpublishedGdoc = await store.unpublish(currentGdoc)
         setGdoc({ original: unpublishedGdoc, current: unpublishedGdoc })
         openSuccessNotification()
@@ -253,9 +277,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <IconBadge
                                 status={
                                     hasErrors
-                                        ? ErrorMessageType.Error
+                                        ? OwidArticleErrorMessageType.Error
                                         : hasWarnings
-                                        ? ErrorMessageType.Warning
+                                        ? OwidArticleErrorMessageType.Warning
                                         : null
                                 }
                             >

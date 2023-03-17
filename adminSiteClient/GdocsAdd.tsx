@@ -1,3 +1,4 @@
+import { gdocUrlRegex } from "@ourworldindata/utils"
 import React from "react"
 import {
     GDOCS_BASIC_ARTICLE_TEMPLATE_URL,
@@ -11,9 +12,8 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        const regex = /https:\/\/docs\.google\.com\/document\/d\/([^\/]+)\/edit/
 
-        const [, id] = documentUrl.match(regex) || []
+        const [, id] = documentUrl.match(gdocUrlRegex) || []
 
         // fallback for HTML5 validation below
         if (!id) return
@@ -65,7 +65,7 @@ export const GdocsAdd = ({ onAdd }: { onAdd: (id: string) => void }) => {
                         value={documentUrl}
                         required
                         placeholder="https://docs.google.com/document/d/****/edit"
-                        pattern="https:\/\/docs\.google\.com\/document\/d\/([^\/]+)\/edit"
+                        pattern={gdocUrlRegex.toString().slice(1, -1)}
                     />
                 </div>
             </div>

@@ -82,6 +82,7 @@ import {
 } from "../adminSiteClient/gdocsDeploy.js"
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidArticleContent } from "../db/model/Gdoc/archieToGdoc.js"
+import { Link } from "../db/model/Link.js"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2235,43 +2236,6 @@ apiRouter.get("/posts.json", async (req) => {
     return { posts: rows.map((r) => camelCaseProperties(r)) }
 })
 
-apiRouter.get("/newsletterPosts.json", async (req) => {
-    const rows = await wpdb.singleton.query(`
-        SELECT
-            ID AS id,
-            post_name AS name,
-            post_title AS title,
-            post_modified_gmt AS updatedAt,
-            post_date_gmt AS publishedAt,
-            post_type AS type,
-            post_status AS status,
-            post_excerpt AS excerpt
-        FROM wp_posts
-        WHERE (post_type='post' OR post_type='page') AND post_status='publish'
-        ORDER BY post_date_gmt DESC`)
-
-    const permalinks = await wpdb.getPermalinks()
-    const featuresImages = await wpdb.getFeaturedImages()
-
-    const posts = rows.map((row) => {
-        const slug = permalinks.get(row.id, row.name)
-        return {
-            id: row.id,
-            title: row.title,
-            updatedAtInWordpress: row.updatedAt,
-            publishedAt: row.publishedAt,
-            type: row.type,
-            status: row.status,
-            excerpt: row.excerpt,
-            slug: slug,
-            imageUrl: featuresImages.get(row.id),
-            url: `${BAKED_BASE_URL}/${slug}`,
-        }
-    })
-
-    return { posts }
-})
-
 apiRouter.post(
     "/posts/:postId/setTags",
     async (req: Request, res: Response) => {
@@ -2732,16 +2696,6 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
     }
 })
 
-apiRouter.get("/gdocs/:id/validate", async (req) => {
-    const { id } = req.params
-
-    const gdoc = await Gdoc.findOneBy({ id })
-
-    if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
-
-    return getErrors(gdoc)
-})
-
 /**
  * Only supports creating a new empty Gdoc or updating an existing one. Does not
  * support creating a new Gdoc from an existing one. Relevant updates will
@@ -2765,6 +2719,7 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const nextGdoc = dataSource
         .getRepository(Gdoc)
         .create(getArticleFromJSON(nextGdocJSON))
+
     // Deleting and recreating these is simpler than tracking orphans over the next code block
     await GdocXImage.delete({ gdocId: id })
     const filenames = nextGdoc.filenames
@@ -2787,6 +2742,13 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
             }
         }
     }
+
+    await Link.delete({
+        source: {
+            id: id,
+        },
+    })
+    await dataSource.getRepository(Link).save(nextGdoc.links)
 
     //todo #gdocsvalidationserver: run validation before saving published
     //articles, in addition to the first pass performed in front-end code (see
@@ -2833,6 +2795,11 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     const gdoc = await Gdoc.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
+    await Link.delete({
+        source: {
+            id,
+        },
+    })
     await GdocXImage.delete({ gdocId: id })
     await Gdoc.delete({ id })
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)

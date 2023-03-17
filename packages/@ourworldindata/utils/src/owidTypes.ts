@@ -1,4 +1,5 @@
 import { Tag as TagReactTagAutocomplete } from "react-tag-autocomplete"
+import { ImageMetadata } from "./image.js"
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -570,16 +571,11 @@ export type RawBlockImage = {
     }
 }
 
-export const NoDefaultAlt = "No default alt text has been set for this image"
-
-export const ImageNotFound = "No image with this filename found in Drive"
-
 export type EnrichedBlockImage = {
     type: "image"
     filename: string
     alt?: string // optional as we can use the default alt from the file
     originalWidth?: number
-    dataErrors: { message: typeof NoDefaultAlt | typeof ImageNotFound }[] // for errors that aren't to do with parsing
 } & EnrichedBlockWithParseErrors
 
 // TODO: This is what lists staring with * are converted to in gdocToArhcieml
@@ -788,7 +784,7 @@ export type RawBlockProminentLink = {
 export type EnrichedBlockProminentLink = {
     type: "prominent-link"
     url: string
-    title: string
+    title?: string
     description?: string
 } & EnrichedBlockWithParseErrors
 
@@ -888,6 +884,20 @@ export interface OwidArticleType {
     updatedAt: Date | null
     publicationContext: OwidArticlePublicationContext
     revisionId: string | null
+    linkedDocuments?: Record<string, OwidArticleType>
+    imageMetadata?: Record<string, ImageMetadata>
+    errors?: OwidArticleErrorMessage[]
+}
+
+export enum OwidArticleErrorMessageType {
+    Error = "error",
+    Warning = "warning",
+}
+
+export interface OwidArticleErrorMessage {
+    property: keyof OwidArticleType | keyof OwidArticleContent
+    type: OwidArticleErrorMessageType
+    message: string
 }
 
 // see also: getArticleFromJSON()
@@ -896,6 +906,14 @@ export interface OwidArticleTypeJSON
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
+}
+
+export interface OwidArticleLinkJSON {
+    source: OwidArticleType
+    linkType: "gdoc" | "url"
+    target: string
+    componentType: string
+    text: string
 }
 
 /**
@@ -925,6 +943,7 @@ export interface OwidArticleContent {
     byline?: string
     dateline?: string
     excerpt?: string
+    cover?: string
     refs?: EnrichedBlockText[]
     summary?: EnrichedBlockText[]
     citation?: EnrichedBlockSimpleText[]
