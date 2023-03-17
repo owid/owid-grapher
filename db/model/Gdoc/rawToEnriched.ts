@@ -212,7 +212,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
                 ""
             )
 
-        const url = val.url
+        const url = extractUrl(val.url)
 
         const warnings: ParseError[] = []
 
