@@ -136,7 +136,7 @@ async function generateWordpressRecords(
 }
 
 function generateGdocRecords(
-    gdocs: OwidArticleTypePublished[],
+    gdocs: Gdoc[],
     pageviews: Record<string, RawPageview>
 ): PageRecord[] {
     const records: PageRecord[] = []
@@ -146,7 +146,7 @@ function generateGdocRecords(
             React.createElement(
                 "div",
                 {},
-                gdoc.content.body.map((block) => ArticleBlock({ b: block }))
+                gdoc.content.body?.map((block) => ArticleBlock({ b: block }))
             )
         )
         const chunks = generateChunksFromHtmlText(renderedPostContent)
@@ -158,12 +158,12 @@ function generateGdocRecords(
                 type: "article" as const, // Gdocs can only be articles for now
                 importance: 0, // Gdocs can only be articles for now
                 slug: gdoc.slug,
-                title: gdoc.content.title,
+                title: gdoc.content.title || "",
                 content: chunk,
                 views_7d: pageviews[`/${gdoc.slug}`]?.views_7d ?? 0,
                 excerpt: gdoc.content.excerpt,
-                date: gdoc.publishedAt.toISOString(),
-                modifiedDate: gdoc.updatedAt.toISOString(),
+                date: gdoc.publishedAt!.toISOString(),
+                modifiedDate: gdoc.updatedAt!.toISOString(),
                 // authors: gdoc.content.byline, // different format
                 // tags: string[] // not supported
             }
