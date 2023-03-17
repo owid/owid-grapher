@@ -1117,7 +1117,9 @@ export class CoreTable<
 
     replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []): this {
         return this.replaceCells(columnSlugs, (val) =>
-            val <= 0 ? ErrorValueTypes.InvalidOnALogScale : val
+            typeof val !== "number" || val <= 0
+                ? ErrorValueTypes.InvalidOnALogScale
+                : val
         )
     }
 
@@ -1183,7 +1185,7 @@ export class CoreTable<
     filterNegatives(slug: ColumnSlug): this {
         return this.columnFilter(
             slug,
-            (value) => value >= 0,
+            (value) => typeof value === "number" && value >= 0,
             `Filter negative values for ${slug}`
         )
     }
