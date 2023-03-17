@@ -701,7 +701,7 @@ export class BindString extends React.Component<{
 @observer
 export class BindAutoString<
     T extends { [field: string]: any },
-    K extends keyof T
+    K extends Extract<keyof T, string>
 > extends React.Component<{
     field: K
     store: T
@@ -801,7 +801,7 @@ class FloatField extends React.Component<FloatFieldProps> {
 @observer
 export class BindFloat<
     T extends { [field: string]: any },
-    K extends keyof T
+    K extends Extract<keyof T, string>
 > extends React.Component<{
     field: K
     store: T
@@ -831,7 +831,7 @@ export class BindFloat<
 @observer
 export class BindAutoFloat<
     T extends { [field: string]: any },
-    K extends keyof T
+    K extends Extract<keyof T, string>
 > extends React.Component<{
     field: K
     store: T
