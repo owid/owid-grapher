@@ -52,7 +52,7 @@ The CMS we use to manage articles published on Our World in Data. It's a relativ
 
 Our Wordpress content and configuration is stored in a MySQL database, which currently isn't shared publicly.
 
-We are currently in the process of migrating off of WordPress to a publishing flow based on [ArchieML](https://archieml.org) with Google Docs. See the [Site README](site/) for more information.
+We are currently in the process of migrating off of WordPress to a publishing flow based on [ArchieML](https://archieml.org) with Google Docs. See the [Site README](site/README.md) for more information.
 
 ### [Baker](baker/)
 
