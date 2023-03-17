@@ -6,7 +6,7 @@ In brief, the WordPress rendering is based around parsing, enhancing, and hydrat
 
 We are currently switching to ArchieML and Google Docs (usually referred to as `Gdocs` in the codebase) to more conveniently match the writing preferences of our authors. This is a work in progress and not all features supported by WordPress are in place yet.
 
-[Reference document showing all the Archie syntax we support.](https://docs.google.com/document/d/1OLoTWloy4VecOjKTjB1wLV6tEphHJIMXfexrf1ZYJzU/edit)
+[Reference document showing all the Archie syntax we support.](https://docs.google.com/document/d/1OLoTWloy4VecOjKTjB1wLV6tEphHJIMXfexrf1ZYJzU/edit) (Only accessible by OWID team members)
 
 A Google Doc can be written and registered via the `/admin/gdocs` view in the admin client. One Google Doc can be registered with multiple different environments (staging, local, live, etc) so we parse and store the Google Doc content as JSON in the Grapher database of each respective environment.
 
@@ -49,6 +49,14 @@ The preview flow is slightly different. If a document with an image in it is pre
 
 ### Gotchas
 
+#### Updating images
+
 If an image has changed since we last uploaded it to S3 (e.g. a new version has been uploaded, or its description has changed) we'll re-upload the file to S3. This happens even if you're only previewing a document that references the image, regardless of whether or not you re-publish it.
 
-This means that any other documents that reference the image will use the updated version during the next bake, even if they haven't been republished. This seemed preferable to tracking version state and having to manually update every article when you want to update an image.
+This means that any other documents that reference the image will use the updated version during the next bake, even if they haven't been republished. This seemed preferable to tracking version state and having to manually update every article whenever you update an image.
+
+#### Refreshing a database
+
+If you are refreshing your environment's database by importing a database dump from prod, the prod `images` table may make claims about the existence of files in your environment's S3 folder that aren't true, which will lead to 403 errors when trying to bake.
+
+In this project's root Makefile, we have a make command (`make sync-images`) that runs `s3cmd sync` from prod to your environment to solve this problem. Make sure your [s3cmd is configured correctly](https://docs.digitalocean.com/products/spaces/reference/s3cmd/) before running it.
