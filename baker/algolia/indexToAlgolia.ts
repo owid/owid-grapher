@@ -80,6 +80,17 @@ function generateCountryRecords(
     })
 }
 
+function generateChunksFromHtmlText(htmlString: string) {
+    const renderedPostText = htmlToText(htmlString, {
+        tables: true,
+        ignoreHref: true,
+        wordwrap: false,
+        uppercaseHeadings: false,
+        ignoreImage: true,
+    })
+    return chunkParagraphs(renderedPostText, 1000)
+}
+
 async function generateWordpressRecords(
     postsApi: wpdb.PostAPI[],
     pageviews: Record<string, RawPageview>
@@ -97,15 +108,7 @@ async function generateWordpressRecords(
         }
 
         const post = await formatPost(rawPost, { footnotes: false })
-        const postText = htmlToText(post.html, {
-            tables: true,
-            ignoreHref: true,
-            wordwrap: false,
-            uppercaseHeadings: false,
-            ignoreImage: true,
-        })
-        const chunks = chunkParagraphs(postText, 1000)
-
+        const chunks = generateChunksFromHtmlText(post.html)
         const tags = await getPostTags(post.id)
         const postTypeAndImportance = getPostTypeAndImportance(post, tags)
 
@@ -146,14 +149,7 @@ function generateGdocRecords(
                 gdoc.content.body.map((block) => ArticleBlock({ b: block }))
             )
         )
-        const renderedPostText = htmlToText(renderedPostContent, {
-            tables: true,
-            ignoreHref: true,
-            wordwrap: false,
-            uppercaseHeadings: false,
-            ignoreImage: true,
-        })
-        const chunks = chunkParagraphs(renderedPostText, 1000)
+        const chunks = generateChunksFromHtmlText(renderedPostContent)
         let i = 0
 
         for (const chunk of chunks) {
@@ -230,6 +226,7 @@ const indexToAlgolia = async () => {
 
     await db.getConnection()
     const records = await getPagesRecords()
+
     index.replaceAllObjects(records)
 
     await wpdb.singleton.end()
