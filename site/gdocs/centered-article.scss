@@ -252,8 +252,7 @@ h3.article-block__heading.has-supertitle {
 .article-block__chart {
     // width is necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
     width: 100%;
-    margin-top: 24px;
-    margin-bottom: 32px;
+    margin: 24px 0 32px 0;
 
     figure {
         margin: 0;
