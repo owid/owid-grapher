@@ -463,8 +463,7 @@ export class Grapher
             grapherKeysToSerialize
         )
 
-        if (this.selection.hasSelection)
-            obj.selectedEntityNames = this.selection.selectedEntityNames
+        obj.selectedEntityNames = this.selection.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
