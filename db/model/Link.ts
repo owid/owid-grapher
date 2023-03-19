@@ -13,7 +13,7 @@ import { Gdoc } from "./Gdoc/Gdoc.js"
 export class Link extends BaseEntity implements OwidArticleLinkJSON {
     @PrimaryGeneratedColumn() id!: number
     @ManyToOne(() => Gdoc, (gdoc) => gdoc.id) source!: Relation<Gdoc>
-    @Column() linkType!: "gdoc" | "url"
+    @Column() linkType!: "gdoc" | "url" | "grapher" | "explorer"
     @Column() target!: string
     @Column() componentType!: string
     @Column() text!: string
