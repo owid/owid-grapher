@@ -22,8 +22,13 @@ export const GdocsSettingsForm = ({
     setGdoc: (gdoc: OwidArticleType) => void
     errors?: OwidArticleErrorMessage[]
 }) => {
-    const attachmentMessages = errors?.filter((error) =>
-        ["linkedDocuments", "imageMetadata"].includes(error.property)
+    const attachmentMessages = errors?.filter(
+        (error) =>
+            ["linkedDocuments", "imageMetadata"].includes(error.property) ||
+            (error.property === "content" &&
+                error.message.startsWith("Grapher chart")) ||
+            (error.property === "content" &&
+                error.message.startsWith("Explorer chart"))
     )
     const attachmentErrors =
         attachmentMessages?.filter(

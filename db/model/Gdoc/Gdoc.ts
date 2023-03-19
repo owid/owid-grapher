@@ -36,6 +36,7 @@ import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
+import { getChartsRecords } from "../../contentGraph.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -241,6 +242,10 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             []
         )
 
+        const chartRecords = await getChartsRecords()
+        const chartRecordsBySlug = keyBy(chartRecords, "slug")
+        // How to get all explorers? can't import explorerAdminServer, don't want to have to pass it around
+
         const linkErrors: OwidArticleErrorMessage[] = this.links.reduce(
             (
                 acc: OwidArticleErrorMessage[],
@@ -261,6 +266,25 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                             type: OwidArticleErrorMessageType.Warning,
                         })
                     }
+                }
+                if (link.linkType == "grapher") {
+                    if (!chartRecordsBySlug[link.target]) {
+                        acc.push({
+                            property: "content",
+                            message: `Grapher chart with slug ${link.target} does not exist or is not published`,
+                            type: OwidArticleErrorMessageType.Error,
+                        })
+                    }
+                }
+                if (link.linkType == "explorer") {
+                    // TODO
+                    // if (!explorerRecordsBySlug[link.target]) {
+                    //     acc.push({
+                    //         property: "content",
+                    //         message: `Explorer chart with slug ${link.target} does not exist or is not published`,
+                    //         type: OwidArticleErrorMessageType.Error,
+                    //     })
+                    // }
                 }
                 return acc
             },
@@ -285,8 +309,6 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
         await gdoc.validate()
-
-        console.log("gdoc.links", gdoc.links)
 
         return gdoc
     }
