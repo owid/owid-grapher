@@ -42,6 +42,7 @@ import {
     variableAnnotationAllowedColumnNamesAndTypes,
     VariableAnnotationsResponseRow,
     Detail,
+    isUndefined,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -83,6 +84,7 @@ import {
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidArticleContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
+import { In } from "typeorm"
 
 const apiRouter = new FunctionalRouter()
 
@@ -155,9 +157,12 @@ const getReferencesByChartId = async (
         [chartId, chartId]
     )
 
-    const slugs = rows.map(
-        (row: { slug?: string }) => row.slug && row.slug.replace(/^"|"$/g, "")
-    )
+    const slugs: string[] = rows
+        .map(
+            (row: { slug?: string }) =>
+                row.slug && row.slug.replace(/^"|"$/g, "")
+        )
+        .filter((slug: string | undefined) => !isUndefined(slug))
 
     if (!slugs || slugs.length === 0) return []
 
@@ -195,7 +200,21 @@ const getReferencesByChartId = async (
         // We can ignore errors due to not being able to connect.
     }
     const permalinks = await wpdb.getPermalinks()
-    return posts.map((post) => {
+    const publishedLinksToChart = await Link.find({
+        where: { target: In(slugs), linkType: "grapher" },
+        relations: ["source"],
+    }).then((links) => links.filter((link) => link.source.published))
+
+    const publishedGdocPostsThatReferenceChart = publishedLinksToChart.map(
+        (link) => ({
+            id: link.source.id,
+            title: link.source.content.title,
+            slug: link.source.slug,
+            url: `${BAKED_BASE_URL}/${link.source.slug}`,
+        })
+    )
+
+    const publishedWPPostsThatReferenceChart = posts.map((post) => {
         const slug = permalinks.get(post.ID, post.post_name)
         return {
             id: post.ID,
@@ -204,6 +223,11 @@ const getReferencesByChartId = async (
             url: `${BAKED_BASE_URL}/${slug}`,
         }
     })
+
+    return [
+        ...publishedGdocPostsThatReferenceChart,
+        ...publishedWPPostsThatReferenceChart,
+    ]
 }
 
 const getRedirectsByChartId = async (
