@@ -1,4 +1,5 @@
 import urlParseLib from "url-parse"
+import { gdocUrlRegex } from "../GdocsUtils.js"
 
 import { excludeUndefined, omitUndefinedValues } from "../Util.js"
 
@@ -118,6 +119,10 @@ export class Url {
 
     get encodedQueryParams(): QueryParams {
         return strToQueryParams(this.queryStr, true)
+    }
+
+    get isGoogleDoc(): boolean {
+        return !!(this.pathname && gdocUrlRegex.test(this.pathname))
     }
 
     get isGrapher(): boolean {

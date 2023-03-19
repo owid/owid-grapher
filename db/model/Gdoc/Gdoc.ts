@@ -193,6 +193,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     }
 
     // If the node has a URL in it, create a Link object
+    // Assumes that the property will be named "url"
     extractLinkFromNode(node: OwidEnrichedArticleBlock | Span): Link | void {
         function getText(node: OwidEnrichedArticleBlock | Span): string {
             // Can add component-specific text accessors here
@@ -284,6 +285,8 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
         await gdoc.validate()
+
+        console.log("gdoc.links", gdoc.links)
 
         return gdoc
     }
