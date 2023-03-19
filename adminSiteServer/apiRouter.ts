@@ -676,6 +676,16 @@ apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
 
 apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
     const chart = await expectChartById(req.params.chartId)
+    const links = await Link.find({
+        where: { target: chart.slug },
+        relations: ["source"],
+    }).then((links) => links.filter((link) => link.source.published))
+    if (links.length) {
+        const sources = links.map((link) => link.source.slug).join(", ")
+        throw new Error(
+            `Cannot delete chart in-use in the following published documents: ${sources}`
+        )
+    }
 
     await db.transaction(async (t) => {
         await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
