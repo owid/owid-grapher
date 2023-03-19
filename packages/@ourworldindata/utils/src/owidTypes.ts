@@ -256,7 +256,7 @@ export interface ChartRecord {
 }
 
 export interface PostReference {
-    id: number
+    id: number | string
     title: string
     slug: string
 }
