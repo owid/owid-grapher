@@ -13,7 +13,7 @@ Then run the three development processes:
 ```sh
 yarn startTscServer
 yarn startAdminServer
-yarn startWebpackServer
+yarn startViteServer
 ```
 
 Or alternatively, you can also start all 3 processes in one terminal window with tmux:

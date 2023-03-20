@@ -28,7 +28,7 @@ Try these URLs to see if your environment is working:
                                       "admin@example.com" / "admin"
     http://localhost:3030/admin/test  <-- a list of all charts in the db
     http://localhost:8080/wp/wp-admin/  <-- the WordPress admin interface
-    http://localhost:8090/  <-- the webpack dev server
+    http://localhost:8090/  <-- the vite dev server
 
 Happy hacking!
 EOF

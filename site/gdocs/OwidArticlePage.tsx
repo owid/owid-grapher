@@ -57,10 +57,6 @@ export default function OwidArticlePage({
                     canonicalUrl={canonicalUrl}
                 />
 
-                <link
-                    href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,700&amp;display=swap"
-                    rel="stylesheet"
-                />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_ARTICLE_PROPS = ${JSON.stringify(

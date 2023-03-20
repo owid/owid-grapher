@@ -60,7 +60,7 @@ up: require create-if-missing.env tmp-downloads/owid_chartdata.sql.gz
 		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
-		new-window -n webpack 'yarn run startSiteFront' \; \
+		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
@@ -84,7 +84,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_chartdata
 		-n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
-		new-window -n webpack 'yarn run startSiteFront' \; \
+		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
@@ -112,7 +112,7 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn run tsc-watch -b --onSuccess "yarn startAdminServer"' \; \
 			set remain-on-exit on \; \
-		new-window -n webpack 'yarn run startSiteFront' \; \
+		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
 		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \

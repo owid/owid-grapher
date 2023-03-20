@@ -9,7 +9,7 @@ ports:
       onOpen: ignore
     - port: 33060
       onOpen: ignore
-    # webpack server
+    # vite server
     - port: 8090
       onOpen: ignore
 
@@ -28,13 +28,13 @@ tasks:
           gp sync-done initial-setup
       # setting env variables required for Gitpod, because it doesn't run on localhost
       command: |
-          echo WEBPACK_DEV_URL=$(gp url 8090) >> .env
+          echo VITE_DEV_URL=$(gp url 8090) >> .env
           echo BAKED_BASE_URL=$(gp url 3030) >> .env
           echo ADMIN_BASE_URL=$(gp url 3030) >> .env
           yarn startTscServer
-    # wait for initial-setup (above) to finish and then start webpack server
+    # wait for initial-setup (above) to finish and then start vite server
     - init: gp sync-await initial-setup
-      command: yarn startWebpackServer
+      command: yarn startViteServer
     # wait for initial-setup (above) to finish and then start admin server
     - init: gp sync-await initial-setup
       command: yarn startAdminServer

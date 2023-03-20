@@ -196,7 +196,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         // returning sorted rows.
         return this.sortedByTime.columnFilter(
             timeColumnSlug,
-            (time) => time >= adjustedStart && time <= adjustedEnd,
+            (time) =>
+                (time as number) >= adjustedStart &&
+                (time as number) <= adjustedEnd,
             `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`
         )
     }

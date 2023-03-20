@@ -152,6 +152,7 @@ export const ChartsIndexPage = (props: {
                 </main>
                 <SiteFooter baseUrl={baseUrl} />
                 <script
+                    type="module"
                     dangerouslySetInnerHTML={{
                         __html: `
                         window.runChartsIndexPage()
