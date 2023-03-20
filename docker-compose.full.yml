@@ -5,7 +5,7 @@ version: "3.7"
 # publicly available.
 
 # This setup assumes that work on the grapher happens outside any docker container - i.e. there is no Node 16
-# container included in this setup. The idea is that grapher development (as well as running webpack and the
+# container included in this setup. The idea is that grapher development (as well as running vite and the
 # admin server) happens on the host, and that only the mysql, php and nginx dependencies run as containers.
 
 # The mysql database server is exposed on the host at the default mysql port of 3306 so you can use DB admin

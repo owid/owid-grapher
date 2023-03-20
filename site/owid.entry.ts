@@ -1,4 +1,4 @@
-import "site/owid.scss"
+import "./owid.scss"
 import "@ourworldindata/grapher/src/core/grapher.scss"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash

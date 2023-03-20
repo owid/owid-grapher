@@ -2,6 +2,10 @@
     Cache-Control: public, max-age=0, must-revalidate
     Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 
+
+/assets/*
+  Access-Control-Allow-Origin: *
+
 /grapher/*
     Access-Control-Allow-Origin: *
 

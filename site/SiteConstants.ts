@@ -7,7 +7,10 @@ const polyfillFeatures = [
     "IntersectionObserver",
     "IntersectionObserverEntry",
     "ResizeObserver",
+    "globalThis", // some dependencies use this
 ]
 export const POLYFILL_URL: string = `https://polyfill.io/v3/polyfill.min.js?features=${polyfillFeatures.join(
     ","
 )}`
+
+export const GOOGLE_FONTS_URL: string = `https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i,900|Playfair+Display:400,600,700&display=swap`

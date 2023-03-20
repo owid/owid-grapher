@@ -89,6 +89,7 @@ export const DonatePage = (props: {
             <SiteFooter hideDonate={true} baseUrl={props.baseUrl} />
 
             <script
+                type="module"
                 dangerouslySetInnerHTML={{
                     __html: `runDonateForm()`,
                 }}
