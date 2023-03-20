@@ -122,7 +122,7 @@ export class Url {
     }
 
     get isGoogleDoc(): boolean {
-        return !!(this.pathname && gdocUrlRegex.test(this.pathname))
+        return !!(this.pathname && gdocUrlRegex.test(this.fullUrl))
     }
 
     get isGrapher(): boolean {
