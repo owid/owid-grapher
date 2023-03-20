@@ -43,6 +43,7 @@ import {
     VariableAnnotationsResponseRow,
     Detail,
     isUndefined,
+    keyBy,
 } from "@ourworldindata/utils"
 import {
     GrapherInterface,
@@ -68,14 +69,13 @@ import { DeployQueueServer } from "../baker/DeployQueueServer.js"
 import { FunctionalRouter } from "./FunctionalRouter.js"
 import { escape } from "mysql"
 import Papa from "papaparse"
-
+import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     postsTable,
     setTagsForPost,
     select,
     getTagsByPostId,
 } from "../db/model/Post.js"
-import { getErrors } from "../adminSiteClient/gdocsValidation.js"
 import {
     checkFullDeployFallback,
     checkHasChanges,
@@ -85,8 +85,10 @@ import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidArticleContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
 import { In } from "typeorm"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 
 const apiRouter = new FunctionalRouter()
+const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 
 // Call this to trigger build and deployment of static charts on change
 const triggerStaticBuild = async (user: CurrentUser, commitMessage: string) => {
@@ -2722,7 +2724,14 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         | undefined
 
     try {
-        const gdoc = await Gdoc.getGdocFromContentSource(id, contentSource)
+        const publishedExplorersBySlug =
+            await explorerAdminServer.getAllPublishedExplorersBySlug()
+
+        const gdoc = await Gdoc.getGdocFromContentSource(
+            id,
+            publishedExplorersBySlug,
+            contentSource
+        )
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {

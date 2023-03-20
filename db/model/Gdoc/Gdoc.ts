@@ -218,7 +218,9 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         }
     }
 
-    async validate(): Promise<void> {
+    async validate(
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<void> {
         const filenameErrors: OwidArticleErrorMessage[] = this.filenames.reduce(
             (
                 acc: OwidArticleErrorMessage[],
@@ -244,7 +246,6 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         const chartRecords = await getChartsRecords()
         const chartRecordsBySlug = keyBy(chartRecords, "slug")
-        // How to get all explorers? can't import explorerAdminServer, don't want to have to pass it around
 
         const linkErrors: OwidArticleErrorMessage[] = this.links.reduce(
             (
@@ -277,14 +278,13 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                     }
                 }
                 if (link.linkType == "explorer") {
-                    // TODO
-                    // if (!explorerRecordsBySlug[link.target]) {
-                    //     acc.push({
-                    //         property: "content",
-                    //         message: `Explorer chart with slug ${link.target} does not exist or is not published`,
-                    //         type: OwidArticleErrorMessageType.Error,
-                    //     })
-                    // }
+                    if (!publishedExplorersBySlug[link.target]) {
+                        acc.push({
+                            property: "content",
+                            message: `Explorer chart with slug ${link.target} does not exist or is not published`,
+                            type: OwidArticleErrorMessageType.Error,
+                        })
+                    }
                 }
                 return acc
             },
@@ -296,6 +296,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
     static async getGdocFromContentSource(
         id: string,
+        publishedExplorersBySlug: Record<string, any>,
         contentSource?: GdocsContentSource
     ): Promise<OwidArticleType> {
         const gdoc = await Gdoc.findOneBy({ id })
@@ -308,7 +309,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
-        await gdoc.validate()
+        await gdoc.validate(publishedExplorersBySlug)
 
         return gdoc
     }

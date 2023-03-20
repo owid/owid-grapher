@@ -231,7 +231,8 @@ export const renderFrontPage = async () => {
     let featuredWork: IndexPost[]
     try {
         const frontPageConfigGdoc = await Gdoc.getGdocFromContentSource(
-            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID
+            GDOCS_HOMEPAGE_CONFIG_DOCUMENT_ID,
+            {}
         )
         const frontPageConfig: any = frontPageConfigGdoc.content
         const featuredPosts: { slug: string; position: number }[] =
