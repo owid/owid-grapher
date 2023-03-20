@@ -36,13 +36,13 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { grapherToSVG } from "../baker/GrapherImageBaker.js"
 import { getVariableData } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
-import { bakeEmbedSnippet } from "../site/webpackUtils.js"
 import { JsonError } from "@ourworldindata/utils"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { isWordpressAPIEnabled } from "../db/wpdb.js"
 import { EXPLORERS_ROUTE_FOLDER } from "../explorer/ExplorerConstants.js"
 import { getExplorerRedirectForPath } from "../explorerAdminServer/ExplorerRedirects.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
+import { generateEmbedSnippet } from "../site/viteUtils.js"
 
 require("express-async-errors")
 
@@ -87,9 +87,11 @@ mockSiteRouter.get(
     }
 )
 
-mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) =>
-    res.send(bakeEmbedSnippet(BAKED_BASE_URL))
-)
+mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
+    res.contentType("text/javascript").send(
+        generateEmbedSnippet(BAKED_BASE_URL)
+    )
+})
 
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)
 

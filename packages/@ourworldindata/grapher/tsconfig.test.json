@@ -1,5 +1,6 @@
 {
     "include": ["src/**/*"],
+    "exclude": ["**/*.stories.tsx"],
     "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "composite": false,

@@ -53,7 +53,7 @@ jobs:
             - name: Run eslint
               run: yarn testLint
 
-    # Runs `bundlewatch` on the code to see if our Webpack build assets exceed a given file size.
+    # Runs `bundlewatch` on the code to see if our Vite build assets exceed a given file size.
     bundlewatch:
         runs-on: ubuntu-latest
 

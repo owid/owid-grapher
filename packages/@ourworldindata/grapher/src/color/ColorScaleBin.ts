@@ -62,7 +62,7 @@ export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
     }
 
     contains(value: CoreValueType | undefined): boolean {
-        if (value === undefined) return false
+        if (typeof value !== "number") return false
 
         // In looking at this code, it is important to realise that `isOpenLeft`, `isOpenRight`,
         // and `isFirst` are _not_ mutually exclusive.

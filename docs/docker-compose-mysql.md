@@ -45,7 +45,7 @@ This should fire up a tmux console with 4 tabs:
 1. A tab that gives a brief overview of how to use this tmux setup
 2. A tab that outputs the Docker compose container logs
 3. A tab that shows the result of the TypeScript watch compiler process
-4. A tab that shows the output of the webpack and admin server watch processes
+4. A tab that shows the output of the vite and admin server watch processes
 
 The first time you run this it will take a while to download and set up the database (10-20 minutes is expected). Switch to the database tab and wait until you see this message:
 
