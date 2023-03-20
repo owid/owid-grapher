@@ -407,6 +407,7 @@ h3.article-block__heading.has-supertitle {
 
 .article-block__prominent-link {
     margin-bottom: 24px;
+    color: $blue-90;
 
     > .prominent-link__image {
         background-color: $gray-10;
@@ -418,27 +419,17 @@ h3.article-block__heading.has-supertitle {
             object-fit: cover;
         }
     }
-    p {
+
+    p,
+    h3 {
         margin: 2px 0;
     }
 
     h3 {
-        margin: 2px 0;
         display: inline-block;
-        color: $blue-90;
         &:hover {
             text-decoration: underline;
         }
-    }
-
-    svg {
-        color: $blue-90;
-        margin-left: 8px;
-        transition: 150ms;
-    }
-
-    a:hover svg {
-        transform: translateX(0.125em);
     }
 
     + .article-block__prominent-link {
