@@ -1081,7 +1081,7 @@ html:not(.js) {
         > .container {
             display: flex;
             flex-direction: row;
-            column-gap: $grid-gap;
+            column-gap: var(--grid-gap);
 
             > * {
                 flex: 1; // force width when no results
