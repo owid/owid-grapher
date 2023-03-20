@@ -57,20 +57,20 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onToggleTitleAnnotationEntity(value: boolean) {
         const { grapher } = this.props.editor
-        grapher.hideTitleAnnotation = grapher.hideTitleAnnotation || {}
-        grapher.hideTitleAnnotation.entity = value || undefined
+        grapher.hideAnnotationFieldsInTitle ??= {}
+        grapher.hideAnnotationFieldsInTitle.entity = value || undefined
     }
 
     @action.bound onToggleTitleAnnotationTime(value: boolean) {
         const { grapher } = this.props.editor
-        grapher.hideTitleAnnotation = grapher.hideTitleAnnotation || {}
-        grapher.hideTitleAnnotation.time = value || undefined
+        grapher.hideAnnotationFieldsInTitle ??= {}
+        grapher.hideAnnotationFieldsInTitle.time = value || undefined
     }
 
-    @action.bound onToggleTitleAnnotationChange(value: boolean) {
+    @action.bound onToggleTitleAnnotationChangeInPrefix(value: boolean) {
         const { grapher } = this.props.editor
-        grapher.hideTitleAnnotation = grapher.hideTitleAnnotation || {}
-        grapher.hideTitleAnnotation.change = value || undefined
+        grapher.hideAnnotationFieldsInTitle ??= {}
+        grapher.hideAnnotationFieldsInTitle.changeInPrefix = value || undefined
     }
 
     @computed get errorMessages() {
@@ -92,6 +92,14 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         return errorMessages
     }
 
+    @computed get showChangeInPrefixToggle() {
+        const { grapher } = this.props.editor
+        return (
+            grapher.isLineChart &&
+            (grapher.isRelativeMode || grapher.canToggleRelativeMode)
+        )
+    }
+
     render() {
         const { grapher, references } = this.props.editor
         const { relatedQuestions } = grapher
@@ -107,19 +115,25 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                     <Toggle
                         label="Hide automatic entity (where possible)"
-                        value={!!grapher.hideTitleAnnotation?.entity}
+                        value={!!grapher.hideAnnotationFieldsInTitle?.entity}
                         onValue={this.onToggleTitleAnnotationEntity}
                     />
                     <Toggle
                         label="Hide automatic time (where possible)"
-                        value={!!grapher.hideTitleAnnotation?.time}
+                        value={!!grapher.hideAnnotationFieldsInTitle?.time}
                         onValue={this.onToggleTitleAnnotationTime}
                     />
-                    <Toggle
-                        label="Don't prepend 'Change in' automatically (where possible)"
-                        value={!!grapher.hideTitleAnnotation?.change}
-                        onValue={this.onToggleTitleAnnotationChange}
-                    />
+                    {this.showChangeInPrefixToggle && (
+                        <Toggle
+                            label="Don't prepend 'Change in' in relative line charts"
+                            value={
+                                !!grapher.hideAnnotationFieldsInTitle
+                                    ?.changeInPrefix
+                            }
+                            onValue={this.onToggleTitleAnnotationChangeInPrefix}
+                        />
+                    )}
+                    <hr />
                     <AutoTextField
                         label="/grapher"
                         value={grapher.displaySlug}

@@ -84,6 +84,7 @@ import {
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
     FacetAxisDomain,
+    AnnotationFieldsInTitle,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
 } from "../core/GrapherConstants"
@@ -299,11 +300,8 @@ export class Grapher
     @observable.ref subtitle = ""
     @observable.ref sourceDesc?: string = undefined
     @observable.ref note = ""
-    @observable hideTitleAnnotation?: {
-        entity?: boolean
-        time?: boolean
-        change?: boolean
-    } = undefined
+    @observable hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle =
+        undefined
     @observable.ref minTime?: TimeBound = undefined
     @observable.ref maxTime?: TimeBound = undefined
     @observable.ref timelineMinTime?: Time = undefined
@@ -1212,13 +1210,12 @@ export class Grapher
     }
 
     @computed get currentTitle(): string {
-        console.log("IN CURR TITLE", this.hideTitleAnnotation)
-
         let text = this.displayTitle
         const selectedEntityNames = this.selection.selectedEntityNames
-        const showEntityAnnotation = !this.hideTitleAnnotation?.entity
-        const showTimeAnnotation = !this.hideTitleAnnotation?.time
-        const showChangeAnnotation = !this.hideTitleAnnotation?.change
+        const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
+        const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
+        const showChangeInPrefix =
+            !this.hideAnnotationFieldsInTitle?.changeInPrefix
 
         if (
             this.tab === GrapherTabOption.chart &&
@@ -1230,11 +1227,7 @@ export class Grapher
             if (entityStr?.length) text = `${text}, ${entityStr}`
         }
 
-        if (
-            this.isLineChart &&
-            this.isRelativeMode &&
-            (showChangeAnnotation || this.canToggleRelativeMode)
-        )
+        if (this.isLineChart && this.isRelativeMode && showChangeInPrefix)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
         if (
@@ -2326,7 +2319,7 @@ export class Grapher
         this.dimensions = grapher.dimensions
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
-        this.hideTitleAnnotation = grapher.hideTitleAnnotation
+        this.hideAnnotationFieldsInTitle = grapher.hideAnnotationFieldsInTitle
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions

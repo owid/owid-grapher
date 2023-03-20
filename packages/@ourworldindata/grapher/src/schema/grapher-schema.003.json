@@ -612,7 +612,7 @@
             ],
             "description": "Start point of the initially selected time span."
         },
-        "hideTitleAnnotation": {
+        "hideAnnotationFieldsInTitle": {
             "type": "object",
             "description": "Whether to hide any automatically added title annotations like the selected year",
             "properties": {
@@ -626,9 +626,9 @@
                     "description": "Whether to hide the time annotation",
                     "default": false
                 },
-                "change": {
+                "changeInPrefix": {
                     "type": "boolean",
-                    "description": "Whether to prevent \"Change in\" to be automatically added to the title in relative mode",
+                    "description": "Whether to hide \"Change in\" in relative line charts",
                     "default": false
                 }
             }

@@ -139,7 +139,7 @@ export const grapherKeysToSerialize = [
     "subtitle",
     "sourceDesc",
     "note",
-    "hideTitleAnnotation",
+    "hideAnnotationFieldsInTitle",
     "minTime",
     "maxTime",
     "timelineMinTime",

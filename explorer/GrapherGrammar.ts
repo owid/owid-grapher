@@ -106,16 +106,16 @@ export const GrapherGrammar: Grammar = {
         keyword: "sourceDesc",
         description: "Short comma-separated list of source names",
     },
-    hideTitleAnnotation: {
+    hideAnnotationFieldsInTitle: {
         ...BooleanCellDef,
         description: "Hide automatic time/entity",
-        keyword: "hideTitleAnnotation",
+        keyword: "hideAnnotationFieldsInTitle",
         parse: (value: any) => {
             const parsedValue = value === GridBoolean.true
             return {
                 entity: parsedValue,
                 time: parsedValue,
-                change: parsedValue,
+                changeInPrefix: parsedValue,
             }
         },
     },

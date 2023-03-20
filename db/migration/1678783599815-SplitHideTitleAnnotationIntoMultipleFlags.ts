@@ -6,19 +6,21 @@ export class SplitHideTitleAnnotationIntoMultipleFlags1678783599815
     public async up(queryRunner: QueryRunner): Promise<void> {
         queryRunner.query(`
             UPDATE charts
-            SET config = JSON_REPLACE(config, "$.hideTitleAnnotation", JSON_OBJECT("entity", TRUE, "time", TRUE, "change", TRUE))
-            WHERE config->"$.hideTitleAnnotation" IS true
+            SET config = JSON_SET(config, "$.hideAnnotationFieldsInTitle", JSON_OBJECT("entity", TRUE, "time", TRUE, "changeInPrefix", TRUE)),
+                config = JSON_REMOVE(config, "$.hideTitleAnnotation")
+            WHERE config->>"$.hideTitleAnnotation" = "true"
         `)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         queryRunner.query(`
             UPDATE charts
-            SET config = JSON_REPLACE(config, "$.hideTitleAnnotation", TRUE)
+            SET config = JSON_SET(config, "$.hideTitleAnnotation", TRUE),
+                config = JSON_REMOVE(config, "$.hideAnnotationFieldsInTitle")
             WHERE (
-                config->"$.hideTitleAnnotation.entity" IS TRUE
-                OR config->"$.hideTitleAnnotation.time" IS TRUE
-                OR config->"$.hideTitleAnnotation.change" IS TRUE
+                config->>"$.hideAnnotationFieldsInTitle.entity" = "true"
+                OR config->>"$.hideAnnotationFieldsInTitle.time" = "true"
+                OR config->>"$.hideAnnotationFieldsInTitle.changeInPrefix" = "true"
             )    
         `)
     }
