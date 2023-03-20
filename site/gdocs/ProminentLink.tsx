@@ -55,7 +55,7 @@ export const ProminentLink = (props: {
         : { target: "_blank", rel: "noopener noreferrer" }
     const thumbnail = props.thumbnail || linkedDocument?.content.cover
     const textContainerClassName = thumbnail
-        ? "col-start-2 col-md-start-3 col-end-limit"
+        ? "col-sm-start-4 col-md-start-3 col-start-2 col-end-limit"
         : "col-start-1 col-end-limit"
 
     return (
@@ -65,7 +65,7 @@ export const ProminentLink = (props: {
             {...anchorTagProps}
         >
             {thumbnail ? (
-                <div className="prominent-link__image span-cols-1 span-md-cols-2">
+                <div className="prominent-link__image span-sm-cols-3 span-md-cols-2">
                     <Image filename={thumbnail} containerType="thumbnail" />
                 </div>
             ) : null}
