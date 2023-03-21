@@ -75,22 +75,20 @@ describe("when the page is rendered", () => {
     )
 
     it("preloads the data", () => {
-        const dataBaseUrl = "http://localhost:3030/grapher/data/variables/"
         expect(
-            view.find(
-                `link[rel="preload"][href="${getVariableDataRoute(
-                    dataBaseUrl,
-                    3512
-                )}"]`
-            )
+            view
+                .find(`link[rel="preload"]`)
+                .filterWhere((element: any): boolean =>
+                    element.prop("href").endsWith("/data/3512.json")
+                )
         ).toHaveLength(1)
+
         expect(
-            view.find(
-                `link[rel="preload"][href="${getVariableMetadataRoute(
-                    dataBaseUrl,
-                    3512
-                )}"]`
-            )
+            view
+                .find(`link[rel="preload"]`)
+                .filterWhere((element: any): boolean =>
+                    element.prop("href").endsWith("/metadata/3512.json")
+                )
         ).toHaveLength(1)
     })
 
