@@ -23,6 +23,7 @@ export {
     FacetStrategy,
     FacetAxisDomain,
     SeriesStrategy,
+    MissingDataStrategy,
     ThereWasAProblemLoadingThisChart,
     type SeriesColorMap,
     GrapherTabOption,

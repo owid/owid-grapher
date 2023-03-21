@@ -8,6 +8,7 @@ import {
     ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
+    MissingDataStrategy,
 } from "@ourworldindata/grapher"
 import {
     NumberField,
@@ -37,6 +38,7 @@ import {
 } from "./ColorSchemeDropdown.js"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import Select from "react-select"
+
 @observer
 export class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
@@ -386,6 +388,68 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
+class MissingDataSection extends React.Component<{ editor: ChartEditor }> {
+    missingDataStrategyLabels = {
+        [MissingDataStrategy.auto]: "Automatic",
+        [MissingDataStrategy.hide]: "Hide charts with missing data",
+        [MissingDataStrategy.show]: "Render charts with missing data",
+    }
+
+    @computed get grapher() {
+        return this.props.editor.grapher
+    }
+
+    @computed get missingDataStrategyOptions(): {
+        value: MissingDataStrategy
+        label: string
+    }[] {
+        return Object.values(MissingDataStrategy).map((strategy) => {
+            return {
+                value: strategy,
+                label: this.missingDataStrategyLabels[strategy],
+            }
+        })
+    }
+
+    @computed get selectedMissingDataStrategyOption(): {
+        value: MissingDataStrategy
+        label: string
+    } {
+        const { grapher } = this
+
+        const selectedOption = this.missingDataStrategyOptions.find(
+            (opt) => opt.value === grapher.missingDataStrategy
+        )
+
+        if (selectedOption) return selectedOption
+
+        return {
+            value: MissingDataStrategy.auto,
+            label: this.missingDataStrategyLabels[MissingDataStrategy.auto],
+        }
+    }
+
+    render() {
+        const { grapher } = this
+
+        return (
+            <Section name="Missing data">
+                <div className="form-group">
+                    Missing data strategy
+                    <Select
+                        options={this.missingDataStrategyOptions}
+                        value={this.selectedMissingDataStrategyOption}
+                        onChange={(option) =>
+                            (grapher.missingDataStrategy = option?.value)
+                        }
+                    />
+                </div>
+            </Section>
+        )
+    }
+}
+
+@observer
 class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
     @observable comparisonLines: ComparisonLineConfig[] = []
 
@@ -654,6 +718,7 @@ export class EditorCustomizeTab extends React.Component<{
                         </FieldsRow>
                     </Section>
                 )}
+                <MissingDataSection editor={this.props.editor} />
                 {features.comparisonLine && (
                     <ComparisonLineSection editor={this.props.editor} />
                 )}

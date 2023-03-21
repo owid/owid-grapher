@@ -43,6 +43,7 @@ import {
     ScaleType,
     SeriesStrategy,
     FacetStrategy,
+    MissingDataStrategy,
 } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, FontSizeManager } from "../axis/AxisConfig"
@@ -286,7 +287,15 @@ export class LineChart
                 .interpolateColumnWithTolerance(this.colorColumnSlug)
         }
 
+        if (this.missingDataStrategy === MissingDataStrategy.hide) {
+            table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+        }
+
         return table
+    }
+
+    @computed private get missingDataStrategy(): MissingDataStrategy {
+        return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
     @computed get inputTable(): OwidTable {

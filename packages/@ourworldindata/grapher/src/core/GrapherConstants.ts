@@ -63,6 +63,12 @@ export enum SeriesStrategy {
     entity = "entity", // One line per entity
 }
 
+export enum MissingDataStrategy {
+    auto = "auto", // pick default strategy based on chart type
+    hide = "hide", // hide charts with missing data
+    show = "show", // show charts with missing data
+}
+
 export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`
 
 export type SeriesColorMap = Map<SeriesName, Color>
