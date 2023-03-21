@@ -198,7 +198,7 @@ export const FrontPage = (props: {
                                             data-track-note="homepage-see-all-explainers"
                                         >
                                             <div className="label">
-                                                See all of our latest work
+                                                See our latest work
                                             </div>
                                             <div className="icon">
                                                 <FontAwesomeIcon
