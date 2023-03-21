@@ -6,6 +6,7 @@ import {
     OwidArticleType,
     formatDate,
     getArticleFromJSON,
+    LinkedChart,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
@@ -17,9 +18,10 @@ import { DebugProvider } from "./DebugContext.js"
 import { ImageMetadata } from "@ourworldindata/utils"
 
 export const AttachmentsContext = createContext<{
+    linkedCharts: Record<string, LinkedChart>
     linkedDocuments: Record<string, OwidArticleType>
     imageMetadata: Record<string, ImageMetadata>
-}>({ linkedDocuments: {}, imageMetadata: {} })
+}>({ linkedDocuments: {}, imageMetadata: {}, linkedCharts: {} })
 
 export const ArticleContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
@@ -33,6 +35,7 @@ export function OwidArticle({
     content,
     publishedAt,
     slug,
+    linkedCharts = {},
     linkedDocuments = {},
     imageMetadata = {},
     isPreviewing = false,
@@ -69,7 +72,9 @@ export function OwidArticle({
 }`
 
     return (
-        <AttachmentsContext.Provider value={{ linkedDocuments, imageMetadata }}>
+        <AttachmentsContext.Provider
+            value={{ linkedDocuments, imageMetadata, linkedCharts }}
+        >
             <ArticleContext.Provider value={{ isPreviewing }}>
                 <article className="centered-article-container grid grid-cols-12-full-width">
                     <div className="article-banner" style={coverStyle}></div>

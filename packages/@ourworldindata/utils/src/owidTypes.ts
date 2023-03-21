@@ -874,6 +874,13 @@ export enum OwidArticlePublicationContext {
     listed = "listed",
 }
 
+// A minimal object containing metadata needed for rendering prominent links etc in the client
+export interface LinkedChart {
+    slug: string
+    title: string
+    thumbnail?: string
+}
+
 export interface OwidArticleType {
     id: string
     slug: string
@@ -884,6 +891,7 @@ export interface OwidArticleType {
     updatedAt: Date | null
     publicationContext: OwidArticlePublicationContext
     revisionId: string | null
+    linkedCharts?: Record<string, LinkedChart>
     linkedDocuments?: Record<string, OwidArticleType>
     imageMetadata?: Record<string, ImageMetadata>
     errors?: OwidArticleErrorMessage[]

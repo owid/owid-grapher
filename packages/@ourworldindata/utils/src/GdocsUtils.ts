@@ -25,9 +25,7 @@ export function getLinkType(
 }
 
 export function checkIsInternalLink(url: string): boolean {
-    if (getLinkType(url) === "gdoc") return true
-    // TODO: if (getLinkType(url) === 'grapher') return true etc..
-    return false
+    return ["gdoc", "grapher", "explorer"].includes(getLinkType(url))
 }
 
 export function getUrlTarget(urlString: string): string {

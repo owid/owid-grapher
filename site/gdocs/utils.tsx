@@ -7,15 +7,43 @@ import {
     SpanLink,
     OwidArticleType,
     ImageMetadata,
+    LinkedChart,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 import { AttachmentsContext } from "./OwidArticle.js"
 
-export const useLinkedDocument = (url: string): OwidArticleType | undefined => {
+export const useLinkedDocument = (
+    url: string
+): { linkedDocument?: OwidArticleType; errorMessage?: string } => {
+    let errorMessage: string | undefined = undefined
     const { linkedDocuments } = useContext(AttachmentsContext)
     const urlTarget = getUrlTarget(url)
+    const linkType = getLinkType(url)
     const linkedDocument = linkedDocuments?.[urlTarget]
-    return linkedDocument
+    if (linkType === "gdoc") {
+        if (!linkedDocument) {
+            errorMessage = `Google doc URL ${url} isn't registered.`
+        } else if (!linkedDocument.published) {
+            errorMessage = `Article with slug "${linkedDocument.slug}" isn't published.`
+        }
+    }
+    return { linkedDocument, errorMessage }
+}
+
+export const useLinkedChart = (
+    url: string
+): { linkedChart?: LinkedChart; errorMessage?: string } => {
+    let errorMessage: string | undefined = undefined
+    const { linkedCharts } = useContext(AttachmentsContext)
+    const urlTarget = getUrlTarget(url)
+    const linkType = getLinkType(url)
+    const linkedChart = linkedCharts?.[urlTarget]
+    if (linkType === "grapher" || linkType === "explorer") {
+        if (!linkedChart) {
+            errorMessage = `${linkType} chart with slug ${urlTarget} not found`
+        }
+    }
+    return { linkedChart, errorMessage }
 }
 
 export const useImage = (
@@ -29,7 +57,7 @@ export const useImage = (
 
 const LinkedA = ({ span }: { span: SpanLink }): JSX.Element => {
     const linkType = getLinkType(span.url)
-    const linkedDocument = useLinkedDocument(span.url)
+    const { linkedDocument } = useLinkedDocument(span.url)
 
     if (linkType === "url") {
         return (

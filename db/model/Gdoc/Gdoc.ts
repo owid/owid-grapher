@@ -6,6 +6,7 @@ import {
     PrimaryColumn,
 } from "typeorm"
 import {
+    LinkedChart,
     OwidArticleContent,
     OwidArticleType,
     OwidArticleTypePublished,
@@ -36,7 +37,9 @@ import { gdocToArchie } from "./gdocToArchie.js"
 import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
+import { Chart } from "../Chart.js"
 import { getChartsRecords } from "../../contentGraph.js"
+import { excludeNullish } from "@ourworldindata/utils/dist/Util.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -50,6 +53,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+    linkedCharts: Record<string, LinkedChart> = {}
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
     errors: OwidArticleErrorMessage[] = []
@@ -177,6 +181,30 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         ).then(excludeNull)
 
         this.linkedDocuments = keyBy(linkedDocuments, "id")
+    }
+
+    async loadLinkedCharts(): Promise<void> {
+        const slugToIdMap = await Chart.mapSlugsToIds()
+
+        const linkedGrapherCharts = await Promise.all(
+            this.links
+                .filter((link) => link.linkType === "grapher")
+                .map((link) => link.target)
+                // filter duplicates
+                .filter((target, i, links) => links.indexOf(target) === i)
+                .map(async (target) => {
+                    const chartId = slugToIdMap[target]
+                    const chart = await Chart.findOneBy({ id: chartId })
+                    const linkedChart: LinkedChart = {
+                        slug: chart?.config.slug ?? "",
+                        title: chart?.config.title ?? "",
+                        thumbnail: `${chart?.config.slug}.svg`,
+                    }
+                    return linkedChart
+                })
+        ).then(excludeNullish)
+
+        this.linkedCharts = keyBy(linkedGrapherCharts, "slug")
     }
 
     get links(): Link[] {
@@ -309,6 +337,8 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
+        await gdoc.loadLinkedCharts()
+
         await gdoc.validate(publishedExplorersBySlug)
 
         return gdoc

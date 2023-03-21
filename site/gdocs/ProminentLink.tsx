@@ -4,10 +4,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
 import Image from "./Image.js"
-import { useLinkedDocument } from "./utils.js"
+import { useLinkedChart, useLinkedDocument } from "./utils.js"
 import { ArticleContext } from "./OwidArticle.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { getLinkType } from "@ourworldindata/utils"
 
 export const ProminentLink = (props: {
     url: string
@@ -17,37 +16,32 @@ export const ProminentLink = (props: {
     thumbnail?: string
 }) => {
     const { url, className = "" } = props
-    const linkType = getLinkType(url)
-    const linkedDocument = useLinkedDocument(url)
+    const { linkedDocument, errorMessage: linkedDocumentErrorMessage } =
+        useLinkedDocument(url)
+    const { linkedChart, errorMessage: linkedChartErrorMessage } =
+        useLinkedChart(url)
+    const errorMessage = linkedDocumentErrorMessage || linkedChartErrorMessage
     const { isPreviewing } = useContext(ArticleContext)
-    if (linkType == "gdoc") {
-        let error: Error | undefined = undefined
-        if (!linkedDocument) {
-            error = {
-                name: "Error in prominent link",
-                message: `Google doc URL ${url} isn't registered. This block will not render when the page is baked.`,
-            }
-        } else if (!linkedDocument.published) {
-            error = {
-                name: "Error in prominent link",
-                message: `Article with slug "${linkedDocument.slug}" isn't published. This block will not render when the page is baked.`,
-            }
-        }
-        if (error) {
-            if (isPreviewing) {
-                return (
-                    <div className={className}>
-                        <BlockErrorFallback
-                            className="span-cols-6"
-                            error={error}
-                        />
-                    </div>
-                )
-            } else return null
-        }
+
+    if (errorMessage) {
+        if (isPreviewing) {
+            return (
+                <div className={className}>
+                    <BlockErrorFallback
+                        className="span-cols-6 span-md-cols-10 span-sm-cols-12"
+                        error={{
+                            name: "Error with prominent link",
+                            message:
+                                errorMessage +
+                                " This block won't render when the page is published",
+                        }}
+                    />
+                </div>
+            )
+        } else return null
     }
 
-    // If the link points to a gdoc_post, we can use its metadata
+    // If the link points to a gdoc_post or chart, we can use its metadata
     // But we still allow for overrides written in archie
     const title = props.title || linkedDocument?.content.title
     const description = props.description || linkedDocument?.content.excerpt
