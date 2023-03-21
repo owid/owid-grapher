@@ -242,15 +242,8 @@ $zindex-dropdown: 100;
 }
 
 .mobile-explorer {
-    grid-template-columns: auto;
-    grid-template-rows: 0fr 0fr 0fr 1fr;
-
     .EntityList {
         min-height: 150px;
         height: 35vh;
-    }
-
-    .ExplorerFigure {
-        min-height: 480px;
     }
 }
