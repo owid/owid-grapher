@@ -200,7 +200,7 @@ export default function ArticleBlock({
         .with({ type: "heading", level: 1 }, (block) => (
             <h1
                 className={cx(
-                    "display-2-semibold",
+                    "h1-semibold",
                     getLayout("heading", containerType)
                 )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
@@ -226,7 +226,7 @@ export default function ArticleBlock({
                     ) : null}
                     <h2
                         className={cx(
-                            "h1-semibold",
+                            "h2-bold",
                             getLayout("heading", containerType),
                             {
                                 "has-supertitle": supertitle
@@ -258,7 +258,7 @@ export default function ArticleBlock({
             return (
                 <h3
                     className={cx(
-                        "h2-bold",
+                        "h3-bold",
                         getLayout("heading", containerType),
                         {
                             "has-supertitle": supertitle
@@ -279,7 +279,10 @@ export default function ArticleBlock({
         })
         .with({ type: "heading", level: 4 }, (block) => (
             <h4
-                className={cx("h3-bold", getLayout("heading", containerType))}
+                className={cx(
+                    "h4-semibold",
+                    getLayout("heading", containerType)
+                )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
             >
                 {renderSpans(block.text)}
@@ -288,7 +291,7 @@ export default function ArticleBlock({
         .with({ type: "heading", level: 5 }, (block) => (
             <h5
                 className={cx(
-                    "h4-semibold",
+                    "overline-black-caps",
                     getLayout("heading", containerType)
                 )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
