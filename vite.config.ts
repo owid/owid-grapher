@@ -20,6 +20,9 @@ export default defineConfig({
                 "@ourworldindata/core-table/src/index.ts",
         },
     },
+    css: {
+        devSourcemap: true,
+    },
     define: {
         // Replace all clientSettings with their respective values, i.e. assign e.g. BUGNSAG_API_KEY to process.env.BUGNSAG_API_KEY
         // it's important to note that we only expose values that are present in the clientSettings file - not any other things that are stored in .env
