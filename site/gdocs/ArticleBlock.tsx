@@ -425,9 +425,7 @@ export default function ArticleBlock({
         .with({ type: "prominent-link" }, (block) => (
             <ProminentLink
                 className={getLayout("prominent-link", containerType)}
-                title={block.title}
-                url={block.url}
-                description={block.description}
+                {...block}
             />
         ))
         .with({ type: "sdg-toc" }, () => {

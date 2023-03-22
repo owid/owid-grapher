@@ -9,7 +9,7 @@
         grid-row: span 2;
         content: "";
         border-right: 1px solid #ffd3d3;
-        margin-right: $grid-gap;
+        margin-right: var(--grid-gap);
     }
 
     .sdg-toc-toggle {

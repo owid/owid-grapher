@@ -141,8 +141,13 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         this.content.body?.forEach((node) =>
             recursivelyMapArticleContent(node, (item) => {
-                if ("type" in item && item.type === "image") {
-                    filenames.add(item.filename)
+                if ("type" in item) {
+                    if (item.type === "image") {
+                        filenames.add(item.filename)
+                    }
+                    if (item.type === "prominent-link" && item.thumbnail) {
+                        filenames.add(item.thumbnail)
+                    }
                 }
                 return item
             })

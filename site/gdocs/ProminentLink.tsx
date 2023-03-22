@@ -1,7 +1,5 @@
 import React, { useContext } from "react"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { getLinkType } from "@ourworldindata/utils"
 
 import Image from "./Image.js"
@@ -55,7 +53,6 @@ export const ProminentLink = (props: {
         href = `${linkedChart?.path}`
         title = title ?? linkedChart?.title
         thumbnail = thumbnail ?? linkedChart?.thumbnail
-        // TODO: this won't work with the Image component
     }
 
     const anchorTagProps =
@@ -64,13 +61,17 @@ export const ProminentLink = (props: {
             : undefined
 
     const textContainerClassName = thumbnail
-        ? "col-start-2 col-md-start-3 col-end-limit"
+        ? "col-sm-start-4 col-md-start-3 col-start-2 col-end-limit"
         : "col-start-1 col-end-limit"
 
     return (
-        <div className={cx(props.className, "prominent-link")}>
+        <a
+            className={cx(props.className, "prominent-link")}
+            href={href}
+            {...anchorTagProps}
+        >
             {thumbnail ? (
-                <div className="prominent-link__image span-cols-1 span-md-cols-2">
+                <div className="prominent-link__image span-sm-cols-3 span-md-cols-2">
                     {linkType === "gdoc" ? (
                         <Image filename={thumbnail} containerType="thumbnail" />
                     ) : (
@@ -79,12 +80,11 @@ export const ProminentLink = (props: {
                 </div>
             ) : null}
             <div className={textContainerClassName}>
-                <a href={href} {...anchorTagProps}>
-                    <h3 className="h3-bold">{title}</h3>
-                    <FontAwesomeIcon icon={faArrowRight} />
-                </a>
-                <p className="body-3-medium">{description}</p>
+                <h3 className="h3-bold">{title}</h3>
+                {description ? (
+                    <p className="body-3-medium">{description}</p>
+                ) : null}
             </div>
-        </div>
+        </a>
     )
 }

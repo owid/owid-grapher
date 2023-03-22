@@ -123,4 +123,13 @@ html.IsInIframe .ExplorerFigure,
             position: absolute;
         }
     }
+
+    &.mobile-explorer {
+        grid-template-columns: auto;
+        grid-template-rows: 0fr 0fr 0fr 1fr;
+
+        .ExplorerFigure {
+            min-height: 480px;
+        }
+    }
 }
