@@ -18,6 +18,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
+import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 export enum Menu {
     Topics = "topics",
@@ -62,7 +63,7 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
 
     useEffect(() => {
         const fetchCategorizedTopics = async () => {
-            const response = await fetch("/headerMenu.json", {
+            const response = await fetch(`${BAKED_BASE_URL}/headerMenu.json`, {
                 method: "GET",
                 credentials: "same-origin",
                 headers: {
