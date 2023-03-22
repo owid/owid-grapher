@@ -210,6 +210,7 @@ export function enrichedBlockToRawBlock(
                     url: b.url,
                     title: b.title,
                     description: b.description,
+                    thumbnail: b.thumbnail,
                 },
             })
         )
