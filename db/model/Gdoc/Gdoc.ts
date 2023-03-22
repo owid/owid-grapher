@@ -41,7 +41,10 @@ import { imageStore } from "../Image.js"
 import { Chart } from "../Chart.js"
 import { getChartsRecords } from "../../contentGraph.js"
 import { excludeNullish } from "@ourworldindata/utils/dist/Util.js"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../../settings/clientSettings.js"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+} from "../../../settings/clientSettings.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -190,30 +193,56 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         this.linkedDocuments = keyBy(linkedDocuments, "id")
     }
 
-    async loadLinkedCharts(): Promise<void> {
+    async loadLinkedCharts(
+        publishedExplorersBySlug: Record<string, any>
+    ): Promise<void> {
         const slugToIdMap = await Chart.mapSlugsToIds()
+        const uniqueSlugsByLinkType = this.links
+            .filter(({ linkType }) =>
+                ["grapher", "explorer"].includes(linkType)
+            )
+            .reduce(
+                (acc, { target, linkType }) => {
+                    if (!acc[linkType].includes(target)) {
+                        acc[linkType].push(target)
+                    }
+                    return acc
+                },
+                { grapher: [], explorer: [] } as Record<string, string[]>
+            )
 
         const linkedGrapherCharts = await Promise.all(
-            this.links
-                .filter((link) => link.linkType === "grapher")
-                .map((link) => link.target)
-                // filter duplicates
-                .filter((target, i, links) => links.indexOf(target) === i)
-                .map(async (target) => {
-                    const chartId = slugToIdMap[target]
-                    const chart = await Chart.findOneBy({ id: chartId })
-                    const slug = chart?.config.slug ?? ""
-                    const linkedChart: LinkedChart = {
-                        slug,
-                        title: chart?.config.title ?? "",
-                        path: `${BAKED_GRAPHER_URL}/${slug}`,
-                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart?.config.slug}.svg`,
-                    }
-                    return linkedChart
-                })
+            uniqueSlugsByLinkType.grapher.map(async (slug) => {
+                const chartId = slugToIdMap[slug]
+                const chart = await Chart.findOneBy({ id: chartId })
+                const resolvedSlug = chart?.config.slug ?? ""
+                const linkedChart: LinkedChart = {
+                    slug: resolvedSlug,
+                    title: chart?.config.title ?? "",
+                    path: `${BAKED_GRAPHER_URL}/${slug}`,
+                    thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart?.config.slug}.svg`,
+                }
+                return linkedChart
+            })
         ).then(excludeNullish)
 
-        this.linkedCharts = keyBy(linkedGrapherCharts, "slug")
+        const linkedExplorerCharts = await Promise.all(
+            uniqueSlugsByLinkType.explorer.map(async (slug) => {
+                const explorer = publishedExplorersBySlug[slug]
+                const linkedChart: LinkedChart = {
+                    slug,
+                    title: explorer?.explorerTitle ?? "",
+                    path: `${BAKED_BASE_URL}/explorers/${slug}`,
+                    thumbnail: `${BAKED_BASE_URL}/default-thumbnail.jpg`,
+                }
+                return linkedChart
+            })
+        ).then(excludeNullish)
+
+        this.linkedCharts = keyBy(
+            [...linkedGrapherCharts, ...linkedExplorerCharts],
+            "slug"
+        )
     }
 
     get links(): Link[] {
@@ -346,7 +375,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
 
         await gdoc.loadLinkedDocuments()
         await gdoc.loadImageMetadata()
-        await gdoc.loadLinkedCharts()
+        await gdoc.loadLinkedCharts(publishedExplorersBySlug)
 
         await gdoc.validate(publishedExplorersBySlug)
 
