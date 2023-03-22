@@ -406,18 +406,17 @@ h3.article-block__heading.has-supertitle {
 }
 
 .article-block__prominent-link {
-    color: $blue-90;
     margin-bottom: 24px;
+    color: $blue-90;
 
     > .prominent-link__image {
-        background-color: $gray-10;
         height: 100%;
         width: 100%;
+    }
 
-        img {
-            height: 100%;
-            object-fit: cover;
-        }
+    p,
+    h3 {
+        margin: 2px 0;
     }
 
     h3 {
@@ -425,16 +424,6 @@ h3.article-block__heading.has-supertitle {
         &:hover {
             text-decoration: underline;
         }
-    }
-
-    svg {
-        color: $blue-90;
-        margin-left: 8px;
-        transition: 150ms;
-    }
-
-    a:hover svg {
-        transform: translateX(0.125em);
     }
 
     + .article-block__prominent-link {

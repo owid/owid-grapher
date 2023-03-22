@@ -1,7 +1,5 @@
 import React, { useContext } from "react"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 
 import Image from "./Image.js"
 import { useLinkedDocument } from "./utils.js"
@@ -57,23 +55,24 @@ export const ProminentLink = (props: {
         : { target: "_blank", rel: "noopener noreferrer" }
     const thumbnail = props.thumbnail || linkedDocument?.content.cover
     const textContainerClassName = thumbnail
-        ? "col-start-2 col-md-start-3 col-end-limit"
-        : "col-md-start-1 col-end-limit"
+        ? "col-sm-start-4 col-md-start-3 col-start-2 col-end-limit"
+        : "col-start-1 col-end-limit"
 
     return (
-        <div className={cx(className, "prominent-link")}>
+        <a
+            className={cx(className, "prominent-link")}
+            href={href}
+            {...anchorTagProps}
+        >
             {thumbnail ? (
-                <div className="prominent-link__image span-cols-1 span-md-cols-2">
+                <div className="prominent-link__image span-sm-cols-3 span-md-cols-2">
                     <Image filename={thumbnail} containerType="thumbnail" />
                 </div>
             ) : null}
             <div className={textContainerClassName}>
-                <a href={href} {...anchorTagProps}>
-                    <h3 className="h3-bold">{title}</h3>
-                    <FontAwesomeIcon icon={faArrowRight} />
-                </a>
+                <h3 className="h3-bold">{title}</h3>
                 <p className="body-3-medium">{description}</p>
             </div>
-        </div>
+        </a>
     )
 }

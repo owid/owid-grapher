@@ -1,6 +1,6 @@
 .sdg-grid {
     margin-top: 24px;
-    row-gap: $grid-gap;
+    row-gap: var(--grid-gap);
     &:before {
         content: "";
         @include sm-up {

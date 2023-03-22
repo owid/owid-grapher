@@ -68,7 +68,7 @@
 @mixin grid($columns) {
     display: grid;
     grid-template-columns: repeat($columns, 1fr);
-    column-gap: $grid-gap;
+    column-gap: var(--grid-gap);
 }
 
 @mixin left-media-columns {
