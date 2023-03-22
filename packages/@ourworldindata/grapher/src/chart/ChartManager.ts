@@ -4,6 +4,7 @@ import {
     FacetStrategy,
     SeriesColorMap,
     SeriesStrategy,
+    MissingDataStrategy,
 } from "../core/GrapherConstants"
 import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
 import { TooltipManager } from "../tooltip/TooltipProps"
@@ -82,4 +83,6 @@ export interface ChartManager {
 
     externalLegendFocusBin?: ColorScaleBin | undefined
     disableIntroAnimation?: boolean
+
+    missingDataStrategy?: MissingDataStrategy
 }

@@ -24,6 +24,7 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     FacetStrategy,
+    MissingDataStrategy,
     SeriesName,
 } from "../core/GrapherConstants"
 import {
@@ -131,6 +132,10 @@ export class StackedDiscreteBarChart
             )
         }
 
+        if (this.missingDataStrategy === MissingDataStrategy.hide) {
+            table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+        }
+
         return table
     }
 
@@ -157,6 +162,10 @@ export class StackedDiscreteBarChart
 
     @computed private get bounds(): Bounds {
         return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
+    }
+
+    @computed private get missingDataStrategy(): MissingDataStrategy {
+        return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
     @computed private get baseFontSize(): number {

@@ -1,6 +1,6 @@
 import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
-import { MissingDataStrategy, SeriesName } from "../core/GrapherConstants"
+import { SeriesName } from "../core/GrapherConstants"
 import { ChartSeries } from "../chart/ChartInterface"
 import { CoreValueType } from "@ourworldindata/core-table"
 import { Color } from "@ourworldindata/utils"
@@ -39,5 +39,4 @@ export interface LinesProps {
 export interface LineChartManager extends ChartManager {
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean
-    missingDataStrategy?: MissingDataStrategy
 }
