@@ -96,4 +96,15 @@ export class EditorFeatures {
     @computed get canHideTotalValueLabel() {
         return this.grapher.isStackedDiscreteBar
     }
+
+    @computed get canSpecifyMissingDataStrategy() {
+        return (
+            this.grapher.canChangeEntity &&
+            (this.grapher.isStackedArea ||
+                this.grapher.isStackedBar ||
+                this.grapher.isStackedDiscreteBar ||
+                this.grapher.isDiscreteBar ||
+                this.grapher.isLineChart)
+        )
+    }
 }

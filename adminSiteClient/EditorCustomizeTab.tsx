@@ -718,7 +718,9 @@ export class EditorCustomizeTab extends React.Component<{
                         </FieldsRow>
                     </Section>
                 )}
-                <MissingDataSection editor={this.props.editor} />
+                {features.canSpecifyMissingDataStrategy && (
+                    <MissingDataSection editor={this.props.editor} />
+                )}
                 {features.comparisonLine && (
                     <ComparisonLineSection editor={this.props.editor} />
                 )}
