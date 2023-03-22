@@ -28,6 +28,7 @@ import {
     OwidArticleErrorMessageType,
 } from "@ourworldindata/utils"
 import {
+    BAKED_GRAPHER_URL,
     GDOCS_CLIENT_EMAIL,
     GDOCS_CLIENT_ID,
     GDOCS_PRIVATE_KEY,
@@ -40,6 +41,7 @@ import { imageStore } from "../Image.js"
 import { Chart } from "../Chart.js"
 import { getChartsRecords } from "../../contentGraph.js"
 import { excludeNullish } from "@ourworldindata/utils/dist/Util.js"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../../../settings/clientSettings.js"
 
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
@@ -195,10 +197,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                 .map(async (target) => {
                     const chartId = slugToIdMap[target]
                     const chart = await Chart.findOneBy({ id: chartId })
+                    const slug = chart?.config.slug ?? ""
                     const linkedChart: LinkedChart = {
-                        slug: chart?.config.slug ?? "",
+                        slug,
                         title: chart?.config.title ?? "",
-                        thumbnail: `${chart?.config.slug}.svg`,
+                        path: `${BAKED_GRAPHER_URL}/${slug}`,
+                        thumbnail: `${BAKED_GRAPHER_EXPORTS_BASE_URL}/${chart?.config.slug}.svg`,
                     }
                     return linkedChart
                 })

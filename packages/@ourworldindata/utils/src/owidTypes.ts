@@ -877,6 +877,7 @@ export enum OwidArticlePublicationContext {
 // A minimal object containing metadata needed for rendering prominent links etc in the client
 export interface LinkedChart {
     slug: string
+    path: string
     title: string
     thumbnail?: string
 }
