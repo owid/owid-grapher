@@ -169,6 +169,7 @@ mockSiteRouter.get("/headerMenu.json", async (req, res) => {
         res.status(404).send(await renderNotFoundPage())
         return
     }
+    res.contentType("application/json")
     res.send(await renderMenuJson())
 })
 
