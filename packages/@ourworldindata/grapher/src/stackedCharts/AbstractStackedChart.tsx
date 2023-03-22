@@ -5,6 +5,7 @@ import { ChartManager } from "../chart/ChartManager"
 import {
     BASE_FONT_SIZE,
     FacetStrategy,
+    MissingDataStrategy,
     SeriesStrategy,
 } from "../core/GrapherConstants"
 import {
@@ -67,7 +68,9 @@ export class AbstractStackedChart
         // Drop rows for which no valid data points exist for any display column
         // after interpolation, which most likely means they lie at the start/end
         // of the time range and were not extrapolated
-        table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+        if (this.missingDataStrategy !== MissingDataStrategy.show) {
+            table = table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
+        }
 
         if (this.manager.isRelativeMode) {
             table = this.isEntitySeries
@@ -79,6 +82,10 @@ export class AbstractStackedChart
                   )
         }
         return table
+    }
+
+    @computed private get missingDataStrategy(): MissingDataStrategy {
+        return this.manager.missingDataStrategy || MissingDataStrategy.auto
     }
 
     @computed get shouldRunLinearInterpolation(): boolean {
