@@ -47,12 +47,15 @@ $banner-height: 200px;
     }
 }
 
-h1.article-block__heading {
+h1.article-block__heading,
+h2.article-block__heading,
+h3.article-block__heading {
     text-align: left;
 }
 
 h2.article-block__heading.has-supertitle {
     margin-top: 24px;
+    text-align: center;
     .article-block__heading-supertitle {
         color: $blue-50;
         margin-bottom: 8px;
@@ -82,6 +85,7 @@ h2.article-block__heading.has-supertitle {
 }
 
 h3.article-block__heading.has-supertitle {
+    text-align: center;
     margin-bottom: 24px;
 
     .article-block__heading-supertitle {
