@@ -423,9 +423,10 @@ export class ChartEditorPage
                             >
                                 <input
                                     type="radio"
-                                    onChange={action(
-                                        () => (editor.previewMode = "mobile")
-                                    )}
+                                    onChange={action(() => {
+                                        editor.previewMode = "mobile"
+                                        this.refresh()
+                                    })}
                                     name="previewSize"
                                     id="mobile"
                                     checked={previewMode === "mobile"}
@@ -440,9 +441,10 @@ export class ChartEditorPage
                                 title="Desktop preview"
                             >
                                 <input
-                                    onChange={action(
-                                        () => (editor.previewMode = "desktop")
-                                    )}
+                                    onChange={action(() => {
+                                        editor.previewMode = "desktop"
+                                        this.refresh()
+                                    })}
                                     type="radio"
                                     name="previewSize"
                                     id="desktop"
