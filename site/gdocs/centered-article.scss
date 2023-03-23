@@ -47,6 +47,10 @@ $banner-height: 200px;
     }
 }
 
+h1.article-block__heading {
+    text-align: left;
+}
+
 h2.article-block__heading.has-supertitle {
     margin-top: 24px;
     .article-block__heading-supertitle {
@@ -183,13 +187,18 @@ h3.article-block__heading.has-supertitle {
 
 .article-block__text,
 .article-block__list,
-.article-block__html {
-    @include body-2-regular;
+.article-block__html,
+.article-block__numbered-list {
+    @include body-1-regular;
 
     .span-link {
         @include owid-link-60;
         color: inherit;
     }
+}
+
+.article-block__numbered-list {
+    margin-left: 16px;
 }
 
 .article-block__aside-right figcaption {
