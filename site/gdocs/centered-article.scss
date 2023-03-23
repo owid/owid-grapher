@@ -99,12 +99,14 @@ h3.article-block__heading.has-supertitle {
     .centered-article-header__title {
         @include display-2-semibold;
         margin-top: 0;
+        margin-bottom: 24px;
         color: $blue-90;
     }
 }
 
 .centered-article-header__subtitle {
     @include subtitle-1;
+    margin-top: 0;
     color: $blue-50;
 }
 
