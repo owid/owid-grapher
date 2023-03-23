@@ -30,14 +30,21 @@ import { SiteHeader } from "./SiteHeader.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
+    datapage?: any
     post?: PostRow
     relatedCharts?: RelatedChart[]
     relatedArticles?: PostReference[]
     baseUrl: string
     baseGrapherUrl: string
 }) => {
-    const { grapher, relatedCharts, relatedArticles, baseGrapherUrl, baseUrl } =
-        props
+    const {
+        grapher,
+        datapage,
+        relatedCharts,
+        relatedArticles,
+        baseGrapherUrl,
+        baseUrl,
+    } = props
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
     let pageDesc: string
@@ -108,6 +115,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
+                    {datapage && <h1>{datapage.title}</h1>}
                     <figure data-grapher-src={`/grapher/${grapher.slug}`}>
                         <LoadingIndicator />
                     </figure>

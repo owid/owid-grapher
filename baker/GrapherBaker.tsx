@@ -11,6 +11,7 @@ import {
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
+    uniq,
 } from "@ourworldindata/utils"
 import {
     getRelatedArticles,
@@ -43,6 +44,8 @@ import {
 import workerpool from "workerpool"
 import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
+import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
+import { readFile } from "fs-extra"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -56,9 +59,16 @@ const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
             ? await getRelatedArticles(grapher.id)
             : undefined
 
+    const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
+    const id = variableIds[0] // for now, we only support one variable per grapher
+    const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
+    const datapageJson = await readFile(fullPath, "utf8")
+    const datapage = datapageJson ? JSON.parse(datapageJson) : undefined
+
     return renderToHtmlPage(
         <GrapherPage
             grapher={grapher}
+            datapage={datapage}
             post={post}
             relatedCharts={relatedCharts}
             relatedArticles={relatedArticles}
