@@ -75,9 +75,11 @@ export function OwidArticle({
                     <div className="article-banner" style={coverStyle}></div>
                     <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                         <div className="centered-article-header__title-container col-start-2 span-cols-6">
-                            <h3 className="centered-article-header__supertitle span-cols-8">
-                                {content.supertitle}
-                            </h3>
+                            {content.supertitle ? (
+                                <h3 className="centered-article-header__supertitle span-cols-8">
+                                    {content.supertitle}
+                                </h3>
+                            ) : null}
                             <h1 className="centered-article-header__title">
                                 {content.title}
                             </h1>
