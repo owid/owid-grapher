@@ -127,7 +127,7 @@ migrate:
 	@echo '==> Running DB migrations'
 	yarn && yarn buildTsc && yarn runDbMigrations
 
-refresh:
+refresh: sync-images
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-mysql.sh
 
@@ -147,6 +147,10 @@ refresh.wp:
 
 	@echo '==> Updating wordpress data'
 	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-wordpress-data.sh
+
+sync-images:
+	@echo '==> Syncing S3 images'
+	./devTools/docker/sync-s3-images.sh
 
 refresh.full: refresh refresh.wp
 
