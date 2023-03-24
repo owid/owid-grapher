@@ -35,8 +35,7 @@ $banner-height: 200px;
 
 .article-block__image {
     width: 100%;
-    margin-top: 16px;
-    margin-bottom: 32px;
+    margin: 32px 0;
 
     img {
         width: 100%;
@@ -58,8 +57,10 @@ $banner-height: 200px;
 
 h1.article-block__heading,
 h2.article-block__heading,
-h3.article-block__heading {
+h3.article-block__heading,
+h4.article-block__heading {
     text-align: left;
+    margin-bottom: 24px;
 }
 
 h2.article-block__heading.has-supertitle {
