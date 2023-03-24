@@ -15,6 +15,7 @@ import {
     SiteFooterContext,
     MarkdownTextWrap,
 } from "@ourworldindata/utils"
+import classNames from "classnames"
 import React from "react"
 import urljoin from "url-join"
 import {
@@ -112,19 +113,83 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     )
                 )}
             </Head>
-            <body className={GRAPHER_PAGE_BODY_CLASS}>
+            <body className={classNames(GRAPHER_PAGE_BODY_CLASS, { datapage })}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    {datapage && <h1>{datapage.title}</h1>}
-                    <figure data-grapher-src={`/grapher/${grapher.slug}`}>
-                        <LoadingIndicator />
-                    </figure>
-                    <noscript id="fallback">
-                        <img
-                            src={`${baseGrapherUrl}/exports/${grapher.slug}.svg`}
-                        />
-                        <p>Interactive visualization requires JavaScript</p>
-                    </noscript>
+                    {datapage && (
+                        <div
+                            className="wrapper"
+                            style={{
+                                paddingTop: "48px",
+                                paddingBottom: "48px",
+                            }}
+                        >
+                            <div className="header__left">
+                                <div className="subtitle">DATA</div>
+                                <div className="title">{datapage.title}</div>
+                                <div className="source">
+                                    {datapage.sourceShortName}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <div className="wrapper">
+                        <div style={{ backgroundColor: "#f7f7f7" }}>
+                            <figure
+                                data-grapher-src={`/grapher/${grapher.slug}`}
+                            >
+                                <LoadingIndicator />
+                            </figure>
+                            <noscript id="fallback">
+                                <img
+                                    src={`${baseGrapherUrl}/exports/${grapher.slug}.svg`}
+                                />
+                                <p>
+                                    Interactive visualization requires
+                                    JavaScript
+                                </p>
+                            </noscript>
+                        </div>
+                        <div className="grid-wrapper">
+                            <div className="key-info__left">
+                                <div className="title">Key information</div>
+                                {datapage.keyInfoText && (
+                                    <div
+                                        dangerouslySetInnerHTML={{
+                                            __html: datapage.keyInfoText,
+                                        }}
+                                    />
+                                )}
+                            </div>
+                            <div className="key-info__right">
+                                <div className="key-info__data">
+                                    <div className="title">Source</div>
+                                    <div className="name">
+                                        {datapage.sourceShortName}
+                                    </div>
+                                    <div
+                                        dangerouslySetInnerHTML={{
+                                            __html: datapage.owidProcessingLevel,
+                                        }}
+                                    ></div>
+                                </div>
+                                <div className="key-info__data">
+                                    <div className="title">Date range</div>
+                                    <div>{datapage.dateRange}</div>
+                                </div>
+                                <div className="key-info__data">
+                                    <div className="title">Last updated</div>
+                                    <div>{datapage.lastUpdated}</div>
+                                </div>
+                                <div className="key-info__data">
+                                    <div className="title">
+                                        Next expected update
+                                    </div>
+                                    <div>{datapage.nextUpdate}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     {((relatedArticles && relatedArticles.length != 0) ||
                         (relatedCharts && relatedCharts.length != 0)) && (
