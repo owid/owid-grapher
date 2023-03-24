@@ -46,6 +46,7 @@ import ProgressBar from "progress"
 import { getVariableData } from "../db/model/Variable.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { readFile } from "fs-extra"
+import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
 const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const postSlug = urlToSlug(grapher.originUrl || "")
@@ -63,7 +64,14 @@ const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const id = variableIds[0] // for now, we only support one variable per grapher
     const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
     const datapageJson = await readFile(fullPath, "utf8")
-    const datapage = datapageJson ? JSON.parse(datapageJson) : undefined
+    let datapage
+    try {
+        datapage = JSON.parse(datapageJson)
+    } catch {
+        logErrorAndMaybeSendToSlack(
+            `Failed to parse datapage ${fullPath} as JSON`
+        )
+    }
 
     return renderToHtmlPage(
         <GrapherPage
