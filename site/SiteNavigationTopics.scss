@@ -27,6 +27,7 @@
             list-style-type: none;
             > button {
                 @include h3-bold;
+                position: relative;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -39,6 +40,25 @@
                 background-color: transparent;
                 cursor: pointer;
                 border: none;
+                // pseudo elements for ensuring continuity of hover between
+                // bordering items while still having a visual gap between an
+                // active element and its adjacent siblings
+                &:before {
+                    position: absolute;
+                    content: "";
+                    top: -4px;
+                    left: 0;
+                    width: 100%;
+                    height: 4px;
+                }
+                &:after {
+                    position: absolute;
+                    content: "";
+                    bottom: -4px;
+                    left: 0;
+                    width: 100%;
+                    height: 4px;
+                }
                 svg {
                     margin-left: 24px;
                     margin-right: 8px;
@@ -105,18 +125,11 @@
         .SiteNavigationTopic {
             list-style-type: none;
             break-inside: avoid-column;
-            padding: 8px 0;
-            margin: 8px 0;
             @include body-3-medium;
-            &:first-child {
-                margin-top: 0;
-            }
-            &:last-child {
-                margin-bottom: 0;
-            }
             > a {
                 display: block;
                 color: $blue-90;
+                padding: 12px 0;
 
                 &:hover {
                     color: $blue-50;
