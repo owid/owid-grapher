@@ -184,6 +184,7 @@ describe("getVariableData", () => {
             createdAt: date,
             updatedAt: date,
             datasetId: 0,
+            type: null,
             display: "{}",
             dimensions: "",
         }

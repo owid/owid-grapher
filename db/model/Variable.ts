@@ -34,6 +34,7 @@ export interface VariableRow {
     datasetId: number
     sourceId: number
     display: OwidVariableDisplayConfigInterface
+    type: string | null
     coverage?: string
     timespan?: string
     columnOrder?: number
@@ -127,14 +128,16 @@ export async function getVariableMetadataFromMySQL(
         sourceName,
         sourceDescription,
         nonRedistributable,
+        type: variableType,
         display: displayJson,
         ...variable
     } = row
     const display = JSON.parse(displayJson)
     const partialSource: OwidSource = JSON.parse(sourceDescription)
+
     const variableMetadata: OwidVariableWithSourceAndType = {
         ...omitNullableValues(variable),
-        type: detectValuesType(variableData.values),
+        ...unrollType(variableType, variableData.values),
         nonRedistributable: Boolean(nonRedistributable),
         display,
         source: {
@@ -158,6 +161,17 @@ export async function getVariableMetadataFromMySQL(
             years: { values: years },
             entities: { values: entities },
         },
+    }
+}
+
+function unrollType(
+    variableType: string | null,
+    values: (string | number)[]
+): { type: OwidVariableTypeOptions; sort?: string[] } {
+    if (!variableType) {
+        return { type: detectValuesType(values) }
+    } else {
+        return JSON.parse(variableType)
     }
 }
 

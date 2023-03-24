@@ -50,7 +50,16 @@ export class OwidVariableDisplayConfig
     }
 }
 
-export type OwidVariableTypeOptions = "string" | "float" | "int" | "mixed"
+export type OwidVariableTypeOptions =
+    | "string"
+    | "float"
+    | "int"
+    | "mixed"
+    | "ordinal"
+
+export interface OwidVariableTypeFields {
+    sort?: string[]
+}
 
 export interface OwidVariableWithSource {
     id: number
@@ -86,7 +95,7 @@ export type OwidVariableWithDataAndSource = OwidVariableWithSource &
 
 export type OwidVariableWithSourceAndType = OwidVariableWithSource & {
     type: OwidVariableTypeOptions
-}
+} & OwidVariableTypeFields
 
 export interface OwidVariableDimension {
     values: OwidVariableDimensionValuePartial[]
