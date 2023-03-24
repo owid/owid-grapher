@@ -563,12 +563,15 @@ export type EnrichedBlockChartStory = {
     items: EnrichedChartStoryItem[]
 } & EnrichedBlockWithParseErrors
 
+export type BlockImageSize = "narrow" | "wide"
+
 export type RawBlockImage = {
     type: "image"
     value: {
         filename?: string
         alt?: string
         caption?: string
+        size?: BlockImageSize
     }
 }
 
@@ -578,6 +581,7 @@ export type EnrichedBlockImage = {
     alt?: string // optional as we can use the default alt from the file
     caption?: Span[]
     originalWidth?: number
+    size: BlockImageSize
 } & EnrichedBlockWithParseErrors
 
 // TODO: This is what lists staring with * are converted to in gdocToArhcieml

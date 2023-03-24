@@ -764,6 +764,7 @@ function cheerioToArchieML(
                                 alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,
+                                size: "wide",
                             },
                         ],
                     }
@@ -849,6 +850,7 @@ function cheerioToArchieML(
                                 alt: "",
                                 parseErrors: [],
                                 originalWidth: undefined,
+                                size: "wide",
                             },
                         ],
                     }

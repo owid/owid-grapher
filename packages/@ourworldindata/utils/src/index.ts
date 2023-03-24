@@ -10,6 +10,7 @@ export {
     AxisAlign,
     type BasicChartInformation,
     BLOCK_WRAPPER_DATATYPE,
+    type BlockImageSize,
     type BlockPositionChoice,
     type Box,
     type CategoryNode,
