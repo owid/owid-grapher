@@ -356,11 +356,13 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     const createError = (
         error: ParseError,
         filename: string = "",
-        alt: string = ""
+        alt: string = "",
+        caption?: string
     ): EnrichedBlockImage => ({
         type: "image",
         filename,
         alt,
+        caption,
         originalWidth: undefined,
         parseErrors: [error],
     })
@@ -376,6 +378,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         type: "image",
         filename,
         alt: image.value.alt,
+        caption: image.value.caption,
         originalWidth: undefined,
         parseErrors: [],
     }

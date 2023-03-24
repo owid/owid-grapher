@@ -568,6 +568,7 @@ export type RawBlockImage = {
     value: {
         filename?: string
         alt?: string
+        caption?: string
     }
 }
 
@@ -575,6 +576,7 @@ export type EnrichedBlockImage = {
     type: "image"
     filename: string
     alt?: string // optional as we can use the default alt from the file
+    caption?: string
     originalWidth?: number
 } & EnrichedBlockWithParseErrors
 

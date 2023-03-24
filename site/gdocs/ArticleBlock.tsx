@@ -53,6 +53,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["image"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["image-caption"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
@@ -161,12 +162,19 @@ export default function ArticleBlock({
             />
         ))
         .with({ type: "image" }, (block) => (
-            <Image
-                className={getLayout("image", containerType)}
-                filename={block.filename}
-                alt={block.alt}
-                containerType={containerType}
-            />
+            <>
+                <Image
+                    className={getLayout("image", containerType)}
+                    filename={block.filename}
+                    alt={block.alt}
+                    containerType={containerType}
+                />
+                {block.caption ? (
+                    <p className={getLayout("image-caption", containerType)}>
+                        {block.caption}
+                    </p>
+                ) : null}
+            </>
         ))
         .with({ type: "pull-quote" }, (block) => (
             <PullQuote
