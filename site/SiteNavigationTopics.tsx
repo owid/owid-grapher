@@ -23,7 +23,7 @@ export const SiteNavigationTopics = ({
     className?: string
 }) => {
     const [activeCategory, setActiveCategory] =
-        useState<CategoryWithEntries | null>(null)
+        useState<CategoryWithEntries | null>(topics[0])
 
     const [numTopicColumns, setNumTopicColumns] = useState(1)
 

@@ -12,13 +12,13 @@ export const SiteSearchNavigation = ({
     setQuery,
     isActive,
     onClose,
-    onToggle,
+    onActivate,
 }: {
     query: string
     setQuery: (query: string) => void
     isActive: boolean
     onClose: VoidFunction
-    onToggle: VoidFunction
+    onActivate: VoidFunction
 }) => {
     const [results, setResults] = React.useState<SiteSearchResults | null>(null)
     const inputRef = React.useRef<HTMLInputElement>(null)
@@ -53,6 +53,7 @@ export const SiteSearchNavigation = ({
                     name="search"
                     placeholder="Search for a topic or chart..."
                     onChange={(e) => setQuery(e.currentTarget.value)}
+                    onFocus={onActivate}
                     className={classnames({ active: isActive })}
                     value={query}
                     ref={inputRef}
@@ -74,14 +75,14 @@ export const SiteSearchNavigation = ({
             </div>
             {!isActive && (
                 <button
-                    onClick={onToggle}
+                    onClick={onActivate}
                     data-track-note="mobile-search-button"
                     className="SiteSearchNavigation__mobile-toggle hide-lg-up"
                 >
                     <FontAwesomeIcon icon={faSearch} />
                 </button>
             )}
-            {results && <SearchResults results={results} />}
+            {isActive && results && <SearchResults results={results} />}
         </>
     )
 }
