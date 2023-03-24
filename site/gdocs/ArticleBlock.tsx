@@ -299,17 +299,6 @@ export default function ArticleBlock({
                 {renderSpans(block.text)}
             </h5>
         ))
-        .with({ type: "heading", level: 6 }, (block) => (
-            <h6
-                className={cx(
-                    "overline-black-caps",
-                    getLayout("heading", containerType)
-                )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
-            >
-                {renderSpans(block.text)}
-            </h6>
-        ))
         .with(
             { type: "heading" },
             // during parsing we take care of level being in a valid range
