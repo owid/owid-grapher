@@ -171,7 +171,7 @@ export default function ArticleBlock({
                 />
                 {block.caption ? (
                     <p className={getLayout("image-caption", containerType)}>
-                        {block.caption}
+                        {renderSpans(block.caption)}
                     </p>
                 ) : null}
             </>

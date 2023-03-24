@@ -357,7 +357,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         error: ParseError,
         filename: string = "",
         alt: string = "",
-        caption?: string
+        caption?: Span[]
     ): EnrichedBlockImage => ({
         type: "image",
         filename,
@@ -374,11 +374,15 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         })
     }
 
+    const caption = image.value.caption
+        ? htmlToSpans(image.value.caption)
+        : undefined
+
     return {
         type: "image",
         filename,
         alt: image.value.alt,
-        caption: image.value.caption,
+        caption,
         originalWidth: undefined,
         parseErrors: [],
     }

@@ -576,7 +576,7 @@ export type EnrichedBlockImage = {
     type: "image"
     filename: string
     alt?: string // optional as we can use the default alt from the file
-    caption?: string
+    caption?: Span[]
     originalWidth?: number
 } & EnrichedBlockWithParseErrors
 
