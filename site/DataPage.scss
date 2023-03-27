@@ -107,7 +107,10 @@
         grid-column: 9 / span 3;
         display: flex;
         flex-direction: column;
+        padding-left: 24px;
+        border-left: 1px solid $blue-20;
         @include row-gap(24px);
+        align-self: flex-start;
     }
 
     .key-info__data {
