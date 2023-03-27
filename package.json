@@ -207,7 +207,7 @@
         "timezone-mock": "^1.0.18",
         "topojson-client": "^3.1.0",
         "ts-pattern": "^4.0.4",
-        "typeorm": "^0.3.10",
+        "typeorm": "^0.3.12",
         "typescript": "~5.0.2",
         "unidecode": "^0.1.8",
         "url-join": "^4.0.0",
