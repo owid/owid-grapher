@@ -63,6 +63,9 @@ export interface CoreColumnDef extends ColumnColorScale {
     description?: string
     note?: string // Any internal notes the author wants to record for display in admin interfaces
 
+    // Sorted values (in case of ordinal data)
+    sort?: string[]
+
     // Color
     color?: Color // A column can have a fixed color for use in charts where the columns are series
 

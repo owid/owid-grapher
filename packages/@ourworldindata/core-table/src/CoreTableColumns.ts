@@ -322,6 +322,10 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return new Set(this.uniqValues)
     }
 
+    @imemo get allowedValuesSorted(): string[] | undefined {
+        return this.def.sort
+    }
+
     /**
      * Returns all values including ErrorValues..
      * Normally you want just the valid values, like `[45000, 50000, ...]`. But sometimes you

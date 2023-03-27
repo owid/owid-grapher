@@ -61,7 +61,7 @@ export interface OwidVariableTypeFields {
     sort?: string[]
 }
 
-export interface OwidVariableWithSource {
+export type OwidVariableWithSource = {
     id: number
     name?: string
     description?: string
@@ -73,7 +73,7 @@ export interface OwidVariableWithSource {
     coverage?: string
     nonRedistributable?: boolean
     source?: OwidSource
-}
+} & OwidVariableTypeFields
 
 export type OwidVariableWithSourceAndDimension = OwidVariableWithSource & {
     dimensions: OwidVariableDimensions
