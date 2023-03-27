@@ -13927,7 +13927,7 @@ __metadata:
     prop-types: ^15.7.2
     randomstring: ^1.2.2
     react: ^16.14.0
-    react-animate-height: ^3.0.4
+    react-animate-height: ^3.1.1
     react-beautiful-dnd: ^13.1.0
     react-codemirror2: ^7.2.1
     react-color: ^2.18.1
@@ -21291,15 +21291,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-animate-height@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "react-animate-height@npm:3.0.4"
-  dependencies:
-    classnames: ^2.3.1
+"react-animate-height@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "react-animate-height@npm:3.1.1"
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 3efa212b41bb1c424c4b5390c1b0e34e85eec799f5ca76fab3223ccb0dff215febc5fd95a07188db85e5a06661ed9f6f3f9b8c68de744d8daad912f298d1bfc2
+  checksum: 0f22eb1d9c2d2fd650a462da3db5aabcbde5f62a828053f953e17f7e65118c04acfb035408ce89ee48dc8289fcee8503c7a64e353e5e9568ea7659ab950497ec
   languageName: node
   linkType: hard
 
