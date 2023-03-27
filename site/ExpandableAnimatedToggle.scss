@@ -1,0 +1,23 @@
+.ExpandableAnimatedToggle {
+    border-top: 1px solid #d0dae3;
+    border-bottom: 1px solid #d0dae3;
+    > button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 16px 8px;
+        color: $blue-90;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+    }
+    h4 {
+        @include h4-semibold;
+        margin: 0;
+    }
+    svg {
+        font-size: 0.75em;
+        margin: 0 12px;
+    }
+}

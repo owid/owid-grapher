@@ -26,6 +26,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
+import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
 import { Head } from "./Head.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
@@ -186,16 +187,20 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                                 {datapage.sourceVariableDescription?.title &&
                                     datapage.sourceVariableDescription
                                         ?.content && (
-                                        <a className="source-var-description">
-                                            <h4>
-                                                {
+                                        <div style={{ marginTop: 8 }}>
+                                            <ExpandableAnimatedToggle
+                                                label={
                                                     datapage
                                                         .sourceVariableDescription
                                                         .title
                                                 }
-                                            </h4>
-                                            <FontAwesomeIcon icon={faPlus} />
-                                        </a>
+                                                content={
+                                                    datapage
+                                                        .sourceVariableDescription
+                                                        .content
+                                                }
+                                            />
+                                        </div>
                                     )}
                             </div>
                             <div className="key-info__right">
