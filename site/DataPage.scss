@@ -55,7 +55,7 @@
 
     .key-info__wrapper {
         @include grid(12);
-        margin-bottom: 32px;
+        margin-bottom: 48px;
     }
 
     .key-info__left {
@@ -81,6 +81,24 @@
             svg {
                 font-size: 0.75em;
                 margin-left: 12px;
+            }
+        }
+        .source-var-description {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding: 16px 8px;
+            border-top: 1px solid #d0dae3;
+            border-bottom: 1px solid #d0dae3;
+            color: $blue-90;
+            h4 {
+                @include h4-semibold;
+                margin: 0;
+            }
+            svg {
+                font-size: 0.75em;
+                margin: 0 12px;
             }
         }
     }

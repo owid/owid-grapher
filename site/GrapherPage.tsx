@@ -1,4 +1,5 @@
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     getVariableDataRoute,
@@ -176,10 +177,26 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                                         }}
                                     />
                                 )}
-                                <a className="learn-more" href="#faq">
-                                    Learn more in the FAQs
-                                    <FontAwesomeIcon icon={faArrowDown} />
-                                </a>
+                                {!!datapage.faqs?.items?.length && (
+                                    <a className="learn-more" href="#faq">
+                                        Learn more in the FAQs
+                                        <FontAwesomeIcon icon={faArrowDown} />
+                                    </a>
+                                )}
+                                {datapage.sourceVariableDescription?.title &&
+                                    datapage.sourceVariableDescription
+                                        ?.content && (
+                                        <a className="source-var-description">
+                                            <h4>
+                                                {
+                                                    datapage
+                                                        .sourceVariableDescription
+                                                        .title
+                                                }
+                                            </h4>
+                                            <FontAwesomeIcon icon={faPlus} />
+                                        </a>
+                                    )}
                             </div>
                             <div className="key-info__right">
                                 <div className="key-info__data">
