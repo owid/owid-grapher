@@ -121,8 +121,8 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     {datapage && (
                         <div className="header__wrapper wrapper">
                             <div className="header__left">
-                                <div className="subtitle">DATA</div>
-                                <div className="title">{datapage.title}</div>
+                                <div className="supertitle">DATA</div>
+                                <h1>{datapage.title}</h1>
                                 <div className="source">
                                     {datapage.sourceShortName}
                                 </div>
@@ -168,7 +168,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                         </div>
                         <div className="key-info__wrapper wrapper">
                             <div className="key-info__left">
-                                <div className="title">Key information</div>
+                                <h2>Key information</h2>
                                 {datapage.keyInfoText && (
                                     <div
                                         dangerouslySetInnerHTML={{

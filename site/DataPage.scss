@@ -7,11 +7,11 @@
 
     .header__left {
         grid-column: 1 / span 8;
-        .subtitle {
+        .supertitle {
             @include overline-black-caps;
             color: $blue-50;
         }
-        .title {
+        h1 {
             @include display-2-semibold;
             margin: 0;
         }
@@ -61,7 +61,7 @@
     .key-info__left {
         grid-column: 2 / span 7;
         @include row-gap(24px);
-        .title {
+        h2 {
             @include h2-bold;
             margin: 0;
         }
