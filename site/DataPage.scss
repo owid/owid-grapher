@@ -20,6 +20,31 @@
         }
     }
 
+    .header__right {
+        grid-column: 10 / span 3;
+        padding-left: 24px;
+        border-left: 1px solid $blue-10;
+        align-self: start;
+
+        .label {
+            margin-bottom: 16px;
+            @include overline-black-caps;
+            color: $blue-50;
+        }
+
+        .topic-tags {
+            @include gap-wrap(12px, 16px);
+
+            a {
+                background-color: $blue-10;
+                border-radius: 24px;
+                padding: 6px 16px;
+                @include body-3-medium;
+                color: $blue-90;
+            }
+        }
+    }
+
     .key-info__left {
         grid-column: 2 / span 7;
         margin-top: 40px;

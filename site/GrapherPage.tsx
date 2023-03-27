@@ -118,7 +118,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 <main>
                     {datapage && (
                         <div
-                            className="wrapper"
+                            className="wrapper grid-wrapper"
                             style={{
                                 paddingTop: "48px",
                                 paddingBottom: "48px",
@@ -129,6 +129,20 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                                 <div className="title">{datapage.title}</div>
                                 <div className="source">
                                     {datapage.sourceShortName}
+                                </div>
+                            </div>
+                            <div className="header__right">
+                                <div className="label">
+                                    SEE ALL DATA AND RESEARCH ON:
+                                </div>
+                                <div className="topic-tags">
+                                    {datapage.topicTagsLinks.map(
+                                        (topic: any) => (
+                                            <a href={topic.url} key={topic.url}>
+                                                {topic.title}
+                                            </a>
+                                        )
+                                    )}
                                 </div>
                             </div>
                         </div>

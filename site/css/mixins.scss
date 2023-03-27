@@ -310,3 +310,15 @@
         }
     }
 }
+
+// Adapted from https://coryrylan.com/blog/css-gap-space-with-flexbox
+@mixin gap-wrap($row-gap, $col-gap) {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -#{$row-gap} 0 0 -#{$col-gap};
+    width: calc(100% + #{$col-gap});
+
+    & > * {
+        margin: #{$row-gap} 0 0 #{$col-gap};
+    }
+}
