@@ -72,6 +72,17 @@
                 display: list-item;
             }
         }
+        .learn-more {
+            display: inline-block;
+            padding: 8px 24px;
+            color: $blue-90;
+            background-color: $blue-10;
+            @include body-3-medium;
+            svg {
+                font-size: 0.75em;
+                margin-left: 12px;
+            }
+        }
     }
 
     .key-info__right {

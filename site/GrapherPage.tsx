@@ -1,3 +1,5 @@
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -174,6 +176,10 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                                         }}
                                     />
                                 )}
+                                <a className="learn-more" href="#faq">
+                                    Learn more in the FAQs
+                                    <FontAwesomeIcon icon={faArrowDown} />
+                                </a>
                             </div>
                             <div className="key-info__right">
                                 <div className="key-info__data">
