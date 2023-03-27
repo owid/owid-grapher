@@ -49,9 +49,6 @@ $banner-height: 200px;
 
 .article-block__image-caption {
     @include body-3-medium-italic;
-    // To counteract the margin from the image block
-    margin-top: -24px;
-    margin-bottom: 32px;
     text-align: center;
 }
 

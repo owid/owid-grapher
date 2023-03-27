@@ -163,22 +163,25 @@ export default function ArticleBlock({
             />
         ))
         .with({ type: "image" }, (block) => (
-            <>
+            <figure
+                className={cx(
+                    "article-block__image",
+                    getLayout(`image--${block.size}`, containerType)
+                )}
+            >
                 <Image
-                    className={cx(
-                        "article-block__image",
-                        getLayout(`image--${block.size}`, containerType)
-                    )}
                     filename={block.filename}
                     alt={block.alt}
                     containerType={containerType}
                 />
                 {block.caption ? (
-                    <p className={getLayout("image-caption", containerType)}>
+                    <figcaption
+                        className={getLayout("image-caption", containerType)}
+                    >
                         {renderSpans(block.caption)}
-                    </p>
+                    </figcaption>
                 ) : null}
-            </>
+            </figure>
         ))
         .with({ type: "pull-quote" }, (block) => (
             <PullQuote
