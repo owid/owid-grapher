@@ -52,12 +52,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         }
     }
 
-    // Open / close overlay when query changes
+    // Open overlay back when query entered after pressing "esc"
     useEffect(() => {
         if (query) {
             setActiveMenu(Menu.Search)
-        } else {
-            closeOverlay()
         }
     }, [query])
 
@@ -151,10 +149,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         <div className="site-search-cta">
                             <SiteSearchNavigation
                                 query={query}
-                                isActive={menu === Menu.Search || !!query}
+                                isActive={menu === Menu.Search}
                                 setQuery={setQuery}
                                 onClose={closeOverlay}
-                                onToggle={() => toggleMenu(Menu.Search)}
+                                onActivate={() => setActiveMenu(Menu.Search)}
                             />
                             <SiteNavigationToggle
                                 isActive={menu === Menu.Subscribe}
