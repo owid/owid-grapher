@@ -134,7 +134,11 @@ function* rawBlockCalloutToArchieMLString(
     yield "{.callout}"
     if (typeof block.value !== "string") {
         yield* propertyToArchieMLString("title", block.value)
-        yield* propertyToArchieMLString("text", block.value)
+        yield "[.+text]"
+        for (const rawBlockText of block.value.text) {
+            yield rawBlockText.value
+        }
+        yield "[]"
     }
     yield "{}"
 }

@@ -61,17 +61,11 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockCallout => ({
                 type: b.type,
                 value: {
-                    title: "Hey, listen!",
-                    text: [
-                        {
-                            type: "text",
-                            value: "I am a callout block. I highlight information.",
-                        },
-                        {
-                            type: "text",
-                            value: "I am a second line in the callout block.",
-                        },
-                    ],
+                    title: b.title,
+                    text: b.text.map((spans) => ({
+                        type: "text",
+                        value: spansToHtmlText(spans),
+                    })),
                 },
             })
         )
