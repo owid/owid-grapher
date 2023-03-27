@@ -10,7 +10,7 @@ import { logInWithCredentials, logOut } from "./authentication.js"
 import { LoginPage } from "./LoginPage.js"
 import * as db from "../db/db.js"
 import { Dataset } from "../db/model/Dataset.js"
-import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"
+import { ENV } from "../settings/serverSettings.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import {
     renderExplorerPage,
@@ -36,9 +36,8 @@ import {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
 } from "../explorer/ExplorerProgram.js"
-import { existsSync, readFile } from "fs-extra"
+import { existsSync } from "fs-extra"
 import * as Post from "../db/model/Post.js"
-import { DataPagePage } from "../site/DataPagePage.js"
 
 // Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
 const limiterMiddleware = (
@@ -248,24 +247,6 @@ adminRouter.get(`/${EXPLORERS_PREVIEW_ROUTE}/:slug`, async (req, res) => {
         return res.send(`File not found`)
     const explorer = await explorerAdminServer.getExplorerFromFile(filename)
     return res.send(await renderExplorerPage(explorer))
-})
-
-adminRouter.get(`/datapages/:id`, async (req, res) => {
-    const id = parseIntOrUndefined(req.params.id)
-    if (!id) return res.send(`Invalid id`)
-
-    const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
-    const datapage = await readFile(fullPath, "utf8")
-    if (!datapage) return res.send(`Datapage not found`)
-
-    return res.send(
-        renderToHtmlPage(
-            <DataPagePage
-                baseUrl={BAKED_BASE_URL}
-                datapage={JSON.parse(datapage)}
-            />
-        )
-    )
 })
 
 const gitCmsServer = new GitCmsServer({
