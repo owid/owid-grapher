@@ -22,6 +22,7 @@ import {
     RawBlockText,
     RawBlockUrl,
     RawBlockAdditionalCharts,
+    RawBlockCallout,
 } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
@@ -125,6 +126,17 @@ function* rawBlockChartStoryToArchieMLString(
         }
     }
     yield "[]"
+}
+
+function* rawBlockCalloutToArchieMLString(
+    block: RawBlockCallout
+): Generator<string, void, undefined> {
+    yield "{.callout}"
+    if (typeof block.value !== "string") {
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("text", block.value)
+    }
+    yield "{}"
 }
 
 function* rawBlockImageToArchieMLString(
@@ -368,6 +380,7 @@ export function* owidRawArticleBlockToArchieMLStringGenerator(
         .with({ type: "aside" }, rawBlockAsideToArchieMLString)
         .with({ type: "chart" }, rawBlockChartToArchieMLString)
         .with({ type: "scroller" }, rawBlockScrollerToArchieMLString)
+        .with({ type: "callout" }, rawBlockCalloutToArchieMLString)
         .with({ type: "chart-story" }, rawBlockChartStoryToArchieMLString)
         .with({ type: "image" }, rawBlockImageToArchieMLString)
         .with({ type: "list" }, rawBlockListToArchieMLString)

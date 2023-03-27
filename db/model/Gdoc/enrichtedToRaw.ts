@@ -23,6 +23,7 @@ import {
     RawSDGGridItem,
     RawBlockSDGToc,
     RawBlockMissingData,
+    RawBlockCallout,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -53,6 +54,25 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockAdditionalCharts => ({
                 type: b.type,
                 value: b.items.map(spansToHtmlText),
+            })
+        )
+        .with(
+            { type: "callout" },
+            (b): RawBlockCallout => ({
+                type: b.type,
+                value: {
+                    title: "Hey, listen!",
+                    text: [
+                        {
+                            type: "text",
+                            value: "I am a callout block. I highlight information.",
+                        },
+                        {
+                            type: "text",
+                            value: "I am a second line in the callout block.",
+                        },
+                    ],
+                },
             })
         )
         .with(
