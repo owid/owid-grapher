@@ -1,6 +1,3 @@
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -18,7 +15,6 @@ import {
     SiteFooterContext,
     MarkdownTextWrap,
 } from "@ourworldindata/utils"
-import classNames from "classnames"
 import React from "react"
 import urljoin from "url-join"
 import {
@@ -26,7 +22,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
-import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
+import { DataPage } from "./DataPage.js"
 import { Head } from "./Head.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
@@ -117,42 +113,13 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     )
                 )}
             </Head>
-            <body className={classNames(GRAPHER_PAGE_BODY_CLASS, { datapage })}>
+            <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    {datapage && (
-                        <div className="header__wrapper wrapper">
-                            <div className="header__left">
-                                <div className="supertitle">DATA</div>
-                                <h1>{datapage.title}</h1>
-                                <div className="source">
-                                    {datapage.sourceShortName}
-                                </div>
-                            </div>
-                            <div className="header__right">
-                                <div className="label">
-                                    SEE ALL DATA AND RESEARCH ON:
-                                </div>
-                                <div className="topic-tags">
-                                    {datapage.topicTagsLinks.map(
-                                        (topic: any) => (
-                                            <a href={topic.url} key={topic.url}>
-                                                {topic.title}
-                                            </a>
-                                        )
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    <div
-                        style={{
-                            backgroundColor: "#f7f7f7",
-                            display: "flex",
-                            flexDirection: "column",
-                        }}
-                    >
-                        <div className="chart__wrapper wrapper">
+                    {datapage ? (
+                        <DataPage datapage={datapage} grapher={grapher} />
+                    ) : (
+                        <>
                             <figure
                                 data-grapher-src={`/grapher/${grapher.slug}`}
                             >
@@ -167,101 +134,42 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                                     JavaScript
                                 </p>
                             </noscript>
-                        </div>
-                        <div className="key-info__wrapper wrapper">
-                            <div className="key-info__left">
-                                <h2>Key information</h2>
-                                {datapage.keyInfoText && (
-                                    <div
-                                        dangerouslySetInnerHTML={{
-                                            __html: datapage.keyInfoText,
-                                        }}
-                                    />
-                                )}
-                                {!!datapage.faqs?.items?.length && (
-                                    <a className="learn-more" href="#faq">
-                                        Learn more in the FAQs
-                                        <FontAwesomeIcon icon={faArrowDown} />
-                                    </a>
-                                )}
-                                {datapage.sourceVariableDescription?.title &&
-                                    datapage.sourceVariableDescription
-                                        ?.content && (
-                                        <div style={{ marginTop: 8 }}>
-                                            <ExpandableAnimatedToggle
-                                                label={
-                                                    datapage
-                                                        .sourceVariableDescription
-                                                        .title
-                                                }
-                                                content={
-                                                    datapage
-                                                        .sourceVariableDescription
-                                                        .content
-                                                }
-                                            />
-                                        </div>
-                                    )}
-                            </div>
-                            <div className="key-info__right">
-                                <div className="key-info__data">
-                                    <div className="title">Source</div>
-                                    <div className="name">
-                                        {datapage.sourceShortName}
-                                    </div>
-                                    {datapage.owidProcessingLevel && (
-                                        <div
-                                            dangerouslySetInnerHTML={{
-                                                __html: datapage.owidProcessingLevel,
-                                            }}
-                                        ></div>
-                                    )}
-                                </div>
-                                <div className="key-info__data">
-                                    <div className="title">Date range</div>
-                                    <div>{datapage.dateRange}</div>
-                                </div>
-                                <div className="key-info__data">
-                                    <div className="title">Last updated</div>
-                                    <div>{datapage.lastUpdated}</div>
-                                </div>
-                                <div className="key-info__data">
-                                    <div className="title">
-                                        Next expected update
-                                    </div>
-                                    <div>{datapage.nextUpdate}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {((relatedArticles && relatedArticles.length != 0) ||
-                        (relatedCharts && relatedCharts.length != 0)) && (
-                        <div className="related-research-data">
-                            <h2>All our related research and data</h2>
-                            {relatedArticles && relatedArticles.length != 0 && (
-                                <RelatedArticles articles={relatedArticles} />
+                            {((relatedArticles &&
+                                relatedArticles.length != 0) ||
+                                (relatedCharts &&
+                                    relatedCharts.length != 0)) && (
+                                <div className="related-research-data">
+                                    <h2>All our related research and data</h2>
+                                    {relatedArticles &&
+                                        relatedArticles.length != 0 && (
+                                            <RelatedArticles
+                                                articles={relatedArticles}
+                                            />
+                                        )}
+                                    {relatedCharts &&
+                                        relatedCharts.length !== 0 && (
+                                            <>
+                                                <h3>Charts</h3>
+                                                <ul>
+                                                    {relatedCharts
+                                                        .filter(
+                                                            (chartItem) =>
+                                                                chartItem.slug !==
+                                                                grapher.slug
+                                                        )
+                                                        .map((c) => (
+                                                            <ChartListItemVariant
+                                                                key={c.slug}
+                                                                chart={c}
+                                                            />
+                                                        ))}
+                                                </ul>
+                                            </>
+                                        )}
+                                </div>
                             )}
-                            {relatedCharts && relatedCharts.length !== 0 && (
-                                <>
-                                    <h3>Charts</h3>
-                                    <ul>
-                                        {relatedCharts
-                                            .filter(
-                                                (chartItem) =>
-                                                    chartItem.slug !==
-                                                    grapher.slug
-                                            )
-                                            .map((c) => (
-                                                <ChartListItemVariant
-                                                    key={c.slug}
-                                                    chart={c}
-                                                />
-                                            ))}
-                                    </ul>
-                                </>
-                            )}
-                        </div>
+                        </>
                     )}
                 </main>
                 <SiteFooter

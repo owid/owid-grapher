@@ -66,6 +66,7 @@ const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const datapageJson = await readFile(fullPath, "utf8")
     let datapage
     try {
+        const datapageJson = await readFile(fullPath, "utf8")
         datapage = JSON.parse(datapageJson)
     } catch {
         logErrorAndMaybeSendToSlack(
