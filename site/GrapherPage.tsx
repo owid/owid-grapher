@@ -204,11 +204,13 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                                     <div className="name">
                                         {datapage.sourceShortName}
                                     </div>
-                                    <div
-                                        dangerouslySetInnerHTML={{
-                                            __html: datapage.owidProcessingLevel,
-                                        }}
-                                    ></div>
+                                    {datapage.owidProcessingLevel && (
+                                        <div
+                                            dangerouslySetInnerHTML={{
+                                                __html: datapage.owidProcessingLevel,
+                                            }}
+                                        ></div>
+                                    )}
                                 </div>
                                 <div className="key-info__data">
                                     <div className="title">Date range</div>
