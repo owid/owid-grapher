@@ -150,7 +150,7 @@ refresh.wp:
 
 sync-images:
 	@echo '==> Syncing S3 images'
-	./devTools/docker/sync-s3-images.sh
+	@. ./.env && ./devTools/docker/sync-s3-images.sh
 
 refresh.full: refresh refresh.wp
 
