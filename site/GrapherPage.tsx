@@ -117,7 +117,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
                     {datapage && (
-                        <div className="wrapper header__wrapper">
+                        <div className="header__wrapper wrapper">
                             <div className="header__left">
                                 <div className="subtitle">DATA</div>
                                 <div className="title">{datapage.title}</div>
@@ -148,7 +148,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                             flexDirection: "column",
                         }}
                     >
-                        <div className="wrapper chart__wrapper">
+                        <div className="chart__wrapper wrapper">
                             <figure
                                 data-grapher-src={`/grapher/${grapher.slug}`}
                             >
@@ -164,7 +164,7 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                                 </p>
                             </noscript>
                         </div>
-                        <div className="key-info__wrapper">
+                        <div className="key-info__wrapper wrapper">
                             <div className="key-info__left">
                                 <div className="title">Key information</div>
                                 {datapage.keyInfoText && (
