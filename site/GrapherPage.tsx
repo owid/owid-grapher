@@ -147,8 +147,8 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                             </div>
                         </div>
                     )}
-                    <div className="wrapper">
-                        <div style={{ backgroundColor: "#f7f7f7" }}>
+                    <div style={{ backgroundColor: "#f7f7f7" }}>
+                        <div className="wrapper">
                             <figure
                                 data-grapher-src={`/grapher/${grapher.slug}`}
                             >
