@@ -22,7 +22,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
-import { DataPage } from "./DataPage.js"
+import { DataPage, OWID_DATAPAGE_ROOT_ID } from "./DataPage.js"
 import { Head } from "./Head.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
@@ -70,13 +70,6 @@ export const GrapherPage = (props: {
     const imageWidth: string = "1200"
     const imageHeight: string = "628"
 
-    const script = `const jsonConfig = ${serializeJSONForHTML({
-        ...grapher,
-        adminBaseUrl: ADMIN_BASE_URL,
-        bakedGrapherURL: BAKED_GRAPHER_URL,
-    })}
-window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
-
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
     return (
@@ -116,8 +109,25 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    {datapage ? (
-                        <DataPage datapage={datapage} grapher={grapher} />
+                    {datapage && grapher.slug ? (
+                        <>
+                            <script
+                                dangerouslySetInnerHTML={{
+                                    __html: `window._OWID_DATAPAGE_PROPS = ${JSON.stringify(
+                                        {
+                                            datapage,
+                                            grapherConfig: grapher,
+                                        }
+                                    )}`,
+                                }}
+                            />
+                            <div id={OWID_DATAPAGE_ROOT_ID}>
+                                <DataPage
+                                    datapage={datapage}
+                                    grapherConfig={grapher}
+                                />
+                            </div>
+                        </>
                     ) : (
                         <>
                             <figure
@@ -176,10 +186,19 @@ window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
                     baseUrl={baseUrl}
                     context={SiteFooterContext.grapherPage}
                 />
-                <script
-                    type="module"
-                    dangerouslySetInnerHTML={{ __html: script }}
-                />
+                {!datapage && (
+                    <script
+                        type="module"
+                        dangerouslySetInnerHTML={{
+                            __html: `const jsonConfig = ${serializeJSONForHTML({
+                                ...grapher,
+                                adminBaseUrl: ADMIN_BASE_URL,
+                                bakedGrapherURL: BAKED_GRAPHER_URL,
+                            })}
+                        window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`,
+                        }}
+                    />
+                )}
             </body>
         </html>
     )

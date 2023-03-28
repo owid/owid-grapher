@@ -1,17 +1,47 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { GrapherInterface, LoadingIndicator } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    GrapherInterface,
+    LoadingIndicator,
+} from "@ourworldindata/grapher"
 import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_EXPORTS_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
+import ReactDOM from "react-dom"
+
+declare global {
+    interface Window {
+        _OWID_DATAPAGE_PROPS: any
+    }
+}
+
+export const OWID_DATAPAGE_ROOT_ID = "owid-datapage-root"
 
 export const DataPage = ({
     datapage,
-    grapher,
+    grapherConfig,
 }: {
     datapage: any
-    grapher: GrapherInterface
+    grapherConfig: GrapherInterface
 }) => {
+    const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
+
+    // Initialize the grapher for client-side rendering
+    useEffect(() => {
+        setGrapher(
+            new Grapher({
+                ...grapherConfig,
+                bakedGrapherURL: BAKED_GRAPHER_URL,
+                adminBaseUrl: ADMIN_BASE_URL,
+            })
+        )
+    }, [grapherConfig])
+
     return (
         <div className="DataPage">
             <div className="header__wrapper wrapper">
@@ -40,12 +70,19 @@ export const DataPage = ({
                 }}
             >
                 <div className="chart__wrapper wrapper">
-                    <figure data-grapher-src={`/grapher/${grapher.slug}`}>
-                        <LoadingIndicator />
-                    </figure>
+                    {grapher ? (
+                        <Grapher {...grapher} />
+                    ) : (
+                        <figure
+                            data-grapher-src={`/grapher/${grapherConfig.slug}`}
+                        >
+                            <LoadingIndicator />
+                        </figure>
+                    )}
+
                     <noscript id="fallback">
                         <img
-                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapher.slug}.svg`}
+                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapherConfig.slug}.svg`}
                         />
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
@@ -113,4 +150,11 @@ export const DataPage = ({
             </div>
         </div>
     )
+}
+
+export const hydrateDataPage = () => {
+    const wrapper = document.querySelector(`#${OWID_DATAPAGE_ROOT_ID}`)
+    if (!wrapper) return // regular grapher page
+    const props = window._OWID_DATAPAGE_PROPS
+    ReactDOM.hydrate(<DataPage {...props} />, wrapper)
 }
