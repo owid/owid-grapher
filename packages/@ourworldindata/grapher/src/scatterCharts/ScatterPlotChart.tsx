@@ -564,8 +564,10 @@ export class ScatterPlotChart
     }
 
     @computed get legendItems(): ColorScaleBin[] {
-        return this.colorScale.legendBins.filter((bin) =>
-            this.colorsInUse.includes(bin.color)
+        return this.colorScale.legendBins.filter(
+            (bin) =>
+                this.colorsInUse.includes(bin.color) &&
+                !bin.label?.match(/no data/i)
         )
     }
 
