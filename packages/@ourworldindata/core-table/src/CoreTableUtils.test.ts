@@ -129,7 +129,10 @@ describe(toleranceInterpolation, () => {
         toleranceInterpolation(
             valuesAsc,
             timesAsc,
-            { timeTolerance: tolerance },
+            {
+                timeToleranceForwards: tolerance,
+                timeToleranceBackwards: tolerance,
+            },
             0,
             3
         )

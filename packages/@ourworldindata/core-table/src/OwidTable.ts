@@ -22,6 +22,7 @@ import {
     TimeBound,
     ColumnSlug,
     imemo,
+    TimeToleranceStrategy,
 } from "@ourworldindata/utils"
 import {
     Integer,
@@ -625,7 +626,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const newTimes = withAllRows
             .get(timeColumnSlug)
             .valuesIncludingErrorValues.slice() as Time[]
-
         groupBoundaries.forEach((_, index) => {
             interpolation(
                 newValues,
@@ -646,7 +646,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // There are finicky details in both of them that complicate this
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
-        toleranceOverride?: number
+        toleranceOverride?: number,
+        toleranceStrategy?: TimeToleranceStrategy
     ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
@@ -673,12 +674,27 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 timeColumnOfTable.slug,
             ]).sortBy([this.entityNameSlug, timeColumnOfTable.slug])
 
+            const interpolateInBothDirections =
+                !toleranceStrategy ||
+                toleranceStrategy === TimeToleranceStrategy.closest
+            const interpolateBackwards =
+                interpolateInBothDirections ||
+                toleranceStrategy === TimeToleranceStrategy.backwards
+            const interpolateForwards =
+                interpolateInBothDirections ||
+                toleranceStrategy === TimeToleranceStrategy.forwards
+
             const interpolationResult = this.interpolate(
                 withAllRows,
                 columnSlug,
                 timeColumnOfValue.slug,
                 toleranceInterpolation,
-                { timeTolerance: tolerance }
+                {
+                    timeToleranceBackwards: interpolateBackwards
+                        ? tolerance
+                        : 0,
+                    timeToleranceForwards: interpolateForwards ? tolerance : 0,
+                }
             )
 
             columnStore = {
