@@ -672,10 +672,10 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
             message: "Header level property is missing",
         })
     const level = parseInt(raw.value.level, 10)
-    if (level < 1 || level > 6)
+    if (level < 1 || level > 5)
         return createError({
             message:
-                "Header level property is outside the valid range between 1 and 6",
+                "Header level property is outside the valid range between 1 and 5",
         })
 
     return {
