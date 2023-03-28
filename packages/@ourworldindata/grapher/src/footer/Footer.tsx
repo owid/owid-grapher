@@ -2,12 +2,16 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
-import { TextWrap } from "@ourworldindata/utils"
-import { Bounds, DEFAULT_BOUNDS, getRelativeMouse } from "@ourworldindata/utils"
+import {
+    TextWrap,
+    Bounds,
+    DEFAULT_BOUNDS,
+    getRelativeMouse,
+    MarkdownTextWrap,
+} from "@ourworldindata/utils"
 import { Tooltip } from "../tooltip/Tooltip"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { FooterManager } from "./FooterManager"
-import { MarkdownTextWrap } from "@ourworldindata/utils"
 
 @observer
 export class Footer extends React.Component<{
