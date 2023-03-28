@@ -19,6 +19,7 @@ import {
     TextField,
     Button,
     RadioGroup,
+    SelectField,
 } from "./Forms.js"
 import {
     debounce,
@@ -389,44 +390,30 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
 
 @observer
 class MissingDataSection extends React.Component<{ editor: ChartEditor }> {
-    missingDataStrategyLabels = {
-        [MissingDataStrategy.auto]: "Automatic",
-        [MissingDataStrategy.hide]: "Hide charts with missing data",
-        [MissingDataStrategy.show]: "Render charts with missing data",
-    }
-
     @computed get grapher() {
         return this.props.editor.grapher
     }
 
-    @computed get missingDataStrategyOptions(): {
+    get missingDataStrategyOptions(): {
         value: MissingDataStrategy
         label: string
     }[] {
+        const missingDataStrategyLabels = {
+            [MissingDataStrategy.auto]: "Automatic",
+            [MissingDataStrategy.hide]: "Hide charts with missing data",
+            [MissingDataStrategy.show]: "Show charts with missing data",
+        }
+
         return Object.values(MissingDataStrategy).map((strategy) => {
             return {
                 value: strategy,
-                label: this.missingDataStrategyLabels[strategy],
+                label: missingDataStrategyLabels[strategy],
             }
         })
     }
 
-    @computed get selectedMissingDataStrategyOption(): {
-        value: MissingDataStrategy
-        label: string
-    } {
-        const { grapher } = this
-
-        const selectedOption = this.missingDataStrategyOptions.find(
-            (opt) => opt.value === grapher.missingDataStrategy
-        )
-
-        if (selectedOption) return selectedOption
-
-        return {
-            value: MissingDataStrategy.auto,
-            label: this.missingDataStrategyLabels[MissingDataStrategy.auto],
-        }
+    @action.bound onSelectMissingDataStrategy(value: string | undefined) {
+        this.grapher.missingDataStrategy = value as MissingDataStrategy
     }
 
     render() {
@@ -434,16 +421,12 @@ class MissingDataSection extends React.Component<{ editor: ChartEditor }> {
 
         return (
             <Section name="Missing data">
-                <div className="form-group">
-                    Missing data strategy
-                    <Select
-                        options={this.missingDataStrategyOptions}
-                        value={this.selectedMissingDataStrategyOption}
-                        onChange={(option) =>
-                            (grapher.missingDataStrategy = option?.value)
-                        }
-                    />
-                </div>
+                <SelectField
+                    label="Missing data strategy"
+                    value={grapher.missingDataStrategy}
+                    options={this.missingDataStrategyOptions}
+                    onValue={this.onSelectMissingDataStrategy}
+                />
             </Section>
         )
     }
