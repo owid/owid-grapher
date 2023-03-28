@@ -790,6 +790,20 @@ export type EnrichedBlockProminentLink = {
     thumbnail?: string
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockCallout = {
+    type: "callout"
+    value: {
+        title?: string
+        text: RawBlockText[]
+    }
+}
+
+export type EnrichedBlockCallout = {
+    type: "callout"
+    title?: string
+    text: Span[][]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockSDGToc = {
     type: "sdg-toc"
     value?: Record<string, never>
@@ -822,6 +836,7 @@ export type EnrichedBlockAdditionalCharts = {
 
 export type OwidRawArticleBlock =
     | RawBlockAside
+    | RawBlockCallout
     | RawBlockChart
     | RawBlockScroller
     | RawBlockChartStory
@@ -849,6 +864,7 @@ export type OwidRawArticleBlock =
 export type OwidEnrichedArticleBlock =
     | EnrichedBlockText
     | EnrichedBlockAside
+    | EnrichedBlockCallout
     | EnrichedBlockChart
     | EnrichedBlockScroller
     | EnrichedBlockChartStory

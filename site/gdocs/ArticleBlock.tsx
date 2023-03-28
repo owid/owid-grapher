@@ -154,6 +154,18 @@ export default function ArticleBlock({
                 d={block}
             />
         ))
+        .with({ type: "callout" }, (block) => (
+            <div className={getLayout("callout", containerType)}>
+                {block.title ? (
+                    <h4 className="h4-semibold">{block.title}</h4>
+                ) : null}
+                {block.text.map((text, i) => (
+                    <p className="body-3-medium" key={i}>
+                        {renderSpans(text)}
+                    </p>
+                ))}
+            </div>
+        ))
         .with({ type: "chart-story" }, (block) => (
             <ChartStory
                 d={block}

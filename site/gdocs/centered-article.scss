@@ -379,6 +379,7 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+// A full-width grey section
 .article-block__gray-section {
     background-color: $gray-10;
     padding: 48px 0;
@@ -397,6 +398,22 @@ h3.article-block__heading.has-supertitle {
         border: none;
         padding-top: 0;
     }
+}
+
+// A small grey block
+.article-block__callout {
+    h4 {
+        color: $blue-90;
+        margin-bottom: 8px;
+    }
+    a {
+        @include owid-link-90;
+    }
+    color: $blue-60;
+    background: $gray-10;
+    padding: 16px 24px;
+    border-radius: 8px;
+    margin: 32px 0;
 }
 
 .article-block__sticky-right,
