@@ -9,7 +9,7 @@ import {
 import {
     isEmpty,
     OwidVariableId,
-    TimeToleranceStrategy,
+    ToleranceStrategy,
 } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
@@ -93,20 +93,20 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
     }
 
     get timeToleranceStrategyOptions(): {
-        value: TimeToleranceStrategy
+        value: ToleranceStrategy
         label: string
     }[] {
         const timeToleranceStrategyLabels = {
-            [TimeToleranceStrategy.closest]:
+            [ToleranceStrategy.closest]:
                 "Closest: Consider data points in the past and future",
-            [TimeToleranceStrategy.backwards]:
+            [ToleranceStrategy.backwards]:
                 "Backwards: Only consider data points in the past",
-            [TimeToleranceStrategy.forwards]:
+            [ToleranceStrategy.forwards]:
                 "Forwards: Only consider data points in the future",
         }
 
-        return Object.values(TimeToleranceStrategy).map(
-            (val: TimeToleranceStrategy) => ({
+        return Object.values(ToleranceStrategy).map(
+            (val: ToleranceStrategy) => ({
                 value: val,
                 label: timeToleranceStrategyLabels[val],
             })
@@ -114,8 +114,7 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
     }
 
     @action.bound onSelectTimeToleranceStrategy(value: string | undefined) {
-        this.props.mapConfig.timeToleranceStrategy =
-            value as TimeToleranceStrategy
+        this.props.mapConfig.timeToleranceStrategy = value as ToleranceStrategy
     }
 
     render() {

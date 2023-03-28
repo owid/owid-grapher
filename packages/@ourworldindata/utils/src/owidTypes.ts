@@ -1035,7 +1035,7 @@ export enum TimeBoundValue {
 /**
  * Time tolerance strategy used for maps
  */
-export enum TimeToleranceStrategy {
+export enum ToleranceStrategy {
     closest = "closest",
     backwards = "backwards",
     forwards = "forwards",

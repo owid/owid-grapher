@@ -22,7 +22,7 @@ import {
     ColumnSlug,
     PrimitiveType,
     imemo,
-    TimeToleranceStrategy,
+    ToleranceStrategy,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import { Time, JsTypes, CoreValueType } from "./CoreTableConstants.js"
@@ -156,7 +156,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.display?.tolerance ?? this.def.tolerance ?? 0
     }
 
-    @imemo get toleranceStrategy(): TimeToleranceStrategy | undefined {
+    @imemo get toleranceStrategy(): ToleranceStrategy | undefined {
         return this.def.toleranceStrategy
     }
 

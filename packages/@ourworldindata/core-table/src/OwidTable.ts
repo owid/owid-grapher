@@ -22,7 +22,7 @@ import {
     TimeBound,
     ColumnSlug,
     imemo,
-    TimeToleranceStrategy,
+    ToleranceStrategy,
 } from "@ourworldindata/utils"
 import {
     Integer,
@@ -647,7 +647,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
         toleranceOverride?: number,
-        toleranceStrategyOverride?: TimeToleranceStrategy
+        toleranceStrategyOverride?: ToleranceStrategy
     ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
@@ -658,7 +658,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const toleranceStrategy =
             toleranceStrategyOverride ??
             column.toleranceStrategy ??
-            TimeToleranceStrategy.closest
+            ToleranceStrategy.closest
 
         const timeColumnOfTable = !this.timeColumn.isMissing
             ? this.timeColumn
@@ -680,13 +680,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
             const interpolateInBothDirections =
                 !toleranceStrategy ||
-                toleranceStrategy === TimeToleranceStrategy.closest
+                toleranceStrategy === ToleranceStrategy.closest
             const interpolateBackwards =
                 interpolateInBothDirections ||
-                toleranceStrategy === TimeToleranceStrategy.backwards
+                toleranceStrategy === ToleranceStrategy.backwards
             const interpolateForwards =
                 interpolateInBothDirections ||
-                toleranceStrategy === TimeToleranceStrategy.forwards
+                toleranceStrategy === ToleranceStrategy.forwards
 
             const interpolationResult = this.interpolate(
                 withAllRows,

@@ -163,7 +163,7 @@ export {
     WP_PostType,
     type Year,
     type PostRowWithGdocPublishStatus,
-    TimeToleranceStrategy,
+    ToleranceStrategy,
 } from "./owidTypes.js"
 
 export {

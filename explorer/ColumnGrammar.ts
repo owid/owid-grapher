@@ -3,7 +3,7 @@ import {
     ColumnTypeNames,
 } from "@ourworldindata/core-table"
 import { BinningStrategy, ColorSchemeName } from "@ourworldindata/grapher"
-import { TimeToleranceStrategy } from "@ourworldindata/utils"
+import { ToleranceStrategy } from "@ourworldindata/utils"
 import {
     BooleanCellDef,
     EnumCellDef,
@@ -52,13 +52,11 @@ export const ColumnGrammar: Grammar = {
     toleranceStrategy: {
         ...EnumCellDef,
         keyword: "toleranceStrategy",
-        terminalOptions: Object.values(TimeToleranceStrategy).map(
-            (strategy) => ({
-                keyword: strategy,
-                description: "",
-                cssClass: "",
-            })
-        ),
+        terminalOptions: Object.values(ToleranceStrategy).map((strategy) => ({
+            keyword: strategy,
+            description: "",
+            cssClass: "",
+        })),
         description: "The tolerance strategy to use",
     },
     description: {
