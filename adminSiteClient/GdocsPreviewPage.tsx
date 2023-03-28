@@ -20,22 +20,24 @@ import {
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faGear } from "@fortawesome/free-solid-svg-icons/faGear"
+import {
+    faGear,
+    faArrowsRotate,
+    faExclamationTriangle,
+    faAngleLeft,
+} from "@fortawesome/free-solid-svg-icons"
 
 import { getErrors } from "./gdocsValidation.js"
 import { GdocsSaveButtons } from "./GdocsSaveButtons.js"
 import { IconBadge } from "./IconBadge.js"
 import { useGdocsStore } from "./GdocsStore.js"
-import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate"
 import { GdocsSaveStatus } from "./GdocsSaveStatus.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import {
     useGdocsChanged,
     useAutoSaveDraft,
     useLightningUpdate,
 } from "./gdocsHooks.js"
 import { GdocsMoreMenu } from "./GdocsMoreMenu.js"
-import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 import { openSuccessNotification } from "./gdocsNotifications.js"
 import { GdocsDiffButton } from "./GdocsDiffButton.js"

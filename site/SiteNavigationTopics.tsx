@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useState } from "react"
 import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
 

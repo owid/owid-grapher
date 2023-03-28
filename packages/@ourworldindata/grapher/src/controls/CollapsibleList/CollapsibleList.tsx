@@ -3,7 +3,7 @@ import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 import { throttle, Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
+import { faCog } from "@fortawesome/free-solid-svg-icons"
 
 interface ListChild {
     index: number

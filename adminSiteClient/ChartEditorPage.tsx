@@ -39,8 +39,7 @@ import { LoadingBlocker } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
-import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
+import { faMobile, faDesktop } from "@fortawesome/free-solid-svg-icons"
 import {
     VisionDeficiency,
     VisionDeficiencySvgFilters,

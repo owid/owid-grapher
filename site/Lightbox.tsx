@@ -1,8 +1,10 @@
-import { faCompress } from "@fortawesome/free-solid-svg-icons/faCompress"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faSearchMinus } from "@fortawesome/free-solid-svg-icons/faSearchMinus"
-import { faSearchPlus } from "@fortawesome/free-solid-svg-icons/faSearchPlus"
+import {
+    faCompress,
+    faDownload,
+    faPlus,
+    faSearchMinus,
+    faSearchPlus,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { LoadingIndicator } from "@ourworldindata/grapher"
 import cx from "classnames"

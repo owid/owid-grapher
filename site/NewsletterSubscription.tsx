@@ -1,8 +1,7 @@
 import React, { useState } from "react"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 
 const analytics = new SiteAnalytics()
 
