@@ -2,7 +2,7 @@ import * as fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import * as path from "path"
 import * as glob from "glob"
-import { keyBy, without } from "lodash"
+import { isArray, keyBy, without } from "lodash"
 import * as lodash from "lodash"
 import * as cheerio from "cheerio"
 import fetch from "node-fetch"
@@ -67,15 +67,53 @@ import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
+export const bakeSteps = [
+    "assets", // base html, js, and css
+    "blogIndex",
+    "charts",
+    "countries", // countries index and each country profile
+    "embeds",
+    "gdocPosts", // posts and images
+    "googleScholar",
+    "redirects",
+    "rss",
+    "specialPages",
+    "variables",
+    "wordpressPosts",
+] as const
+
+export function validateBakeSteps(steps: unknown): steps is BakeStep[] {
+    if (!isArray(steps)) return false
+    const hasInvalidStep = steps.some(
+        (step) => !bakeSteps.includes(step as any)
+    )
+    return !hasInvalidStep
+}
+
+export type BakeStep = typeof bakeSteps[number]
+
+export type BakeStepConfig = Record<BakeStep, boolean>
+
+const defaultSteps = bakeSteps.reduce(
+    (acc, step) => ({ ...acc, [step]: true }),
+    {} as BakeStepConfig
+)
+
 export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
     baseUrl: string
     progressBar: ProgressBar
+    bakeSteps: Partial<BakeStepConfig>
 
-    constructor(bakedSiteDir: string, baseUrl: string) {
+    constructor(
+        bakedSiteDir: string,
+        baseUrl: string,
+        bakeSteps: Partial<BakeStepConfig> = defaultSteps
+    ) {
         this.bakedSiteDir = bakedSiteDir
         this.baseUrl = baseUrl
+        this.bakeSteps = bakeSteps
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
@@ -85,6 +123,7 @@ export class SiteBaker {
     }
 
     private async bakeEmbeds() {
+        if (!this.bakeSteps.embeds) return
         // Find all grapher urls used as embeds in all posts on the site
         const rows = await wpdb.singleton.query(
             `SELECT post_content FROM wp_posts WHERE (post_type='page' OR post_type='post' OR post_type='wp_block') AND post_status='publish'`
@@ -110,6 +149,7 @@ export class SiteBaker {
     }
 
     private async bakeCountryProfiles() {
+        if (!this.bakeSteps.countries) return
         countryProfileSpecs.forEach(async (spec) => {
             // Delete all country profiles before regenerating them
             await fs.remove(`${this.bakedSiteDir}/${spec.rootPath}`)
@@ -219,6 +259,7 @@ export class SiteBaker {
     }
 
     private async bakePosts() {
+        if (!this.bakeSteps.wordpressPosts) return
         // In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
         // we still want to bake them from the WP posts. Once the users presses publish there though, we want to stop
         // baking them from the wordpress post. Here we fetch all the slugs of posts that have been published via gdocs
@@ -251,6 +292,7 @@ export class SiteBaker {
 
     // Bake all GDoc posts
     async bakeGDocPosts() {
+        if (!this.bakeSteps.gdocPosts) return
         const publishedGdocs = await Gdoc.getPublishedGdocs()
 
         // Prefetch publishedGdocs and imageMetadata instead of each instance fetching
@@ -280,6 +322,7 @@ export class SiteBaker {
 
     // Bake unique individual pages
     private async bakeSpecialPages() {
+        if (!this.bakeSteps.specialPages) return
         await this.stageWrite(
             `${this.bakedSiteDir}/index.html`,
             await renderFrontPage()
@@ -328,6 +371,7 @@ export class SiteBaker {
 
     // Pages that are expected by google scholar for indexing
     private async bakeGoogleScholar() {
+        if (!this.bakeSteps.googleScholar) return
         await this.stageWrite(
             `${this.bakedSiteDir}/entries-by-year/index.html`,
             await entriesByYearPage()
@@ -356,6 +400,7 @@ export class SiteBaker {
 
     // Bake the blog index
     private async bakeBlogIndex() {
+        if (!this.bakeSteps.blogIndex) return
         const allPosts = await wpdb.getBlogIndex()
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
@@ -369,6 +414,7 @@ export class SiteBaker {
 
     // Bake the RSS feed
     private async bakeRSS() {
+        if (!this.bakeSteps.rss) return
         await this.stageWrite(
             `${this.bakedSiteDir}/atom.xml`,
             await makeAtomFeed()
@@ -377,6 +423,7 @@ export class SiteBaker {
     }
 
     private async bakeDriveImages() {
+        if (!this.bakeSteps.gdocPosts) return
         const images: Image[] = await db
             .queryMysql(
                 `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
@@ -447,6 +494,7 @@ export class SiteBaker {
 
     // Bake the static assets
     private async bakeAssets() {
+        if (!this.bakeSteps.assets) return
         await execWrapper(
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
@@ -467,6 +515,7 @@ export class SiteBaker {
     }
 
     async bakeRedirects() {
+        if (!this.bakeSteps.redirects) return
         const redirects = await getRedirects()
         this.progressBar.tick({ name: "✅ got redirects" })
         await this.stageWrite(
@@ -487,15 +536,20 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages() {
-        await bakeCountries(this)
+        await db.getConnection()
+        if (this.bakeSteps.countries) {
+            await bakeCountries(this)
+        }
         await this.bakeSpecialPages()
         await this.bakeCountryProfiles()
-        await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-            this.bakedSiteDir
-        )
-        this.progressBar.tick({
-            name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
-        })
+        if (this.bakeSteps.charts) {
+            await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+                this.bakedSiteDir
+            )
+            this.progressBar.tick({
+                name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+            })
+        }
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
     }
