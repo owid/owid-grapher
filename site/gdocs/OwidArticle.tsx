@@ -6,6 +6,7 @@ import {
     OwidArticleType,
     formatDate,
     getArticleFromJSON,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
@@ -14,7 +15,6 @@ import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
-import { ImageMetadata } from "@ourworldindata/utils"
 
 export const AttachmentsContext = createContext<{
     linkedDocuments: Record<string, OwidArticleType>

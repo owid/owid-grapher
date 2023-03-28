@@ -18,8 +18,7 @@ import {
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
 import { AxisConfig } from "../axis/AxisConfig"
-import { Tippy } from "@ourworldindata/utils"
-import { Bounds } from "@ourworldindata/utils"
+import { Tippy, Bounds } from "@ourworldindata/utils"
 import classnames from "classnames"
 
 export interface NoDataAreaToggleManager {

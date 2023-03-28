@@ -30,9 +30,9 @@ import {
     DEFAULT_BOUNDS,
     ColumnSlug,
     TickFormattingOptions,
+    Tippy,
 } from "@ourworldindata/utils"
 import { SortIcon } from "../controls/SortIcon"
-import { Tippy } from "@ourworldindata/utils"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 

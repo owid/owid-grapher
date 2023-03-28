@@ -6,6 +6,8 @@ import {
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
     isEmpty,
+    MarkdownTextWrap,
+    sumTextWrapHeights,
 } from "@ourworldindata/utils"
 import { Header } from "../header/Header"
 import { Footer } from "../footer/Footer"
@@ -46,7 +48,6 @@ import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import { EntityName } from "@ourworldindata/core-table"
 import { AxisConfig } from "../axis/AxisConfig"
-import { MarkdownTextWrap, sumTextWrapHeights } from "@ourworldindata/utils"
 
 export interface CaptionedChartManager
     extends ChartManager,

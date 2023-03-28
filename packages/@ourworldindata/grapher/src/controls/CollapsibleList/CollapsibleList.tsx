@@ -1,8 +1,7 @@
 import React, { ReactNode } from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
-import { throttle } from "@ourworldindata/utils"
-import { Tippy } from "@ourworldindata/utils"
+import { throttle, Tippy } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 
