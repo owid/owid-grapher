@@ -198,6 +198,11 @@ h3.article-block__heading.has-supertitle {
         li:first-child p {
             margin-top: 0;
         }
+
+        @include sm-only {
+            column-count: 1;
+            margin: 0 24px;
+        }
     }
 }
 
