@@ -647,7 +647,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
         toleranceOverride?: number,
-        toleranceStrategy?: TimeToleranceStrategy
+        toleranceStrategyOverride?: TimeToleranceStrategy
     ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
@@ -655,6 +655,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const column = this.get(columnSlug)
         const columnDef = column.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column.tolerance ?? 0
+        const toleranceStrategy =
+            toleranceStrategyOverride ??
+            column.toleranceStrategy ??
+            TimeToleranceStrategy.closest
 
         const timeColumnOfTable = !this.timeColumn.isMissing
             ? this.timeColumn
