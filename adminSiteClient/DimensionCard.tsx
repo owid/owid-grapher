@@ -5,13 +5,13 @@ import { ChartDimension } from "@ourworldindata/grapher"
 import { ChartEditor } from "./ChartEditor.js"
 import { Toggle, BindAutoString, BindAutoFloat, ColorBox } from "./Forms.js"
 import { Link } from "./Link.js"
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
-import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
-import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
+import { faChevronUp } from "@fortawesome/free-solid-svg-icons"
+import { faRightLeft } from "@fortawesome/free-solid-svg-icons"
+import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "@ourworldindata/core-table"
-import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
+import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons"
 
 @observer
 export class DimensionCard extends React.Component<{

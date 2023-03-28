@@ -1,7 +1,7 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
-import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons"
 import { OwidArticleErrorMessageType } from "@ourworldindata/utils"
 import { Badge } from "antd"
 

@@ -1,5 +1,5 @@
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { faMinus } from "@fortawesome/free-solid-svg-icons"
+import { faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     getErrorMessageRelatedQuestionUrl,

@@ -2,7 +2,7 @@ import { Bounds, DEFAULT_BOUNDS, linkify } from "@ourworldindata/utils"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CoreColumn, OwidColumnDef } from "@ourworldindata/core-table"
 

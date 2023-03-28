@@ -58,8 +58,8 @@ import {
 } from "rxjs/operators"
 import { fromFetch } from "rxjs/fetch"
 import { toStream, fromStream } from "mobx-utils"
-import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
-import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
+import { faEye } from "@fortawesome/free-solid-svg-icons"
+import { faEyeSlash } from "@fortawesome/free-solid-svg-icons"
 import {
     parseVariableAnnotationsRow,
     VariableAnnotationsRow,

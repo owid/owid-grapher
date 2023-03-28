@@ -1,11 +1,11 @@
 import React from "react"
 import { Dropdown, Menu, Button, Modal } from "antd"
-import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons/faEllipsisVertical"
+import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidArticleType } from "@ourworldindata/utils"
-import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash"
-import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
-import { faBug } from "@fortawesome/free-solid-svg-icons/faBug"
+import { faTrash } from "@fortawesome/free-solid-svg-icons"
+import { faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faBug } from "@fortawesome/free-solid-svg-icons"
 
 enum GdocsMoreMenuAction {
     Debug = "debug",

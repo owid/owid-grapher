@@ -1,9 +1,9 @@
 import React, { useState } from "react"
 import { TocHeadingWithTitleSupertitle } from "@ourworldindata/utils"
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
+import { faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faMinus } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 import AnimateHeight from "react-animate-height"
 

@@ -1,5 +1,5 @@
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash"
+import { faMinus } from "@fortawesome/free-solid-svg-icons"
+import { faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "@ourworldindata/core-table"
 import {

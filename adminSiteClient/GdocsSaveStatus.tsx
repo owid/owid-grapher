@@ -1,6 +1,6 @@
 import React from "react"
-import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons/faArrowsRotate"
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
+import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons"
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export const GdocsSaveStatus = ({ hasChanges }: { hasChanges: boolean }) => (

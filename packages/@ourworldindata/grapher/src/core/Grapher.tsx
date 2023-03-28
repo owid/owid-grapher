@@ -122,7 +122,7 @@ import {
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import {
     AbsRelToggleManager,
     FacetStrategyDropdownManager,

@@ -3,8 +3,8 @@ import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
+import { faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faRightLeft } from "@fortawesome/free-solid-svg-icons"
 
 export interface NoDataModalManager {
     canChangeEntity?: boolean

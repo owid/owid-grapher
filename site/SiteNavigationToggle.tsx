@@ -1,7 +1,7 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown"
-import { faCaretUp } from "@fortawesome/free-solid-svg-icons/faCaretUp"
+import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
+import { faCaretUp } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 
 export const SiteNavigationToggle = ({

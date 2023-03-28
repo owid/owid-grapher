@@ -1,6 +1,6 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCircleInfo } from "@fortawesome/free-solid-svg-icons/faCircleInfo"
+import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
 
 export const MissingData = ({ className }: { className?: string }) => (
     <div className={className}>
