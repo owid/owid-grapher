@@ -10,7 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
-import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
+import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"

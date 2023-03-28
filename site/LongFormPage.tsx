@@ -9,7 +9,7 @@ import { SiteSubnavigation } from "./SiteSubnavigation.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
 import { faSync } from "@fortawesome/free-solid-svg-icons"
-import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
+import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { TableOfContents } from "../site/TableOfContents.js"
 import {
     FormattedPost,
