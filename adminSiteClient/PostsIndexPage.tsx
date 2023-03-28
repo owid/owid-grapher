@@ -14,9 +14,11 @@ import { match } from "ts-pattern"
 import { Link } from "./Link.js"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faEye } from "@fortawesome/free-solid-svg-icons"
-import { faChainBroken } from "@fortawesome/free-solid-svg-icons"
-import { faRecycle } from "@fortawesome/free-solid-svg-icons"
+import {
+    faEye,
+    faChainBroken,
+    faRecycle,
+} from "@fortawesome/free-solid-svg-icons"
 
 interface PostIndexMeta {
     id: number

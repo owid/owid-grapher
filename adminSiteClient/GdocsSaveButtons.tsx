@@ -1,8 +1,10 @@
 import { Badge, Button, Modal, Space } from "antd"
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
-import { faBolt } from "@fortawesome/free-solid-svg-icons"
+import {
+    faExclamationTriangle,
+    faBolt,
+} from "@fortawesome/free-solid-svg-icons"
 import { GdocsDiff } from "./GdocsDiff.js"
 import { OwidArticleType, OwidArticleErrorMessage } from "@ourworldindata/utils"
 

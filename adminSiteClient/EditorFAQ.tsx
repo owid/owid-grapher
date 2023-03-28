@@ -1,7 +1,6 @@
 import React from "react"
 import { Modal } from "./Forms.js"
-import { faLink } from "@fortawesome/free-solid-svg-icons"
-import { faUnlink } from "@fortawesome/free-solid-svg-icons"
+import { faLink, faUnlink } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export class EditorFAQ extends React.Component<{ onClose: () => void }> {

@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react"
-import { faCircleArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCircleArrowRight,
+    faCircleArrowLeft,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { useEmbedChart } from "../hooks.js"

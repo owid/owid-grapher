@@ -3,11 +3,13 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { TimelineComponent } from "../timeline/TimelineComponent"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
-import { faShareAlt } from "@fortawesome/free-solid-svg-icons"
-import { faExpand } from "@fortawesome/free-solid-svg-icons"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
+import {
+    faDownload,
+    faShareAlt,
+    faExpand,
+    faExternalLinkAlt,
+    faChevronDown,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     FacetAxisDomain,
     FacetStrategy,

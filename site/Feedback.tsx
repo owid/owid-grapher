@@ -2,11 +2,13 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faCommentAlt } from "@fortawesome/free-solid-svg-icons"
-import { faTimes } from "@fortawesome/free-solid-svg-icons"
+import {
+    faCommentAlt,
+    faTimes,
+    faPaperPlane,
+} from "@fortawesome/free-solid-svg-icons"
 import { observable, action, toJS, computed } from "mobx"
 import classnames from "classnames"
-import { faPaperPlane } from "@fortawesome/free-solid-svg-icons"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { stringifyUnkownError } from "@ourworldindata/utils"
 

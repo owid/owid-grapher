@@ -29,8 +29,7 @@ import {
     SortBy,
     SortConfig,
 } from "@ourworldindata/utils"
-import { faPlus } from "@fortawesome/free-solid-svg-icons"
-import { faMinus } from "@fortawesome/free-solid-svg-icons"
+import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     ColorSchemeDropdown,

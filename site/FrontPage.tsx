@@ -2,15 +2,19 @@ import React from "react"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { faRss } from "@fortawesome/free-solid-svg-icons"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
-import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons"
-import { faTwitter } from "@fortawesome/free-brands-svg-icons"
-import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons"
-import { faInstagram } from "@fortawesome/free-brands-svg-icons"
+import {
+    faRss,
+    faAngleRight,
+    faExternalLinkAlt,
+    faAngleDoubleDown,
+    faArrowRight,
+} from "@fortawesome/free-solid-svg-icons"
+import {
+    faTwitter,
+    faFacebookSquare,
+    faInstagram,
+} from "@fortawesome/free-brands-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import {
     NewsletterSubscriptionForm,
     NewsletterSubscriptionContext,
