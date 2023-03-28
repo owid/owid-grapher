@@ -3,7 +3,7 @@ import {
     GIT_DEFAULT_USERNAME,
     GIT_DEFAULT_EMAIL,
 } from "../settings/serverSettings.js"
-import simpleGit, { SimpleGit } from "simple-git"
+import { simpleGit, SimpleGit } from "simple-git"
 import {
     writeFile,
     existsSync,
