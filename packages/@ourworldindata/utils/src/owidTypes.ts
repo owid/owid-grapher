@@ -989,6 +989,7 @@ export enum GdocsContentSource {
 export enum SiteFooterContext {
     gdocsArticle = "gdocsArticle", // the rendered version (on the site)
     grapherPage = "grapherPage",
+    dataPage = "dataPage",
     explorerPage = "explorerPage",
     default = "default",
 }

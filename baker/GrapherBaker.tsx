@@ -1,6 +1,7 @@
 import React from "react"
 import { Chart } from "../db/model/Chart.js"
 import { GrapherPage } from "../site/GrapherPage.js"
+import { DataPage } from "../site/DataPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
     excludeUndefined,
@@ -67,19 +68,30 @@ const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     try {
         const datapageJson = await readFile(fullPath, "utf8")
         datapage = JSON.parse(datapageJson)
-    } catch {
-        logErrorAndMaybeSendToSlack(
-            `Failed to parse datapage ${fullPath} as JSON`
+    } catch (e: any) {
+        // Only report an error if the file exists but we failed to parse it.
+        // Otherwise, it simply means we don't have a datapage yet and we
+        // silently return a GrapherPage.
+        if (e instanceof SyntaxError) {
+            logErrorAndMaybeSendToSlack(
+                `Failed to parse datapage ${fullPath} as JSON`
+            )
+        }
+        return renderToHtmlPage(
+            <GrapherPage
+                grapher={grapher}
+                post={post}
+                relatedCharts={relatedCharts}
+                relatedArticles={relatedArticles}
+                baseUrl={BAKED_BASE_URL}
+                baseGrapherUrl={BAKED_GRAPHER_URL}
+            />
         )
     }
-
     return renderToHtmlPage(
-        <GrapherPage
+        <DataPage
             grapher={grapher}
             datapage={datapage}
-            post={post}
-            relatedCharts={relatedCharts}
-            relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
         />

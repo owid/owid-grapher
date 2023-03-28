@@ -22,7 +22,6 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/clientSettings.js"
 import { ChartListItemVariant } from "./ChartListItemVariant.js"
-import { DataPage, OWID_DATAPAGE_ROOT_ID } from "./DataPage.js"
 import { Head } from "./Head.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { RelatedArticles } from "./RelatedArticles/RelatedArticles.js"
@@ -31,21 +30,14 @@ import { SiteHeader } from "./SiteHeader.js"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
-    datapage?: any
     post?: PostRow
     relatedCharts?: RelatedChart[]
     relatedArticles?: PostReference[]
     baseUrl: string
     baseGrapherUrl: string
 }) => {
-    const {
-        grapher,
-        datapage,
-        relatedCharts,
-        relatedArticles,
-        baseGrapherUrl,
-        baseUrl,
-    } = props
+    const { grapher, relatedCharts, relatedArticles, baseGrapherUrl, baseUrl } =
+        props
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
     let pageDesc: string
@@ -69,6 +61,13 @@ export const GrapherPage = (props: {
     const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
     const imageWidth: string = "1200"
     const imageHeight: string = "628"
+
+    const script = `const jsonConfig = ${serializeJSONForHTML({
+        ...grapher,
+        adminBaseUrl: ADMIN_BASE_URL,
+        bakedGrapherURL: BAKED_GRAPHER_URL,
+    })}
+window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
@@ -109,96 +108,53 @@ export const GrapherPage = (props: {
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
-                    {datapage && grapher.slug ? (
-                        <>
-                            <script
-                                dangerouslySetInnerHTML={{
-                                    __html: `window._OWID_DATAPAGE_PROPS = ${JSON.stringify(
-                                        {
-                                            datapage,
-                                            grapherConfig: grapher,
-                                        }
-                                    )}`,
-                                }}
-                            />
-                            <div id={OWID_DATAPAGE_ROOT_ID}>
-                                <DataPage
-                                    datapage={datapage}
-                                    grapherConfig={grapher}
-                                />
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <figure
-                                data-grapher-src={`/grapher/${grapher.slug}`}
-                            >
-                                <LoadingIndicator />
-                            </figure>
-                            <noscript id="fallback">
-                                <img
-                                    src={`${baseGrapherUrl}/exports/${grapher.slug}.svg`}
-                                />
-                                <p>
-                                    Interactive visualization requires
-                                    JavaScript
-                                </p>
-                            </noscript>
+                    <figure data-grapher-src={`/grapher/${grapher.slug}`}>
+                        <LoadingIndicator />
+                    </figure>
+                    <noscript id="fallback">
+                        <img
+                            src={`${baseGrapherUrl}/exports/${grapher.slug}.svg`}
+                        />
+                        <p>Interactive visualization requires JavaScript</p>
+                    </noscript>
 
-                            {((relatedArticles &&
-                                relatedArticles.length != 0) ||
-                                (relatedCharts &&
-                                    relatedCharts.length != 0)) && (
-                                <div className="related-research-data">
-                                    <h2>All our related research and data</h2>
-                                    {relatedArticles &&
-                                        relatedArticles.length != 0 && (
-                                            <RelatedArticles
-                                                articles={relatedArticles}
-                                            />
-                                        )}
-                                    {relatedCharts &&
-                                        relatedCharts.length !== 0 && (
-                                            <>
-                                                <h3>Charts</h3>
-                                                <ul>
-                                                    {relatedCharts
-                                                        .filter(
-                                                            (chartItem) =>
-                                                                chartItem.slug !==
-                                                                grapher.slug
-                                                        )
-                                                        .map((c) => (
-                                                            <ChartListItemVariant
-                                                                key={c.slug}
-                                                                chart={c}
-                                                            />
-                                                        ))}
-                                                </ul>
-                                            </>
-                                        )}
-                                </div>
+                    {((relatedArticles && relatedArticles.length != 0) ||
+                        (relatedCharts && relatedCharts.length != 0)) && (
+                        <div className="related-research-data">
+                            <h2>All our related research and data</h2>
+                            {relatedArticles && relatedArticles.length != 0 && (
+                                <RelatedArticles articles={relatedArticles} />
                             )}
-                        </>
+                            {relatedCharts && relatedCharts.length !== 0 && (
+                                <>
+                                    <h3>Charts</h3>
+                                    <ul>
+                                        {relatedCharts
+                                            .filter(
+                                                (chartItem) =>
+                                                    chartItem.slug !==
+                                                    grapher.slug
+                                            )
+                                            .map((c) => (
+                                                <ChartListItemVariant
+                                                    key={c.slug}
+                                                    chart={c}
+                                                />
+                                            ))}
+                                    </ul>
+                                </>
+                            )}
+                        </div>
                     )}
                 </main>
                 <SiteFooter
                     baseUrl={baseUrl}
                     context={SiteFooterContext.grapherPage}
                 />
-                {!datapage && (
-                    <script
-                        type="module"
-                        dangerouslySetInnerHTML={{
-                            __html: `const jsonConfig = ${serializeJSONForHTML({
-                                ...grapher,
-                                adminBaseUrl: ADMIN_BASE_URL,
-                                bakedGrapherURL: BAKED_GRAPHER_URL,
-                            })}
-                        window.Grapher.renderSingleGrapherOnGrapherPage(jsonConfig)`,
-                        }}
-                    />
-                )}
+                <script
+                    type="module"
+                    dangerouslySetInnerHTML={{ __html: script }}
+                />
             </body>
         </html>
     )

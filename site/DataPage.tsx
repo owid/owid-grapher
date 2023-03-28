@@ -1,160 +1,119 @@
-import React, { useEffect } from "react"
-import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
-    Grapher,
+    getVariableDataRoute,
+    getVariableMetadataRoute,
     GrapherInterface,
-    LoadingIndicator,
 } from "@ourworldindata/grapher"
-import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
 import {
-    ADMIN_BASE_URL,
-    BAKED_GRAPHER_EXPORTS_BASE_URL,
-    BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
-import ReactDOM from "react-dom"
+    flatten,
+    uniq,
+    SiteFooterContext,
+    MarkdownTextWrap,
+} from "@ourworldindata/utils"
+import React from "react"
+import urljoin from "url-join"
+import {
+    DataPageContent,
+    OWID_DATAPAGE_CONTENT_ROOT_ID,
+} from "./DataPageContent.js"
+import { Head } from "./Head.js"
+import { IFrameDetector } from "./IframeDetector.js"
+import { SiteFooter } from "./SiteFooter.js"
+import { SiteHeader } from "./SiteHeader.js"
 
-declare global {
-    interface Window {
-        _OWID_DATAPAGE_PROPS: any
-    }
-}
-
-export const OWID_DATAPAGE_ROOT_ID = "owid-datapage-root"
-
-export const DataPage = ({
-    datapage,
-    grapherConfig,
-}: {
-    datapage: any
-    grapherConfig: GrapherInterface
+export const DataPage = (props: {
+    grapher: GrapherInterface
+    datapage?: any
+    baseUrl: string
+    baseGrapherUrl: string
 }) => {
-    const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
+    const { grapher, datapage, baseGrapherUrl, baseUrl } = props
+    const pageTitle = grapher.title
+    const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
+    let pageDesc: string
+    if (grapher.subtitle?.length) {
+        // convert subtitle from markdown to plaintext
+        pageDesc = new MarkdownTextWrap({
+            text: grapher.subtitle,
+            fontSize: 10,
+        }).plaintext
+    } else pageDesc = "An interactive visualization from Our World in Data."
 
-    // Initialize the grapher for client-side rendering
-    useEffect(() => {
-        setGrapher(
-            new Grapher({
-                ...grapherConfig,
-                bakedGrapherURL: BAKED_GRAPHER_URL,
-                adminBaseUrl: ADMIN_BASE_URL,
-            })
-        )
-    }, [grapherConfig])
+    // Due to thumbnails not taking into account URL parameters, they are often inaccurate on
+    // social media. We decided to remove them and use a single thumbnail for all charts.
+    // See https://github.com/owid/owid-grapher/issues/1086
+    //
+    // const imageUrl = urljoin(
+    //     baseGrapherUrl,
+    //     "exports",
+    //     `${grapher.slug}.png?v=${grapher.version}`
+    // )
+    const imageUrl: string = urljoin(baseUrl, "default-grapher-thumbnail.png")
+    const imageWidth: string = "1200"
+    const imageHeight: string = "628"
+
+    const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
 
     return (
-        <div className="DataPage">
-            <div className="header__wrapper wrapper">
-                <div className="header__left">
-                    <div className="supertitle">DATA</div>
-                    <h1>{datapage.title}</h1>
-                    <div className="source">{datapage.sourceShortName}</div>
-                </div>
-                <div className="header__right">
-                    <div className="label">SEE ALL DATA AND RESEARCH ON:</div>
-                    <div className="topic-tags">
-                        {datapage.topicTagsLinks.map((topic: any) => (
-                            <a href={topic.url} key={topic.url}>
-                                {topic.title}
-                            </a>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            <div
-                style={{
-                    backgroundColor: "#f7f7f7",
-                    display: "flex",
-                    flexDirection: "column",
-                }}
+        <html>
+            <Head
+                canonicalUrl={canonicalUrl}
+                pageTitle={pageTitle}
+                pageDesc={pageDesc}
+                imageUrl={imageUrl}
+                baseUrl={baseUrl}
             >
-                <div className="chart__wrapper wrapper">
-                    {grapher ? (
-                        <Grapher {...grapher} />
-                    ) : (
-                        <figure
-                            data-grapher-src={`/grapher/${grapherConfig.slug}`}
-                        >
-                            <LoadingIndicator />
-                        </figure>
-                    )}
-
-                    <noscript id="fallback">
-                        <img
-                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapherConfig.slug}.svg`}
-                        />
-                        <p>Interactive visualization requires JavaScript</p>
-                    </noscript>
-                </div>
-                <div className="key-info__wrapper wrapper">
-                    <div className="key-info__left">
-                        <h2>Key information</h2>
-                        {datapage.keyInfoText && (
-                            <div
-                                dangerouslySetInnerHTML={{
-                                    __html: datapage.keyInfoText,
-                                }}
+                <meta property="og:image:width" content={imageWidth} />
+                <meta property="og:image:height" content={imageHeight} />
+                <IFrameDetector />
+                <noscript>
+                    <style>{`
+                    figure { display: none !important; }
+                `}</style>
+                </noscript>
+                {flatten(
+                    variableIds.map((variableId) =>
+                        [
+                            getVariableDataRoute(variableId),
+                            getVariableMetadataRoute(variableId),
+                        ].map((href) => (
+                            <link
+                                key={href}
+                                rel="preload"
+                                href={href}
+                                as="fetch"
+                                crossOrigin="anonymous"
                             />
-                        )}
-                        {!!datapage.faqs?.items?.length && (
-                            <a className="learn-more" href="#faq">
-                                Learn more in the FAQs
-                                <FontAwesomeIcon icon={faArrowDown} />
-                            </a>
-                        )}
-                        {datapage.sourceVariableDescription?.title &&
-                            datapage.sourceVariableDescription?.content && (
-                                <div style={{ marginTop: 8 }}>
-                                    <ExpandableAnimatedToggle
-                                        label={
-                                            datapage.sourceVariableDescription
-                                                .title
-                                        }
-                                        content={
-                                            datapage.sourceVariableDescription
-                                                .content
-                                        }
-                                    />
-                                </div>
-                            )}
-                    </div>
-                    <div className="key-info__right">
-                        <div className="key-info__data">
-                            <div className="title">Source</div>
-                            <div className="name">
-                                {datapage.sourceShortName}
-                            </div>
-                            {datapage.owidProcessingLevel && (
-                                <div
-                                    dangerouslySetInnerHTML={{
-                                        __html: datapage.owidProcessingLevel,
-                                    }}
-                                ></div>
-                            )}
+                        ))
+                    )
+                )}
+            </Head>
+            <body>
+                <SiteHeader baseUrl={baseUrl} />
+                <main>
+                    <>
+                        <script
+                            dangerouslySetInnerHTML={{
+                                __html: `window._OWID_DATAPAGE_PROPS = ${JSON.stringify(
+                                    {
+                                        datapage,
+                                        grapherConfig: grapher,
+                                    }
+                                )}`,
+                            }}
+                        />
+                        <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
+                            <DataPageContent
+                                datapage={datapage}
+                                grapherConfig={grapher}
+                            />
                         </div>
-                        <div className="key-info__data">
-                            <div className="title">Date range</div>
-                            <div>{datapage.dateRange}</div>
-                        </div>
-                        <div className="key-info__data">
-                            <div className="title">Last updated</div>
-                            <div>{datapage.lastUpdated}</div>
-                        </div>
-                        <div className="key-info__data">
-                            <div className="title">Next expected update</div>
-                            <div>{datapage.nextUpdate}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </>
+                </main>
+                <SiteFooter
+                    baseUrl={baseUrl}
+                    context={SiteFooterContext.dataPage}
+                />
+            </body>
+        </html>
     )
-}
-
-export const hydrateDataPage = () => {
-    const wrapper = document.querySelector(`#${OWID_DATAPAGE_ROOT_ID}`)
-    if (!wrapper) return // regular grapher page
-    const props = window._OWID_DATAPAGE_PROPS
-    ReactDOM.hydrate(<DataPage {...props} />, wrapper)
 }
