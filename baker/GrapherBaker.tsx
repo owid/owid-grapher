@@ -63,7 +63,6 @@ const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
     const id = variableIds[0] // for now, we only support one variable per grapher
     const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
-    const datapageJson = await readFile(fullPath, "utf8")
     let datapage
     try {
         const datapageJson = await readFile(fullPath, "utf8")
