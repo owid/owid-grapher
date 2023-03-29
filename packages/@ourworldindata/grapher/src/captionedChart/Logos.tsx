@@ -88,7 +88,10 @@ export class Logo {
             dangerouslySetInnerHTML: { __html: spec.svg },
             style: { height: `${spec.targetHeight}px` },
         }
-        if (this.props.isLink || !spec.url) return <div {...props} />
-        return <a {...props} href={spec.url} target="_blank" rel="noopener" />
+        if (this.props.isLink && spec.url)
+            return (
+                <a {...props} href={spec.url} target="_blank" rel="noopener" />
+            )
+        else return <div {...props} />
     }
 }
