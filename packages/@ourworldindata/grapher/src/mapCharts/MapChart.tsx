@@ -1,7 +1,7 @@
 import React from "react"
-import { isNumber } from "lodash"
 import {
     anyToString,
+    isNumber,
     Bounds,
     DEFAULT_BOUNDS,
     flatten,
