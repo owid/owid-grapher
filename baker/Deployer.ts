@@ -240,7 +240,23 @@ yarn testPrettierAll`
             restartAdminServer: `pm2 restart ${target}`,
             stopDeployQueueServer: `pm2 stop ${target}-deploy-queue`,
             bakeSiteOnStagingServer: `cd ${finalTargetDir} && node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/bakeSiteOnStagingServer.js ${cliBakeSteps}`,
-            deployToNetlify: `cd ${finalTargetDir} && node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
+            syncBakedDataToS3: `cd ${finalTargetDir} && aws --endpoint=https://nyc3.digitaloceanspaces.com s3 sync bakedSite/grapher s3://owid-catalog/bake/${target}/grapher --acl public-read`,
+            syncExportsToS3: `cd ${finalTargetDir} && aws --endpoint=https://nyc3.digitaloceanspaces.com s3 sync bakedSite/exports s3://owid-catalog/bake/${target}/exports --acl public-read`,
+            syncUploadsToS3: `cd ${finalTargetDir} && aws --endpoint=https://nyc3.digitaloceanspaces.com s3 sync bakedSite/uploads s3://owid-catalog/bake/${target}/uploads --acl public-read`,
+            // pruneBakedVariables: `cd ${finalTargetDir} && rm -rf bakedSite/grapher/data/variables/`,
+            // pruneBakedExports: `cd ${finalTargetDir} && rm -rf bakedSite/grapher/exports/`,
+            // TODO: need to put them at the beginning of redirects!!! otherwise it doesn't work
+            redirectVariables: `cd ${finalTargetDir} && echo "" >> bakedSite/_redirects && echo "/grapher/data/* https://catalog.ourworldindata.org/bake/${target}/grapher/data/:splat 301" >> bakedSite/_redirects`,
+            redirectGrapherExports: `cd ${finalTargetDir} && echo "/grapher/exports/* https://catalog.ourworldindata.org/bake/${target}/grapher/exports/:splat 301" >> bakedSite/_redirects`,
+            redirectExports: `cd ${finalTargetDir} && echo "/exports/* https://catalog.ourworldindata.org/bake/${target}/exports/:splat 301" >> bakedSite/_redirects`,
+            redirectUploads: `cd ${finalTargetDir} && echo "/uploads/* https://catalog.ourworldindata.org/bake/${target}/uploads/:splat 301" >> bakedSite/_redirects`,
+            // what are bakedSite/ symlink and owid-covid-data.json? can we remove them?
+            // TODO: we might have to prune bakedSite first
+            createDist: `cd ${finalTargetDir} && rsync -av --exclude='grapher/data/variables/' --exclude='.git/' --exclude='grapher/exports/' --exclude='exports/' --exclude='uploads/' bakedSite/ dist/ && rm dist/bakedSite && rm dist/owid-covid-data.json`,
+            // need to run `npx wrangler login` first or create a token
+            // TODO: install wrangler in dev mode
+            deployToCloudflarePages: `cd ${finalTargetDir} && CLOUDFLARE_ACCOUNT_ID=b8eba1b06c92c0e922e0686ca0379412 npx wrangler pages publish dist --project-name mojmir-owid --branch master`,
+            // deployToNetlify: `cd ${finalTargetDir} && node --enable-source-maps --unhandled-rejections=strict itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
             restartQueue: `pm2 start ${target}-deploy-queue`,
         }
 
