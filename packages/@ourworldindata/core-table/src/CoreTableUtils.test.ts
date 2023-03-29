@@ -143,6 +143,44 @@ describe(toleranceInterpolation, () => {
             2,
         ])
     })
+
+    it("interpolates values in both directions", () => {
+        const valuesAsc = [
+            1,
+            ErrorValueTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
+            2,
+        ]
+        const timesAsc = [0, 1, 2, 3]
+        const tolerance = 1
+        toleranceInterpolation(valuesAsc, timesAsc, {
+            timeToleranceForwards: tolerance,
+            timeToleranceBackwards: tolerance,
+        })
+        expect(valuesAsc).toEqual([1, 1, 2, 2])
+    })
+
+    it("interpolates values in the backwards direction", () => {
+        const valuesAsc = [1, ErrorValueTypes.MissingValuePlaceholder, 2]
+        const timesAsc = [0, 1, 2]
+        const tolerance = 1
+        toleranceInterpolation(valuesAsc, timesAsc, {
+            timeToleranceForwards: 0,
+            timeToleranceBackwards: tolerance,
+        })
+        expect(valuesAsc).toEqual([1, 1, 2])
+    })
+
+    it("interpolates values in the forwards direction", () => {
+        const valuesAsc = [1, ErrorValueTypes.MissingValuePlaceholder, 2]
+        const timesAsc = [0, 1, 2]
+        const tolerance = 1
+        toleranceInterpolation(valuesAsc, timesAsc, {
+            timeToleranceForwards: tolerance,
+            timeToleranceBackwards: 0,
+        })
+        expect(valuesAsc).toEqual([1, 2, 2])
+    })
 })
 
 describe(linearInterpolation, () => {
