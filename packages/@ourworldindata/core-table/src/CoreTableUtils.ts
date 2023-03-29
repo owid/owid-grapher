@@ -285,10 +285,7 @@ export function toleranceInterpolation(
 
     for (let index = start; index < end; index++) {
         const currentValue = valuesSortedByTimeAsc[index]
-        if (
-            context.timeToleranceBackwards > 0 &&
-            isNotErrorValueOrEmptyCell(currentValue)
-        ) {
+        if (isNotErrorValueOrEmptyCell(currentValue)) {
             prevNonBlankIndex = index
             continue
         }
