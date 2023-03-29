@@ -58,7 +58,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         const { invalidDetailReferences } = this.props.editor.manager
         const keys = getIndexableKeys(invalidDetailReferences)
 
-        const errorMessages: Partial<Record<typeof keys[number], string>> = {}
+        const errorMessages: Partial<Record<(typeof keys)[number], string>> = {}
 
         keys.forEach((key) => {
             const references = invalidDetailReferences[key]
