@@ -151,7 +151,13 @@ export const configureAlgolia = async () => {
         ["water demand", "water withdrawal"],
         ["vaccine hesitancy", "vaccine attitude", "vaccine willingness"],
         ["electric power", "power", "electricity"],
-        ["artificial intelligence", "ai", "machine learning", "neural network"],
+        [
+            "artificial intelligence",
+            "ai",
+            "machine learning",
+            "neural network",
+            "chatgpt", // added in 2023-03, we might want to remove this in the future
+        ],
         ["hdi", "human development index"],
         ["drug", "drugs", "substance use"],
         ["r&d", "r & d", "research"],
@@ -163,6 +169,7 @@ export const configureAlgolia = async () => {
         ["poverty", "poor"],
         ["homicide", "murder"],
         ["inflation", "price change", "price changes", "change in price"],
+        ["gun", "guns", "firearm", "firearms"],
     ]
 
     // Send all our country variant names to algolia as synonyms
