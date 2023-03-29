@@ -57,11 +57,7 @@ export class Footer extends React.Component<{
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
-        if (
-            !originUrl ||
-            !originUrl.toLowerCase().match(/^https?:\/\/./) ||
-            this.manager.shouldLinkToOwid
-        )
+        if (!originUrl || !originUrl.toLowerCase().match(/^https?:\/\/./))
             return undefined
 
         const url = parseUrl(originUrl)
