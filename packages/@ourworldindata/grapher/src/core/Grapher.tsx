@@ -253,6 +253,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     enableKeyboardShortcuts?: boolean
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
+    isEmbeddedInADataPage?: boolean
 
     manager?: GrapherManager
 }
@@ -407,6 +408,8 @@ export class Grapher
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
+
+    isEmbeddedInADataPage?: boolean = this.props.isEmbeddedInADataPage
 
     /**
      * todo: factor this out and make more RAII.
@@ -1695,8 +1698,9 @@ export class Grapher
             isInIFrame,
         } = this
 
-        // For these, defer to the bounds that is set externally
+        // For these, defer to the bounds that are set externally
         if (
+            this.props.isEmbeddedInADataPage ||
             this.props.isEmbeddedInAnOwidPage ||
             this.props.manager ||
             isInIFrame

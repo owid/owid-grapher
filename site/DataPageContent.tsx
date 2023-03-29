@@ -7,12 +7,9 @@ import {
     LoadingIndicator,
 } from "@ourworldindata/grapher"
 import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
-import {
-    ADMIN_BASE_URL,
-    BAKED_GRAPHER_EXPORTS_BASE_URL,
-    BAKED_GRAPHER_URL,
-} from "../settings/clientSettings.js"
+import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
 import ReactDOM from "react-dom"
+import { GrapherFigureView } from "./GrapherFigureView.js"
 
 declare global {
     interface Window {
@@ -33,13 +30,7 @@ export const DataPageContent = ({
 
     // Initialize the grapher for client-side rendering
     useEffect(() => {
-        setGrapher(
-            new Grapher({
-                ...grapherConfig,
-                bakedGrapherURL: BAKED_GRAPHER_URL,
-                adminBaseUrl: ADMIN_BASE_URL,
-            })
-        )
+        setGrapher(new Grapher(grapherConfig))
     }, [grapherConfig])
 
     return (
@@ -71,7 +62,7 @@ export const DataPageContent = ({
             >
                 <div className="chart__wrapper wrapper">
                     {grapher ? (
-                        <Grapher {...grapher} />
+                        <GrapherFigureView grapher={grapher} />
                     ) : (
                         <figure
                             data-grapher-src={`/grapher/${grapherConfig.slug}`}

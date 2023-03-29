@@ -12,6 +12,10 @@ import {
 import React from "react"
 import urljoin from "url-join"
 import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
+import {
     DataPageContent,
     OWID_DATAPAGE_CONTENT_ROOT_ID,
 } from "./DataPageContent.js"
@@ -52,6 +56,13 @@ export const DataPage = (props: {
     const imageHeight: string = "628"
 
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
+
+    const grapherConfig = {
+        ...grapher,
+        isEmbeddedInADataPage: true,
+        bakedGrapherURL: BAKED_GRAPHER_URL,
+        adminBaseUrl: ADMIN_BASE_URL,
+    }
 
     return (
         <html>
@@ -96,7 +107,7 @@ export const DataPage = (props: {
                                 __html: `window._OWID_DATAPAGE_PROPS = ${JSON.stringify(
                                     {
                                         datapage,
-                                        grapherConfig: grapher,
+                                        grapherConfig,
                                     }
                                 )}`,
                             }}
@@ -104,7 +115,7 @@ export const DataPage = (props: {
                         <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
                             <DataPageContent
                                 datapage={datapage}
-                                grapherConfig={grapher}
+                                grapherConfig={grapherConfig}
                             />
                         </div>
                     </>

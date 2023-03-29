@@ -51,6 +51,13 @@
         margin-top: 32px;
         margin-bottom: 40px;
         width: 100%;
+        @include grid(12);
+
+        > figure {
+            grid-column: 2 / span 10;
+            height: 575px;
+            margin: 0;
+        }
     }
 
     .key-info__wrapper {
