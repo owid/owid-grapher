@@ -92,11 +92,11 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.timeTolerance = tolerance
     }
 
-    get timeToleranceStrategyOptions(): {
+    get toleranceStrategyOptions(): {
         value: ToleranceStrategy
         label: string
     }[] {
-        const timeToleranceStrategyLabels = {
+        const toleranceStrategyLabels = {
             [ToleranceStrategy.closest]:
                 "Closest: Consider data points in the past and future",
             [ToleranceStrategy.backwards]:
@@ -108,13 +108,13 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
         return Object.values(ToleranceStrategy).map(
             (val: ToleranceStrategy) => ({
                 value: val,
-                label: timeToleranceStrategyLabels[val],
+                label: toleranceStrategyLabels[val],
             })
         )
     }
 
-    @action.bound onSelectTimeToleranceStrategy(value: string | undefined) {
-        this.props.mapConfig.timeToleranceStrategy = value as ToleranceStrategy
+    @action.bound onSelectToleranceStrategy(value: string | undefined) {
+        this.props.mapConfig.toleranceStrategy = value as ToleranceStrategy
     }
 
     render() {
@@ -141,9 +141,9 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
                 {(mapConfig.timeTolerance || 0) > 0 && (
                     <SelectField
                         label="Tolerance strategy"
-                        value={mapConfig.timeToleranceStrategy}
-                        options={this.timeToleranceStrategyOptions}
-                        onValue={this.onSelectTimeToleranceStrategy}
+                        value={mapConfig.toleranceStrategy}
+                        options={this.toleranceStrategyOptions}
+                        onValue={this.onSelectToleranceStrategy}
                     />
                 )}
             </Section>

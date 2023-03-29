@@ -180,7 +180,7 @@ export class MapChart
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
                 this.mapConfig.timeTolerance,
-                this.mapConfig.timeToleranceStrategy
+                this.mapConfig.toleranceStrategy
             )
     }
 

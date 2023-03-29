@@ -22,7 +22,7 @@ class MapConfigDefaults {
     @observable columnSlug?: ColumnSlug
     @observable time?: number
     @observable timeTolerance?: number
-    @observable timeToleranceStrategy?: ToleranceStrategy
+    @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
     @observable projection = MapProjectionName.World
 

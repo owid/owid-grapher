@@ -211,7 +211,7 @@ properties:
                     within the specified time period. The unit is the dominating time unit, usually years but can be days for
                     daily time series.
                 minimum: 0
-            timeToleranceStrategy:
+            toleranceStrategy:
                 type: string
                 description: |
                     Tolerance strategy to use. Options include accepting matches that are "closest" to the time point in question
