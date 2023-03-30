@@ -21,7 +21,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
     const [charts, setCharts] = useState<ChartHit[]>([])
     const [tags, setTags] = useState<string[]>([])
 
-    const tagFilters = `type:entry${
+    const tagFilters = `type:topic${
         !tags.length
             ? ""
             : tags.length === 1
