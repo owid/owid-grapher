@@ -1,5 +1,4 @@
 import React from "react"
-import { Chart } from "../db/model/Chart.js"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { DataPage } from "../site/DataPage.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
@@ -8,7 +7,6 @@ import {
     urlToSlug,
     without,
     deserializeJSONFromHTML,
-    JsonError,
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
@@ -49,25 +47,39 @@ import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { readFile } from "fs-extra"
 import { logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 
-const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
-    const postSlug = urlToSlug(grapher.originUrl || "")
-    const post = postSlug ? await getPostBySlug(postSlug) : undefined
-    const relatedCharts =
-        post && isWordpressDBEnabled
-            ? await getRelatedCharts(post.id)
-            : undefined
-    const relatedArticles =
-        grapher.id && isWordpressAPIEnabled
-            ? await getRelatedArticles(grapher.id)
-            : undefined
-
+/**
+ *
+ * Render a datapage if available, otherwise render a grapher page.
+ *
+ */
+export const renderDataPageOrGrapherPage = async (
+    grapher: GrapherInterface,
+    isPreviewing: boolean = false
+) => {
     const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
-    const id = variableIds[0] // for now, we only support one variable per grapher
+    // this shows that multi-metric charts are not really supported, and will
+    // render a datapage corresponding to the first variable found.
+    const id = variableIds[0]
     const fullPath = `${GIT_CMS_DIR}/datapages/${id}.json`
     let datapage
     try {
         const datapageJson = await readFile(fullPath, "utf8")
         datapage = JSON.parse(datapageJson)
+        if (
+            // We only want to render datapages on selected charts, even if the
+            // variable found on the chart has a datapage configuration.
+            datapage.showDataPageOnChartIds?.includes(grapher.id) &&
+            (datapage.status === "published" || isPreviewing)
+        ) {
+            return renderToHtmlPage(
+                <DataPage
+                    grapher={grapher}
+                    datapage={datapage}
+                    baseUrl={BAKED_BASE_URL}
+                    baseGrapherUrl={BAKED_GRAPHER_URL}
+                />
+            )
+        }
     } catch (e: any) {
         // Only report an error if the file exists but we failed to parse it.
         // Otherwise, it simply means we don't have a datapage yet and we
@@ -77,31 +89,33 @@ const grapherConfigToHtmlPage = async (grapher: GrapherInterface) => {
                 `Failed to parse datapage ${fullPath} as JSON`
             )
         }
-        return renderToHtmlPage(
-            <GrapherPage
-                grapher={grapher}
-                post={post}
-                relatedCharts={relatedCharts}
-                relatedArticles={relatedArticles}
-                baseUrl={BAKED_BASE_URL}
-                baseGrapherUrl={BAKED_GRAPHER_URL}
-            />
-        )
     }
+    // fallback to regular grapher page
+    return renderGrapherPage(grapher)
+}
+
+const renderGrapherPage = async (grapher: GrapherInterface) => {
+    const postSlug = urlToSlug(grapher.originUrl || "")
+    const post = postSlug ? await getPostBySlug(postSlug) : undefined
+    const relatedCharts =
+        post && isWordpressDBEnabled
+            ? await getRelatedCharts(post.id)
+            : undefined
+    const relatedArticles = undefined
+    grapher.id && isWordpressAPIEnabled
+        ? await getRelatedArticles(grapher.id)
+        : undefined
+
     return renderToHtmlPage(
-        <DataPage
+        <GrapherPage
             grapher={grapher}
-            datapage={datapage}
+            post={post}
+            relatedCharts={relatedCharts}
+            relatedArticles={relatedArticles}
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
         />
     )
-}
-
-export const grapherSlugToHtmlPage = async (slug: string) => {
-    const entity = await Chart.getBySlug(slug)
-    if (!entity) throw new JsonError("No such chart", 404)
-    return grapherConfigToHtmlPage(entity.config)
 }
 
 interface BakeVariableDataArguments {
@@ -148,7 +162,7 @@ const bakeGrapherPageAndVariablesPngAndSVGIfChanged = async (
 
     // Always bake the html for every chart; it's cheap to do so
     const outPath = `${bakedSiteDir}/grapher/${grapher.slug}.html`
-    await fs.writeFile(outPath, await grapherConfigToHtmlPage(grapher))
+    await fs.writeFile(outPath, await renderDataPageOrGrapherPage(grapher))
     console.log(outPath)
 
     const variableIds = lodash.uniq(
