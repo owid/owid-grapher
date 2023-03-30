@@ -98,7 +98,7 @@ export function validateBakeSteps(steps: unknown): steps is BakeStep[] {
     return !hasInvalidStep
 }
 
-export type BakeStep = (typeof bakeSteps)[number]
+export type BakeStep = typeof bakeSteps[number]
 
 export type BakeStepConfig = Set<BakeStep>
 
