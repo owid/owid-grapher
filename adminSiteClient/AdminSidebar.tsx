@@ -1,25 +1,27 @@
 import { Link } from "./Link.js"
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
-import { faFile } from "@fortawesome/free-solid-svg-icons/faFile"
-import { faArrowPointer } from "@fortawesome/free-solid-svg-icons/faArrowPointer"
-import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
-import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
-import { faTruckFast } from "@fortawesome/free-solid-svg-icons/faTruckFast"
-import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCrossbones"
-import { faPen } from "@fortawesome/free-solid-svg-icons/faPen"
-import { faDatabase } from "@fortawesome/free-solid-svg-icons/faDatabase"
-import { faGlobe } from "@fortawesome/free-solid-svg-icons/faGlobe"
-import { faTag } from "@fortawesome/free-solid-svg-icons/faTag"
-import { faUser } from "@fortawesome/free-solid-svg-icons/faUser"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
-import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
-import { faCoffee } from "@fortawesome/free-solid-svg-icons/faCoffee"
-import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
-import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons/faSatelliteDish"
-import { faCodeBranch } from "@fortawesome/free-solid-svg-icons/faCodeBranch"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
+import {
+    faChartBar,
+    faFile,
+    faArrowPointer,
+    faUpload,
+    faTable,
+    faTruckFast,
+    faSkullCrossbones,
+    faPen,
+    faDatabase,
+    faGlobe,
+    faTag,
+    faUser,
+    faArrowRight,
+    faEye,
+    faCoffee,
+    faBook,
+    faSatelliteDish,
+    faCodeBranch,
+    faDownload,
+} from "@fortawesome/free-solid-svg-icons"
 
 import { FASTTRACK_URL } from "../settings/clientSettings.js"
 

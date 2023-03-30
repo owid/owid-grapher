@@ -127,7 +127,7 @@ migrate:
 	@echo '==> Running DB migrations'
 	yarn && yarn buildTsc && yarn runDbMigrations
 
-refresh:
+refresh: sync-images
 	@echo '==> Downloading chart data'
 	./devTools/docker/download-grapher-mysql.sh
 
@@ -147,6 +147,10 @@ refresh.wp:
 
 	@echo '==> Updating wordpress data'
 	@. ./.env && DATA_FOLDER=tmp-downloads ./devTools/docker/refresh-wordpress-data.sh
+
+sync-images:
+	@echo '==> Syncing S3 images'
+	@. ./.env && ./devTools/docker/sync-s3-images.sh
 
 refresh.full: refresh refresh.wp
 
@@ -190,7 +194,7 @@ validate.env:
 create-if-missing.env.full:
 	@if test ! -f .env; then \
 		echo 'Copying .env.example-full --> .env'; \
-		cp .env.example-full .env; \
+		sed "s/IMAGE_HOSTING_BUCKET_PATH=.*/IMAGE_HOSTING_BUCKET_PATH=owid-image-upload\/dev-$(USER)/g" <.env.example-full >.env; \
 	fi
 
 validate.env.full:

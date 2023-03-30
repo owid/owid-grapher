@@ -21,9 +21,8 @@ import { Tag } from "./TagBadge.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
-import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
-import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
+import { faDownload, faUpload } from "@fortawesome/free-solid-svg-icons"
+import { faGithub } from "@fortawesome/free-brands-svg-icons"
 
 interface DatasetPageData {
     id: number

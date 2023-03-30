@@ -1,5 +1,4 @@
 import React from "react"
-import { AlertBanner } from "./AlertBanner.js"
 import { SiteNavigation } from "./SiteNavigation.js"
 
 interface SiteHeaderProps {
@@ -12,6 +11,5 @@ export const SiteHeader = (props: SiteHeaderProps) => (
         <div className="site-navigation-root">
             <SiteNavigation baseUrl={props.baseUrl} />
         </div>
-        {props.hideAlertBanner !== true && <AlertBanner />}
     </header>
 )

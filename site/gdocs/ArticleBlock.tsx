@@ -154,6 +154,18 @@ export default function ArticleBlock({
                 d={block}
             />
         ))
+        .with({ type: "callout" }, (block) => (
+            <div className={getLayout("callout", containerType)}>
+                {block.title ? (
+                    <h4 className="h4-semibold">{block.title}</h4>
+                ) : null}
+                {block.text.map((text, i) => (
+                    <p className="body-3-medium" key={i}>
+                        {renderSpans(text)}
+                    </p>
+                ))}
+            </div>
+        ))
         .with({ type: "chart-story" }, (block) => (
             <ChartStory
                 d={block}
@@ -200,7 +212,7 @@ export default function ArticleBlock({
         .with({ type: "heading", level: 1 }, (block) => (
             <h1
                 className={cx(
-                    "display-2-semibold",
+                    "h1-semibold",
                     getLayout("heading", containerType)
                 )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
@@ -226,7 +238,7 @@ export default function ArticleBlock({
                     ) : null}
                     <h2
                         className={cx(
-                            "h1-semibold",
+                            "h2-bold",
                             getLayout("heading", containerType),
                             {
                                 "has-supertitle": supertitle
@@ -258,7 +270,7 @@ export default function ArticleBlock({
             return (
                 <h3
                     className={cx(
-                        "h2-bold",
+                        "h3-bold",
                         getLayout("heading", containerType),
                         {
                             "has-supertitle": supertitle
@@ -279,7 +291,10 @@ export default function ArticleBlock({
         })
         .with({ type: "heading", level: 4 }, (block) => (
             <h4
-                className={cx("h3-bold", getLayout("heading", containerType))}
+                className={cx(
+                    "h4-semibold",
+                    getLayout("heading", containerType)
+                )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
             >
                 {renderSpans(block.text)}
@@ -288,24 +303,13 @@ export default function ArticleBlock({
         .with({ type: "heading", level: 5 }, (block) => (
             <h5
                 className={cx(
-                    "h4-semibold",
-                    getLayout("heading", containerType)
-                )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
-            >
-                {renderSpans(block.text)}
-            </h5>
-        ))
-        .with({ type: "heading", level: 6 }, (block) => (
-            <h6
-                className={cx(
                     "overline-black-caps",
                     getLayout("heading", containerType)
                 )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
             >
                 {renderSpans(block.text)}
-            </h6>
+            </h5>
         ))
         .with(
             { type: "heading" },

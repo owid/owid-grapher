@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom"
-import { faListUl } from "@fortawesome/free-solid-svg-icons/faListUl"
+import {
+    faListUl,
+    faBars,
+    faXmark,
+    faEnvelopeOpenText,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     NewsletterSubscriptionContext,
     NewsletterSubscriptionForm,
@@ -11,11 +16,8 @@ import { SiteLogos } from "./SiteLogos.js"
 import { CategoryWithEntries } from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
-import { faBars } from "@fortawesome/free-solid-svg-icons/faBars"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
-import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
-import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
@@ -52,12 +54,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
         }
     }
 
-    // Open / close overlay when query changes
+    // Open overlay back when query entered after pressing "esc"
     useEffect(() => {
         if (query) {
             setActiveMenu(Menu.Search)
-        } else {
-            closeOverlay()
         }
     }, [query])
 
@@ -151,10 +151,10 @@ export const SiteNavigation = ({ baseUrl }: { baseUrl: string }) => {
                         <div className="site-search-cta">
                             <SiteSearchNavigation
                                 query={query}
-                                isActive={menu === Menu.Search || !!query}
+                                isActive={menu === Menu.Search}
                                 setQuery={setQuery}
                                 onClose={closeOverlay}
-                                onToggle={() => toggleMenu(Menu.Search)}
+                                onActivate={() => setActiveMenu(Menu.Search)}
                             />
                             <SiteNavigationToggle
                                 isActive={menu === Menu.Subscribe}

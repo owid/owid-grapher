@@ -12,10 +12,13 @@ import { observer } from "mobx-react"
 
 import { pick, capitalize, dayjs, Tippy } from "@ourworldindata/utils"
 import { Colorpicker } from "./Colorpicker.js"
-import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
-import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
-import { faPaintbrush } from "@fortawesome/free-solid-svg-icons/faPaintbrush"
-import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
+import {
+    faCog,
+    faLink,
+    faPaintbrush,
+    faUnlink,
+    faExclamationTriangle,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
@@ -942,7 +945,6 @@ export class Timeago extends React.Component<{
 import { TagBadge, Tag } from "./TagBadge.js"
 
 import ReactTags from "react-tag-autocomplete"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer
 class EditTags extends React.Component<{

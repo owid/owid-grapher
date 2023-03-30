@@ -1,5 +1,4 @@
-import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     getErrorMessageRelatedQuestionUrl,
@@ -55,11 +54,29 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         grapher.relatedQuestions.splice(idx, 1)
     }
 
+    @action.bound onToggleTitleAnnotationEntity(value: boolean) {
+        const { grapher } = this.props.editor
+        grapher.hideAnnotationFieldsInTitle ??= {}
+        grapher.hideAnnotationFieldsInTitle.entity = value || undefined
+    }
+
+    @action.bound onToggleTitleAnnotationTime(value: boolean) {
+        const { grapher } = this.props.editor
+        grapher.hideAnnotationFieldsInTitle ??= {}
+        grapher.hideAnnotationFieldsInTitle.time = value || undefined
+    }
+
+    @action.bound onToggleTitleAnnotationChangeInPrefix(value: boolean) {
+        const { grapher } = this.props.editor
+        grapher.hideAnnotationFieldsInTitle ??= {}
+        grapher.hideAnnotationFieldsInTitle.changeInPrefix = value || undefined
+    }
+
     @computed get errorMessages() {
         const { invalidDetailReferences } = this.props.editor.manager
         const keys = getIndexableKeys(invalidDetailReferences)
 
-        const errorMessages: Partial<Record<typeof keys[number], string>> = {}
+        const errorMessages: Partial<Record<(typeof keys)[number], string>> = {}
 
         keys.forEach((key) => {
             const references = invalidDetailReferences[key]
@@ -72,6 +89,14 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
             }
         })
         return errorMessages
+    }
+
+    @computed get showChangeInPrefixToggle() {
+        const { grapher } = this.props.editor
+        return (
+            grapher.isLineChart &&
+            (grapher.isRelativeMode || grapher.canToggleRelativeMode)
+        )
     }
 
     render() {
@@ -88,14 +113,26 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         softCharacterLimit={100}
                     />
                     <Toggle
-                        label="Hide automatic time/entity"
-                        value={!!grapher.hideTitleAnnotation}
-                        onValue={action(
-                            (value: boolean) =>
-                                (grapher.hideTitleAnnotation =
-                                    value || undefined)
-                        )}
+                        label="Hide automatic entity (where possible)"
+                        value={!!grapher.hideAnnotationFieldsInTitle?.entity}
+                        onValue={this.onToggleTitleAnnotationEntity}
                     />
+                    <Toggle
+                        label="Hide automatic time (where possible)"
+                        value={!!grapher.hideAnnotationFieldsInTitle?.time}
+                        onValue={this.onToggleTitleAnnotationTime}
+                    />
+                    {this.showChangeInPrefixToggle && (
+                        <Toggle
+                            label="Don't prepend 'Change in' in relative line charts"
+                            value={
+                                !!grapher.hideAnnotationFieldsInTitle
+                                    ?.changeInPrefix
+                            }
+                            onValue={this.onToggleTitleAnnotationChangeInPrefix}
+                        />
+                    )}
+                    <hr />
                     <AutoTextField
                         label="/grapher"
                         value={grapher.displaySlug}

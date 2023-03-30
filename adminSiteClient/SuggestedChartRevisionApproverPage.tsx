@@ -24,16 +24,18 @@ import { AdminLayout } from "./AdminLayout.js"
 import { SuggestedChartRevisionStatusIcon } from "./SuggestedChartRevisionList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
-import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { faAngleLeft } from "@fortawesome/free-solid-svg-icons/faAngleLeft"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
-import { faAngleDoubleLeft } from "@fortawesome/free-solid-svg-icons/faAngleDoubleLeft"
-import { faAngleDoubleRight } from "@fortawesome/free-solid-svg-icons/faAngleDoubleRight"
-import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
-import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
-import { faRandom } from "@fortawesome/free-solid-svg-icons/faRandom"
+import {
+    faMobile,
+    faDesktop,
+    faExternalLinkAlt,
+    faAngleLeft,
+    faAngleRight,
+    faAngleDoubleLeft,
+    faAngleDoubleRight,
+    faSortAlphaDown,
+    faSortAlphaUpAlt,
+    faRandom,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     VisionDeficiency,
     VisionDeficiencySvgFilters,
