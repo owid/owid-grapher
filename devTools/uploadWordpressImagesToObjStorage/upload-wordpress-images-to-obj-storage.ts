@@ -8,7 +8,7 @@ import { GDOCS_IMAGES_BACKPORTING_TARGET_FOLDER } from "../../settings/serverSet
 
 const WORDPRESS_UPLOADS_PATH = path.join(
     process.cwd(),
-    "wordpress/web/app/uploads/2008"
+    "wordpress/web/app/uploads"
 )
 
 const MIME_TYPES: Record<string, string> = {
@@ -32,7 +32,7 @@ const WP_ALT_TEXT_BYPASS = "legacy-wordpress-upload"
 
 const RESIZED_IMAGE_REGEX = /\d+x\d+\.(png|gif|jpg|jpeg)$/
 
-const UPLOAD_BATCH_SIZE = 1
+const UPLOAD_BATCH_SIZE = 15
 
 const auth = Gdoc.getGoogleReadWriteAuth()
 
