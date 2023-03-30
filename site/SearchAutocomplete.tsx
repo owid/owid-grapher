@@ -70,7 +70,7 @@ export function SearchAutocomplete({
                 ...prevIndexUiState,
                 refinementList: {
                     ...prevIndexUiState.refinementList,
-                    _tags: instantSearchUiState.tags,
+                    tags: instantSearchUiState.tags,
                 },
             }
         })
@@ -97,12 +97,12 @@ export function SearchAutocomplete({
                     tags: Array.from(
                         new Set([
                             ...state.context.tagsPlugin.tags
-                                .filter((tag: BaseTag) => tag.facet === "_tags")
+                                .filter((tag: BaseTag) => tag.facet === "tags")
                                 .map((tag: BaseTag) => tag.label),
 
                             ...state.context.tagsPlugin.tags
                                 .filter((tag: BaseTag) => tag.type === "chart")
-                                .flatMap((item: BaseTag) => item._tags),
+                                .flatMap((item: BaseTag) => item.tags),
                         ])
                     ),
                     countries: state.context.tagsPlugin.tags

@@ -6,7 +6,7 @@ import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 type HitProps = {
     hit: AlgoliaHit<{
         title: string
-        _tags: string[]
+        tags: string[]
         slug: string
     }>
 }

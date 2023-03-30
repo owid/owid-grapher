@@ -8,7 +8,7 @@ type AlgoliaHit = {
     excerpt: string
     authors: string[]
     slug: string
-    _tags?: string[]
+    tags?: string[]
 }
 
 export const SearchTopics = () => {

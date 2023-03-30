@@ -9,7 +9,7 @@ type AlgoliaHit = {
     excerpt: string
     authors: string[]
     slug: string
-    _tags?: string[]
+    tags?: string[]
 }
 
 export const SearchResearchAndWriting = () => {
@@ -102,8 +102,8 @@ const ArticleCard = ({
                         <p>{authors.join(", ")}</p>
                     </div>
                     <div style={{ marginTop: "8px" }}>
-                        {article._tags
-                            ? article._tags.map((tag) => (
+                        {article.tags
+                            ? article.tags.map((tag) => (
                                   <span
                                       key={tag}
                                       className="tag ais-RefinementList-count"

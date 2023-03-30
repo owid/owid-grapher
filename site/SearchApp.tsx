@@ -25,8 +25,8 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
         !tags.length
             ? ""
             : tags.length === 1
-            ? ` AND _tags:'${tags[0]}'`
-            : ` AND (${tags.map((tag) => `_tags:'${tag}'`).join(" OR ")})`
+            ? ` AND tags:'${tags[0]}'`
+            : ` AND (${tags.map((tag) => `tags:'${tag}'`).join(" OR ")})`
     }`
 
     return (
@@ -55,7 +55,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                     />
                 </div>
                 <div className="refinements">
-                    <RefinementList attribute="_tags" />
+                    <RefinementList attribute="tags" />
                     {/* TODO <RefinementList attribute="authors" /> */}
                 </div>
                 <div className="search-results">
@@ -68,7 +68,7 @@ export const SearchApp = ({ searchClient }: { searchClient: SearchClient }) => {
                         <SearchTopics />
                     </Index>
                     <Index indexName={CHARTS_INDEX}>
-                        <VirtualChartsRefinementList attribute="_tags" />
+                        <VirtualChartsRefinementList attribute="tags" />
                         {/* TODO <VirtualChartsRefinementList attribute="availableEntities" /> */}
                         <SearchChartsHits charts={charts} entities={entities} />
                     </Index>

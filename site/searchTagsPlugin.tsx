@@ -31,7 +31,7 @@ export const createSearchTagsPlugin = (searchClient: SearchClient) => {
                             queries: [
                                 {
                                     indexName: PAGES_INDEX,
-                                    facet: "_tags",
+                                    facet: "tags",
                                     params: {
                                         facetQuery: query,
                                         maxFacetHits: 5,
@@ -49,7 +49,7 @@ export const createSearchTagsPlugin = (searchClient: SearchClient) => {
                                     )
                                     .map((hit) => ({
                                         ...hit,
-                                        facet: "_tags",
+                                        facet: "tags",
                                     }))
                             },
                         })

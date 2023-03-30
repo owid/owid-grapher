@@ -82,7 +82,7 @@ const getPagesRecords = async () => {
                 date: post.date,
                 modifiedDate: post.modifiedDate,
                 content: c,
-                _tags: tags.map((t) => t.name),
+                tags: tags.map((t) => t.name),
                 importance: importance,
             })
             i += 1

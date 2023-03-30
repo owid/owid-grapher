@@ -57,7 +57,7 @@ export const configureAlgolia = async () => {
             "unordered(slug)",
             "unordered(variantName)",
             "unordered(subtitle)",
-            "unordered(_tags)",
+            "unordered(tags)",
             "unordered(availableEntities)",
         ],
         customRanking: [
@@ -67,7 +67,7 @@ export const configureAlgolia = async () => {
         ],
         attributesToSnippet: ["subtitle:24"],
         attributeForDistinct: "id",
-        disableExactOnAttributes: ["_tags"],
+        disableExactOnAttributes: ["tags"],
         optionalWords: ["vs"],
     })
 
@@ -78,14 +78,14 @@ export const configureAlgolia = async () => {
         searchableAttributes: [
             "unordered(title)",
             "unordered(content)",
-            "unordered(_tags)",
+            "unordered(tags)",
             "unordered(authors)",
         ],
         customRanking: ["desc(importance)"],
         attributesToSnippet: ["content:24"],
         attributeForDistinct: "slug",
-        attributesForFaceting: ["searchable(_tags)", "searchable(authors)"],
-        disableExactOnAttributes: ["_tags"],
+        attributesForFaceting: ["searchable(tags)", "searchable(authors)"],
+        disableExactOnAttributes: ["tags"],
     })
 
     const synonyms = [

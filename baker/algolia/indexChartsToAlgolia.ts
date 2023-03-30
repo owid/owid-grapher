@@ -51,7 +51,7 @@ const getChartsRecords = async () => {
             title: c.title,
             variantName: c.variantName,
             subtitle: c.subtitle,
-            _tags: c.tags.map((t: any) => t.name),
+            tags: c.tags.map((t: any) => t.name),
             availableEntities: JSON.parse(c.availableEntitiesStr),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
