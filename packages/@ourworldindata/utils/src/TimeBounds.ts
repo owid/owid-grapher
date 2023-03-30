@@ -15,8 +15,18 @@ enum TimeBoundValueStr {
 
 export const timeFromTimebounds = (
     timeBound: TimeBound,
-    fallbackTime: Time
-): number => (Math.abs(timeBound) !== Infinity ? timeBound : fallbackTime)
+    minTime: Time,
+    maxTime: Time
+): number => {
+    switch (timeBound) {
+        case -Infinity:
+            return minTime
+        case Infinity:
+            return maxTime
+        default:
+            return timeBound
+    }
+}
 
 const hasAnInfinity = (timeBound: TimeBound): timeBound is TimeBoundValue =>
     isNegativeInfinity(timeBound) || isPositiveInfinity(timeBound)
