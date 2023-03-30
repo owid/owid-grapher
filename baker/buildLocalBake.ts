@@ -1,8 +1,8 @@
 #! /usr/bin/env node
 
-import parseArgs from "minimist"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 import {
-    BakeStep,
     BakeStepConfig,
     bakeSteps,
     SiteBaker,
@@ -10,12 +10,11 @@ import {
 } from "./SiteBaker.js"
 import * as fs from "fs-extra"
 import { normalize } from "path"
-import { difference } from "lodash"
 
 const bakeDomainToFolder = async (
     baseUrl = "http://localhost:3000/",
     dir = "localBake",
-    bakeSteps?: Partial<BakeStepConfig>
+    bakeSteps?: BakeStepConfig
 ) => {
     dir = normalize(dir)
     fs.mkdirp(dir)
@@ -26,33 +25,36 @@ const bakeDomainToFolder = async (
     await baker.bakeNonWordpressPages()
 }
 
-const args = parseArgs(process.argv.slice(2))
-const positionalArgs = args._
-const steps: string[] | undefined = args?.steps?.split(",")
-let stepsConfig: Partial<BakeStepConfig> | undefined = undefined
-
-if (steps) {
-    if (validateBakeSteps(steps)) {
-        stepsConfig = steps.reduce(
-            (acc, step) => ({ ...acc, [step]: true }),
-            {}
-        )
-    } else {
-        new Error(
-            `Invalid step(s) passed to buildLocalBake: ${difference(
-                steps,
-                bakeSteps
-            )}`
-        )
-    }
-}
-// Usage: yarn buildLocalBake http://localhost:3000/ localBake --steps gdocs,assets
-// todo: can we just make all paths relative? why do we need absolute baked base url?
-bakeDomainToFolder(positionalArgs[0], positionalArgs[1], stepsConfig).then(
-    (_) => {
-        // TODO: without this the script hangs here since using the workerpool library in baking
-        // I don't understand why this happens. Probably using top level await would also resolve
-        // this but I couldn't get Typescript to play along with that
-        process.exit(0)
-    }
-)
+yargs(hideBin(process.argv))
+    .command<{ baseUrl: string; dir: string; steps?: string[] }>(
+        "$0 [baseUrl] [dir]",
+        "Bake the site to a local folder",
+        (yargs) => {
+            yargs
+                .positional("baseUrl", {
+                    type: "string",
+                    default: "http://localhost:3000/",
+                    describe: "Base URL of the site",
+                })
+                .positional("dir", {
+                    type: "string",
+                    default: "localBake",
+                    describe: "Directory to save the baked site",
+                })
+                .option("steps", {
+                    type: "array",
+                    choices: bakeSteps,
+                    description: "Steps to perform during the baking process",
+                })
+        },
+        async ({ baseUrl, dir, steps }) => {
+            const typesafeSteps = validateBakeSteps(steps)
+                ? new Set(steps)
+                : undefined
+            await bakeDomainToFolder(baseUrl, dir, typesafeSteps)
+            process.exit(0)
+        }
+    )
+    .help()
+    .alias("help", "h")
+    .strict().argv
