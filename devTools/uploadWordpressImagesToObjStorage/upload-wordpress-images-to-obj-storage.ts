@@ -128,7 +128,7 @@ async function uploadFileToGoogleDrive(filePath: string): Promise<boolean> {
     }
 }
 
-async function backupWordPressImages() {
+async function uploadWordpressImagesToObjStorage() {
     const filePaths = await getUniqueImageFilePaths()
     const filePathChunks = chunkArray(filePaths, UPLOAD_BATCH_SIZE)
     for (const [index, filePathChunk] of filePathChunks.entries()) {
@@ -139,4 +139,4 @@ async function backupWordPressImages() {
     console.log("Image backup complete! 🎉")
 }
 
-backupWordPressImages()
+uploadWordpressImagesToObjStorage()
