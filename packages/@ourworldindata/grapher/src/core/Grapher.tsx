@@ -2506,6 +2506,7 @@ export class Grapher
             return this.xOverrideTime === undefined && this.hasTimeline
         return (
             this.isStackedArea ||
+            this.isStackedBar ||
             this.isStackedDiscreteBar ||
             this.isScatter ||
             this.isLineChart ||
