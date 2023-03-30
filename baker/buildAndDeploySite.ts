@@ -1,18 +1,45 @@
 #! /usr/bin/env node
 
 import { Deployer } from "./Deployer.js"
-import parseArgs from "minimist"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 import os from "os"
 import * as path from "path"
+import { bakeSteps, validateBakeSteps } from "./SiteBaker.js"
 
-const parsedArgs = parseArgs(process.argv.slice(2))
-
-const deployer = new Deployer({
-    target: parsedArgs["_"][0] as any,
-    userRunningTheDeploy: os.userInfo().username,
-    owidGrapherRootDir: path.normalize(__dirname + "/../../"),
-    skipChecks: parsedArgs["skip-checks"] === true,
-    runChecksRemotely: parsedArgs["r"] === true,
-})
-
-deployer.buildAndDeploy()
+yargs(hideBin(process.argv))
+    .command<{
+        target: string
+        skipChecks: boolean
+        runChecksRemotely: boolean
+        steps?: string[]
+    }>(
+        "$0 [target]",
+        "Deploy the site to a remote environment",
+        (yargs) => {
+            yargs
+                .boolean(["skip-checks", "run-checks-remotely"])
+                .option("steps", {
+                    type: "array",
+                    choices: bakeSteps,
+                    description: "Steps to perform during the baking process",
+                })
+        },
+        async ({ target, skipChecks, runChecksRemotely, steps }) => {
+            const bakeSteps = validateBakeSteps(steps)
+                ? new Set(steps)
+                : undefined
+            const deployer = new Deployer({
+                target: target as any,
+                userRunningTheDeploy: os.userInfo().username,
+                owidGrapherRootDir: path.normalize(__dirname + "/../../"),
+                skipChecks,
+                runChecksRemotely: runChecksRemotely,
+                bakeSteps,
+            })
+            await deployer.buildAndDeploy()
+        }
+    )
+    .help()
+    .alias("help", "h")
+    .strict().argv

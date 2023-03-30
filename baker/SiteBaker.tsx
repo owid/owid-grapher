@@ -2,8 +2,7 @@ import * as fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import * as path from "path"
 import * as glob from "glob"
-import { isArray, keyBy, without } from "lodash"
-import * as lodash from "lodash"
+import { isArray, keyBy, without, uniq } from "lodash"
 import * as cheerio from "cheerio"
 import fetch from "node-fetch"
 import ProgressBar from "progress"
@@ -90,7 +89,7 @@ export function validateBakeSteps(steps: unknown): steps is BakeStep[] {
     return !hasInvalidStep
 }
 
-export type BakeStep = (typeof bakeSteps)[number]
+export type BakeStep = typeof bakeSteps[number]
 
 export type BakeStepConfig = Set<BakeStep>
 
@@ -137,7 +136,7 @@ export class SiteBaker {
                     .map((el) => el.attribs["src"].trim())
             )
         }
-        grapherUrls = lodash.uniq(grapherUrls)
+        grapherUrls = uniq(grapherUrls)
 
         await bakeGrapherUrls(grapherUrls)
 

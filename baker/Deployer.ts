@@ -7,6 +7,7 @@ import { simpleGit, SimpleGit } from "simple-git"
 import { WriteStream } from "tty"
 import { ProgressStream } from "./ProgressStream.js"
 import { DeployTarget, ProdTarget } from "./DeployTarget.js"
+import { BakeStepConfig } from "./SiteBaker.js"
 
 const TEMP_DEPLOY_SCRIPT_PREFIX = `tempDeployScript.`
 
@@ -16,6 +17,7 @@ interface DeployerOptions {
     target: DeployTarget
     skipChecks?: boolean
     runChecksRemotely?: boolean
+    bakeSteps?: BakeStepConfig
 }
 
 const OWID_STAGING_DROPLET_IP = "165.22.127.239"
@@ -213,6 +215,9 @@ yarn testPrettierAll`
         const gitConfig = await simpleGit.listConfig()
         const gitName = `${gitConfig.all["user.name"]}`
         const gitEmail = `${gitConfig.all["user.email"]}`
+        const cliBakeSteps = this.options.bakeSteps
+            ? `--steps ${[...this.options.bakeSteps.values()].join(" ")}`
+            : ""
 
         const scripts: any = {
             clearOldTemporaryRepo: `rm -rf ${rsyncTargetDirTmp}`,
@@ -229,7 +234,7 @@ yarn testPrettierAll`
             swapFolders: `rm -rf ${oldRepoBackupDir} && mv ${finalTargetDir} ${oldRepoBackupDir} || true && mv ${rsyncTargetDirTmp} ${finalTargetDir}`,
             restartAdminServer: `pm2 restart ${target}`,
             stopDeployQueueServer: `pm2 stop ${target}-deploy-queue`,
-            bakeSiteOnStagingServer: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/bakeSiteOnStagingServer.js`,
+            bakeSiteOnStagingServer: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/bakeSiteOnStagingServer.js ${cliBakeSteps}`,
             deployToNetlify: `cd ${finalTargetDir} && node --unhandled-rejections=strict itsJustJavascript/baker/deploySiteFromStagingServer.js "${gitEmail}" "${gitName}"`,
             restartQueue: `pm2 start ${target}-deploy-queue`,
         }
