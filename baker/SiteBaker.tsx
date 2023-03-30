@@ -66,20 +66,29 @@ import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
-export const bakeSteps = [
-    "assets", // base html, js, and css
+// These aren't all "wordpress" steps
+// But they're only run when you have the full stack available
+const wordpressSteps = [
+    "assets",
     "blogIndex",
-    "charts",
-    "countries", // countries index and each country profile
     "embeds",
-    "gdocPosts", // posts and images
     "googleScholar",
     "redirects",
     "rss",
-    "specialPages",
     "variables",
     "wordpressPosts",
 ] as const
+
+const nonWordpressSteps = [
+    "specialPages",
+    "countries",
+    "countryProfiles",
+    "charts",
+    "gdocPosts",
+    "gdriveImages",
+] as const
+
+export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
 
 export function validateBakeSteps(steps: unknown): steps is BakeStep[] {
     if (!isArray(steps)) return false
@@ -89,11 +98,20 @@ export function validateBakeSteps(steps: unknown): steps is BakeStep[] {
     return !hasInvalidStep
 }
 
-export type BakeStep = typeof bakeSteps[number]
+export type BakeStep = (typeof bakeSteps)[number]
 
 export type BakeStepConfig = Set<BakeStep>
 
 const defaultSteps = new Set(bakeSteps)
+
+function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
+    // There are 3 non-optional steps
+    const minimum = 3
+    let total = minimum + bakeSteps.size
+    // Redirects has two progress bar ticks
+    if (bakeSteps.has("redirects")) total++
+    return total
+}
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
@@ -113,7 +131,7 @@ export class SiteBaker {
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                total: 18,
+                total: getProgressBarTotal(bakeSteps),
             }
         )
     }
@@ -145,7 +163,7 @@ export class SiteBaker {
     }
 
     private async bakeCountryProfiles() {
-        if (!this.bakeSteps.has("countries")) return
+        if (!this.bakeSteps.has("countryProfiles")) return
         countryProfileSpecs.forEach(async (spec) => {
             // Delete all country profiles before regenerating them
             await fs.remove(`${this.bakedSiteDir}/${spec.rootPath}`)
@@ -419,7 +437,7 @@ export class SiteBaker {
     }
 
     private async bakeDriveImages() {
-        if (!this.bakeSteps.has("gdocPosts")) return
+        if (!this.bakeSteps.has("gdriveImages")) return
         const images: Image[] = await db
             .queryMysql(
                 `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
@@ -490,9 +508,7 @@ export class SiteBaker {
 
     // Bake the static assets
     private async bakeAssets() {
-        console.log("before if has assets")
         if (!this.bakeSteps.has("assets")) return
-        console.log("after if has assets")
         await execWrapper(
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
@@ -534,7 +550,6 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages() {
-        await db.getConnection()
         if (this.bakeSteps.has("countries")) {
             await bakeCountries(this)
         }
@@ -553,10 +568,14 @@ export class SiteBaker {
     }
 
     async bakeNonWordpressPages() {
+        await db.getConnection()
+        const progressBarTotal = nonWordpressSteps
+            .map((step) => this.bakeSteps.has(step))
+            .filter((hasStep) => hasStep).length
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                total: 5,
+                total: progressBarTotal,
             }
         )
         await this._bakeNonWordpressPages()
