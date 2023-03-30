@@ -230,12 +230,6 @@
                     "description": "Tolerance to use. If data points are missing for a time point, a match is accepted if it lies\nwithin the specified time period. The unit is the dominating time unit, usually years but can be days for\ndaily time series.\n",
                     "minimum": 0
                 },
-                "toleranceStrategy": {
-                    "type": "string",
-                    "description": "Tolerance strategy to use. Options include accepting matches that are \"closest\" to the time point in question\n(going forwards and backwards in time), and accepting matches that lie in the past (\"backwards\") or\nthe future (\"forwards\").\n",
-                    "enum": ["closest", "forwards", "backwards"],
-                    "default": "closest"
-                },
                 "tooltipUseCustomLabels": {
                     "type": "boolean",
                     "default": false,
