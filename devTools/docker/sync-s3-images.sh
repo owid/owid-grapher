@@ -2,7 +2,6 @@
 
 set -o errexit
 set -o pipefail
-set -o nounset
 
 if [[ -z "$IMAGE_HOSTING_BUCKET_PATH" ]]; then
   echo 'Please set IMAGE_HOSTING_BUCKET_PATH in .env'
