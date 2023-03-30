@@ -48,10 +48,10 @@ yargs(hideBin(process.argv))
                 })
         },
         async ({ baseUrl, dir, steps }) => {
-            const typesafeSteps = validateBakeSteps(steps)
+            const bakeSteps = validateBakeSteps(steps)
                 ? new Set(steps)
                 : undefined
-            await bakeDomainToFolder(baseUrl, dir, typesafeSteps)
+            await bakeDomainToFolder(baseUrl, dir, bakeSteps)
             process.exit(0)
         }
     )
