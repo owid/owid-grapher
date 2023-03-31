@@ -9,12 +9,8 @@ import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 
 // TODO: use env BAKED_BASE_URL=http://mojmir-staging-1, otherwise it might be inconsistent
 const bakeDomainToFolder = async (
-<<<<<<< Updated upstream
-    baseUrl = "http://localhost:3000/",
-=======
     baseUrl = BAKED_BASE_URL,
     // baseUrl = "http://localhost:3000/",
->>>>>>> Stashed changes
     dir = "localBake"
 ) => {
     dir = normalize(dir)
