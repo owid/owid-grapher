@@ -4,6 +4,8 @@ import {
     BaseEntity,
     UpdateDateColumn,
     PrimaryColumn,
+    ManyToMany,
+    JoinTable,
 } from "typeorm"
 import {
     OwidArticleContent,
@@ -37,6 +39,25 @@ import { archieToEnriched } from "./archieToEnriched.js"
 import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 
+@Entity("tags")
+export class Tag extends BaseEntity {
+    static table = "tags"
+    @PrimaryColumn() id!: number
+    @Column() name!: string
+    @Column() createdAt!: Date
+    @Column({ nullable: true }) updatedAt!: Date
+    @Column({ nullable: true }) parentId!: number
+    @Column() isBulkImport!: boolean
+    @Column() specialType!: string
+    @ManyToMany(() => Gdoc, (gdoc) => gdoc.tags)
+    @JoinTable({
+        name: "posts_gdocs_x_tags",
+        joinColumn: { name: "tagId" },
+        inverseJoinColumn: { name: "gdocId" },
+    })
+    gdocs!: Gdoc[]
+}
+
 @Entity("posts_gdocs")
 export class Gdoc extends BaseEntity implements OwidArticleType {
     @PrimaryColumn() id!: string
@@ -49,6 +70,15 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
+
+    @ManyToMany(() => Tag, (tag) => tag.gdocs)
+    @JoinTable({
+        name: "posts_gdocs_x_tags",
+        joinColumn: { name: "gdocId" },
+        inverseJoinColumn: { name: "tagId" },
+    })
+    tags!: Tag[]
+
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
     errors: OwidArticleErrorMessage[] = []
@@ -278,7 +308,12 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         id: string,
         contentSource?: GdocsContentSource
     ): Promise<OwidArticleType> {
-        const gdoc = await Gdoc.findOneBy({ id })
+        const gdoc = await Gdoc.findOne({
+            where: {
+                id,
+            },
+            relations: ["tags"],
+        })
 
         if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
