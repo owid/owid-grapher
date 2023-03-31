@@ -39,7 +39,7 @@ export const DataPageContent = ({
                 <div className="header__left">
                     <div className="supertitle">DATA</div>
                     <h1>{datapage.title}</h1>
-                    <div className="source">{datapage.sourceShortName}</div>
+                    <span className="source">{datapage.sourceShortName}</span>
                 </div>
                 <div className="header__right">
                     <div className="label">SEE ALL DATA AND RESEARCH ON:</div>
