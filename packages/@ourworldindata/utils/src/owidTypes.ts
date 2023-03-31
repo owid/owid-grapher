@@ -1031,3 +1031,12 @@ export enum TimeBoundValue {
     negativeInfinity = -Infinity,
     positiveInfinity = Infinity,
 }
+
+/**
+ * Time tolerance strategy used for maps
+ */
+export enum ToleranceStrategy {
+    closest = "closest",
+    backwards = "backwards",
+    forwards = "forwards",
+}

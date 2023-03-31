@@ -270,10 +270,10 @@ export class TimelineComponent extends React.Component<{
         const { startHandleTimeBound, endHandleTimeBound } = manager
 
         const formattedStartTime = this.formatTime(
-            timeFromTimebounds(startHandleTimeBound, minTime)
+            timeFromTimebounds(startHandleTimeBound, minTime, maxTime)
         )
         const formattedEndTime = this.formatTime(
-            timeFromTimebounds(endHandleTimeBound, maxTime)
+            timeFromTimebounds(endHandleTimeBound, minTime, maxTime)
         )
 
         return (

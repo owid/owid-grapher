@@ -73,6 +73,7 @@ export class EditorFeatures {
     @computed get relativeModeToggle() {
         return (
             this.grapher.isStackedArea ||
+            this.grapher.isStackedBar ||
             this.grapher.isStackedDiscreteBar ||
             this.grapher.isLineChart ||
             this.grapher.isScatter ||

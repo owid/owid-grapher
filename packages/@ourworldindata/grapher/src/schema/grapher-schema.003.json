@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://files.ourworldindata.org/schemas/grapher-schema.002.json",
+    "$id": "https://files.ourworldindata.org/schemas/grapher-schema.003.json",
     "$defs": {
         "axis": {
             "type": "object",
@@ -191,7 +191,7 @@
             "type": "string",
             "description": "Url of the concrete schema version to use to validate this document",
             "format": "uri",
-            "default": "https://files.ourworldindata.org/schemas/grapher-schema.002.json"
+            "default": "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
         },
         "id": {
             "type": "integer",
@@ -229,6 +229,12 @@
                     "default": 0,
                     "description": "Tolerance to use. If data points are missing for a time point, a match is accepted if it lies\nwithin the specified time period. The unit is the dominating time unit, usually years but can be days for\ndaily time series.\n",
                     "minimum": 0
+                },
+                "toleranceStrategy": {
+                    "type": "string",
+                    "description": "Tolerance strategy to use. Options include accepting matches that are \"closest\" to the time point in question\n(going forwards and backwards in time), and accepting matches that lie in the past (\"backwards\") or\nthe future (\"forwards\").\n",
+                    "enum": ["closest", "forwards", "backwards"],
+                    "default": "closest"
                 },
                 "tooltipUseCustomLabels": {
                     "type": "boolean",
@@ -612,10 +618,26 @@
             ],
             "description": "Start point of the initially selected time span."
         },
-        "hideTitleAnnotation": {
-            "type": "boolean",
-            "default": false,
-            "description": "Whether to hide any automatically added title annotations like the selected year"
+        "hideAnnotationFieldsInTitle": {
+            "type": "object",
+            "description": "Whether to hide any automatically added title annotations like the selected year",
+            "properties": {
+                "entity": {
+                    "type": "boolean",
+                    "description": "Whether to hide the entity annotation",
+                    "default": false
+                },
+                "time": {
+                    "type": "boolean",
+                    "description": "Whether to hide the time annotation",
+                    "default": false
+                },
+                "changeInPrefix": {
+                    "type": "boolean",
+                    "description": "Whether to hide \"Change in\" in relative line charts",
+                    "default": false
+                }
+            }
         },
         "excludedEntities": {
             "type": "array",
