@@ -892,6 +892,16 @@ export enum OwidArticlePublicationContext {
     listed = "listed",
 }
 
+export interface OwidArticleTag {
+    id: number
+    name: string
+    createdAt: Date
+    updatedAt: Date
+    parentId: number
+    isBulkImport: boolean
+    specialType: string
+}
+
 export interface OwidArticleType {
     id: string
     slug: string
@@ -905,6 +915,7 @@ export interface OwidArticleType {
     linkedDocuments?: Record<string, OwidArticleType>
     imageMetadata?: Record<string, ImageMetadata>
     errors?: OwidArticleErrorMessage[]
+    tags?: OwidArticleTag[]
 }
 
 export enum OwidArticleErrorMessageType {

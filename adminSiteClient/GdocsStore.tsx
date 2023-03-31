@@ -2,6 +2,7 @@ import React, { useContext, createContext, useState } from "react"
 import { observable } from "mobx"
 import {
     getArticleFromJSON,
+    OwidArticleTag,
     OwidArticleType,
     OwidArticleTypeJSON,
 } from "@ourworldindata/utils"
@@ -17,6 +18,7 @@ import { Admin } from "./Admin.js"
  */
 export class GdocsStore {
     @observable gdocs: OwidArticleType[] = []
+    @observable availableTags: OwidArticleTag[] = []
     admin: Admin
 
     constructor(admin: Admin) {

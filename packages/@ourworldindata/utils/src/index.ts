@@ -76,6 +76,7 @@ export {
     type KeyInsight,
     type KeyValueProps,
     type OwidArticleContent,
+    type OwidArticleTag,
     OwidArticlePublicationContext,
     type OwidArticleErrorMessage,
     OwidArticleErrorMessageType,

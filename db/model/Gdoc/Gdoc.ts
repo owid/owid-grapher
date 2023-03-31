@@ -9,6 +9,7 @@ import {
 } from "typeorm"
 import {
     OwidArticleContent,
+    OwidArticleTag,
     OwidArticleType,
     OwidArticleTypePublished,
     OwidArticlePublicationContext,
@@ -40,7 +41,7 @@ import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 
 @Entity("tags")
-export class Tag extends BaseEntity {
+export class Tag extends BaseEntity implements OwidArticleTag {
     static table = "tags"
     @PrimaryColumn() id!: number
     @Column() name!: string

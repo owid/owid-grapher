@@ -53,7 +53,7 @@ import {
 } from "../adminSiteClient/CountryNameFormat.js"
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
-import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
+import { Gdoc, Tag } from "../db/model/Gdoc/Gdoc.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -83,6 +83,7 @@ import {
 import { dataSource } from "../db/dataSource.js"
 import { createGdocAndInsertOwidArticleContent } from "../db/model/Gdoc/archieToGdoc.js"
 import { Link } from "../db/model/Link.js"
+import { In } from "typeorm"
 
 const apiRouter = new FunctionalRouter()
 
@@ -2679,7 +2680,7 @@ apiRouter.put("/details/:id", async (req, res) => {
     return { success: true }
 })
 
-apiRouter.get("/gdocs", async () => Gdoc.find())
+apiRouter.get("/gdocs", async () => Gdoc.find({ relations: ["tags"] }))
 
 apiRouter.get("/gdocs/:id", async (req, res) => {
     const id = req.params.id
@@ -2805,5 +2806,22 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     await triggerStaticBuild(res.locals.user, `Deleting ${gdoc.slug}`)
     return {}
 })
+
+apiRouter.post(
+    "/gdocs/:gdocId/setTags",
+    async (req: Request, res: Response) => {
+        const { gdocId } = req.params
+        const { tagIds } = req.body
+
+        const gdoc = await Gdoc.findOneBy({ id: gdocId })
+        if (!gdoc) return Error(`Unable to find Gdoc with ID: ${gdocId}`)
+        const tags = await dataSource
+            .getRepository(Tag)
+            .findBy({ id: In(tagIds) })
+        gdoc.tags = tags
+        await gdoc.save()
+        return { success: true }
+    }
+)
 
 export { apiRouter }
