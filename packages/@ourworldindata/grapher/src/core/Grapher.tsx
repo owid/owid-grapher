@@ -1214,14 +1214,10 @@ export class Grapher
         const showChangeInPrefix =
             !this.hideAnnotationFieldsInTitle?.changeInPrefix
 
-        const isFacetingEnabled =
-            this.selectedFacetStrategy &&
-            this.selectedFacetStrategy !== FacetStrategy.none
-
         if (
             this.tab === GrapherTabOption.chart &&
             (this.addCountryMode !== EntitySelectionMode.MultipleEntities ||
-                isFacetingEnabled) &&
+                this.facetStrategy === FacetStrategy.none) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation || this.canChangeEntity)
         ) {
