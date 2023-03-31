@@ -102,7 +102,7 @@ async function propsFromQueryParams(
         .where("publishedAt IS NOT NULL")
         .limit(perPage)
         .offset(perPage * (page - 1))
-        .orderBy("id", "ASC")
+        .orderBy("id", "DESC")
 
     let tab = params.tab
 
