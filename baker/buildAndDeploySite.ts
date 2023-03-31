@@ -5,7 +5,7 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import os from "os"
 import * as path from "path"
-import { bakeSteps, validateBakeSteps } from "./SiteBaker.js"
+import { BakeStep, bakeSteps } from "./SiteBaker.js"
 
 yargs(hideBin(process.argv))
     .command<{
@@ -26,9 +26,7 @@ yargs(hideBin(process.argv))
                 })
         },
         async ({ target, skipChecks, runChecksRemotely, steps }) => {
-            const bakeSteps = validateBakeSteps(steps)
-                ? new Set(steps)
-                : undefined
+            const bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
             const deployer = new Deployer({
                 target: target as any,
                 userRunningTheDeploy: os.userInfo().username,

@@ -75,7 +75,6 @@ const wordpressSteps = [
     "googleScholar",
     "redirects",
     "rss",
-    "variables",
     "wordpressPosts",
 ] as const
 
@@ -90,22 +89,14 @@ const nonWordpressSteps = [
 
 export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
 
-export function validateBakeSteps(steps: unknown): steps is BakeStep[] {
-    if (!isArray(steps)) return false
-    const hasInvalidStep = steps.some(
-        (step) => !bakeSteps.includes(step as any)
-    )
-    return !hasInvalidStep
-}
-
-export type BakeStep = typeof bakeSteps[number]
+export type BakeStep = (typeof bakeSteps)[number]
 
 export type BakeStepConfig = Set<BakeStep>
 
 const defaultSteps = new Set(bakeSteps)
 
 function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
-    // There are 3 non-optional steps
+    // There are 3 non-optional steps: flushCache, removeDeletedPosts, and flushCache (again)
     const minimum = 3
     let total = minimum + bakeSteps.size
     // Redirects has two progress bar ticks

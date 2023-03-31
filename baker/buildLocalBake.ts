@@ -2,12 +2,7 @@
 
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import {
-    BakeStepConfig,
-    bakeSteps,
-    SiteBaker,
-    validateBakeSteps,
-} from "./SiteBaker.js"
+import { BakeStep, BakeStepConfig, bakeSteps, SiteBaker } from "./SiteBaker.js"
 import * as fs from "fs-extra"
 import { normalize } from "path"
 
@@ -48,9 +43,7 @@ yargs(hideBin(process.argv))
                 })
         },
         async ({ baseUrl, dir, steps }) => {
-            const bakeSteps = validateBakeSteps(steps)
-                ? new Set(steps)
-                : undefined
+            const bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
             await bakeDomainToFolder(baseUrl, dir, bakeSteps)
             process.exit(0)
         }
