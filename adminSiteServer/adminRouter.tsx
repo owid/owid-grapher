@@ -104,10 +104,15 @@ adminRouter.post(
                 req.body.username,
                 req.body.password
             )
+            // secure cookie if in production and using https
+            // our staging servers use http and `production`, so passing insecure
+            // cookie wouldn't work
+            const secure = ENV === "production" && req.protocol !== "http"
+
             res.cookie("sessionid", session.id, {
                 httpOnly: true,
                 sameSite: "lax",
-                secure: ENV === "production",
+                secure: secure,
             })
             res.redirect((req.query.next as string) || "/admin")
         } catch (err) {
