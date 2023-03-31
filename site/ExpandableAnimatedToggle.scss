@@ -1,12 +1,13 @@
 .ExpandableAnimatedToggle {
     border-top: 1px solid #d0dae3;
     border-bottom: 1px solid #d0dae3;
+    padding: 0 8px;
     > button {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        padding: 16px 8px;
+        padding: 12px 0;
         color: $blue-90;
         background-color: transparent;
         border: none;
@@ -19,5 +20,8 @@
     svg {
         font-size: 0.75em;
         margin: 0 12px;
+    }
+    .content {
+        padding-bottom: 12px;
     }
 }

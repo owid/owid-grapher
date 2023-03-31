@@ -23,7 +23,10 @@ export const ExpandableAnimatedToggle = ({
                 <FontAwesomeIcon icon={faPlus} />
             </button>
             <AnimateHeight height={height} animateOpacity>
-                <div dangerouslySetInnerHTML={{ __html: content }} />
+                <div
+                    className="content"
+                    dangerouslySetInnerHTML={{ __html: content }}
+                />
             </AnimateHeight>
         </div>
     )
