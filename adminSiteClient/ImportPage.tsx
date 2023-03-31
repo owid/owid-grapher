@@ -17,7 +17,7 @@ import Papa from "papaparse"
 import { BindString, NumericSelectField, FieldsRow } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner"
+import { faSpinner } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 class EditableVariable {

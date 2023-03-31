@@ -1,7 +1,7 @@
 import React from "react"
 import { Span } from "@ourworldindata/utils"
 import { renderSpans } from "./utils.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 export const AdditionalCharts = ({

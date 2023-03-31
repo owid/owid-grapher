@@ -7,18 +7,18 @@ import {
     isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
+    MarkdownTextWrap,
+    sumTextWrapHeights,
 } from "@ourworldindata/utils"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+import { faDownload, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import {
     BlankOwidTable,
     OwidTable,
     OwidColumnDef,
     CoreColumn,
 } from "@ourworldindata/core-table"
-import { MarkdownTextWrap, sumTextWrapHeights } from "@ourworldindata/utils"
 import { STATIC_EXPORT_DETAIL_SPACING } from "../core/GrapherConstants"
 
 export interface DownloadTabManager {

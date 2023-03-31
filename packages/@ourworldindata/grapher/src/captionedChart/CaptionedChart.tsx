@@ -6,6 +6,8 @@ import {
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
     isEmpty,
+    MarkdownTextWrap,
+    sumTextWrapHeights,
 } from "@ourworldindata/utils"
 import { Header } from "../header/Header"
 import { Footer } from "../footer/Footer"
@@ -25,7 +27,7 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
-import { faRightLeft } from "@fortawesome/free-solid-svg-icons/faRightLeft"
+import { faRightLeft, faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { CollapsibleList } from "../controls/CollapsibleList/CollapsibleList"
 import {
@@ -40,13 +42,11 @@ import {
 } from "../controls/Controls"
 import { ScaleSelector } from "../controls/ScaleSelector"
 import { AddEntityButton } from "../controls/AddEntityButton"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "../footer/FooterManager"
 import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import { EntityName } from "@ourworldindata/core-table"
 import { AxisConfig } from "../axis/AxisConfig"
-import { MarkdownTextWrap, sumTextWrapHeights } from "@ourworldindata/utils"
 
 export interface CaptionedChartManager
     extends ChartManager,

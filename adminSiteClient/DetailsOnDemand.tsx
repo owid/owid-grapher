@@ -21,7 +21,7 @@ type DraftDetail = Omit<Detail, "id">
 const removeSpaces = (value: string) => value.replaceAll(/ /g, "")
 
 const detailKeys = ["category", "term", "title", "content"] as const
-const validation: Record<typeof detailKeys[number], (x: string) => string> = {
+const validation: Record<(typeof detailKeys)[number], (x: string) => string> = {
     category: removeSpaces,
     term: removeSpaces,
     title: (x: string) => x,

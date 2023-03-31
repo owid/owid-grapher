@@ -2,10 +2,12 @@ import React from "react"
 import { observer } from "mobx-react"
 import * as lodash from "lodash"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons/faQuestionCircle"
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
-import { faTimesCircle } from "@fortawesome/free-solid-svg-icons/faTimesCircle"
-import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
+import {
+    faQuestionCircle,
+    faCheckCircle,
+    faTimesCircle,
+    faExclamationCircle,
+} from "@fortawesome/free-solid-svg-icons"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"

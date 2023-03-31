@@ -9,8 +9,7 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
-import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
+import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
@@ -271,10 +270,10 @@ export class TimelineComponent extends React.Component<{
         const { startHandleTimeBound, endHandleTimeBound } = manager
 
         const formattedStartTime = this.formatTime(
-            timeFromTimebounds(startHandleTimeBound, minTime)
+            timeFromTimebounds(startHandleTimeBound, minTime, maxTime)
         )
         const formattedEndTime = this.formatTime(
-            timeFromTimebounds(endHandleTimeBound, maxTime)
+            timeFromTimebounds(endHandleTimeBound, minTime, maxTime)
         )
 
         return (

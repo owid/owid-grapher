@@ -55,7 +55,7 @@ CoreRow is just a Javascript object with string indexes. It doesn't really do an
 
 ### ErrorValues
 
-There are a lot of situations where we have invalid values. Values might be missing in our datasets. They might be strings where numbers are expected. They might be zeros or negatives when log-friendly numbers are expected. Usually it is during first parse, but it could be downstream in the transforms. For instance, a computed column might use another column as a divisor. A zero in the first column might be find initially, but the result of the transformation would be invalid.
+There are a lot of situations where we have invalid values. Values might be missing in our datasets. They might be strings where numbers are expected. They might be zeros or negatives when log-friendly numbers are expected. Usually it is during first parse, but it could be downstream in the transforms. For instance, a computed column might use another column as a divisor. A zero in the first column might be fine initially, but the result of the transformation would be invalid.
 
 Generally we want to handle these errors gracefully. Therefore, instead of using the two uninformative `null` and `undefined` as error types, we have the class `ErrorValue`, and we have many variations of that class to represent different types of errors that can occur. These errors are kept in-place in the user's table (though generally filtered in all Grapher charts) for ease of auditing the operations.
 
@@ -67,7 +67,7 @@ CoreTable is a general purpose class operating on any kind of table. OwidTable i
 
 We also perform common transformations that make sense on time series tables with this shape but not on tables of other shapes. Thus we subclass CoreTable and CoreRow. OwidRow extends CoreRow and provides stronger typing on row level operations.
 
-The split between CoreTable and OwidTable is also to ensure we minimize the delta between our data model and the common model in data science, with the bet that this may require use to maintain a lot less code in the long run.
+The split between CoreTable and OwidTable is also to ensure we minimize the delta between our data model and the common model in data science, with the bet that this may require us to maintain a lot less code in the long run.
 
 ## Additional Design Notes
 

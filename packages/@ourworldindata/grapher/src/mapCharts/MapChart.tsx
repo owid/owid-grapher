@@ -1,5 +1,7 @@
 import React from "react"
 import {
+    anyToString,
+    isNumber,
     Bounds,
     DEFAULT_BOUNDS,
     flatten,
@@ -177,7 +179,8 @@ export class MapChart
             .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
-                this.mapConfig.timeTolerance
+                this.mapConfig.timeTolerance,
+                this.mapConfig.toleranceStrategy
             )
     }
 
@@ -326,7 +329,9 @@ export class MapChart
                 const label = bin?.label
                 if (label !== undefined && label !== "") return label
             }
-            return mapColumn?.formatValueLong(d) ?? ""
+            return isNumber(d)
+                ? mapColumn?.formatValueLong(d) ?? ""
+                : anyToString(d)
         }
     }
 

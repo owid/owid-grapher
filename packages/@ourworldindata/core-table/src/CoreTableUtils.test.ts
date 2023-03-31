@@ -129,7 +129,10 @@ describe(toleranceInterpolation, () => {
         toleranceInterpolation(
             valuesAsc,
             timesAsc,
-            { timeTolerance: tolerance },
+            {
+                timeToleranceForwards: tolerance,
+                timeToleranceBackwards: tolerance,
+            },
             0,
             3
         )
@@ -138,6 +141,74 @@ describe(toleranceInterpolation, () => {
             1,
             ErrorValueTypes.MissingValuePlaceholder,
             2,
+        ])
+    })
+
+    it("interpolates values in both directions", () => {
+        const valuesAsc = [
+            ErrorValueTypes.MissingValuePlaceholder,
+            1,
+            ErrorValueTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
+            2,
+            ErrorValueTypes.MissingValuePlaceholder,
+        ]
+        const timesAsc = [0, 1, 2, 3, 4, 5]
+        const tolerance = 1
+        toleranceInterpolation(valuesAsc, timesAsc, {
+            timeToleranceForwards: tolerance,
+            timeToleranceBackwards: tolerance,
+        })
+        expect(valuesAsc).toEqual([1, 1, 1, 2, 2, 2])
+    })
+
+    it("interpolates values in the backwards direction", () => {
+        const valuesAsc = [
+            ErrorValueTypes.MissingValuePlaceholder,
+            1,
+            ErrorValueTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
+            2,
+            ErrorValueTypes.MissingValuePlaceholder,
+        ]
+        const timesAsc = [0, 1, 2, 3, 4, 5]
+        const tolerance = 1
+        toleranceInterpolation(valuesAsc, timesAsc, {
+            timeToleranceForwards: 0,
+            timeToleranceBackwards: tolerance,
+        })
+        expect(valuesAsc).toEqual([
+            ErrorValueTypes.NoValueWithinTolerance,
+            1,
+            1,
+            ErrorValueTypes.NoValueWithinTolerance,
+            2,
+            2,
+        ])
+    })
+
+    it("interpolates values in the forwards direction", () => {
+        const valuesAsc = [
+            ErrorValueTypes.MissingValuePlaceholder,
+            1,
+            ErrorValueTypes.MissingValuePlaceholder,
+            ErrorValueTypes.MissingValuePlaceholder,
+            2,
+            ErrorValueTypes.MissingValuePlaceholder,
+        ]
+        const timesAsc = [0, 1, 2, 3, 4, 5]
+        const tolerance = 1
+        toleranceInterpolation(valuesAsc, timesAsc, {
+            timeToleranceForwards: tolerance,
+            timeToleranceBackwards: 0,
+        })
+        expect(valuesAsc).toEqual([
+            1,
+            1,
+            ErrorValueTypes.NoValueWithinTolerance,
+            2,
+            2,
+            ErrorValueTypes.NoValueWithinTolerance,
         ])
     })
 })

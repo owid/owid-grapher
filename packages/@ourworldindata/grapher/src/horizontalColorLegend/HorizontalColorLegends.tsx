@@ -15,6 +15,7 @@ import {
     Color,
     HorizontalAlign,
     VerticalAlign,
+    TextWrap,
 } from "@ourworldindata/utils"
 import {
     ColorScaleBin,
@@ -22,7 +23,6 @@ import {
     CategoricalBin,
 } from "../color/ColorScaleBin"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { TextWrap } from "@ourworldindata/utils"
 import { darkenColorForLine } from "../color/ColorUtils"
 
 export interface PositionedBin {

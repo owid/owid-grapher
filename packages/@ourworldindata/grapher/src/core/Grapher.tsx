@@ -81,6 +81,7 @@ import {
     ThereWasAProblemLoadingThisChart,
     SeriesColorMap,
     FacetAxisDomain,
+    AnnotationFieldsInTitle,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
 } from "../core/GrapherConstants"
@@ -122,7 +123,7 @@ import {
 import { isOnTheMap } from "../mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "../chart/ChartManager"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import {
     AbsRelToggleManager,
     FacetStrategyDropdownManager,
@@ -297,7 +298,8 @@ export class Grapher
     @observable.ref subtitle = ""
     @observable.ref sourceDesc?: string = undefined
     @observable.ref note = ""
-    @observable.ref hideTitleAnnotation?: boolean = undefined
+    @observable hideAnnotationFieldsInTitle?: AnnotationFieldsInTitle =
+        undefined
     @observable.ref minTime?: TimeBound = undefined
     @observable.ref maxTime?: TimeBound = undefined
     @observable.ref timelineMinTime?: Time = undefined
@@ -1207,28 +1209,32 @@ export class Grapher
     @computed get currentTitle(): string {
         let text = this.displayTitle
         const selectedEntityNames = this.selection.selectedEntityNames
-        const showTitleAnnotation = !this.hideTitleAnnotation
+        const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
+        const showTimeAnnotation = !this.hideAnnotationFieldsInTitle?.time
+        const showChangeInPrefix =
+            !this.hideAnnotationFieldsInTitle?.changeInPrefix
+
+        const isFacetingEnabled =
+            this.selectedFacetStrategy &&
+            this.selectedFacetStrategy !== FacetStrategy.none
 
         if (
             this.tab === GrapherTabOption.chart &&
-            this.addCountryMode !== EntitySelectionMode.MultipleEntities &&
+            (this.addCountryMode !== EntitySelectionMode.MultipleEntities ||
+                isFacetingEnabled) &&
             selectedEntityNames.length === 1 &&
-            (showTitleAnnotation || this.canChangeEntity)
+            (showEntityAnnotation || this.canChangeEntity)
         ) {
             const entityStr = selectedEntityNames[0]
             if (entityStr?.length) text = `${text}, ${entityStr}`
         }
 
-        if (
-            this.isLineChart &&
-            this.isRelativeMode &&
-            (showTitleAnnotation || this.canToggleRelativeMode)
-        )
+        if (this.isLineChart && this.isRelativeMode && showChangeInPrefix)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
         if (
             this.isReady &&
-            (showTitleAnnotation ||
+            (showTimeAnnotation ||
                 (this.hasTimeline &&
                     (this.isLineChartThatTurnedIntoDiscreteBar ||
                         this.isOnMapTab)))
@@ -2326,7 +2332,7 @@ export class Grapher
         this.dimensions = grapher.dimensions
         this.stackMode = grapher.stackMode
         this.hideTotalValueLabel = grapher.hideTotalValueLabel
-        this.hideTitleAnnotation = grapher.hideTitleAnnotation
+        this.hideAnnotationFieldsInTitle = grapher.hideAnnotationFieldsInTitle
         this.timelineMinTime = grapher.timelineMinTime
         this.timelineMaxTime = grapher.timelineMaxTime
         this.relatedQuestions = grapher.relatedQuestions
@@ -2510,6 +2516,7 @@ export class Grapher
             return this.xOverrideTime === undefined && this.hasTimeline
         return (
             this.isStackedArea ||
+            this.isStackedBar ||
             this.isStackedDiscreteBar ||
             this.isScatter ||
             this.isLineChart ||

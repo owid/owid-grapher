@@ -1,12 +1,14 @@
 import React from "react"
-import { TextWrap } from "@ourworldindata/utils"
+import {
+    TextWrap,
+    DEFAULT_BOUNDS,
+    MarkdownTextWrap,
+} from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { DEFAULT_BOUNDS } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/utils"
 
 @observer
 export class Header extends React.Component<{

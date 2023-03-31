@@ -3,6 +3,8 @@ module.exports = {
         "plugin:react/recommended",
         "plugin:react-hooks/recommended",
         "plugin:@typescript-eslint/recommended",
+        "plugin:import/recommended",
+        "plugin:import/typescript",
         "prettier",
     ],
     parser: "@typescript-eslint/parser",
@@ -42,6 +44,8 @@ module.exports = {
         "@typescript-eslint/no-use-before-define": "off", // This was useful in the past with var and variable hoisting changing depending on scope but AFAIK typescript deals with this in a sane way and we can leave this off
         "@typescript-eslint/no-var-requires": "warn",
         "@typescript-eslint/restrict-plus-operands": "warn",
+        "import/no-named-as-default-member": "off", // probably makes sense to enable this at some point
+        "import/namespace": "off",
         "no-console": ["warn", { allow: ["warn", "error"] }],
         "no-var": "warn",
         "prefer-const": ["warn", { destructuring: "all" }],
@@ -53,6 +57,10 @@ module.exports = {
         "react/prop-types": "warn",
     },
     settings: {
+        "import/resolver": {
+            typescript: true,
+            node: true,
+        },
         react: {
             version: "detect",
         },
