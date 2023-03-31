@@ -8,7 +8,6 @@ import {
     ColorSchemeName,
     FacetAxisDomain,
     FacetStrategy,
-    MissingDataStrategy,
 } from "@ourworldindata/grapher"
 import {
     NumberField,
@@ -19,7 +18,6 @@ import {
     TextField,
     Button,
     RadioGroup,
-    SelectField,
 } from "./Forms.js"
 import {
     debounce,
@@ -389,50 +387,6 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-class MissingDataSection extends React.Component<{ editor: ChartEditor }> {
-    @computed get grapher() {
-        return this.props.editor.grapher
-    }
-
-    get missingDataStrategyOptions(): {
-        value: MissingDataStrategy
-        label: string
-    }[] {
-        const missingDataStrategyLabels = {
-            [MissingDataStrategy.auto]: "Automatic",
-            [MissingDataStrategy.hide]: "Hide charts with missing data",
-            [MissingDataStrategy.show]: "Show charts with missing data",
-        }
-
-        return Object.values(MissingDataStrategy).map((strategy) => {
-            return {
-                value: strategy,
-                label: missingDataStrategyLabels[strategy],
-            }
-        })
-    }
-
-    @action.bound onSelectMissingDataStrategy(value: string | undefined) {
-        this.grapher.missingDataStrategy = value as MissingDataStrategy
-    }
-
-    render() {
-        const { grapher } = this
-
-        return (
-            <Section name="Missing data">
-                <SelectField
-                    label="Missing data strategy"
-                    value={grapher.missingDataStrategy}
-                    options={this.missingDataStrategyOptions}
-                    onValue={this.onSelectMissingDataStrategy}
-                />
-            </Section>
-        )
-    }
-}
-
-@observer
 class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
     @observable comparisonLines: ComparisonLineConfig[] = []
 
@@ -700,9 +654,6 @@ export class EditorCustomizeTab extends React.Component<{
                             />
                         </FieldsRow>
                     </Section>
-                )}
-                {features.canSpecifyMissingDataStrategy && (
-                    <MissingDataSection editor={this.props.editor} />
                 )}
                 {features.comparisonLine && (
                     <ComparisonLineSection editor={this.props.editor} />
