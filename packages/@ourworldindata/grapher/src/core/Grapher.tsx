@@ -2029,7 +2029,7 @@ export class Grapher
         return sortConfig
     }
 
-    @computed private get hasMultipleYColumns(): boolean {
+    @computed get hasMultipleYColumns(): boolean {
         return this.yColumnSlugs.length > 1
     }
 
