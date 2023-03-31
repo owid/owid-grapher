@@ -6,10 +6,11 @@ import { hideBin } from "yargs/helpers"
 import os from "os"
 import * as path from "path"
 import { BakeStep, bakeSteps } from "./SiteBaker.js"
+import { DeployTarget } from "./DeployTarget.js"
 
 yargs(hideBin(process.argv))
     .command<{
-        target: string
+        target: DeployTarget
         skipChecks: boolean
         runChecksRemotely: boolean
         steps?: string[]

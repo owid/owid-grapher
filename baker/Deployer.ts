@@ -215,9 +215,15 @@ yarn testPrettierAll`
         const gitConfig = await simpleGit.listConfig()
         const gitName = `${gitConfig.all["user.name"]}`
         const gitEmail = `${gitConfig.all["user.email"]}`
-        const cliBakeSteps = this.options.bakeSteps
-            ? `--steps ${[...this.options.bakeSteps.values()].join(" ")}`
-            : ""
+        if (this.options.bakeSteps && this.targetIsProd) {
+            console.log(
+                "Cannot set custom bake steps when deploying to live. Ignoring parameter."
+            )
+        }
+        const cliBakeSteps =
+            this.options.bakeSteps && !this.targetIsProd
+                ? `--steps ${[...this.options.bakeSteps.values()].join(" ")}`
+                : ""
 
         const scripts: any = {
             clearOldTemporaryRepo: `rm -rf ${rsyncTargetDirTmp}`,
