@@ -1,0 +1,22 @@
+import { MigrationInterface, QueryRunner } from "typeorm"
+
+export class PostsGdocsXTags1680210665372 implements MigrationInterface {
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        queryRunner.query(`
+        CREATE TABLE posts_gdocs_x_tags (
+            gdoc_id VARCHAR(255) NOT NULL,
+            tag_id INT NOT NULL,
+            PRIMARY KEY (gdoc_id,tag_id),
+            KEY FK_post_tags_tag_id (tag_id),
+            CONSTRAINT FK_posts_gdocs_x_tags_gdoc_id FOREIGN KEY (gdoc_id) REFERENCES posts_gdocs (id) ON DELETE CASCADE ON UPDATE RESTRICT,
+            CONSTRAINT FK_posts_gdocs_x_tags_tag_id FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE ON UPDATE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_as_cs
+        `)
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        queryRunner.query(`
+            DROP TABLE IF EXISTS posts_gdocs_x_tags;
+        `)
+    }
+}
