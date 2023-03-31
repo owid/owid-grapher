@@ -99,6 +99,7 @@ export class EditorFeatures {
 
     @computed get canSpecifyMissingDataStrategy() {
         return (
+            this.grapher.hasMultipleYColumns &&
             this.grapher.canChangeEntity &&
             (this.grapher.isStackedArea ||
                 this.grapher.isStackedBar ||
