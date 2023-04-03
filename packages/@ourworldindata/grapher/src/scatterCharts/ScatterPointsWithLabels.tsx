@@ -19,7 +19,6 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { getElementWithHalo } from "./Halos"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
     ScatterPointsWithLabelsProps,
@@ -41,6 +40,7 @@ import {
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
 import { ScaleLinear } from "d3-scale"
+import { DEFAULT_SVG_HALO_STYLE } from "../core/GrapherConstants.js"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
@@ -391,22 +391,21 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 {this.backgroundSeries.map((series) => {
                     return series.allLabels
                         .filter((label) => !label.isHidden)
-                        .map((label) =>
-                            getElementWithHalo(
-                                series.displayKey + "-endLabel",
-                                <text
-                                    x={label.bounds.x.toFixed(2)}
-                                    y={(
-                                        label.bounds.y + label.bounds.height
-                                    ).toFixed(2)}
-                                    fontSize={label.fontSize.toFixed(2)}
-                                    fontWeight={label.fontWeight}
-                                    fill={isLayerMode ? "#aaa" : label.color}
-                                >
-                                    {label.text}
-                                </text>
-                            )
-                        )
+                        .map((label) => (
+                            <text
+                                key={`${series.displayKey}-endLabel`}
+                                x={label.bounds.x.toFixed(2)}
+                                y={(
+                                    label.bounds.y + label.bounds.height
+                                ).toFixed(2)}
+                                fontSize={label.fontSize.toFixed(2)}
+                                fontWeight={label.fontWeight}
+                                fill={isLayerMode ? "#aaa" : label.color}
+                                {...DEFAULT_SVG_HALO_STYLE}
+                            >
+                                {label.text}
+                            </text>
+                        ))
                 })}
             </g>
         )
@@ -505,22 +504,19 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return this.foregroundSeries.map((series) => {
             return series.allLabels
                 .filter((label) => !label.isHidden)
-                .map((label, index) =>
-                    getElementWithHalo(
-                        `${series.displayKey}-label-${index}`,
-                        <text
-                            x={label.bounds.x.toFixed(2)}
-                            y={(label.bounds.y + label.bounds.height).toFixed(
-                                2
-                            )}
-                            fontSize={label.fontSize}
-                            fontWeight={label.fontWeight}
-                            fill={label.color}
-                        >
-                            {label.text}
-                        </text>
-                    )
-                )
+                .map((label, index) => (
+                    <text
+                        key={`${series.displayKey}-label-${index}`}
+                        x={label.bounds.x.toFixed(2)}
+                        y={(label.bounds.y + label.bounds.height).toFixed(2)}
+                        fontSize={label.fontSize}
+                        fontWeight={label.fontWeight}
+                        fill={label.color}
+                        {...DEFAULT_SVG_HALO_STYLE}
+                    >
+                        {label.text}
+                    </text>
+                ))
         })
     }
 

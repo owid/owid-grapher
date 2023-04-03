@@ -2,9 +2,11 @@ import React from "react"
 import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, first, last } from "@ourworldindata/utils"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    DEFAULT_SVG_HALO_STYLE,
+} from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { getElementWithHalo } from "./Halos"
 import {
     ScatterSeries,
     SCATTER_POINT_MAX_RADIUS,
@@ -275,19 +277,17 @@ const LegendItem = ({
                 strokeWidth={circleStrokeWidth}
                 opacity={circleOpacity}
             />
-            {getElementWithHalo(
-                label,
-                <text
-                    x={cx}
-                    y={cy - circleRadius}
-                    dy={outsideLabel ? "-.32em" : ".47em"}
-                    fill={labelFill}
-                    style={style}
-                >
-                    {label}
-                </text>,
-                { ...style, strokeWidth: 3.5 }
-            )}
+            <text
+                x={cx}
+                y={cy - circleRadius}
+                dy={outsideLabel ? "-.32em" : ".47em"}
+                fill={labelFill}
+                style={style}
+                {...DEFAULT_SVG_HALO_STYLE}
+                strokeWidth={3.5}
+            >
+                {label}
+            </text>
         </g>
     )
 }

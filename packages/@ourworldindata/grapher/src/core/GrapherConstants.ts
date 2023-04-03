@@ -123,3 +123,14 @@ export interface AnnotationFieldsInTitle {
     time?: boolean
     changeInPrefix?: boolean
 }
+
+// Default attributes for svg components that should have a white halo/outline effect
+export const DEFAULT_SVG_HALO_STYLE: React.SVGAttributes<
+    SVGTextElement | SVGTextPathElement
+> = {
+    stroke: "#fff",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    strokeWidth: ".25em",
+    paintOrder: "stroke", // Stroke is rendered behind text, making it an outline
+}
