@@ -28,7 +28,9 @@ $chart-border-radius: 2px;
 
         .HiddenControlHeader {
             // Don't show hidden label in desktop but preserve space for it so options are aligned.
-            opacity: 0;
+            visibility: hidden;
+            height: 1.6em; // this is the line height
+            height: 1lh; // only available in very modern browsers
         }
 
         input {
