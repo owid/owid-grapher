@@ -1283,6 +1283,10 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 
     .GdocsEditPage__error-container {
         padding: 32px;
+
+        pre {
+            white-space: pre-line;
+        }
     }
 }
 
