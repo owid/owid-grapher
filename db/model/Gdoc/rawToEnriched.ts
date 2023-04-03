@@ -59,6 +59,8 @@ import {
     omitUndefinedValues,
     EnrichedBlockSimpleText,
     checkIsInternalLink,
+    BlockImageSize,
+    checkIsBlockImageSize,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -359,11 +361,15 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     const createError = (
         error: ParseError,
         filename: string = "",
-        alt: string = ""
+        alt: string = "",
+        caption?: Span[],
+        size: BlockImageSize = BlockImageSize.Wide
     ): EnrichedBlockImage => ({
         type: "image",
         filename,
         alt,
+        caption,
+        size,
         originalWidth: undefined,
         parseErrors: [error],
     })
@@ -375,10 +381,24 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         })
     }
 
+    // Default to wide
+    const size = image.value.size ?? BlockImageSize.Wide
+    if (!checkIsBlockImageSize(size)) {
+        return createError({
+            message: `Invalid size property: ${size}`,
+        })
+    }
+
+    const caption = image.value.caption
+        ? htmlToSpans(image.value.caption)
+        : undefined
+
     return {
         type: "image",
         filename,
         alt: image.value.alt,
+        caption,
+        size,
         originalWidth: undefined,
         parseErrors: [],
     }
