@@ -20,7 +20,6 @@ import {
     OWID_DATAPAGE_CONTENT_ROOT_ID,
 } from "./DataPageContent.js"
 import { Head } from "./Head.js"
-import { IFrameDetector } from "./IframeDetector.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
 
