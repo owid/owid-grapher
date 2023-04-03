@@ -1,15 +1,11 @@
 import React, { useEffect } from "react"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import {
-    Grapher,
-    GrapherInterface,
-    LoadingIndicator,
-} from "@ourworldindata/grapher"
+import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
-import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
 import ReactDOM from "react-dom"
-import { GrapherFigureView } from "./GrapherFigureView.js"
+import { useIframeDetector } from "./IframeDetector.js"
+import { GrapherWithFallback } from "./GrapherWithFallback.js"
 
 declare global {
     interface Window {
@@ -28,12 +24,16 @@ export const DataPageContent = ({
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
 
+    const isEmbedded = useIframeDetector()
+
     // Initialize the grapher for client-side rendering
     useEffect(() => {
         setGrapher(new Grapher(grapherConfig))
     }, [grapherConfig])
 
-    return (
+    return isEmbedded ? (
+        <GrapherWithFallback grapher={grapher} slug={grapherConfig.slug} />
+    ) : (
         <div className="DataPageContent">
             <div className="header__wrapper wrapper">
                 <div className="header__left">
@@ -61,22 +61,10 @@ export const DataPageContent = ({
                 }}
             >
                 <div className="chart__wrapper wrapper">
-                    {grapher ? (
-                        <GrapherFigureView grapher={grapher} />
-                    ) : (
-                        <figure
-                            data-grapher-src={`/grapher/${grapherConfig.slug}`}
-                        >
-                            <LoadingIndicator />
-                        </figure>
-                    )}
-
-                    <noscript id="fallback">
-                        <img
-                            src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${grapherConfig.slug}.svg`}
-                        />
-                        <p>Interactive visualization requires JavaScript</p>
-                    </noscript>
+                    <GrapherWithFallback
+                        grapher={grapher}
+                        slug={grapherConfig.slug}
+                    />
                 </div>
                 <div className="key-info__wrapper wrapper">
                     <div className="key-info__left">

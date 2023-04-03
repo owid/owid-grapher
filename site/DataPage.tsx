@@ -75,7 +75,6 @@ export const DataPage = (props: {
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
-                <IFrameDetector />
                 <noscript>
                     <style>{`
                     figure { display: none !important; }
@@ -98,7 +97,7 @@ export const DataPage = (props: {
                     )
                 )}
             </Head>
-            <body>
+            <body className="DataPage">
                 <SiteHeader baseUrl={baseUrl} />
                 <main>
                     <>

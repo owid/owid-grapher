@@ -111,14 +111,23 @@ html.IsInIframe .StandaloneGrapherOrExplorerPage {
         max-width: none;
     }
 
-    .site-header,
-    .alert-banner,
-    .offset-subnavigation,
-    .donate-footer,
-    .cookie-notice,
-    .site-footer,
+    @include hide-site-chrome;
+
     .related-research-data,
     .explorerContentContainer {
         display: none;
     }
+}
+
+html.IsInIframe body.DataPage {
+    main figure[data-grapher-src] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+    }
+
+    @include hide-site-chrome;
 }
