@@ -77,7 +77,7 @@ export const DataPage = (props: {
                 <meta property="og:image:height" content={imageHeight} />
                 <noscript>
                     <style>{`
-                    figure { display: none !important; }
+                    figure[data-grapher-src] { display: none !important; }
                 `}</style>
                 </noscript>
                 {flatten(

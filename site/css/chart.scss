@@ -118,16 +118,3 @@ html.IsInIframe .StandaloneGrapherOrExplorerPage {
         display: none;
     }
 }
-
-html.IsInIframe body.DataPage {
-    main figure[data-grapher-src] {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100vh;
-        margin: 0;
-    }
-
-    @include hide-site-chrome;
-}

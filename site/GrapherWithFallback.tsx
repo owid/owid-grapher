@@ -11,21 +11,23 @@ export const GrapherWithFallback = ({
     slug?: string
 }) => {
     return slug ? (
-        <>
+        <div className="GrapherWithFallback">
             <>
                 {grapher ? (
                     <GrapherFigureView grapher={grapher} />
                 ) : (
-                    <figure data-grapher-src={`/grapher/${slug}`}>
-                        <LoadingIndicator />
-                    </figure>
+                    // Given GrapherFigureView also renders a figure which gets
+                    // the same styling and height, rendering an empty <figure>
+                    // while Grapher is instanciated probably helps with
+                    // cumulative layout shift (CLS)
+                    <figure data-grapher-src></figure>
                 )}
             </>
 
-            <noscript id="fallback">
+            <noscript className="GrapherWithFallback__fallback">
                 <img src={`${BAKED_GRAPHER_EXPORTS_BASE_URL}/${slug}.svg`} />
                 <p>Interactive visualization requires JavaScript</p>
             </noscript>
-        </>
+        </div>
     ) : null
 }

@@ -54,7 +54,8 @@
         width: 100%;
         @include grid(12);
 
-        > figure {
+        // GrapherWithFallback
+        figure[data-grapher-src] {
             grid-column: 2 / span 10;
             height: 575px;
             margin: 0;
