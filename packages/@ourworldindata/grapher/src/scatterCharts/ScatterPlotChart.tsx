@@ -54,7 +54,11 @@ import {
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
-import { ColorScale, ColorScaleManager, NO_DATA_LABEL } from "../color/ColorScale"
+import {
+    ColorScale,
+    ColorScaleManager,
+    NO_DATA_LABEL,
+} from "../color/ColorScale"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
