@@ -58,6 +58,7 @@ import {
     EnrichedBlockSimpleText,
     checkIsInternalLink,
     BlockImageSize,
+    checkIsBlockImageSize,
 } from "@ourworldindata/utils"
 import { extractUrl, getTitleSupertitleFromHeadingText } from "./gdocUtils.js"
 import {
@@ -359,7 +360,7 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
         filename: string = "",
         alt: string = "",
         caption?: Span[],
-        size: BlockImageSize = "wide"
+        size: BlockImageSize = BlockImageSize.Wide
     ): EnrichedBlockImage => ({
         type: "image",
         filename,
@@ -378,8 +379,8 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     }
 
     // Default to wide
-    const size = image.value.size ?? "wide"
-    if (size && !["narrow", "wide"].includes(size)) {
+    const size = image.value.size ?? BlockImageSize.Wide
+    if (!checkIsBlockImageSize(size)) {
         return createError({
             message: `Invalid size property: ${size}`,
         })

@@ -22,6 +22,7 @@ import {
     EnrichedBlockStickyRightContainer,
     EnrichedBlockNumberedList,
     EnrichedBlockProminentLink,
+    BlockImageSize,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { compact, flatten, isPlainObject, partition } from "lodash"
@@ -764,7 +765,7 @@ function cheerioToArchieML(
                                 alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,
-                                size: "wide",
+                                size: BlockImageSize.Wide,
                             },
                         ],
                     }
@@ -850,7 +851,7 @@ function cheerioToArchieML(
                                 alt: "",
                                 parseErrors: [],
                                 originalWidth: undefined,
-                                size: "wide",
+                                size: BlockImageSize.Wide,
                             },
                         ],
                     }

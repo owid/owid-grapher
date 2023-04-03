@@ -563,7 +563,15 @@ export type EnrichedBlockChartStory = {
     items: EnrichedChartStoryItem[]
 } & EnrichedBlockWithParseErrors
 
-export type BlockImageSize = "narrow" | "wide"
+export enum BlockImageSize {
+    Narrow = "narrow",
+    Wide = "wide",
+}
+
+export function checkIsBlockImageSize(size: unknown): size is BlockImageSize {
+    if (typeof size !== "string") return false
+    return Object.values(BlockImageSize).includes(size as any)
+}
 
 export type RawBlockImage = {
     type: "image"
