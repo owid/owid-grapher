@@ -60,12 +60,11 @@ export const DataPageContent = ({
                     flexDirection: "column",
                 }}
             >
-                <div className="chart__wrapper wrapper">
-                    <GrapherWithFallback
-                        grapher={grapher}
-                        slug={grapherConfig.slug}
-                    />
-                </div>
+                <GrapherWithFallback
+                    grapher={grapher}
+                    slug={grapherConfig.slug}
+                    className="wrapper"
+                />
                 <div className="key-info__wrapper wrapper">
                     <div className="key-info__left">
                         <h2>Key information</h2>

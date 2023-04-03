@@ -48,13 +48,12 @@
         }
     }
 
-    .chart__wrapper {
+    .GrapherWithFallback {
         margin-top: 32px;
         margin-bottom: 40px;
         width: 100%;
         @include grid(12);
 
-        // GrapherWithFallback
         figure[data-grapher-src] {
             grid-column: 2 / span 10;
             height: 575px;

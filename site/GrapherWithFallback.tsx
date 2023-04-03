@@ -1,17 +1,20 @@
-import { Grapher, LoadingIndicator } from "@ourworldindata/grapher"
+import { Grapher } from "@ourworldindata/grapher"
 import React from "react"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import { BAKED_GRAPHER_EXPORTS_BASE_URL } from "../settings/clientSettings.js"
+import cx from "classnames"
 
 export const GrapherWithFallback = ({
     grapher,
     slug,
+    className,
 }: {
     grapher?: Grapher | undefined
     slug?: string
+    className?: string
 }) => {
     return slug ? (
-        <div className="GrapherWithFallback">
+        <div className={cx("GrapherWithFallback", className)}>
             <>
                 {grapher ? (
                     <GrapherFigureView grapher={grapher} />
