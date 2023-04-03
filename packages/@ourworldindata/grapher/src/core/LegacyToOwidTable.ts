@@ -150,6 +150,7 @@ export const legacyToOwidTableAndDimensions = (
             columnStore[annotationColumnDef.slug] = entityNames.map(
                 (entityName) => annotationMap!.get(entityName)
             )
+            columnDefs.set(annotationColumnDef.slug, annotationColumnDef)
         }
 
         if (entityColorColumnSlug) {
@@ -639,6 +640,9 @@ const annotationMapAndDefFromOwidVariable = (
             slug,
             type: ColumnTypeNames.SeriesAnnotation,
             name: slug,
+            display: {
+                includeInTable: false,
+            },
         }
         return [annotationMap, columnDef]
     }

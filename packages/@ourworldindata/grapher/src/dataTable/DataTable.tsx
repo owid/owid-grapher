@@ -473,7 +473,6 @@ export class DataTable extends React.Component<{
             (column) =>
                 !skips.has(column.slug) &&
                 !column.slug.endsWith("-originalTime") &&
-                !column.slug.endsWith("-annotations") &&
                 //  dim.property !== "color" &&
                 (column.display?.includeInTable ?? true)
         )
