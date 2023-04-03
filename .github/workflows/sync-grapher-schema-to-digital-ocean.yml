@@ -4,7 +4,7 @@ on:
         branches:
             - master
         paths:
-            - "grapher/schema/**"
+            - "packages/@ourworldindata/grapher/src/schema/**"
 jobs:
     upload:
         runs-on: ubuntu-latest
@@ -17,5 +17,5 @@ jobs:
                   secret_key: ${{ secrets.DO_SECRET_KEY }}
                   space_name: owid-public
                   space_region: nyc3
-                  source: grapher/schema
+                  source: packages/@ourworldindata/grapher/src/schema
                   out_dir: schemas

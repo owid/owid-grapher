@@ -2,12 +2,16 @@ import React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
-import { TextWrap } from "@ourworldindata/utils"
-import { Bounds, DEFAULT_BOUNDS, getRelativeMouse } from "@ourworldindata/utils"
+import {
+    TextWrap,
+    Bounds,
+    DEFAULT_BOUNDS,
+    getRelativeMouse,
+    MarkdownTextWrap,
+} from "@ourworldindata/utils"
 import { Tooltip } from "../tooltip/Tooltip"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { FooterManager } from "./FooterManager"
-import { MarkdownTextWrap } from "@ourworldindata/utils"
 
 @observer
 export class Footer extends React.Component<{
@@ -53,11 +57,7 @@ export class Footer extends React.Component<{
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
-        if (
-            !originUrl ||
-            !originUrl.toLowerCase().match(/^https?:\/\/./) ||
-            this.manager.shouldLinkToOwid
-        )
+        if (!originUrl || !originUrl.toLowerCase().match(/^https?:\/\/./))
             return undefined
 
         const url = parseUrl(originUrl)
@@ -73,18 +73,12 @@ export class Footer extends React.Component<{
         return finalUrlText
     }
 
-    @computed private get licenseSvg(): string {
+    @computed private get licenseAndOriginUrlSvg(): string {
         const { finalUrl, finalUrlText, ccSvg } = this
         if (!finalUrlText) return ccSvg
 
-        return `*data-entry* • ${ccSvg}`.replace(
-            /\*data-entry\*/,
-            "<a target='_blank' style='fill: #777;' href='" +
-                finalUrl +
-                "'>" +
-                finalUrlText +
-                "</a>"
-        )
+        const originUrlLink = `<a target='_blank' style='fill: #777;' href='${finalUrl}'>${finalUrlText}</a>`
+        return [originUrlLink, ccSvg].join(" • ")
     }
 
     @computed private get fontSize(): number {
@@ -111,19 +105,22 @@ export class Footer extends React.Component<{
         })
     }
 
-    @computed private get license(): TextWrap {
-        const { maxWidth, fontSize, licenseSvg } = this
+    @computed private get licenseAndOriginUrl(): TextWrap {
+        const { maxWidth, fontSize, licenseAndOriginUrlSvg } = this
         return new TextWrap({
             maxWidth: maxWidth * 3,
             fontSize,
-            text: licenseSvg,
+            text: licenseAndOriginUrlSvg,
             rawHtml: true,
         })
     }
 
     // Put the license stuff to the side if there's room
     @computed private get isCompact(): boolean {
-        return this.maxWidth - this.sources.width - 5 > this.license.width
+        return (
+            this.maxWidth - this.sources.width - 5 >
+            this.licenseAndOriginUrl.width
+        )
     }
 
     @computed private get paraMargin(): number {
@@ -133,18 +130,26 @@ export class Footer extends React.Component<{
     @computed get height(): number {
         if (this.manager.isMediaCard) return 0
 
-        const { sources, note, license, isCompact, paraMargin } = this
+        const { sources, note, licenseAndOriginUrl, isCompact, paraMargin } =
+            this
         return (
             sources.height +
             (note.height ? paraMargin + note.height : 0) +
-            (isCompact ? 0 : paraMargin + license.height)
+            (isCompact ? 0 : paraMargin + licenseAndOriginUrl.height)
         )
     }
 
     renderStatic(targetX: number, targetY: number): JSX.Element | null {
         if (this.manager.isMediaCard) return null
 
-        const { sources, note, license, maxWidth, isCompact, paraMargin } = this
+        const {
+            sources,
+            note,
+            licenseAndOriginUrl,
+            maxWidth,
+            isCompact,
+            paraMargin,
+        } = this
 
         return (
             <g className="SourcesFooter" style={{ fill: "#777" }}>
@@ -153,11 +158,11 @@ export class Footer extends React.Component<{
                 </g>
                 {note.renderSVG(targetX, targetY + sources.height + paraMargin)}
                 {isCompact
-                    ? license.render(
-                          targetX + maxWidth - license.width,
+                    ? licenseAndOriginUrl.render(
+                          targetX + maxWidth - licenseAndOriginUrl.width,
                           targetY
                       )
-                    : license.render(
+                    : licenseAndOriginUrl.render(
                           targetX,
                           targetY +
                               sources.height +
@@ -198,7 +203,7 @@ export class Footer extends React.Component<{
             <div
                 className="license"
                 style={{
-                    fontSize: this.license.fontSize,
+                    fontSize: this.licenseAndOriginUrl.fontSize,
                     lineHeight: this.sources.lineHeight,
                 }}
             >

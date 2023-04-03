@@ -1,5 +1,5 @@
 import fs from "fs-extra"
-import { SiteBaker } from "../baker/SiteBaker.js"
+import { BakeStepConfig, SiteBaker } from "../baker/SiteBaker.js"
 import { warn, logErrorAndMaybeSendToSlack } from "../serverUtils/slackLog.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
 import { BAKED_SITE_DIR, BAKED_BASE_URL } from "../settings/serverSettings.js"
@@ -53,8 +53,8 @@ const bakeAndDeploy = async (
     }
 }
 
-export const bake = async () => {
-    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL)
+export const bake = async (bakeSteps?: BakeStepConfig) => {
+    const baker = new SiteBaker(BAKED_SITE_DIR, BAKED_BASE_URL, bakeSteps)
     try {
         await baker.bakeAll()
     } catch (err) {

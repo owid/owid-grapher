@@ -32,6 +32,7 @@ export {
     type DocumentNode,
     type EnrichedBlockAdditionalCharts,
     type EnrichedBlockAside,
+    type EnrichedBlockCallout,
     type EnrichedBlockChart,
     type EnrichedBlockChartStory,
     type EnrichedBlockGraySection,
@@ -97,6 +98,7 @@ export {
     type PrimitiveType,
     type RawBlockAdditionalCharts,
     type RawBlockAside,
+    type RawBlockCallout,
     type RawBlockChart,
     type RawBlockChartStory,
     type RawBlockChartValue,
@@ -163,6 +165,7 @@ export {
     WP_PostType,
     type Year,
     type PostRowWithGdocPublishStatus,
+    ToleranceStrategy,
 } from "./owidTypes.js"
 
 export {

@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import ReactDOMServer from "react-dom/server.js"
 import AnimateHeight from "react-animate-height"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import { MultiEmbedderSingleton } from "../../site/multiembedder/MultiEmbedder.js"
 
 export const ADDITIONAL_INFORMATION_CLASS_NAME =

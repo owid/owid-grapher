@@ -3,6 +3,7 @@ import {
     ChartPositionChoice,
     compact,
     EnrichedBlockAside,
+    EnrichedBlockCallout,
     EnrichedBlockChart,
     EnrichedBlockChartStory,
     EnrichedBlockGraySection,
@@ -35,6 +36,7 @@ import {
     partition,
     RawBlockAdditionalCharts,
     RawBlockAside,
+    RawBlockCallout,
     RawBlockChart,
     RawBlockChartStory,
     RawBlockGraySection,
@@ -75,6 +77,7 @@ export function parseRawBlocksToEnrichedBlocks(
     return match(block)
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
+        .with({ type: "callout" }, parseCallout)
         .with({ type: "chart" }, parseChart)
         .with({ type: "scroller" }, parseScroller)
         .with({ type: "chart-story" }, parseChartStory)
@@ -692,10 +695,10 @@ const parseHeading = (raw: RawBlockHeading): EnrichedBlockHeading => {
             message: "Header level property is missing",
         })
     const level = parseInt(raw.value.level, 10)
-    if (level < 1 || level > 6)
+    if (level < 1 || level > 5)
         return createError({
             message:
-                "Header level property is outside the valid range between 1 and 6",
+                "Header level property is outside the valid range between 1 and 5",
         })
 
     return {
@@ -919,5 +922,33 @@ function parseProminentLink(
         url,
         description: raw.value.description || "",
         thumbnail: raw.value.thumbnail || "",
+    }
+}
+
+function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
+    const createError = (error: ParseError): EnrichedBlockCallout => ({
+        type: "callout",
+        parseErrors: [error],
+        title: "",
+        text: [],
+    })
+
+    if (!raw.value.text) {
+        return createError({ message: "No text provided for callout block" })
+    }
+
+    if (!isArray(raw.value.text)) {
+        return createError({
+            message:
+                "Text must be provided as an array e.g. inside a [.+text] block",
+        })
+    }
+    const text = raw.value.text.map((text) => htmlToSpans(text.value))
+
+    return {
+        type: "callout",
+        parseErrors: [],
+        text,
+        title: raw.value.title,
     }
 }

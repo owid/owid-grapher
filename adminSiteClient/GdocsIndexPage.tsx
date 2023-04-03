@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { Modal } from "./Forms.js"
-import { faCirclePlus } from "@fortawesome/free-solid-svg-icons/faCirclePlus"
+import { faCirclePlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { OwidArticleType } from "@ourworldindata/utils"

@@ -3,11 +3,13 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { TimelineComponent } from "../timeline/TimelineComponent"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
-import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
-import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
+import {
+    faDownload,
+    faShareAlt,
+    faExpand,
+    faExternalLinkAlt,
+    faChevronDown,
+} from "@fortawesome/free-solid-svg-icons"
 import {
     FacetAxisDomain,
     FacetStrategy,
@@ -18,8 +20,7 @@ import {
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { TimelineController } from "../timeline/TimelineController"
 import { AxisConfig } from "../axis/AxisConfig"
-import { Tippy } from "@ourworldindata/utils"
-import { Bounds } from "@ourworldindata/utils"
+import { Tippy, Bounds } from "@ourworldindata/utils"
 import classnames from "classnames"
 
 export interface NoDataAreaToggleManager {

@@ -1,5 +1,8 @@
 import React from "react"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
+import {
+    ComparisonLineConfig,
+    ComparisonLine,
+} from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import {
@@ -50,7 +53,6 @@ import {
 } from "../verticalColorLegend/VerticalColorLegend"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { ComparisonLine } from "./ComparisonLine"
 
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { AxisConfig } from "../axis/AxisConfig"

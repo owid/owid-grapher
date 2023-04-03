@@ -1,7 +1,6 @@
 import React, { useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
-import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark"
+import { faSearch, faXmark } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
 import { siteSearch } from "./search/searchClient.js"
 import { SearchResults } from "./search/SearchResults.js"

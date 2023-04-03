@@ -1,4 +1,4 @@
-import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { Grapher } from "@ourworldindata/grapher"
 import { BLOCK_WRAPPER_DATATYPE, DataValueProps } from "@ourworldindata/utils"

@@ -1,6 +1,6 @@
 import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
+import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import { SiteFooterContext } from "@ourworldindata/utils"
 import { viteAssets } from "./viteUtils.js"
 

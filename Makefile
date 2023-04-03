@@ -150,7 +150,7 @@ refresh.wp:
 
 sync-images:
 	@echo '==> Syncing S3 images'
-	./devTools/docker/sync-s3-images.sh
+	@. ./.env && ./devTools/docker/sync-s3-images.sh
 
 refresh.full: refresh refresh.wp
 
@@ -194,7 +194,7 @@ validate.env:
 create-if-missing.env.full:
 	@if test ! -f .env; then \
 		echo 'Copying .env.example-full --> .env'; \
-		cp .env.example-full .env; \
+		sed "s/IMAGE_HOSTING_BUCKET_PATH=.*/IMAGE_HOSTING_BUCKET_PATH=owid-image-upload\/dev-$(USER)/g" <.env.example-full >.env; \
 	fi
 
 validate.env.full:
