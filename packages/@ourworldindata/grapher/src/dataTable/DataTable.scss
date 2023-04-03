@@ -208,6 +208,10 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         display: flex;
         align-items: end;
         justify-content: space-between;
+
+        :first-child {
+            flex-grow: 1;
+        }
     }
 
     th .sort-icon {
