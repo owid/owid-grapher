@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import { Link } from "react-router-dom"
@@ -350,7 +350,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 noSidebar
             >
                 <main className="SuggestedChartRevisionApproverPage">
-                    <h3>
+                    <h1>
                         Approval tool for suggested chart revisions
                         <Link
                             className="btn btn-outline-primary"
@@ -366,7 +366,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         >
                             Upload revisions
                         </Link>
-                    </h3>
+                    </h1>
                     <p>
                         Use this tool to approve or reject chart revisions that
                         have been suggested by an automated bulk update script.
@@ -388,6 +388,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         WARNING: This tool is new and may contain bugs that
                         cause unexpected behavior. Use with caution.
                     </p>
+
                     {this.renderReadme()}
                     {this.renderSettings()}
 
@@ -419,7 +420,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         return (
             <React.Fragment>
                 {this.renderControls()}
-                <h3>
+                <h1>
                     Suggested revision{" "}
                     {this.suggestedChartRevision
                         ? this.suggestedChartRevision.id
@@ -453,7 +454,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             ""
                         )}
                     </span>
-                </h3>
+                </h1>
                 {this.renderGraphers()}
                 {this.renderMeta()}
             </React.Fragment>
@@ -463,7 +464,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     renderReadme() {
         return (
             <div className="collapsible">
-                <h3>
+                <h1>
                     README
                     <button
                         className="btn btn-outline-dark"
@@ -475,13 +476,13 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     >
                         {this.showReadme ? "Hide" : "Show"}
                     </button>
-                </h3>
+                </h1>
                 <div
                     className={`readme ${
                         this.showReadme ? "show" : "collapse"
                     }`}
                 >
-                    <h5>Terminology</h5>
+                    <h2>Terminology</h2>
                     <ul>
                         <li>
                             <b>Suggested chart revision.</b> A suggested chart
@@ -503,7 +504,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             exists on the OWID website.
                         </li>
                     </ul>
-                    <h5>How to use</h5>
+                    <h2>How to use</h2>
                     <p>
                         You are shown one suggested chart revision at a time,
                         alongside the corresponding original chart as it was
@@ -615,7 +616,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             reject it.
                         </li>
                     </ol>
-                    <h5>Other useful information</h5>
+                    <h2>Other useful information</h2>
                     <ul>
                         <li>
                             When you click the{" "}
@@ -766,7 +767,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
     renderSettings() {
         return (
             <div className="collapsible">
-                <h3>
+                <h1>
                     Settings
                     <button
                         className="btn btn-outline-dark"
@@ -778,7 +779,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     >
                         {this.showSettings ? "Hide" : "Show"}
                     </button>
-                </h3>
+                </h1>
                 <div
                     className={`settings ${
                         this.showSettings ? "show" : "collapse"
@@ -1023,7 +1024,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         {this.suggestedChartRevision && (
                             <React.Fragment>
                                 <div className="header">
-                                    <h5>Original chart</h5>
+                                    <h2>Original chart</h2>
                                     <span className="text-muted">
                                         {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.originalConfig.version})`}
                                     </span>
@@ -1066,7 +1067,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                             {this.suggestedChartRevision && (
                                 <React.Fragment>
                                     <div className="header">
-                                        <h5>Existing chart</h5>
+                                        <h2>Existing chart</h2>
                                         <span className="text-muted">
                                             {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.existingConfig.version})`}
                                         </span>
@@ -1109,7 +1110,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                         {this.suggestedChartRevision && (
                             <React.Fragment>
                                 <div className="header">
-                                    <h5>Suggested chart</h5>
+                                    <h2>Suggested chart</h2>
                                     <span className="text-muted">
                                         {`(#${this.suggestedChartRevision.chartId}, V${this.suggestedChartRevision.suggestedConfig.version})`}
                                     </span>
@@ -1158,7 +1159,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         return (
             <React.Fragment>
                 <div>
-                    <h5>Metadata</h5>
+                    <h2>Metadata</h2>
                     <ul className="meta">
                         <li>
                             <b>Suggested revision ID:</b>{" "}
@@ -1209,15 +1210,22 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     </ul>
                 </div>
                 <div className="references">
-                    <h5>References to original chart</h5>
+                    <h2>References to original chart</h2>
                     {this.renderReferences()}
                 </div>
                 <div className="changes_summary">
-                    <h5>Changes summary</h5>{" "}
+                    <h2>Changes summary</h2>{" "}
                     {this.suggestedChartRevision &&
-                    this.suggestedChartRevision.changesInDataSummary
-                        ? this.suggestedChartRevision.changesInDataSummary
-                        : "No summary provided."}
+                    this.suggestedChartRevision.changesInDataSummary ? (
+                        <div
+                            dangerouslySetInnerHTML={{
+                                __html: this.suggestedChartRevision
+                                    .changesInDataSummary,
+                            }}
+                        ></div>
+                    ) : (
+                        "No summary provided."
+                    )}
                 </div>
             </React.Fragment>
         )
