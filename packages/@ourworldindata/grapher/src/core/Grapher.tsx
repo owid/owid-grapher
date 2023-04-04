@@ -605,22 +605,6 @@ export class Grapher
         // for other chart types, the `transformTable()` call would sometimes remove too many
         // entities, and we want to use the inputTable instead (which should have exactly the
         // entities where data is available)
-
-        // however, sometimes we choose not to render a chart for an entity in case of missing
-        // data. In that case, we want to remove the entity from the selection table as well.
-        if (
-            (this.missingDataStrategy === MissingDataStrategy.hide &&
-                (this.isLineChart ||
-                    this.isDiscreteBar ||
-                    this.isStackedDiscreteBar)) ||
-            (this.missingDataStrategy !== MissingDataStrategy.show &&
-                (this.isStackedArea || this.isStackedBar))
-        ) {
-            return this.inputTable.dropRowsWithErrorValuesForAnyColumn(
-                this.yColumnSlugs
-            )
-        }
-
         return this.inputTable
     }
 
