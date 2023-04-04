@@ -2725,7 +2725,8 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const filenames = nextGdoc.filenames
 
     if (filenames.length && nextGdoc.published) {
-        const images = await imageStore.syncImagesToS3(filenames)
+        await imageStore.fetchImageMetadata(filenames)
+        const images = await imageStore.syncImagesToS3()
         for (const image of images) {
             if (image) {
                 try {
