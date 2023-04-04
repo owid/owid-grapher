@@ -84,6 +84,7 @@ import {
     AnnotationFieldsInTitle,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
+    SeriesStrategy,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import {
@@ -162,7 +163,10 @@ import { ColorSchemeName } from "../color/ColorConstants"
 import { Entity, SelectionArray } from "../selection/SelectionArray"
 import { legacyToOwidTableAndDimensions } from "./LegacyToOwidTable"
 import { ScatterPlotManager } from "../scatterCharts/ScatterPlotChartConstants"
-import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
+import {
+    autoDetectSeriesStrategy,
+    autoDetectYColumnSlugs,
+} from "../chart/ChartUtils"
 import classNames from "classnames"
 import { GrapherAnalytics } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
@@ -1211,14 +1215,13 @@ export class Grapher
         const showChangeInPrefix =
             !this.hideAnnotationFieldsInTitle?.changeInPrefix
 
-        const isFacetingEnabled =
-            this.selectedFacetStrategy &&
-            this.selectedFacetStrategy !== FacetStrategy.none
+        const seriesStrategy =
+            this.chartInstance.seriesStrategy ||
+            autoDetectSeriesStrategy(this, true)
 
         if (
             this.tab === GrapherTabOption.chart &&
-            (this.addCountryMode !== EntitySelectionMode.MultipleEntities ||
-                isFacetingEnabled) &&
+            (seriesStrategy !== SeriesStrategy.entity || this.hideLegend) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation || this.canChangeEntity)
         ) {
