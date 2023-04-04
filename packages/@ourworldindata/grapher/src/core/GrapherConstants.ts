@@ -65,8 +65,8 @@ export enum SeriesStrategy {
 
 export enum MissingDataStrategy {
     auto = "auto", // pick default strategy based on chart type
-    hide = "hide", // hide charts with missing data
-    show = "show", // show charts with missing data
+    hide = "hide", // hide entities with missing data
+    show = "show", // show entities with missing data
 }
 
 export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`

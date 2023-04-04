@@ -717,7 +717,7 @@
         "missingDataStrategy": {
             "type": "string",
             "default": "auto",
-            "description": "The desired strategy for handling charts with missing data",
+            "description": "The desired strategy for handling entities with missing data",
             "enum": ["auto", "hide", "show"]
         },
         "isExplorable": {
