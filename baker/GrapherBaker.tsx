@@ -81,12 +81,11 @@ export const renderDataPageOrGrapherPage = async (
             )
         }
     } catch (e: any) {
-        // Only report an error if the file exists but we failed to parse it.
-        // Otherwise, it simply means we don't have a datapage yet and we
-        // silently return a GrapherPage.
-        if (e instanceof SyntaxError) {
+        // Do not throw an error if the datapage JSON does not exist, but rather
+        // if it does and it fails to parse or render.
+        if (e.code !== "ENOENT") {
             logErrorAndMaybeSendToSlack(
-                `Failed to parse datapage ${fullPath} as JSON`
+                `Failed to render datapage ${fullPath}. Error: ${e}`
             )
         }
     }
