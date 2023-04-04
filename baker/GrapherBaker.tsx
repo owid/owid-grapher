@@ -274,42 +274,12 @@ export const bakeAllPublishedChartsVariableDataAndMetadata = async (
         checksumsDir,
     }))
 
-    if (MAX_NUM_BAKE_PROCESSES == 1) {
-        await Promise.all(
-            jobs.map(async (job) => {
-                await bakeVariableData(job)
-                progressBar.tick({ name: `variableid ${job.variableId}` })
-            })
-        )
-    } else {
-        const poolOptions = {
-            minWorkers: 2,
-            maxWorkers: MAX_NUM_BAKE_PROCESSES,
-            // using `process` instead of worker threads is necessary for DuckDB to work
-            workerType: "process",
-        } as workerpool.WorkerPoolOptions
-        const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
-        const jobs: BakeVariableDataArguments[] = variableIds.map(
-            (variableId) => ({
-                bakedSiteDir,
-                variableId,
-                checksumsDir,
-            })
-        )
-        try {
-            await Promise.all(
-                jobs.map((job) =>
-                    pool.exec("bakeVariableData", [job]).then((job) =>
-                        progressBar.tick({
-                            name: `variableid ${job.variableId}`,
-                        })
-                    )
-                )
-            )
-        } finally {
-            await pool.terminate(true)
-        }
-    }
+    await Promise.all(
+        jobs.map(async (job) => {
+            await bakeVariableData(job)
+            progressBar.tick({ name: `variableid ${job.variableId}` })
+        })
+    )
 }
 
 export interface BakeSingleGrapherChartArguments {
