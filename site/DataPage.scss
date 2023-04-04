@@ -1,4 +1,12 @@
 html.IsInIframe body.DataPage {
+    .DataPageContent__grapher-for-embed {
+        display: block;
+    }
+
+    .DataPageContent {
+        display: none;
+    }
+
     // GrapherWithFallback
     figure[data-grapher-src] {
         display: flex;

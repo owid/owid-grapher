@@ -8,15 +8,3 @@ export const IFrameDetector = () => (
         }}
     />
 )
-
-export const useIframeDetector = () => {
-    const [isEmbedded, setIsEmbedded] = React.useState(false)
-    // Using useLayoutEffect here to avoid flashing non-embedded content
-    React.useLayoutEffect(() => {
-        if (window !== window.top) {
-            document.documentElement.classList.add(GRAPHER_IS_IN_IFRAME_CLASS)
-            setIsEmbedded(true)
-        }
-    }, [])
-    return isEmbedded
-}

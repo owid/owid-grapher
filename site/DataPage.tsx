@@ -22,6 +22,7 @@ import {
 import { Head } from "./Head.js"
 import { SiteFooter } from "./SiteFooter.js"
 import { SiteHeader } from "./SiteHeader.js"
+import { IFrameDetector } from "./IframeDetector.js"
 
 export const DataPage = (props: {
     grapher: GrapherInterface
@@ -74,6 +75,7 @@ export const DataPage = (props: {
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
+                <IFrameDetector />
                 <noscript>
                     <style>{`
                     figure[data-grapher-src] { display: none !important; }

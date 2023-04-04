@@ -1,3 +1,7 @@
+.DataPageContent__grapher-for-embed {
+    display: none;
+}
+
 .DataPageContent {
     .header__wrapper {
         @include grid(12);
