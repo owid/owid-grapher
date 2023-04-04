@@ -154,8 +154,8 @@ export const viteAssets = (entry: string) =>
         ? prodAssets(entry, BAKED_BASE_URL)
         : devAssets(entry, VITE_DEV_URL)
 
-export const generateEmbedSnippet = (baseUrl: string) => {
-    const assets = prodAssets("site/owid.entry.ts", baseUrl)
+export const generateEmbedSnippet = () => {
+    const assets = viteAssets("site/owid.entry.ts")
     const serializedAssets = [...assets.forHeader, ...assets.forFooter].map(
         (el) => ({
             tag: el.type,
@@ -164,7 +164,8 @@ export const generateEmbedSnippet = (baseUrl: string) => {
     )
 
     const scriptCount = serializedAssets.filter(
-        (asset) => asset.tag === "script"
+        (asset) =>
+            asset.tag === "script" && !asset.props.dangerouslySetInnerHTML // onload doesn't fire on inline scripts, so need to handle that separately
     ).length
 
     return `
@@ -183,8 +184,11 @@ for (const asset of assets) {
     for (const [key, value] of Object.entries(asset.props)) {
         el.setAttribute(key, value);
     }
-    if (asset.tag === "script")
+    if (asset.props && asset.props.dangerouslySetInnerHTML) {
+        el.text = asset.props.dangerouslySetInnerHTML.__html
+    } else if (asset.tag === "script") {
         el.onload = onLoad;
+    }
     document.head.appendChild(el);
 }`
 }
