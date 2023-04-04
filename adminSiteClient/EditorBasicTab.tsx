@@ -89,7 +89,8 @@ class DimensionSlotView extends React.Component<{
             selection.clearSelection()
         } else if (
             grapher.yColumnsFromDimensions.length > 1 &&
-            !grapher.isStackedArea
+            !grapher.isStackedArea &&
+            !grapher.isStackedBar
         ) {
             const entity = availableEntityNameSet.has(WorldEntityName)
                 ? WorldEntityName
