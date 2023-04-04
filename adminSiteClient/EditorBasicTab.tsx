@@ -88,7 +88,7 @@ class DimensionSlotView extends React.Component<{
         if (grapher.isScatter || grapher.isSlopeChart || grapher.isMarimekko) {
             selection.clearSelection()
         } else if (
-            grapher.yColumnsFromDimensions.length <= 1 &&
+            grapher.yColumnsFromDimensions.length > 1 &&
             !grapher.isStackedArea
         ) {
             const entity = availableEntityNameSet.has(WorldEntityName)
@@ -113,9 +113,10 @@ class DimensionSlotView extends React.Component<{
             () => {
                 this.disposers.push(
                     reaction(
-                        () =>
-                            this.grapher.type ||
+                        () => [
+                            this.grapher.type,
                             this.grapher.yColumnsFromDimensions.length,
+                        ],
                         () => this.updateDefaults()
                     )
                 )
