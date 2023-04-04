@@ -102,8 +102,10 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
         } else {
             if (this.desktopPreviewSize === "small") {
                 bounds = new Bounds(0, 0, 600, 450)
-            } else {
+            } else if (this.desktopPreviewSize === "normal") {
                 bounds = new Bounds(0, 0, 800, 600)
+            } else {
+                bounds = new Bounds(0, 0, 1200, 900)
             }
         }
         return bounds
@@ -857,6 +859,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                                 options={[
                                     { label: "Small", value: "small" },
                                     { label: "Normal", value: "normal" },
+                                    { label: "Large", value: "large" },
                                 ]}
                                 value={this.desktopPreviewSize}
                                 onChange={this.onChangeDesktopPreviewSize}
@@ -1208,6 +1211,13 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                 <div className="references">
                     <h5>References to original chart</h5>
                     {this.renderReferences()}
+                </div>
+                <div className="changes_summary">
+                    <h5>Changes summary</h5>{" "}
+                    {this.suggestedChartRevision &&
+                    this.suggestedChartRevision.changesInDataSummary
+                        ? this.suggestedChartRevision.changesInDataSummary
+                        : "No summary provided."}
                 </div>
             </React.Fragment>
         )

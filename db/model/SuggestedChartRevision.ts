@@ -19,6 +19,7 @@ export class SuggestedChartRevision extends BaseEntity {
     status!: SuggestedChartRevisionStatus
 
     @Column({ default: "" }) suggestedReason!: string
+    @Column({ default: "" }) changesInDataSummary!: string
     @Column({ default: "" }) decisionReason!: string
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
