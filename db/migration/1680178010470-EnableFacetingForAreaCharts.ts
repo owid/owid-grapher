@@ -10,11 +10,7 @@ export class EnableFacetingForAreaCharts1680178010470
             WHERE
                 config ->> "$.type" = "StackedArea"
                 AND JSON_LENGTH(config ->> "$.data.availableEntities") > 1
-                AND config ->> "$.addCountryMode" = "change-country"
-                AND (
-                    config ->> "$.selectedEntityIds" IS NULL
-                    OR config ->> "$.selectedEntityIds[0]" = 355 -- 355=World
-                )`)
+                AND config ->> "$.addCountryMode" = "change-country"`)
     }
 
     public async down(): Promise<void> {} // eslint-disable-line
