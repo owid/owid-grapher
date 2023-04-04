@@ -478,11 +478,12 @@ export const getOwidVariableDataAndMetadataPath = async (
     return { dataPath: row.dataPath, metadataPath: row.metadataPath }
 }
 
-// limit number of concurrent requests to 20 when fetching values from S3, otherwise
-// we might get ECONNRESET errors
+// limit number of concurrent requests to 5 when fetching values from S3, otherwise
+// we might get ECONNRESET errors or 429 errors from rate limiting
+// if we keep getting 429 errors from Cloudflare, we could also get them directly from S3
 const httpsAgent = new https.Agent({
     keepAlive: true,
-    maxSockets: 20,
+    maxSockets: 5,
 })
 
 export const fetchS3Values = async (
@@ -503,9 +504,8 @@ export const fetchS3Values = async (
 export const fetchS3ValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
-    // avoid cache as Cloudflare worker caches up to 1 hour
     const resp = await retryPromise(() =>
-        fetch(`${dataPath}?nocache`, { agent: httpsAgent })
+        fetch(dataPath, { agent: httpsAgent })
     )
     if (!resp.ok) {
         throw new Error(
@@ -518,9 +518,8 @@ export const fetchS3ValuesByPath = async (
 export const fetchS3MetadataByPath = async (
     metadataPath: string
 ): Promise<OwidVariableWithSourceAndDimension> => {
-    // avoid cache as Cloudflare worker caches up to 1 hour
     const resp = await retryPromise(() =>
-        fetch(`${metadataPath}?nocache`, { agent: httpsAgent })
+        fetch(metadataPath, { agent: httpsAgent })
     )
     if (!resp.ok) {
         throw new Error(
