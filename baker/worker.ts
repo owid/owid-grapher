@@ -6,6 +6,5 @@ import * as grapherBaker from "./GrapherBaker.js"
 
 // create a worker and register public functions
 workerpool.worker({
-    bakeVariableData: grapherBaker.bakeVariableData,
     bakeSingleGrapherChart: grapherBaker.bakeSingleGrapherChart,
 })

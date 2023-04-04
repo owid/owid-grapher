@@ -513,7 +513,7 @@ export class SiteBaker {
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            generateEmbedSnippet(BAKED_BASE_URL)
+            generateEmbedSnippet()
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
         this.progressBar.tick({ name: "✅ baked assets" })

@@ -1,4 +1,5 @@
 import {
+    BlockImageSize,
     EnrichedBlockChart,
     EnrichedBlockText,
     OwidEnrichedArticleBlock,
@@ -123,6 +124,7 @@ export const enrichedBlockExamples: Record<
         type: "image",
         filename: "example.png",
         alt: "",
+        size: BlockImageSize.Wide,
         parseErrors: [],
     },
     list: {

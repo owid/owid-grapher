@@ -28,7 +28,7 @@ export default function Chart({
     const height = d.height || (isExplorer && hasControls) ? 700 : 575
 
     return (
-        <figure
+        <div
             className={cx(d.position, className)}
             style={{ gridRow: d.row, gridColumn: d.column }}
         >
@@ -46,6 +46,6 @@ export default function Chart({
             {d.caption ? (
                 <figcaption>{renderSpans(d.caption)}</figcaption>
             ) : null}
-        </figure>
+        </div>
     )
 }

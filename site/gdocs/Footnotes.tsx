@@ -7,21 +7,23 @@ export default function Footnotes({ d }: { d: EnrichedBlockText[] }) {
         return null
     }
     return (
-        <section className="footnote-container col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
-            <h3>Endnotes</h3>
-            <ol className="footnote-list grid grid-cols-2">
-                {d.map((footnote: EnrichedBlockText, i: number) => {
-                    return (
-                        <li
-                            id={`note-${i + 1}`}
-                            key={i}
-                            className="footnote-list__footnote span-sm-cols-2"
-                        >
-                            <Paragraph d={footnote} />
-                        </li>
-                    )
-                })}
-            </ol>
+        <section className="footnote-container grid grid-cols-12-full-width col-start-1 col-end-limit">
+            <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                <h3>Endnotes</h3>
+                <ol className="footnote-list">
+                    {d.map((footnote: EnrichedBlockText, i: number) => {
+                        return (
+                            <li
+                                id={`note-${i + 1}`}
+                                key={i}
+                                className="footnote-list__footnote"
+                            >
+                                <Paragraph d={footnote} />
+                            </li>
+                        )
+                    })}
+                </ol>
+            </div>
         </section>
     )
 }
