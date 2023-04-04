@@ -1214,7 +1214,7 @@ export class SuggestedChartRevisionApproverPage extends React.Component<{
                     {this.renderReferences()}
                 </div>
                 <div className="changes_summary">
-                    <h2>Changes summary</h2>{" "}
+                    <h2>Variable changes</h2>{" "}
                     {this.suggestedChartRevision &&
                     this.suggestedChartRevision.changesInDataSummary ? (
                         <div
