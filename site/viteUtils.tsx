@@ -154,7 +154,7 @@ export const viteAssets = (entry: string) =>
         ? prodAssets(entry, BAKED_BASE_URL)
         : devAssets(entry, VITE_DEV_URL)
 
-export const generateEmbedSnippet = (baseUrl: string) => {
+export const generateEmbedSnippet = () => {
     const assets = viteAssets("site/owid.entry.ts")
     const serializedAssets = [...assets.forHeader, ...assets.forFooter].map(
         (el) => ({
