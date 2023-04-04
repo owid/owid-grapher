@@ -2,14 +2,20 @@ import { createReadStream } from "fs"
 import { google } from "googleapis"
 import fs from "fs/promises"
 import path from "path"
+import parseArgs from "minimist"
 
 import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
 import { GDOCS_IMAGES_BACKPORTING_TARGET_FOLDER } from "../../settings/serverSettings.js"
 
-const WORDPRESS_UPLOADS_PATH = path.join(
-    process.cwd(),
-    "wordpress/web/app/uploads"
-)
+const args = parseArgs(process.argv.slice(2))
+const UPLOAD_PATH = args._[0]
+const isDryRun: boolean | undefined = args["dry-run"]
+
+if (typeof UPLOAD_PATH === "string") {
+    console.log(`Uploading images from ${UPLOAD_PATH} to Google Drive`)
+} else {
+    throw new Error("Upload path must be set as a positional parameter")
+}
 
 const MIME_TYPES: Record<string, string> = {
     [".png"]: "image/png",
@@ -58,7 +64,7 @@ function checkIsSupportedFileType(filePath: string) {
 async function getFileExtensions() {
     const fileExtensions: Set<string> = new Set()
 
-    await readFilesRecursively(WORDPRESS_UPLOADS_PATH, (filePath) => {
+    await readFilesRecursively(UPLOAD_PATH, (filePath) => {
         const fileExtension = path.extname(filePath)
         if (fileExtension && !fileExtensions.has(fileExtension)) {
             fileExtensions.add(fileExtension)
@@ -90,7 +96,7 @@ async function readFilesRecursively(
 
 async function getUniqueImageFilePaths(): Promise<string[]> {
     const filePaths: string[] = []
-    await readFilesRecursively(WORDPRESS_UPLOADS_PATH, (filePath) => {
+    await readFilesRecursively(UPLOAD_PATH, (filePath) => {
         if (
             checkIsSupportedFileType(filePath) &&
             !RESIZED_IMAGE_REGEX.test(filePath)
@@ -127,16 +133,24 @@ async function uploadFileToGoogleDrive(filePath: string): Promise<boolean> {
         return false
     }
 }
-
+let numberOfChunks = 0
 async function uploadWordpressImagesToObjStorage() {
     const filePaths = await getUniqueImageFilePaths()
     const filePathChunks = chunkArray(filePaths, UPLOAD_BATCH_SIZE)
     for (const [index, filePathChunk] of filePathChunks.entries()) {
-        console.log("Uploading chunk: ", index)
-        await Promise.all(filePathChunk.map(uploadFileToGoogleDrive))
-        console.log("Successfully uploaded chunk: ", index)
+        numberOfChunks++
+        if (isDryRun) {
+            console.log("Dry run chunk:", filePathChunk)
+        } else {
+            console.log("Uploading chunk: ", index)
+            await Promise.all(filePathChunk.map(uploadFileToGoogleDrive))
+            console.log("Successfully uploaded chunk: ", index)
+        }
     }
     console.log("Image backup complete! 🎉")
+    console.log("Chunks uploaded: ", numberOfChunks)
+    console.log("Images uploaded: ", filePathChunks.flat().length)
 }
 
+// Usage: node upload-wordpress-images-to-obj-storage.js ~/owid/wordpress/web/app/uploads/ [--dry-run]
 uploadWordpressImagesToObjStorage()
