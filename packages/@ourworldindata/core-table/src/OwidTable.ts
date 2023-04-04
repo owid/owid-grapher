@@ -722,6 +722,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 {
                     ...timeColumnOfValue.def,
                     slug: originalTimeSlug,
+                    display: {
+                        includeInTable: false,
+                    },
                 },
             ],
             `Interpolated values in column ${columnSlug} with tolerance ${tolerance} and appended column ${originalTimeSlug} with the original times`,
