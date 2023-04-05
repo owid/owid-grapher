@@ -80,7 +80,7 @@ class DimensionSlotView extends React.Component<{
         this.updateDimensionsAndRebuildTable()
     }
 
-    private updateDefaults() {
+    @action.bound private updateDefaults() {
         const { grapher } = this.props.editor
         const { selection } = grapher
         const { availableEntityNames, availableEntityNameSet } = selection
@@ -113,12 +113,10 @@ class DimensionSlotView extends React.Component<{
             () => this.grapher.isReady,
             () => {
                 this.disposers.push(
+                    reaction(() => this.grapher.type, this.updateDefaults),
                     reaction(
-                        () => [
-                            this.grapher.type,
-                            this.grapher.yColumnsFromDimensions.length,
-                        ],
-                        () => this.updateDefaults()
+                        () => this.grapher.yColumnsFromDimensions.length,
+                        this.updateDefaults
                     )
                 )
             }
