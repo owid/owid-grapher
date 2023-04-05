@@ -6,6 +6,12 @@ import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { formatAuthors } from "./clientFormatting.js"
+import {
+    GdocsContentSource,
+    OwidArticleType,
+    getArticleFromJSON,
+} from "@ourworldindata/utils"
+import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 
 declare global {
     interface Window {
@@ -23,11 +29,27 @@ export const DataPageContent = ({
     grapherConfig: GrapherInterface
 }) => {
     const [grapher, setGrapher] = React.useState<Grapher | undefined>(undefined)
+    const [faqsArticle, setFaqsArticle] = React.useState<
+        OwidArticleType | undefined
+    >(undefined)
 
     // Initialize the grapher for client-side rendering
     useEffect(() => {
         setGrapher(new Grapher(grapherConfig))
     }, [grapherConfig])
+
+    // Not suitable for production, only for prototyping
+    useEffect(() => {
+        const fetchFaqsArticle = async (googleDocId: string) => {
+            const response = await fetch(
+                `/admin/api/gdocs/${googleDocId}?contentSource=${GdocsContentSource.Gdocs}`
+            )
+            const json = await response.json()
+            setFaqsArticle(getArticleFromJSON(json))
+        }
+        if (!datapage.faqsGoogleDocId) return
+        fetchFaqsArticle(datapage.faqsGoogleDocId)
+    })
 
     return (
         <>
@@ -221,6 +243,29 @@ export const DataPageContent = ({
                                     </div>
                                 </a>
                             ))}
+                        </div>
+                    </div>
+                </div>
+                <div className="DataPageContent__section-border wrapper">
+                    <hr />
+                </div>
+                <div
+                    style={{
+                        backgroundColor: "#f7f7f7",
+                        padding: "48px 0",
+                    }}
+                >
+                    <div className="faqs grid wrapper">
+                        <h2 className="span-cols-2">
+                            What you should know about this data
+                        </h2>
+                        <div className="faqs__items grid grid-cols-8 span-cols-8">
+                            {faqsArticle?.content.body && (
+                                <ArticleBlocks
+                                    blocks={faqsArticle.content.body}
+                                    containerType="datapage"
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
