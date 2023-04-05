@@ -125,7 +125,7 @@ up.full: require create-if-missing.env.full wordpress/.env tmp-downloads/owid_ch
 
 migrate:
 	@echo '==> Running DB migrations'
-	@. ./.env && yarn && yarn buildTsc && yarn runDbMigrations
+	yarn && yarn buildTsc && yarn runDbMigrations
 
 refresh: sync-images
 	@echo '==> Downloading chart data'
