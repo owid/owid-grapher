@@ -165,6 +165,65 @@ export const DataPageContent = ({
                         ))}
                     </div>
                 </div>
+                <div className="DataPageContent__section-border wrapper">
+                    <hr />
+                </div>
+                <div className="related-data wrapper grid">
+                    <h2 className="span-cols-3">Related data</h2>
+                    <div className="related-data__items span-cols-9">
+                        <div className="span-cols-3">
+                            <a
+                                href={datapage.relatedData[0].url}
+                                key={datapage.relatedData[0].url}
+                                className="related-data__item related-data__item--padded"
+                            >
+                                <div className="related-data__type">
+                                    {datapage.relatedData[0].type}
+                                </div>
+                                <h3>{datapage.relatedData[0].title}</h3>
+                                <div className="related-data__source">
+                                    {datapage.relatedData[0].source}
+                                </div>
+                                <div className="related-data__content">
+                                    {datapage.relatedData[0].content}
+                                </div>
+                            </a>
+                        </div>
+                        <div className="span-cols-3">
+                            {datapage.relatedData
+                                .slice(1, 3)
+                                .map((data: any) => (
+                                    <a
+                                        href={data.url}
+                                        key={data.url}
+                                        className="related-data__item related-data__item--padded"
+                                    >
+                                        <h3>{data.title}</h3>
+                                        <div className="related-data__source">
+                                            {data.source}
+                                        </div>
+                                        <div className="related-data__content">
+                                            {data.content}
+                                        </div>
+                                    </a>
+                                ))}
+                        </div>
+                        <div className="span-cols-3">
+                            {datapage.relatedData.slice(3).map((data: any) => (
+                                <a
+                                    href={data.url}
+                                    key={data.url}
+                                    className="related-data__item"
+                                >
+                                    <h4>{data.title}</h4>
+                                    <div className="related-data__source">
+                                        {data.source}
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
         </>
     )
