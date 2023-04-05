@@ -64,7 +64,6 @@ import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 
 // These aren't all "wordpress" steps
 // But they're only run when you have the full stack available
