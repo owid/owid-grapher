@@ -1,4 +1,4 @@
-import { mkdirp, writeFile } from "fs-extra"
+import { mkdirp, writeFile, remove } from "fs-extra"
 import path from "path"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
 import { explorerUrlMigrationsById } from "../explorer/urlMigrations/ExplorerUrlMigrations.js"
@@ -10,6 +10,10 @@ export const bakeAllPublishedExplorers = async (
     outputFolder: string,
     explorerAdminServer: ExplorerAdminServer
 ) => {
+    // remove all existing explorers, since we're re-baking every single one anyway
+    remove(outputFolder)
+    mkdirp(outputFolder)
+
     const published = await explorerAdminServer.getAllPublishedExplorers()
     await bakeExplorersToDir(outputFolder, published)
 }
