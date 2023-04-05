@@ -1555,7 +1555,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         field="columnFilter"
                         store={this}
                         label="Filter columns"
-                        buttonText="Clear"
+                        buttonContent="Clear"
                         onButtonClick={this.clearColumnFilter}
                     />
 
