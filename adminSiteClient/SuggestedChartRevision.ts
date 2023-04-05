@@ -24,6 +24,7 @@ export interface SuggestedChartRevisionSerialized {
     status: SuggestedChartRevisionStatus
     suggestedReason?: string
     decisionReason?: string
+    changesInDataSummary?: string
 
     canApprove?: boolean
     canReject?: boolean
