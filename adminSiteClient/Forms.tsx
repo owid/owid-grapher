@@ -63,10 +63,11 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
-    @bind onBlur() {
+    @bind onBlur(e: React.FocusEvent<HTMLInputElement>) {
         const { value = "" } = this.props
         const trimmedValue = value.trim()
         this.props.onValue(trimmedValue)
+        this.props.onBlur?.(e)
     }
 
     componentDidMount() {
@@ -83,7 +84,6 @@ export class TextField extends React.Component<TextFieldProps> {
             "title",
             "disabled",
             "required",
-            "onBlur",
         ])
 
         return (
@@ -194,6 +194,7 @@ interface NumberFieldProps {
     allowDecimal?: boolean
     allowNegative?: boolean
     onValue: (value: number | undefined) => void
+    onBlur?: () => void
     onEnter?: () => void
     onEscape?: () => void
     placeholder?: string
@@ -239,10 +240,12 @@ export class NumberField extends React.Component<
                 this.setState({ inputValue: inputMatches ? undefined : value })
                 props.onValue(isNumber ? asNumber : undefined)
             },
-            onBlur: () =>
+            onBlur: () => {
                 this.setState({
                     inputValue: undefined,
-                }),
+                })
+                this.props.onBlur?.()
+            },
         }
 
         return <TextField {...textFieldProps} />
@@ -713,6 +716,7 @@ export class BindAutoString<
     @action.bound onBlur() {
         const trimmedValue = this.props.store[this.props.field]?.trim()
         this.props.store[this.props.field] = trimmedValue
+        this.props.onBlur?.()
     }
 
     render() {
@@ -726,9 +730,9 @@ export class BindAutoString<
                 value={value === undefined ? auto : value}
                 isAuto={value === undefined}
                 onValue={this.onValue}
-                onBlur={this.onBlur}
                 onToggleAuto={this.onToggleAuto}
                 {...rest}
+                onBlur={this.onBlur}
             />
         )
     }
