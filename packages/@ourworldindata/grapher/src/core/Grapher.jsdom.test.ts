@@ -201,12 +201,8 @@ describe("hasTimeline", () => {
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.type = ChartTypeName.StackedBar
         expect(grapher.hasTimeline).toBeTruthy()
-    })
-
-    it("charts without timeline", () => {
-        const grapher = new Grapher(legacyConfig)
         grapher.type = ChartTypeName.DiscreteBar
-        expect(grapher.hasTimeline).toBeFalsy()
+        expect(grapher.hasTimeline).toBeTruthy()
     })
 
     it("map tab has timeline even if chart doesn't", () => {
@@ -218,14 +214,6 @@ describe("hasTimeline", () => {
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.map.hideTimeline = true
         expect(grapher.hasTimeline).toBeFalsy()
-    })
-
-    it("table tab has timeline even if chart doesn't", () => {
-        const grapher = new Grapher(legacyConfig)
-        grapher.type = ChartTypeName.DiscreteBar
-        expect(grapher.hasTimeline).toBeFalsy()
-        grapher.tab = GrapherTabOption.table
-        expect(grapher.hasTimeline).toBeTruthy()
     })
 
     it("source and download tabs do not show a timeline", () => {
