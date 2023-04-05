@@ -5,6 +5,7 @@ import { Grapher, GrapherInterface } from "@ourworldindata/grapher"
 import { ExpandableAnimatedToggle } from "./ExpandableAnimatedToggle.js"
 import ReactDOM from "react-dom"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
+import { formatAuthors } from "./clientFormatting.js"
 
 declare global {
     interface Window {
@@ -134,6 +135,30 @@ export const DataPageContent = ({
                                 <div>{datapage.nextUpdate}</div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div className="related-research grid wrapper">
+                    <h2 className="span-cols-3">
+                        Related research and writing
+                    </h2>
+                    <div className="related-research__items span-cols-9">
+                        {datapage.relatedResearch.map((research: any) => (
+                            <a
+                                href={research.url}
+                                key={research.url}
+                                className="related-research__item span-cols-4"
+                            >
+                                <img src={research.imageUrl} alt="" />
+                                <div className="span-cols-3">
+                                    <h3>{research.title}</h3>
+                                    <div className="authors body-3-medium-italic">
+                                        {formatAuthors({
+                                            authors: research.authors,
+                                        })}
+                                    </div>
+                                </div>
+                            </a>
+                        ))}
                     </div>
                 </div>
             </div>
