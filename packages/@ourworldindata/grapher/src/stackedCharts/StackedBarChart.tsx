@@ -262,7 +262,8 @@ export class StackedBarChart
             point: series.points.find((bar) => bar.position === hoverTime),
         }))
         const totalValue = sum(seriesRows.map((bar) => bar.point?.value ?? 0))
-        const showTotalValue: boolean = seriesRows.length > 1
+        const allFake = seriesRows.every((bar) => bar.point?.fake)
+        const showTotalValue = seriesRows.length > 1 && !allFake
         return (
             <Tooltip
                 id={this.renderUid}
