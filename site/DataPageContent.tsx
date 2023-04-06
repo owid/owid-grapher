@@ -16,6 +16,7 @@ import {
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
+import { RelatedCharts } from "./blocks/RelatedCharts.js"
 
 declare global {
     interface Window {
@@ -256,6 +257,16 @@ export const DataPageContent = ({
                 <div className="DataPageContent__section-border wrapper">
                     <hr />
                 </div>
+                {datapage.relatedCharts.items.length > 0 && (
+                    <div className="related-charts-wrapper wrapper">
+                        <h2>Explore charts that include this data</h2>
+                        <div>
+                            <RelatedCharts
+                                charts={datapage.relatedCharts.items}
+                            />
+                        </div>
+                    </div>
+                )}
                 <div
                     style={{
                         backgroundColor: "#f7f7f7",
