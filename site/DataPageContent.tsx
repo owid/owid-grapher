@@ -57,7 +57,7 @@ export const DataPageContent = ({
             return
         const googleDocId = getUrlTarget(datapage.faqsGoogleDocEditLink)
         fetchFaqsArticle(googleDocId)
-    })
+    }, [datapage.faqsGoogleDocEditLink])
 
     return (
         <>
