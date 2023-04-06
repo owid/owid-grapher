@@ -10,6 +10,8 @@ import {
     GdocsContentSource,
     OwidArticleType,
     getArticleFromJSON,
+    getLinkType,
+    getUrlTarget,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
 
@@ -47,8 +49,14 @@ export const DataPageContent = ({
             const json = await response.json()
             setFaqsArticle(getArticleFromJSON(json))
         }
-        if (!datapage.faqsGoogleDocId) return
-        fetchFaqsArticle(datapage.faqsGoogleDocId)
+
+        if (
+            !datapage.faqsGoogleDocEditLink ||
+            getLinkType(datapage.faqsGoogleDocEditLink) !== "gdoc"
+        )
+            return
+        const googleDocId = getUrlTarget(datapage.faqsGoogleDocEditLink)
+        fetchFaqsArticle(googleDocId)
     })
 
     return (
