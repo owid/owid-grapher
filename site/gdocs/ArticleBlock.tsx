@@ -75,6 +75,7 @@ const layouts: { [key in Container]: Layouts} = {
     },
     ["datapage"]: {
         ["default"]: "col-start-2 span-cols-6",
+        ["chart"]: "col-start-1 span-cols-8",
     },
     ["sticky-right-left-column"]: {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
