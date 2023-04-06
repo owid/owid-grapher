@@ -105,6 +105,10 @@
         border-left: 1px solid $blue-20;
         @include row-gap(24px);
         align-self: flex-start;
+
+        a {
+            @include owid-link-90;
+        }
     }
 
     .key-info__data {
