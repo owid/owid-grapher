@@ -72,13 +72,13 @@ export const DataPageContent = ({
                     <div className="header__left">
                         <div className="supertitle">DATA</div>
                         <h1>{datapage.title}</h1>
-                        <span className="source">
+                        <div className="source">
                             {datapage.variantDescription1 &&
                             datapage.variantDescription2
                                 ? `${datapage.variantDescription1} - ${datapage.variantDescription2}`
                                 : datapage.variantDescription1 ||
                                   datapage.variantDescription2}
-                        </span>
+                        </div>
                     </div>
                     <div className="header__right">
                         <div className="label">

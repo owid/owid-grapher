@@ -18,12 +18,12 @@
         h1 {
             @include display-2-semibold;
             display: inline;
-            margin: 0;
+            margin: 0 16px 0 0;
         }
         .source {
+            display: inline-block;
             @include body-1-regular;
             color: $blue-50;
-            margin-left: 16px;
         }
     }
 
