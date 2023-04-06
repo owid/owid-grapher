@@ -263,11 +263,11 @@ export const DataPageContent = ({
                         padding: "48px 0",
                     }}
                 >
-                    <div className="faqs grid wrapper">
+                    <div className="faq grid wrapper">
                         <h2 className="span-cols-2">
                             What you should know about this data
                         </h2>
-                        <div className="faqs__items grid grid-cols-8 span-cols-8">
+                        <div className="faq__items grid grid-cols-8 span-cols-8">
                             {faqsArticle?.content.body && (
                                 <ArticleBlocks
                                     blocks={faqsArticle.content.body}
