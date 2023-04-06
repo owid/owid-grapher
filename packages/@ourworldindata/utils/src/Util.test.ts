@@ -25,6 +25,8 @@ import {
     urlToSlug,
     toRectangularMatrix,
     slugifySameCase,
+    greatestCommonDivisor,
+    findGreatestCommonDivisorOfArray,
 } from "./Util.js"
 import { SortOrder } from "./owidTypes.js"
 
@@ -519,5 +521,21 @@ describe("slugifySameCase", () => {
 
     cases.forEach(([input, output]) => {
         expect(slugifySameCase(input)).toBe(output)
+    })
+})
+
+describe(greatestCommonDivisor, () => {
+    it("returns the greatest common divisor of two numbers", () => {
+        expect(greatestCommonDivisor(6, 9)).toEqual(3)
+        expect(greatestCommonDivisor(6, 8)).toEqual(2)
+        expect(greatestCommonDivisor(6, 6)).toEqual(6)
+    })
+})
+
+describe(findGreatestCommonDivisorOfArray, () => {
+    it("returns the greatest common divisor of an array of numbers", () => {
+        expect(findGreatestCommonDivisorOfArray([6, 9, 12])).toEqual(3)
+        expect(findGreatestCommonDivisorOfArray([6, 8, 12])).toEqual(2)
+        expect(findGreatestCommonDivisorOfArray([6, 6, 6])).toEqual(6)
     })
 })

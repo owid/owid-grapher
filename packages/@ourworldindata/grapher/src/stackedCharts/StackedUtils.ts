@@ -1,4 +1,12 @@
-import { flatten, keyBy, sortNumeric, uniq } from "@ourworldindata/utils"
+import {
+    flatten,
+    keyBy,
+    sortNumeric,
+    uniq,
+    range,
+    isArrayOfNumbers,
+    findGreatestCommonDivisorOfArray,
+} from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 
 // This method shift up the Y Values of a Series with Points in place.
@@ -18,19 +26,41 @@ export const stackSeries = <PositionType extends StackedPointPositionType>(
     return seriesArr
 }
 
+// Makes sure that values are evenly spaced
+function withUniformSpacing(values: number[]): number[] {
+    const deltas = values
+        .slice(0, -1)
+        .map((xVal, index) => values[index + 1] - xVal)
+    const gcd = findGreatestCommonDivisorOfArray(deltas)
+
+    // might lead to non-uniform spacing at the end but ensures that we end on the last given value
+    const evenlySpacedValues = range(values[0], values[values.length - 1], gcd)
+    evenlySpacedValues.push(values[values.length - 1])
+
+    return evenlySpacedValues
+}
+
 // Adds a Y = 0 value for each missing x value (where X is usually Time)
 export const withMissingValuesAsZeroes = <
     PositionType extends StackedPointPositionType
 >(
-    seriesArr: readonly StackedSeries<PositionType>[]
+    seriesArr: readonly StackedSeries<PositionType>[],
+    { enforceUniformSpacing = false }: { enforceUniformSpacing?: boolean } = {}
 ): StackedSeries<PositionType>[] => {
-    const allXValuesSorted = sortNumeric(
+    let allXValuesSorted = sortNumeric(
         uniq(
             flatten(seriesArr.map((series) => series.points)).map(
                 (point) => point.position
             )
         )
     )
+
+    if (enforceUniformSpacing && isArrayOfNumbers(allXValuesSorted)) {
+        allXValuesSorted = withUniformSpacing(
+            allXValuesSorted
+        ) as PositionType[]
+    }
+
     return seriesArr.map((series) => {
         const pointsByPosition = keyBy(series.points, "position")
         return {

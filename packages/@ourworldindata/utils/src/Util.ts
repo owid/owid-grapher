@@ -1412,4 +1412,20 @@ export function checkIsOwidGdocType(
     documentType: unknown
 ): documentType is OwidGdocType {
     return Object.values(OwidGdocType).includes(documentType as any)
+
+export function isArrayOfNumbers(arr: unknown[]): arr is number[] {
+    return arr.every((item) => typeof item === "number")
+}
+
+export function greatestCommonDivisor(a: number, b: number): number {
+    if (a === 0) return b
+    return greatestCommonDivisor(b % a, a)
+}
+
+export function findGreatestCommonDivisorOfArray(arr: number[]): number {
+    let result = arr[0]
+    for (let i = 1; i < arr.length; i++) {
+        result = greatestCommonDivisor(result, arr[i])
+    }
+    return result
 }

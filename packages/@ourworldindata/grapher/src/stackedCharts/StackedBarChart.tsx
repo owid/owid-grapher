@@ -586,6 +586,10 @@ export class StackedBarChart
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
 
     @computed get series(): readonly StackedSeries<number>[] {
-        return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
+        return stackSeries(
+            withMissingValuesAsZeroes(this.unstackedSeries, {
+                enforceUniformSpacing: true,
+            })
+        )
     }
 }
