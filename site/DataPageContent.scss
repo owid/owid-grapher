@@ -308,10 +308,9 @@
             }
         }
 
-        .data-collection__key-info {
+        .key-info--gridded {
             gap: 24px;
             row-gap: 16px;
-            margin-bottom: 24px;
         }
 
         .data-collection__code-link {
@@ -323,6 +322,31 @@
 
             svg {
                 margin-right: 8px;
+            }
+        }
+
+        .sources {
+            margin-top: 48px;
+        }
+
+        .sources__heading {
+            @include h3-bold;
+            margin: 0;
+        }
+
+        .sources__item .ExpandableAnimatedToggle {
+            > button {
+                padding-top: 16px;
+                padding-bottom: 16px;
+            }
+            .content-wrapper {
+                padding-bottom: 16px;
+            }
+        }
+
+        .sources__item + .sources__item {
+            .ExpandableAnimatedToggle {
+                border-top: 0;
             }
         }
     }

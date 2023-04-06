@@ -132,7 +132,7 @@ export const DataPageContent = ({
                                                     .sourceVariableDescription
                                                     .title
                                             }
-                                            content={
+                                            contentHtml={
                                                 datapage
                                                     .sourceVariableDescription
                                                     .content
@@ -355,7 +355,10 @@ export const DataPageContent = ({
                                             )}
                                         </ul>
                                     </div>
-                                    <div className="data-collection__key-info grid grid-cols-2">
+                                    <div
+                                        className="key-info--gridded grid grid-cols-2"
+                                        style={{ marginBottom: "24px" }}
+                                    >
                                         <div className="key-info__data">
                                             <div className="title">
                                                 Last updated
@@ -406,6 +409,95 @@ export const DataPageContent = ({
                                 />
                             </div>
                         </div>
+                        {datapage.sources.length > 0 && (
+                            <div className="sources grid span-cols-12">
+                                <h3 className="sources__heading span-cols-3">
+                                    This data is based on the following sources:
+                                </h3>
+                                <div className="span-cols-6">
+                                    {datapage.sources.map((source: any) => (
+                                        <div
+                                            className="sources__item"
+                                            key={source.name}
+                                        >
+                                            <ExpandableAnimatedToggle
+                                                label={source.name}
+                                                contentHtml={source.description}
+                                                content={
+                                                    source.retrievedOn && (
+                                                        <div className="key-info--gridded grid grid-cols-2">
+                                                            <div className="key-info__data">
+                                                                <div className="title">
+                                                                    Retrieved on
+                                                                </div>
+                                                                <div>
+                                                                    {
+                                                                        source.retrievedOn
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                            <div className="key-info__data">
+                                                                <div className="title">
+                                                                    Licence
+                                                                </div>
+                                                                <div>
+                                                                    <a
+                                                                        href={
+                                                                            source
+                                                                                .licenseLink
+                                                                                .url
+                                                                        }
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                    >
+                                                                        {
+                                                                            source
+                                                                                .licenseLink
+                                                                                .title
+                                                                        }
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div className="key-info__data">
+                                                                <div className="title">
+                                                                    Next
+                                                                    expected
+                                                                    update
+                                                                </div>
+                                                                <div>
+                                                                    {
+                                                                        source.nextUpdate
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                            <div className="key-info__data">
+                                                                <div className="title">
+                                                                    Retrieved
+                                                                    from
+                                                                </div>
+                                                                <div>
+                                                                    <a
+                                                                        href={
+                                                                            source.retrievedFromUrl
+                                                                        }
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                    >
+                                                                        {
+                                                                            source.retrievedFromUrl
+                                                                        }
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                }
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

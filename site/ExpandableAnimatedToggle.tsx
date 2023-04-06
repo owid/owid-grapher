@@ -5,10 +5,12 @@ import AnimateHeight from "react-animate-height"
 
 export const ExpandableAnimatedToggle = ({
     label,
+    contentHtml = "",
     content,
 }: {
     label: string
-    content: any
+    contentHtml?: string
+    content?: React.ReactNode
 }) => {
     const [height, setHeight] = useState<"auto" | 0>(0)
 
@@ -23,10 +25,13 @@ export const ExpandableAnimatedToggle = ({
                 <FontAwesomeIcon icon={faPlus} />
             </button>
             <AnimateHeight height={height} animateOpacity>
-                <div
-                    className="content"
-                    dangerouslySetInnerHTML={{ __html: content }}
-                />
+                <div className="content-wrapper">
+                    <div
+                        className="content__html"
+                        dangerouslySetInnerHTML={{ __html: contentHtml }}
+                    />
+                    {content}
+                </div>
             </AnimateHeight>
         </div>
     )

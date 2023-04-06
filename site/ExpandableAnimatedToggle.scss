@@ -21,7 +21,16 @@
         font-size: 0.75em;
         margin: 0 12px;
     }
-    .content {
+    .content-wrapper {
         padding-bottom: 12px;
+    }
+
+    .content__html {
+        > *:first-child {
+            margin-top: 0;
+        }
+        > *:last-child {
+            margin-bottom: 0;
+        }
     }
 }
