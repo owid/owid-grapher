@@ -32,12 +32,7 @@ function withUniformSpacing(values: number[]): number[] {
         .slice(0, -1)
         .map((xVal, index) => values[index + 1] - xVal)
     const gcd = findGreatestCommonDivisorOfArray(deltas)
-
-    // might lead to non-uniform spacing at the end but ensures that we end on the last given value
-    const evenlySpacedValues = range(values[0], values[values.length - 1], gcd)
-    evenlySpacedValues.push(values[values.length - 1])
-
-    return evenlySpacedValues
+    return range(values[0], values[values.length - 1] + gcd, gcd)
 }
 
 // Adds a Y = 0 value for each missing x value (where X is usually Time)
