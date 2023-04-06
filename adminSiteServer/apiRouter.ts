@@ -2809,6 +2809,11 @@ apiRouter.delete("/gdocs/:id", async (req, res) => {
     const gdoc = await Gdoc.findOneBy({ id })
     if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
 
+    await db
+        .knexTable("posts")
+        .where({ gdocSuccessorId: gdoc.id })
+        .update({ gdocSuccessorId: null })
+
     await Link.delete({
         source: {
             id,
