@@ -14,4 +14,5 @@ export interface FooterManager {
     tabBounds?: Bounds
     details?: GrapherInterface["details"]
     detailsOrderedByReference?: { category: string; term: string }[]
+    shouldIncludeDetailsInStaticExport?: boolean
 }
