@@ -2300,20 +2300,12 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
 
         const gdoc = new Gdoc(gdocId)
         gdoc.slug = post.slug
+        gdoc.tags = tags
         gdoc.content.title = post.title
         gdoc.published = false
         gdoc.createdAt = new Date()
         gdoc.publishedAt = post.published_at
         await dataSource.getRepository(Gdoc).save(gdoc)
-
-        // Ideally we could just attach these to the Gdoc and typeorm would take care of saving it
-        // e.g. gdoc.tags = tags
-        // but there's a bug with the SQL generation https://github.com/typeorm/typeorm/issues/8533
-        await Promise.all(
-            tags.map((tag) =>
-                GdocXTag.insert({ gdocId: gdoc.id, tagId: tag.id })
-            )
-        )
     }
 
     return { googleDocsId: gdocId }
