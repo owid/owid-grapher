@@ -105,16 +105,15 @@
         border-left: 1px solid $blue-20;
         @include row-gap(24px);
         align-self: flex-start;
-
-        a {
-            @include owid-link-90;
-        }
     }
 
     .key-info__data {
         @include body-3-medium;
         .title {
             color: $blue-50;
+        }
+        a {
+            @include owid-link-90;
         }
     }
 
@@ -247,6 +246,84 @@
         .article-block__numbered-list {
             @include body-2-regular;
             color: $blue-60;
+        }
+    }
+
+    .dataset {
+        h2 {
+            @include h2-bold;
+            margin: 0;
+        }
+
+        .data-collection {
+            display: flex;
+            flex-direction: column;
+            @include row-gap(32px);
+            background-color: $white;
+            margin: 24px -24px 0;
+            padding: 24px;
+        }
+
+        .data-collection__header {
+            @include overline-black-caps;
+            color: $blue-50;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .data-collection__name {
+            @include h3-bold;
+            margin: 0;
+
+            svg {
+                margin-right: 8px;
+            }
+        }
+
+        .data-collection__description {
+            @include body-3-medium;
+            color: $blue-60;
+            margin-top: 8px;
+
+            > *:first-child {
+                margin-top: 0;
+            }
+
+            > *:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        .metrics-list__header {
+            @include h4-semibold;
+            margin: 0;
+            color: $blue-50;
+        }
+
+        .featured-variables {
+            list-style-type: none;
+            @include body-3-medium;
+            li {
+                margin-top: 8px;
+            }
+        }
+
+        .data-collection__key-info {
+            gap: 24px;
+            row-gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .data-collection__code-link {
+            display: inline-block;
+            padding: 8px;
+            background-color: $blue-10;
+            @include body-3-medium;
+            color: $blue-90;
+
+            svg {
+                margin-right: 8px;
+            }
         }
     }
 }

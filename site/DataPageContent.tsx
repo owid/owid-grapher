@@ -14,6 +14,8 @@ import {
     getUrlTarget,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/ArticleBlocks.js"
+import { faTable } from "@fortawesome/free-solid-svg-icons/faTable"
+import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
 
 declare global {
     interface Window {
@@ -34,6 +36,11 @@ export const DataPageContent = ({
     const [faqsArticle, setFaqsArticle] = React.useState<
         OwidArticleType | undefined
     >(undefined)
+
+    const sourceShortName =
+        datapage.variantDescription1 && datapage.variantDescription2
+            ? `${datapage.variantDescription1} - ${datapage.variantDescription2}`
+            : datapage.variantDescription1 || datapage.variantDescription2
 
     // Initialize the grapher for client-side rendering
     useEffect(() => {
@@ -72,13 +79,7 @@ export const DataPageContent = ({
                     <div className="header__left">
                         <div className="supertitle">DATA</div>
                         <h1>{datapage.title}</h1>
-                        <div className="source">
-                            {datapage.variantDescription1 &&
-                            datapage.variantDescription2
-                                ? `${datapage.variantDescription1} - ${datapage.variantDescription2}`
-                                : datapage.variantDescription1 ||
-                                  datapage.variantDescription2}
-                        </div>
+                        <div className="source">{sourceShortName}</div>
                     </div>
                     <div className="header__right">
                         <div className="label">
@@ -143,9 +144,7 @@ export const DataPageContent = ({
                         <div className="key-info__right">
                             <div className="key-info__data">
                                 <div className="title">Source</div>
-                                <div className="name">
-                                    {datapage.sourceShortName}
-                                </div>
+                                <div className="name">{sourceShortName}</div>
                                 {datapage.owidProcessingLevel && (
                                     <div
                                         dangerouslySetInnerHTML={{
@@ -274,6 +273,138 @@ export const DataPageContent = ({
                                     containerType="datapage"
                                 />
                             )}
+                        </div>
+                    </div>
+                </div>
+                <div
+                    className="DataPageContent__section-border wrapper"
+                    style={{
+                        backgroundColor: "#f7f7f7",
+                    }}
+                >
+                    <hr />
+                </div>
+                <div
+                    style={{
+                        backgroundColor: "#f7f7f7",
+                        padding: "48px 0",
+                    }}
+                >
+                    <div className="dataset grid wrapper">
+                        <h2 className="span-cols-3">Sources and Processing</h2>
+                        <div className="dataset__content span-cols-6">
+                            <div className="body-2-regular">
+                                In preparing data for our visualizations, Our
+                                World in Data prepares datasets from original
+                                data obtained from one or more data providers.
+                            </div>
+                            <div className="data-collection">
+                                <div>
+                                    <div className="data-collection__header">
+                                        This metric was prepared as part of the
+                                        following dataset:
+                                    </div>
+                                    <div className="data-collection__name">
+                                        <FontAwesomeIcon icon={faTable} />
+                                        <span
+                                            dangerouslySetInnerHTML={{
+                                                __html: datapage.dataset
+                                                    .datasetName,
+                                            }}
+                                        />
+                                    </div>
+                                    <div
+                                        className="data-collection__description"
+                                        dangerouslySetInnerHTML={{
+                                            __html: datapage.dataset
+                                                .datasetDescription,
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <div style={{ marginBottom: "24px" }}>
+                                        <h4 className="metrics-list__header">
+                                            Metrics included in this data
+                                            collection:
+                                        </h4>
+                                        <ul className="featured-variables">
+                                            {datapage.dataset.featuredVariables.map(
+                                                (
+                                                    variable: any,
+                                                    idx: number
+                                                ) => (
+                                                    <li
+                                                        className="featured-variables__item"
+                                                        key={
+                                                            variable.variableName
+                                                        }
+                                                    >
+                                                        {idx !== 0 ? (
+                                                            variable.variableName
+                                                        ) : (
+                                                            <strong>
+                                                                {`${variable.variableName} `}
+                                                                <em>
+                                                                    (currently
+                                                                    viewing)
+                                                                </em>
+                                                            </strong>
+                                                        )}
+                                                    </li>
+                                                )
+                                            )}
+                                        </ul>
+                                    </div>
+                                    <div className="data-collection__key-info grid grid-cols-2">
+                                        <div className="key-info__data">
+                                            <div className="title">
+                                                Last updated
+                                            </div>
+                                            <div>{datapage.lastUpdated}</div>
+                                        </div>
+                                        <div className="key-info__data">
+                                            <div className="title">
+                                                Next expected update
+                                            </div>
+                                            <div>{datapage.nextUpdate}</div>
+                                        </div>
+                                        <div className="key-info__data">
+                                            <div className="title">Licence</div>
+                                            <div>
+                                                <a
+                                                    href={
+                                                        datapage.dataset
+                                                            .datasetLicenseLink
+                                                            .url
+                                                    }
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    {
+                                                        datapage.dataset
+                                                            .datasetLicenseLink
+                                                            .title
+                                                    }
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {datapage.dataset?.codeUrl && (
+                                        <a
+                                            href={datapage.dataset.codeUrl}
+                                            className="data-collection__code-link"
+                                        >
+                                            <FontAwesomeIcon icon={faGithub} />
+                                            See the code used to prepare this
+                                            dataset
+                                        </a>
+                                    )}
+                                </div>
+                                <ExpandableAnimatedToggle
+                                    label="Download all metrics"
+                                    content="TBD"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
