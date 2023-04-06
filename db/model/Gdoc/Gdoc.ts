@@ -53,8 +53,8 @@ export class Tag extends BaseEntity implements OwidArticleTag {
     @ManyToMany(() => Gdoc, (gdoc) => gdoc.tags)
     @JoinTable({
         name: "posts_gdocs_x_tags",
-        joinColumn: { name: "tagId" },
-        inverseJoinColumn: { name: "gdocId" },
+        joinColumn: { name: "tagId", referencedColumnName: "id" },
+        inverseJoinColumn: { name: "gdocId", referencedColumnName: "id" },
     })
     gdocs!: Gdoc[]
 }
@@ -72,11 +72,11 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
 
-    @ManyToMany(() => Tag, (tag) => tag.gdocs)
+    @ManyToMany(() => Tag)
     @JoinTable({
         name: "posts_gdocs_x_tags",
-        joinColumn: { name: "gdocId" },
-        inverseJoinColumn: { name: "tagId" },
+        joinColumn: { name: "gdocId", referencedColumnName: "id" },
+        inverseJoinColumn: { name: "tagId", referencedColumnName: "id" },
     })
     tags!: Tag[]
 

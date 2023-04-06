@@ -84,8 +84,8 @@ export const GdocsIndexPage = ({ match, history }: GdocsMatchProps) => {
                                     <th>Type</th>
                                     <th>Status</th>
                                     <th>Context</th>
-                                    <th>Categories</th>
                                     <th>Last Updated</th>
+                                    <th>Categories</th>
                                     <th></th>
                                 </tr>
                             </thead>

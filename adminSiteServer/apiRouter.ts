@@ -54,6 +54,7 @@ import {
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
 import { Gdoc, Tag } from "../db/model/Gdoc/Gdoc.js"
+import { GdocXTag } from "../db/model/GdocXTag.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -74,7 +75,6 @@ import {
     select,
     getTagsByPostId,
 } from "../db/model/Post.js"
-import { getErrors } from "../adminSiteClient/gdocsValidation.js"
 import {
     checkFullDeployFallback,
     checkHasChanges,
@@ -2277,6 +2277,9 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
             400
         )
     }
+    const tagsByPostId = await getTagsByPostId()
+    const tags =
+        tagsByPostId.get(postId)?.map(({ id }) => Tag.create({ id })) || []
     const archieMl = JSON.parse(post.archieml) as OwidArticleType
     const gdocId = await createGdocAndInsertOwidArticleContent(
         archieMl.content,
@@ -2297,10 +2300,20 @@ apiRouter.post("/posts/:postId/createGdoc", async (req: Request) => {
 
         const gdoc = new Gdoc(gdocId)
         gdoc.slug = post.slug
+        gdoc.content.title = post.title
         gdoc.published = false
         gdoc.createdAt = new Date()
         gdoc.publishedAt = post.published_at
-        await dataSource.getRepository(Gdoc).insert(gdoc)
+        await dataSource.getRepository(Gdoc).save(gdoc)
+
+        // Ideally we could just attach these to the Gdoc and typeorm would take care of saving it
+        // e.g. gdoc.tags = tags
+        // but there's a bug with the SQL generation https://github.com/typeorm/typeorm/issues/8533
+        await Promise.all(
+            tags.map((tag) =>
+                GdocXTag.insert({ gdocId: gdoc.id, tagId: tag.id })
+            )
+        )
     }
 
     return { googleDocsId: gdocId }
