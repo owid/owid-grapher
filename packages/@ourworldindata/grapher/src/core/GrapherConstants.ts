@@ -117,3 +117,9 @@ export enum Patterns {
     noDataPattern = "noDataPattern",
     noDataPatternForMapChart = "noDataPatternForMapChart",
 }
+
+export interface AnnotationFieldsInTitle {
+    entity?: boolean
+    time?: boolean
+    changeInPrefix?: boolean
+}

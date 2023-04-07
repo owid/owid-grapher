@@ -22,6 +22,7 @@ import {
     EnrichedBlockStickyRightContainer,
     EnrichedBlockNumberedList,
     EnrichedBlockProminentLink,
+    BlockImageSize,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { compact, flatten, isPlainObject, partition } from "lodash"
@@ -339,6 +340,16 @@ export function convertAllWpComponentsToArchieMLBlocks(
     })
 }
 
+export function adjustHeadingLevels(blocks: OwidEnrichedArticleBlock[]): void {
+    for (const block of blocks) {
+        if (block.type === "heading") {
+            block.level = Math.max(block.level - 1, 1)
+        }
+        if ("children" in block) {
+            adjustHeadingLevels(block.children as OwidEnrichedArticleBlock[])
+        }
+    }
+}
 /** Parse a Wordpress component. This function has to be called when the first element of
     elements contains a comment that is a WpComponent start tag. It then iterates through
     the list of elements until it finds the matching closing comment tag and returns the
@@ -764,6 +775,7 @@ function cheerioToArchieML(
                                 alt: image?.attribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,
+                                size: BlockImageSize.Wide,
                             },
                         ],
                     }
@@ -849,6 +861,7 @@ function cheerioToArchieML(
                                 alt: "",
                                 parseErrors: [],
                                 originalWidth: undefined,
+                                size: BlockImageSize.Wide,
                             },
                         ],
                     }

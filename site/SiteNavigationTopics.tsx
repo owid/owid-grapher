@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useState } from "react"
 import { CategoryWithEntries, EntryMeta } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
 import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
 
@@ -23,7 +23,7 @@ export const SiteNavigationTopics = ({
     className?: string
 }) => {
     const [activeCategory, setActiveCategory] =
-        useState<CategoryWithEntries | null>(null)
+        useState<CategoryWithEntries | null>(topics[0])
 
     const [numTopicColumns, setNumTopicColumns] = useState(1)
 

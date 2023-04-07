@@ -4,7 +4,7 @@ import { Tag } from "@ourworldindata/utils"
 
 import { Link } from "./Link.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faStar } from "@fortawesome/free-solid-svg-icons/faStar"
+import { faStar } from "@fortawesome/free-solid-svg-icons"
 import Tippy from "@tippyjs/react"
 
 export type { Tag }

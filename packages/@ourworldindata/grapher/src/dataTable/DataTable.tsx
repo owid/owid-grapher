@@ -3,7 +3,7 @@ import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import {
     SortOrder,
     Time,
@@ -30,9 +30,9 @@ import {
     DEFAULT_BOUNDS,
     ColumnSlug,
     TickFormattingOptions,
+    Tippy,
 } from "@ourworldindata/utils"
 import { SortIcon } from "../controls/SortIcon"
-import { Tippy } from "@ourworldindata/utils"
 import { makeSelectionArray } from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
 
@@ -472,7 +472,6 @@ export class DataTable extends React.Component<{
         return this.table.columnsAsArray.filter(
             (column) =>
                 !skips.has(column.slug) &&
-                !column.slug.endsWith("-originalTime") &&
                 //  dim.property !== "color" &&
                 (column.display?.includeInTable ?? true)
         )

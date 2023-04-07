@@ -7,11 +7,10 @@ import {
 } from "@ourworldindata/core-table"
 import { Bounds } from "@ourworldindata/utils"
 import { ChartTypeName, FacetStrategy } from "../core/GrapherConstants"
-import { Meta } from "@storybook/react"
 import { ChartManager } from "../chart/ChartManager"
 
 // See https://storybook.js.org/docs/react/essentials/controls for Control Types
-const CSF: Meta = {
+const CSF = {
     title: "FacetChart",
     component: FacetChart,
 }

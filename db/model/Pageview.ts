@@ -1,7 +1,7 @@
 import { keyBy } from "lodash"
 import { Entity, Column, BaseEntity } from "typeorm"
 
-interface RawPageview {
+export interface RawPageview {
     day: Date
     url: string
     views_7d: number

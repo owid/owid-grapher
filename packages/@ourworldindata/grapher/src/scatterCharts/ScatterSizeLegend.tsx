@@ -1,10 +1,9 @@
 import React from "react"
 import { computed } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import { TextWrap } from "@ourworldindata/utils"
+import { TextWrap, first, last } from "@ourworldindata/utils"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { first, last } from "@ourworldindata/utils"
 import { getElementWithHalo } from "./Halos"
 import {
     ScatterSeries,

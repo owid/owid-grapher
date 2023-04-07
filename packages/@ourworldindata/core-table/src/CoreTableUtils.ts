@@ -200,7 +200,8 @@ export interface LinearInterpolationContext extends InterpolationContext {
 }
 
 export interface ToleranceInterpolationContext extends InterpolationContext {
-    timeTolerance: number
+    timeToleranceForwards: number
+    timeToleranceBackwards: number
 }
 
 export type InterpolationProvider<C extends InterpolationContext> = (
@@ -290,6 +291,7 @@ export function toleranceInterpolation(
         }
 
         if (
+            context.timeToleranceForwards > 0 &&
             nextNonBlankIndex !== -1 &&
             (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
         ) {
@@ -317,14 +319,14 @@ export function toleranceInterpolation(
         if (
             nextNonBlankIndex !== -1 &&
             nextTimeDiff <= prevTimeDiff &&
-            nextTimeDiff <= context.timeTolerance
+            nextTimeDiff <= context.timeToleranceForwards
         ) {
             valuesSortedByTimeAsc[index] =
                 valuesSortedByTimeAsc[nextNonBlankIndex!]
             timesAsc[index] = timesAsc[nextNonBlankIndex!]
         } else if (
             prevNonBlankIndex !== undefined &&
-            prevTimeDiff <= context.timeTolerance
+            prevTimeDiff <= context.timeToleranceBackwards
         ) {
             valuesSortedByTimeAsc[index] =
                 valuesSortedByTimeAsc[prevNonBlankIndex!]
@@ -347,7 +349,10 @@ export function interpolateRowValuesWithTolerance<
 ): Row[] {
     const values = rowsSortedByTimeAsc.map((row) => row[valueSlug])
     const times = rowsSortedByTimeAsc.map((row) => row[timeSlug])
-    toleranceInterpolation(values, times, { timeTolerance })
+    toleranceInterpolation(values, times, {
+        timeToleranceForwards: timeTolerance,
+        timeToleranceBackwards: timeTolerance,
+    })
     return rowsSortedByTimeAsc.map((row, index) => {
         return {
             ...row,

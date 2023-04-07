@@ -1,5 +1,8 @@
 import React from "react"
-import { ComparisonLineConfig } from "../scatterCharts/ComparisonLine"
+import {
+    ComparisonLineConfig,
+    ComparisonLine,
+} from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import {
@@ -50,9 +53,12 @@ import {
 } from "../verticalColorLegend/VerticalColorLegend"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { ComparisonLine } from "./ComparisonLine"
 
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
+import {
+    ColorScale,
+    ColorScaleManager,
+    NO_DATA_LABEL,
+} from "../color/ColorScale"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -562,8 +568,10 @@ export class ScatterPlotChart
     }
 
     @computed get legendItems(): ColorScaleBin[] {
-        return this.colorScale.legendBins.filter((bin) =>
-            this.colorsInUse.includes(bin.color)
+        return this.colorScale.legendBins.filter(
+            (bin) =>
+                this.colorsInUse.includes(bin.color) &&
+                bin.label !== NO_DATA_LABEL
         )
     }
 

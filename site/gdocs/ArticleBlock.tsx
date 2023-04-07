@@ -49,10 +49,12 @@ const layouts: { [key in Container]: Layouts} = {
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
         ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
-        ["heading"]: "align-center col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["heading"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["horizontal-rule"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["html"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
-        ["image"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["image--narrow"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12 ",
+        ["image--wide"]: "col-start-4 span-cols-8 col-md-start-2 span-md-cols-12 col-sm-start-2 span-sm-cols-12 ",
+        ["image-caption"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["numbered-list"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
@@ -154,6 +156,18 @@ export default function ArticleBlock({
                 d={block}
             />
         ))
+        .with({ type: "callout" }, (block) => (
+            <div className={getLayout("callout", containerType)}>
+                {block.title ? (
+                    <h4 className="h4-semibold">{block.title}</h4>
+                ) : null}
+                {block.text.map((text, i) => (
+                    <p className="body-3-medium" key={i}>
+                        {renderSpans(text)}
+                    </p>
+                ))}
+            </div>
+        ))
         .with({ type: "chart-story" }, (block) => (
             <ChartStory
                 d={block}
@@ -161,12 +175,25 @@ export default function ArticleBlock({
             />
         ))
         .with({ type: "image" }, (block) => (
-            <Image
-                className={getLayout("image", containerType)}
-                filename={block.filename}
-                alt={block.alt}
-                containerType={containerType}
-            />
+            <figure
+                className={cx(
+                    "article-block__image",
+                    getLayout(`image--${block.size}`, containerType)
+                )}
+            >
+                <Image
+                    filename={block.filename}
+                    alt={block.alt}
+                    containerType={containerType}
+                />
+                {block.caption ? (
+                    <figcaption
+                        className={getLayout("image-caption", containerType)}
+                    >
+                        {renderSpans(block.caption)}
+                    </figcaption>
+                ) : null}
+            </figure>
         ))
         .with({ type: "pull-quote" }, (block) => (
             <PullQuote
@@ -200,7 +227,7 @@ export default function ArticleBlock({
         .with({ type: "heading", level: 1 }, (block) => (
             <h1
                 className={cx(
-                    "display-2-semibold",
+                    "h1-semibold",
                     getLayout("heading", containerType)
                 )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
@@ -226,7 +253,7 @@ export default function ArticleBlock({
                     ) : null}
                     <h2
                         className={cx(
-                            "h1-semibold",
+                            "h2-bold",
                             getLayout("heading", containerType),
                             {
                                 "has-supertitle": supertitle
@@ -258,7 +285,7 @@ export default function ArticleBlock({
             return (
                 <h3
                     className={cx(
-                        "h2-bold",
+                        "h3-bold",
                         getLayout("heading", containerType),
                         {
                             "has-supertitle": supertitle
@@ -279,7 +306,10 @@ export default function ArticleBlock({
         })
         .with({ type: "heading", level: 4 }, (block) => (
             <h4
-                className={cx("h3-bold", getLayout("heading", containerType))}
+                className={cx(
+                    "h4-semibold",
+                    getLayout("heading", containerType)
+                )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
             >
                 {renderSpans(block.text)}
@@ -288,24 +318,13 @@ export default function ArticleBlock({
         .with({ type: "heading", level: 5 }, (block) => (
             <h5
                 className={cx(
-                    "h4-semibold",
-                    getLayout("heading", containerType)
-                )}
-                id={urlSlug(spansToUnformattedPlainText(block.text))}
-            >
-                {renderSpans(block.text)}
-            </h5>
-        ))
-        .with({ type: "heading", level: 6 }, (block) => (
-            <h6
-                className={cx(
                     "overline-black-caps",
                     getLayout("heading", containerType)
                 )}
                 id={urlSlug(spansToUnformattedPlainText(block.text))}
             >
                 {renderSpans(block.text)}
-            </h6>
+            </h5>
         ))
         .with(
             { type: "heading" },

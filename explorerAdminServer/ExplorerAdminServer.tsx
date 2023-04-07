@@ -7,7 +7,7 @@ import {
     EXPLORERS_GIT_CMS_FOLDER,
     ExplorersRouteResponse,
 } from "../explorer/ExplorerConstants.js"
-import simpleGit, { SimpleGit } from "simple-git"
+import { simpleGit, SimpleGit } from "simple-git"
 import { GitCommit, keyBy } from "@ourworldindata/utils"
 
 export class ExplorerAdminServer {

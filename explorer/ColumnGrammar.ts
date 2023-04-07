@@ -3,6 +3,7 @@ import {
     ColumnTypeNames,
 } from "@ourworldindata/core-table"
 import { BinningStrategy, ColorSchemeName } from "@ourworldindata/grapher"
+import { ToleranceStrategy } from "@ourworldindata/utils"
 import {
     BooleanCellDef,
     EnumCellDef,
@@ -47,6 +48,16 @@ export const ColumnGrammar: Grammar = {
         keyword: "tolerance",
         description:
             "Set this to interpolate missing values as long as they are within this range of an actual value.",
+    },
+    toleranceStrategy: {
+        ...EnumCellDef,
+        keyword: "toleranceStrategy",
+        terminalOptions: Object.values(ToleranceStrategy).map((strategy) => ({
+            keyword: strategy,
+            description: "",
+            cssClass: "",
+        })),
+        description: "The tolerance strategy to use",
     },
     description: {
         ...StringCellDef,

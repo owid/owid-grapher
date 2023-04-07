@@ -39,8 +39,7 @@ import { LoadingBlocker } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
-import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
+import { faMobile, faDesktop } from "@fortawesome/free-solid-svg-icons"
 import {
     VisionDeficiency,
     VisionDeficiencySvgFilters,
@@ -423,9 +422,10 @@ export class ChartEditorPage
                             >
                                 <input
                                     type="radio"
-                                    onChange={action(
-                                        () => (editor.previewMode = "mobile")
-                                    )}
+                                    onChange={action(() => {
+                                        editor.previewMode = "mobile"
+                                        this.refresh()
+                                    })}
                                     name="previewSize"
                                     id="mobile"
                                     checked={previewMode === "mobile"}
@@ -440,9 +440,10 @@ export class ChartEditorPage
                                 title="Desktop preview"
                             >
                                 <input
-                                    onChange={action(
-                                        () => (editor.previewMode = "desktop")
-                                    )}
+                                    onChange={action(() => {
+                                        editor.previewMode = "desktop"
+                                        this.refresh()
+                                    })}
                                     type="radio"
                                     name="previewSize"
                                     id="desktop"

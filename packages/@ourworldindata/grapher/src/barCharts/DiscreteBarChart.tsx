@@ -75,6 +75,7 @@ const LEGEND_PADDING = 25
 export interface Label {
     valueString: string
     timeString: string
+    width: number
 }
 
 interface DiscreteBarItem {
@@ -208,15 +209,13 @@ export class DiscreteBarChart
     @computed private get rightValueLabelWidth(): number {
         if (!this.hasPositive) return 0
 
-        const positiveLabels = this.series
-            .filter((d) => d.value >= 0)
-            .map(
-                (d) =>
-                    this.formatValue(d).valueString +
-                    this.formatValue(d).timeString
-            )
-        const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
-        return Bounds.forText(longestPositiveLabel, this.valueLabelStyle).width
+        return (
+            max(
+                this.series
+                    .filter((d) => d.value >= 0)
+                    .map((d) => this.formatValue(d).width)
+            ) ?? 0
+        )
     }
 
     // The amount of space we need to allocate for bar end labels on the left
@@ -225,18 +224,13 @@ export class DiscreteBarChart
     @computed private get leftValueLabelWidth(): number {
         if (!this.hasNegative) return 0
 
-        const negativeLabels = this.series
-            .filter((d) => d.value < 0)
-            .map(
-                (d) =>
-                    this.formatValue(d).valueString +
-                    this.formatValue(d).timeString
-            )
-        const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
-        return (
-            Bounds.forText(longestNegativeLabel, this.valueLabelStyle).width +
-            labelToTextPadding
-        )
+        const longestNegativeLabel =
+            max(
+                this.series
+                    .filter((d) => d.value < 0)
+                    .map((d) => this.formatValue(d).width)
+            ) ?? 0
+        return longestNegativeLabel + labelToTextPadding
     }
 
     @computed private get x0(): number {
@@ -438,12 +432,7 @@ export class DiscreteBarChart
                     const barColor = series.color
                     const label = this.formatValue(series)
                     const labelX = isNegative
-                        ? barX -
-                          Bounds.forText(
-                              label.valueString,
-                              this.valueLabelStyle
-                          ).width -
-                          labelToTextPadding
+                        ? barX - label.width - labelToTextPadding
                         : barX - labelToBarPadding
 
                     // Using transforms for positioning to enable better (subpixel) transitions
@@ -525,15 +514,23 @@ export class DiscreteBarChart
 
         const showYearLabels =
             this.manager.showYearLabels || series.time !== this.targetTime
-        const displayValue = yColumn.formatValueShort(series.value)
-        const { timeColumn } = transformedTable
-        const preposition = OwidTable.getPreposition(timeColumn)
+        const valueString = yColumn.formatValueShort(series.value)
+        let timeString = ""
+        if (showYearLabels) {
+            const { timeColumn } = transformedTable
+            const preposition = OwidTable.getPreposition(timeColumn)
+            timeString = ` ${preposition} ${timeColumn.formatTime(series.time)}`
+        }
+
+        const labelBounds = Bounds.forText(
+            valueString + timeString,
+            this.valueLabelStyle
+        )
 
         return {
-            valueString: displayValue,
-            timeString: showYearLabels
-                ? ` ${preposition} ${yColumn.formatTime(series.time)}`
-                : "",
+            valueString,
+            timeString,
+            width: labelBounds.width,
         }
     }
 
@@ -549,7 +546,7 @@ export class DiscreteBarChart
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
-    @computed private get seriesStrategy(): SeriesStrategy {
+    @computed get seriesStrategy(): SeriesStrategy {
         const autoStrategy = autoDetectSeriesStrategy(this.manager, true)
         // TODO this is an inconsistency between LineChart and DiscreteBar.
         // We should probably make it consistent at some point.

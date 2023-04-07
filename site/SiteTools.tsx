@@ -7,7 +7,7 @@ import {
     NewsletterSubscriptionContext,
 } from "./NewsletterSubscription.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faHandshake } from "@fortawesome/free-solid-svg-icons/faHandshake"
+import { faHandshake } from "@fortawesome/free-solid-svg-icons"
 
 const SITE_TOOLS_CLASS = "site-tools"
 

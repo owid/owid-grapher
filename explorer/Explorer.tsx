@@ -1,4 +1,4 @@
-import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
+import { faChartLine } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     BlankOwidTable,

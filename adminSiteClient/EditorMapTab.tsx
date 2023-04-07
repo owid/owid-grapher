@@ -6,7 +6,11 @@ import {
     MapProjectionLabels,
     MapProjectionName,
 } from "@ourworldindata/grapher"
-import { isEmpty, OwidVariableId } from "@ourworldindata/utils"
+import {
+    isEmpty,
+    OwidVariableId,
+    ToleranceStrategy,
+} from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
@@ -88,6 +92,31 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.timeTolerance = tolerance
     }
 
+    get toleranceStrategyOptions(): {
+        value: ToleranceStrategy
+        label: string
+    }[] {
+        const toleranceStrategyLabels = {
+            [ToleranceStrategy.closest]:
+                "Closest: Consider data points in the past and future",
+            [ToleranceStrategy.backwards]:
+                "Backwards: Only consider data points in the past",
+            [ToleranceStrategy.forwards]:
+                "Forwards: Only consider data points in the future",
+        }
+
+        return Object.values(ToleranceStrategy).map(
+            (val: ToleranceStrategy) => ({
+                value: val,
+                label: toleranceStrategyLabels[val],
+            })
+        )
+    }
+
+    @action.bound onSelectToleranceStrategy(value: string | undefined) {
+        this.props.mapConfig.toleranceStrategy = value as ToleranceStrategy
+    }
+
     render() {
         const { mapConfig } = this.props
         return (
@@ -109,6 +138,14 @@ class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
                     onValue={this.onTolerance}
                     helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."
                 />
+                {(mapConfig.timeTolerance || 0) > 0 && (
+                    <SelectField
+                        label="Tolerance strategy"
+                        value={mapConfig.toleranceStrategy}
+                        options={this.toleranceStrategyOptions}
+                        onValue={this.onSelectToleranceStrategy}
+                    />
+                )}
             </Section>
         )
     }

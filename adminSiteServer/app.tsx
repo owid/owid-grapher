@@ -1,5 +1,5 @@
 import React from "react"
-import simpleGit from "simple-git"
+import { simpleGit } from "simple-git"
 import express, { NextFunction } from "express"
 require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
@@ -124,22 +124,28 @@ export class OwidAdminApp {
             const adminExplorerServer = new ExplorerAdminServer(GIT_CMS_DIR)
             const publishedExplorersBySlug =
                 await adminExplorerServer.getAllPublishedExplorersBySlug()
-            const gdoc = await Gdoc.getGdocFromContentSource(
-                req.params.id,
-                publishedExplorersBySlug,
-                GdocsContentSource.Gdocs
-            )
-            res.set("X-Robots-Tag", "noindex")
-            res.send(
-                renderToHtmlPage(
-                    <OwidArticlePage
-                        baseUrl={BAKED_BASE_URL}
-                        article={gdoc}
-                        debug
-                        isPreviewing
-                    />
+            try {
+                const gdoc = await Gdoc.getGdocFromContentSource(
+                    req.params.id,
+                    publishedExplorersBySlug,
+                    GdocsContentSource.Gdocs
                 )
-            )
+                res.set("X-Robots-Tag", "noindex")
+                res.send(
+                    renderToHtmlPage(
+                        <OwidArticlePage
+                            baseUrl={BAKED_BASE_URL}
+                            article={gdoc}
+                            debug
+                            isPreviewing
+                        />
+                    )
+                )
+            } catch (error) {
+                res.status(500).json({
+                    error: { message: String(error), status: 500 },
+                })
+            }
         })
 
         // Send errors to Slack

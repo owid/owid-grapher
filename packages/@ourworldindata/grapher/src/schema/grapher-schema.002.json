@@ -712,11 +712,11 @@
             "patternProperties": {
                 "^\\w+$": {
                     "type": "object",
-                    "description": "Details on Demand category",
+                    "description": "Detail on Demand category",
                     "patternProperties": {
                         "^\\w+$": {
                             "type": "object",
-                            "description": "Details on Demand data",
+                            "description": "Detail on Demand data",
                             "properties": {
                                 "id": {
                                     "type": "number",

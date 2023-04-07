@@ -1,30 +1,51 @@
 #! /usr/bin/env node
 
-import parseArgs from "minimist"
-import { SiteBaker } from "./SiteBaker.js"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
+import { BakeStep, BakeStepConfig, bakeSteps, SiteBaker } from "./SiteBaker.js"
 import * as fs from "fs-extra"
 import { normalize } from "path"
 
 const bakeDomainToFolder = async (
     baseUrl = "http://localhost:3000/",
-    dir = "localBake"
+    dir = "localBake",
+    bakeSteps?: BakeStepConfig
 ) => {
     dir = normalize(dir)
     fs.mkdirp(dir)
-    const baker = new SiteBaker(dir, baseUrl)
-    console.log(
-        `Baking site sans Wordpress with baseUrl '${baseUrl}' to dir '${dir}'`
-    )
-    await baker.bakeNonWordpressPages()
+    const baker = new SiteBaker(dir, baseUrl, bakeSteps)
+    console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
+    await baker.bakeAll()
 }
 
-const args = parseArgs(process.argv.slice(2))
-const theArgs = args._
-// Usage: yarn buildLocalBake http://localhost:3000/ localBake
-// todo: can we just make all paths relative? why do we need absolute baked base url?
-bakeDomainToFolder(theArgs[0], theArgs[1]).then((_) => {
-    // TODO: without this the script hangs here since using the workerpool library in baking
-    // I don't understand why this happens. Probably using top level await would also resolve
-    // this but I couldn't get Typescript to play along with that
-    process.exit(0)
-})
+yargs(hideBin(process.argv))
+    .command<{ baseUrl: string; dir: string; steps?: string[] }>(
+        "$0 [baseUrl] [dir]",
+        "Bake the site to a local folder",
+        (yargs) => {
+            yargs
+                .positional("baseUrl", {
+                    type: "string",
+                    default: "http://localhost:3000/",
+                    describe: "Base URL of the site",
+                })
+                .positional("dir", {
+                    type: "string",
+                    default: "localBake",
+                    describe: "Directory to save the baked site",
+                })
+                .option("steps", {
+                    type: "array",
+                    choices: bakeSteps,
+                    description: "Steps to perform during the baking process",
+                })
+        },
+        async ({ baseUrl, dir, steps }) => {
+            const bakeSteps = steps ? new Set(steps as BakeStep[]) : undefined
+            await bakeDomainToFolder(baseUrl, dir, bakeSteps)
+            process.exit(0)
+        }
+    )
+    .help()
+    .alias("help", "h")
+    .strict().argv

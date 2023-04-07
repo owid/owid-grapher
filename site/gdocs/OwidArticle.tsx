@@ -7,15 +7,15 @@ import {
     formatDate,
     getArticleFromJSON,
     LinkedChart,
+    ImageMetadata,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
-import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons/faCreativeCommons"
+import { faBook } from "@fortawesome/free-solid-svg-icons"
+import { faCreativeCommons } from "@fortawesome/free-brands-svg-icons"
 import { CodeSnippet } from "../blocks/CodeSnippet.js"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { formatAuthors } from "../clientFormatting.js"
 import { DebugProvider } from "./DebugContext.js"
-import { ImageMetadata } from "@ourworldindata/utils"
 
 export const AttachmentsContext = createContext<{
     linkedCharts: Record<string, LinkedChart>
@@ -80,9 +80,11 @@ export function OwidArticle({
                     <div className="article-banner" style={coverStyle}></div>
                     <header className="centered-article-header align-center grid grid-cols-8 col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                         <div className="centered-article-header__title-container col-start-2 span-cols-6">
-                            <h3 className="centered-article-header__supertitle span-cols-8">
-                                {content.supertitle}
-                            </h3>
+                            {content.supertitle ? (
+                                <h3 className="centered-article-header__supertitle span-cols-8">
+                                    {content.supertitle}
+                                </h3>
+                            ) : null}
                             <h1 className="centered-article-header__title">
                                 {content.title}
                             </h1>
@@ -152,67 +154,72 @@ export function OwidArticle({
 
                     <section
                         id="article-citation"
-                        className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                        className="grid grid-cols-12-full-width col-start-1 col-end-limit"
                     >
-                        <h3>Cite this work</h3>
-                        <p>
-                            Our articles and data visualizations rely on work
-                            from many different people and organizations. When
-                            citing this topic page, please also cite the
-                            underlying data sources. This topic page can be
-                            cited as:
-                        </p>
-                        {/* TODO? renderSpans(content.citation.map((block) => block.value)) */}
-                        <div>
-                            <CodeSnippet code={citationText} />
-                        </div>
-                        <p>BibTeX citation</p>
-                        <div>
-                            <CodeSnippet code={bibtex} />
+                        <div className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                            <h3>Cite this work</h3>
+                            <p>
+                                Our articles and data visualizations rely on
+                                work from many different people and
+                                organizations. When citing this topic page,
+                                please also cite the underlying data sources.
+                                This topic page can be cited as:
+                            </p>
+                            {/* TODO? renderSpans(content.citation.map((block) => block.value)) */}
+                            <div>
+                                <CodeSnippet code={citationText} />
+                            </div>
+                            <p>BibTeX citation</p>
+                            <div>
+                                <CodeSnippet code={bibtex} />
+                            </div>
                         </div>
                     </section>
 
                     <section
                         id="article-licence"
-                        className="col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
+                        className="grid grid-cols-12-full-width col-start-1 col-end-limit"
                     >
-                        <img
-                            src={`${BAKED_BASE_URL}/owid-logo.svg`}
-                            className="img-raw"
-                            alt="Our World in Data logo"
-                        />
-                        <h3>Reuse this work freely</h3>
+                        <div className="col-start-6 span-cols-4 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
+                            <img
+                                src={`${BAKED_BASE_URL}/owid-logo.svg`}
+                                className="img-raw"
+                                alt="Our World in Data logo"
+                            />
+                            <h3>Reuse this work freely</h3>
 
-                        <p>
-                            All visualizations, data, and code produced by Our
-                            World in Data are completely open access under the{" "}
-                            <a
-                                href="https://creativecommons.org/licenses/by/4.0/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Creative Commons BY license
-                            </a>
-                            . You have the permission to use, distribute, and
-                            reproduce these in any medium, provided the source
-                            and authors are credited.
-                        </p>
-                        <p>
-                            The data produced by third parties and made
-                            available by Our World in Data is subject to the
-                            license terms from the original third-party authors.
-                            We will always indicate the original source of the
-                            data in our documentation, so you should always
-                            check the license of any such third-party data
-                            before use and redistribution.
-                        </p>
-                        <p>
-                            All of{" "}
-                            <a href="/how-to-use-our-world-in-data#how-to-embed-interactive-charts-in-your-article">
-                                our charts can be embedded
-                            </a>{" "}
-                            in any site.
-                        </p>
+                            <p>
+                                All visualizations, data, and code produced by
+                                Our World in Data are completely open access
+                                under the{" "}
+                                <a
+                                    href="https://creativecommons.org/licenses/by/4.0/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Creative Commons BY license
+                                </a>
+                                . You have the permission to use, distribute,
+                                and reproduce these in any medium, provided the
+                                source and authors are credited.
+                            </p>
+                            <p>
+                                The data produced by third parties and made
+                                available by Our World in Data is subject to the
+                                license terms from the original third-party
+                                authors. We will always indicate the original
+                                source of the data in our documentation, so you
+                                should always check the license of any such
+                                third-party data before use and redistribution.
+                            </p>
+                            <p>
+                                All of{" "}
+                                <a href="/how-to-use-our-world-in-data#how-to-embed-interactive-charts-in-your-article">
+                                    our charts can be embedded
+                                </a>{" "}
+                                in any site.
+                            </p>
+                        </div>
                     </section>
                 </article>
             </ArticleContext.Provider>

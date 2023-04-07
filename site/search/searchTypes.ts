@@ -18,7 +18,6 @@ export interface PageRecord {
     content: string
     views_7d: number
     score: number
-    postId?: number
     excerpt?: string
     authors?: string[]
     date?: string

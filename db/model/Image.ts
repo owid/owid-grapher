@@ -32,24 +32,48 @@ import {
 class ImageStore {
     images: Record<string, ImageMetadata> | undefined
 
-    async fetchImageMetadata(): Promise<void> {
+    async fetchImageMetadata(filesnames: string[]): Promise<void> {
         console.log("Fetching all image metadata from Google Drive")
         const driveClient = google.drive({
             version: "v3",
             auth: Gdoc.getGoogleReadonlyAuth(),
         })
-        // TODO: fetch all pages (current limit = 1000)
-        const res = await driveClient.files.list({
+        // e.g. `and (name="example.png" or name="image.svg")`
+        // https://developers.google.com/drive/api/guides/search-files#examples
+        const filenamesFilter = filesnames.length
+            ? `and (${filesnames
+                  .map((filename) => `name='${filename}'`)
+                  .join(" or ")})`
+            : ""
+
+        const listParams: drive_v3.Params$Resource$Files$List = {
             fields: "nextPageToken, files(id, name, description, modifiedTime, imageMediaMetadata, trashed)",
-            q: `'${GDOCS_CLIENT_EMAIL}' in readers and mimeType contains 'image/'`,
+            q: `'${GDOCS_CLIENT_EMAIL}' in readers and mimeType contains 'image/' ${filenamesFilter}`,
             driveId: GDOCS_SHARED_DRIVE_ID,
             corpora: "drive",
             supportsAllDrives: true,
             includeItemsFromAllDrives: true,
             pageSize: 1000,
-        })
+        }
 
-        const files = res.data.files ?? []
+        let files: drive_v3.Schema$File[] = []
+        let nextPageToken: drive_v3.Schema$FileList["nextPageToken"] = undefined
+        let isInitialQuery = true
+
+        while (nextPageToken || isInitialQuery) {
+            await driveClient.files
+                .list({
+                    ...listParams,
+                    pageToken: nextPageToken,
+                })
+                // chaining this so that reassigning nextPageToken doesn't trip up TypeScript
+                .then((res) => {
+                    const nextFiles = res.data.files ?? []
+                    nextPageToken = res.data.nextPageToken
+                    files = [...files, ...nextFiles]
+                })
+            isInitialQuery = false
+        }
 
         function validateImage(
             image: drive_v3.Schema$File
@@ -82,15 +106,13 @@ class ImageStore {
         this.images = keyBy(images, "filename")
     }
 
-    async syncImagesToS3(filenames: string[]): Promise<(Image | undefined)[]> {
+    async syncImagesToS3(): Promise<(Image | undefined)[]> {
+        const images = this.images
+        if (!images) return []
         return Promise.all(
-            filenames.map((filename) => {
-                const imageMetadata = this.images?.[filename]
-                if (imageMetadata) {
-                    return Image.syncImage(imageMetadata!)
-                }
-                return
-            })
+            Object.keys(images).map((filename) =>
+                Image.syncImage(images[filename])
+            )
         )
     }
 }

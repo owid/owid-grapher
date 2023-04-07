@@ -58,8 +58,7 @@ import {
 } from "rxjs/operators"
 import { fromFetch } from "rxjs/fetch"
 import { toStream, fromStream } from "mobx-utils"
-import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
-import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash"
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons"
 import {
     parseVariableAnnotationsRow,
     VariableAnnotationsRow,
@@ -1089,7 +1088,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     async getFieldDefinitions() {
         const json = await fetch(
-            "https://files.ourworldindata.org/schemas/grapher-schema.002.json"
+            "https://files.ourworldindata.org/schemas/grapher-schema.003.json"
         ).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
@@ -1556,7 +1555,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         field="columnFilter"
                         store={this}
                         label="Filter columns"
-                        buttonText="Clear"
+                        buttonContent="Clear"
                         onButtonClick={this.clearColumnFilter}
                     />
 

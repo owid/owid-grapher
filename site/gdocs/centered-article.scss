@@ -35,7 +35,7 @@ $banner-height: 200px;
 
 .article-block__image {
     width: 100%;
-    margin-bottom: 32px;
+    margin: 32px 0;
 
     img {
         width: 100%;
@@ -47,8 +47,18 @@ $banner-height: 200px;
     }
 }
 
+.article-block__image-caption {
+    @include body-3-medium-italic;
+    text-align: center;
+}
+
+.article-block__heading + .article-block__heading {
+    margin-top: 0;
+}
+
 h2.article-block__heading.has-supertitle {
     margin-top: 24px;
+    text-align: center;
     .article-block__heading-supertitle {
         color: $blue-50;
         margin-bottom: 8px;
@@ -78,7 +88,7 @@ h2.article-block__heading.has-supertitle {
 }
 
 h3.article-block__heading.has-supertitle {
-    margin-bottom: 24px;
+    text-align: center;
 
     .article-block__heading-supertitle {
         color: $blue-50;
@@ -99,12 +109,14 @@ h3.article-block__heading.has-supertitle {
     .centered-article-header__title {
         @include display-2-semibold;
         margin-top: 0;
+        margin-bottom: 24px;
         color: $blue-90;
     }
 }
 
 .centered-article-header__subtitle {
     @include subtitle-1;
+    margin-top: 0;
     color: $blue-50;
 }
 
@@ -143,12 +155,9 @@ h3.article-block__heading.has-supertitle {
 .footnote-container,
 #article-citation,
 #article-licence {
-    margin-top: 48px;
-    padding-top: 48px;
     @include body-3-medium;
-    border-top: 1px solid $blue-10;
     color: $blue-60;
-    width: 100%;
+    background-color: $beige;
 
     h3 {
         @include h3-bold;
@@ -162,9 +171,50 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+.footnote-container {
+    margin-top: 48px;
+    padding-top: 40px;
+    padding-bottom: 0;
+    h3 {
+        @include overline-black-caps;
+        color: $blue-90;
+        text-align: center;
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+        margin-top: 0;
+        border-bottom: 1px solid $blue-20;
+    }
+    .footnote-list {
+        column-count: 2;
+        column-span: none;
+        column-gap: 48px;
+        color: $blue-60;
+        padding-bottom: 48px;
+        border-bottom: 1px solid $blue-20;
+        li {
+            break-inside: avoid-column;
+            -webkit-column-break-inside: avoid;
+            margin-left: 16px;
+        }
+        li:first-child p {
+            margin-top: 0;
+        }
+
+        @include sm-only {
+            column-count: 1;
+            margin: 0 24px;
+            li {
+                margin-left: 0;
+            }
+        }
+    }
+}
+
 #article-citation {
+    padding-top: 48px;
     h3 {
         margin-top: 0;
+        text-align: center;
     }
     p {
         margin-bottom: 16px;
@@ -172,22 +222,32 @@ h3.article-block__heading.has-supertitle {
     div:last-of-type .wp-code-snippet {
         margin-bottom: 0;
     }
+    > div:last-child {
+        padding-bottom: 48px;
+        border-bottom: 1px solid $blue-20;
+    }
 }
 
 #article-licence {
+    padding-top: 48px;
+    padding-bottom: 48px;
     text-align: center;
-    margin-bottom: 34px; // Should be 48px, but I don't get why this margin doesn't collapse with the 32px margin of the last paragraph.
 }
 
 .article-block__text,
 .article-block__list,
-.article-block__html {
-    @include body-2-regular;
+.article-block__html,
+.article-block__numbered-list {
+    @include body-1-regular;
 
     .span-link {
         @include owid-link-60;
         color: inherit;
     }
+}
+
+.article-block__numbered-list {
+    margin-left: 16px;
 }
 
 .article-block__aside-right figcaption {
@@ -378,6 +438,7 @@ h3.article-block__heading.has-supertitle {
     }
 }
 
+// A full-width grey section
 .article-block__gray-section {
     background-color: $gray-10;
     padding: 48px 0;
@@ -396,6 +457,22 @@ h3.article-block__heading.has-supertitle {
         border: none;
         padding-top: 0;
     }
+}
+
+// A small grey block
+.article-block__callout {
+    h4 {
+        color: $blue-90;
+        margin-bottom: 8px;
+    }
+    a {
+        @include owid-link-90;
+    }
+    color: $blue-60;
+    background: $gray-10;
+    padding: 16px 24px;
+    border-radius: 8px;
+    margin: 32px 0;
 }
 
 .article-block__sticky-right,
