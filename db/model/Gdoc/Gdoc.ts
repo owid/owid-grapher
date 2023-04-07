@@ -197,22 +197,18 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         publishedExplorersBySlug: Record<string, any>
     ): Promise<void> {
         const slugToIdMap = await Chart.mapSlugsToIds()
-        const uniqueSlugsByLinkType = this.links
-            .filter(({ linkType }) =>
-                ["grapher", "explorer"].includes(linkType)
-            )
-            .reduce(
-                (acc, { target, linkType }) => {
-                    if (!acc[linkType].includes(target)) {
-                        acc[linkType].push(target)
-                    }
-                    return acc
-                },
-                { grapher: [], explorer: [] } as Record<string, string[]>
-            )
+        const uniqueSlugsByLinkType = this.links.reduce(
+            (slugsByLinkType, { linkType, target }) => {
+                if (linkType == "grapher" || linkType == "explorer") {
+                    slugsByLinkType[linkType].add(target)
+                }
+                return slugsByLinkType
+            },
+            { grapher: new Set<string>(), explorer: new Set<string>() }
+        )
 
         const linkedGrapherCharts = await Promise.all(
-            uniqueSlugsByLinkType.grapher.map(async (slug) => {
+            [...uniqueSlugsByLinkType.grapher.values()].map(async (slug) => {
                 const chartId = slugToIdMap[slug]
                 const chart = await Chart.findOneBy({ id: chartId })
                 const resolvedSlug = chart?.config.slug ?? ""
@@ -227,7 +223,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
         ).then(excludeNullish)
 
         const linkedExplorerCharts = await Promise.all(
-            uniqueSlugsByLinkType.explorer.map(async (slug) => {
+            [...uniqueSlugsByLinkType.explorer.values()].map(async (slug) => {
                 const explorer = publishedExplorersBySlug[slug]
                 const linkedChart: LinkedChart = {
                     slug,
