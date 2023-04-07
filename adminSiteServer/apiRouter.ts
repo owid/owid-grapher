@@ -2695,7 +2695,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {
-        throw new JsonError(`Error fetching document ${error}`, 500)
+        res.status(500).json({ error: { message: String(error), status: 500 } })
     }
 })
 

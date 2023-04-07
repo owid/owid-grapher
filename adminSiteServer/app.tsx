@@ -120,21 +120,27 @@ export class OwidAdminApp {
 
         // Public preview of a Gdoc article
         app.get("/gdocs/:id/preview", async (req, res) => {
-            const gdoc = await Gdoc.getGdocFromContentSource(
-                req.params.id,
-                GdocsContentSource.Gdocs
-            )
-            res.set("X-Robots-Tag", "noindex")
-            res.send(
-                renderToHtmlPage(
-                    <OwidArticlePage
-                        baseUrl={BAKED_BASE_URL}
-                        article={gdoc}
-                        debug
-                        isPreviewing
-                    />
+            try {
+                const gdoc = await Gdoc.getGdocFromContentSource(
+                    req.params.id,
+                    GdocsContentSource.Gdocs
                 )
-            )
+                res.set("X-Robots-Tag", "noindex")
+                res.send(
+                    renderToHtmlPage(
+                        <OwidArticlePage
+                            baseUrl={BAKED_BASE_URL}
+                            article={gdoc}
+                            debug
+                            isPreviewing
+                        />
+                    )
+                )
+            } catch (error) {
+                res.status(500).json({
+                    error: { message: String(error), status: 500 },
+                })
+            }
         })
 
         // Send errors to Slack
