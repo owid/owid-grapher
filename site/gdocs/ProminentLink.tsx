@@ -81,7 +81,7 @@ export const ProminentLink = (props: {
                     {linkType === "gdoc" ? (
                         <Image filename={thumbnail} containerType="thumbnail" />
                     ) : (
-                        <img src={thumbnail} />
+                        <img loading="lazy" src={thumbnail} />
                     )}
                 </div>
             ) : null}
