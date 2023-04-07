@@ -306,8 +306,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
             []
         )
 
-        const chartRecords = await getChartsRecords()
-        const chartRecordsBySlug = keyBy(chartRecords, "slug")
+        const chartIdsBySlug = await Chart.mapSlugsToIds()
 
         const linkErrors: OwidArticleErrorMessage[] = this.links.reduce(
             (
@@ -331,7 +330,7 @@ export class Gdoc extends BaseEntity implements OwidArticleType {
                     }
                 }
                 if (link.linkType == "grapher") {
-                    if (!chartRecordsBySlug[link.target]) {
+                    if (!chartIdsBySlug[link.target]) {
                         acc.push({
                             property: "content",
                             message: `Grapher chart with slug ${link.target} does not exist or is not published`,
