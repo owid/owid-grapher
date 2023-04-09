@@ -5,7 +5,7 @@ import {
     BaseEntity,
     ManyToOne,
     OneToMany,
-    Relation,
+    type Relation,
 } from "typeorm"
 import * as lodash from "lodash"
 import * as db from "../db.js"
@@ -16,7 +16,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     Tag,
 } from "@ourworldindata/utils"
-import { GrapherInterface } from "@ourworldindata/grapher"
+import type { GrapherInterface } from "@ourworldindata/grapher"
 
 // XXX hardcoded filtering to public parent tags
 const PUBLIC_TAG_PARENT_IDS = [

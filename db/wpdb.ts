@@ -13,7 +13,7 @@ import {
     BLOG_SLUG,
 } from "../settings/serverSettings.js"
 import * as db from "./db.js"
-import { Knex, knex } from "knex"
+import knex, { Knex } from "knex"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup.js"
 import {

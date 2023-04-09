@@ -4,7 +4,7 @@ import {
     Column,
     BaseEntity,
     OneToMany,
-    Relation,
+    type Relation,
 } from "typeorm"
 import { Chart } from "./Chart.js"
 import { Dataset } from "./Dataset.js"
