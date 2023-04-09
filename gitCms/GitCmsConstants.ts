@@ -8,11 +8,10 @@ export const GIT_CMS_PULL_ROUTE = "/git-cms-pull"
 export const GIT_CMS_GLOB_ROUTE = "/git-cms-glob"
 
 // todo: refactor GitCmsServer to be a class, and pass this in as a top level param
-export const GIT_CMS_DIR =
-    typeof url.fileURLToPath(new URL(".", import.meta.url)) !== "undefined"
-        ? url.fileURLToPath(new URL(".", import.meta.url)) +
-          "/../../../owid-content"
-        : ""
+export const GIT_CMS_DIR = process?.versions?.node
+    ? url.fileURLToPath(new URL(".", import.meta.url)) +
+      "/../../../owid-content"
+    : ""
 export const GIT_CMS_REPO_URL = `https://github.com/owid/owid-content`
 export const GIT_CMS_BASE_ROUTE = "/admin/"
 

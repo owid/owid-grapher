@@ -7,7 +7,7 @@ import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
 import url from "url"
 
-if (typeof url.fileURLToPath(new URL(".", import.meta.url)) !== "undefined") {
+if (process?.versions?.node) {
     // only run this code in node, not in the browser.
     // in the browser, process.env is already populated by vite.
     const baseDir = findBaseDir(
