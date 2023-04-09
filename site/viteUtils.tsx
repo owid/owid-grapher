@@ -151,7 +151,7 @@ const prodAssets = (entry: string, baseUrl: string): Assets => {
         // sort for some kind of consistency: first modulepreload, then preload, then stylesheet
         forHeader: sortBy(
             [googleFontsStyles, polyfillPreload, ...assets.forHeader],
-            "props.rel"
+            (el) => el.props.rel
         ),
         forFooter: [polyfillScript, ...assets.forFooter],
     }

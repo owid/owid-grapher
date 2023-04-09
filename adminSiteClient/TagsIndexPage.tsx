@@ -98,7 +98,7 @@ export class TagsIndexPage extends React.Component {
     @observable isAddingTag: boolean = false
     @observable addTagParentId?: number
 
-    @computed get categoriesById(): Record<string, TagListItem> {
+    @computed get categoriesById(): Record<number, TagListItem> {
         return lodash.keyBy(this.tags, (t) => t.id)
     }
 
