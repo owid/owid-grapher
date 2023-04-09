@@ -1,4 +1,4 @@
-import { keyBy } from "lodash"
+import { keyBy } from "lodash-es"
 import { Entity, Column, BaseEntity } from "typeorm"
 import { RawPageview } from "@ourworldindata/utils"
 

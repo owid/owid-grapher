@@ -64,8 +64,7 @@ import {
     upperFirst,
     without,
     zip,
-} from "lodash"
-
+} from "lodash-es"
 export {
     capitalize,
     chunk,

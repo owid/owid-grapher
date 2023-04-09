@@ -1,7 +1,7 @@
 // Script to export the data_values for all variables attached to charts
 
 import * as db from "./db.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import parseArgs from "minimist"
 
 import {

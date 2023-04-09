@@ -28,7 +28,7 @@ import {
     detailOnDemandRegex,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { compact, flatten, isPlainObject, partition } from "lodash"
+import { compact, flatten, isPlainObject, partition } from "lodash-es"
 import cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
 

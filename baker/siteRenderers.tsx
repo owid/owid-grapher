@@ -12,7 +12,7 @@ import { DonatePage } from "../site/DonatePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import {
     extractFormattingOptions,
     formatCountryProfile,

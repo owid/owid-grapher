@@ -1,6 +1,6 @@
 import { PanelRow, ToggleControl, TextControl } from "@wordpress/components"
 import { useState, useEffect } from "@wordpress/element"
-import { deburr } from "lodash"
+import { deburr } from "lodash-es"
 
 const SyncingAnchorSettings = ({ rawTitle, slug, updateSlug }) => {
     const [isAnchorSyncing, setAnchorSyncing] = useState(false)

@@ -1,5 +1,5 @@
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { JsonError } from "@ourworldindata/utils"
 
 // Fail-fast integer conversion, for e.g. ids in url params

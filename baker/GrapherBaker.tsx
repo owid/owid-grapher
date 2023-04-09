@@ -23,7 +23,7 @@ import {
     isWordpressDBEnabled,
 } from "../db/wpdb.js"
 import fs from "fs-extra"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { bakeGraphersToPngs } from "./GrapherImageBaker.js"
 import {
     OPTIMIZE_SVG_EXPORTS,

@@ -1,7 +1,7 @@
 // Script to export the data_values for all variables attached to charts
 
 import * as db from "./db.js"
-import _ from "lodash"
+import _ from "lodash-es"
 import cheerio from "cheerio"
 
 // const argv = parseArgs(process.argv.slice(2))

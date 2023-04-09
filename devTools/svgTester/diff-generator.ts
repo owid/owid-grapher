@@ -3,7 +3,7 @@
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
 import fs from "fs-extra"
-import _ from "lodash"
+import _ from "lodash-es"
 import cheerio from "cheerio"
 
 // This script generates an html report from a newline separated list of chart ids that were different

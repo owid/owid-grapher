@@ -5905,10 +5905,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.14.185":
-  version: 4.14.185
-  resolution: "@types/lodash@npm:4.14.185"
-  checksum: f81d13da5ecab110ca9c5c7cc2bedc3c9802a6acf668576aecd1b8f4b134ed81d06c15f1e600fb08f05975098280a0d97d30cddfc2cb39ec1c6b56e971ca53b3
+"@types/lodash-es@npm:^4.17.7":
+  version: 4.17.7
+  resolution: "@types/lodash-es@npm:4.17.7"
+  dependencies:
+    "@types/lodash": "*"
+  checksum: 4b1f39fd1d921311c37a846c0e0df9d1fa23e27448a6ad1efd7574e703abd2b2fa5e8f3b5037146000f167ba231d0d01e52747d902654151b4ceeff9f2a9b380
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:*, @types/lodash@npm:^4.14.185":
+  version: 4.14.192
+  resolution: "@types/lodash@npm:4.14.192"
+  checksum: 31e1f0543a04158d2c429c45efd7c77882736630d0652f82eb337d6159ec0c249c5d175c0af731537b53271e665ff8d76f43221d75d03646d31cb4bd6f0056b1
   languageName: node
   linkType: hard
 
@@ -13707,7 +13716,7 @@ __metadata:
     "@types/js-cookie": ^3.0.2
     "@types/jsonwebtoken": ^9.0.0
     "@types/linkifyjs": ^2.1.4
-    "@types/lodash": ^4.14.185
+    "@types/lodash-es": ^4.17.7
     "@types/md5": ^2.3.2
     "@types/minimist": ^1.2.2
     "@types/mousetrap": ^1.6.9
@@ -13791,7 +13800,7 @@ __metadata:
     knex: ^2.4.2
     lerna: ^6.0.0
     linkifyjs: ^2.1.9
-    lodash: ^4.17.20
+    lodash-es: ^4.17.21
     mathjax-full: ^3.1.0
     md5: ^2.3.0
     minimist: ^1.2.6

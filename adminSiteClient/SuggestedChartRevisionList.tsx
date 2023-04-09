@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faQuestionCircle,

@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-import * as lodash from "lodash"
+import * as lodash from "lodash-es"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow, Modal, TextField } from "./Forms.js"

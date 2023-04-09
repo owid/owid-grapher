@@ -16,7 +16,7 @@ import * as db from "../db.js"
 import { slugify } from "@ourworldindata/utils"
 import filenamify from "filenamify"
 import { VariableRow, variableTable, writeVariableCSV } from "./Variable.js"
-import _ from "lodash"
+import _ from "lodash-es"
 
 @Entity("datasets")
 @Unique(["name", "namespace"])
