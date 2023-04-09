@@ -4,6 +4,7 @@
     "engines": {
         "node": ">=18.16"
     },
+    "type": "module",
     "packageManager": "yarn@3.3.0",
     "scripts": {
         "buildAndDeploySite": "node --enable-source-maps ./itsJustJavascript/baker/buildAndDeploySite.js",

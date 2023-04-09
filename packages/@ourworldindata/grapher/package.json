@@ -4,6 +4,7 @@
   "description": "OWID's data exploration and visualization library.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "files": [
     "dist/index.js",
     "dist/index.css"
