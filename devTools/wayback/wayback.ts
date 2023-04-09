@@ -4,11 +4,13 @@ import express from "express"
 import path from "path"
 import fs from "fs-extra"
 import mime from "mime-types"
+import url from "url"
 
 const PORT = 4433
 const app = express()
 
-const staticFolder = __dirname + "/../../../owid-static"
+const staticFolder = url.fileURLToPath(new URL(".", import.meta.url))
+;+"/../../../owid-static"
 
 if (!fs.existsSync(staticFolder))
     throw new Error(`Owid Static not found at ${staticFolder}`)

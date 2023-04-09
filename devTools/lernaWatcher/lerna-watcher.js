@@ -10,6 +10,7 @@
 const chokidar = require("chokidar")
 const path = require("path")
 const { execSync } = require("child_process")
+import url from "url"
 
 console.log("watching packages/@ourworldindata")
 
@@ -22,7 +23,13 @@ function execLernaBuild() {
 }
 
 chokidar
-    .watch(path.join(__dirname, "../../packages/@ourworldindata/*/src/**"), {
-        persistent: true,
-    })
+    .watch(
+        path.join(
+            url.fileURLToPath(new URL(".", import.meta.url)),
+            "../../packages/@ourworldindata/*/src/**"
+        ),
+        {
+            persistent: true,
+        }
+    )
     .on("change", execLernaBuild)

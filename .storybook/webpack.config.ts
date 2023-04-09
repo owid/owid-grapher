@@ -1,4 +1,5 @@
 import webpack from "webpack"
+import url from "url"
 
 const path = require("path")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
@@ -6,7 +7,10 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const configAdjuster = ({ config }: { config: webpack.Configuration }) => {
     // baseDir is necessary to make webpack.config.ts use the correct path both in TS as well as in
     // transpiled JS form
-    let baseDir = path.resolve(__dirname, "..")
+    let baseDir = path.resolve(
+        url.fileURLToPath(new URL(".", import.meta.url)),
+        ".."
+    )
     baseDir =
         path.basename(baseDir) === "itsJustJavascript"
             ? path.resolve(baseDir, "..")

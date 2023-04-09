@@ -3,6 +3,7 @@
 import parseArgs from "minimist"
 import * as utils from "./utils.js"
 import fs from "fs-extra"
+import url from "url"
 
 import workerpool from "workerpool"
 
@@ -43,9 +44,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
             rmOnError,
         }))
 
-        const pool = workerpool.pool(__dirname + "/worker.js", {
-            minWorkers: 2,
-        })
+        const pool = workerpool.pool(
+            url.fileURLToPath(new URL(".", import.meta.url)) + "/worker.js",
+            {
+                minWorkers: 2,
+            }
+        )
 
         // Parallelize the CPU heavy verification using the workerpool library
         // This call will then in parallel take the descriptions of the verifyJobs,

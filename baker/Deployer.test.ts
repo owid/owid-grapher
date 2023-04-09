@@ -2,10 +2,12 @@
 
 import { Deployer } from "./Deployer.js"
 import { DeployTarget } from "./DeployTarget.js"
+import url from "url"
 
 it("can init", () => {
     const deployer = new Deployer({
-        owidGrapherRootDir: __dirname + "/../",
+        owidGrapherRootDir:
+            url.fileURLToPath(new URL(".", import.meta.url)) + "/../",
         target: DeployTarget.live,
         userRunningTheDeploy: "jane",
         skipChecks: true,

@@ -5,6 +5,7 @@ import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import os from "os"
 import path from "path"
+import url from "url"
 import { BakeStep, bakeSteps } from "./SiteBaker.js"
 import { DeployTarget } from "./DeployTarget.js"
 
@@ -31,7 +32,9 @@ yargs(hideBin(process.argv))
             const deployer = new Deployer({
                 target: target as any,
                 userRunningTheDeploy: os.userInfo().username,
-                owidGrapherRootDir: path.normalize(__dirname + "/../../"),
+                owidGrapherRootDir: path.normalize(
+                    url.fileURLToPath(new URL(".", import.meta.url)) + "/../../"
+                ),
                 skipChecks,
                 runChecksRemotely: runChecksRemotely,
                 bakeSteps,

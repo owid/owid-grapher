@@ -4,13 +4,15 @@ import { GitCmsClient } from "./GitCmsClient.js"
 import { GitCmsServer } from "./GitCmsServer.js"
 import fs from "fs-extra"
 import express from "express"
+import url from "url"
 
 import { jest } from "@jest/globals"
 
 jest.setTimeout(10000) // wait for up to 10s for the server to respond
 
 describe("client/server integration tests", () => {
-    const baseDir = __dirname + "/integrationTestTempDirectoryOkToDelete"
+    const baseDir = url.fileURLToPath(new URL(".", import.meta.url))
+    ;+"/integrationTestTempDirectoryOkToDelete"
 
     // Arrange
     const testPort = 3456

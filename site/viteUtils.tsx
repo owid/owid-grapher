@@ -10,6 +10,8 @@ import { GOOGLE_FONTS_URL, POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest } from "vite"
 import { sortBy } from "@ourworldindata/utils"
 
+import url from "url"
+
 const VITE_DEV_URL = process.env.VITE_DEV_URL ?? "http://localhost:8090"
 
 export const VITE_ASSET_SITE_ENTRY = "site/owid.entry.ts"
@@ -131,7 +133,9 @@ export const createTagsForManifestEntry = (
 // in prod: we need to make sure that we include <script> and <link> tags that are required for the entry point.
 // this could be, for example: owid.mjs, common.mjs, owid.css, common.css. (plus Google Fonts and polyfills)
 const prodAssets = (entry: string, baseUrl: string): Assets => {
-    const baseDir = findBaseDir(__dirname)
+    const baseDir = findBaseDir(
+        url.fileURLToPath(new URL(".", import.meta.url))
+    )
     const manifestPath = `${baseDir}/dist/manifest.json`
     let manifest
     try {

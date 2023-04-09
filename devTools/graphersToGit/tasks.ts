@@ -13,15 +13,30 @@ import fs from "fs"
 import parseArgs from "minimist"
 import { getPublishedGraphersBySlug } from "../../baker/GrapherImageBaker.js"
 import { closeTypeOrmAndKnexConnections } from "../../db/db.js"
+import url from "url"
 
-const GRAPHER_DUMP_LOCATION = __dirname + "/graphers.json"
-const GRAPHER_TRIMMED_LOCATION = __dirname + "/graphers-trimmed.json"
-const GRAPHER_SELECTIONS_LOCATION = __dirname + "/graphers-selections.txt"
-const GRAPHER_COLOR_SCALES_LOCATION = __dirname + "/graphers-colorscales.json"
-const GRAPHER_ALL_COLOR_SCALES_LOCATION =
-    __dirname + "/graphers-colorscales.tsv"
-const GRAPHER_MAP_COLOR_SCALES_LOCATION =
-    __dirname + "/graphers-mapcolorscales.json"
+const GRAPHER_DUMP_LOCATION = url.fileURLToPath(new URL(".", import.meta.url))
+;+"/graphers.json"
+const GRAPHER_TRIMMED_LOCATION = url.fileURLToPath(
+    new URL(".", import.meta.url)
+)
+;+"/graphers-trimmed.json"
+const GRAPHER_SELECTIONS_LOCATION = url.fileURLToPath(
+    new URL(".", import.meta.url)
+)
+;+"/graphers-selections.txt"
+const GRAPHER_COLOR_SCALES_LOCATION = url.fileURLToPath(
+    new URL(".", import.meta.url)
+)
+;+"/graphers-colorscales.json"
+const GRAPHER_ALL_COLOR_SCALES_LOCATION = url.fileURLToPath(
+    new URL(".", import.meta.url)
+)
+;+"/graphers-colorscales.tsv"
+const GRAPHER_MAP_COLOR_SCALES_LOCATION = url.fileURLToPath(
+    new URL(".", import.meta.url)
+)
+;+"/graphers-mapcolorscales.json"
 
 const rawGraphers = () =>
     Object.values(

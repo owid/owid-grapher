@@ -54,6 +54,7 @@ import {
     parseGdocContentFromAllowedLevelOneHeadings,
 } from "../datapage/Datapage.js"
 import { ExplorerProgram } from "../explorer/ExplorerProgram.js"
+import url from "url"
 import { Image } from "../db/model/Image.js"
 import { logErrorAndMaybeSendToBugsnag } from "../serverUtils/errorLog.js"
 
@@ -557,7 +558,10 @@ export const bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers =
                 minWorkers: 2,
                 maxWorkers: MAX_NUM_BAKE_PROCESSES,
             }
-            const pool = workerpool.pool(__dirname + "/worker.js", poolOptions)
+            const pool = workerpool.pool(
+                url.fileURLToPath(new URL(".", import.meta.url)) + "/worker.js",
+                poolOptions
+            )
             try {
                 await Promise.all(
                     jobs.map((job) =>

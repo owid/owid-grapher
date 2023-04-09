@@ -5,11 +5,14 @@
 
 import dotenv from "dotenv"
 import findBaseDir from "./findBaseDir.js"
+import url from "url"
 
-if (typeof __dirname !== "undefined") {
+if (typeof url.fileURLToPath(new URL(".", import.meta.url)) !== "undefined") {
     // only run this code in node, not in the browser.
     // in the browser, process.env is already populated by vite.
-    const baseDir = findBaseDir(__dirname)
+    const baseDir = findBaseDir(
+        url.fileURLToPath(new URL(".", import.meta.url))
+    )
     if (baseDir) dotenv.config({ path: `${baseDir}/.env` })
 }
 

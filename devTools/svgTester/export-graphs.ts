@@ -5,6 +5,7 @@ import * as utils from "./utils.js"
 import fs from "fs-extra"
 
 import path from "path"
+import url from "url"
 import workerpool from "workerpool"
 
 function parseArgAsList(arg?: unknown): string[] {
@@ -67,9 +68,12 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const jobDescriptions: utils.RenderSvgAndSaveJobDescription[] =
             directories.map((dir) => ({ dir: path.join(inDir, dir), outDir }))
 
-        const pool = workerpool.pool(__dirname + "/worker.js", {
-            minWorkers: 2,
-        })
+        const pool = workerpool.pool(
+            url.fileURLToPath(new URL(".", import.meta.url)) + "/worker.js",
+            {
+                minWorkers: 2,
+            }
+        )
 
         // Parallelize the CPU heavy rendering jobs
         const svgRecords: utils.SvgRecord[] = await Promise.all(
