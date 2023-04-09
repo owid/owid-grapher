@@ -45,7 +45,7 @@ import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { renderPreviewDataPageOrGrapherPage } from "../baker/GrapherBaker.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
-require("express-async-errors")
+import "express-async-errors"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
