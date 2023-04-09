@@ -38,7 +38,7 @@
         "testLint": "eslint .",
         "testPrettierAll": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "testPrettierChanged": "yarn fixPrettierChanged --check",
-        "testJest": "lerna run buildTests && jest"
+        "testJest": "lerna run buildTests && NODE_OPTIONS=--experimental-vm-modules jest"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.352.0",
