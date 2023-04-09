@@ -34,6 +34,11 @@ import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
+// library does not provide type definitions
+// eslint-disable-next-line
+import expressErrorSlack from "express-error-slack"
+import url from "url"
+
 interface OwidAdminAppOptions {
     gitCmsDir: string
     isDev: boolean
@@ -260,7 +265,7 @@ export class OwidAdminApp {
     }
 }
 
-if (!module.parent)
+if (process.argv[1] === url.fileURLToPath(import.meta.url))
     new OwidAdminApp({
         gitCmsDir: GIT_CMS_DIR,
         isDev: ENV === "development",
