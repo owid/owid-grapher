@@ -1,4 +1,5 @@
-import { load } from "archieml"
+import archieml from "archieml"
+const { load } = archieml
 import { createHash } from "crypto"
 import {
     OwidGdocContent,
