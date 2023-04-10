@@ -146,13 +146,13 @@ import {
     HorizontalAlign,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
-    OwidDocumentInterface,
-    OwidDocumentJSON,
+    OwidGdocInterface,
+    OwidGdocJSON,
     TimeBound,
     TimeBoundValue,
-    OwidEnrichedDocumentBlock,
+    OwidEnrichedGdocBlock,
     Span,
-    OwidDocumentType,
+    OwidGdocType,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1273,9 +1273,7 @@ export const formatDate = (date: Date): string => {
  * write a custom JSON parser to handle that automatically for all keys. At this
  * stage, the manual approach is probably simpler.
  */
-export const getDocumentFromJSON = (
-    json: OwidDocumentJSON
-): OwidDocumentInterface => {
+export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdocInterface => {
     return {
         ...json,
         createdAt: new Date(json.createdAt),
@@ -1348,12 +1346,10 @@ export const imemo = <Type>(
 }
 
 export function recursivelyMapArticleContent<
-    Node extends OwidEnrichedDocumentBlock | Span
+    Node extends OwidEnrichedGdocBlock | Span
 >(
     node: Node,
-    callback: <Child extends OwidEnrichedDocumentBlock | Span>(
-        node: Child
-    ) => Child
+    callback: <Child extends OwidEnrichedGdocBlock | Span>(node: Child) => Child
 ): Node {
     if (checkNodeIsSpan(node)) {
         if ("children" in node) {
@@ -1380,7 +1376,7 @@ export function recursivelyMapArticleContent<
 }
 
 export function checkNodeIsSpan(
-    node: OwidEnrichedDocumentBlock | Span
+    node: OwidEnrichedGdocBlock | Span
 ): node is Span {
     return "spanType" in node
 }
@@ -1412,8 +1408,8 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
         .join("")
 }
 
-export function checkIsOwidDocumentType(
+export function checkIsOwidGdocType(
     documentType: unknown
-): documentType is OwidDocumentType {
-    return Object.values(OwidDocumentType).includes(documentType as any)
+): documentType is OwidGdocType {
+    return Object.values(OwidGdocType).includes(documentType as any)
 }

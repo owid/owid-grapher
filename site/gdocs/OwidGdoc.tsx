@@ -3,12 +3,12 @@ import ReactDOM from "react-dom"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import Footnotes from "./Footnotes.js"
 import {
-    OwidDocumentInterface,
+    OwidGdocInterface,
     formatDate,
-    getDocumentFromJSON,
+    getOwidGdocFromJSON,
     ImageMetadata,
-    OwidDocumentContent,
-    OwidDocumentType,
+    OwidGdocContent,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faBook } from "@fortawesome/free-solid-svg-icons"
@@ -23,7 +23,7 @@ function OwidArticleHeader({
     authors,
     publishedAt,
 }: {
-    content: OwidDocumentContent
+    content: OwidGdocContent
     authors: string[]
     publishedAt: Date | null
 }) {
@@ -96,7 +96,7 @@ function OwidTopicPageHeader({
     content,
     authors,
 }: {
-    content: OwidDocumentContent
+    content: OwidGdocContent
     authors: string[]
 }) {
     return (
@@ -119,20 +119,20 @@ function OwidTopicPageHeader({
     )
 }
 
-function OwidDocumentHeader(props: {
-    content: OwidDocumentContent
+function OwidGdocHeader(props: {
+    content: OwidGdocContent
     authors: string[]
     publishedAt: Date | null
 }) {
-    if (props.content.type === OwidDocumentType.Article)
+    if (props.content.type === OwidGdocType.Article)
         return <OwidArticleHeader {...props} />
-    if (props.content.type === OwidDocumentType.TopicPage)
+    if (props.content.type === OwidGdocType.TopicPage)
         return <OwidTopicPageHeader {...props} />
     return null
 }
 
 export const AttachmentsContext = createContext<{
-    linkedDocuments: Record<string, OwidDocumentInterface>
+    linkedDocuments: Record<string, OwidGdocInterface>
     imageMetadata: Record<string, ImageMetadata>
 }>({ linkedDocuments: {}, imageMetadata: {} })
 
@@ -140,18 +140,18 @@ export const DocumentContext = createContext<{ isPreviewing: boolean }>({
     isPreviewing: false,
 })
 
-type OwidDocumentProps = OwidDocumentInterface & {
+type OwidGdocProps = OwidGdocInterface & {
     isPreviewing?: boolean
 }
 
-export function OwidDocument({
+export function OwidGdoc({
     content,
     publishedAt,
     slug,
     linkedDocuments = {},
     imageMetadata = {},
     isPreviewing = false,
-}: OwidDocumentProps) {
+}: OwidGdocProps) {
     // Until authors comes as structured data, we need to parse them from the byline string
     const authors = content?.byline?.replace(/\s*,\s*/g, ",").split(",") || [
         "Our World in Data",
@@ -178,7 +178,7 @@ export function OwidDocument({
         <AttachmentsContext.Provider value={{ linkedDocuments, imageMetadata }}>
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <article className="centered-article-container grid grid-cols-12-full-width">
-                    <OwidDocumentHeader
+                    <OwidGdocHeader
                         content={content}
                         authors={authors}
                         publishedAt={publishedAt}
@@ -280,16 +280,13 @@ export function OwidDocument({
     )
 }
 
-export const hydrateOwidDocument = (
-    debug?: boolean,
-    isPreviewing?: boolean
-) => {
+export const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
     const wrapper = document.querySelector("#owid-article-root")
-    const props = getDocumentFromJSON(window._OWID_DOCUMENT_PROPS)
+    const props = getOwidGdocFromJSON(window._OWID_GDOC_PROPS)
     ReactDOM.hydrate(
         <React.StrictMode>
             <DebugProvider debug={debug}>
-                <OwidDocument {...props} isPreviewing={isPreviewing} />
+                <OwidGdoc {...props} isPreviewing={isPreviewing} />
             </DebugProvider>
         </React.StrictMode>,
         wrapper

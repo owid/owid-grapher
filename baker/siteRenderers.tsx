@@ -9,7 +9,7 @@ import { ChartsIndexPage, ChartIndexItem } from "../site/ChartsIndexPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { NotFoundPage } from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
-import OwidDocumentPage from "../site/gdocs/OwidDocumentPage.js"
+import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 import * as lodash from "lodash"
@@ -49,7 +49,7 @@ import {
     FullPost,
     JsonError,
     KeyInsight,
-    OwidDocumentInterface,
+    OwidGdocInterface,
     PostRow,
     Url,
     IndexPost,
@@ -152,9 +152,9 @@ export const renderGdocsPageBySlug = async (
     return renderGdoc(gdoc)
 }
 
-export const renderGdoc = (document: OwidDocumentInterface) => {
+export const renderGdoc = (gdoc: OwidGdocInterface) => {
     return renderToHtmlPage(
-        <OwidDocumentPage baseUrl={BAKED_BASE_URL} document={document} />
+        <OwidGdocPage baseUrl={BAKED_BASE_URL} gdoc={gdoc} />
     )
 }
 

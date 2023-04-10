@@ -4,30 +4,30 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
-import { OwidDocument } from "./OwidDocument.js"
+import { OwidGdoc } from "./OwidGdoc.js"
 import { get } from "lodash"
 
-import { OwidDocumentInterface, SiteFooterContext } from "@ourworldindata/utils"
+import { OwidGdocInterface, SiteFooterContext } from "@ourworldindata/utils"
 import { DebugProvider } from "./DebugContext.js"
 
 declare global {
     interface Window {
-        _OWID_DOCUMENT_PROPS: any
+        _OWID_GDOC_PROPS: any
     }
 }
 
-export default function OwidDocumentPage({
+export default function OwidGdocPage({
     baseUrl,
-    document,
+    gdoc,
     debug,
     isPreviewing = false,
 }: {
     baseUrl: string
-    document: OwidDocumentInterface
+    gdoc: OwidGdocInterface
     debug?: boolean
     isPreviewing?: boolean
 }) {
-    const { content, slug, createdAt, updatedAt } = document
+    const { content, slug, createdAt, updatedAt } = gdoc
 
     const canonicalUrl = `${baseUrl}/${slug}`
 
@@ -59,8 +59,8 @@ export default function OwidDocumentPage({
 
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_DOCUMENT_PROPS = ${JSON.stringify(
-                            document
+                        __html: `window._OWID_GDOC_PROPS = ${JSON.stringify(
+                            gdoc
                         )}`,
                     }}
                 ></script>
@@ -69,10 +69,7 @@ export default function OwidDocumentPage({
                 <SiteHeader baseUrl={baseUrl} />
                 <div id="owid-document-root">
                     <DebugProvider debug={debug}>
-                        <OwidDocument
-                            {...document}
-                            isPreviewing={isPreviewing}
-                        />
+                        <OwidGdoc {...gdoc} isPreviewing={isPreviewing} />
                     </DebugProvider>
                 </div>
                 <SiteFooter

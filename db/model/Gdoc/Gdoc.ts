@@ -6,10 +6,10 @@ import {
     PrimaryColumn,
 } from "typeorm"
 import {
-    OwidDocumentContent,
-    OwidDocumentInterface,
-    OwidDocumentPublished,
-    OwidDocumentPublicationContext,
+    OwidGdocContent,
+    OwidGdocInterface,
+    OwidGdocPublished,
+    OwidGdocPublicationContext,
     GdocsContentSource,
     JsonError,
     checkNodeIsSpan,
@@ -19,12 +19,12 @@ import {
     getLinkType,
     keyBy,
     excludeNull,
-    OwidEnrichedDocumentBlock,
+    OwidEnrichedGdocBlock,
     recursivelyMapArticleContent,
     ImageMetadata,
     excludeUndefined,
-    OwidDocumentErrorMessage,
-    OwidDocumentErrorMessageType,
+    OwidGdocErrorMessage,
+    OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
 import {
     GDOCS_CLIENT_EMAIL,
@@ -38,20 +38,20 @@ import { Link } from "../Link.js"
 import { imageStore } from "../Image.js"
 
 @Entity("posts_gdocs")
-export class Gdoc extends BaseEntity implements OwidDocumentInterface {
+export class Gdoc extends BaseEntity implements OwidGdocInterface {
     @PrimaryColumn() id!: string
     @Column() slug: string = ""
-    @Column({ default: "{}", type: "json" }) content!: OwidDocumentContent
+    @Column({ default: "{}", type: "json" }) content!: OwidGdocContent
     @Column() published: boolean = false
-    @Column() publicationContext: OwidDocumentPublicationContext =
-        OwidDocumentPublicationContext.unlisted
+    @Column() publicationContext: OwidGdocPublicationContext =
+        OwidGdocPublicationContext.unlisted
     @Column() createdAt: Date = new Date()
     @Column({ type: Date, nullable: true }) publishedAt: Date | null = null
     @UpdateDateColumn({ nullable: true }) updatedAt: Date | null = null
     @Column({ type: String, nullable: true }) revisionId: string | null = null
     linkedDocuments: Record<string, Gdoc> = {}
     imageMetadata: Record<string, ImageMetadata> = {}
-    errors: OwidDocumentErrorMessage[] = []
+    errors: OwidGdocErrorMessage[] = []
 
     constructor(id?: string) {
         super()
@@ -198,8 +198,8 @@ export class Gdoc extends BaseEntity implements OwidDocumentInterface {
     }
 
     // If the node has a URL in it, create a Link object
-    extractLinkFromNode(node: OwidEnrichedDocumentBlock | Span): Link | void {
-        function getText(node: OwidEnrichedDocumentBlock | Span): string {
+    extractLinkFromNode(node: OwidEnrichedGdocBlock | Span): Link | void {
+        function getText(node: OwidEnrichedGdocBlock | Span): string {
             // Can add component-specific text accessors here
             if (checkNodeIsSpan(node)) {
                 if (node.spanType == "span-link") {
@@ -222,35 +222,28 @@ export class Gdoc extends BaseEntity implements OwidDocumentInterface {
     }
 
     async validate(): Promise<void> {
-        const filenameErrors: OwidDocumentErrorMessage[] =
-            this.filenames.reduce(
-                (
-                    acc: OwidDocumentErrorMessage[],
-                    filename
-                ): OwidDocumentErrorMessage[] => {
-                    if (!this.imageMetadata[filename]) {
-                        acc.push({
-                            property: "imageMetadata",
-                            message: `No image named ${filename} found in Drive`,
-                            type: OwidDocumentErrorMessageType.Error,
-                        })
-                    } else if (!this.imageMetadata[filename].defaultAlt) {
-                        acc.push({
-                            property: "imageMetadata",
-                            message: `${filename} is missing a default alt text`,
-                            type: OwidDocumentErrorMessageType.Error,
-                        })
-                    }
-                    return acc
-                },
-                []
-            )
+        const filenameErrors: OwidGdocErrorMessage[] = this.filenames.reduce(
+            (acc: OwidGdocErrorMessage[], filename): OwidGdocErrorMessage[] => {
+                if (!this.imageMetadata[filename]) {
+                    acc.push({
+                        property: "imageMetadata",
+                        message: `No image named ${filename} found in Drive`,
+                        type: OwidGdocErrorMessageType.Error,
+                    })
+                } else if (!this.imageMetadata[filename].defaultAlt) {
+                    acc.push({
+                        property: "imageMetadata",
+                        message: `${filename} is missing a default alt text`,
+                        type: OwidGdocErrorMessageType.Error,
+                    })
+                }
+                return acc
+            },
+            []
+        )
 
-        const linkErrors: OwidDocumentErrorMessage[] = this.links.reduce(
-            (
-                acc: OwidDocumentErrorMessage[],
-                link
-            ): OwidDocumentErrorMessage[] => {
+        const linkErrors: OwidGdocErrorMessage[] = this.links.reduce(
+            (acc: OwidGdocErrorMessage[], link): OwidGdocErrorMessage[] => {
                 if (link.linkType == "gdoc") {
                     const id = getUrlTarget(link.target)
                     const doesGdocExist = Boolean(this.linkedDocuments[id])
@@ -263,7 +256,7 @@ export class Gdoc extends BaseEntity implements OwidDocumentInterface {
                             }" is linking to an ${
                                 doesGdocExist ? "unpublished" : "unknown"
                             } gdoc with ID "${link.target}"`,
-                            type: OwidDocumentErrorMessageType.Warning,
+                            type: OwidGdocErrorMessageType.Warning,
                         })
                     }
                 }
@@ -278,7 +271,7 @@ export class Gdoc extends BaseEntity implements OwidDocumentInterface {
     static async getGdocFromContentSource(
         id: string,
         contentSource?: GdocsContentSource
-    ): Promise<OwidDocumentInterface> {
+    ): Promise<OwidGdocInterface> {
         const gdoc = await Gdoc.findOneBy({ id })
 
         if (!gdoc) throw new JsonError(`No Google Doc with id ${id} found`)
@@ -310,10 +303,10 @@ export class Gdoc extends BaseEntity implements OwidDocumentInterface {
         return Gdoc.findBy({ published: true })
     }
 
-    static async getListedGdocs(): Promise<OwidDocumentPublished[]> {
+    static async getListedGdocs(): Promise<OwidGdocPublished[]> {
         return Gdoc.findBy({
             published: true,
-            publicationContext: OwidDocumentPublicationContext.listed,
-        }) as Promise<OwidDocumentPublished[]>
+            publicationContext: OwidGdocPublicationContext.listed,
+        }) as Promise<OwidGdocPublished[]>
     }
 }

@@ -12,11 +12,11 @@ import { AdminAppContext } from "./AdminAppContext.js"
 import {
     checkIsPlainObjectWithGuard,
     GdocsContentSource,
-    getDocumentFromJSON,
-    OwidDocumentInterface,
-    OwidDocumentJSON,
-    OwidDocumentErrorMessage,
-    OwidDocumentErrorMessageType,
+    getOwidGdocFromJSON,
+    OwidGdocInterface,
+    OwidGdocJSON,
+    OwidGdocErrorMessage,
+    OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
 import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -47,12 +47,12 @@ import { useInterval } from "../site/hooks.js"
 export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const { id } = match.params
     const [gdoc, setGdoc] = useState<{
-        original?: OwidDocumentInterface
-        current?: OwidDocumentInterface
+        original?: OwidGdocInterface
+        current?: OwidGdocInterface
     }>({ original: undefined, current: undefined })
     const originalGdoc = gdoc.original
     const currentGdoc = gdoc.current
-    const setCurrentGdoc = (current: OwidDocumentInterface | undefined) =>
+    const setCurrentGdoc = (current: OwidGdocInterface | undefined) =>
         setGdoc({ original: gdoc.original, current })
     const hasChanges = useGdocsChanged(originalGdoc, currentGdoc)
     const [isSettingsOpen, setSettingsOpen] = useState(false)
@@ -61,7 +61,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         undefined | string
     >()
     const [isDiffOpen, setDiffOpen] = useState(false)
-    const [errors, setErrors] = React.useState<OwidDocumentErrorMessage[]>()
+    const [errors, setErrors] = React.useState<OwidGdocErrorMessage[]>()
     const { admin } = useContext(AdminAppContext)
     const store = useGdocsStore()
     // Cancel all other requests in progress (most likely just the automatic fetch)
@@ -76,13 +76,13 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const fetchGdoc = useCallback(
         (contentSource: GdocsContentSource) =>
             admin
-                .requestJSON<OwidDocumentJSON>(
+                .requestJSON<OwidGdocJSON>(
                     `/api/gdocs/${id}?contentSource=${contentSource}`,
                     {},
                     "GET",
                     { onFailure: "continue" }
                 )
-                .then(getDocumentFromJSON),
+                .then(getOwidGdocFromJSON),
         [id, admin]
     )
 
@@ -136,12 +136,12 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
 
     const hasWarnings =
         errors?.some(
-            (error) => error.type === OwidDocumentErrorMessageType.Warning
+            (error) => error.type === OwidGdocErrorMessageType.Warning
         ) ?? false
 
     const hasErrors =
         errors?.some(
-            (error) => error.type === OwidDocumentErrorMessageType.Error
+            (error) => error.type === OwidGdocErrorMessageType.Error
         ) ?? false
 
     const doPublish = async () => {
@@ -279,9 +279,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             <IconBadge
                                 status={
                                     hasErrors
-                                        ? OwidDocumentErrorMessageType.Error
+                                        ? OwidGdocErrorMessageType.Error
                                         : hasWarnings
-                                        ? OwidDocumentErrorMessageType.Warning
+                                        ? OwidGdocErrorMessageType.Warning
                                         : null
                                 }
                             >

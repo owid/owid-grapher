@@ -31,7 +31,7 @@ import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
 import { GIT_CMS_DIR } from "../gitCms/GitCmsConstants.js"
 import { GdocsContentSource } from "@ourworldindata/utils"
-import OwidDocumentPage from "../site/gdocs/OwidDocumentPage.js"
+import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 
 // library does not provide type definitions
@@ -128,9 +128,9 @@ export class OwidAdminApp {
                 res.set("X-Robots-Tag", "noindex")
                 res.send(
                     renderToHtmlPage(
-                        <OwidDocumentPage
+                        <OwidGdocPage
                             baseUrl={BAKED_BASE_URL}
-                            document={gdoc}
+                            gdoc={gdoc}
                             debug
                             isPreviewing
                         />

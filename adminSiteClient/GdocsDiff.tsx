@@ -1,14 +1,14 @@
 import React from "react"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 import { stringify } from "safe-stable-stringify"
-import { omit, OwidDocumentInterface } from "@ourworldindata/utils"
+import { omit, OwidGdocInterface } from "@ourworldindata/utils"
 
 export const GdocsDiff = ({
     originalGdoc,
     currentGdoc,
 }: {
-    originalGdoc: OwidDocumentInterface | undefined
-    currentGdoc: OwidDocumentInterface
+    originalGdoc: OwidGdocInterface | undefined
+    currentGdoc: OwidGdocInterface
 }) => (
     <ReactDiffViewer
         oldValue={stringify(

@@ -42,7 +42,7 @@ import { bakeCountries } from "../baker/countryProfiles.js"
 import {
     countries,
     FullPost,
-    OwidDocumentPublished,
+    OwidGdocPublished,
     ImageMetadata,
     clone,
     getFilenameWithoutExtension,
@@ -184,7 +184,7 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    async bakeGDocPost(post: OwidDocumentPublished) {
+    async bakeGDocPost(post: OwidGdocPublished) {
         const html = renderGdoc(post)
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
         await fs.mkdirp(path.dirname(outPath))
@@ -318,7 +318,7 @@ export class SiteBaker {
                         .join("\n  ")}`
                 )
             }
-            await this.bakeGDocPost(publishedGdoc as OwidDocumentPublished)
+            await this.bakeGDocPost(publishedGdoc as OwidGdocPublished)
         }
 
         this.progressBar.tick({ name: "✅ baked google doc posts" })

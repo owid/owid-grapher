@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react"
-import { OwidDocumentInterface } from "@ourworldindata/utils"
+import { OwidGdocInterface } from "@ourworldindata/utils"
 import { useDebounceCallback } from "../site/hooks.js"
 import { checkHasChanges, checkIsLightningUpdate } from "./gdocsDeploy.js"
 import { useGdocsStore } from "./GdocsStore.js"
 
 export const useGdocsChanged = (
-    prevGdoc: OwidDocumentInterface | undefined,
-    nextGdoc: OwidDocumentInterface | undefined
+    prevGdoc: OwidGdocInterface | undefined,
+    nextGdoc: OwidGdocInterface | undefined
 ) => {
     const [hasChanges, setHasChanges] = useState(false)
 
@@ -19,8 +19,8 @@ export const useGdocsChanged = (
 }
 
 export const useLightningUpdate = (
-    prevGdoc: OwidDocumentInterface | undefined,
-    nextGdoc: OwidDocumentInterface | undefined,
+    prevGdoc: OwidGdocInterface | undefined,
+    nextGdoc: OwidGdocInterface | undefined,
     hasChanges: boolean
 ) => {
     const [isLightningDeploy, setLightningUpdate] = useState(false)
@@ -36,17 +36,14 @@ export const useLightningUpdate = (
 }
 
 export const useAutoSaveDraft = (
-    currentGdoc: OwidDocumentInterface | undefined,
+    currentGdoc: OwidGdocInterface | undefined,
     hasChanges: boolean
 ) => {
     const store = useGdocsStore()
 
-    const saveDraft = useDebounceCallback(
-        (currentGdoc: OwidDocumentInterface) => {
-            store.update(currentGdoc)
-        },
-        2000
-    )
+    const saveDraft = useDebounceCallback((currentGdoc: OwidGdocInterface) => {
+        store.update(currentGdoc)
+    }, 2000)
 
     useEffect(() => {
         if (!currentGdoc || !hasChanges || currentGdoc.published) return

@@ -1,8 +1,8 @@
 import React from "react"
 import {
-    OwidDocumentInterface,
-    OwidDocumentErrorMessage,
-    OwidDocumentErrorMessageType,
+    OwidGdocInterface,
+    OwidGdocErrorMessage,
+    OwidGdocErrorMessageType,
 } from "@ourworldindata/utils"
 import { ExcerptHandler } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
@@ -18,20 +18,20 @@ export const GdocsSettingsForm = ({
     setGdoc,
     errors,
 }: {
-    gdoc: OwidDocumentInterface
-    setGdoc: (gdoc: OwidDocumentInterface) => void
-    errors?: OwidDocumentErrorMessage[]
+    gdoc: OwidGdocInterface
+    setGdoc: (gdoc: OwidGdocInterface) => void
+    errors?: OwidGdocErrorMessage[]
 }) => {
     const attachmentMessages = errors?.filter((error) =>
         ["linkedDocuments", "imageMetadata", "content"].includes(error.property)
     )
     const attachmentErrors =
         attachmentMessages?.filter(
-            ({ type }) => type === OwidDocumentErrorMessageType.Error
+            ({ type }) => type === OwidGdocErrorMessageType.Error
         ) ?? []
     const attachmentWarnings =
         attachmentMessages?.filter(
-            ({ type }) => type === OwidDocumentErrorMessageType.Warning
+            ({ type }) => type === OwidGdocErrorMessageType.Warning
         ) ?? []
 
     return gdoc ? (

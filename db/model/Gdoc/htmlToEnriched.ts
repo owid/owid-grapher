@@ -12,7 +12,7 @@ import {
     SpanRef,
     EnrichedBlockSimpleText,
     SpanSimpleText,
-    OwidEnrichedDocumentBlock,
+    OwidEnrichedGdocBlock,
     EnrichedBlockImage,
     EnrichedBlockPullQuote,
     EnrichedBlockHeading,
@@ -46,9 +46,9 @@ export function htmlToEnrichedTextBlock(html: string): EnrichedBlockText {
 }
 
 export function consolidateSpans(
-    blocks: OwidEnrichedDocumentBlock[]
-): OwidEnrichedDocumentBlock[] {
-    const newBlocks: OwidEnrichedDocumentBlock[] = []
+    blocks: OwidEnrichedGdocBlock[]
+): OwidEnrichedGdocBlock[] {
+    const newBlocks: OwidEnrichedGdocBlock[] = []
     let currentBlock: EnrichedBlockText | undefined = undefined
     for (const block of blocks) {
         if (block.type === "text")
@@ -234,7 +234,7 @@ interface WpComponent {
     childrenResults: ArchieBlockOrWpComponent[]
 }
 
-type ArchieBlockOrWpComponent = OwidEnrichedDocumentBlock | WpComponent
+type ArchieBlockOrWpComponent = OwidEnrichedGdocBlock | WpComponent
 
 /** This type is used to keep track of intermediate results when parsing WpComponents where
     we have to keep track of the remaining elements (i.e. those that have not been consumed yet) */
@@ -323,13 +323,13 @@ function tryGetAsWpComponentOfType(
 
 function isArchieMlComponent(
     block: ArchieBlockOrWpComponent
-): block is OwidEnrichedDocumentBlock {
+): block is OwidEnrichedGdocBlock {
     return "type" in block
 }
 
 export function convertAllWpComponentsToArchieMLBlocks(
     blocksOrComponents: ArchieBlockOrWpComponent[]
-): OwidEnrichedDocumentBlock[] {
+): OwidEnrichedGdocBlock[] {
     return blocksOrComponents.flatMap((blockOrComponent) => {
         if (isArchieMlComponent(blockOrComponent)) return [blockOrComponent]
         else {
@@ -340,13 +340,13 @@ export function convertAllWpComponentsToArchieMLBlocks(
     })
 }
 
-export function adjustHeadingLevels(blocks: OwidEnrichedDocumentBlock[]): void {
+export function adjustHeadingLevels(blocks: OwidEnrichedGdocBlock[]): void {
     for (const block of blocks) {
         if (block.type === "heading") {
             block.level = Math.max(block.level - 1, 1)
         }
         if ("children" in block) {
-            adjustHeadingLevels(block.children as OwidEnrichedDocumentBlock[])
+            adjustHeadingLevels(block.children as OwidEnrichedGdocBlock[])
         }
     }
 }
@@ -363,8 +363,8 @@ export function adjustHeadingLevels(blocks: OwidEnrichedDocumentBlock[]): void {
     <-- /wp:columns -->
 
     then the result will be one component nested in another. Whether components are parsed
-    as WpComponent or directly as an OwidEnrichedDocumentBlock depends on whether we have all
-    the information we need to created an OwidEnrichedDocumentBlock or if we need to keep the
+    as WpComponent or directly as an OwidEnrichedGdocBlock depends on whether we have all
+    the information we need to created an OwidEnrichedGdocBlock or if we need to keep the
     temporary structure of a WpCompnent around (e.g. the latter is the case for wp:column
     contained inside wp:columns)
      */
@@ -456,7 +456,7 @@ export function parseWpComponent(
 }
 
 /** Handles finishing a partially parsed WpComponent when we get to the closing tag. When
-    a tag contains all the information needed to turn it into an OwidEnrichedDocumentBlock then
+    a tag contains all the information needed to turn it into an OwidEnrichedGdocBlock then
     we create that - otherwise we keep the WpComponent around with the children content filled in */
 function finishWpComponent(
     details: WpComponent,

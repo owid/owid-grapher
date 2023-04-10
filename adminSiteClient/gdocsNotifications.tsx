@@ -1,8 +1,8 @@
 import React from "react"
 import { notification } from "antd"
-import { OwidDocumentErrorMessageType } from "@ourworldindata/utils"
+import { OwidGdocErrorMessageType } from "@ourworldindata/utils"
 
-type NotificationType = "success" | "info" | OwidDocumentErrorMessageType
+type NotificationType = "success" | "info" | OwidGdocErrorMessageType
 const openNotification = (
     type: NotificationType,
     title: string,

@@ -1,13 +1,13 @@
 import {
-    OwidDocumentContent,
-    OwidDocumentInterface,
+    OwidGdocContent,
+    OwidGdocInterface,
     isEqual,
     omit,
 } from "@ourworldindata/utils"
 
 export const checkFullDeployFallback = (
-    prevGdoc: OwidDocumentInterface,
-    nextGdoc: OwidDocumentInterface,
+    prevGdoc: OwidGdocInterface,
+    nextGdoc: OwidGdocInterface,
     hasChanges: boolean
 ) => {
     return hasChanges && (prevGdoc.published || nextGdoc.published)
@@ -21,18 +21,18 @@ export const checkFullDeployFallback = (
  *
  */
 export const checkIsLightningUpdate = (
-    prevGdoc: OwidDocumentInterface,
-    nextGdoc: OwidDocumentInterface,
+    prevGdoc: OwidGdocInterface,
+    nextGdoc: OwidGdocInterface,
     hasChanges: boolean
 ) => {
-    const lightningArticleProps: Array<keyof OwidDocumentInterface> = [
+    const lightningArticleProps: Array<keyof OwidGdocInterface> = [
         "updatedAt",
         "linkedDocuments",
         "imageMetadata",
         "errors",
     ]
 
-    const lightningContentProps: Array<keyof OwidDocumentContent> = [
+    const lightningContentProps: Array<keyof OwidGdocContent> = [
         "body",
         "subtitle",
         "toc",
@@ -55,7 +55,7 @@ export const checkIsLightningUpdate = (
         // When this function is called from server-side code and a Gdoc object
         // is passed in, the omit() call will surface Gdoc class members. The
         // comparison will then fail if the other operand in the comparison is
-        // an OwidDocumentInterface object. To avoid this, we spread into new objects
+        // an OwidGdocInterface object. To avoid this, we spread into new objects
         // in order to compare the same types.
         isEqual(
             omit({ ...prevGdoc }, lightningProps),
@@ -65,8 +65,8 @@ export const checkIsLightningUpdate = (
 }
 
 export const checkHasChanges = (
-    prevGdoc: OwidDocumentInterface,
-    nextGdoc: OwidDocumentInterface
+    prevGdoc: OwidGdocInterface,
+    nextGdoc: OwidGdocInterface
 ) =>
     !isEqual(
         // Ignore non-deterministic attachments

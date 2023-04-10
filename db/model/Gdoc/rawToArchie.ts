@@ -1,5 +1,5 @@
 import {
-    OwidRawDocumentBlock,
+    OwidRawGdocBlock,
     RawBlockHeading,
     RawBlockRecirc,
     RawBlockAside,
@@ -107,7 +107,7 @@ function* rawBlockScrollerToArchieMLString(
     yield "[.+scroller]"
     if (typeof block.value !== "string")
         for (const b of block.value)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
     yield "[]"
 }
 
@@ -181,7 +181,7 @@ function* rawBlockPullQuoteToArchieMLString(
     yield "[.+pull-quote]"
     if (typeof block.value !== "string")
         for (const b of block.value)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
     yield "[]"
 }
 
@@ -282,11 +282,11 @@ function* RawBlockStickyRightContainerToArchieMLString(
     if (typeof block.value !== "string") {
         yield "[.+right]"
         for (const b of block.value.right)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
         yield "[]"
         yield "[.+left]"
         for (const b of block.value.left)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
         yield "[]"
     }
     yield "{}"
@@ -299,11 +299,11 @@ function* RawBlockStickyLeftContainerToArchieMLString(
     if (typeof block.value !== "string") {
         yield "[.+right]"
         for (const b of block.value.right)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
         yield "[]"
         yield "[.+left]"
         for (const b of block.value.left)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
         yield "[]"
     }
     yield "{}"
@@ -316,11 +316,11 @@ function* RawBlockSideBySideContainerToArchieMLString(
     if (typeof block.value !== "string") {
         yield "[.+right]"
         for (const b of block.value.right)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
         yield "[]"
         yield "[.+left]"
         for (const b of block.value.left)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
         yield "[]"
     }
     yield "{}"
@@ -332,7 +332,7 @@ function* RawBlockGraySectionToArchieMLString(
     yield "[.+gray-section]"
     if (typeof block.value !== "string") {
         for (const b of block.value)
-            yield* OwidRawDocumentBlockToArchieMLStringGenerator(b)
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(b)
     }
     yield "[]"
 }
@@ -373,8 +373,8 @@ function* rawBlockAdditionalChartsToArchieMLString(
     yield "[]"
 }
 
-export function* OwidRawDocumentBlockToArchieMLStringGenerator(
-    block: OwidRawDocumentBlock
+export function* OwidRawGdocBlockToArchieMLStringGenerator(
+    block: OwidRawGdocBlock
 ): Generator<string, void, undefined> {
     const content = match(block)
         .with(
@@ -421,9 +421,9 @@ export function* OwidRawDocumentBlockToArchieMLStringGenerator(
     yield* content
 }
 
-export function OwidRawDocumentBlockToArchieMLString(
-    block: OwidRawDocumentBlock
+export function OwidRawGdocBlockToArchieMLString(
+    block: OwidRawGdocBlock
 ): string {
-    const lines = [...OwidRawDocumentBlockToArchieMLStringGenerator(block)]
+    const lines = [...OwidRawGdocBlockToArchieMLStringGenerator(block)]
     return [...lines, ""].join("\n")
 }

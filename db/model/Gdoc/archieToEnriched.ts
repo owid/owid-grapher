@@ -1,7 +1,7 @@
 import { load } from "archieml"
 import {
-    OwidRawDocumentBlock,
-    OwidDocumentContent,
+    OwidRawGdocBlock,
+    OwidGdocContent,
     TocHeadingWithTitleSupertitle,
     compact,
     unset,
@@ -20,7 +20,7 @@ import {
     htmlToSimpleTextBlock,
 } from "./htmlToEnriched.js"
 
-export const archieToEnriched = (text: string): OwidDocumentContent => {
+export const archieToEnriched = (text: string): OwidGdocContent => {
     const refs = (text.match(/{ref}(.*?){\/ref}/gims) || []).map(function (
         val: string,
         i: number
@@ -65,8 +65,8 @@ export const archieToEnriched = (text: string): OwidDocumentContent => {
 
     // Traverse the tree, tracking a pointer and nesting when appropriate
     function traverseBlocks(
-        value: OwidRawDocumentBlock,
-        callback: (child: OwidRawDocumentBlock) => void
+        value: OwidRawGdocBlock,
+        callback: (child: OwidRawGdocBlock) => void
     ): void {
         // top-level
         if (isArray(value)) {
@@ -112,11 +112,11 @@ export const archieToEnriched = (text: string): OwidDocumentContent => {
     // Traverse the tree:
     // mutate it to nest lists correctly
     // track h2s and h3s for the SDG table of contents
-    traverseBlocks(parsed.body, (child: OwidRawDocumentBlock) => {
+    traverseBlocks(parsed.body, (child: OwidRawGdocBlock) => {
         // ensure keys are lowercase
         child = Object.entries(child).reduce(
             (acc, [key, value]) => ({ ...acc, [key.toLowerCase()]: value }),
-            {} as OwidRawDocumentBlock
+            {} as OwidRawGdocBlock
         )
 
         // nest list items

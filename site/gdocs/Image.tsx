@@ -10,7 +10,7 @@ import {
     IMAGE_HOSTING_BUCKET_SUBFOLDER_PATH,
     IMAGE_HOSTING_CDN_URL,
 } from "../../settings/clientSettings.js"
-import { DocumentContext } from "./OwidDocument.js"
+import { DocumentContext } from "./OwidGdoc.js"
 import { Container } from "./ArticleBlock.js"
 import { useImage } from "./utils.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"

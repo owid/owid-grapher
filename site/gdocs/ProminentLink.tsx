@@ -3,7 +3,7 @@ import cx from "classnames"
 
 import Image from "./Image.js"
 import { useLinkedDocument } from "./utils.js"
-import { DocumentContext } from "./OwidDocument.js"
+import { DocumentContext } from "./OwidGdoc.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { getLinkType } from "@ourworldindata/utils"
 

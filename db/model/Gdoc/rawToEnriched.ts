@@ -30,8 +30,8 @@ import {
     EnrichedScrollerItem,
     EnrichedSDGGridItem,
     isArray,
-    OwidEnrichedDocumentBlock,
-    OwidRawDocumentBlock,
+    OwidEnrichedGdocBlock,
+    OwidRawGdocBlock,
     ParseError,
     partition,
     RawBlockAdditionalCharts,
@@ -72,8 +72,8 @@ import { match } from "ts-pattern"
 import { parseInt } from "lodash"
 
 export function parseRawBlocksToEnrichedBlocks(
-    block: OwidRawDocumentBlock
-): OwidEnrichedDocumentBlock | null {
+    block: OwidRawGdocBlock
+): OwidEnrichedGdocBlock | null {
     return match(block)
         .with({ type: "additional-charts" }, parseAdditionalCharts)
         .with({ type: "aside" }, parseAside)
@@ -786,8 +786,8 @@ function parseStickyRight(
 ): EnrichedBlockStickyRightContainer {
     const createError = (
         error: ParseError,
-        left: OwidEnrichedDocumentBlock[] = [],
-        right: OwidEnrichedDocumentBlock[] = []
+        left: OwidEnrichedGdocBlock[] = [],
+        right: OwidEnrichedGdocBlock[] = []
     ): EnrichedBlockStickyRightContainer => ({
         type: "sticky-right",
         left,
@@ -820,8 +820,8 @@ function parseStickyLeft(
 ): EnrichedBlockStickyLeftContainer {
     const createError = (
         error: ParseError,
-        left: OwidEnrichedDocumentBlock[] = [],
-        right: OwidEnrichedDocumentBlock[] = []
+        left: OwidEnrichedGdocBlock[] = [],
+        right: OwidEnrichedGdocBlock[] = []
     ): EnrichedBlockStickyLeftContainer => ({
         type: "sticky-left",
         left,
@@ -854,8 +854,8 @@ function parseSideBySide(
 ): EnrichedBlockSideBySideContainer {
     const createError = (
         error: ParseError,
-        left: OwidEnrichedDocumentBlock[] = [],
-        right: OwidEnrichedDocumentBlock[] = []
+        left: OwidEnrichedGdocBlock[] = [],
+        right: OwidEnrichedGdocBlock[] = []
     ): EnrichedBlockSideBySideContainer => ({
         type: "side-by-side",
         left,

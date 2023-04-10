@@ -4,11 +4,11 @@ import * as db from "./db.js"
 import * as cheerio from "cheerio"
 
 import {
-    OwidDocumentPublicationContext,
-    OwidDocumentInterface,
+    OwidGdocPublicationContext,
+    OwidGdocInterface,
     sortBy,
     OwidArticleBackportingStatistics,
-    OwidDocumentType,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -79,7 +79,7 @@ const migrate = async (): Promise<void> => {
                 post.authors
             )
 
-            const archieMlFieldContent: OwidDocumentInterface = {
+            const archieMlFieldContent: OwidGdocInterface = {
                 id: `wp-${post.id}`,
                 slug: post.slug,
                 content: {
@@ -93,7 +93,7 @@ const migrate = async (): Promise<void> => {
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
-                    type: OwidDocumentType.Article,
+                    type: OwidGdocType.Article,
                 },
                 published: false,
                 createdAt:
@@ -103,7 +103,7 @@ const migrate = async (): Promise<void> => {
                     new Date(),
                 publishedAt: post.published_at,
                 updatedAt: post.updated_at_in_wordpress,
-                publicationContext: OwidDocumentPublicationContext.listed, // TODO: not all articles are listed, take this from the DB
+                publicationContext: OwidGdocPublicationContext.listed, // TODO: not all articles are listed, take this from the DB
                 revisionId: null,
             }
             const archieMlStatsContent = {

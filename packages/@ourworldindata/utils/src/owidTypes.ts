@@ -528,7 +528,7 @@ export type EnrichedBlockChart = {
 
 export type RawBlockScroller = {
     type: "scroller"
-    value: OwidRawDocumentBlock[] | ArchieMLUnexpectedNonObjectValue
+    value: OwidRawGdocBlock[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedScrollerItem = {
@@ -617,7 +617,7 @@ export type EnrichedBlockNumberedList = {
 
 export type RawBlockPullQuote = {
     type: "pull-quote"
-    value: OwidRawDocumentBlock[] | ArchieMLUnexpectedNonObjectValue
+    value: OwidRawGdocBlock[] | ArchieMLUnexpectedNonObjectValue
 }
 
 export type EnrichedBlockPullQuote = {
@@ -735,53 +735,53 @@ export type EnrichedBlockSDGGrid = {
 export type RawBlockStickyRightContainer = {
     type: "sticky-right"
     value: {
-        left: OwidRawDocumentBlock[]
-        right: OwidRawDocumentBlock[]
+        left: OwidRawGdocBlock[]
+        right: OwidRawGdocBlock[]
     }
 }
 
 export type EnrichedBlockStickyRightContainer = {
     type: "sticky-right"
-    left: OwidEnrichedDocumentBlock[]
-    right: OwidEnrichedDocumentBlock[]
+    left: OwidEnrichedGdocBlock[]
+    right: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockStickyLeftContainer = {
     type: "sticky-left"
     value: {
-        left: OwidRawDocumentBlock[]
-        right: OwidRawDocumentBlock[]
+        left: OwidRawGdocBlock[]
+        right: OwidRawGdocBlock[]
     }
 }
 
 export type EnrichedBlockStickyLeftContainer = {
     type: "sticky-left"
-    left: OwidEnrichedDocumentBlock[]
-    right: OwidEnrichedDocumentBlock[]
+    left: OwidEnrichedGdocBlock[]
+    right: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockSideBySideContainer = {
     type: "side-by-side"
     value: {
-        left: OwidRawDocumentBlock[]
-        right: OwidRawDocumentBlock[]
+        left: OwidRawGdocBlock[]
+        right: OwidRawGdocBlock[]
     }
 }
 
 export type EnrichedBlockSideBySideContainer = {
     type: "side-by-side"
-    left: OwidEnrichedDocumentBlock[]
-    right: OwidEnrichedDocumentBlock[]
+    left: OwidEnrichedGdocBlock[]
+    right: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockGraySection = {
     type: "gray-section"
-    value: OwidRawDocumentBlock[]
+    value: OwidRawGdocBlock[]
 }
 
 export type EnrichedBlockGraySection = {
     type: "gray-section"
-    items: OwidEnrichedDocumentBlock[]
+    items: OwidEnrichedGdocBlock[]
 } & EnrichedBlockWithParseErrors
 
 export type ProminentLinkValue = {
@@ -848,7 +848,7 @@ export type EnrichedBlockAdditionalCharts = {
     items: Span[][]
 } & EnrichedBlockWithParseErrors
 
-export type OwidRawDocumentBlock =
+export type OwidRawGdocBlock =
     | RawBlockAside
     | RawBlockCallout
     | RawBlockChart
@@ -875,7 +875,7 @@ export type OwidRawDocumentBlock =
     | RawBlockAdditionalCharts
     | RawBlockNumberedList
 
-export type OwidEnrichedDocumentBlock =
+export type OwidEnrichedGdocBlock =
     | EnrichedBlockText
     | EnrichedBlockAside
     | EnrichedBlockCallout
@@ -901,56 +901,53 @@ export type OwidEnrichedDocumentBlock =
     | EnrichedBlockNumberedList
     | EnrichedBlockSimpleText
 
-export enum OwidDocumentPublicationContext {
+export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
     listed = "listed",
 }
 
-export enum OwidDocumentType {
+export enum OwidGdocType {
     Article = "article",
     TopicPage = "topic-page",
     Fragment = "fragment",
 }
 
-export interface OwidDocumentInterface {
+export interface OwidGdocInterface {
     id: string
     slug: string
-    content: OwidDocumentContent
+    content: OwidGdocContent
     published: boolean
     createdAt: Date
     publishedAt: Date | null
     updatedAt: Date | null
-    publicationContext: OwidDocumentPublicationContext
+    publicationContext: OwidGdocPublicationContext
     revisionId: string | null
-    linkedDocuments?: Record<string, OwidDocumentInterface>
+    linkedDocuments?: Record<string, OwidGdocInterface>
     imageMetadata?: Record<string, ImageMetadata>
-    errors?: OwidDocumentErrorMessage[]
+    errors?: OwidGdocErrorMessage[]
 }
 
-export enum OwidDocumentErrorMessageType {
+export enum OwidGdocErrorMessageType {
     Error = "error",
     Warning = "warning",
 }
 
-export interface OwidDocumentErrorMessage {
-    property: keyof OwidDocumentInterface | keyof OwidDocumentContent
-    type: OwidDocumentErrorMessageType
+export interface OwidGdocErrorMessage {
+    property: keyof OwidGdocInterface | keyof OwidGdocContent
+    type: OwidGdocErrorMessageType
     message: string
 }
 
-// see also: getDocumentFromJSON()
-export interface OwidDocumentJSON
-    extends Omit<
-        OwidDocumentInterface,
-        "createdAt" | "publishedAt" | "updatedAt"
-    > {
+// see also: getOwidGdocFromJSON()
+export interface OwidGdocJSON
+    extends Omit<OwidGdocInterface, "createdAt" | "publishedAt" | "updatedAt"> {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
 }
 
-export interface OwidDocumentLinkJSON {
-    source: OwidDocumentInterface
+export interface OwidGdocLinkJSON {
+    source: OwidGdocInterface
     linkType: "gdoc" | "url"
     target: string
     componentType: string
@@ -961,10 +958,10 @@ export interface OwidDocumentLinkJSON {
  * See ../adminSiteClient/gdocsValidation/getErrors() where these existence
  * constraints are surfaced at runtime on the draft article
  */
-export interface OwidDocumentPublished extends OwidDocumentInterface {
+export interface OwidGdocPublished extends OwidGdocInterface {
     publishedAt: Date
     updatedAt: Date
-    content: OwidDocumentContentPublished
+    content: OwidGdocContentPublished
 }
 
 export interface OwidArticleBackportingStatistics {
@@ -975,9 +972,9 @@ export interface OwidArticleBackportingStatistics {
     wpTagCounts: Record<string, number>
 }
 
-export interface OwidDocumentContent {
-    body?: OwidEnrichedDocumentBlock[]
-    type?: OwidDocumentType
+export interface OwidGdocContent {
+    body?: OwidEnrichedGdocBlock[]
+    type?: OwidGdocType
     title?: string
     supertitle?: string
     subtitle?: string
@@ -1012,14 +1009,14 @@ export interface OwidDocumentContent {
     "featured-image"?: any
 }
 
-export interface OwidDocumentContentPublished extends OwidDocumentContent {
-    body: OwidEnrichedDocumentBlock[]
+export interface OwidGdocContentPublished extends OwidGdocContent {
+    body: OwidEnrichedGdocBlock[]
     title: string
     byline: string
     excerpt: string
 }
 
-export type GdocsPatch = Partial<OwidDocumentInterface>
+export type GdocsPatch = Partial<OwidGdocInterface>
 
 export enum GdocsContentSource {
     Internal = "internal",
