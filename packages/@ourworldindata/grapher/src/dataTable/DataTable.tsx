@@ -69,9 +69,13 @@ const columnNameByType: Record<ColumnKey, string> = {
 const inverseSortOrder = (order: SortOrder): SortOrder =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 
-const countryNames = countries.map(c => c.name).concat(
-    historicalCountries.map(c => [c.name, ...(c.variantNames ?? [])]).flat()
-)
+const countryNames = countries
+    .map((c) => c.name)
+    .concat(
+        historicalCountries
+            .map((c) => [c.name, ...(c.variantNames ?? [])])
+            .flat()
+    )
 
 export interface DataTableManager {
     table: OwidTable
