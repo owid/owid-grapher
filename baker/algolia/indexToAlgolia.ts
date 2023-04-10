@@ -8,14 +8,14 @@ import {
     FormattedPost,
     isEmpty,
     keyBy,
-    OwidArticleTypePublished,
+    type RawPageview,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { htmlToText } from "html-to-text"
 import { PageRecord, PageType } from "../../site/search/searchTypes.js"
-import { Pageview, RawPageview } from "../../db/model/Pageview.js"
+import { Pageview } from "../../db/model/Pageview.js"
 import { Gdoc } from "../../db/model/Gdoc/Gdoc.js"
 import ArticleBlock from "../../site/gdocs/ArticleBlock.js"
 import React from "react"
