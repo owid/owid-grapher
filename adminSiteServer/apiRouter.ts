@@ -54,7 +54,6 @@ import {
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
 import { Gdoc, Tag } from "../db/model/Gdoc/Gdoc.js"
-import { GdocXTag } from "../db/model/GdocXTag.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
