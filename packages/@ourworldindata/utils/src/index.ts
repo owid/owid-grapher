@@ -166,6 +166,7 @@ export {
     type Year,
     type PostRowWithGdocPublishStatus,
     ToleranceStrategy,
+    type RawPageview,
 } from "./owidTypes.js"
 
 export {
