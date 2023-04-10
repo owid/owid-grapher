@@ -1061,3 +1061,13 @@ export enum ToleranceStrategy {
     backwards = "backwards",
     forwards = "forwards",
 }
+
+/**
+ * Pageview information about a single URL
+ */
+export interface RawPageview {
+    day: Date
+    url: string
+    views_7d: number
+    views_14d: number
+}

@@ -11,4 +11,5 @@ export interface HeaderManager {
     canonicalUrl?: string
     tabBounds?: Bounds
     detailsOrderedByReference?: { category: string; term: string }[]
+    shouldIncludeDetailsInStaticExport?: boolean
 }

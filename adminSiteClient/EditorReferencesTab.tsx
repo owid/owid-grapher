@@ -4,7 +4,7 @@ import { ChartEditor, ChartRedirect } from "./ChartEditor.js"
 import { computed, action, observable, runInAction } from "mobx"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { stringifyUnkownError } from "@ourworldindata/utils"
+import { stringifyUnkownError, formatValue } from "@ourworldindata/utils"
 
 const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 
@@ -23,13 +23,41 @@ export class EditorReferencesTab extends React.Component<{
         return this.props.editor.redirects || []
     }
 
+    @computed get pageviews() {
+        return this.props.editor.pageviews
+    }
+
     @action.bound appendRedirect(redirect: ChartRedirect) {
         this.props.editor.manager.redirects.push(redirect)
+    }
+
+    renderPageview(views: number | undefined) {
+        return views !== undefined
+            ? formatValue(views, { unit: "views" })
+            : "No data"
     }
 
     render() {
         return (
             <div>
+                <section>
+                    <h5>Pageviews</h5>
+                    <div>
+                        <div>
+                            <strong>Last 7 days:</strong>{" "}
+                            {this.renderPageview(this.pageviews?.views_7d)}
+                        </div>
+                        <div>
+                            <strong>Last 14 days:</strong>{" "}
+                            {this.renderPageview(this.pageviews?.views_14d)}
+                        </div>
+                    </div>
+                    <small className="form-text text-muted">
+                        Pageview numbers are inaccurate when the chart has been
+                        published or renamed recently. The numbers are updated
+                        nightly.
+                    </small>
+                </section>
                 <section>
                     <h5>References</h5>
                     {this.references.length ? (
