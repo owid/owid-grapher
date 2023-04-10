@@ -30,7 +30,7 @@ export const Footnote = ({
                 )
             }
             interactive
-            placement="auto"
+            placement="bottom"
             theme="owid-footnote"
             trigger="mouseenter focus click"
             triggerTarget={triggerTarget}

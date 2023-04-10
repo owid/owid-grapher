@@ -52,13 +52,15 @@ const mockSiteRouter = Router()
 mockSiteRouter.use(express.urlencoded({ extended: true }))
 mockSiteRouter.use(express.json())
 
-mockSiteRouter.get("/sitemap.xml", async (req, res) =>
+mockSiteRouter.get("/sitemap.xml", async (req, res) => {
+    res.set("Content-Type", "application/xml")
     res.send(await makeSitemap(explorerAdminServer))
-)
+})
 
-mockSiteRouter.get("/atom.xml", async (req, res) =>
+mockSiteRouter.get("/atom.xml", async (req, res) => {
+    res.set("Content-Type", "application/xml")
     res.send(await makeAtomFeed())
-)
+})
 
 mockSiteRouter.get("/entries-by-year", async (req, res) =>
     res.send(await entriesByYearPage())
@@ -88,9 +90,7 @@ mockSiteRouter.get(
 )
 
 mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
-    res.contentType("text/javascript").send(
-        generateEmbedSnippet(BAKED_BASE_URL)
-    )
+    res.contentType("text/javascript").send(generateEmbedSnippet())
 })
 
 const explorerAdminServer = new ExplorerAdminServer(GIT_CMS_DIR)

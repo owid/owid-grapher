@@ -92,7 +92,7 @@ const fetchAll = async () => {
 
             return {
                 ...commit,
-                commitSha: commit.commitSha.substr(0, 7),
+                commitSha: commit.commitSha.substring(0, 7),
                 commitDate:
                     response?.author?.date && new Date(response.author.date),
                 commitAuthor: response?.author?.name,
@@ -108,19 +108,21 @@ if (args._[0]) {
     // fetch information for one specific server
     const server = args._[0]
     fetchCommitSha(server)
-        .then(async (headSha) => {
+        .then(async ({ commitSha }) => {
             if (showTree)
                 await execWrapper(
-                    `git log -10 --graph --oneline --decorate --color=always ${headSha}`
+                    `git log -10 --graph --oneline --decorate --color=always ${commitSha}`
                 )
 
             if (showTree && showCommit) console.log()
 
             if (showCommit)
-                await execWrapper(`git show --stat --color=always ${headSha}`)
+                await execWrapper(`git show --stat --color=always ${commitSha}`)
 
             if (openInBrowser)
-                opener(`https://github.com/owid/owid-grapher/commit/${headSha}`)
+                opener(
+                    `https://github.com/owid/owid-grapher/commit/${commitSha}`
+                )
         })
         .catch((err) =>
             console.error(

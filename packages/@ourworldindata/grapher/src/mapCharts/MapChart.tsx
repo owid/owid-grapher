@@ -179,7 +179,8 @@ export class MapChart
             .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
-                this.mapConfig.timeTolerance
+                this.mapConfig.timeTolerance,
+                this.mapConfig.toleranceStrategy
             )
     }
 

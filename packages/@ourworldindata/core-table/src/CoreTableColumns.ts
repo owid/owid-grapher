@@ -22,6 +22,7 @@ import {
     ColumnSlug,
     PrimitiveType,
     imemo,
+    ToleranceStrategy,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import { Time, JsTypes, CoreValueType } from "./CoreTableConstants.js"
@@ -153,6 +154,10 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @imemo get tolerance(): number {
         return this.display?.tolerance ?? this.def.tolerance ?? 0
+    }
+
+    @imemo get toleranceStrategy(): ToleranceStrategy | undefined {
+        return this.def.toleranceStrategy
     }
 
     @imemo get domain(): [JS_TYPE, JS_TYPE] {

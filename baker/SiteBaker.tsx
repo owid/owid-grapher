@@ -2,8 +2,7 @@ import * as fs from "fs-extra"
 import { writeFile } from "node:fs/promises"
 import * as path from "path"
 import * as glob from "glob"
-import { keyBy, without } from "lodash"
-import * as lodash from "lodash"
+import { keyBy, without, uniq } from "lodash"
 import * as cheerio from "cheerio"
 import fetch from "node-fetch"
 import ProgressBar from "progress"
@@ -65,26 +64,70 @@ import { Gdoc } from "../db/model/Gdoc/Gdoc.js"
 import { Image } from "../db/model/Image.js"
 import sharp from "sharp"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
-import { BAKED_BASE_URL } from "../settings/clientSettings.js"
+
+// These aren't all "wordpress" steps
+// But they're only run when you have the full stack available
+const wordpressSteps = [
+    "assets",
+    "blogIndex",
+    "embeds",
+    "googleScholar",
+    "redirects",
+    "rss",
+    "wordpressPosts",
+] as const
+
+const nonWordpressSteps = [
+    "specialPages",
+    "countries",
+    "countryProfiles",
+    "charts",
+    "gdocPosts",
+    "gdriveImages",
+] as const
+
+export const bakeSteps = [...wordpressSteps, ...nonWordpressSteps]
+
+export type BakeStep = (typeof bakeSteps)[number]
+
+export type BakeStepConfig = Set<BakeStep>
+
+const defaultSteps = new Set(bakeSteps)
+
+function getProgressBarTotal(bakeSteps: BakeStepConfig): number {
+    // There are 3 non-optional steps: flushCache, removeDeletedPosts, and flushCache (again)
+    const minimum = 3
+    let total = minimum + bakeSteps.size
+    // Redirects has two progress bar ticks
+    if (bakeSteps.has("redirects")) total++
+    return total
+}
 
 export class SiteBaker {
     private grapherExports!: GrapherExports
     private bakedSiteDir: string
     baseUrl: string
     progressBar: ProgressBar
+    bakeSteps: BakeStepConfig
 
-    constructor(bakedSiteDir: string, baseUrl: string) {
+    constructor(
+        bakedSiteDir: string,
+        baseUrl: string,
+        bakeSteps: BakeStepConfig = defaultSteps
+    ) {
         this.bakedSiteDir = bakedSiteDir
         this.baseUrl = baseUrl
+        this.bakeSteps = bakeSteps
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                total: 18,
+                total: getProgressBarTotal(bakeSteps),
             }
         )
     }
 
     private async bakeEmbeds() {
+        if (!this.bakeSteps.has("embeds")) return
         // Find all grapher urls used as embeds in all posts on the site
         const rows = await wpdb.singleton.query(
             `SELECT post_content FROM wp_posts WHERE (post_type='page' OR post_type='post' OR post_type='wp_block') AND post_status='publish'`
@@ -101,7 +144,7 @@ export class SiteBaker {
                     .map((el) => el.attribs["src"].trim())
             )
         }
-        grapherUrls = lodash.uniq(grapherUrls)
+        grapherUrls = uniq(grapherUrls)
 
         await bakeGrapherUrls(grapherUrls)
 
@@ -110,6 +153,7 @@ export class SiteBaker {
     }
 
     private async bakeCountryProfiles() {
+        if (!this.bakeSteps.has("countryProfiles")) return
         countryProfileSpecs.forEach(async (spec) => {
             // Delete all country profiles before regenerating them
             await fs.remove(`${this.bakedSiteDir}/${spec.rootPath}`)
@@ -219,6 +263,7 @@ export class SiteBaker {
     }
 
     private async bakePosts() {
+        if (!this.bakeSteps.has("wordpressPosts")) return
         // In the backporting workflow, the users create gdoc posts for posts. As long as these are not yet published,
         // we still want to bake them from the WP posts. Once the users presses publish there though, we want to stop
         // baking them from the wordpress post. Here we fetch all the slugs of posts that have been published via gdocs
@@ -251,6 +296,7 @@ export class SiteBaker {
 
     // Bake all GDoc posts
     async bakeGDocPosts() {
+        if (!this.bakeSteps.has("gdocPosts")) return
         const publishedGdocs = await Gdoc.getPublishedGdocs()
 
         // Prefetch publishedGdocs and imageMetadata instead of each instance fetching
@@ -280,6 +326,7 @@ export class SiteBaker {
 
     // Bake unique individual pages
     private async bakeSpecialPages() {
+        if (!this.bakeSteps.has("specialPages")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/index.html`,
             await renderFrontPage()
@@ -328,6 +375,7 @@ export class SiteBaker {
 
     // Pages that are expected by google scholar for indexing
     private async bakeGoogleScholar() {
+        if (!this.bakeSteps.has("googleScholar")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/entries-by-year/index.html`,
             await entriesByYearPage()
@@ -356,6 +404,7 @@ export class SiteBaker {
 
     // Bake the blog index
     private async bakeBlogIndex() {
+        if (!this.bakeSteps.has("blogIndex")) return
         const allPosts = await wpdb.getBlogIndex()
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
@@ -369,6 +418,7 @@ export class SiteBaker {
 
     // Bake the RSS feed
     private async bakeRSS() {
+        if (!this.bakeSteps.has("rss")) return
         await this.stageWrite(
             `${this.bakedSiteDir}/atom.xml`,
             await makeAtomFeed()
@@ -377,6 +427,7 @@ export class SiteBaker {
     }
 
     private async bakeDriveImages() {
+        if (!this.bakeSteps.has("gdriveImages")) return
         const images: Image[] = await db
             .queryMysql(
                 `SELECT * FROM images WHERE id IN (SELECT DISTINCT imageId FROM posts_gdocs_x_images)`
@@ -447,6 +498,7 @@ export class SiteBaker {
 
     // Bake the static assets
     private async bakeAssets() {
+        if (!this.bakeSteps.has("assets")) return
         await execWrapper(
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${this.bakedSiteDir}/`
         )
@@ -460,13 +512,14 @@ export class SiteBaker {
 
         await fs.writeFile(
             `${this.bakedSiteDir}/grapher/embedCharts.js`,
-            generateEmbedSnippet(BAKED_BASE_URL)
+            generateEmbedSnippet()
         )
         this.stage(`${this.bakedSiteDir}/grapher/embedCharts.js`)
         this.progressBar.tick({ name: "✅ baked assets" })
     }
 
     async bakeRedirects() {
+        if (!this.bakeSteps.has("redirects")) return
         const redirects = await getRedirects()
         this.progressBar.tick({ name: "✅ got redirects" })
         await this.stageWrite(
@@ -487,24 +540,32 @@ export class SiteBaker {
     }
 
     private async _bakeNonWordpressPages() {
-        await bakeCountries(this)
+        if (this.bakeSteps.has("countries")) {
+            await bakeCountries(this)
+        }
         await this.bakeSpecialPages()
         await this.bakeCountryProfiles()
-        await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
-            this.bakedSiteDir
-        )
-        this.progressBar.tick({
-            name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
-        })
+        if (this.bakeSteps.has("charts")) {
+            await bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers(
+                this.bakedSiteDir
+            )
+            this.progressBar.tick({
+                name: "✅ bakeAllChangedGrapherPagesVariablesPngSvgAndDeleteRemovedGraphers",
+            })
+        }
         await this.bakeGDocPosts()
         await this.bakeDriveImages()
     }
 
     async bakeNonWordpressPages() {
+        await db.getConnection()
+        const progressBarTotal = nonWordpressSteps
+            .map((step) => this.bakeSteps.has(step))
+            .filter((hasStep) => hasStep).length
         this.progressBar = new ProgressBar(
             "BakeAll [:bar] :current/:total :elapseds :name\n",
             {
-                total: 5,
+                total: progressBarTotal,
             }
         )
         await this._bakeNonWordpressPages()

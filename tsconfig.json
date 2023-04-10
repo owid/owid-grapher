@@ -17,6 +17,7 @@
         { "path": "./devTools/svgTester" },
         { "path": "./devTools/schemaProcessor" },
         { "path": "./devTools/dodParserTestGenerator" },
+        { "path": "./devTools/uploadWordpressImagesToObjStorage" },
         { "path": "./devTools/explorerTools" }
     ]
 }

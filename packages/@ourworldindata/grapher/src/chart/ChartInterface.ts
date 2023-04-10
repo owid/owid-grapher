@@ -1,5 +1,9 @@
 import { Color, OwidTable } from "@ourworldindata/core-table"
-import { FacetStrategy, SeriesName } from "../core/GrapherConstants"
+import {
+    FacetStrategy,
+    SeriesName,
+    SeriesStrategy,
+} from "../core/GrapherConstants"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
@@ -22,6 +26,7 @@ export interface ChartInterface {
 
     colorScale?: ColorScale
 
+    seriesStrategy?: SeriesStrategy
     series: readonly ChartSeries[] // This points to the marks that the chart will render. They don't have to be placed yet. Standardized as part of the interface as a development aid.
     // Todo: should all charts additionally have a placedSeries: ChartPlacedSeries[] getter?
 

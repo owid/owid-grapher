@@ -54,6 +54,7 @@ import {
 import { Dataset } from "../db/model/Dataset.js"
 import { User } from "../db/model/User.js"
 import { Gdoc, Tag } from "../db/model/Gdoc/Gdoc.js"
+import { Pageview } from "../db/model/Pageview.js"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
@@ -490,6 +491,24 @@ apiRouter.get(
     })
 )
 
+apiRouter.get(
+    "/charts/:chartId.pageviews.json",
+    async (req: Request, res: Response) => {
+        const slug = await Chart.getById(
+            parseInt(req.params.chartId as string)
+        ).then((chart) => chart?.config?.slug)
+        if (!slug) return {}
+
+        const pageviewsByUrl = await Pageview.findOneBy({
+            url: `https://ourworldindata.org/grapher/${slug}`,
+        })
+
+        return {
+            pageviews: pageviewsByUrl ?? undefined,
+        }
+    }
+)
+
 apiRouter.get("/topics.json", async (req: Request, res: Response) => ({
     topics: await wpdb.getTopics(),
 }))
@@ -755,7 +774,7 @@ apiRouter.get(
             `
             SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
                 scr.suggestedReason, scr.decisionReason, scr.status,
-                scr.suggestedConfig, scr.originalConfig,
+                scr.suggestedConfig, scr.originalConfig, scr.changesInDataSummary,
                 createdByUser.id as createdById,
                 updatedByUser.id as updatedById,
                 createdByUser.fullName as createdByFullName,
@@ -827,6 +846,9 @@ apiRouter.post(
         const status = SuggestedChartRevisionStatus.pending
         const suggestedReason = req.body.suggestedReason
             ? String(req.body.suggestedReason)
+            : null
+        const changesInDataSummary = req.body.changesInDataSummary
+            ? String(req.body.changesInDataSummary)
             : null
         const convertStringsToNull =
             typeof req.body.convertStringsToNull == "boolean"
@@ -1086,6 +1108,7 @@ apiRouter.post(
                         JSON.stringify(suggestedConfig),
                         JSON.stringify(originalConfig),
                         suggestedReason,
+                        changesInDataSummary,
                         status,
                         res.locals.user.id,
                         new Date(),
@@ -1098,7 +1121,7 @@ apiRouter.post(
             const result = await t.execute(
                 `
                 INSERT INTO suggested_chart_revisions
-                (chartId, suggestedConfig, originalConfig, suggestedReason, status, createdBy, createdAt, updatedAt)
+                (chartId, suggestedConfig, originalConfig, suggestedReason, changesInDataSummary, status, createdBy, createdAt, updatedAt)
                 VALUES
                 ?
                 `,
@@ -1135,7 +1158,7 @@ apiRouter.get(
             `
             SELECT scr.id, scr.chartId, scr.updatedAt, scr.createdAt,
                 scr.suggestedReason, scr.decisionReason, scr.status,
-                scr.suggestedConfig, scr.originalConfig,
+                scr.suggestedConfig, scr.changesInDataSummary, scr.originalConfig,
                 createdByUser.id as createdById,
                 updatedByUser.id as updatedById,
                 createdByUser.fullName as createdByFullName,
@@ -2697,7 +2720,7 @@ apiRouter.get("/gdocs/:id", async (req, res) => {
         res.set("Cache-Control", "no-store")
         res.send(gdoc)
     } catch (error) {
-        throw new JsonError(`Error fetching document ${error}`, 500)
+        res.status(500).json({ error: { message: String(error), status: 500 } })
     }
 })
 
@@ -2730,7 +2753,8 @@ apiRouter.put("/gdocs/:id", async (req, res) => {
     const filenames = nextGdoc.filenames
 
     if (filenames.length && nextGdoc.published) {
-        const images = await imageStore.syncImagesToS3(filenames)
+        await imageStore.fetchImageMetadata(filenames)
+        const images = await imageStore.syncImagesToS3()
         for (const image of images) {
             if (image) {
                 try {

@@ -48,6 +48,7 @@ import {
 } from "./VisionDeficiencies.js"
 import { EditorMarimekkoTab } from "./EditorMarimekkoTab.js"
 import { get, has, set } from "lodash"
+import { RawPageview } from "@ourworldindata/utils/dist/owidTypes.js"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -106,6 +107,7 @@ export class ChartEditorPage
     @observable logs: Log[] = []
     @observable references: PostReference[] = []
     @observable redirects: ChartRedirect[] = []
+    @observable pageviews?: RawPageview = undefined
     @observable allTopics: Topic[] = []
     @observable details: GrapherInterface["details"] = {}
 
@@ -195,6 +197,16 @@ export class ChartEditorPage
         runInAction(() => (this.redirects = json.redirects))
     }
 
+    async fetchPageviews(): Promise<void> {
+        const { grapherId } = this.props
+        const { admin } = this.context
+        const json =
+            grapherId === undefined
+                ? []
+                : await admin.getJSON(`/api/charts/${grapherId}.pageviews.json`)
+        runInAction(() => (this.pageviews = json.pageviews))
+    }
+
     async fetchTopics(): Promise<void> {
         const { admin } = this.context
         const json = await admin.getJSON(`/api/topics.json`)
@@ -272,6 +284,7 @@ export class ChartEditorPage
         this.fetchLogs()
         this.fetchRefs()
         this.fetchRedirects()
+        this.fetchPageviews()
         this.fetchTopics()
     }
 

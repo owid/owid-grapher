@@ -12,6 +12,7 @@ import {
     maxTimeToJSON,
     trimObject,
     NoUndefinedValues,
+    ToleranceStrategy,
 } from "@ourworldindata/utils"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
@@ -21,6 +22,7 @@ class MapConfigDefaults {
     @observable columnSlug?: ColumnSlug
     @observable time?: number
     @observable timeTolerance?: number
+    @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
     @observable projection = MapProjectionName.World
 

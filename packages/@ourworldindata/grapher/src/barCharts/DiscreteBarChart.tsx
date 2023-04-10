@@ -546,7 +546,7 @@ export class DiscreteBarChart
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
-    @computed private get seriesStrategy(): SeriesStrategy {
+    @computed get seriesStrategy(): SeriesStrategy {
         const autoStrategy = autoDetectSeriesStrategy(this.manager, true)
         // TODO this is an inconsistency between LineChart and DiscreteBar.
         // We should probably make it consistent at some point.

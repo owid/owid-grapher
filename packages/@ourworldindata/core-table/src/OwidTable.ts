@@ -22,6 +22,7 @@ import {
     TimeBound,
     ColumnSlug,
     imemo,
+    ToleranceStrategy,
 } from "@ourworldindata/utils"
 import {
     Integer,
@@ -625,7 +626,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const newTimes = withAllRows
             .get(timeColumnSlug)
             .valuesIncludingErrorValues.slice() as Time[]
-
         groupBoundaries.forEach((_, index) => {
             interpolation(
                 newValues,
@@ -646,7 +646,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // There are finicky details in both of them that complicate this
     interpolateColumnWithTolerance(
         columnSlug: ColumnSlug,
-        toleranceOverride?: number
+        toleranceOverride?: number,
+        toleranceStrategyOverride?: ToleranceStrategy
     ): this {
         // If the column doesn't exist, return the table unchanged.
         if (!this.has(columnSlug)) return this
@@ -654,6 +655,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const column = this.get(columnSlug)
         const columnDef = column.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column.tolerance ?? 0
+        const toleranceStrategy =
+            toleranceStrategyOverride ??
+            column.toleranceStrategy ??
+            ToleranceStrategy.closest
 
         const timeColumnOfTable = !this.timeColumn.isMissing
             ? this.timeColumn
@@ -673,12 +678,27 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 timeColumnOfTable.slug,
             ]).sortBy([this.entityNameSlug, timeColumnOfTable.slug])
 
+            const interpolateInBothDirections =
+                !toleranceStrategy ||
+                toleranceStrategy === ToleranceStrategy.closest
+            const interpolateBackwards =
+                interpolateInBothDirections ||
+                toleranceStrategy === ToleranceStrategy.backwards
+            const interpolateForwards =
+                interpolateInBothDirections ||
+                toleranceStrategy === ToleranceStrategy.forwards
+
             const interpolationResult = this.interpolate(
                 withAllRows,
                 columnSlug,
                 timeColumnOfValue.slug,
                 toleranceInterpolation,
-                { timeTolerance: tolerance }
+                {
+                    timeToleranceBackwards: interpolateBackwards
+                        ? tolerance
+                        : 0,
+                    timeToleranceForwards: interpolateForwards ? tolerance : 0,
+                }
             )
 
             columnStore = {
@@ -702,6 +722,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 {
                     ...timeColumnOfValue.def,
                     slug: originalTimeSlug,
+                    display: {
+                        includeInTable: false,
+                    },
                 },
             ],
             `Interpolated values in column ${columnSlug} with tolerance ${tolerance} and appended column ${originalTimeSlug} with the original times`,

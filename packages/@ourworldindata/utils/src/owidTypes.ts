@@ -563,11 +563,23 @@ export type EnrichedBlockChartStory = {
     items: EnrichedChartStoryItem[]
 } & EnrichedBlockWithParseErrors
 
+export enum BlockImageSize {
+    Narrow = "narrow",
+    Wide = "wide",
+}
+
+export function checkIsBlockImageSize(size: unknown): size is BlockImageSize {
+    if (typeof size !== "string") return false
+    return Object.values(BlockImageSize).includes(size as any)
+}
+
 export type RawBlockImage = {
     type: "image"
     value: {
         filename?: string
         alt?: string
+        caption?: string
+        size?: BlockImageSize
     }
 }
 
@@ -575,7 +587,9 @@ export type EnrichedBlockImage = {
     type: "image"
     filename: string
     alt?: string // optional as we can use the default alt from the file
+    caption?: Span[]
     originalWidth?: number
+    size: BlockImageSize
 } & EnrichedBlockWithParseErrors
 
 // TODO: This is what lists staring with * are converted to in gdocToArhcieml
@@ -1041,4 +1055,23 @@ export type TimeBounds = [TimeBound, TimeBound]
 export enum TimeBoundValue {
     negativeInfinity = -Infinity,
     positiveInfinity = Infinity,
+}
+
+/**
+ * Time tolerance strategy used for maps
+ */
+export enum ToleranceStrategy {
+    closest = "closest",
+    backwards = "backwards",
+    forwards = "forwards",
+}
+
+/**
+ * Pageview information about a single URL
+ */
+export interface RawPageview {
+    day: Date
+    url: string
+    views_7d: number
+    views_14d: number
 }

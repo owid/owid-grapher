@@ -43,7 +43,7 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     rows?: number
     softCharacterLimit?: number
     errorMessage?: string
-    buttonText?: string
+    buttonContent?: React.ReactNode
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -63,10 +63,11 @@ export class TextField extends React.Component<TextFieldProps> {
         }
     }
 
-    @bind onBlur() {
+    @bind onBlur(e: React.FocusEvent<HTMLInputElement>) {
         const { value = "" } = this.props
         const trimmedValue = value.trim()
         this.props.onValue(trimmedValue)
+        this.props.onBlur?.(e)
     }
 
     componentDidMount() {
@@ -83,7 +84,6 @@ export class TextField extends React.Component<TextFieldProps> {
             "title",
             "disabled",
             "required",
-            "onBlur",
         ])
 
         return (
@@ -101,16 +101,18 @@ export class TextField extends React.Component<TextFieldProps> {
                         onKeyDown={this.onKeyDown}
                         {...passthroughProps}
                     />
-                    {props.buttonText && (
-                        <button
-                            className="btn btn-outline-secondary"
-                            type="button"
-                            onClick={() =>
-                                props.onButtonClick && props.onButtonClick()
-                            }
-                        >
-                            {props.buttonText}
-                        </button>
+                    {props.buttonContent && (
+                        <div className="input-group-append">
+                            <button
+                                className="btn btn-outline-secondary"
+                                type="button"
+                                onClick={() =>
+                                    props.onButtonClick && props.onButtonClick()
+                                }
+                            >
+                                {props.buttonContent}
+                            </button>
+                        </div>
                     )}
                 </div>
                 {props.helpText && (
@@ -192,12 +194,15 @@ interface NumberFieldProps {
     allowDecimal?: boolean
     allowNegative?: boolean
     onValue: (value: number | undefined) => void
+    onBlur?: () => void
     onEnter?: () => void
     onEscape?: () => void
     placeholder?: string
     title?: string
     disabled?: boolean
     helpText?: string
+    buttonContent?: React.ReactNode
+    onButtonClick?: () => void
 }
 
 interface NumberFieldState {
@@ -235,10 +240,12 @@ export class NumberField extends React.Component<
                 this.setState({ inputValue: inputMatches ? undefined : value })
                 props.onValue(isNumber ? asNumber : undefined)
             },
-            onBlur: () =>
+            onBlur: () => {
                 this.setState({
                     inputValue: undefined,
-                }),
+                })
+                this.props.onBlur?.()
+            },
         }
 
         return <TextField {...textFieldProps} />
@@ -610,20 +617,12 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
         const { props } = this
 
         return (
-            <div className="form-group AutoTextField">
-                {props.label && <label>{props.label}</label>}
-                <div className="input-group mb-2 mb-sm-0">
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={props.value}
-                        placeholder={props.placeholder}
-                        onChange={(e) => props.onValue(e.currentTarget.value)}
-                        onBlur={props.onBlur}
-                    />
+            <TextField
+                {...props}
+                value={props.isAuto ? undefined : props.value}
+                placeholder={props.isAuto ? props.value : undefined}
+                buttonContent={
                     <div
-                        className="input-group-addon"
-                        onClick={() => props.onToggleAuto(!props.isAuto)}
                         title={
                             props.isAuto ? "Automatic default" : "Manual input"
                         }
@@ -634,19 +633,9 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
                             <FontAwesomeIcon icon={faUnlink} />
                         )}
                     </div>
-                </div>
-                {props.helpText && (
-                    <small className="form-text text-muted">
-                        {props.helpText}
-                    </small>
-                )}
-                {props.softCharacterLimit && props.value && (
-                    <SoftCharacterLimit
-                        text={props.value}
-                        limit={props.softCharacterLimit}
-                    />
-                )}
-            </div>
+                }
+                onButtonClick={() => props.onToggleAuto(!props.isAuto)}
+            />
         )
     }
 }
@@ -663,7 +652,7 @@ export class BindString extends React.Component<{
     disabled?: boolean
     rows?: number
     errorMessage?: string
-    buttonText?: string
+    buttonContent?: React.ReactChild
     onButtonClick?: () => void
 }> {
     @action.bound onValue(value: string = "") {
@@ -727,6 +716,7 @@ export class BindAutoString<
     @action.bound onBlur() {
         const trimmedValue = this.props.store[this.props.field]?.trim()
         this.props.store[this.props.field] = trimmedValue
+        this.props.onBlur?.()
     }
 
     render() {
@@ -740,9 +730,9 @@ export class BindAutoString<
                 value={value === undefined ? auto : value}
                 isAuto={value === undefined}
                 onValue={this.onValue}
-                onBlur={this.onBlur}
                 onToggleAuto={this.onToggleAuto}
                 {...rest}
+                onBlur={this.onBlur}
             />
         )
     }
@@ -762,17 +752,29 @@ class AutoFloatField extends React.Component<AutoFloatFieldProps> {
     render() {
         const { props } = this
 
-        const textFieldProps = {
-            ...props,
-            value: props.isAuto ? undefined : props.value.toString(),
-            onValue: (value: string) => {
-                const asNumber = parseFloat(value)
-                props.onValue(isNaN(asNumber) ? undefined : asNumber)
-            },
-            placeholder: props.isAuto ? props.value.toString() : undefined,
-        }
-
-        return <AutoTextField {...textFieldProps} />
+        return (
+            <NumberField
+                allowDecimal
+                allowNegative
+                {...props}
+                value={props.isAuto ? undefined : props.value}
+                placeholder={props.isAuto ? props.value.toString() : undefined}
+                buttonContent={
+                    <div
+                        title={
+                            props.isAuto ? "Automatic default" : "Manual input"
+                        }
+                    >
+                        {props.isAuto ? (
+                            <FontAwesomeIcon icon={faLink} />
+                        ) : (
+                            <FontAwesomeIcon icon={faUnlink} />
+                        )}
+                    </div>
+                }
+                onButtonClick={() => props.onToggleAuto(!props.isAuto)}
+            />
+        )
     }
 }
 
@@ -787,17 +789,7 @@ class FloatField extends React.Component<FloatFieldProps> {
     render() {
         const { props } = this
 
-        const textFieldProps = {
-            ...props,
-            value:
-                props.value === undefined ? undefined : props.value.toString(),
-            onValue: (value: string) => {
-                const asNumber = parseFloat(value)
-                props.onValue(isNaN(asNumber) ? undefined : asNumber)
-            },
-        }
-
-        return <TextField {...textFieldProps} />
+        return <NumberField {...props} allowDecimal allowNegative />
     }
 }
 

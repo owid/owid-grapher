@@ -10,6 +10,8 @@ export {
     AxisAlign,
     type BasicChartInformation,
     BLOCK_WRAPPER_DATATYPE,
+    BlockImageSize,
+    checkIsBlockImageSize,
     type BlockPositionChoice,
     type Box,
     type CategoryNode,
@@ -164,6 +166,8 @@ export {
     WP_PostType,
     type Year,
     type PostRowWithGdocPublishStatus,
+    ToleranceStrategy,
+    type RawPageview,
 } from "./owidTypes.js"
 
 export {
