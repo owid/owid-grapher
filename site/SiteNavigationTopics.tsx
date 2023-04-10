@@ -11,6 +11,7 @@ import { SiteNavigationTopic } from "./SiteNavigationTopic.js"
 // this is ok here because the layout effect below doesn't do anything until an
 // other effect already triggered a paint, so there is no mismatch between the
 // server and client on first paint (which is what the warning is about)
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 if (typeof window === "undefined") React.useLayoutEffect = () => {}
 
 export const SiteNavigationTopics = ({
@@ -59,7 +60,7 @@ export const SiteNavigationTopics = ({
                     {topics.map((category) => (
                         <li key={category.slug}>
                             <button
-                                onClick={(e) => {
+                                onClick={() => {
                                     setActiveCategory(category)
                                 }}
                                 className={classnames({

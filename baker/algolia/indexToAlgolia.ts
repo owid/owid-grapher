@@ -8,7 +8,6 @@ import {
     FormattedPost,
     isEmpty,
     keyBy,
-    OwidArticleTypePublished,
 } from "@ourworldindata/utils"
 import { formatPost } from "../../baker/formatWordpressPost.js"
 import ReactDOMServer from "react-dom/server.js"
