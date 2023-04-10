@@ -7,7 +7,6 @@ export class PostsGdocsXTags1680210665372 implements MigrationInterface {
             gdocId VARCHAR(255) NOT NULL,
             tagId INT NOT NULL,
             PRIMARY KEY (gdocId,tagId),
-            KEY FK_post_tags_tag_id (tagId),
             CONSTRAINT FK_posts_gdocs_x_tags_gdoc_id FOREIGN KEY (gdocId) REFERENCES posts_gdocs (id) ON DELETE CASCADE ON UPDATE RESTRICT,
             CONSTRAINT FK_posts_gdocs_x_tags_tag_id FOREIGN KEY (tagId) REFERENCES tags (id) ON DELETE CASCADE ON UPDATE RESTRICT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_as_cs
