@@ -14,6 +14,7 @@ import {
     OwidEnrichedArticleBlock,
     spansToUnformattedPlainText,
     TocHeadingWithTitleSupertitle,
+    Url,
 } from "@ourworldindata/utils"
 import SDGGrid from "./SDGGrid.js"
 import { BlockErrorBoundary, BlockErrorFallback } from "./BlockErrorBoundary.js"
@@ -46,6 +47,7 @@ const layouts: { [key in Container]: Layouts} = {
         ["aside-right"]: "col-start-11 span-cols-3 span-md-cols-10 col-md-start-3",
         ["chart-story"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["chart"]: "col-start-4 span-cols-8 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
+        ["explorer"]: "col-start-3 span-cols-10 span-md-cols-12 col-md-start-2",
         ["default"]: "col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2",
         ["divider"]: "col-start-2 span-cols-12",
         ["gray-section"]: "span-cols-14 grid grid-cols-12-full-width",
@@ -74,21 +76,25 @@ const layouts: { [key in Container]: Layouts} = {
     },
     ["sticky-right-left-column"]: {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
+        ["explorer"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-5 col-start-1 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
     },
     ["sticky-right-right-column"]: {
         ["chart"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
+        ["explorer"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-7 span-md-cols-10 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
     },
     ["sticky-left-left-column"]: {
         ["chart"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
+        ["explorer"]: "span-cols-7 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-7 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 span-sm-cols-12 col-sm-start-1 grid-sm-cols-12",
     },
     ["sticky-left-right-column"]: {
         ["chart"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
+        ["explorer"]: "span-cols-5 col-start-1 span-md-cols-10 col-md-start-2 span-sm-cols-12 col-sm-start-1",
         ["default"]: "span-cols-5 span-md-cols-12",
         ["prominent-link"]: "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 grid-md-cols-10 span-sm-cols-12 col-sm-start-2 grid-sm-cols-12",
     },
@@ -147,9 +153,16 @@ export default function ArticleBlock({
                 ) : null}
             </figure>
         ))
-        .with({ type: "chart" }, (block) => (
-            <Chart className={getLayout("chart", containerType)} d={block} />
-        ))
+        .with({ type: "chart" }, (block) => {
+            const { isExplorer } = Url.fromURL(block.url)
+            const layoutSubtype = isExplorer ? "explorer" : "chart"
+            return (
+                <Chart
+                    className={getLayout(layoutSubtype, containerType)}
+                    d={block}
+                />
+            )
+        })
         .with({ type: "scroller" }, (block) => (
             <Scroller
                 className={getLayout("scroller", containerType)}
