@@ -137,6 +137,10 @@ export class ChartEditor {
         return this.manager.redirects
     }
 
+    @computed get pageviews() {
+        return this.manager.pageviews
+    }
+
     @computed get allTopics() {
         return this.manager.allTopics
     }
