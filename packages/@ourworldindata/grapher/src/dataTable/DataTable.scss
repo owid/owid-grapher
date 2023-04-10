@@ -41,7 +41,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
 .data-table {
     font-size: 0.9375rem;
-    line-height: 16px;
+    line-height: 1.333em;
     border: none;
     background: white;
     width: 100%;
@@ -101,6 +101,10 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     td {
         padding-left: 15px;
         padding-right: 15px;
+
+        &:not(.entity) {
+            vertical-align: bottom;
+        }
     }
 
     th.dimension {
