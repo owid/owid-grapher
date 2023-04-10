@@ -152,6 +152,7 @@ import {
     TimeBoundValue,
     OwidEnrichedDocumentBlock,
     Span,
+    OwidDocumentType,
 } from "./owidTypes.js"
 import { PointVector } from "./PointVector.js"
 import React from "react"
@@ -1407,4 +1408,10 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                 .exhaustive()
         )
         .join("")
+}
+
+export function checkIsOwidDocumentType(
+    documentType: unknown
+): documentType is OwidDocumentType {
+    return Object.values(OwidDocumentType).includes(documentType as any)
 }

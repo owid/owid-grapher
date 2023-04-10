@@ -906,7 +906,7 @@ export enum OwidDocumentPublicationContext {
     listed = "listed",
 }
 
-enum OwidDocumentType {
+export enum OwidDocumentType {
     Article = "article",
     TopicPage = "topic-page",
     Fragment = "fragment",
@@ -915,7 +915,6 @@ enum OwidDocumentType {
 export interface OwidDocument {
     id: string
     slug: string
-    // type: OwidDocumentType
     content: OwidDocumentContent
     published: boolean
     createdAt: Date
@@ -975,6 +974,7 @@ export interface OwidArticleBackportingStatistics {
 
 export interface OwidDocumentContent {
     body?: OwidEnrichedDocumentBlock[]
+    type?: OwidDocumentType
     title?: string
     supertitle?: string
     subtitle?: string

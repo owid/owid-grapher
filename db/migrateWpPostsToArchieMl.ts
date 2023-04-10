@@ -8,6 +8,7 @@ import {
     OwidDocument,
     sortBy,
     OwidArticleBackportingStatistics,
+    OwidDocumentType,
 } from "@ourworldindata/utils"
 import * as Post from "./model/Post.js"
 import fs from "fs"
@@ -92,6 +93,7 @@ const migrate = async (): Promise<void> => {
                     dateline: dateline,
                     // TODO: this discards block level elements - those might be needed?
                     refs: undefined,
+                    type: OwidDocumentType.Article,
                 },
                 published: false,
                 createdAt:

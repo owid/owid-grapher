@@ -3,6 +3,8 @@ import {
     OwidDocument,
     OwidDocumentErrorMessage,
     OwidDocumentErrorMessageType,
+    OwidDocumentType,
+    checkIsOwidDocumentType,
 } from "@ourworldindata/utils"
 
 interface Handler {
@@ -109,6 +111,21 @@ export class AttachmentsHandler extends AbstractHandler {
     }
 }
 
+export class DocumentTypeHandler extends AbstractHandler {
+    handle(gdoc: OwidDocument, messages: OwidDocumentErrorMessage[]) {
+        if (!gdoc.content.type || !checkIsOwidDocumentType(gdoc.content.type)) {
+            messages.push({
+                property: "content",
+                message: `Invalid or unset document type. Must be one-of: ${Object.values(
+                    OwidDocumentType
+                ).join(", ")}`,
+                type: OwidDocumentErrorMessageType.Error,
+            })
+        }
+        return super.handle(gdoc, messages)
+    }
+}
+
 // #gdocsvalidation Errors prevent saving published articles. Errors are only
 // raised in front-end admin code at the moment (search for
 // #gdocsvalidationclient in codebase), but should ultimately be performed in
@@ -127,6 +144,7 @@ export const getErrors = (gdoc: OwidDocument): OwidDocumentErrorMessage[] => {
         .setNext(new PublishedAtHandler())
         .setNext(new ExcerptHandler())
         .setNext(new AttachmentsHandler())
+        .setNext(new DocumentTypeHandler())
 
     bodyHandler.handle(gdoc, errors)
 

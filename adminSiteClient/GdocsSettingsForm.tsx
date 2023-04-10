@@ -23,7 +23,7 @@ export const GdocsSettingsForm = ({
     errors?: OwidDocumentErrorMessage[]
 }) => {
     const attachmentMessages = errors?.filter((error) =>
-        ["linkedDocuments", "imageMetadata"].includes(error.property)
+        ["linkedDocuments", "imageMetadata", "content"].includes(error.property)
     )
     const attachmentErrors =
         attachmentMessages?.filter(

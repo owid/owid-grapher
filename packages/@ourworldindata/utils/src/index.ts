@@ -83,6 +83,7 @@ export {
     OwidDocumentErrorMessageType,
     type OwidDocumentLinkJSON,
     type OwidDocument,
+    OwidDocumentType,
     type OwidDocumentJSON,
     type OwidDocumentPublished,
     type OwidEnrichedDocumentBlock,
@@ -273,6 +274,7 @@ export {
     checkNodeIsSpan,
     spansToUnformattedPlainText,
     findDuplicates,
+    checkIsOwidDocumentType,
 } from "./Util.js"
 
 export {

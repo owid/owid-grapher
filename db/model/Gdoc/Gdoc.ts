@@ -272,7 +272,7 @@ export class Gdoc extends BaseEntity implements OwidDocument {
             []
         )
 
-        this.errors = this.errors.concat([...filenameErrors, ...linkErrors])
+        this.errors = [...filenameErrors, ...linkErrors]
     }
 
     static async getGdocFromContentSource(
