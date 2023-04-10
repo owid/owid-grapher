@@ -1803,7 +1803,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bugsnag/core@npm:^7.17.0, @bugsnag/core@npm:^7.19.0":
+"@bugsnag/core@npm:^7.19.0":
   version: 7.19.0
   resolution: "@bugsnag/core@npm:7.19.0"
   dependencies:
@@ -1823,7 +1823,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bugsnag/js@npm:^7.0.0, @bugsnag/js@npm:^7.17.0, @bugsnag/js@npm:^7.20.0":
+"@bugsnag/js@npm:^7.0.0, @bugsnag/js@npm:^7.20.0":
   version: 7.20.0
   resolution: "@bugsnag/js@npm:7.20.0"
   dependencies:
@@ -1847,7 +1847,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bugsnag/plugin-react@npm:^7.17.0, @bugsnag/plugin-react@npm:^7.19.0":
+"@bugsnag/plugin-react@npm:^7.19.0":
   version: 7.19.0
   resolution: "@bugsnag/plugin-react@npm:7.19.0"
   peerDependencies:
@@ -4749,9 +4749,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ourworldindata/grapher@workspace:packages/@ourworldindata/grapher"
   dependencies:
-    "@bugsnag/core": ^7.17.0
-    "@bugsnag/js": ^7.17.0
-    "@bugsnag/plugin-react": ^7.17.0
+    "@bugsnag/core": ^7.19.0
+    "@bugsnag/js": ^7.20.0
+    "@bugsnag/plugin-react": ^7.19.0
     "@fortawesome/fontawesome-svg-core": ^6.2.0
     "@fortawesome/free-brands-svg-icons": ^6.2.0
     "@fortawesome/free-solid-svg-icons": ^6.2.0
