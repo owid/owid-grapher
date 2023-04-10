@@ -165,9 +165,10 @@ export const archieToEnriched = (text: string): OwidGdocContent => {
     parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
     parsed.refs = refs.map(htmlToEnrichedTextBlock)
     const summary: RawBlockText[] | undefined = parsed.summary
-    summary === undefined
-        ? undefined
-        : summary.map((html) => htmlToEnrichedTextBlock(html.value))
+    parsed.summary =
+        summary === undefined
+            ? undefined
+            : summary.map((html) => htmlToEnrichedTextBlock(html.value))
     const citation: string | string[] | undefined = parsed.citation
     parsed.citation =
         citation === undefined
